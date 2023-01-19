@@ -1,19 +1,24 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, VideoQualityMode},
+    channel::{
+        forum::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag},
+        permission_overwrite::PermissionOverwrite,
+        Channel, ChannelFlags, ChannelType, VideoQualityMode,
+    },
     id::{marker::ChannelMarker, Id},
 };
 use twilight_validate::{
     channel::{
-        bitrate as validate_bitrate, name as validate_name, topic as validate_topic,
-        ChannelValidationError,
+        bitrate as validate_bitrate, forum_topic as validate_forum_topic, name as validate_name,
+        topic as validate_topic, ChannelValidationError,
     },
     request::{audit_reason as validate_audit_reason, ValidationError},
 };
@@ -23,7 +28,22 @@ use twilight_validate::{
 #[derive(Serialize)]
 struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
+    available_tags: Option<&'a [ForumTag]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     bitrate: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_forum_layout: Option<ForumLayout>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_reaction_emoji: Option<Nullable<&'a DefaultReaction>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_sort_order: Option<Nullable<ForumSortOrder>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_thread_rate_limit_per_user: Option<Nullable<u16>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<ChannelFlags>,
+    #[serde(rename = "type")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    kind: Option<ChannelType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,9 +64,6 @@ struct UpdateChannelFields<'a> {
     user_limit: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     video_quality_mode: Option<VideoQualityMode>,
-    #[serde(rename = "type")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    kind: Option<ChannelType>,
 }
 
 /// Update a channel.
@@ -66,7 +83,14 @@ impl<'a> UpdateChannel<'a> {
         Self {
             channel_id,
             fields: UpdateChannelFields {
+                available_tags: None,
                 bitrate: None,
+                default_forum_layout: None,
+                default_reaction_emoji: None,
+                default_sort_order: None,
+                default_thread_rate_limit_per_user: None,
+                flags: None,
+                kind: None,
                 name: None,
                 nsfw: None,
                 parent_id: None,
@@ -77,11 +101,17 @@ impl<'a> UpdateChannel<'a> {
                 topic: None,
                 user_limit: None,
                 video_quality_mode: None,
-                kind: None,
             },
             http,
             reason: None,
         }
+    }
+
+    /// Set the available tags for the forum.
+    pub const fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
+        self.fields.available_tags = Some(available_tags);
+
+        self
     }
 
     /// For voice and stage channels, set the bitrate of the channel.
@@ -94,11 +124,98 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
     pub const fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_bitrate(bitrate) {
             return Err(source);
         }
 
         self.fields.bitrate = Some(bitrate);
+
+        Ok(self)
+    }
+
+    /// Set the default layout for forum channels.
+    pub const fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
+        self.fields.default_forum_layout = Some(default_forum_layout);
+
+        self
+    }
+
+    /// Set the default reaction emoji for new forum threads.
+    pub const fn default_reaction_emoji(
+        mut self,
+        default_reaction_emoji: Option<&'a DefaultReaction>,
+    ) -> Self {
+        self.fields.default_reaction_emoji = Some(Nullable(default_reaction_emoji));
+
+        self
+    }
+
+    /// Set the default sort order for forum channels.
+    pub const fn default_sort_order(mut self, default_sort_order: Option<ForumSortOrder>) -> Self {
+        self.fields.default_sort_order = Some(Nullable(default_sort_order));
+
+        self
+    }
+
+    /// Set the default number of seconds that a user must wait before before
+    /// they are able to send another message in new forum threads.
+    ///
+    /// The minimum is 0 and the maximum is 21600. This is also known as "Slow
+    /// Mode". See [Discord Docs/Channel Object].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the limit is
+    /// invalid.
+    ///
+    /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
+    /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
+    pub const fn default_thread_rate_limit_per_user(
+        mut self,
+        default_thread_rate_limit_per_user: Option<u16>,
+    ) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
+        if let Some(default_thread_rate_limit_per_user) = default_thread_rate_limit_per_user {
+            if let Err(source) =
+                twilight_validate::channel::rate_limit_per_user(default_thread_rate_limit_per_user)
+            {
+                return Err(source);
+            }
+        }
+
+        self.fields.default_thread_rate_limit_per_user =
+            Some(Nullable(default_thread_rate_limit_per_user));
+
+        Ok(self)
+    }
+
+    /// Set the flags of the channel, if supported.
+    pub const fn flags(mut self, flags: ChannelFlags) -> Self {
+        self.fields.flags = Some(flags);
+
+        self
+    }
+
+    /// Set the forum topic.
+    ///
+    /// The maximum length is 4096 UTF-16 characters. See
+    /// [Discord Docs/Channel Object].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ForumTopicInvalid`] if the channel type is
+    /// [`GuildForum`] and the topic is invalid.
+    ///
+    /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
+    /// [`ForumTopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::ForumTopicInvalid
+    /// [`GuildForum`]: twilight_model::channel::ChannelType::GuildForum
+    pub fn forum_topic(mut self, topic: Option<&'a str>) -> Result<Self, ChannelValidationError> {
+        if let Some(topic) = topic {
+            validate_forum_topic(topic)?;
+        }
+
+        self.fields.topic = topic;
 
         Ok(self)
     }
@@ -165,7 +282,7 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`RateLimitPerUserInvalid`] if the name is
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the limit is
     /// invalid.
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
@@ -174,6 +291,7 @@ impl<'a> UpdateChannel<'a> {
         mut self,
         rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = twilight_validate::channel::rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
         }
@@ -199,8 +317,7 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`TopicInvalid`] if the name is
-    /// invalid.
+    /// Returns an error of type [`TopicInvalid`] if the topic is invalid.
     ///
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     /// [`TopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TopicInvalid
@@ -234,7 +351,7 @@ impl<'a> UpdateChannel<'a> {
     /// Set the kind of channel.
     ///
     /// Only conversion between `ChannelType::GuildText` and
-    /// `ChannelType::GuildNews` is possible, and only if the guild has the
+    /// `ChannelType::GuildAnnouncement` is possible, and only if the guild has the
     /// `NEWS` feature enabled. See [Discord Docs/Modify Channel].
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
@@ -245,15 +362,9 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Channel> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -267,8 +378,23 @@ impl<'a> AuditLogReason<'a> for UpdateChannel<'a> {
     }
 }
 
+impl IntoFuture for UpdateChannel<'_> {
+    type Output = Result<Response<Channel>, Error>;
+
+    type IntoFuture = ResponseFuture<Channel>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
 impl TryIntoRequest for UpdateChannel<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.get(),
         })

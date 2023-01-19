@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.14.1] - 2023-01-07
+
+### Features
+
+- support nsfw commands ([#2019](https://github.com/twilight-rs/twilight/issues/2019))
+
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+`validate` has been affected by the following `model` changes:
+
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+- [**breaking**] update `ChannelType` names ([#1909](https://github.com/twilight-rs/twilight/issues/1909))
+
+### Changes
+
+Due to [**breaking**] flatten `CommandOption` ([#1819] - [@vilgotf]), the logic
+of `command::option` and `command::options` have been simplified.
+
+### Features
+
+Validate attachment descriptions ([#1890] - [@itohatweb]). Adds
+`message::{attachment, attachment_description}`. 
+
+Due to [**breaking**] add create guild ban delete message seconds ([#1884] -
+[@itohatweb]), `request::create_guild_ban_delete_message_days` has been replaced
+with `..._seconds`, and corresponding error types have been updated
+appropriately.
+
+[#1819]: https://github.com/twilight-rs/twilight/pull/1819
+[#1884]: https://github.com/twilight-rs/twilight/pull/1884
+[#1890]: https://github.com/twilight-rs/twilight/pull/1890
+[#1897]: https://github.com/twilight-rs/twilight/pull/1897
+
+## [0.13.2] - 2022-10-28
+
+### Features
+
+- auto moderation http methods and mention spam ([#1846](https://github.com/twilight-rs/twilight/issues/1846))
+- forum channels ([#1864](https://github.com/twilight-rs/twilight/issues/1864))
+
 ## [0.13.1] - 2022-09-01
 
 ### Refactor
@@ -152,6 +194,7 @@ Initial release ([#1331], [#1395] - [@7596ff], [@baptiste0928]).
 [@Erk-]: https://github.com/Erk-
 [@itohatweb]: https://github.com/itohatweb
 [@laralove143]: https://github.com/laralove143
+[@vilgotf]: https://github.com/vilgotf
 [@zeylahellyer]: https://github.com/zeylahellyer
 
 [0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.11.0

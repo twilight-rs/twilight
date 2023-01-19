@@ -16,7 +16,7 @@ functionality. Please use the individual crates listed below instead!
 
 ## Installation
 
-Twilight supports a MSRV of Rust 1.60+.
+Twilight supports a MSRV of Rust 1.64+.
 
 We recommend that most users start out with these crates:
 
@@ -134,7 +134,7 @@ async fn main() -> anyhow::Result<()> {
 
     // A cluster is a manager for multiple shards that by default
     // creates as many shards as Discord recommends.
-    let (cluster, mut events) = Cluster::new(token.to_owned(), Intents::GUILD_MESSAGES).await?;
+    let (cluster, mut events) = Cluster::new(token.to_owned(), Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT).await?;
     let cluster = Arc::new(cluster);
 
     // Start up the cluster.
@@ -174,7 +174,6 @@ async fn handle_event(
         Event::MessageCreate(msg) if msg.content == "!ping" => {
             http.create_message(msg.channel_id)
                 .content("Pong!")?
-                .exec()
                 .await?;
         }
         Event::ShardConnected(_) => {
@@ -209,7 +208,7 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
-[rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.64+-93450a.svg?style=for-the-badge&logo=rust
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
 [`twilight-gateway-queue`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_5_gateway_queue.html
 [`twilight-gateway`]: https://twilight.rs/chapter_1_crates/section_3_gateway.html

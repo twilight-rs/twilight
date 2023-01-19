@@ -3,10 +3,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, RequestBuilder, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, future::IntoFuture};
 use twilight_model::{
     application::command::{Command, CommandType},
     guild::Permissions,
@@ -32,6 +32,7 @@ pub struct CreateGuildMessageCommand<'a> {
     http: &'a Client,
     name: &'a str,
     name_localizations: Option<&'a HashMap<String, String>>,
+    nsfw: Option<bool>,
 }
 
 impl<'a> CreateGuildMessageCommand<'a> {
@@ -50,6 +51,7 @@ impl<'a> CreateGuildMessageCommand<'a> {
             http,
             name,
             name_localizations: None,
+            nsfw: None,
         })
     }
 
@@ -84,10 +86,28 @@ impl<'a> CreateGuildMessageCommand<'a> {
         Ok(self)
     }
 
-    /// Execute the request, returning a future resolving to a [`Response`].
+    /// Set whether the command is age-restricted.
     ///
-    /// [`Response`]: crate::response::Response
+    /// Defaults to not being specified, which uses Discord's default.
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
+        self.nsfw = Some(nsfw);
+
+        self
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Command> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for CreateGuildMessageCommand<'_> {
+    type Output = Result<Response<Command>, Error>;
+
+    type IntoFuture = ResponseFuture<Command>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -112,6 +132,7 @@ impl TryIntoRequest for CreateGuildMessageCommand<'_> {
             kind: CommandType::Message,
             name: self.name,
             name_localizations: self.name_localizations,
+            nsfw: self.nsfw,
             options: None,
         })
         .map(RequestBuilder::build)

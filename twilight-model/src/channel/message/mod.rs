@@ -2,6 +2,8 @@
 #![deny(missing_docs)]
 
 pub mod allowed_mentions;
+pub mod component;
+pub mod embed;
 pub mod sticker;
 
 mod activity;
@@ -12,24 +14,27 @@ mod kind;
 mod mention;
 mod reaction;
 mod reference;
+mod role_subscription_data;
 
 pub use self::{
     activity::{MessageActivity, MessageActivityType},
     allowed_mentions::AllowedMentions,
     application::MessageApplication,
+    component::Component,
+    embed::Embed,
     flags::MessageFlags,
     interaction::MessageInteraction,
     kind::MessageType,
     mention::Mention,
-    reaction::MessageReaction,
+    reaction::{Reaction, ReactionType},
     reference::MessageReference,
+    role_subscription_data::RoleSubscriptionData,
     sticker::Sticker,
 };
 
 use self::sticker::MessageSticker;
 use crate::{
-    application::component::Component,
-    channel::{embed::Embed, Attachment, Channel, ChannelMention},
+    channel::{Attachment, Channel, ChannelMention},
     guild::PartialMember,
     id::{
         marker::{
@@ -117,7 +122,7 @@ pub struct Message {
     ///
     /// [Message Content Intent]: crate::gateway::Intents::MESSAGE_CONTENT
     pub embeds: Vec<Embed>,
-    /// Enabled [`MessageFlags`].
+    /// Flags of the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
     /// ID of the [`Guild`] the message was sent in.
@@ -156,7 +161,7 @@ pub struct Message {
     pub pinned: bool,
     /// List of reactions to the message.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub reactions: Vec<MessageReaction>,
+    pub reactions: Vec<Reaction>,
     /// Crosspost, channel follow add, pin and reply source message data.
     #[serde(rename = "message_reference", skip_serializing_if = "Option::is_none")]
     pub reference: Option<MessageReference>,
@@ -165,6 +170,14 @@ pub struct Message {
     /// [`reference`]: Self::reference
     #[serde(skip_serializing_if = "Option::is_none")]
     pub referenced_message: Option<Box<Message>>,
+    /// Information about the role subscription purchase or renewal that
+    /// prompted this message.
+    ///
+    /// Applies to [`RoleSubscriptionPurchase`] messages.
+    ///
+    /// [`RoleSubscriptionPurchase`]: MessageType::RoleSubscriptionPurchase
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role_subscription_data: Option<RoleSubscriptionData>,
     /// Stickers within the message.
     #[serde(default)]
     pub sticker_items: Vec<MessageSticker>,
@@ -184,24 +197,24 @@ pub struct Message {
 mod tests {
     use super::{
         sticker::{MessageSticker, StickerFormatType},
-        ChannelMention, Message, MessageActivity, MessageActivityType, MessageApplication,
-        MessageFlags, MessageReaction, MessageReference, MessageType,
+        Message, MessageActivity, MessageActivityType, MessageApplication, MessageFlags,
+        MessageReference, MessageType, Reaction, ReactionType,
     };
     use crate::{
-        channel::{ChannelType, ReactionType},
+        channel::{ChannelMention, ChannelType},
         guild::PartialMember,
         id::Id,
         test::image_hash,
         user::User,
-        util::datetime::{Timestamp, TimestampParseError},
+        util::{datetime::TimestampParseError, Timestamp},
     };
     use serde_test::Token;
     use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn message_deserialization() -> Result<(), TimestampParseError> {
-        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+    fn message_deserialization() {
+        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap();
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
 
         let value = Message {
@@ -255,6 +268,7 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
+            role_subscription_data: None,
             sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::Png,
                 id: Id::new(1),
@@ -376,8 +390,6 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-
-        Ok(())
     }
 
     #[allow(clippy::too_many_lines)]
@@ -450,7 +462,7 @@ mod tests {
             mention_roles: Vec::new(),
             mentions: Vec::new(),
             pinned: false,
-            reactions: vec![MessageReaction {
+            reactions: vec![Reaction {
                 count: 7,
                 emoji: ReactionType::Unicode {
                     name: "a".to_owned(),
@@ -463,6 +475,7 @@ mod tests {
                 message_id: None,
                 fail_if_not_exists: None,
             }),
+            role_subscription_data: None,
             sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::Png,
                 id: Id::new(1),
@@ -617,7 +630,7 @@ mod tests {
                 Token::Str("reactions"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "MessageReaction",
+                    name: "Reaction",
                     len: 3,
                 },
                 Token::Str("count"),

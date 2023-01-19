@@ -1,11 +1,11 @@
 //! Gateway event payload when an invite is created.
 
 use crate::{
+    guild::invite::TargetType,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
-    invite::TargetType,
     user::{self, DiscriminatorDisplay, User},
     util::{ImageHash, Timestamp},
 };
@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// A new [`Invite`] has been created.
 ///
-/// [`Invite`]: crate::invite::Invite
+/// [`Invite`]: crate::guild::invite::Invite
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InviteCreate {
     /// ID of the channel invited users will first see.

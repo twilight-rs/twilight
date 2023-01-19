@@ -1,11 +1,12 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, SystemChannelFlags,
@@ -162,10 +163,21 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the enabled features of the guild.
     ///
-    /// Attempting to add or remove the `COMMUNITY` feature requires the
+    /// Attempting to add or remove the [`GuildFeature::Community`] feature requires the
     /// [`Permissions::ADMINISTRATOR`] permission.
     ///
+    /// Attempting to add or remove the [`GuildFeature::Discoverable`] feature requires
+    /// the [`Permissions::ADMINISTRATOR`] permission. Additionally the guild
+    /// must pass all the discovery requirements.
+    ///
+    /// Attempting to add or remove the [`GuildFeature::InvitesDisabled`] feature requires
+    /// the [`Permissions::MANAGE_GUILD`] permission.
+    ///
+    /// [`GuildFeature::Community`]: twilight_model::guild::GuildFeature::Community
+    /// [`GuildFeature::Discoverable`]: twilight_model::guild::GuildFeature::Discoverable
+    /// [`GuildFeature::InvitesDisabled`]: twilight_model::guild::GuildFeature::InvitesDisabled
     /// [`Permissions::ADMINISTRATOR`]: twilight_model::guild::Permissions::ADMINISTRATOR
+    /// [`Permissions::MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn features(mut self, features: &'a [&'a str]) -> Self {
         self.fields.features = Some(features);
 
@@ -296,15 +308,9 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<PartialGuild> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -318,8 +324,23 @@ impl<'a> AuditLogReason<'a> for UpdateGuild<'a> {
     }
 }
 
+impl IntoFuture for UpdateGuild<'_> {
+    type Output = Result<Response<PartialGuild>, Error>;
+
+    type IntoFuture = ResponseFuture<PartialGuild>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
 impl TryIntoRequest for UpdateGuild<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateGuild {
             guild_id: self.guild_id.get(),
         });

@@ -266,6 +266,7 @@ pub struct Information {
     ratelimit_refill: Option<Instant>,
     ratelimit_requests: Option<u32>,
     session_id: Option<Box<str>>,
+    gateway_url: String,
     seq: u64,
     stage: Stage,
 }
@@ -305,6 +306,11 @@ impl Information {
     /// Return an immutable reference to the session ID of the shard.
     pub fn session_id(&self) -> Option<&str> {
         self.session_id.as_deref()
+    }
+
+    /// Return an immutable reference to the gateway url of the shard.
+    pub fn gateway_url(&self) -> &str {
+        self.gateway_url.as_str()
     }
 
     /// Current sequence of the connection.
@@ -363,7 +369,7 @@ pub struct ResumeSession {
 /// ```no_run
 /// use futures::stream::StreamExt;
 /// use std::env;
-/// use twilight_gateway::{EventTypeFlags, Event, Intents, Shard};
+/// use twilight_gateway::{Event, EventTypeFlags, Intents, Shard};
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
@@ -384,11 +390,11 @@ pub struct ResumeSession {
 ///     match event {
 ///         Event::MessageCreate(message) => {
 ///             println!("message received with content: {}", message.content);
-///         },
+///         }
 ///         Event::MessageDelete(message) => {
 ///             println!("message with ID {} deleted", message.id);
-///         },
-///         _ => {},
+///         }
+///         _ => {}
 ///     }
 /// }
 /// # Ok(()) }
@@ -415,9 +421,9 @@ impl Shard {
     /// current connection stage:
     ///
     /// ```no_run
-    /// use twilight_gateway::{Intents, Shard};
     /// use std::{env, time::Duration};
     /// use tokio::time as tokio_time;
+    /// use twilight_gateway::{Intents, Shard};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -554,6 +560,7 @@ impl Shard {
             latency: session.heartbeats.latency(),
             ratelimit_refill,
             ratelimit_requests,
+            gateway_url: self.config().gateway_url().to_owned(),
             session_id: session.id(),
             seq: session.seq(),
             stage: session.stage(),
@@ -632,7 +639,10 @@ impl Shard {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
-    /// use twilight_gateway::{shard::{raw_message::Message, Shard}, Intents};
+    /// use twilight_gateway::{
+    ///     shard::{raw_message::Message, Shard},
+    ///     Intents,
+    /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let (shard, _) = Shard::new(token, Intents::GUILDS);

@@ -1,70 +1,46 @@
 use crate::{
     id::{
-        marker::{IntegrationMarker, UserMarker},
+        marker::{IntegrationMarker, RoleSubscriptionSkuMarker, UserMarker},
         Id,
     },
     util::is_false,
 };
 use serde::{Deserialize, Serialize};
 
-/// The role tags' `premium_subscriber` field is tricky. It's an optional null.
-///
-/// If the field is present, then the value is null, meaning that the role is a
-/// premium subscriber. If the field is not present, it means that the role is
-/// *not* a premium subscriber.
-mod premium_subscriber {
-    use serde::{
-        de::{Deserializer, Error as DeError, Visitor},
-        ser::Serializer,
-    };
-    use std::fmt::{Formatter, Result as FmtResult};
-
-    struct PremiumSubscriberVisitor;
-
-    impl<'de> Visitor<'de> for PremiumSubscriberVisitor {
-        type Value = bool;
-
-        fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-            f.write_str("null")
-        }
-
-        fn visit_none<E: DeError>(self) -> Result<Self::Value, E> {
-            Ok(true)
-        }
-
-        // `visit_none` is used by `serde_json` when a present `null` value is
-        // encountered, but other implementations - such as `simd_json` - may
-        // use `visit_unit` instead.
-        fn visit_unit<E: DeError>(self) -> Result<Self::Value, E> {
-            Ok(true)
-        }
-    }
-
-    // Clippy will say this bool can be taken by value, but we need it to be
-    // passed by reference because that's what serde does.
-    #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn serialize<S: Serializer>(_: &bool, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_none()
-    }
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
-        deserializer.deserialize_option(PremiumSubscriberVisitor)
-    }
-}
-
 /// Tags that a [`Role`] has.
 ///
 /// [`Role`]: super::Role
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RoleTags {
+    /// Whether this role is available for purchase.
+    #[serde(
+        default,
+        skip_serializing_if = "is_false",
+        with = "crate::visitor::null_boolean"
+    )]
+    pub available_for_purchase: bool,
     /// ID of the bot the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bot_id: Option<Id<UserMarker>>,
+    /// Whether this role is a guild's linked role.
+    #[serde(
+        default,
+        skip_serializing_if = "is_false",
+        with = "crate::visitor::null_boolean"
+    )]
+    pub guild_connections: bool,
     /// ID of the integration the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integration_id: Option<Id<IntegrationMarker>>,
+    /// ID of the role's subscription SKU and listing.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subscription_listing_id: Option<Id<RoleSubscriptionSkuMarker>>,
     /// Whether this is the guild's premium subscriber role.
-    #[serde(default, skip_serializing_if = "is_false", with = "premium_subscriber")]
+    #[serde(
+        default,
+        skip_serializing_if = "is_false",
+        with = "crate::visitor::null_boolean"
+    )]
     pub premium_subscriber: bool,
 }
 
@@ -75,11 +51,14 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn role_tags_all() {
+    fn bot() {
         let tags = RoleTags {
+            available_for_purchase: false,
             bot_id: Some(Id::new(1)),
+            guild_connections: false,
             integration_id: Some(Id::new(2)),
-            premium_subscriber: true,
+            premium_subscriber: false,
+            subscription_listing_id: None,
         };
 
         serde_test::assert_tokens(
@@ -87,7 +66,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "RoleTags",
-                    len: 3,
+                    len: 2,
                 },
                 Token::Str("bot_id"),
                 Token::Some,
@@ -97,6 +76,29 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn premium_subscriber() {
+        let tags = RoleTags {
+            available_for_purchase: false,
+            bot_id: None,
+            guild_connections: false,
+            integration_id: None,
+            premium_subscriber: true,
+            subscription_listing_id: None,
+        };
+
+        serde_test::assert_tokens(
+            &tags,
+            &[
+                Token::Struct {
+                    name: "RoleTags",
+                    len: 1,
+                },
                 Token::Str("premium_subscriber"),
                 Token::None,
                 Token::StructEnd,
@@ -104,15 +106,51 @@ mod tests {
         );
     }
 
-    /// Test that if all fields are None and `premium_subscriber` is false, then
-    /// serialize back into the source payload (where all fields are not
+    #[test]
+    fn subscription() {
+        let tags = RoleTags {
+            available_for_purchase: true,
+            bot_id: None,
+            guild_connections: false,
+            integration_id: Some(Id::new(1)),
+            subscription_listing_id: Some(Id::new(2)),
+            premium_subscriber: false,
+        };
+
+        serde_test::assert_tokens(
+            &tags,
+            &[
+                Token::Struct {
+                    name: "RoleTags",
+                    len: 3,
+                },
+                Token::Str("available_for_purchase"),
+                Token::None,
+                Token::Str("integration_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("subscription_listing_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    /// Test that if all fields are None and the optional null fields are false,
+    /// then serialize back into the source payload (where all fields are not
     /// present).
     #[test]
-    fn role_tags_none() {
+    fn none() {
         let tags = RoleTags {
+            available_for_purchase: false,
             bot_id: None,
+            guild_connections: false,
             integration_id: None,
             premium_subscriber: false,
+            subscription_listing_id: None,
         };
 
         serde_test::assert_tokens(

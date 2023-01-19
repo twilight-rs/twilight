@@ -2,10 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, RequestBuilder, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
     id::{
@@ -25,19 +26,23 @@ struct CreateThreadFromMessageFields<'a> {
 /// Create a new thread from an existing message.
 ///
 /// When called on a [`GuildText`] channel, this creates a
-/// [`GuildPublicThread`].
+/// [`PublicThread`].
 ///
-/// When called on a [`GuildNews`] channel, this creates a [`GuildNewsThread`].
+/// When called on a [`GuildAnnouncement`] channel, this creates a [`AnnouncementThread`].
+///
+/// This request does not work when called on a [`GuildForum`] channel.
 ///
 /// Automatic archive durations are not locked behind the guild's boost level.
 ///
 /// The thread's ID will be the same as its parent message. This ensures only
 /// one thread can be created per message.
 ///
-/// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
-/// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
+/// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
+/// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
+/// [`GuildForum`]: twilight_model::channel::ChannelType::GuildForum
 /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+/// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
     channel_id: Id<ChannelMarker>,
@@ -80,9 +85,18 @@ impl<'a> CreateThreadFromMessage<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Channel> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for CreateThreadFromMessage<'_> {
+    type Output = Result<Response<Channel>, Error>;
+
+    type IntoFuture = ResponseFuture<Channel>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

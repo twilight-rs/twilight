@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub enum AuditLogEventType {
     /// [Guild] was updated.
     ///
-    /// [Guild]: super::super::Guild
+    /// [Guild]: crate::guild::Guild
     GuildUpdate,
     /// [Channel] was created.
     ///
@@ -39,68 +39,68 @@ pub enum AuditLogEventType {
     ChannelOverwriteDelete,
     /// [Member] was kicked.
     ///
-    /// [Member]: super::super::Member
+    /// [Member]: crate::guild::Member
     MemberKick,
     /// [Member] prune began.
     ///
-    /// [Member]: super::super::Member
+    /// [Member]: crate::guild::Member
     MemberPrune,
     /// [Member] was banned.
     ///
-    /// [Member]: super::super::Member
+    /// [Member]: crate::guild::Member
     MemberBanAdd,
     /// [Member]'s [ban] was removed.
     ///
-    /// [ban]: super::super::Ban
-    /// [Member]: super::super::Member
+    /// [ban]: crate::guild::Ban
+    /// [Member]: crate::guild::Member
     MemberBanRemove,
     /// [Member] was updated.
     ///
-    /// [Member]: super::super::Member
+    /// [Member]: crate::guild::Member
     MemberUpdate,
     /// [Member] either had a [role] attached or removed.
     ///
-    /// [Member]: super::super::Member
-    /// [role]: super::super::Role
+    /// [Member]: crate::guild::Member
+    /// [role]: crate::guild::Role
     MemberRoleUpdate,
     /// [Member] was moved between voice [channel]s.
     ///
-    /// [Member]: super::super::Member
+    /// [Member]: crate::guild::Member
     /// [channel]: crate::channel::Channel
     MemberMove,
     /// [Member] was disconnected from a voice [channel].
     ///
-    /// [Member]: super::super::Member
+    /// [Member]: crate::guild::Member
     /// [channel]: crate::channel::Channel
     MemberDisconnect,
     /// [Bot user] was added to a [guild].
     ///
     /// [Bot user]: crate::user::User::bot
-    /// [guild]: super::super::Guild
+    /// [guild]: crate::guild::Guild
     BotAdd,
     /// [Role] was created.
     ///
-    /// [Role]: super::super::Role
+    /// [Role]: crate::guild::Role
     RoleCreate,
     /// [Role] was updated.
     ///
-    /// [Role]: super::super::Role
+    /// [Role]: crate::guild::Role
     RoleUpdate,
     /// [Role] was deleted.
     ///
-    /// [Role]: super::super::Role
+    /// [Role]: crate::guild::Role
     RoleDelete,
     /// [Invite] was created.
     ///
-    /// [Invite]: crate::invite::Invite
+    /// [Invite]: crate::guild::invite::Invite
     InviteCreate,
     /// [Invite] was updated.
     ///
-    /// [Invite]: crate::invite::Invite
+    /// [Invite]: crate::guild::invite::Invite
     InviteUpdate,
     /// [Invite] was deleted.
     ///
-    /// [Invite]: crate::invite::Invite
+    /// [Invite]: crate::guild::invite::Invite
     InviteDelete,
     /// [Webhook] was created.
     ///
@@ -116,15 +116,15 @@ pub enum AuditLogEventType {
     WebhookDelete,
     /// [Emoji] was created.
     ///
-    /// [Emoji]: super::super::Emoji
+    /// [Emoji]: crate::guild::Emoji
     EmojiCreate,
     /// [Emoji] was updated.
     ///
-    /// [Emoji]: super::super::Emoji
+    /// [Emoji]: crate::guild::Emoji
     EmojiUpdate,
     /// [Emoji] was deleted.
     ///
-    /// [Emoji]: super::super::Emoji
+    /// [Emoji]: crate::guild::Emoji
     EmojiDelete,
     /// [Message] was deleted.
     ///
@@ -146,15 +146,15 @@ pub enum AuditLogEventType {
     MessageUnpin,
     /// [Integration] was created.
     ///
-    /// [Integration]: super::super::GuildIntegration
+    /// [Integration]: crate::guild::GuildIntegration
     IntegrationCreate,
     /// [Integration] was updated.
     ///
-    /// [Integration]: super::super::GuildIntegration
+    /// [Integration]: crate::guild::GuildIntegration
     IntegrationUpdate,
     /// [Integration] was deleted.
     ///
-    /// [Integration]: super::super::GuildIntegration
+    /// [Integration]: crate::guild::GuildIntegration
     IntegrationDelete,
     /// [Stage instance] was created.
     ///
@@ -182,15 +182,15 @@ pub enum AuditLogEventType {
     StickerDelete,
     /// [`GuildScheduledEvent`] was created.
     ///
-    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
     GuildScheduledEventCreate,
     /// [`GuildScheduledEvent`] was updated.
     ///
-    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
     GuildScheduledEventUpdate,
     /// [`GuildScheduledEvent`] was deleted.
     ///
-    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
     GuildScheduledEventDelete,
     /// Thread [channel] was created.
     ///
@@ -220,8 +220,12 @@ pub enum AuditLogEventType {
     ///
     /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
     AutoModerationRuleDelete,
-    /// Message has been blocked by AutoMod according to a rule.
+    /// Message has been blocked by AutoMod.
     AutoModerationBlockMessage,
+    /// Message has been flagged by AutoMod.
+    AutoModerationFlagToChannel,
+    /// A member has been timed out by AutoMod.
+    AutoModerationUserCommunicationDisabled,
     /// Variant value is unknown to the library.
     Unknown(u16),
 }
@@ -281,6 +285,8 @@ impl From<u16> for AuditLogEventType {
             141 => AuditLogEventType::AutoModerationRuleUpdate,
             142 => AuditLogEventType::AutoModerationRuleDelete,
             143 => AuditLogEventType::AutoModerationBlockMessage,
+            144 => AuditLogEventType::AutoModerationFlagToChannel,
+            145 => AuditLogEventType::AutoModerationUserCommunicationDisabled,
             unknown => AuditLogEventType::Unknown(unknown),
         }
     }
@@ -341,6 +347,8 @@ impl From<AuditLogEventType> for u16 {
             AuditLogEventType::AutoModerationRuleUpdate => 141,
             AuditLogEventType::AutoModerationRuleDelete => 142,
             AuditLogEventType::AutoModerationBlockMessage => 143,
+            AuditLogEventType::AutoModerationFlagToChannel => 144,
+            AuditLogEventType::AutoModerationUserCommunicationDisabled => 145,
             AuditLogEventType::Unknown(unknown) => unknown,
         }
     }
@@ -424,6 +432,14 @@ mod tests {
         assert_eq!(
             143,
             u16::from(AuditLogEventType::AutoModerationBlockMessage)
+        );
+        assert_eq!(
+            144,
+            u16::from(AuditLogEventType::AutoModerationFlagToChannel)
+        );
+        assert_eq!(
+            145,
+            u16::from(AuditLogEventType::AutoModerationUserCommunicationDisabled)
         );
         assert_eq!(250, u16::from(AuditLogEventType::Unknown(250)));
     }

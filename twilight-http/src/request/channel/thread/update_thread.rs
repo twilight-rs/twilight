@@ -1,14 +1,18 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
+    error::Error,
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
-    id::{marker::ChannelMarker, Id},
+    id::{
+        marker::{ChannelMarker, TagMarker},
+        Id,
+    },
 };
 use twilight_validate::{
     channel::{
@@ -20,6 +24,8 @@ use twilight_validate::{
 
 #[derive(Serialize)]
 struct UpdateThreadFields<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    applied_tags: Option<Nullable<&'a [Id<TagMarker>]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     archived: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -51,6 +57,7 @@ impl<'a> UpdateThread<'a> {
         Self {
             channel_id,
             fields: UpdateThreadFields {
+                applied_tags: None,
                 archived: None,
                 auto_archive_duration: None,
                 invitable: None,
@@ -61,6 +68,13 @@ impl<'a> UpdateThread<'a> {
             http,
             reason: None,
         }
+    }
+
+    /// Set the forum thread's applied tags.
+    pub const fn applied_tags(mut self, applied_tags: Option<&'a [Id<TagMarker>]>) -> Self {
+        self.fields.applied_tags = Some(Nullable(applied_tags));
+
+        self
     }
 
     /// Set whether the thread is archived.
@@ -142,6 +156,7 @@ impl<'a> UpdateThread<'a> {
         mut self,
         rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
         }
@@ -152,15 +167,9 @@ impl<'a> UpdateThread<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Channel> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -174,8 +183,23 @@ impl<'a> AuditLogReason<'a> for UpdateThread<'a> {
     }
 }
 
+impl IntoFuture for UpdateThread<'_> {
+    type Output = Result<Response<Channel>, Error>;
+
+    type IntoFuture = ResponseFuture<Channel>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
 impl TryIntoRequest for UpdateThread<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.get(),
         })
@@ -213,6 +237,7 @@ mod tests {
             channel_id: channel_id.get(),
         })
         .json(&UpdateThreadFields {
+            applied_tags: None,
             archived: None,
             auto_archive_duration: None,
             invitable: None,

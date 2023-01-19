@@ -2,12 +2,12 @@
 
 use serde::Serialize;
 use twilight_model::{
-    application::{component::Component, interaction::InteractionType},
+    application::interaction::InteractionType,
     channel::{
-        embed::Embed,
         message::{
-            sticker::MessageSticker, Message, MessageActivity, MessageApplication, MessageFlags,
-            MessageInteraction, MessageReaction, MessageReference, MessageType,
+            sticker::MessageSticker, Component, Embed, Message, MessageActivity,
+            MessageApplication, MessageFlags, MessageInteraction, MessageReference, MessageType,
+            Reaction, RoleSubscriptionData,
         },
         Attachment, ChannelMention,
     },
@@ -102,8 +102,9 @@ pub struct CachedMessage {
     pub(crate) mention_roles: Vec<Id<RoleMarker>>,
     pub(crate) mentions: Vec<Id<UserMarker>>,
     pub(crate) pinned: bool,
-    pub(crate) reactions: Vec<MessageReaction>,
+    pub(crate) reactions: Vec<Reaction>,
     reference: Option<MessageReference>,
+    role_subscription_data: Option<RoleSubscriptionData>,
     sticker_items: Vec<MessageSticker>,
     thread_id: Option<Id<ChannelMarker>>,
     pub(crate) timestamp: Timestamp,
@@ -242,13 +243,19 @@ impl CachedMessage {
     }
 
     /// Reactions to the message.
-    pub fn reactions(&self) -> &[MessageReaction] {
+    pub fn reactions(&self) -> &[Reaction] {
         &self.reactions
     }
 
     /// Message reference.
     pub const fn reference(&self) -> Option<&MessageReference> {
         self.reference.as_ref()
+    }
+
+    /// Information about the role subscription purchase or renewal that
+    /// prompted this message.
+    pub const fn role_subscription_data(&self) -> Option<&RoleSubscriptionData> {
+        self.role_subscription_data.as_ref()
     }
 
     /// Stickers within the message.
@@ -303,6 +310,7 @@ impl CachedMessage {
             reactions,
             reference,
             referenced_message: _,
+            role_subscription_data,
             sticker_items,
             timestamp,
             thread,
@@ -334,6 +342,7 @@ impl CachedMessage {
             pinned,
             reactions,
             reference,
+            role_subscription_data,
             sticker_items,
             thread_id: thread.map(|thread| thread.id),
             timestamp,

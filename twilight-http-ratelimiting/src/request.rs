@@ -125,6 +125,8 @@ pub enum Path {
     ApplicationGuildCommandId(u64),
     /// Operating on a channel.
     ChannelsId(u64),
+    /// Operating on a channel's followers.
+    ChannelsIdFollowers(u64),
     /// Operating on a channel's invites.
     ChannelsIdInvites(u64),
     /// Operating on a channel's messages.
@@ -160,8 +162,6 @@ pub enum Path {
     ChannelsIdTyping(u64),
     /// Operating on a channel's webhooks.
     ChannelsIdWebhooks(u64),
-    /// Operating on a channel's followers.
-    ChannelsIdFollowers(u64),
     /// Operating with the gateway information.
     Gateway,
     /// Operating with the gateway information tailored to the current user.
@@ -170,18 +170,20 @@ pub enum Path {
     Guilds,
     /// Operating on one of user's guilds.
     GuildsId(u64),
+    /// Operating on a ban from one of the user's guilds.
+    GuildsIdAuditLogs(u64),
+    /// Operating on a guild's auto moderation rules.
+    GuildsIdAutoModerationRules(u64),
+    /// Operating on an auto moderation rule from  one of the user's guilds.
+    GuildsIdAutoModerationRulesId(u64),
     /// Operating on one of the user's guilds' bans.
     GuildsIdBans(u64),
     /// Operating on a ban from one of the user's guilds.
     GuildsIdBansId(u64),
-    /// Operating on a ban from one of the user's guilds.
-    GuildsIdAuditLogs(u64),
     /// Operating on specific member's ban from one of the user's guilds.
     GuildsIdBansUserId(u64),
     /// Operating on one of the user's guilds' channels.
     GuildsIdChannels(u64),
-    /// Operating on one of the user's guilds' widget.
-    GuildsIdWidget(u64),
     /// Operating on one of the user's guilds' emojis.
     GuildsIdEmojis(u64),
     /// Operating on an emoji from one of the user's guilds.
@@ -226,8 +228,6 @@ pub enum Path {
     GuildsIdStickers(u64),
     /// Operating on one of the user's guilds' templates.
     GuildsIdTemplates(u64),
-    /// Operating on a guild template.
-    GuildsTemplatesCode(String),
     /// Operating on a template from one of the user's guilds.
     GuildsIdTemplatesCode(u64, String),
     /// Operating on one of the user's guilds' threads.
@@ -236,16 +236,24 @@ pub enum Path {
     GuildsIdVanityUrl(u64),
     /// Operating on one of the user's guilds' voice states.
     GuildsIdVoiceStates(u64),
-    /// Operating on one of the user's guilds' welcome screen.
-    GuildsIdWelcomeScreen(u64),
     /// Operating on one of the user's guilds' webhooks.
     GuildsIdWebhooks(u64),
-    /// Operating on an invite.
-    InvitesCode,
+    /// Operating on one of the user's guilds' welcome screen.
+    GuildsIdWelcomeScreen(u64),
+    /// Operating on one of the user's guilds' widget.
+    GuildsIdWidget(u64),
+    /// Operating on a guild template.
+    GuildsTemplatesCode(String),
     /// Operating on an interaction's callback.
     ///
     /// This path is not bound to the application's global rate limit.
     InteractionCallback(u64),
+    /// Operating on an invite.
+    InvitesCode,
+    /// Operating on the user's application information.
+    OauthApplicationsMe,
+    /// Operating on the current authorization's information.
+    OauthMe,
     /// Operating on stage instances.
     StageInstances,
     /// Operating on sticker packs.
@@ -254,12 +262,10 @@ pub enum Path {
     Stickers,
     /// Operating on a sticker.
     UsersId,
-    /// Operating on the user's application information.
-    OauthApplicationsMe,
-    /// Operating on the user's connections.
-    UsersIdConnections,
     /// Operating on the user's private channels.
     UsersIdChannels,
+    /// Operating on the user's connections.
+    UsersIdConnections,
     /// Operating on the state of a guild that the user is in.
     UsersIdGuilds,
     /// Operating on the state of a guild that the user is in.
@@ -421,6 +427,7 @@ impl FromStr for Path {
             ["sticker-packs"] => StickerPacks,
             ["stickers", _] => Stickers,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
+            ["oauth2", "@me"] => OauthMe,
             ["users", _] => UsersId,
             ["users", _, "connections"] => UsersIdConnections,
             ["users", _, "channels"] => UsersIdChannels,

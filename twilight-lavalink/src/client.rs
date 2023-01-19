@@ -200,6 +200,7 @@ impl Lavalink {
 
                     if e.channel_id.is_none() {
                         self.sessions.remove(&guild_id);
+                        self.server_updates.remove(&guild_id);
                     } else {
                         self.sessions
                             .insert(guild_id, e.session_id.clone().into_boxed_str());
@@ -295,7 +296,7 @@ impl Lavalink {
     /// or drop all [`Node`]s.
     ///
     /// The node is returned if it existed.
-    pub async fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Arc<Node>)> {
+    pub fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Arc<Node>)> {
         self.nodes.remove(&address)
     }
 

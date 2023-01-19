@@ -1,11 +1,12 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::{stage_instance::PrivacyLevel, StageInstance},
     id::{marker::ChannelMarker, Id},
@@ -65,9 +66,18 @@ impl<'a> UpdateStageInstance<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<StageInstance> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for UpdateStageInstance<'_> {
+    type Output = Result<Response<StageInstance>, Error>;
+
+    type IntoFuture = ResponseFuture<StageInstance>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -78,7 +88,7 @@ impl<'a> UpdateStageInstance<'a> {
 }
 
 impl TryIntoRequest for UpdateStageInstance<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateStageInstance {
             channel_id: self.channel_id.get(),
         });

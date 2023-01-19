@@ -2,18 +2,21 @@
 
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{
         attachment::{AttachmentManager, PartialAttachment},
         Nullable, Request, TryIntoRequest,
     },
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
-    application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions},
+    channel::{
+        message::{AllowedMentions, Component, Embed},
+        Message,
+    },
     http::attachment::Attachment,
     id::{
         marker::{AttachmentMarker, ChannelMarker, MessageMarker, WebhookMarker},
@@ -21,7 +24,7 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
+    attachment as validate_attachment, components as validate_components,
     content as validate_content, embeds as validate_embeds, MessageValidationError,
 };
 
@@ -46,8 +49,8 @@ struct UpdateWebhookMessageFields<'a> {
 ///
 /// You can pass [`None`] to any of the methods to remove the associated field.
 /// Pass [`None`] to [`content`] to remove the content. You must ensure that the
-/// message still contains at least one of [`attachments`], [`content`], or
-/// [`embeds`].
+/// message still contains at least one of [`attachments`], [`components`],
+/// [`content`], or [`embeds`].
 ///
 /// # Examples
 ///
@@ -67,12 +70,12 @@ struct UpdateWebhookMessageFields<'a> {
 ///     // mentioned.
 ///     .allowed_mentions(Some(&AllowedMentions::default()))
 ///     .content(Some("test <@3>"))?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 ///
 /// [`attachments`]: Self::attachments
+/// [`components`]: Self::components
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
@@ -127,17 +130,19 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+    /// the attachments's description is too large.
+    ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
     ///
+    /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
         attachments: &'a [Attachment],
     ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+        attachments.iter().try_for_each(validate_attachment)?;
 
         self.attachment_manager = self
             .attachment_manager
@@ -246,7 +251,6 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// client
     ///     .update_webhook_message(webhook_id, "token", message_id)
     ///     .embeds(Some(&[embed]))?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -315,9 +319,18 @@ impl<'a> UpdateWebhookMessage<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Message> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for UpdateWebhookMessage<'_> {
+    type Output = Result<Response<Message>, Error>;
+
+    type IntoFuture = ResponseFuture<Message>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -328,7 +341,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 }
 
 impl TryIntoRequest for UpdateWebhookMessage<'_> {
-    fn try_into_request(mut self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: self.thread_id.map(Id::get),
@@ -357,7 +370,7 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
                     self.attachment_manager.get_partial_attachments(),
                 )));
 
-                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };

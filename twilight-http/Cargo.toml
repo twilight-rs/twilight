@@ -1,19 +1,17 @@
 [package]
-authors = ["Twilight Contributors"]
+authors.workspace = true
 categories = ["api-bindings", "asynchronous", "web-programming::http-client"]
 description = "Discord REST API client for the Twilight ecosystem."
-documentation = "https://docs.rs/twilight-http"
-edition = "2021"
+edition.workspace = true
 homepage = "https://twilight.rs/chapter_1_crates/section_2_http.html"
-include = ["src/**/*.rs", "README.md"]
+include.workspace = true
 keywords = ["discord", "discord-api", "twilight"]
-license = "ISC"
+license.workspace = true
 name = "twilight-http"
 publish = true
-readme = "README.md"
-repository = "https://github.com/twilight-rs/twilight.git"
-rust-version = "1.60"
-version = "0.13.0"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.14.1"
 
 [dependencies]
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
@@ -26,9 +24,9 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.13.2" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.3" }
-twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.13.1" }
+twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.14.1" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.2" }
+twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.14.1" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
@@ -45,5 +43,5 @@ trust-dns = ["dep:hyper-trust-dns"]
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.13.1" }
+twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.14.1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }

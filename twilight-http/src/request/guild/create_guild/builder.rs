@@ -107,7 +107,10 @@ impl RoleFieldsBuilder {
 
     /// Set the role color.
     ///
-    /// This must be a valid hexadecimal RGB value.
+    /// This must be a valid hexadecimal RGB value. `0x000000` is ignored
+    /// and doesn't count towards the final computed color in the user list.
+    /// Refer to [`Self::COLOR_MAXIMUM`] for the maximum
+    /// acceptable value.
     ///
     /// # Errors
     ///
@@ -823,7 +826,7 @@ mod tests {
     #[test]
     fn voice_fields() {
         assert!(matches!(
-            VoiceFieldsBuilder::new("".to_owned()).unwrap_err().kind(),
+            VoiceFieldsBuilder::new(String::new()).unwrap_err().kind(),
             VoiceFieldsErrorType::NameTooShort { name }
             if name.is_empty()
         ));
@@ -862,7 +865,7 @@ mod tests {
     #[test]
     fn text_fields() {
         assert!(matches!(
-            TextFieldsBuilder::new("".to_owned()).unwrap_err().kind(),
+            TextFieldsBuilder::new(String::new()).unwrap_err().kind(),
             TextFieldsErrorType::NameTooShort { name }
             if name.is_empty()
         ));
@@ -897,7 +900,7 @@ mod tests {
     #[test]
     fn category_fields() {
         assert!(matches!(
-            CategoryFieldsBuilder::new("".to_owned()).unwrap_err().kind(),
+            CategoryFieldsBuilder::new(String::new()).unwrap_err().kind(),
             CategoryFieldsErrorType::NameTooShort { name }
             if name.is_empty()
         ));

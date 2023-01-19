@@ -1,12 +1,12 @@
 use super::super::CommandBorrowed;
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, RequestBuilder, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, future::IntoFuture};
 use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
     guild::Permissions,
@@ -35,6 +35,7 @@ pub struct CreateGlobalChatInputCommand<'a> {
     http: &'a Client,
     name: &'a str,
     name_localizations: Option<&'a HashMap<String, String>>,
+    nsfw: Option<bool>,
     options: Option<&'a [CommandOption]>,
 }
 
@@ -45,7 +46,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, CommandValidationError> {
-        validate_description(&description)?;
+        validate_description(description)?;
 
         validate_chat_input_name(name)?;
 
@@ -58,6 +59,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
             http,
             name,
             name_localizations: None,
+            nsfw: None,
             options: None,
         })
     }
@@ -152,10 +154,28 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
         Ok(self)
     }
 
-    /// Execute the request, returning a future resolving to a [`Response`].
+    /// Set whether the command is age-restricted.
     ///
-    /// [`Response`]: crate::response::Response
+    /// Defaults to not being specified, which uses Discord's default.
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
+        self.nsfw = Some(nsfw);
+
+        self
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Command> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for CreateGlobalChatInputCommand<'_> {
+    type Output = Result<Response<Command>, Error>;
+
+    type IntoFuture = ResponseFuture<Command>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -166,7 +186,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
 }
 
 impl TryIntoRequest for CreateGlobalChatInputCommand<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::CreateGlobalCommand {
             application_id: self.application_id.get(),
         })
@@ -179,6 +199,7 @@ impl TryIntoRequest for CreateGlobalChatInputCommand<'_> {
             kind: CommandType::ChatInput,
             name: self.name,
             name_localizations: self.name_localizations,
+            nsfw: self.nsfw,
             options: self.options,
         })
         .map(RequestBuilder::build)

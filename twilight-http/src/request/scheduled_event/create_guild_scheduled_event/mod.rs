@@ -11,17 +11,17 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request, RequestBuilder, TryIntoRequest},
+    request::{AuditLogReason, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
+    guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
     id::{
         marker::{ChannelMarker, GuildMarker},
         Id,
     },
-    scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
     util::Timestamp,
 };
 use twilight_validate::request::{
@@ -66,7 +66,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{id::Id, util::Timestamp};
+/// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
@@ -75,14 +75,13 @@ struct CreateGuildScheduledEventFields<'a> {
 /// let garfield_start_time = Timestamp::parse("2022-01-01T14:00:00+00:00")?;
 ///
 /// client
-///     .create_guild_scheduled_event(guild_id)
+///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
 ///     .stage_instance(
 ///         channel_id,
 ///         "Garfield Appreciation Hour",
 ///         &garfield_start_time,
 ///     )?
 ///     .description("Discuss: How important is Garfield to You?")?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -91,7 +90,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{id::Id, util::Timestamp};
+/// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
@@ -100,7 +99,7 @@ struct CreateGuildScheduledEventFields<'a> {
 /// let garfield_con_end_time = Timestamp::parse("2022-01-06T17:00:00+00:00")?;
 ///
 /// client
-///     .create_guild_scheduled_event(guild_id)
+///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
 ///     .external(
 ///         "Garfield Con 2022",
 ///         "Baltimore Convention Center",
@@ -111,7 +110,6 @@ struct CreateGuildScheduledEventFields<'a> {
 ///         "In a spiritual successor to BronyCon, Garfield fans from \
 /// around the globe celebrate all things related to the loveable cat.",
 ///     )?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -125,7 +123,11 @@ pub struct CreateGuildScheduledEvent<'a> {
 }
 
 impl<'a> CreateGuildScheduledEvent<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        privacy_level: PrivacyLevel,
+    ) -> Self {
         Self {
             guild_id,
             http,
@@ -136,7 +138,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
                 entity_type: None,
                 image: None,
                 name: None,
-                privacy_level: None,
+                privacy_level: Some(privacy_level),
                 scheduled_end_time: None,
                 scheduled_start_time: None,
             },
@@ -229,6 +231,14 @@ impl<'a> CreateGuildScheduledEvent<'a> {
             Err(source) => ResponseFuture::error(source),
         }
     }
+
+    fn try_into_request(self) -> Result<Request, Error> {
+        Request::builder(&Route::CreateGuildScheduledEvent {
+            guild_id: self.guild_id.get(),
+        })
+        .json(&self.fields)
+        .map(RequestBuilder::build)
+    }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
@@ -238,15 +248,5 @@ impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
         self.reason.replace(reason);
 
         Ok(self)
-    }
-}
-
-impl TryIntoRequest for CreateGuildScheduledEvent<'_> {
-    fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::CreateGuildScheduledEvent {
-            guild_id: self.guild_id.get(),
-        })
-        .json(&self.fields)
-        .map(RequestBuilder::build)
     }
 }

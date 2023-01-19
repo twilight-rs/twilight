@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     guild::audit_log::{AuditLog, AuditLogEventType},
     id::{
@@ -18,6 +19,7 @@ use twilight_validate::request::{
 
 struct GetAuditLogFields {
     action_type: Option<AuditLogEventType>,
+    after: Option<u64>,
     before: Option<u64>,
     limit: Option<u16>,
     user_id: Option<Id<UserMarker>>,
@@ -36,7 +38,7 @@ struct GetAuditLogFields {
 /// let client = Client::new("token".to_owned());
 ///
 /// let guild_id = Id::new(101);
-/// let audit_log = client.audit_log(guild_id).exec().await?.model().await?;
+/// let audit_log = client.audit_log(guild_id).await?.model().await?;
 ///
 /// for entry in audit_log.entries {
 ///     println!("ID: {}", entry.id);
@@ -61,6 +63,7 @@ impl<'a> GetAuditLog<'a> {
         Self {
             fields: GetAuditLogFields {
                 action_type: None,
+                after: None,
                 before: None,
                 limit: None,
                 user_id: None,
@@ -73,6 +76,13 @@ impl<'a> GetAuditLog<'a> {
     /// Filter by an action type.
     pub const fn action_type(mut self, action_type: AuditLogEventType) -> Self {
         self.fields.action_type = Some(action_type);
+
+        self
+    }
+
+    /// Get audit log entries after the entry specified.
+    pub const fn after(mut self, after: u64) -> Self {
+        self.fields.after = Some(after);
 
         self
     }
@@ -95,6 +105,7 @@ impl<'a> GetAuditLog<'a> {
     ///
     /// [`GetGuildAuditLog`]: twilight_validate::request::ValidationErrorType::GetGuildAuditLog
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_get_guild_audit_log_limit(limit) {
             return Err(source);
         }
@@ -114,9 +125,18 @@ impl<'a> GetAuditLog<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<AuditLog> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetAuditLog<'_> {
+    type Output = Result<Response<AuditLog>, Error>;
+
+    type IntoFuture = ResponseFuture<AuditLog>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -127,9 +147,10 @@ impl<'a> GetAuditLog<'a> {
 }
 
 impl TryIntoRequest for GetAuditLog<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetAuditLogs {
             action_type: self.fields.action_type.map(|x| u64::from(u16::from(x))),
+            after: self.fields.after,
             before: self.fields.before,
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,

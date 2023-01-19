@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     id::{marker::GuildMarker, Id},
     user::CurrentUserGuild,
@@ -41,7 +42,6 @@ struct GetCurrentUserGuildsFields {
 ///     .after(after)
 ///     .before(before)
 ///     .limit(25)?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -90,6 +90,7 @@ impl<'a> GetCurrentUserGuilds<'a> {
     /// [`GetCurrentUserGuilds`]: twilight_validate::request::ValidationErrorType::GetCurrentUserGuilds
     /// [Discord Docs/Get Current User Guilds]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_get_current_user_guilds_limit(limit) {
             return Err(source);
         }
@@ -100,9 +101,18 @@ impl<'a> GetCurrentUserGuilds<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ListBody<CurrentUserGuild>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetCurrentUserGuilds<'_> {
+    type Output = Result<Response<ListBody<CurrentUserGuild>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<CurrentUserGuild>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -113,7 +123,7 @@ impl<'a> GetCurrentUserGuilds<'a> {
 }
 
 impl TryIntoRequest for GetCurrentUserGuilds<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuilds {
             after: self.fields.after.map(Id::get),
             before: self.fields.before.map(Id::get),

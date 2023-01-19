@@ -32,10 +32,10 @@ mod private {
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
             },
             thread::{
-                AddThreadMember, CreateThread, CreateThreadFromMessage,
-                GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
-                GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
-                LeaveThread, RemoveThreadMember, UpdateThread,
+                create_forum_thread::CreateForumThreadMessage, AddThreadMember, CreateThread,
+                CreateThreadFromMessage, GetJoinedPrivateArchivedThreads,
+                GetPrivateArchivedThreads, GetPublicArchivedThreads, GetThreadMember,
+                GetThreadMembers, JoinThread, LeaveThread, RemoveThreadMember, UpdateThread,
             },
             webhook::{
                 CreateWebhook, DeleteWebhook, DeleteWebhookMessage, ExecuteWebhook,
@@ -47,6 +47,10 @@ mod private {
             UpdateChannel, UpdateChannelPermission,
         },
         guild::{
+            auto_moderation::{
+                CreateAutoModerationRule, DeleteAutoModerationRule, GetAutoModerationRule,
+                GetGuildAutoModerationRules, UpdateAutoModerationRule,
+            },
             ban::{CreateBan, DeleteBan, GetBan, GetBans},
             emoji::{CreateEmoji, DeleteEmoji, GetEmoji, GetEmojis, UpdateEmoji},
             integration::{DeleteGuildIntegration, GetGuildIntegrations},
@@ -68,10 +72,9 @@ mod private {
             UpdateGuildWidget,
         },
         scheduled_event::{
-            CreateGuildExternalScheduledEvent, CreateGuildScheduledEvent,
-            CreateGuildStageInstanceScheduledEvent, CreateGuildVoiceScheduledEvent,
-            DeleteGuildScheduledEvent, GetGuildScheduledEvent, GetGuildScheduledEventUsers,
-            GetGuildScheduledEvents, UpdateGuildScheduledEvent,
+            CreateGuildExternalScheduledEvent, CreateGuildStageInstanceScheduledEvent,
+            CreateGuildVoiceScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
+            GetGuildScheduledEventUsers, GetGuildScheduledEvents, UpdateGuildScheduledEvent,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
@@ -83,7 +86,8 @@ mod private {
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetGateway, GetGatewayAuthed, GetUserApplicationInfo, GetVoiceRegions,
+        GetCurrentAuthorizationInformation, GetGateway, GetGatewayAuthed, GetUserApplicationInfo,
+        GetVoiceRegions,
     };
 
     pub trait Sealed {}
@@ -91,9 +95,11 @@ mod private {
     impl Sealed for AddGuildMember<'_> {}
     impl Sealed for AddRoleToMember<'_> {}
     impl Sealed for AddThreadMember<'_> {}
+    impl Sealed for CreateAutoModerationRule<'_> {}
     impl Sealed for CreateBan<'_> {}
     impl Sealed for CreateEmoji<'_> {}
     impl Sealed for CreateFollowup<'_> {}
+    impl Sealed for CreateForumThreadMessage<'_> {}
     impl Sealed for CreateGlobalChatInputCommand<'_> {}
     impl Sealed for CreateGlobalCommand<'_> {}
     impl Sealed for CreateGlobalMessageCommand<'_> {}
@@ -106,7 +112,6 @@ mod private {
     impl Sealed for CreateGuildFromTemplate<'_> {}
     impl Sealed for CreateGuildMessageCommand<'_> {}
     impl Sealed for CreateGuildPrune<'_> {}
-    impl Sealed for CreateGuildScheduledEvent<'_> {}
     impl Sealed for CreateGuildStageInstanceScheduledEvent<'_> {}
     impl Sealed for CreateGuildSticker<'_> {}
     impl Sealed for CreateGuildUserCommand<'_> {}
@@ -127,6 +132,7 @@ mod private {
     impl Sealed for CrosspostMessage<'_> {}
     impl Sealed for DeleteAllReaction<'_> {}
     impl Sealed for DeleteAllReactions<'_> {}
+    impl Sealed for DeleteAutoModerationRule<'_> {}
     impl Sealed for DeleteBan<'_> {}
     impl Sealed for DeleteChannel<'_> {}
     impl Sealed for DeleteChannelPermission<'_> {}
@@ -155,6 +161,7 @@ mod private {
     impl Sealed for FollowNewsChannel<'_> {}
     impl Sealed for GetActiveThreads<'_> {}
     impl Sealed for GetAuditLog<'_> {}
+    impl Sealed for GetAutoModerationRule<'_> {}
     impl Sealed for GetBan<'_> {}
     impl Sealed for GetBans<'_> {}
     impl Sealed for GetChannel<'_> {}
@@ -164,6 +171,7 @@ mod private {
     impl Sealed for GetChannelWebhooks<'_> {}
     impl Sealed for GetCommandPermissions<'_> {}
     impl Sealed for GetCurrentUser<'_> {}
+    impl Sealed for GetCurrentAuthorizationInformation<'_> {}
     impl Sealed for GetCurrentUserConnections<'_> {}
     impl Sealed for GetCurrentUserGuildMember<'_> {}
     impl Sealed for GetCurrentUserGuilds<'_> {}
@@ -175,6 +183,7 @@ mod private {
     impl Sealed for GetGlobalCommand<'_> {}
     impl Sealed for GetGlobalCommands<'_> {}
     impl Sealed for GetGuild<'_> {}
+    impl Sealed for GetGuildAutoModerationRules<'_> {}
     impl Sealed for GetGuildChannels<'_> {}
     impl Sealed for GetGuildCommand<'_> {}
     impl Sealed for GetGuildCommandPermissions<'_> {}
@@ -226,6 +235,7 @@ mod private {
     impl Sealed for SetGlobalCommands<'_> {}
     impl Sealed for SetGuildCommands<'_> {}
     impl Sealed for SyncTemplate<'_> {}
+    impl Sealed for UpdateAutoModerationRule<'_> {}
     impl Sealed for UpdateChannel<'_> {}
     impl Sealed for UpdateChannelPermission<'_> {}
     impl Sealed for UpdateCommandPermissions<'_> {}

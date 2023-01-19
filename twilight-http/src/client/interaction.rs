@@ -14,7 +14,7 @@ use crate::{
     Client,
 };
 use twilight_model::{
-    application::command::{permissions::CommandPermissions, Command},
+    application::command::{permissions::CommandPermission, Command},
     http::interaction::InteractionResponse,
     id::{
         marker::{ApplicationMarker, CommandMarker, GuildMarker, InteractionMarker, MessageMarker},
@@ -41,12 +41,7 @@ use twilight_validate::command::CommandValidationError;
 ///
 /// let interaction_client = client.interaction(application_id);
 ///
-/// let commands = interaction_client
-///     .global_commands()
-///     .exec()
-///     .await?
-///     .models()
-///     .await?;
+/// let commands = interaction_client.global_commands().await?.models().await?;
 ///
 /// println!("there are {} global commands", commands.len());
 /// # Ok(()) }
@@ -102,15 +97,23 @@ impl<'a> InteractionClient<'a> {
 
     /// Edit the original message, by its token.
     ///
+    /// The update must include at least one of [`attachments`], [`components`],
+    /// [`content`] or [`embeds`].
+    ///
     /// This endpoint is not bound to the application's global rate limit.
+    ///
+    /// [`attachments`]: CreateFollowup::attachments
+    /// [`components`]: CreateFollowup::components
+    /// [`content`]: CreateFollowup::content
+    /// [`embeds`]: CreateFollowup::embeds
     pub const fn update_response(&'a self, interaction_token: &'a str) -> UpdateResponse<'a> {
         UpdateResponse::new(self.client, self.application_id, interaction_token)
     }
 
     /// Create a followup message to an interaction, by its token.
     ///
-    /// The message must include at least one of [`attachments`], [`content`],
-    /// or [`embeds`].
+    /// The message must include at least one of [`attachments`], [`components`]
+    /// [`content`] or [`embeds`].
     ///
     /// This endpoint is not bound to the application's global rate limit.
     ///
@@ -129,12 +132,12 @@ impl<'a> InteractionClient<'a> {
     ///     .interaction(application_id)
     ///     .create_followup("webhook token")
     ///     .content("Pinkie...")?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
     /// [`attachments`]: CreateFollowup::attachments
+    /// [`components`]: CreateFollowup::components
     /// [`content`]: CreateFollowup::content
     /// [`embeds`]: CreateFollowup::embeds
     pub const fn create_followup(&'a self, interaction_token: &'a str) -> CreateFollowup<'a> {
@@ -339,7 +342,7 @@ impl<'a> InteractionClient<'a> {
         &'a self,
         guild_id: Id<GuildMarker>,
         command_id: Id<CommandMarker>,
-        permissions: &'a [CommandPermissions],
+        permissions: &'a [CommandPermission],
     ) -> Result<UpdateCommandPermissions<'a>, CommandValidationError> {
         UpdateCommandPermissions::new(
             self.client,

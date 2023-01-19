@@ -12,8 +12,11 @@ use twilight_model::util::Timestamp;
 /// The maximum audit log reason length in UTF-16 codepoints.
 pub const AUDIT_REASON_MAX: usize = 512;
 
-/// Maximum amount of days for messages to be deleted upon ban.
-pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u16 = 7;
+/// Maximum amount of mentions that triggers an auto moderation action.
+pub const AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT: u8 = 50;
+
+/// Maximum amount of seconds (`604_800` this is equivalent to `7` days) for messages to be deleted upon ban.
+pub const CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
 
 /// Maximum amount of time a member can be timed out for.
 pub const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
@@ -174,14 +177,21 @@ impl Display for ValidationError {
 
                 Display::fmt(&AUDIT_REASON_MAX, f)
             }
-            ValidationErrorType::CreateGuildBanDeleteMessageDays {
-                days: delete_message_days,
-            } => {
-                f.write_str("provided create guild ban delete_message_days is ")?;
-                Display::fmt(delete_message_days, f)?;
+            ValidationErrorType::AutoModerationMetadataMentionTotalLimit { limit } => {
+                f.write_str("provided auto moderation metadata mention_total_limit is ")?;
+                Display::fmt(limit, f)?;
                 f.write_str(", but it must be at most ")?;
 
-                Display::fmt(&CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX, f)
+                Display::fmt(&AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT, f)
+            }
+            ValidationErrorType::CreateGuildBanDeleteMessageSeconds {
+                seconds: delete_message_seconds,
+            } => {
+                f.write_str("provided create guild ban delete_message_seconds is ")?;
+                Display::fmt(delete_message_seconds, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX, f)
             }
             ValidationErrorType::CommunicationDisabledUntil { .. } => {
                 f.write_str("provided timestamp is too far in the future")
@@ -378,10 +388,15 @@ pub enum ValidationErrorType {
         /// Invalid length.
         len: usize,
     },
-    /// Provided create guild ban delete message days was invalid.
-    CreateGuildBanDeleteMessageDays {
-        /// Invalid days.
-        days: u16,
+    /// Provided limit was too large.
+    AutoModerationMetadataMentionTotalLimit {
+        /// Invalid limit.
+        limit: u8,
+    },
+    /// Provided create guild ban delete message seconds was invalid.
+    CreateGuildBanDeleteMessageSeconds {
+        /// Invalid seconds.
+        seconds: u32,
     },
     /// Provided timestamp is too far in the future.
     CommunicationDisabledUntil {
@@ -517,25 +532,49 @@ pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError
     }
 }
 
-/// Ensure that the delete message days amount for the Create Guild Ban request
+/// Ensure that an auto moderation rule's `mention_total_limit` is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataMentionTotalLimit`] if the
+/// length is invalid.
+///
+/// [`AutoModerationMetadataMentionTotalLimit`]: ValidationErrorType::AutoModerationMetadataMentionTotalLimit
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+pub const fn auto_moderation_metadata_mention_total_limit(
+    limit: u8,
+) -> Result<(), ValidationError> {
+    if limit <= AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataMentionTotalLimit { limit },
+        })
+    }
+}
+
+/// Ensure that the delete message seconds amount for the Create Guild Ban request
 /// is correct.
 ///
-/// The days must be at most [`CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX`]. This
+/// The seconds must be at most [`CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX`]. This
 /// is based on [this documentation entry].
 ///
 /// # Errors
 ///
-/// Returns an error of type [`CreateGuildBanDeleteMessageDays`] if the days is
+/// Returns an error of type [`CreateGuildBanDeleteMessageSeconds`] if the seconds is
 /// invalid.
 ///
-/// [`CreateGuildBanDeleteMessageDays`]: ValidationErrorType::CreateGuildBanDeleteMessageDays
+/// [`CreateGuildBanDeleteMessageSeconds`]: ValidationErrorType::CreateGuildBanDeleteMessageSeconds
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#create-guild-ban
-pub const fn create_guild_ban_delete_message_days(days: u16) -> Result<(), ValidationError> {
-    if days <= CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX {
+pub const fn create_guild_ban_delete_message_seconds(seconds: u32) -> Result<(), ValidationError> {
+    if seconds <= CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX {
         Ok(())
     } else {
         Err(ValidationError {
-            kind: ValidationErrorType::CreateGuildBanDeleteMessageDays { days },
+            kind: ValidationErrorType::CreateGuildBanDeleteMessageSeconds { seconds },
         })
     }
 }
@@ -981,7 +1020,7 @@ pub fn username(value: impl AsRef<str>) -> Result<(), ValidationError> {
     let len = value.chars().count();
 
     let range = USERNAME_LIMIT_MIN..=USERNAME_LIMIT_MAX;
-    let invalid_len = (!range.contains(&len)).then(|| len);
+    let invalid_len = (!range.contains(&len)).then_some(len);
 
     let invalid_substring = USERNAME_INVALID_SUBSTRINGS
         .into_iter()
@@ -1021,7 +1060,7 @@ pub fn webhook_username(value: impl AsRef<str>) -> Result<(), ValidationError> {
     let len = value.chars().count();
 
     let range = WEBHOOK_USERNAME_LIMIT_MIN..=WEBHOOK_USERNAME_LIMIT_MAX;
-    let invalid_len = (!range.contains(&len)).then(|| len);
+    let invalid_len = (!range.contains(&len)).then_some(len);
 
     let invalid_substring = WEBHOOK_INVALID_STRINGS
         .into_iter()
@@ -1090,12 +1129,21 @@ mod tests {
     }
 
     #[test]
-    fn create_guild_ban_delete_message_days_length() {
-        assert!(create_guild_ban_delete_message_days(0).is_ok());
-        assert!(create_guild_ban_delete_message_days(1).is_ok());
-        assert!(create_guild_ban_delete_message_days(7).is_ok());
+    fn auto_moderation_metadata_mention_total() {
+        assert!(auto_moderation_metadata_mention_total_limit(0).is_ok());
+        assert!(auto_moderation_metadata_mention_total_limit(1).is_ok());
+        assert!(auto_moderation_metadata_mention_total_limit(50).is_ok());
 
-        assert!(create_guild_ban_delete_message_days(8).is_err());
+        assert!(auto_moderation_metadata_mention_total_limit(51).is_err());
+    }
+
+    #[test]
+    fn create_guild_ban_delete_message_seconds_max() {
+        assert!(create_guild_ban_delete_message_seconds(0).is_ok());
+        assert!(create_guild_ban_delete_message_seconds(1).is_ok());
+        assert!(create_guild_ban_delete_message_seconds(604_800).is_ok());
+
+        assert!(create_guild_ban_delete_message_seconds(604_801).is_err());
     }
 
     #[test]

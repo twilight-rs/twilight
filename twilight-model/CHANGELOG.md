@@ -1,5 +1,142 @@
 # Changelog
 
+## [0.14.2] - 2023-01-08
+
+### Features
+
+- constants for scope values ([#2018](https://github.com/twilight-rs/twilight/issues/2018))
+- add new message types for premium ([#2040](https://github.com/twilight-rs/twilight/issues/2040))
+
+## [0.14.1] - 2023-01-07
+
+### Documentation
+
+- update automod keyword limit ([#2020](https://github.com/twilight-rs/twilight/issues/2020))
+- update voice state suppress field ([#2037](https://github.com/twilight-rs/twilight/issues/2037))
+
+### Features
+
+- add `Interaction::author` ([#2001](https://github.com/twilight-rs/twilight/issues/2001))
+- make `Id<T>` invariant for T ([#1861](https://github.com/twilight-rs/twilight/issues/1861))
+- add active developer user flag ([#2014](https://github.com/twilight-rs/twilight/issues/2014))
+- rename certified moderator to alumni ([#2015](https://github.com/twilight-rs/twilight/issues/2015))
+- support nsfw commands ([#2019](https://github.com/twilight-rs/twilight/issues/2019))
+- forum channel layouts ([#2016](https://github.com/twilight-rs/twilight/issues/2016))
+- add nitro basic user premium type ([#2035](https://github.com/twilight-rs/twilight/issues/2035))
+- add dev support server guild feature ([#2036](https://github.com/twilight-rs/twilight/issues/2036))
+- default forum sort orders ([#2038](https://github.com/twilight-rs/twilight/issues/2038))
+- message type deletable check methods ([#2028](https://github.com/twilight-rs/twilight/issues/2028))
+
+### Refactor
+
+- abstract null boolean visitor ([#2032](https://github.com/twilight-rs/twilight/issues/2032))
+
+### Testing
+
+- add real-world role tag tests ([#2033](https://github.com/twilight-rs/twilight/issues/2033))
+
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+### Bug Fixes
+
+- [**breaking**] add a unknown variant to `PremiumType` ([#1996](https://github.com/twilight-rs/twilight/issues/1996))
+
+### Documentation
+
+[**breaking**] Document `application::command::permissions` ([#1816] -
+[@vilgotf]). Also renames `CommandPermissions` to `CommandPermission`, and
+`CommandPermissionsType` to `CommandPermissionType`.
+
+### Performance
+
+[**breaking**] unbox `GatewayEvent::Dispatch` ([#1859]) - [@vilgotf]). Most
+gateway events are dispatch events, so this saves one allocation and pointer
+redirection.
+
+### Changes
+
+[**breaking**] flatten `CommandOption` ([#1819] - [@vilgotf]).
+- Simplify and fix errors in `CommandOption` {de,}serialization by delegating
+  to the derive implementation.
+- Remove duplicated shared fields for `CommandOption` and `CommandOptionChoice`
+  variants.
+- Document all public fields.
+- Add a note in the `command` module recommending users to use the
+  `CommandBuilder`.
+- `CommandBuilder` retains its API, but is internally more complicated.
+ 
+Through the following series of PRs, modules and types have been moved around
+and renamed in order to be more concise. `MessageReaction` has been renamed to
+`Reaction`, and thus the previous `Reaction` has been renamed to
+`GatewayReaction`. Besides that, the changes are too extensive to list here;
+proper tooling is recommended in order to sort out the new imports. 
+- [**breaking**] move related modules under `guild` ([#1814](https://github.com/twilight-rs/twilight/issues/1814))
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+
+Remove deprecated `Id` aliases ([#1976] - [@AEnterprise]). These have been
+deprecated since 0.9.
+
+Other changes:
+
+- [**breaking**] cleanup and document `voice` ([#1820](https://github.com/twilight-rs/twilight/issues/1820))
+- [**breaking**] update `ChannelType` names ([#1909](https://github.com/twilight-rs/twilight/issues/1909))
+
+### Internal Refactor
+
+- clippy 1.65 lints ([#1985](https://github.com/twilight-rs/twilight/issues/1985))
+
+[#1816]: https://github.com/twilight-rs/twilight/pull/1816
+[#1819]: https://github.com/twilight-rs/twilight/pull/1819
+[#1859]: https://github.com/twilight-rs/twilight/pull/1859
+[#1897]: https://github.com/twilight-rs/twilight/pull/1897
+[#1976]: https://github.com/twilight-rs/twilight/pull/1976
+
+## [0.13.7] - 2022-11-01
+
+### Bug Fixes
+
+- [**breaking**] flatten `DefaultReaction` and `ForumTag` ([#1978](https://github.com/twilight-rs/twilight/issues/1978))
+
+## [0.13.6] - 2022-10-28
+
+### Documentation
+
+- update `Id::new_unchecked` and `Id::new_checked` ([#1959](https://github.com/twilight-rs/twilight/issues/1959))
+
+### Features
+
+- [**breaking**] auto moderation http methods and mention spam ([#1846](https://github.com/twilight-rs/twilight/issues/1846))
+- forum channels ([#1864](https://github.com/twilight-rs/twilight/issues/1864))
+
+## [0.13.5] - 2022-09-29
+
+### Bug Fixes
+
+- [**breaking**] use `ImageHash` for `InteractionMember::avatar` ([#1924](https://github.com/twilight-rs/twilight/issues/1924))
+
+### Build
+
+- fix or ignore clippy for 1.64
+
+### Features
+
+- add `GuildFeature::InvitesDisabled` ([#1910](https://github.com/twilight-rs/twilight/issues/1910))
+- [**breaking**] bring audit log up to date ([#1921](https://github.com/twilight-rs/twilight/issues/1921))
+- method to get the `guild_id` from an `Event` ([#1899](https://github.com/twilight-rs/twilight/issues/1899))
+- add `scopes` to `GuildIntegration` ([#1915](https://github.com/twilight-rs/twilight/issues/1915))
+
+## [0.13.4] - 2022-09-16
+
+### Bug Fixes
+
+- don't serialize `Mention.member` if None ([#1896](https://github.com/twilight-rs/twilight/issues/1896))
+
+### Features
+
+- add `two_way_link` to `Connection` ([#1918](https://github.com/twilight-rs/twilight/issues/1918))
+
 ## [0.13.3] - 2022-09-08
 
 ### Features

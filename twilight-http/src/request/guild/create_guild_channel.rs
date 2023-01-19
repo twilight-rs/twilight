@@ -1,15 +1,18 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::{
-        permission_overwrite::PermissionOverwrite, thread::AutoArchiveDuration, Channel,
-        ChannelType, VideoQualityMode,
+        forum::{DefaultReaction, ForumSortOrder, ForumTag},
+        permission_overwrite::PermissionOverwrite,
+        thread::AutoArchiveDuration,
+        Channel, ChannelType, VideoQualityMode,
     },
     id::{
         marker::{ChannelMarker, GuildMarker},
@@ -28,9 +31,15 @@ use twilight_validate::{
 #[derive(Serialize)]
 struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
+    available_tags: Option<&'a [ForumTag]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     bitrate: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_auto_archive_duration: Option<AutoArchiveDuration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_reaction_emoji: Option<&'a DefaultReaction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_sort_order: Option<ForumSortOrder>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
     name: &'a str,
@@ -76,8 +85,11 @@ impl<'a> CreateGuildChannel<'a> {
 
         Ok(Self {
             fields: CreateGuildChannelFields {
+                available_tags: None,
                 bitrate: None,
                 default_auto_archive_duration: None,
+                default_reaction_emoji: None,
+                default_sort_order: None,
                 kind: None,
                 name,
                 nsfw: None,
@@ -96,6 +108,13 @@ impl<'a> CreateGuildChannel<'a> {
         })
     }
 
+    /// Set the available tags for the forum.
+    pub const fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
+        self.fields.available_tags = Some(available_tags);
+
+        self
+    }
+
     /// For voice and stage channels, set the bitrate of the channel.
     ///
     /// Must be at least 8000.
@@ -106,6 +125,7 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
     pub const fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_bitrate(bitrate) {
             return Err(source);
         }
@@ -125,6 +145,23 @@ impl<'a> CreateGuildChannel<'a> {
         auto_archive_duration: AutoArchiveDuration,
     ) -> Self {
         self.fields.default_auto_archive_duration = Some(auto_archive_duration);
+
+        self
+    }
+
+    /// Set the default reaction emoji for new forum threads.
+    pub const fn default_reaction_emoji(
+        mut self,
+        default_reaction_emoji: &'a DefaultReaction,
+    ) -> Self {
+        self.fields.default_reaction_emoji = Some(default_reaction_emoji);
+
+        self
+    }
+
+    /// Set the default sort order for newly created forum channels.
+    pub const fn default_sort_order(mut self, default_sort_order: ForumSortOrder) -> Self {
+        self.fields.default_sort_order = Some(default_sort_order);
 
         self
     }
@@ -188,6 +225,7 @@ impl<'a> CreateGuildChannel<'a> {
         mut self,
         rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
         }
@@ -244,15 +282,9 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Channel> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -266,8 +298,23 @@ impl<'a> AuditLogReason<'a> for CreateGuildChannel<'a> {
     }
 }
 
+impl IntoFuture for CreateGuildChannel<'_> {
+    type Output = Result<Response<Channel>, Error>;
+
+    type IntoFuture = ResponseFuture<Channel>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
 impl TryIntoRequest for CreateGuildChannel<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateChannel {
             guild_id: self.guild_id.get(),
         });

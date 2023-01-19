@@ -6,12 +6,8 @@ use serde::{Deserialize, Serialize};
 pub enum AutoModerationTriggerType {
     /// Check if content contains words from a user defined list of keywords.
     ///
-    /// Maximum of 3 per guild.
+    /// Maximum of 5 per guild.
     Keyword,
-    /// Check if content contains any harmful links.
-    ///
-    /// Currently unreleased. Maximum of 1 per guild.
-    HarmfulLink,
     /// Check if content represents generic spam.
     ///
     /// Currently unreleased. Maximum of 1 per guild.
@@ -20,6 +16,8 @@ pub enum AutoModerationTriggerType {
     ///
     /// Maximum of 1 per guild.
     KeywordPreset,
+    /// Check if content contains more unique mentions than allowed.
+    MentionSpam,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -28,9 +26,9 @@ impl From<u8> for AutoModerationTriggerType {
     fn from(value: u8) -> Self {
         match value {
             1 => Self::Keyword,
-            2 => Self::HarmfulLink,
             3 => Self::Spam,
             4 => Self::KeywordPreset,
+            5 => Self::MentionSpam,
             _ => Self::Unknown(value),
         }
     }
@@ -40,9 +38,9 @@ impl From<AutoModerationTriggerType> for u8 {
     fn from(value: AutoModerationTriggerType) -> Self {
         match value {
             AutoModerationTriggerType::Keyword => 1,
-            AutoModerationTriggerType::HarmfulLink => 2,
             AutoModerationTriggerType::Spam => 3,
             AutoModerationTriggerType::KeywordPreset => 4,
+            AutoModerationTriggerType::MentionSpam => 5,
             AutoModerationTriggerType::Unknown(unknown) => unknown,
         }
     }
@@ -71,9 +69,9 @@ mod tests {
     #[test]
     fn values() {
         assert_eq!(1, u8::from(AutoModerationTriggerType::Keyword));
-        assert_eq!(2, u8::from(AutoModerationTriggerType::HarmfulLink));
         assert_eq!(3, u8::from(AutoModerationTriggerType::Spam));
         assert_eq!(4, u8::from(AutoModerationTriggerType::KeywordPreset));
+        assert_eq!(5, u8::from(AutoModerationTriggerType::MentionSpam));
         assert_eq!(250, u8::from(AutoModerationTriggerType::Unknown(250)));
     }
 }

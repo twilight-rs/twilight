@@ -49,10 +49,10 @@ pub struct AutoModerationRuleMarker;
 
 /// Marker for channel IDs.
 ///
-/// Types such as [`Channel`] or [`Reaction`] use this ID marker.
+/// Types such as [`Channel`] or [`GatewayReaction`] use this ID marker.
 ///
 /// [`Channel`]: crate::channel::Channel
-/// [`Reaction`]: crate::channel::Reaction
+/// [`GatewayReaction`]: crate::gateway::GatewayReaction
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ChannelMarker;
@@ -80,7 +80,7 @@ pub struct CommandVersionMarker;
 /// Types such as [`Emoji`] or [`ReactionType`] use this ID marker.
 ///
 /// [`Emoji`]: crate::guild::Emoji
-/// [`ReactionType`]: crate::channel::ReactionType
+/// [`ReactionType`]: crate::channel::message::ReactionType
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct EmojiMarker;
@@ -129,10 +129,10 @@ pub struct InteractionMarker;
 
 /// Marker for message IDs.
 ///
-/// Types such as [`Message`] or [`Reaction`] use this ID marker.
+/// Types such as [`Message`] or [`GatewayReaction`] use this ID marker.
 ///
 /// [`Message`]: crate::channel::Message
-/// [`Reaction`]: crate::channel::Reaction
+/// [`GatewayReaction`]: crate::gateway::GatewayReaction
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct MessageMarker;
@@ -170,7 +170,7 @@ pub struct RoleMarker;
 ///
 /// Types such as [`GuildScheduledEvent`] use this ID marker.
 ///
-/// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+/// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ScheduledEventMarker;
@@ -179,7 +179,7 @@ pub struct ScheduledEventMarker;
 ///
 /// Types such as [`GuildScheduledEvent`] use this ID marker.
 ///
-/// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+/// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ScheduledEventEntityMarker;
@@ -230,6 +230,24 @@ pub struct StickerPackMarker;
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct StickerPackSkuMarker;
+
+/// Marker for SKU IDs.
+///
+/// Types such as [`RoleTags`] use this ID marker.
+///
+/// [`RoleTags`]: crate::guild::RoleTags
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct RoleSubscriptionSkuMarker;
+
+/// Marker for forum tag IDs.
+///
+/// Types such as [`ForumTag`] use this ID marker.
+///
+/// [`ForumTag`]: crate::channel::forum::ForumTag
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct TagMarker;
 
 /// Marker for user IDs.
 ///

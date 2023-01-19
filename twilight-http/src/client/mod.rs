@@ -4,6 +4,7 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
+use crate::request::GetCurrentAuthorizationInformation;
 #[allow(deprecated)]
 use crate::{
     client::connector::Connector,
@@ -23,7 +24,7 @@ use crate::{
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
             },
             thread::{
-                AddThreadMember, CreateThread, CreateThreadFromMessage,
+                AddThreadMember, CreateForumThread, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
                 GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
                 LeaveThread, RemoveThreadMember, UpdateThread,
@@ -37,6 +38,10 @@ use crate::{
             FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
         },
         guild::{
+            auto_moderation::{
+                CreateAutoModerationRule, DeleteAutoModerationRule, GetAutoModerationRule,
+                GetGuildAutoModerationRules, UpdateAutoModerationRule,
+            },
             ban::{CreateBan, DeleteBan, GetBan, GetBans},
             create_guild::CreateGuildError,
             emoji::{CreateEmoji, DeleteEmoji, GetEmoji, GetEmojis, UpdateEmoji},
@@ -95,13 +100,13 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
-    guild::MfaLevel,
+    guild::{auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel},
     http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
-            ApplicationMarker, ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker,
-            MessageMarker, RoleMarker, ScheduledEventMarker, StickerMarker, UserMarker,
-            WebhookMarker,
+            ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker, GuildMarker,
+            IntegrationMarker, MessageMarker, RoleMarker, ScheduledEventMarker, StickerMarker,
+            UserMarker, WebhookMarker,
         },
         Id,
     },
@@ -247,7 +252,7 @@ impl Client {
     ///
     /// // Cache the application ID for repeated use later in the process.
     /// let application_id = {
-    ///     let response = client.current_user_application().exec().await?;
+    ///     let response = client.current_user_application().await?;
     ///
     ///     response.model().await?.id
     /// };
@@ -256,7 +261,6 @@ impl Client {
     /// let commands = client
     ///     .interaction(application_id)
     ///     .global_commands()
-    ///     .exec()
     ///     .await?
     ///     .models()
     ///     .await?;
@@ -287,6 +291,92 @@ impl Client {
         self.ratelimiter.as_ref().map(AsRef::as_ref)
     }
 
+    /// Get an auto moderation rule in a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn auto_moderation_rule(
+        &self,
+        guild_id: Id<GuildMarker>,
+        auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
+    ) -> GetAutoModerationRule<'_> {
+        GetAutoModerationRule::new(self, guild_id, auto_moderation_rule_id)
+    }
+
+    /// Get the auto moderation rules in a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn auto_moderation_rules(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetGuildAutoModerationRules<'_> {
+        GetGuildAutoModerationRules::new(self, guild_id)
+    }
+
+    /// Create an auto moderation rule within a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// # Examples
+    ///
+    /// Create a rule that deletes messages that contain the word "darn":
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
+    /// use twilight_model::{guild::auto_moderation::AutoModerationEventType, id::Id};
+    ///
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = Id::new(1);
+    /// client
+    ///     .create_auto_moderation_rule(guild_id, "no darns", AutoModerationEventType::MessageSend)
+    ///     .action_block_message()
+    ///     .enabled(true)
+    ///     .with_keyword(&["darn"])
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn create_auto_moderation_rule<'a>(
+        &'a self,
+        guild_id: Id<GuildMarker>,
+        name: &'a str,
+        event_type: AutoModerationEventType,
+    ) -> CreateAutoModerationRule<'a> {
+        CreateAutoModerationRule::new(self, guild_id, name, event_type)
+    }
+
+    /// Delete an auto moderation rule in a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn delete_auto_moderation_rule(
+        &self,
+        guild_id: Id<GuildMarker>,
+        auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
+    ) -> DeleteAutoModerationRule<'_> {
+        DeleteAutoModerationRule::new(self, guild_id, auto_moderation_rule_id)
+    }
+
+    /// Update an auto moderation rule in a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn update_auto_moderation_rule(
+        &self,
+        guild_id: Id<GuildMarker>,
+        auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
+    ) -> UpdateAutoModerationRule<'_> {
+        UpdateAutoModerationRule::new(self, guild_id, auto_moderation_rule_id)
+    }
+
     /// Get the audit log for a guild.
     ///
     /// # Examples
@@ -299,7 +389,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
     /// let guild_id = Id::new(101);
-    /// let audit_log = client.audit_log(guild_id).exec().await?;
+    /// let audit_log = client.audit_log(guild_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn audit_log(&self, guild_id: Id<GuildMarker>) -> GetAuditLog<'_> {
@@ -322,7 +412,7 @@ impl Client {
     /// #
     /// let guild_id = Id::new(1);
     ///
-    /// let bans = client.bans(guild_id).exec().await?;
+    /// let bans = client.bans(guild_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn bans(&self, guild_id: Id<GuildMarker>) -> GetBans<'_> {
@@ -336,13 +426,13 @@ impl Client {
         GetBan::new(self, guild_id, user_id)
     }
 
-    /// Bans a user from a guild, optionally with the number of days' worth of
+    /// Bans a user from a guild, optionally with the number of seconds' worth of
     /// messages to delete and the reason.
     ///
     /// # Examples
     ///
     /// Ban user `200` from guild `100`, deleting
-    /// 1 day's worth of messages, for the reason `"memes"`:
+    /// `86_400` second's (this is equivalent to `1` day) worth of messages, for the reason `"memes"`:
     ///
     /// ```no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
@@ -356,9 +446,8 @@ impl Client {
     /// let user_id = Id::new(200);
     /// client
     ///     .create_ban(guild_id, user_id)
-    ///     .delete_message_days(1)?
+    ///     .delete_message_seconds(86_400)?
     ///     .reason("memes")?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -387,7 +476,7 @@ impl Client {
     /// let guild_id = Id::new(100);
     /// let user_id = Id::new(200);
     ///
-    /// client.delete_ban(guild_id, user_id).exec().await?;
+    /// client.delete_ban(guild_id, user_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn delete_ban(
@@ -414,7 +503,7 @@ impl Client {
     /// #
     /// let channel_id = Id::new(100);
     /// #
-    /// let channel = client.channel(channel_id).exec().await?;
+    /// let channel = client.channel(channel_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn channel(&self, channel_id: Id<ChannelMarker>) -> GetChannel<'_> {
@@ -478,7 +567,6 @@ impl Client {
     ///     .channel_messages(channel_id)
     ///     .before(message_id)
     ///     .limit(limit)?
-    ///     .exec()
     ///     .await?;
     ///
     /// # Ok(()) }
@@ -535,7 +623,6 @@ impl Client {
     ///
     /// client
     ///     .update_channel_permission(channel_id, &permission_overwrite)
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -565,6 +652,11 @@ impl Client {
         GetCurrentUserGuildMember::new(self, guild_id)
     }
 
+    /// Get information about the current OAuth authorization.
+    pub const fn current_authorization(&self) -> GetCurrentAuthorizationInformation<'_> {
+        GetCurrentAuthorizationInformation::new(self)
+    }
+
     /// Get information about the current bot application.
     pub const fn current_user_application(&self) -> GetUserApplicationInfo<'_> {
         GetUserApplicationInfo::new(self)
@@ -589,9 +681,8 @@ impl Client {
     pub const fn update_current_user_voice_state(
         &self,
         guild_id: Id<GuildMarker>,
-        channel_id: Id<ChannelMarker>,
     ) -> UpdateCurrentUserVoiceState<'_> {
-        UpdateCurrentUserVoiceState::new(self, guild_id, channel_id)
+        UpdateCurrentUserVoiceState::new(self, guild_id)
     }
 
     /// Get the current user's connections.
@@ -623,7 +714,6 @@ impl Client {
     ///     .after(after)
     ///     .before(before)
     ///     .limit(25)?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -647,7 +737,7 @@ impl Client {
     /// #
     /// let guild_id = Id::new(100);
     ///
-    /// client.emojis(guild_id).exec().await?;
+    /// client.emojis(guild_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn emojis(&self, guild_id: Id<GuildMarker>) -> GetEmojis<'_> {
@@ -671,7 +761,7 @@ impl Client {
     /// let guild_id = Id::new(50);
     /// let emoji_id = Id::new(100);
     ///
-    /// client.emoji(guild_id, emoji_id).exec().await?;
+    /// client.emoji(guild_id, emoji_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn emoji(
@@ -730,7 +820,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let info = client.gateway().exec().await?;
+    /// let info = client.gateway().await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -744,7 +834,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let info = client.gateway().authed().exec().await?.model().await?;
+    /// let info = client.gateway().authed().await?.model().await?;
     ///
     /// println!("URL: {}", info.url);
     /// println!("Recommended shards to use: {}", info.shards);
@@ -904,7 +994,7 @@ impl Client {
     /// #
     /// let guild_id = Id::new(100);
     /// let user_id = Id::new(3000);
-    /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
+    /// let members = client.guild_members(guild_id).after(user_id).await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -938,7 +1028,6 @@ impl Client {
     /// let members = client
     ///     .search_guild_members(guild_id, "Wumpus")
     ///     .limit(10)?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1016,7 +1105,6 @@ impl Client {
     ///     .update_guild_member(Id::new(1), Id::new(2))
     ///     .mute(true)
     ///     .nick(Some("pinkie pie"))?
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -1072,7 +1160,6 @@ impl Client {
     /// client
     ///     .add_guild_member_role(guild_id, user_id, role_id)
     ///     .reason("test")?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1173,7 +1260,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let invite = client.invite("code").with_counts().exec().await?;
+    /// let invite = client.invite("code").with_counts().await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -1198,7 +1285,7 @@ impl Client {
     /// # let client = Client::new("my token".to_owned());
     /// #
     /// let channel_id = Id::new(123);
-    /// let invite = client.create_invite(channel_id).max_uses(3)?.exec().await?;
+    /// let invite = client.create_invite(channel_id).max_uses(3)?.await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -1229,8 +1316,8 @@ impl Client {
 
     /// Send a message to a channel.
     ///
-    /// The message must include at least one of [`attachments`], [`content`],
-    /// [`embeds`], or [`sticker_ids`].
+    /// The message must include at least one of [`attachments`],
+    /// [`components`], [`content`], [`embeds`], or [`sticker_ids`].
     ///
     /// # Example
     ///
@@ -1246,12 +1333,12 @@ impl Client {
     ///     .create_message(channel_id)
     ///     .content("Twilight is best pony")?
     ///     .tts(true)
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
     /// [`attachments`]: CreateMessage::attachments
+    /// [`components`]: CreateMessage::components
     /// [`content`]: CreateMessage::content
     /// [`embeds`]: CreateMessage::embeds
     /// [`sticker_ids`]: CreateMessage::sticker_ids
@@ -1289,7 +1376,7 @@ impl Client {
     /// You can pass [`None`] to any of the methods to remove the associated
     /// field. Pass [`None`] to [`content`] to remove the content. You must
     /// ensure that the message still contains at least one of [`attachments`],
-    /// [`content`], [`embeds`], or stickers.
+    /// [`components`], [`content`], [`embeds`], or stickers.
     ///
     /// # Examples
     ///
@@ -1304,7 +1391,6 @@ impl Client {
     /// client
     ///     .update_message(Id::new(1), Id::new(2))
     ///     .content(Some("test update"))?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1321,12 +1407,12 @@ impl Client {
     /// client
     ///     .update_message(Id::new(1), Id::new(2))
     ///     .content(None)?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
     /// [`attachments`]: UpdateMessage::attachments
+    /// [`components`]: UpdateMessage::components
     /// [`content`]: UpdateMessage::content
     /// [`embeds`]: UpdateMessage::embeds
     pub const fn update_message(
@@ -1401,7 +1487,6 @@ impl Client {
     ///
     /// let reaction = client
     ///     .create_reaction(channel_id, message_id, &emoji)
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1492,7 +1577,6 @@ impl Client {
     ///     .create_role(guild_id)
     ///     .color(0xd90083)
     ///     .name("Bright Pink")
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1661,12 +1745,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     /// let guild_id = Id::new(234);
     ///
-    /// let threads = client
-    ///     .active_threads(guild_id)
-    ///     .exec()
-    ///     .await?
-    ///     .model()
-    ///     .await?;
+    /// let threads = client.active_threads(guild_id).await?.model().await?;
     /// # Ok(()) }
     /// ```
     pub const fn active_threads(&self, guild_id: Id<GuildMarker>) -> GetActiveThreads<'_> {
@@ -1685,12 +1764,21 @@ impl Client {
         AddThreadMember::new(self, channel_id, user_id)
     }
 
+    /// Start a thread in a forum channel.
+    pub const fn create_forum_thread<'a>(
+        &'a self,
+        channel_id: Id<ChannelMarker>,
+        name: &'a str,
+    ) -> CreateForumThread<'_> {
+        CreateForumThread::new(self, channel_id, name)
+    }
+
     /// Start a thread that is not connected to a message.
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
     ///
-    /// To make a [`GuildPrivateThread`], the guild must also have the
+    /// To make a [`PrivateThread`], the guild must also have the
     /// `PRIVATE_THREADS` feature.
     ///
     /// # Errors
@@ -1700,8 +1788,8 @@ impl Client {
     ///
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
-    /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread<'a>(
         &'a self,
@@ -1715,10 +1803,10 @@ impl Client {
     /// Create a new thread from an existing message.
     ///
     /// When called on a [`GuildText`] channel, this creates a
-    /// [`GuildPublicThread`].
+    /// [`PublicThread`].
     ///
-    /// When called on a [`GuildNews`] channel, this creates a
-    /// [`GuildNewsThread`].
+    /// When called on a [`GuildAnnouncement`] channel, this creates a
+    /// [`AnnouncementThread`].
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
@@ -1733,11 +1821,11 @@ impl Client {
     ///
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
-    /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
-    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
-    /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
+    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread_from_message<'a>(
         &'a self,
@@ -1790,15 +1878,15 @@ impl Client {
     ///
     /// Threads are ordered by [`archive_timestamp`] in descending order.
     ///
-    /// When called in a [`GuildText`] channel, returns [`GuildPublicThread`]s.
+    /// When called in a [`GuildText`] channel, returns [`PublicThread`]s.
     ///
-    /// When called in a [`GuildNews`] channel, returns [`GuildNewsThread`]s.
+    /// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
     ///
+    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
     /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
-    /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
-    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
-    /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
     pub const fn public_archived_threads(
         &self,
@@ -1812,11 +1900,11 @@ impl Client {
     /// Requires that the thread is not archived.
     ///
     /// Requires the [`MANAGE_THREADS`] permission, unless both the thread is a
-    /// [`GuildPrivateThread`], and the current user is the creator of the
+    /// [`PrivateThread`], and the current user is the creator of the
     /// thread.
     ///
-    /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
+    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     pub const fn remove_thread_member(
         &self,
         channel_id: Id<ChannelMarker>,
@@ -1894,10 +1982,7 @@ impl Client {
     /// # let client = Client::new("my token".to_owned());
     /// let channel_id = Id::new(123);
     ///
-    /// let webhook = client
-    ///     .create_webhook(channel_id, "Twily Bot")?
-    ///     .exec()
-    ///     .await?;
+    /// let webhook = client.create_webhook(channel_id, "Twily Bot")?.await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -1936,8 +2021,8 @@ impl Client {
 
     /// Execute a webhook, sending a message to its channel.
     ///
-    /// The message must include at least one of [`attachments`], [`content`],
-    /// or [`embeds`].
+    /// The message must include at least one of [`attachments`], [`components`]
+    /// [`content`], or [`embeds`].
     ///
     /// # Examples
     ///
@@ -1952,12 +2037,12 @@ impl Client {
     /// let webhook = client
     ///     .execute_webhook(id, "webhook token")
     ///     .content("Pinkie...")?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
     /// [`attachments`]: ExecuteWebhook::attachments
+    /// [`components`]: ExecuteWebhook::components
     /// [`content`]: ExecuteWebhook::content
     /// [`embeds`]: ExecuteWebhook::embeds
     pub const fn execute_webhook<'a>(
@@ -1983,7 +2068,7 @@ impl Client {
     /// You can pass [`None`] to any of the methods to remove the associated
     /// field. Pass [`None`] to [`content`] to remove the content. You must
     /// ensure that the message still contains at least one of [`attachments`],
-    /// [`content`], or [`embeds`].
+    /// [`components`], [`content`], or [`embeds`].
     ///
     /// # Examples
     ///
@@ -1996,12 +2081,12 @@ impl Client {
     /// client
     ///     .update_webhook_message(Id::new(1), "token here", Id::new(2))
     ///     .content(Some("new message content"))?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
     /// [`attachments`]: UpdateWebhookMessage::attachments
+    /// [`components`]: UpdateWebhookMessage::components
     /// [`content`]: UpdateWebhookMessage::content
     /// [`embeds`]: UpdateWebhookMessage::embeds
     pub const fn update_webhook_message<'a>(
@@ -2026,7 +2111,6 @@ impl Client {
     /// # let client = Client::new("token".to_owned());
     /// client
     ///     .delete_webhook_message(Id::new(1), "token here", Id::new(2))
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2054,7 +2138,6 @@ impl Client {
     ///
     /// client
     ///     .delete_guild_scheduled_event(guild_id, scheduled_event_id)
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2081,7 +2164,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{id::Id, util::Timestamp};
+    /// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2090,14 +2173,13 @@ impl Client {
     /// let garfield_start_time = Timestamp::parse("2022-01-01T14:00:00+00:00")?;
     ///
     /// client
-    ///     .create_guild_scheduled_event(guild_id)
+    ///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
     ///     .stage_instance(
     ///         channel_id,
     ///         "Garfield Appreciation Hour",
     ///         &garfield_start_time,
     ///     )?
     ///     .description("Discuss: How important is Garfield to You?")?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2106,7 +2188,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{id::Id, util::Timestamp};
+    /// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2115,7 +2197,7 @@ impl Client {
     /// let garfield_con_end_time = Timestamp::parse("2022-01-06T17:00:00+00:00")?;
     ///
     /// client
-    ///     .create_guild_scheduled_event(guild_id)
+    ///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
     ///     .external(
     ///         "Garfield Con 2022",
     ///         "Baltimore Convention Center",
@@ -2126,7 +2208,6 @@ impl Client {
     ///         "In a spiritual successor to BronyCon, Garfield fans from \
     /// around the globe celebrate all things related to the loveable cat.",
     ///     )?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2135,8 +2216,9 @@ impl Client {
     pub const fn create_guild_scheduled_event(
         &self,
         guild_id: Id<GuildMarker>,
+        privacy_level: PrivacyLevel,
     ) -> CreateGuildScheduledEvent<'_> {
-        CreateGuildScheduledEvent::new(self, guild_id)
+        CreateGuildScheduledEvent::new(self, guild_id, privacy_level)
     }
 
     /// Get a scheduled event in a guild.
@@ -2186,9 +2268,9 @@ impl Client {
     /// `channel_id` field is cleared and the [`channel_id`] method has no
     /// effect. Additionally, you must set a location with [`location`].
     ///
-    /// [`EntityType::External`]: twilight_model::scheduled_event::EntityType::External
-    /// [`EntityType::StageInstance`]: twilight_model::scheduled_event::EntityType::StageInstance
-    /// [`EntityType::Voice`]: twilight_model::scheduled_event::EntityType::Voice
+    /// [`EntityType::External`]: twilight_model::guild::scheduled_event::EntityType::External
+    /// [`EntityType::StageInstance`]: twilight_model::guild::scheduled_event::EntityType::StageInstance
+    /// [`EntityType::Voice`]: twilight_model::guild::scheduled_event::EntityType::Voice
     /// [`channel_id`]: UpdateGuildScheduledEvent::channel_id
     /// [`location`]: UpdateGuildScheduledEvent::location
     pub const fn update_guild_scheduled_event(
@@ -2212,7 +2294,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     ///
     /// let id = Id::new(123);
-    /// let sticker = client.sticker(id).exec().await?.model().await?;
+    /// let sticker = client.sticker(id).await?.model().await?;
     ///
     /// println!("{sticker:#?}");
     /// # Ok(()) }
@@ -2232,7 +2314,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let packs = client.nitro_sticker_packs().exec().await?.model().await?;
+    /// let packs = client.nitro_sticker_packs().await?.model().await?;
     ///
     /// println!("{}", packs.sticker_packs.len());
     /// # Ok(()) }
@@ -2254,12 +2336,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     ///
     /// let guild_id = Id::new(1);
-    /// let stickers = client
-    ///     .guild_stickers(guild_id)
-    ///     .exec()
-    ///     .await?
-    ///     .models()
-    ///     .await?;
+    /// let stickers = client.guild_stickers(guild_id).await?.models().await?;
     ///
     /// println!("{}", stickers.len());
     /// # Ok(()) }
@@ -2284,7 +2361,6 @@ impl Client {
     /// let sticker_id = Id::new(2);
     /// let sticker = client
     ///     .guild_sticker(guild_id, sticker_id)
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -2321,7 +2397,6 @@ impl Client {
     ///         &"sticker,tags",
     ///         &[23, 23, 23, 23],
     ///     )?
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -2369,7 +2444,6 @@ impl Client {
     /// let sticker = client
     ///     .update_guild_sticker(guild_id, sticker_id)
     ///     .description("new description")?
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -2400,10 +2474,7 @@ impl Client {
     /// let guild_id = Id::new(1);
     /// let sticker_id = Id::new(2);
     ///
-    /// client
-    ///     .delete_guild_sticker(guild_id, sticker_id)
-    ///     .exec()
-    ///     .await?;
+    /// client.delete_guild_sticker(guild_id, sticker_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn delete_guild_sticker(

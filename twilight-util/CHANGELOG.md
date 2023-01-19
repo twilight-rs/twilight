@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.14.1] - 2023-01-07
+
+### Features
+
+- support nsfw commands ([#2019](https://github.com/twilight-rs/twilight/issues/2019))
+
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+`util` is affected by the following `model` changes:
+
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+- [**breaking**] update `ChannelType` names ([#1909](https://github.com/twilight-rs/twilight/issues/1909))
+
+### Changes
+
+Due to [**breaking**] flatten `CommandOption` ([#1819] - [@vilgotf]), some
+methods on the `CommandBuilder` now panic if they are not used correctly.
+
+### Internal Refactor
+
+- clippy 1.65 lints ([#1985](https://github.com/twilight-rs/twilight/issues/1985))
+
+[#1819]: https://github.com/twilight-rs/twilight/pull/1819
+[#1897]: https://github.com/twilight-rs/twilight/pull/1897
+
+## [0.13.3] - 2022-09-29
+
+### Build
+
+- fix or ignore clippy for 1.64
+
+## [0.13.2] - 2022-09-16
+
+### Documentation
+
+- fix mention on how color works ([#1893](https://github.com/twilight-rs/twilight/issues/1893))
+
 ## [0.13.1] - 2022-09-01
 
 ### Refactor

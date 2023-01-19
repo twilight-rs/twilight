@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     guild::GuildPrune,
     id::{
@@ -75,6 +76,7 @@ impl<'a> CreateGuildPrune<'a> {
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
     pub const fn days(mut self, days: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_guild_prune_days(days) {
             return Err(source);
         }
@@ -85,15 +87,9 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -107,8 +103,23 @@ impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
     }
 }
 
+impl IntoFuture for CreateGuildPrune<'_> {
+    type Output = Result<Response<GuildPrune>, Error>;
+
+    type IntoFuture = ResponseFuture<GuildPrune>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
 impl TryIntoRequest for CreateGuildPrune<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateGuildPrune {
             compute_prune_count: self.fields.compute_prune_count,
             days: self.fields.days,

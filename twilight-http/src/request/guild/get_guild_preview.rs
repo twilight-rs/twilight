@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     guild::GuildPreview,
     id::{marker::GuildMarker, Id},
@@ -25,9 +26,18 @@ impl<'a> GetGuildPreview<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<GuildPreview> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetGuildPreview<'_> {
+    type Output = Result<Response<GuildPreview>, Error>;
+
+    type IntoFuture = ResponseFuture<GuildPreview>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

@@ -43,10 +43,6 @@
 
 pub mod marker;
 
-mod r#type;
-
-pub use self::r#type::*;
-
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, Unexpected, Visitor},
     ser::{Serialize, Serializer},
@@ -77,7 +73,7 @@ use std::{
 /// [user]: marker::UserMarker
 #[repr(transparent)]
 pub struct Id<T> {
-    phantom: PhantomData<T>,
+    phantom: PhantomData<fn(T) -> T>,
     value: NonZeroU64,
 }
 
@@ -119,7 +115,7 @@ impl<T> Id<T> {
         }
     }
 
-    /// Create a non-zero application ID without checking the value.
+    /// Create an ID without checking if the value is non-zero.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
@@ -131,8 +127,7 @@ impl<T> Id<T> {
         Self::from_nonzero(NonZeroU64::new_unchecked(n))
     }
 
-    /// Create a non-zero application ID, checking if the provided value is
-    /// zero.
+    /// Create an ID if the provided value is not zero.
     ///
     /// # Examples
     ///
@@ -145,7 +140,6 @@ impl<T> Id<T> {
     ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new_checked(n: u64) -> Option<Self> {
-        #[allow(clippy::option_if_let_else)]
         if let Some(n) = NonZeroU64::new(n) {
             Some(Self::from_nonzero(n))
         } else {
@@ -413,7 +407,8 @@ mod tests {
         marker::{
             ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
             CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
-            InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
+            InteractionMarker, MessageMarker, RoleMarker, RoleSubscriptionSkuMarker, StageMarker,
+            UserMarker, WebhookMarker,
         },
         Id,
     };
@@ -442,6 +437,7 @@ mod tests {
     assert_impl_all!(InteractionMarker: Debug, Send, Sync);
     assert_impl_all!(MessageMarker: Debug, Send, Sync);
     assert_impl_all!(RoleMarker: Debug, Send, Sync);
+    assert_impl_all!(RoleSubscriptionSkuMarker: Debug, Send, Sync);
     assert_impl_all!(StageMarker: Debug, Send, Sync);
     assert_impl_all!(UserMarker: Debug, Send, Sync);
     assert_impl_all!(WebhookMarker: Debug, Send, Sync);
@@ -450,6 +446,8 @@ mod tests {
         FromStr, Hash, Into<NonZeroU64>, Into<u64>, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
         TryFrom<i64>, TryFrom<u64>
     );
+    // assert invariant
+    assert_impl_all!(Id<*const ()>: Send, Sync);
 
     /// Test that various methods of initializing IDs are correct, such as via
     /// [`Id::new`] or [`Id`]'s [`TryFrom`] implementations.
@@ -733,6 +731,13 @@ mod tests {
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
+            ],
+        );
+        serde_test::assert_tokens(
+            &Id::<RoleSubscriptionSkuMarker>::new(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_tokens(

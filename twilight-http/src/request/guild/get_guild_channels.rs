@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     channel::Channel,
     id::{marker::GuildMarker, Id},
@@ -23,9 +24,18 @@ impl<'a> GetGuildChannels<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ListBody<Channel>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetGuildChannels<'_> {
+    type Output = Result<Response<ListBody<Channel>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<Channel>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

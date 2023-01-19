@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::MemberListBody, ResponseFuture},
+    response::{marker::MemberListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
     Id,
@@ -16,7 +17,6 @@ use twilight_validate::request::{
 struct GetGuildMembersFields {
     after: Option<Id<UserMarker>>,
     limit: Option<u16>,
-    presences: Option<bool>,
 }
 
 /// Get the members of a guild, by id.
@@ -38,7 +38,7 @@ struct GetGuildMembersFields {
 ///
 /// let guild_id = Id::new(100);
 /// let user_id = Id::new(3000);
-/// let members = client.guild_members(guild_id).after(user_id).exec().await?;
+/// let members = client.guild_members(guild_id).after(user_id).await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
@@ -54,7 +54,6 @@ impl<'a> GetGuildMembers<'a> {
             fields: GetGuildMembersFields {
                 after: None,
                 limit: None,
-                presences: None,
             },
             guild_id,
             http,
@@ -79,6 +78,7 @@ impl<'a> GetGuildMembers<'a> {
     ///
     /// [`GetGuildMembers`]: twilight_validate::request::ValidationErrorType::GetGuildMembers
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_get_guild_members_limit(limit) {
             return Err(source);
         }
@@ -88,17 +88,19 @@ impl<'a> GetGuildMembers<'a> {
         Ok(self)
     }
 
-    /// Sets whether to retrieve matched member presences
-    pub const fn presences(mut self, presences: bool) -> Self {
-        self.fields.presences = Some(presences);
-
-        self
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<MemberListBody> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetGuildMembers<'_> {
+    type Output = Result<Response<MemberListBody>, Error>;
+
+    type IntoFuture = ResponseFuture<MemberListBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let guild_id = self.guild_id;
         let http = self.http;
 
@@ -115,12 +117,11 @@ impl<'a> GetGuildMembers<'a> {
 }
 
 impl TryIntoRequest for GetGuildMembers<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildMembers {
             after: self.fields.after.map(Id::get),
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,
-            presences: self.fields.presences,
         }))
     }
 }

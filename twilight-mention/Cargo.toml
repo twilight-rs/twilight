@@ -1,22 +1,19 @@
 [package]
-authors = ["Twilight Contributors"]
-categories = []
+authors.workspace = true
 description = "Utilities for working with mentions in the Twilight ecosystem."
-documentation = "https://docs.rs/twilight-mention"
-edition = "2021"
+edition.workspace = true
 homepage = "https://twilight.rs/chapter_1_crates/section_8_first_party/section_2_mention.html"
-include = ["src/**/*.rs", "README.md"]
+include.workspace = true
 keywords = ["twilight"]
-license = "ISC"
+license.workspace = true
 name = "twilight-mention"
 publish = true
-repository = "https://github.com/twilight-rs/twilight.git"
-readme = "README.md"
-rust-version = "1.60"
-version = "0.13.0"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.14.0"
 
 [dependencies]
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.3" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.2" }
 
 [dev-dependencies]
 criterion = { default-features = false, version = "0.3" }

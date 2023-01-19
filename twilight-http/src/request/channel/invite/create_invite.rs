@@ -1,17 +1,18 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
+    guild::invite::{Invite, TargetType},
     id::{
         marker::{ApplicationMarker, ChannelMarker, UserMarker},
         Id,
     },
-    invite::{Invite, TargetType},
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason, invite_max_age as validate_invite_max_age,
@@ -51,7 +52,7 @@ struct CreateInviteFields {
 /// let client = Client::new("my token".to_owned());
 ///
 /// let channel_id = Id::new(123);
-/// let invite = client.create_invite(channel_id).max_uses(3)?.exec().await?;
+/// let invite = client.create_invite(channel_id).max_uses(3)?.await?;
 /// # Ok(()) }
 /// ```
 ///
@@ -103,7 +104,6 @@ impl<'a> CreateInvite<'a> {
     /// let invite = client
     ///     .create_invite(Id::new(1))
     ///     .max_age(60 * 60)?
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -118,6 +118,7 @@ impl<'a> CreateInvite<'a> {
     ///
     /// [`InviteMaxAge`]: twilight_validate::request::ValidationErrorType::InviteMaxAge
     pub const fn max_age(mut self, max_age: u32) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_invite_max_age(max_age) {
             return Err(source);
         }
@@ -146,7 +147,6 @@ impl<'a> CreateInvite<'a> {
     /// let invite = client
     ///     .create_invite(Id::new(1))
     ///     .max_uses(5)?
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -161,6 +161,7 @@ impl<'a> CreateInvite<'a> {
     ///
     /// [`InviteMaxUses`]: twilight_validate::request::ValidationErrorType::InviteMaxUses
     pub const fn max_uses(mut self, max_uses: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_invite_max_uses(max_uses) {
             return Err(source);
         }
@@ -220,15 +221,9 @@ impl<'a> CreateInvite<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Invite> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -242,8 +237,23 @@ impl<'a> AuditLogReason<'a> for CreateInvite<'a> {
     }
 }
 
+impl IntoFuture for CreateInvite<'_> {
+    type Output = Result<Response<Invite>, Error>;
+
+    type IntoFuture = ResponseFuture<Invite>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
 impl TryIntoRequest for CreateInvite<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateInvite {
             channel_id: self.channel_id.get(),
         });

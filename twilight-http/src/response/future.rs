@@ -302,13 +302,14 @@ impl<T> ResponseFuture<T> {
     /// use std::{
     ///     collections::HashSet,
     ///     env,
+    ///     future::IntoFuture,
     ///     sync::{Arc, Mutex},
     /// };
     /// use twilight_http::{error::ErrorType, Client};
-    /// use twilight_model::id::{ChannelId, MessageId};
+    /// use twilight_model::id::Id;
     ///
-    /// let channel_id = ChannelId::new(1);
-    /// let message_id = MessageId::new(2);
+    /// let channel_id = Id::new(1);
+    /// let message_id = Id::new(2);
     ///
     /// let channels_ignored = {
     ///     let mut map = HashSet::new();
@@ -318,7 +319,7 @@ impl<T> ResponseFuture<T> {
     /// };
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let mut req = client.delete_message(channel_id, message_id).exec();
+    /// let mut req = client.delete_message(channel_id, message_id).into_future();
     ///
     /// let channels_ignored_clone = channels_ignored.clone();
     /// req.set_pre_flight(Box::new(move || {

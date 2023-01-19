@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     channel::Message,
     id::{
@@ -67,6 +68,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     ///
     /// [`GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_get_channel_messages_limit(limit) {
             return Err(source);
         }
@@ -77,9 +79,18 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ListBody<Message>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetChannelMessagesConfigured<'_> {
+    type Output = Result<Response<ListBody<Message>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<Message>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -90,7 +101,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
 }
 
 impl TryIntoRequest for GetChannelMessagesConfigured<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetMessages {
             after: self.after.map(Id::get),
             around: self.around.map(Id::get),

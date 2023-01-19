@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     channel::message::sticker::Sticker,
     id::{marker::GuildMarker, Id},
@@ -23,12 +24,7 @@ use twilight_model::{
 /// let client = Client::new("my token".to_owned());
 ///
 /// let guild_id = Id::new(1);
-/// let stickers = client
-///     .guild_stickers(guild_id)
-///     .exec()
-///     .await?
-///     .models()
-///     .await?;
+/// let stickers = client.guild_stickers(guild_id).await?.models().await?;
 ///
 /// println!("{}", stickers.len());
 /// # Ok(()) }
@@ -44,9 +40,18 @@ impl<'a> GetGuildStickers<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ListBody<Sticker>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetGuildStickers<'_> {
+    type Output = Result<Response<ListBody<Sticker>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<Sticker>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

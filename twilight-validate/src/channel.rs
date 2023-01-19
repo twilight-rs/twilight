@@ -9,6 +9,9 @@ use twilight_model::channel::ChannelType;
 /// Minimum bitrate of a voice channel.
 pub const CHANNEL_BITRATE_MIN: u32 = 8000;
 
+/// Maximum length of a forum channel's topic.
+pub const CHANNEL_FORUM_TOPIC_LENGTH_MAX: usize = 4096;
+
 /// Maximum length of a channel's name.
 pub const CHANNEL_NAME_LENGTH_MAX: usize = 100;
 
@@ -61,6 +64,9 @@ impl Display for ChannelValidationError {
                 f.write_str("bitrate is less than ")?;
                 Display::fmt(&CHANNEL_BITRATE_MIN, f)
             }
+            ChannelValidationErrorType::ForumTopicInvalid => {
+                f.write_str("the forum topic is invalid")
+            }
             ChannelValidationErrorType::NameInvalid => {
                 f.write_str("the length of the name is invalid")
             }
@@ -85,6 +91,8 @@ impl Error for ChannelValidationError {}
 pub enum ChannelValidationErrorType {
     /// The bitrate is less than 8000.
     BitrateInvalid,
+    /// The length of the topic is more than 4096 UTF-16 characters.
+    ForumTopicInvalid,
     /// The length of the name is either fewer than 1 UTF-16 characters or
     /// more than 100 UTF-16 characters.
     NameInvalid,
@@ -130,14 +138,32 @@ pub const fn bitrate(value: u32) -> Result<(), ChannelValidationError> {
 pub const fn is_thread(kind: ChannelType) -> Result<(), ChannelValidationError> {
     if matches!(
         kind,
-        ChannelType::GuildNewsThread
-            | ChannelType::GuildPublicThread
-            | ChannelType::GuildPrivateThread
+        ChannelType::AnnouncementThread | ChannelType::PublicThread | ChannelType::PrivateThread
     ) {
         Ok(())
     } else {
         Err(ChannelValidationError {
             kind: ChannelValidationErrorType::TypeInvalid { kind },
+        })
+    }
+}
+
+/// Ensure a forum channel's topic's length is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`TopicInvalid`] if the
+/// topic is invalid.
+///
+/// [`TopicInvalid`]: ChannelValidationErrorType::TopicInvalid
+pub fn forum_topic(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
+    let count = value.as_ref().chars().count();
+
+    if count <= CHANNEL_FORUM_TOPIC_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ChannelValidationError {
+            kind: ChannelValidationErrorType::TopicInvalid,
         })
     }
 }
@@ -223,9 +249,9 @@ mod tests {
 
     #[test]
     fn thread_is_thread() {
-        assert!(is_thread(ChannelType::GuildNewsThread).is_ok());
-        assert!(is_thread(ChannelType::GuildPrivateThread).is_ok());
-        assert!(is_thread(ChannelType::GuildPublicThread).is_ok());
+        assert!(is_thread(ChannelType::AnnouncementThread).is_ok());
+        assert!(is_thread(ChannelType::PrivateThread).is_ok());
+        assert!(is_thread(ChannelType::PublicThread).is_ok());
 
         assert!(is_thread(ChannelType::Group).is_err());
     }

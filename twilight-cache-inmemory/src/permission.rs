@@ -419,9 +419,9 @@ impl<'a> InMemoryCachePermissions<'a> {
             .map_err(ChannelError::from_member_roles)?;
 
         let overwrites = match channel.kind {
-            ChannelType::GuildPrivateThread
-            | ChannelType::GuildNewsThread
-            | ChannelType::GuildPublicThread => self.parent_overwrites(&channel)?,
+            ChannelType::AnnouncementThread
+            | ChannelType::PrivateThread
+            | ChannelType::PublicThread => self.parent_overwrites(&channel)?,
             _ => channel.permission_overwrites.clone().unwrap_or_default(),
         };
 
@@ -736,6 +736,7 @@ mod tests {
             premium_subscription_count: Some(0),
             premium_tier: PremiumTier::None,
             presences: Vec::new(),
+            public_updates_channel_id: None,
             roles: Vec::from([
                 // Give the `@everyone` role a guild level and channel level
                 // permission.
@@ -766,8 +767,15 @@ mod tests {
     fn channel() -> Channel {
         Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
+            default_reaction_emoji: None,
+            default_sort_order: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(GUILD_ID),
             icon: None,
             id: CHANNEL_ID,
@@ -811,13 +819,20 @@ mod tests {
     fn thread() -> Channel {
         Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
+            default_reaction_emoji: None,
+            default_sort_order: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(GUILD_ID),
             icon: None,
             id: THREAD_ID,
             invitable: None,
-            kind: ChannelType::GuildPublicThread,
+            kind: ChannelType::PublicThread,
             last_message_id: None,
             last_pin_timestamp: None,
             member: None,

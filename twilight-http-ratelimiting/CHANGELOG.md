@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.14.1] - 2023-01-07
+
+### Features
+
+- add `Bucket::new` ([#2026](https://github.com/twilight-rs/twilight/issues/2026))
+
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+Otherwise, there are no breaking changes.
+
+[#1897]: https://github.com/twilight-rs/twilight/pull/1897
+
+## [0.13.3] - 2022-10-28
+
+### Features
+
+- auto moderation http methods and mention spam ([#1846](https://github.com/twilight-rs/twilight/issues/1846))
+
 ## [0.13.2] - 2022-09-08
 
 ### Bug Fixes

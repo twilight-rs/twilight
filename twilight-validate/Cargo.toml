@@ -1,22 +1,20 @@
 [package]
-authors = ["Twilight Contributors"]
+authors.workspace = true
 categories = ["api-bindings"]
 description = "Functions and constants for validating request parameters"
-documentation = "https://docs.rs/twilight-validate"
-edition = "2021"
+edition.workspace = true
 homepage = "https://twilight.rs/"
-include = ["src/**/*.rs", "README.md"]
+include.workspace = true
 keywords = ["discord", "discord-api", "twilight"]
-license = "ISC"
+license.workspace = true
 name = "twilight-validate"
 publish = true
-readme = "README.md"
-repository = "https://github.com/twilight-rs/twilight.git"
-rust-version = "1.60"
-version = "0.13.1"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.14.1"
 
 [dependencies]
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.3" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.2" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1.1.0" }

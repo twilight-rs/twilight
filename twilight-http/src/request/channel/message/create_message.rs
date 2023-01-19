@@ -1,20 +1,18 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{
         attachment::{AttachmentManager, PartialAttachment},
         Nullable, Request, TryIntoRequest,
     },
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
-    application::component::Component,
-    channel::{
-        embed::Embed,
-        message::{AllowedMentions, MessageFlags, MessageReference},
-        Message,
+    channel::message::{
+        AllowedMentions, Component, Embed, Message, MessageFlags, MessageReference,
     },
     http::attachment::Attachment,
     id::{
@@ -23,7 +21,7 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
+    attachment as validate_attachment, components as validate_components,
     content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
     MessageValidationError,
 };
@@ -57,7 +55,7 @@ pub(crate) struct CreateMessageFields<'a> {
 /// Send a message to a channel.
 ///
 /// The message must include at least one of [`attachments`], [`content`],
-/// [`embeds`], or [`sticker_ids`].
+/// [`components`], [`embeds`], or [`sticker_ids`].
 ///
 /// # Example
 ///
@@ -73,13 +71,13 @@ pub(crate) struct CreateMessageFields<'a> {
 ///     .create_message(channel_id)
 ///     .content("Twilight is best pony")?
 ///     .tts(true)
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 ///
 /// [`attachments`]: Self::attachments
 /// [`content`]: Self::content
+/// [`components`]: Self::components
 /// [`embeds`]: Self::embeds
 /// [`sticker_ids`]: Self::sticker_ids
 #[must_use = "requests must be configured and executed"]
@@ -128,17 +126,19 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+    /// the attachments's description is too large.
+    ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
     ///
+    /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
         attachments: &'a [Attachment],
     ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+        attachments.iter().try_for_each(validate_attachment)?;
 
         self.attachment_manager = self
             .attachment_manager
@@ -217,8 +217,6 @@ impl<'a> CreateMessage<'a> {
     ///
     /// Defaults to [`true`].
     pub const fn fail_if_not_exists(mut self, fail_if_not_exists: bool) -> Self {
-        // Clippy recommends using `Option::map_or_else` which is not `const`.
-        #[allow(clippy::option_if_let_else)]
         let reference = if let Some(reference) = self.fields.message_reference {
             MessageReference {
                 fail_if_not_exists: Some(fail_if_not_exists),
@@ -278,8 +276,6 @@ impl<'a> CreateMessage<'a> {
     pub const fn reply(mut self, other: Id<MessageMarker>) -> Self {
         let channel_id = self.channel_id;
 
-        // Clippy recommends using `Option::map_or_else` which is not `const`.
-        #[allow(clippy::option_if_let_else)]
         let reference = if let Some(reference) = self.fields.message_reference {
             MessageReference {
                 channel_id: Some(channel_id),
@@ -326,9 +322,18 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Message> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for CreateMessage<'_> {
+    type Output = Result<Response<Message>, Error>;
+
+    type IntoFuture = ResponseFuture<Message>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -339,7 +344,7 @@ impl<'a> CreateMessage<'a> {
 }
 
 impl TryIntoRequest for CreateMessage<'_> {
-    fn try_into_request(mut self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateMessage {
             channel_id: self.channel_id.get(),
         });
@@ -359,7 +364,7 @@ impl TryIntoRequest for CreateMessage<'_> {
             } else {
                 self.fields.attachments = Some(self.attachment_manager.get_partial_attachments());
 
-                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };

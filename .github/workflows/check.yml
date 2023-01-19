@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - next
+      - 0.*
   pull_request:
 
 env:
@@ -18,20 +19,21 @@ jobs:
   MSRV:
     name: Minimum supported Rust version
     runs-on: ubuntu-latest
-    env:
-      minrust: "1.60"
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
 
-      - name: Install toolchain (${{ env.minrust }})
-        uses: dtolnay/rust-toolchain@v1
+      - name: Retrieve rust-version
+        run: echo rust-version=$(awk '/rust-version/{print $NF}' Cargo.toml | tr -d '"') >> $GITHUB_ENV
+
+      - name: Install toolchain (${{ env.rust-version }})
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ env.minrust }}
+          toolchain: ${{ env.rust-version }}
 
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Output processor info
         run: cat /proc/cpuinfo
@@ -51,10 +53,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
       - name: Install nightly toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: nightly
+        uses: dtolnay/rust-toolchain@nightly
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -74,8 +77,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -102,11 +108,17 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
+      - name: Install nightly toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          components: rustfmt
+          toolchain: nightly
+
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - name: Run cargo fmt
-        run: cargo fmt --all -- --check
+      - name: Check code formatting
+        run: cargo fmt --all -- --check --unstable-features --config format_code_in_doc_comments=true
 
   min-vers:
     name: Minimal crate versions
@@ -118,12 +130,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install nightly toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: nightly
+        uses: dtolnay/rust-toolchain@nightly
 
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -147,8 +157,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -171,8 +184,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -191,8 +207,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Test
         working-directory: book

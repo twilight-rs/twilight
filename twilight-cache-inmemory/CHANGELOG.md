@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.14.1] - 2023-01-07
+
+### Bug Fixes
+
+- clippy 1.66 ([#2005](https://github.com/twilight-rs/twilight/issues/2005))
+
+### Features
+
+- forum channel layouts ([#2016](https://github.com/twilight-rs/twilight/issues/2016))
+- default forum sort orders ([#2038](https://github.com/twilight-rs/twilight/issues/2038))
+
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+`cache-inmemory` is affected by the following `model` changes:
+
+- [**breaking**] cleanup and document `voice` ([#1820](https://github.com/twilight-rs/twilight/issues/1820))
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+- [**breaking**] update `ChannelType` names ([#1909](https://github.com/twilight-rs/twilight/issues/1909))
+
+### Internal Refactors
+
+- clippy 1.65 lints round 2 ([#1991](https://github.com/twilight-rs/twilight/issues/1991))
+
+[#1897]: https://github.com/twilight-rs/twilight/issues/1897
+
+## [0.13.1] - 2022-10-28
+
+### Features
+
+- forum channels ([#1864](https://github.com/twilight-rs/twilight/issues/1864))
+
 ## [0.13.0] - 2022-08-14
 
 ### Bug Fixes

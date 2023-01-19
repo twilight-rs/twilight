@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::MemberListBody, ResponseFuture},
+    response::{marker::MemberListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::id::{marker::GuildMarker, Id};
 use twilight_validate::request::{
     search_guild_members_limit as validate_search_guild_members_limit, ValidationError,
@@ -35,7 +36,6 @@ struct SearchGuildMembersFields<'a> {
 /// let members = client
 ///     .search_guild_members(guild_id, "Wumpus")
 ///     .limit(10)?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -73,6 +73,7 @@ impl<'a> SearchGuildMembers<'a> {
     ///
     /// [`SearchGuildMembers`]: twilight_validate::request::ValidationErrorType::SearchGuildMembers
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_search_guild_members_limit(limit) {
             return Err(source);
         }
@@ -83,9 +84,18 @@ impl<'a> SearchGuildMembers<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<MemberListBody> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for SearchGuildMembers<'_> {
+    type Output = Result<Response<MemberListBody>, Error>;
+
+    type IntoFuture = ResponseFuture<MemberListBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let guild_id = self.guild_id;
         let http = self.http;
 
@@ -102,7 +112,7 @@ impl<'a> SearchGuildMembers<'a> {
 }
 
 impl TryIntoRequest for SearchGuildMembers<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::SearchGuildMembers {
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,

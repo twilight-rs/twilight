@@ -1,5 +1,104 @@
 # Changelog
 
+## [0.14.1] - 2023-01-07
+
+### Bug Fixes
+
+- clippy 1.66 ([#2005](https://github.com/twilight-rs/twilight/issues/2005))
+
+### Features
+
+- support nsfw commands ([#2019](https://github.com/twilight-rs/twilight/issues/2019))
+- forum channel layouts ([#2016](https://github.com/twilight-rs/twilight/issues/2016))
+- support `after` parameter for `GetAuditLog` ([#2031](https://github.com/twilight-rs/twilight/issues/2031))
+- default forum sort orders ([#2038](https://github.com/twilight-rs/twilight/issues/2038))
+
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+### Documentation
+
+- [**breaking**] document `application::command::permissions` ([#1816](https://github.com/twilight-rs/twilight/issues/1816))
+
+### Features
+
+[**breaking**] `channel_id` is optional for `UpdateCurrentUserVoiceState` ([#1882] - [@itohatweb]).
+
+[**breaking**] validate attachment descriptions ([#1890] - [@itohatweb]). The
+following requests now validate attachments:
+- `CreateFollowup`
+- `UpdateFollowup`
+- `UpdateResponse`
+- `CreateMessage`
+- `UpdateMessage`
+- `ExecuteWebhook`
+- `UpdateWebhookMessage`
+
+[**breaking**] add `CreateGuildBan::delete_message_seconds` ([#1884] -
+[@itohatweb]). This also removes `delete_message_days`.
+
+### Refactor
+
+impl `IntoFuture` for requests, deprecate `exec` ([#1898] - [@vilgotf]). Allows
+users who don't need `ResponseFuture` (for `set_pre_flight`) to just call
+`.await` on requests and create the `ResponseFuture` and await it in one go. The
+old behavior of `exec()` is available by calling `into_future` as seen in the
+`set_pre_flight` doctest. As a result, `CreateFormThreadMessage` now implements
+`TryIntoRequest` instead of `CreateFormThread`, and `CreateGuildScheduledEvent`
+no longer implements `TryIntoRequest` (its derivative request builders still
+do).
+
+`http` is affected by the following `model` changes:
+
+- [**breaking**] move related modules under `guild` ([#1814](https://github.com/twilight-rs/twilight/issues/1814))
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+- [**breaking**] update `ChannelType` names ([#1909](https://github.com/twilight-rs/twilight/issues/1909))
+- [**breaking**] flatten `CommandOption` ([#1819](https://github.com/twilight-rs/twilight/issues/1819))
+- [**breaking**] remove `GetGuildMembers::presences` ([#1956](https://github.com/twilight-rs/twilight/issues/1956))
+
+### Internal Refactor
+
+- clippy 1.65 lints ([#1985](https://github.com/twilight-rs/twilight/issues/1985))
+- clippy 1.65 lints round 2 ([#1991](https://github.com/twilight-rs/twilight/issues/1991))
+
+[#1882]: https://github.com/twilight-rs/twilight/issues/1882
+[#1884]: https://github.com/twilight-rs/twilight/issues/1884
+[#1890]: https://github.com/twilight-rs/twilight/issues/1890
+[#1897]: https://github.com/twilight-rs/twilight/issues/1897
+
+## [0.13.3] - 2022-10-28
+
+### Bug Fixes
+
+- [**breaking**] require privacy_level in `CreateGuildScheduledEvent` ([#1962](https://github.com/twilight-rs/twilight/issues/1962))
+
+### Features
+
+- auto moderation http methods and mention spam ([#1846](https://github.com/twilight-rs/twilight/issues/1846))
+- forum channels ([#1864](https://github.com/twilight-rs/twilight/issues/1864))
+
+## [0.13.2] - 2022-09-29
+
+### Build
+
+- fix or ignore clippy for 1.64
+
+### Documentation
+
+- document component only messages ([#1911](https://github.com/twilight-rs/twilight/issues/1911))
+- document mutable guild features ([#1912](https://github.com/twilight-rs/twilight/issues/1912))
+
+## [0.13.1] - 2022-09-16
+
+### Documentation
+
+- fix mention on how color works ([#1893](https://github.com/twilight-rs/twilight/issues/1893))
+
+### Features
+
+- implement `AuditLogReason` for `UpdateGuildMfa` ([#1916](https://github.com/twilight-rs/twilight/issues/1916))
+
 ## [0.13.0] - 2022-08-14
 
 ### Documentation

@@ -26,15 +26,24 @@ pub enum GuildFeature {
     /// Can enable welcome screen, membership screening, stage channels,
     /// discovery, and receives community updates.
     Community,
+    /// Guild has enabled monetization.
+    CreatorMonetizableProvisional,
+    /// Guild has enabled the role subscription promotional page.
+    CreatorStorePage,
+    /// Guild has been set as a support server on the App Directory.
+    DeveloperSupportServer,
     /// Is able to be discovered in the directory.
     Discoverable,
     /// Is able to be featured in the directory.
     Featurable,
+    /// Invites have been paused, this prevents new users from joining.
+    InvitesDisabled,
     /// Has access to set an invite splash background.
     InviteSplash,
     /// Has enabled membership screening.
     MemberVerificationGateEnabled,
     /// Has enabled monetization.
+    #[deprecated(since = "0.14.1", note = "not in active use by discord")]
     MonetizationEnabled,
     /// Has increased custom sticker slots.
     MoreStickers,
@@ -48,6 +57,10 @@ pub enum GuildFeature {
     PrivateThreads,
     /// Is able to set role icons.
     RoleIcons,
+    /// Guild has role subscriptions that can be purchased.
+    RoleSubscriptionsAvailableForPurchase,
+    /// Guild has enabled role subscriptions.
+    RoleSubscriptionsEnabled,
     /// Has enabled ticketed events.
     TicketedEventsEnabled,
     /// Has access to set a vanity URL.
@@ -71,8 +84,12 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::Banner => "BANNER".into(),
             GuildFeature::Commerce => "COMMERCE".into(),
             GuildFeature::Community => "COMMUNITY".into(),
+            GuildFeature::CreatorMonetizableProvisional => "CREATOR_MONETIZABLE_PROVISIONAL".into(),
+            GuildFeature::CreatorStorePage => "CREATOR_STORE_PAGE".into(),
+            GuildFeature::DeveloperSupportServer => "DEVELOPER_SUPPORT_SERVER".into(),
             GuildFeature::Discoverable => "DISCOVERABLE".into(),
             GuildFeature::Featurable => "FEATURABLE".into(),
+            GuildFeature::InvitesDisabled => "INVITES_DISABLED".into(),
             GuildFeature::InviteSplash => "INVITE_SPLASH".into(),
             GuildFeature::MemberVerificationGateEnabled => {
                 "MEMBER_VERIFICATION_GATE_ENABLED".into()
@@ -84,6 +101,10 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::PreviewEnabled => "PREVIEW_ENABLED".into(),
             GuildFeature::PrivateThreads => "PRIVATE_THREADS".into(),
             GuildFeature::RoleIcons => "ROLE_ICONS".into(),
+            GuildFeature::RoleSubscriptionsAvailableForPurchase => {
+                "ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE".into()
+            }
+            GuildFeature::RoleSubscriptionsEnabled => "ROLE_SUBSCRIPTIONS_ENABLED".into(),
             GuildFeature::TicketedEventsEnabled => "TICKETED_EVENTS_ENABLED".into(),
             GuildFeature::VanityUrl => "VANITY_URL".into(),
             GuildFeature::Verified => "VERIFIED".into(),
@@ -103,8 +124,12 @@ impl From<String> for GuildFeature {
             "BANNER" => Self::Banner,
             "COMMERCE" => Self::Commerce,
             "COMMUNITY" => Self::Community,
+            "CREATOR_MONETIZABLE_PROVISIONAL" => GuildFeature::CreatorMonetizableProvisional,
+            "CREATOR_STORE_PAGE" => GuildFeature::CreatorStorePage,
+            "DEVELOPER_SUPPORT_SERVER" => Self::DeveloperSupportServer,
             "DISCOVERABLE" => Self::Discoverable,
             "FEATURABLE" => Self::Featurable,
+            "INVITES_DISABLED" => Self::InvitesDisabled,
             "INVITE_SPLASH" => Self::InviteSplash,
             "MEMBER_VERIFICATION_GATE_ENABLED" => Self::MemberVerificationGateEnabled,
             "MONETIZATION_ENABLED" => Self::MonetizationEnabled,
@@ -114,6 +139,10 @@ impl From<String> for GuildFeature {
             "PREVIEW_ENABLED" => Self::PreviewEnabled,
             "PRIVATE_THREADS" => Self::PrivateThreads,
             "ROLE_ICONS" => Self::RoleIcons,
+            "ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE" => {
+                GuildFeature::RoleSubscriptionsAvailableForPurchase
+            }
+            "ROLE_SUBSCRIPTIONS_ENABLED" => GuildFeature::RoleSubscriptionsEnabled,
             "TICKETED_EVENTS_ENABLED" => Self::TicketedEventsEnabled,
             "VANITY_URL" => Self::VanityUrl,
             "VERIFIED" => Self::Verified,
@@ -143,8 +172,24 @@ mod tests {
         serde_test::assert_tokens(&GuildFeature::Banner, &[Token::Str("BANNER")]);
         serde_test::assert_tokens(&GuildFeature::Commerce, &[Token::Str("COMMERCE")]);
         serde_test::assert_tokens(&GuildFeature::Community, &[Token::Str("COMMUNITY")]);
+        serde_test::assert_tokens(
+            &GuildFeature::CreatorMonetizableProvisional,
+            &[Token::Str("CREATOR_MONETIZABLE_PROVISIONAL")],
+        );
+        serde_test::assert_tokens(
+            &GuildFeature::CreatorStorePage,
+            &[Token::Str("CREATOR_STORE_PAGE")],
+        );
+        serde_test::assert_tokens(
+            &GuildFeature::DeveloperSupportServer,
+            &[Token::Str("DEVELOPER_SUPPORT_SERVER")],
+        );
         serde_test::assert_tokens(&GuildFeature::Discoverable, &[Token::Str("DISCOVERABLE")]);
         serde_test::assert_tokens(&GuildFeature::Featurable, &[Token::Str("FEATURABLE")]);
+        serde_test::assert_tokens(
+            &GuildFeature::InvitesDisabled,
+            &[Token::Str("INVITES_DISABLED")],
+        );
         serde_test::assert_tokens(&GuildFeature::InviteSplash, &[Token::Str("INVITE_SPLASH")]);
         serde_test::assert_tokens(
             &GuildFeature::MemberVerificationGateEnabled,
@@ -166,6 +211,14 @@ mod tests {
             &[Token::Str("PRIVATE_THREADS")],
         );
         serde_test::assert_tokens(&GuildFeature::RoleIcons, &[Token::Str("ROLE_ICONS")]);
+        serde_test::assert_tokens(
+            &GuildFeature::RoleSubscriptionsAvailableForPurchase,
+            &[Token::Str("ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE")],
+        );
+        serde_test::assert_tokens(
+            &GuildFeature::RoleSubscriptionsEnabled,
+            &[Token::Str("ROLE_SUBSCRIPTIONS_ENABLED")],
+        );
         serde_test::assert_tokens(
             &GuildFeature::TicketedEventsEnabled,
             &[Token::Str("TICKETED_EVENTS_ENABLED")],
