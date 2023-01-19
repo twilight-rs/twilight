@@ -578,7 +578,9 @@ mod tests {
                 presence: None,
                 user_id: Some(Id::new(5)),
             }),
-            member_count: Some(50),
+            // Old threads can have negative member counts, so we need to ensure
+            // we keep negative member counts around.
+            member_count: Some(-1),
             message_count: Some(50),
             name: Some("privatethread".into()),
             newly_created: Some(true),
@@ -623,7 +625,7 @@ mod tests {
                 },
                 "default_auto_archive_duration": 60,
                 "invitable": true,
-                "member_count": 50,
+                "member_count": -1,
                 "message_count": 50,
                 "name": "privatethread",
                 "newly_created": true,
