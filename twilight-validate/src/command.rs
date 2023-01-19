@@ -6,7 +6,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::application::command::{
-    Command, CommandOption, CommandOptionChoice, CommandType,
+    Command, CommandOption, CommandOptionChoice, CommandOptionType, CommandType,
 };
 
 /// Maximum number of choices an option can have.
@@ -308,61 +308,30 @@ pub fn chars(command: &Command) -> usize {
 pub fn chars_option(option: &CommandOption) -> usize {
     let mut chars = 0;
 
-    match option {
-        CommandOption::SubCommand(data) | CommandOption::SubCommandGroup(data) => {
-            chars += longest_localization_chars(&data.name, &data.name_localizations);
-            chars += longest_localization_chars(&data.description, &data.description_localizations);
+    chars += longest_localization_chars(&option.name, &option.name_localizations);
+    chars += longest_localization_chars(&option.description, &option.description_localizations);
 
-            for option in &data.options {
-                chars += chars_option(option);
-            }
-        }
-        CommandOption::String(data) => {
-            chars += longest_localization_chars(&data.name, &data.name_localizations);
-            chars += longest_localization_chars(&data.description, &data.description_localizations);
-
-            for choice in &data.choices {
-                if let CommandOptionChoice::String {
-                    name,
-                    name_localizations,
-                    value,
-                } = choice
-                {
-                    chars += longest_localization_chars(name, name_localizations) + value.len();
+    match option.kind {
+        CommandOptionType::String => {
+            if let Some(choices) = option.choices.as_ref() {
+                for choice in choices {
+                    if let CommandOptionChoice::String(string_choice) = choice {
+                        chars += longest_localization_chars(
+                            &string_choice.name,
+                            &string_choice.name_localizations,
+                        ) + string_choice.value.len();
+                    }
                 }
             }
         }
-        CommandOption::Integer(data) => {
-            chars += longest_localization_chars(&data.name, &data.name_localizations);
-            chars += longest_localization_chars(&data.description, &data.description_localizations);
-
-            for choice in &data.choices {
-                if let CommandOptionChoice::Int {
-                    name,
-                    name_localizations,
-                    ..
-                } = choice
-                {
-                    chars += longest_localization_chars(name, name_localizations);
+        CommandOptionType::SubCommandGroup | CommandOptionType::SubCommand => {
+            if let Some(options) = option.options.as_ref() {
+                for option in options {
+                    chars += chars_option(option);
                 }
             }
         }
-        CommandOption::Boolean(data)
-        | CommandOption::User(data)
-        | CommandOption::Role(data)
-        | CommandOption::Mentionable(data)
-        | CommandOption::Attachment(data) => {
-            chars += longest_localization_chars(&data.name, &data.name_localizations);
-            chars += longest_localization_chars(&data.description, &data.description_localizations);
-        }
-        CommandOption::Channel(data) => {
-            chars += longest_localization_chars(&data.name, &data.name_localizations);
-            chars += longest_localization_chars(&data.description, &data.description_localizations);
-        }
-        CommandOption::Number(data) => {
-            chars += longest_localization_chars(&data.name, &data.name_localizations);
-            chars += longest_localization_chars(&data.description, &data.description_localizations);
-        }
+        _ => {}
     }
 
     chars
@@ -629,12 +598,12 @@ pub const fn guild_permissions(count: usize) -> Result<(), CommandValidationErro
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::non_ascii_literal)]
-
     use super::*;
     use std::collections::HashMap;
     use twilight_model::{
-        application::command::{ChoiceCommandOptionData, CommandType, OptionsCommandOptionData},
+        application::command::{
+            CommandOptionChoice, CommandOptionChoiceData, CommandOptionType, CommandType,
+        },
         id::Id,
     };
 
@@ -710,51 +679,77 @@ mod tests {
             kind: CommandType::ChatInput,
             name: "b".repeat(10),
             name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
-            options: Vec::from([CommandOption::SubCommandGroup(OptionsCommandOptionData {
+            nsfw: None,
+            options: Vec::from([CommandOption {
+                autocomplete: None,
+                channel_types: None,
+                choices: None,
                 description: "a".repeat(10),
                 description_localizations: Some(HashMap::from([(
                     "en-US".to_string(),
                     "a".repeat(100),
                 )])),
+                kind: CommandOptionType::SubCommandGroup,
+                max_length: None,
+                max_value: None,
+                min_length: None,
+                min_value: None,
                 name: "b".repeat(10),
                 name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
-                options: Vec::from([CommandOption::SubCommand(OptionsCommandOptionData {
+                options: Some(Vec::from([CommandOption {
+                    autocomplete: None,
+                    channel_types: None,
+                    choices: None,
                     description: "a".repeat(100),
                     description_localizations: Some(HashMap::from([(
                         "en-US".to_string(),
                         "a".repeat(10),
                     )])),
+                    kind: CommandOptionType::SubCommand,
+                    max_length: None,
+                    max_value: None,
+                    min_length: None,
+                    min_value: None,
                     name: "b".repeat(32),
                     name_localizations: Some(HashMap::from([(
                         "en-US".to_string(),
                         "b".repeat(10),
                     )])),
-                    options: Vec::from([CommandOption::String(ChoiceCommandOptionData {
-                        autocomplete: false,
-                        choices: Vec::from([CommandOptionChoice::String {
-                            name: "b".repeat(32),
-                            name_localizations: Some(HashMap::from([(
-                                "en-US".to_string(),
-                                "b".repeat(10),
-                            )])),
-                            value: "c".repeat(100),
-                        }]),
+                    options: Some(Vec::from([CommandOption {
+                        autocomplete: Some(false),
+                        channel_types: None,
+                        choices: Some(Vec::from([CommandOptionChoice::String(
+                            CommandOptionChoiceData {
+                                name: "b".repeat(32),
+                                name_localizations: Some(HashMap::from([(
+                                    "en-US".to_string(),
+                                    "b".repeat(10),
+                                )])),
+                                value: "c".repeat(100),
+                            },
+                        )])),
                         description: "a".repeat(100),
                         description_localizations: Some(HashMap::from([(
                             "en-US".to_string(),
                             "a".repeat(10),
                         )])),
+                        kind: CommandOptionType::String,
                         max_length: None,
+                        max_value: None,
                         min_length: None,
+                        min_value: None,
                         name: "b".repeat(32),
                         name_localizations: Some(HashMap::from([(
                             "en-US".to_string(),
                             "b".repeat(10),
                         )])),
-                        required: false,
-                    })]),
-                })]),
-            })]),
+                        options: None,
+                        required: Some(false),
+                    }])),
+                    required: None,
+                }])),
+                required: None,
+            }]),
             version: Id::new(4),
         };
 
