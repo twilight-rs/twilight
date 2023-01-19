@@ -615,7 +615,6 @@ mod tests {
         let mut options = Vec::from([option.clone()]);
         assert!(super::options(&options).is_ok());
         options.push(option);
-        assert!(super::options(&options).is_err());
         assert!(matches!(super::options(&options).unwrap_err().kind(),
             CommandValidationErrorType::OptionNameNotUnique { option_index } if *option_index == 1));
     }
