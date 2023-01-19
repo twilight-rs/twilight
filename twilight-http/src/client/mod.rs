@@ -89,7 +89,6 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::AsRef,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,

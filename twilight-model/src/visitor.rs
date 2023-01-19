@@ -1,6 +1,5 @@
 use serde::de::{Error as DeError, Visitor};
 use std::{
-    convert::TryFrom,
     fmt::{Formatter, Result as FmtResult},
     marker::PhantomData,
 };
