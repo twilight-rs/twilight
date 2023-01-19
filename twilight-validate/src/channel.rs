@@ -252,7 +252,7 @@ pub fn topic(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
 ///
 /// # Errors
 ///
-/// Returns an error of type [`UserLimitInvalid`] if the UserLimit is invalid.
+/// Returns an error of type [`UserLimitInvalid`] if the user limit is invalid.
 ///
 /// [`UserLimitInvalid`]: ChannelValidationErrorType::BitrateInvalid
 pub const fn user_limit(value: u16) -> Result<(), ChannelValidationError> {
