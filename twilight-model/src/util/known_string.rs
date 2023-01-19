@@ -10,7 +10,8 @@ use std::{
     str::{self, FromStr},
 };
 
-/// Bytes container with some abstractions intended for storing strings.
+/// Bytes container with some abstractions intended for storing UTF-8 valid
+/// data (i.e. Strings).
 ///
 /// We want to be able to pattern match types with string values, but
 /// there's some tricky aspects about storing types with string values that
@@ -60,9 +61,9 @@ use std::{
 /// }
 /// ```
 ///
-/// The reason for this is unobvious: it's because `Cow` doesn't derive `Eq`
-/// and `PartialEq`. It can't because String doesn't in constant expressions. We
-/// get this error on each of the constant evaluations:
+/// The reason for this is non-obvious: `Cow` doesn't derive `Eq` and
+/// `PartialEq`. It can't because String doesn't in constant expressions. We get
+/// this error on each of the constant evaluations:
 ///
 /// > to use a constant of type `Cow` in a pattern, `Cow` must be annotated with
 /// > `#[derive(PartialEq, Eq)]`
