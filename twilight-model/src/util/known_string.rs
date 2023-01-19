@@ -72,7 +72,7 @@ use std::{
 /// arrays are on the stack and derive `Eq` and `PartialEq`, we *can* pattern
 /// match them:
 ///
-/// ```
+/// ```no_run
 /// use serde::{Deserialize, Serialize};
 ///
 /// #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -102,8 +102,8 @@ use std::{
 /// ```
 ///
 /// As a bonus, we get the efficiency of storing on the stack, low allocation
-/// sizes (subject to the length of the bytes array), and we get to derive Copy,
-/// which means match statements look pleasant.
+/// sizes (equal to the requested length), and we get to derive Copy, which
+/// means match statements look pleasant.
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub struct KnownString<const LENGTH: usize> {
     bytes: [u8; LENGTH],
@@ -166,9 +166,9 @@ impl<const LENGTH: usize> KnownString<LENGTH> {
     ///
     /// Panics if the value is not UTF-8 valid.
     pub fn get(&self) -> &str {
-        let string = str::from_utf8(&self.bytes).unwrap();
-
-        string.trim_matches(char::from(0))
+        str::from_utf8(&self.bytes)
+            .expect("string is not utf8 valid")
+            .trim_matches(char::from(0))
     }
 }
 
@@ -241,8 +241,8 @@ mod tests {
     use super::KnownString;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
-    use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, hash::Hash, str::FromStr, string::ToString};
+    use static_assertions::{assert_impl_all, const_assert_eq};
+    use std::{fmt::Debug, hash::Hash, mem, str::FromStr, string::ToString};
 
     assert_impl_all!(
         KnownString<1>: AsRef<str>,
@@ -259,16 +259,63 @@ mod tests {
         ToString,
         TryFrom<&'static str>,
     );
+    const_assert_eq!(16, mem::size_of::<KnownString<16>>());
 
     #[test]
-    fn new() {
-        let string = KnownString::<64>::from_str("BOT").unwrap();
+    fn as_ref() {
+        let string = KnownString::<3>::from_bytes(b"bot");
 
-        let mut with_null_bytes = [0; 64];
-        with_null_bytes[0] = b'B';
-        with_null_bytes[1] = b'O';
-        with_null_bytes[2] = b'T';
-        assert_eq!(&string.bytes, &with_null_bytes);
+        assert_eq!("bot", string.as_ref());
+    }
+
+    #[test]
+    fn debug() {
+        let string = KnownString::<3>::from_bytes(b"bot");
+
+        assert_eq!("bot", format!("{string:?}"));
+    }
+
+    #[test]
+    fn from_bytes() {
+        let string = KnownString::<3>::from_bytes(b"BOT");
+        assert_eq!(b'B', string.bytes[0]);
+        assert_eq!(b'O', string.bytes[1]);
+        assert_eq!(b'T', string.bytes[2]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn from_bytes_too_long() {
+        KnownString::<3>::from_bytes(b"TEST");
+    }
+
+    #[test]
+    fn from_str() {
+        let strings = [
+            KnownString::<64>::from_str("BOT").unwrap(),
+            FromStr::from_str("BOT").unwrap(),
+        ];
+
+        for string in strings {
+            assert_eq!(b'B', string.bytes[0]);
+            assert_eq!(b'O', string.bytes[1]);
+            assert_eq!(b'T', string.bytes[2]);
+        }
+
+        // Input is larger than the container can hold
+        assert!(KnownString::<3>::from_str("test").is_none());
+    }
+
+    #[test]
+    fn equality() {
+        assert_eq!(
+            KnownString::<64>::from_str("test").unwrap(),
+            KnownString::<64>::from_str("test").unwrap()
+        );
+        assert_ne!(
+            KnownString::<64>::from_str("foo"),
+            KnownString::<64>::from_str("bar")
+        );
     }
 
     #[test]
@@ -287,14 +334,16 @@ mod tests {
     }
 
     #[test]
-    fn equality() {
-        assert_eq!(
-            KnownString::<64>::from_str("test").unwrap(),
-            KnownString::<64>::from_str("test").unwrap()
-        );
-        assert_ne!(
-            KnownString::<64>::from_str("foo"),
-            KnownString::<64>::from_str("bar")
-        );
+    fn to_string() {
+        let string = KnownString::<4>::from_bytes(b"TEST");
+
+        assert_eq!("TEST", string.to_string());
+    }
+
+    #[test]
+    fn try_from() {
+        let string = KnownString::<3>::try_from("BOT").unwrap();
+
+        assert_eq!(b"BOT", &string.bytes);
     }
 }
