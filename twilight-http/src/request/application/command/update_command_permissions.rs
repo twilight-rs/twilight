@@ -25,10 +25,11 @@ struct UpdateCommandPermissionsFields<'a> {
 
 /// Update command permissions for a single command in a guild.
 ///
-/// # Note:
+/// Note that this overwrites the command permissions, so the full set of
+/// permissions has to be sent every time.
 ///
-/// This overwrites the command permissions so the full set of permissions
-/// have to be sent every time.
+/// This request requires that the client was configured with an OAuth Bearer
+/// token.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCommandPermissions<'a> {
     application_id: Id<ApplicationMarker>,
