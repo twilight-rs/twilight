@@ -110,9 +110,9 @@ impl Display for CommandValidationError {
 
                 f.write_str(" commands were set")
             }
-            CommandValidationErrorType::CommandTooLarge { chars } => {
+            CommandValidationErrorType::CommandTooLarge { characters } => {
                 f.write_str("the combined total length of the command is ")?;
-                Display::fmt(chars, f)?;
+                Display::fmt(characters, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
                 Display::fmt(&COMMAND_TOTAL_LENGTH, f)
@@ -201,7 +201,7 @@ pub enum CommandValidationErrorType {
     /// if it is a string choice.
     CommandTooLarge {
         /// Provided number of codepoints.
-        chars: usize,
+        characters: usize,
     },
     /// Command description is invalid.
     DescriptionInvalid,
@@ -246,11 +246,11 @@ pub enum CommandValidationErrorType {
 /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
 /// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 pub fn command(value: &Command) -> Result<(), CommandValidationError> {
-    let chars = self::chars(value);
+    let characters = self::command_characters(value);
 
-    if chars > COMMAND_TOTAL_LENGTH {
+    if characters > COMMAND_TOTAL_LENGTH {
         return Err(CommandValidationError {
-            kind: CommandValidationErrorType::CommandTooLarge { chars },
+            kind: CommandValidationErrorType::CommandTooLarge { characters },
         });
     }
 
@@ -293,30 +293,35 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
 }
 
 /// Calculate the total character count of a command.
-pub fn chars(command: &Command) -> usize {
-    let mut chars = longest_localization_chars(&command.name, &command.name_localizations)
-        + longest_localization_chars(&command.description, &command.description_localizations);
+pub fn command_characters(command: &Command) -> usize {
+    let mut characters =
+        longest_localization_characters(&command.name, &command.name_localizations)
+            + longest_localization_characters(
+                &command.description,
+                &command.description_localizations,
+            );
 
     for option in &command.options {
-        chars += chars_option(option);
+        characters += option_characters(option);
     }
 
-    chars
+    characters
 }
 
 /// Calculate the total character count of a command option.
-pub fn chars_option(option: &CommandOption) -> usize {
-    let mut chars = 0;
+pub fn option_characters(option: &CommandOption) -> usize {
+    let mut characters = 0;
 
-    chars += longest_localization_chars(&option.name, &option.name_localizations);
-    chars += longest_localization_chars(&option.description, &option.description_localizations);
+    characters += longest_localization_characters(&option.name, &option.name_localizations);
+    characters +=
+        longest_localization_characters(&option.description, &option.description_localizations);
 
     match option.kind {
         CommandOptionType::String => {
             if let Some(choices) = option.choices.as_ref() {
                 for choice in choices {
                     if let CommandOptionChoice::String(string_choice) = choice {
-                        chars += longest_localization_chars(
+                        characters += longest_localization_characters(
                             &string_choice.name,
                             &string_choice.name_localizations,
                         ) + string_choice.value.len();
@@ -327,14 +332,14 @@ pub fn chars_option(option: &CommandOption) -> usize {
         CommandOptionType::SubCommandGroup | CommandOptionType::SubCommand => {
             if let Some(options) = option.options.as_ref() {
                 for option in options {
-                    chars += chars_option(option);
+                    characters += option_characters(option);
                 }
             }
         }
         _ => {}
     }
 
-    chars
+    characters
 }
 
 /// Calculate the characters for the longest name/description.
@@ -343,21 +348,21 @@ pub fn chars_option(option: &CommandOption) -> usize {
 /// limit. If the default value is longer than any of the
 /// localizations, the length of the default value will be used
 /// instead.
-fn longest_localization_chars(
+fn longest_localization_characters(
     default: &str,
     localizations: &Option<HashMap<String, String>>,
 ) -> usize {
-    let mut chars = default.len();
+    let mut characters = default.len();
 
     if let Some(localizations) = localizations {
         for localization in localizations.values() {
-            if localization.len() > chars {
-                chars = localization.len();
+            if localization.len() > characters {
+                characters = localization.len();
             }
         }
     }
 
-    chars
+    characters
 }
 
 /// Validate the description of a [`Command`].
@@ -753,15 +758,15 @@ mod tests {
             version: Id::new(4),
         };
 
-        assert_eq!(chars(&command), 660);
+        assert_eq!(command_characters(&command), 660);
         assert!(super::command(&command).is_ok());
 
         command.description = "a".repeat(3441);
-        assert_eq!(chars(&command), 4001);
+        assert_eq!(command_characters(&command), 4001);
 
         assert!(matches!(
             super::command(&command).unwrap_err().kind(),
-            CommandValidationErrorType::CommandTooLarge { chars: 4001 }
+            CommandValidationErrorType::CommandTooLarge { characters: 4001 }
         ));
     }
 }
