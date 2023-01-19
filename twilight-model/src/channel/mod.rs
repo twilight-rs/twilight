@@ -119,7 +119,7 @@ pub struct Channel {
     /// At most a value of 50 is provided although the real number may be
     /// higher.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub member_count: Option<i32>,
+    pub member_count: Option<i8>,
     /// Number of messages in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_count: Option<u32>,
