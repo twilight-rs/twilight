@@ -27,7 +27,6 @@ pub struct Member {
     pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
-    pub guild_id: Id<GuildMarker>,
     pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
@@ -38,51 +37,6 @@ pub struct Member {
     pub premium_since: Option<Timestamp>,
     pub roles: Vec<Id<RoleMarker>>,
     pub user: User,
-}
-
-/// Version of [`Member`] but without a guild ID, useful in some contexts.
-///
-/// The HTTP and Gateway APIs don't always include guild IDs in their payloads,
-/// so this can be useful when you're unable to use a deserialization seed like
-/// [`MemberDeserializer`].
-// Used in the guild deserializer.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(rename(deserialize = "Member"))]
-pub(crate) struct MemberIntermediary {
-    /// Member's guild avatar.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<ImageHash>,
-    pub communication_disabled_until: Option<Timestamp>,
-    pub deaf: bool,
-    pub joined_at: Timestamp,
-    pub mute: bool,
-    pub nick: Option<String>,
-    #[serde(default)]
-    pub pending: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_since: Option<Timestamp>,
-    pub roles: Vec<Id<RoleMarker>>,
-    pub user: User,
-}
-
-impl MemberIntermediary {
-    /// Inject a guild ID to create a [`Member`].
-    #[allow(clippy::missing_const_for_fn)] // false positive
-    pub fn into_member(self, guild_id: Id<GuildMarker>) -> Member {
-        Member {
-            avatar: self.avatar,
-            communication_disabled_until: self.communication_disabled_until,
-            deaf: self.deaf,
-            guild_id,
-            joined_at: self.joined_at,
-            mute: self.mute,
-            nick: self.nick,
-            pending: self.pending,
-            premium_since: self.premium_since,
-            roles: self.roles,
-            user: self.user,
-        }
-    }
 }
 
 /// Deserialize a member when the payload doesn't have the guild ID but
@@ -120,9 +74,9 @@ impl<'de> Visitor<'de> for MemberVisitor {
 
     fn visit_map<M: MapAccess<'de>>(self, map: M) -> Result<Self::Value, M::Error> {
         let deser = MapAccessDeserializer::new(map);
-        let member = MemberIntermediary::deserialize(deser)?;
+        let member = Member::deserialize(deser)?;
 
-        Ok(member.into_member(self.0))
+        Ok(member)
     }
 }
 
@@ -186,7 +140,6 @@ mod tests {
             avatar: Some(image_hash::AVATAR),
             communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(1),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -282,7 +235,6 @@ mod tests {
             avatar: Some(image_hash::AVATAR),
             communication_disabled_until: Some(communication_disabled_until),
             deaf: false,
-            guild_id: Id::new(1),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),

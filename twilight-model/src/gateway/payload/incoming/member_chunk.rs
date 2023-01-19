@@ -143,7 +143,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         let chunk_count = chunk_count.ok_or_else(|| DeError::missing_field("chunk_count"))?;
         let chunk_index = chunk_index.ok_or_else(|| DeError::missing_field("chunk_index"))?;
         let guild_id = guild_id.ok_or_else(|| DeError::missing_field("guild_id"))?;
-        let mut members = members.ok_or_else(|| DeError::missing_field("members"))?;
+        let members = members.ok_or_else(|| DeError::missing_field("members"))?;
         let not_found = not_found.unwrap_or_default();
         let mut presences = presences.unwrap_or_default();
 
@@ -155,10 +155,6 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
             ?not_found,
             ?presences,
         );
-
-        for member in &mut members {
-            member.guild_id = guild_id;
-        }
 
         for presence in &mut presences {
             presence.guild_id = guild_id;
@@ -320,7 +316,6 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
-                    guild_id: Id::new(1),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
@@ -349,7 +344,6 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
-                    guild_id: Id::new(1),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
@@ -378,7 +372,6 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
-                    guild_id: Id::new(1),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
@@ -407,7 +400,6 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
-                    guild_id: Id::new(1),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),

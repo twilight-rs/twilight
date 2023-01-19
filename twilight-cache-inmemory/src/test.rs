@@ -106,7 +106,6 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             avatar: None,
             communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(1),
             joined_at,
             mute: false,
             nick: Some("member nick".to_owned()),
@@ -144,7 +143,6 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         avatar: None,
         communication_disabled_until: None,
         deaf: false,
-        guild_id: Id::new(1),
         joined_at,
         mute: false,
         nick: None,
@@ -265,14 +263,13 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
     (guild_id, channel_id, channel)
 }
 
-pub fn member(id: Id<UserMarker>, guild_id: Id<GuildMarker>) -> Member {
+pub fn member(id: Id<UserMarker>) -> Member {
     let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
     Member {
         avatar: None,
         communication_disabled_until: None,
         deaf: false,
-        guild_id,
         joined_at,
         mute: false,
         nick: None,

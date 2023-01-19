@@ -63,7 +63,7 @@ impl InMemoryCache {
             .or_default()
             .insert(user_id);
 
-        let cached = CachedMember::from_partial_member(guild_id, user_id, member.clone());
+        let cached = CachedMember::from_partial_member(user_id, member.clone());
         self.members.insert(id, cached);
     }
 
@@ -87,7 +87,6 @@ impl InMemoryCache {
             .insert(user_id);
 
         let cached = CachedMember::from_interaction_member(
-            guild_id,
             user_id,
             member.clone(),
             ComputedInteractionMemberFields { avatar, deaf, mute },
@@ -100,7 +99,7 @@ impl InMemoryCache {
 impl UpdateCache for MemberAdd {
     fn update(&self, cache: &InMemoryCache) {
         if cache.wants(ResourceType::GUILD) {
-            if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
+            if let Some(mut guild) = cache.guilds.get_mut(&self.1) {
                 guild.member_count = guild.member_count.map(|count| count + 1);
             }
         }
@@ -109,11 +108,11 @@ impl UpdateCache for MemberAdd {
             return;
         }
 
-        cache.cache_member(self.guild_id, self.0.clone());
+        cache.cache_member(self.1, self.0.clone());
 
         cache
             .guild_members
-            .entry(self.guild_id)
+            .entry(self.1)
             .or_default()
             .insert(self.0.user.id);
     }
@@ -210,7 +209,7 @@ mod tests {
             let guild_1_members = guild_1_user_ids
                 .iter()
                 .copied()
-                .map(|id| test::member(id, Id::new(1)))
+                .map(test::member)
                 .collect::<Vec<_>>();
 
             for member in guild_1_members {
@@ -237,7 +236,7 @@ mod tests {
             let guild_2_members = guild_2_user_ids
                 .iter()
                 .copied()
-                .map(|id| test::member(id, Id::new(2)))
+                .map(test::member)
                 .collect::<Vec<_>>();
             cache.cache_members(Id::new(2), guild_2_members);
 

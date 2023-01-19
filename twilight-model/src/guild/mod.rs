@@ -666,7 +666,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let max_presences = max_presences.unwrap_or_default();
                 let max_video_channel_users = max_video_channel_users.unwrap_or_default();
                 let member_count = member_count.unwrap_or_default();
-                let mut members = members.unwrap_or_default();
+                let members = members.unwrap_or_default();
                 let nsfw_level = nsfw_level.ok_or_else(|| DeError::missing_field("nsfw_level"))?;
                 let owner = owner.unwrap_or_default();
                 let permissions = permissions.unwrap_or_default();
@@ -740,10 +740,6 @@ impl<'de> Deserialize<'de> for Guild {
 
                 for channel in &mut channels {
                     channel.guild_id = Some(id);
-                }
-
-                for member in &mut members {
-                    member.guild_id = id;
                 }
 
                 for presence in &mut presences {

@@ -1,9 +1,12 @@
-use crate::guild::Member;
+use crate::{
+    guild::Member,
+    id::{marker::GuildMarker, Id},
+};
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct MemberAdd(pub Member);
+pub struct MemberAdd(pub Member, pub Id<GuildMarker>);
 
 impl Deref for MemberAdd {
     type Target = Member;
@@ -22,42 +25,48 @@ impl DerefMut for MemberAdd {
 #[cfg(test)]
 mod tests {
     use super::{Member, MemberAdd};
-    use crate::{id::Id, user::User, util::Timestamp};
+    use crate::{
+        id::{marker::GuildMarker, Id},
+        user::User,
+        util::Timestamp,
+    };
     use serde_test::Token;
 
     #[test]
     fn member_add() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
-        let value = MemberAdd(Member {
-            avatar: None,
-            communication_disabled_until: None,
-            deaf: false,
-            guild_id: Id::new(1),
-            joined_at,
-            mute: false,
-            nick: None,
-            pending: true,
-            premium_since: None,
-            roles: vec![],
-            user: User {
-                id: Id::new(2),
-                accent_color: None,
+        let value = MemberAdd(
+            Member {
                 avatar: None,
-                banner: None,
-                bot: false,
-                discriminator: 987,
-                name: "ab".to_string(),
-                mfa_enabled: None,
-                locale: None,
-                verified: None,
-                email: None,
-                flags: None,
-                premium_type: None,
-                system: None,
-                public_flags: None,
+                communication_disabled_until: None,
+                deaf: false,
+                joined_at,
+                mute: false,
+                nick: None,
+                pending: true,
+                premium_since: None,
+                roles: vec![],
+                user: User {
+                    id: Id::new(2),
+                    accent_color: None,
+                    avatar: None,
+                    banner: None,
+                    bot: false,
+                    discriminator: 987,
+                    name: "ab".to_string(),
+                    mfa_enabled: None,
+                    locale: None,
+                    verified: None,
+                    email: None,
+                    flags: None,
+                    premium_type: None,
+                    system: None,
+                    public_flags: None,
+                },
             },
-        });
+            Id::<GuildMarker>::new(1),
+        );
 
         serde_test::assert_tokens(
             &value,

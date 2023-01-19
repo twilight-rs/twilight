@@ -114,7 +114,6 @@ mod tests {
             avatar: Some(image_hash::AVATAR),
             communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(2),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),

@@ -941,7 +941,7 @@ mod tests {
     fn clear() {
         let cache = InMemoryCache::new();
         cache.cache_emoji(Id::new(1), test::emoji(Id::new(3), None));
-        cache.cache_member(Id::new(2), test::member(Id::new(4), Id::new(2)));
+        cache.cache_member(Id::new(2), test::member(Id::new(2)));
         cache.clear();
         assert!(cache.emojis.is_empty());
         assert!(cache.members.is_empty());
@@ -959,7 +959,6 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id,
                 joined_at,
                 mute: false,
                 nick: None,

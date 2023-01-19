@@ -1,6 +1,6 @@
 use crate::{
     channel::message::ReactionType,
-    guild::member::{Member, MemberIntermediary},
+    guild::member::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
         Id,
@@ -46,7 +46,7 @@ impl<'de> Visitor<'de> for ReactionVisitor {
         let mut channel_id = None;
         let mut emoji = None;
         let mut guild_id = None;
-        let mut member: Option<MemberIntermediary> = None;
+        let mut member: Option<Member> = None;
         let mut message_id = None;
         let mut user_id = None;
 
@@ -127,14 +127,6 @@ impl<'de> Visitor<'de> for ReactionVisitor {
 
         tracing::trace!(?channel_id, ?emoji, ?message_id, ?user_id);
 
-        let member = if let (Some(guild_id), Some(member)) = (guild_id, member) {
-            tracing::trace!(%guild_id, ?member, "setting member guild id");
-
-            Some(member.into_member(guild_id))
-        } else {
-            None
-        };
-
         Ok(Self::Value {
             channel_id,
             emoji,
@@ -186,7 +178,6 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(1),
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),

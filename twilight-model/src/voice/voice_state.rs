@@ -1,5 +1,5 @@
 use crate::{
-    guild::member::{Member, MemberIntermediary},
+    guild::member::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
@@ -90,7 +90,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let mut channel_id = None;
         let mut deaf = None;
         let mut guild_id = None;
-        let mut member: Option<MemberIntermediary> = None;
+        let mut member: Option<Member> = None;
         let mut mute = None;
         let mut self_deaf = None;
         let mut self_mute = None;
@@ -243,14 +243,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
             %user_id,
         );
 
-        let member = if let (Some(guild_id), Some(member)) = (guild_id, member) {
-            tracing::trace!(%guild_id, ?member, "setting member guild id");
-
-            Some(member.into_member(guild_id))
-        } else {
-            None
-        };
-
         Ok(VoiceState {
             channel_id,
             deaf,
@@ -377,7 +369,6 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(2),
                 joined_at,
                 mute: true,
                 nick: Some("twilight".to_owned()),

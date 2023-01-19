@@ -1,5 +1,5 @@
 use crate::{
-    guild::member::{Member, MemberIntermediary},
+    guild::member::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
@@ -44,7 +44,7 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
         let mut channel_id = None;
         let mut guild_id = None;
-        let mut member: Option<MemberIntermediary> = None;
+        let mut member: Option<Member> = None;
         let mut timestamp = None;
         let mut user_id = None;
 
@@ -123,14 +123,6 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
             %user_id,
         );
 
-        let member = if let (Some(guild_id), Some(member)) = (guild_id, member) {
-            tracing::trace!(%guild_id, ?member, "setting member guild id");
-
-            Some(member.into_member(guild_id))
-        } else {
-            None
-        };
-
         Ok(TypingStart {
             channel_id,
             guild_id,
@@ -174,7 +166,6 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(1),
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),
