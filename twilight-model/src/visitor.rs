@@ -51,6 +51,74 @@ pub mod null_boolean {
     }
 }
 
+/// (De)serializers for IDs that can be "zero", parsing as None in the case of
+/// being zero.
+///
+/// This is a bug on Discord's end, but has been rather consistent for some
+/// model fields such as [`ForumTag::emoji_id`].
+///
+/// [`ForumTag::emoji_id`]: crate::channel::forum::ForumTag
+pub mod zeroable_id {
+    use crate::id::Id;
+    use serde::{
+        de::{Deserializer, Error as DeError, Visitor},
+        ser::Serializer,
+        Deserialize, Serialize,
+    };
+    use std::{
+        fmt::{Formatter, Result as FmtResult},
+        marker::PhantomData,
+        str::FromStr,
+    };
+
+    struct ZeroableIdVisitor<T> {
+        phantom: PhantomData<T>,
+    }
+
+    impl<'de, T> Visitor<'de> for ZeroableIdVisitor<T> {
+        type Value = Option<Id<T>>;
+
+        fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+            f.write_str("ID or 0")
+        }
+
+        fn visit_newtype_struct<D: Deserializer<'de>>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error> {
+            let stringified_number = String::deserialize(deserializer)?;
+
+            self.visit_str(&stringified_number)
+        }
+
+        fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
+            Ok(Id::from_str(v).ok())
+        }
+    }
+
+    // Clippy will say this bool can be taken by value, but we need it to be
+    // passed by reference because that's what serde does.
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn serialize<S: Serializer, T>(
+        value: &Option<Id<T>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        if let Some(id) = value {
+            id.serialize(serializer)
+        } else {
+            serializer.serialize_u64(0)
+        }
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>, T>(
+        deserializer: D,
+    ) -> Result<Option<Id<T>>, D::Error> {
+        deserializer.deserialize_option(ZeroableIdVisitor::<T> {
+            phantom: PhantomData,
+        })
+    }
+}
+
 pub struct U16EnumVisitor<'a> {
     description: &'a str,
     phantom: PhantomData<u16>,

@@ -126,7 +126,11 @@ impl From<ForumSortOrder> for u8 {
 pub struct ForumTag {
     /// ID of custom guild emoji.
     ///
+    /// Some guilds can have forum tags that have an ID of 0; if this is the
+    /// case, then the emoji ID is `None`.
+    ///
     /// Conflicts with `emoji_name`.
+    #[serde(with = "crate::visitor::zeroable_id")]
     pub emoji_id: Option<Id<EmojiMarker>>,
     /// Unicode emoji character.
     ///
@@ -259,7 +263,6 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("emoji_id"),
-                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("emoji_name"),
@@ -271,6 +274,43 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("name"),
                 Token::Str("other"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    /// Assert that an emoji ID can be deserialized from a string value of "0".
+    ///
+    /// This is a bug on Discord's end that has consistently been causing issues
+    /// for Twilight users.
+    #[test]
+    fn forum_tag_emoji_id_zero() {
+        let value = ForumTag {
+            emoji_id: None,
+            emoji_name: None,
+            id: TAG_ID,
+            moderated: true,
+            name: "tag".into(),
+        };
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ForumTag",
+                    len: 5,
+                },
+                Token::Str("emoji_id"),
+                Token::Str("0"),
+                Token::Str("emoji_name"),
+                Token::None,
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("moderated"),
+                Token::Bool(true),
+                Token::Str("name"),
+                Token::Str("tag"),
                 Token::StructEnd,
             ],
         );
