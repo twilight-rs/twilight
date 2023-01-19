@@ -1378,12 +1378,12 @@ impl Client {
     /// # Errors
     ///
     /// Returns an error of type
-    /// [`ChannelValidationError::DeleteBulkMessagesInvalid`] when the number of
+    /// [`ChannelValidationError::BulkDeleteMessagesInvalid`] when the number of
     /// messages to delete in bulk is invalid.
     /// is not between 1 and 120 characters in length.
     ///
     /// [Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
-    /// [`ChannelValidationError::DeleteBulkMessagesInvalid`]: twilight_validate::request::ValidationErrorType::DeleteBulkMessagesInvalid
+    /// [`ChannelValidationError::BulkDeleteMessagesInvalid`]: twilight_validate::request::ValidationErrorType::BulkDeleteMessagesInvalid
     pub fn delete_messages<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
