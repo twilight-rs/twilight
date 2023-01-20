@@ -585,13 +585,17 @@ impl<'a> InMemoryCachePermissions<'a> {
             member_roles.push((*role_id, role.permissions));
         }
 
-        if let Some(everyone_role) = self.cache.roles.get(guild_id) {
+        let everyone_role_id: Id<RoleMarker> = guild_id.cast();
+
+        if let Some(everyone_role) = self.cache.roles.get(&everyone_role_id) {
             Ok(MemberRoles {
                 assigned: member_roles,
                 everyone: everyone_role.permissions,
             })
         } else {
-            Err(MemberRolesErrorType::RoleMissing { role_id: guild_id })
+            Err(MemberRolesErrorType::RoleMissing {
+                role_id: everyone_role_id,
+            })
         }
     }
 
