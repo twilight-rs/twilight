@@ -415,7 +415,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         })?;
 
         let MemberRoles { assigned, everyone } = self
-            .member_roles(&member)
+            .member_roles(guild_id, &member)
             .map_err(ChannelError::from_member_roles)?;
 
         let overwrites = match channel.kind {
@@ -495,7 +495,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         })?;
 
         let MemberRoles { assigned, everyone } = self
-            .member_roles(&member)
+            .member_roles(guild_id, &member)
             .map_err(RootError::from_member_roles)?;
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
@@ -568,7 +568,11 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// Returns [`MemberRolesErrorType::RoleMissing`] if a role is missing from
     /// the cache.
-    fn member_roles(&self, member: &'a CachedMember) -> Result<MemberRoles, MemberRolesErrorType> {
+    fn member_roles(
+        &self,
+        guild_id: Id<GuildMarker>,
+        member: &'a CachedMember,
+    ) -> Result<MemberRoles, MemberRolesErrorType> {
         let mut member_roles = Vec::with_capacity(member.roles.len());
 
         for role_id in &member.roles {
@@ -581,18 +585,13 @@ impl<'a> InMemoryCachePermissions<'a> {
             member_roles.push((*role_id, role.permissions));
         }
 
-        // Assume that the `@everyone` role is always present, so do this last.
-        let everyone_role_id = member.guild_id().cast();
-
-        if let Some(everyone_role) = self.cache.roles.get(&everyone_role_id) {
+        if let Some(everyone_role) = self.cache.roles.get(guild_id) {
             Ok(MemberRoles {
                 assigned: member_roles,
                 everyone: everyone_role.permissions,
             })
         } else {
-            Err(MemberRolesErrorType::RoleMissing {
-                role_id: everyone_role_id,
-            })
+            Err(MemberRolesErrorType::RoleMissing { role_id: guild_id })
         }
     }
 
