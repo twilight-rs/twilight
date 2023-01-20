@@ -257,7 +257,7 @@ mod tests {
             name: "tag".into(),
         };
 
-        serde_test::assert_de_tokens(
+        serde_test::assert_tokens(
             &value,
             &[
                 Token::Struct {
@@ -338,7 +338,29 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("emoji_id"),
+                Token::U64(0),
+                Token::Str("emoji_name"),
                 Token::None,
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("moderated"),
+                Token::Bool(true),
+                Token::Str("name"),
+                Token::Str("tag"),
+                Token::StructEnd,
+            ],
+        );
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ForumTag",
+                    len: 5,
+                },
+                Token::Str("emoji_id"),
+                Token::Unit,
                 Token::Str("emoji_name"),
                 Token::None,
                 Token::Str("id"),

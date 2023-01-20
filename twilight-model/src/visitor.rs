@@ -109,6 +109,10 @@ pub mod zeroable_id {
         fn visit_u64<E: DeError>(self, v: u64) -> Result<Self::Value, E> {
             Ok(Id::new_checked(v))
         }
+
+        fn visit_unit<E: DeError>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
     }
 
     // Clippy will say this bool can be taken by value, but we need it to be
