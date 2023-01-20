@@ -2,12 +2,13 @@ use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
-    response::{marker::MemberBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
+    guild::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
         Id,
@@ -152,7 +153,7 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// Execute the request, returning a future resolving to a [`Response`].
     #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<MemberBody> {
+    pub fn exec(self) -> ResponseFuture<Member> {
         self.into_future()
     }
 }
@@ -168,9 +169,9 @@ impl<'a> AuditLogReason<'a> for UpdateGuildMember<'a> {
 }
 
 impl IntoFuture for UpdateGuildMember<'_> {
-    type Output = Result<Response<MemberBody>, Error>;
+    type Output = Result<Response<Member>, Error>;
 
-    type IntoFuture = ResponseFuture<MemberBody>;
+    type IntoFuture = ResponseFuture<Member>;
 
     fn into_future(self) -> Self::IntoFuture {
         let guild_id = self.guild_id;

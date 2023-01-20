@@ -52,14 +52,13 @@ mod status_code;
 
 pub use self::{future::ResponseFuture, status_code::StatusCode};
 
-use self::marker::{ListBody, MemberBody, MemberListBody};
-use super::json::JsonDeserializer;
+use self::marker::ListBody;
 use hyper::{
     body::{self, Bytes},
     header::{HeaderValue, Iter as HeaderMapIter},
     Body, Response as HyperResponse,
 };
-use serde::de::{DeserializeOwned, DeserializeSeed};
+use serde::de::DeserializeOwned;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -69,10 +68,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use twilight_model::{
-    guild::member::{Member, MemberDeserializer, MemberListDeserializer},
-    id::{marker::GuildMarker, Id},
-};
+use twilight_model::id::{marker::GuildMarker, Id};
 
 /// Failure when processing a response body.
 #[derive(Debug)]
@@ -311,15 +307,6 @@ impl<T> Response<T> {
     pub(crate) fn set_guild_id(&mut self, guild_id: Id<GuildMarker>) {
         self.guild_id = Some(guild_id);
     }
-
-    /// ID of the configured guild.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the guild ID hasn't been configured.
-    fn guild_id(&self) -> Id<GuildMarker> {
-        self.guild_id.expect("guild id has not been configured")
-    }
 }
 
 impl<T: DeserializeOwned> Response<T> {
@@ -369,60 +356,6 @@ impl<T: DeserializeOwned> Response<ListBody<T>> {
     /// response body could not be deserialized into a list of something.
     pub fn models(self) -> ModelFuture<Vec<T>> {
         Response::<Vec<T>>::new(self.inner).model()
-    }
-}
-
-impl Response<MemberBody> {
-    /// Consume the response, chunking the body and then deserializing it into
-    /// a member.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
-    /// response body could not be entirely read.
-    ///
-    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
-    /// response body could not be deserialized into a member.
-    pub fn model(self) -> MemberFuture {
-        let guild_id = self.guild_id();
-
-        MemberFuture::new(self.bytes(), guild_id)
-    }
-}
-
-impl Response<MemberListBody> {
-    /// Consume the response, chunking the body and then deserializing it into
-    /// a list of members.
-    ///
-    /// This is an alias for [`models`].
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
-    /// response body could not be entirely read.
-    ///
-    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
-    /// response body could not be deserialized into a list of something.
-    ///
-    /// [`models`]: Self::models
-    pub fn model(self) -> MemberListFuture {
-        self.models()
-    }
-
-    /// Consume the response, chunking the body and then deserializing it into
-    /// a list of members.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
-    /// response body could not be entirely read.
-    ///
-    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
-    /// response body could not be deserialized into a list of members.
-    pub fn models(self) -> MemberListFuture {
-        let guild_id = self.guild_id();
-
-        MemberListFuture::new(self.bytes(), guild_id)
     }
 }
 
@@ -593,152 +526,6 @@ impl<T: DeserializeOwned + Unpin> Future for ModelFuture<T> {
     }
 }
 
-/// Future resolving to a deserialized [`Member`].
-///
-/// # Examples
-///
-/// Get a member by guild and user ID and print whether the user is deafened:
-///
-/// ```no_run
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let guild_id = twilight_model::id::Id::new(1);
-/// # let user_id = twilight_model::id::Id::new(2);
-/// use std::env;
-/// use twilight_http::Client;
-///
-/// let client = Client::new(env::var("DISCORD_TOKEN")?);
-///
-/// let member = client
-///     .guild_member(guild_id, user_id)
-///     .await?
-///     .model()
-///     .await?;
-///
-/// println!("is member deaf?: {}", member.deaf);
-/// # Ok(()) }
-/// ```
-///
-/// # Errors
-///
-/// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
-/// response body could not be entirely read.
-///
-/// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
-/// response body could not be deserialized into a member.
-///
-/// [`Member`]: twilight_model::guild::Member
-#[must_use = "futures do nothing unless you `.await` or poll them"]
-pub struct MemberFuture {
-    future: BytesFuture,
-    guild_id: Id<GuildMarker>,
-}
-
-impl MemberFuture {
-    const fn new(bytes: BytesFuture, guild_id: Id<GuildMarker>) -> Self {
-        Self {
-            future: bytes,
-            guild_id,
-        }
-    }
-}
-
-impl Future for MemberFuture {
-    type Output = Result<Member, DeserializeBodyError>;
-
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        match Pin::new(&mut self.future).poll(cx) {
-            Poll::Ready(Ok(mut bytes)) => {
-                let mut deserializer = json_deserializer(&mut bytes)?;
-                let member_deserializer = MemberDeserializer::new(self.guild_id);
-
-                let result = member_deserializer
-                    .deserialize(&mut deserializer)
-                    .map_err(|source| DeserializeBodyError {
-                        kind: DeserializeBodyErrorType::Deserializing,
-                        source: Some(Box::new(source)),
-                    });
-
-                Poll::Ready(result)
-            }
-            Poll::Ready(Err(source)) => Poll::Ready(Err(source)),
-            Poll::Pending => Poll::Pending,
-        }
-    }
-}
-
-/// Future resolving to a deserialized list of [`Member`]s.
-///
-/// # Examples
-///
-/// Get the first 100 members of a guild and print their names:
-///
-/// ```no_run
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let guild_id = twilight_model::id::Id::new(1);
-/// use std::env;
-/// use twilight_http::Client;
-///
-/// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let members = client
-///     .guild_members(guild_id)
-///     .limit(100)?
-///     .await?
-///     .models()
-///     .await?;
-///
-/// for member in members {
-///     println!("member: {}#{}", member.user.name, member.user.discriminator);
-/// }
-/// # Ok(()) }
-/// ```
-///
-/// # Errors
-///
-/// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
-/// response body could not be entirely read.
-///
-/// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
-/// response body could not be deserialized into a list of members.
-///
-/// [`Member`]: twilight_model::guild::Member
-#[must_use = "futures do nothing unless you `.await` or poll them"]
-pub struct MemberListFuture(MemberFuture);
-
-impl MemberListFuture {
-    const fn new(bytes: BytesFuture, guild_id: Id<GuildMarker>) -> Self {
-        Self(MemberFuture {
-            future: bytes,
-            guild_id,
-        })
-    }
-}
-
-impl Future for MemberListFuture {
-    type Output = Result<Vec<Member>, DeserializeBodyError>;
-
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        match Pin::new(&mut self.0.future).poll(cx) {
-            Poll::Ready(Ok(mut bytes)) => {
-                let mut deserializer = json_deserializer(&mut bytes)?;
-                let member_list_deserializer = MemberListDeserializer::new(self.0.guild_id);
-
-                let result = member_list_deserializer
-                    .deserialize(&mut deserializer)
-                    .map_err(|source| DeserializeBodyError {
-                        kind: DeserializeBodyErrorType::Deserializing,
-                        source: Some(Box::new(source)),
-                    });
-
-                Poll::Ready(result)
-            }
-            Poll::Ready(Err(source)) => Poll::Ready(Err(source)),
-            Poll::Pending => Poll::Pending,
-        }
-    }
-}
-
 /// Future resolving to the text of a response body.
 ///
 /// The body of the response is chunked and aggregated into a string.
@@ -841,19 +628,20 @@ fn json_deserializer(input: &mut [u8]) -> Result<JsonDeserializer<'_>, Deseriali
 }
 
 /// Create a `serde` Deserializer instance.
-#[cfg(not(feature = "simd-json"))]
-fn json_deserializer(
-    input: &mut [u8],
-) -> Result<JsonDeserializer<serde_json::de::SliceRead<'_>>, DeserializeBodyError> {
-    Ok(JsonDeserializer::from_slice(input))
-}
+// #[cfg(not(feature = "simd-json"))]
+// #[deny(dead_code, unused)]
+// fn json_deserializer(
+//     input: &mut [u8],
+// ) -> Result<JsonDeserializer<serde_json::de::SliceRead<'_>>, DeserializeBodyError> {
+//     Ok(JsonDeserializer::from_slice(input))
+// }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        marker::{EmptyBody, ListBody, MemberBody, MemberListBody},
-        BytesFuture, DeserializeBodyError, DeserializeBodyErrorType, HeaderIter, MemberFuture,
-        MemberListFuture, ModelFuture, Response, TextFuture,
+        marker::{EmptyBody, ListBody},
+        BytesFuture, DeserializeBodyError, DeserializeBodyErrorType, HeaderIter, ModelFuture,
+        Response, TextFuture,
     };
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, future::Future, iter::FusedIterator};
@@ -866,13 +654,9 @@ mod tests {
     assert_impl_all!(DeserializeBodyErrorType: Debug, Send, Sync);
     assert_impl_all!(DeserializeBodyError: Debug, Send, Sync);
     assert_impl_all!(HeaderIter<'_>: Debug, FusedIterator, Iterator, Send, Sync);
-    assert_impl_all!(MemberFuture: Future);
-    assert_impl_all!(MemberListFuture: Future);
     assert_impl_all!(ModelFuture<Emoji>: Future);
     assert_impl_all!(Response<EmptyBody>: Debug, Send, Sync);
     assert_impl_all!(Response<ListBody<Message>>: Debug, Send, Sync);
-    assert_impl_all!(Response<MemberBody>: Debug, Send, Sync);
-    assert_impl_all!(Response<MemberListBody>: Debug, Send, Sync);
     assert_impl_all!(TextFuture: Future);
 
     #[cfg(feature = "decompression")]

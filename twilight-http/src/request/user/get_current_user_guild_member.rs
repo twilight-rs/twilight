@@ -1,12 +1,15 @@
 use crate::{
     client::Client,
     request::{Request, TryIntoRequest},
-    response::{marker::MemberBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
     Error,
 };
 use std::future::IntoFuture;
-use twilight_model::id::{marker::GuildMarker, Id};
+use twilight_model::{
+    guild::Member,
+    id::{marker::GuildMarker, Id},
+};
 
 /// Get information about the current user in a guild.
 #[must_use = "requests must be configured and executed"]
@@ -21,15 +24,15 @@ impl<'a> GetCurrentUserGuildMember<'a> {
     }
 
     #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<MemberBody> {
+    pub fn exec(self) -> ResponseFuture<Member> {
         self.into_future()
     }
 }
 
 impl IntoFuture for GetCurrentUserGuildMember<'_> {
-    type Output = Result<Response<MemberBody>, Error>;
+    type Output = Result<Response<Member>, Error>;
 
-    type IntoFuture = ResponseFuture<MemberBody>;
+    type IntoFuture = ResponseFuture<Member>;
 
     fn into_future(self) -> Self::IntoFuture {
         let guild_id = self.guild_id;

@@ -2,13 +2,16 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::MemberListBody, Response, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
-use twilight_model::id::{
-    marker::{GuildMarker, UserMarker},
-    Id,
+use twilight_model::{
+    guild::Member,
+    id::{
+        marker::{GuildMarker, UserMarker},
+        Id,
+    },
 };
 use twilight_validate::request::{
     get_guild_members_limit as validate_get_guild_members_limit, ValidationError,
@@ -90,15 +93,15 @@ impl<'a> GetGuildMembers<'a> {
 
     /// Execute the request, returning a future resolving to a [`Response`].
     #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<MemberListBody> {
+    pub fn exec(self) -> ResponseFuture<ListBody<Member>> {
         self.into_future()
     }
 }
 
 impl IntoFuture for GetGuildMembers<'_> {
-    type Output = Result<Response<MemberListBody>, Error>;
+    type Output = Result<Response<ListBody<Member>>, Error>;
 
-    type IntoFuture = ResponseFuture<MemberListBody>;
+    type IntoFuture = ResponseFuture<ListBody<Member>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let guild_id = self.guild_id;

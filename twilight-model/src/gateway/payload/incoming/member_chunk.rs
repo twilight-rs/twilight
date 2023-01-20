@@ -1,6 +1,6 @@
 use crate::{
     gateway::presence::{Presence, PresenceListDeserializer},
-    guild::member::{Member, MemberListDeserializer},
+    guild::member::Member,
     id::{
         marker::{GuildMarker, UserMarker},
         Id,
@@ -107,12 +107,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("members"));
                     }
 
-                    // Since the guild ID may not be deserialized yet we'll use
-                    // a temporary placeholder value and update it with the real
-                    // guild ID after all the fields have been deserialized.
-                    let deserializer = MemberListDeserializer::new(Id::new(1));
-
-                    members = Some(map.next_value_seed(deserializer)?);
+                    members = Some(map.next_value()?);
                 }
                 Field::Nonce => {
                     if nonce.is_some() {

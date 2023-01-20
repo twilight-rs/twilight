@@ -10,9 +10,7 @@ use crate::{
 };
 
 use serde::{
-    de::{
-        value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor,
-    },
+    de::{value::MapAccessDeserializer, MapAccess, Visitor},
     Deserialize, Serialize,
 };
 use std::fmt::{Formatter, Result as FmtResult};
@@ -39,30 +37,6 @@ pub struct Member {
     pub user: User,
 }
 
-/// Deserialize a member when the payload doesn't have the guild ID but
-/// you already know the guild ID.
-///
-/// Member payloads from the HTTP API, for example, don't have the guild
-/// ID.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberDeserializer(Id<GuildMarker>);
-
-impl MemberDeserializer {
-    /// Create a new deserializer for a member when you know the ID but the
-    /// payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
-        Self(guild_id)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for MemberDeserializer {
-    type Value = Member;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_map(MemberVisitor(self.0))
-    }
-}
-
 struct MemberVisitor(Id<GuildMarker>);
 
 impl<'de> Visitor<'de> for MemberVisitor {
@@ -77,45 +51,6 @@ impl<'de> Visitor<'de> for MemberVisitor {
         let member = Member::deserialize(deser)?;
 
         Ok(member)
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberListDeserializer(Id<GuildMarker>);
-
-impl MemberListDeserializer {
-    /// Create a new deserializer for a map of members when you know the
-    /// Guild ID but the payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
-        Self(guild_id)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
-    type Value = Vec<Member>;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_any(MemberListVisitor(self.0))
-    }
-}
-
-struct MemberListVisitor(Id<GuildMarker>);
-
-impl<'de> Visitor<'de> for MemberListVisitor {
-    type Value = Vec<Member>;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a sequence of members")
-    }
-
-    fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut list = seq.size_hint().map_or_else(Vec::new, Vec::with_capacity);
-
-        while let Some(member) = seq.next_element_seed(MemberDeserializer(self.0))? {
-            list.push(member);
-        }
-
-        Ok(list)
     }
 }
 

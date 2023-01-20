@@ -33,24 +33,12 @@ pub struct ListBody<T> {
     phantom: PhantomData<T>,
 }
 
-/// Marker that a response has a member.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
-pub struct MemberBody;
-
-/// Marker that a response has a list of members.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
-pub struct MemberListBody;
-
 #[cfg(test)]
 mod tests {
-    use super::{EmptyBody, ListBody, MemberBody, MemberListBody};
+    use super::{EmptyBody, ListBody};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
     assert_impl_all!(EmptyBody: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(ListBody<String>: Clone, Debug, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(MemberBody: Clone, Debug, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(MemberListBody: Clone, Debug, Eq, PartialEq, Send, Sync);
 }

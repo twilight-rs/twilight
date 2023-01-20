@@ -58,7 +58,6 @@ pub use self::{
     verification_level::VerificationLevel, widget::GuildWidget,
 };
 
-use self::member::MemberListDeserializer;
 use super::gateway::presence::PresenceListDeserializer;
 use crate::{
     channel::{message::sticker::Sticker, Channel, StageInstance},
@@ -443,9 +442,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("members"));
                             }
 
-                            let deserializer = MemberListDeserializer::new(Id::new(1));
-
-                            members = Some(map.next_value_seed(deserializer)?);
+                            members = Some(map.next_value()?);
                         }
                         Field::MfaLevel => {
                             if mfa_level.is_some() {
