@@ -248,7 +248,7 @@ pub fn topic(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
 
 /// Ensure a channel's user limit is correct.
 ///
-/// Must be at least 99.
+/// Must be at most 99.
 ///
 /// # Errors
 ///
