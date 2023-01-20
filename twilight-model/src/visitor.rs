@@ -51,6 +51,93 @@ pub mod null_boolean {
     }
 }
 
+/// (De)serializers for IDs that can be "zero", parsing as None in the case of
+/// being zero.
+///
+/// This is a bug on Discord's end, but has been rather consistent for some
+/// model fields such as [`ForumTag::emoji_id`].
+///
+/// [`ForumTag::emoji_id`]: crate::channel::forum::ForumTag
+pub mod zeroable_id {
+    use crate::id::Id;
+    use serde::{
+        de::{Deserializer, Error as DeError, Visitor},
+        ser::Serializer,
+        Deserialize,
+    };
+    use std::{
+        fmt::{Formatter, Result as FmtResult},
+        marker::PhantomData,
+        str::FromStr,
+    };
+
+    struct ZeroableIdVisitor<T> {
+        phantom: PhantomData<T>,
+    }
+
+    impl<'de, T> Visitor<'de> for ZeroableIdVisitor<T> {
+        type Value = Option<Id<T>>;
+
+        fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+            f.write_str(r#"ID, 0, "0", or null"#)
+        }
+
+        fn visit_newtype_struct<D: Deserializer<'de>>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error> {
+            let stringified_number = String::deserialize(deserializer)?;
+
+            self.visit_str(&stringified_number)
+        }
+
+        fn visit_none<E: DeError>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
+        fn visit_some<D: Deserializer<'de>>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error> {
+            deserializer.deserialize_any(self)
+        }
+
+        fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
+            Id::from_str(v).map(Some).map_err(DeError::custom)
+        }
+
+        fn visit_u64<E: DeError>(self, v: u64) -> Result<Self::Value, E> {
+            Ok(Id::new_checked(v))
+        }
+
+        fn visit_unit<E: DeError>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+    }
+
+    // Clippy will say this bool can be taken by value, but we need it to be
+    // passed by reference because that's what serde does.
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn serialize<S: Serializer, T>(
+        value: &Option<Id<T>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        if let Some(id) = value {
+            serializer.serialize_some(id)
+        } else {
+            serializer.serialize_none()
+        }
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>, T>(
+        deserializer: D,
+    ) -> Result<Option<Id<T>>, D::Error> {
+        deserializer.deserialize_any(ZeroableIdVisitor::<T> {
+            phantom: PhantomData,
+        })
+    }
+}
+
 pub struct U16EnumVisitor<'a> {
     description: &'a str,
     phantom: PhantomData<u16>,
