@@ -213,6 +213,7 @@ mod tests {
                     pinned: false,
                     reactions: Vec::new(),
                     reference: None,
+                    role_subscription_data: None,
                     sticker_items: vec![MessageSticker {
                         format_type: StickerFormatType::Png,
                         id: Id::new(1),
