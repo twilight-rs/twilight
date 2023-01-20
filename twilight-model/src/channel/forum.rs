@@ -293,7 +293,7 @@ mod tests {
             name: "tag".into(),
         };
 
-        serde_test::assert_de_tokens(
+        serde_test::assert_tokens(
             &value,
             &[
                 Token::Struct {

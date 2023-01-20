@@ -106,14 +106,14 @@ pub mod zeroable_id {
         if let Some(id) = value {
             id.serialize(serializer)
         } else {
-            serializer.serialize_u64(0)
+            serializer.serialize_str("0")
         }
     }
 
     pub fn deserialize<'de, D: Deserializer<'de>, T>(
         deserializer: D,
     ) -> Result<Option<Id<T>>, D::Error> {
-        deserializer.deserialize_option(ZeroableIdVisitor::<T> {
+        deserializer.deserialize_any(ZeroableIdVisitor::<T> {
             phantom: PhantomData,
         })
     }
