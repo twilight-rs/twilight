@@ -245,10 +245,8 @@ mod tests {
         }
     }
 
-    /// Assert that an emoji ID can be deserialized from a string value of "0".
-    ///
-    /// This is a bug on Discord's end that has consistently been causing issues
-    /// for Twilight users.
+    /// Assert the (de)serialization of a forum tag with an emoji name and no
+    /// emoji ID.
     #[test]
     fn forum_tag_emoji_name() {
         let value = ForumTag {
