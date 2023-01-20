@@ -79,7 +79,7 @@ pub mod zeroable_id {
         type Value = Option<Id<T>>;
 
         fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-            f.write_str("ID or 0")
+            f.write_str(r#"ID, 0, "0", or null"#)
         }
 
         fn visit_newtype_struct<D: Deserializer<'de>>(
