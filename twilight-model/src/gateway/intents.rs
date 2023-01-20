@@ -81,7 +81,19 @@ bitflags! {
         ///
         /// [`GUILD_BAN_ADD`]: super::event::Event::BanAdd
         /// [`GUILD_BAN_REMOVE`]: super::event::Event::BanRemove
+        #[deprecated(since = "0.14.2", note = "use the `GUILD_MODERATION` intent instead")]
         const GUILD_BANS = 1 << 2;
+        /// Guild moderation intent.
+        ///
+        /// Event(s) received:
+        ///  - [`GUILD_AUDIT_LOG_ENTRY_CREATE`]
+        ///  - [`GUILD_BAN_ADD`]
+        ///  - [`GUILD_BAN_REMOVE`]
+        ///
+        /// [`GUILD_AUDIT_LOG_ENTRY_CREATE`]: super::event::Event::
+        /// [`GUILD_BAN_ADD`]: super::event::Event::BanAdd
+        /// [`GUILD_BAN_REMOVE`]: super::event::Event::BanRemove
+        const GUILD_MODERATION = 1 << 2;
         /// Guild emojis and stickers intent.
         ///
         /// Event(s) received:
