@@ -1,7 +1,7 @@
 //! Constants, error types, and functions for validating [`Command`]s.
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -90,6 +90,17 @@ impl CommandValidationError {
         (self.kind, None)
     }
 
+    /// Create an error of type [`OptionNameNotUnique`] with a provided index of
+    /// the duplicated option name.
+    ///
+    /// [`OptionNameNotUnique`]: CommandValidationErrorType::OptionNameNotUnique
+    #[must_use = "creating an error has no effect if left unused"]
+    pub const fn option_name_not_unique(option_index: usize) -> Self {
+        Self {
+            kind: CommandValidationErrorType::OptionNameNotUnique { option_index },
+        }
+    }
+
     /// Create an error of type [`OptionsRequiredFirst`] with a provided index.
     ///
     /// [`OptionsRequiredFirst`]: CommandValidationErrorType::OptionsRequiredFirst
@@ -147,6 +158,12 @@ impl Display for CommandValidationError {
                 Display::fmt(&OPTION_DESCRIPTION_LENGTH_MAX, f)?;
 
                 f.write_str(" characters")
+            }
+            CommandValidationErrorType::OptionNameNotUnique { option_index } => {
+                f.write_str("command option at index ")?;
+                Display::fmt(option_index, f)?;
+
+                f.write_str(" has the same name as another option")
             }
             CommandValidationErrorType::OptionNameLengthInvalid => {
                 f.write_str("command option name must be between ")?;
@@ -216,6 +233,11 @@ pub enum CommandValidationErrorType {
     OptionDescriptionInvalid,
     /// Command option name length is invalid.
     OptionNameLengthInvalid,
+    /// Command option name is non-unique.
+    OptionNameNotUnique {
+        /// Index of the option that has a duplicated name.
+        option_index: usize,
+    },
     /// Command option name contain an invalid character.
     OptionNameCharacterInvalid {
         /// Invalid character.
@@ -559,6 +581,14 @@ pub fn options(options: &[CommandOption]) -> Result<(), CommandValidationError> 
         });
     }
 
+    let mut names = HashSet::with_capacity(options.len());
+
+    for (option_index, option) in options.iter().enumerate() {
+        if !names.insert(&option.name) {
+            return Err(CommandValidationError::option_name_not_unique(option_index));
+        }
+    }
+
     // Validate that there are no required options listed after optional ones.
     options
         .iter()
@@ -788,5 +818,31 @@ mod tests {
             super::command(&command).unwrap_err().kind(),
             CommandValidationErrorType::CommandTooLarge { characters: 4001 }
         ));
+    }
+
+    /// Assert that a list of options can't contain the same name.
+    #[test]
+    fn option_name_uniqueness() {
+        let option = CommandOption {
+            autocomplete: None,
+            channel_types: None,
+            choices: None,
+            description: "a description".to_owned(),
+            description_localizations: None,
+            kind: CommandOptionType::String,
+            max_length: None,
+            max_value: None,
+            min_length: None,
+            min_value: None,
+            name: "name".to_owned(),
+            name_localizations: None,
+            options: None,
+            required: None,
+        };
+        let mut options = Vec::from([option.clone()]);
+        assert!(super::options(&options).is_ok());
+        options.push(option);
+        assert!(matches!(super::options(&options).unwrap_err().kind(),
+            CommandValidationErrorType::OptionNameNotUnique { option_index } if *option_index == 1));
     }
 }
