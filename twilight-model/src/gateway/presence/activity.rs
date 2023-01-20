@@ -15,7 +15,8 @@ pub struct Activity {
     pub assets: Option<ActivityAssets>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub buttons: Vec<ActivityButton>,
-    // Introduced with custom statuses.
+    /// Unix timestamp of when the activity was added to the user's session, in
+    /// milliseconds.
     pub created_at: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<String>,
@@ -23,7 +24,6 @@ pub struct Activity {
     pub emoji: Option<ActivityEmoji>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<ActivityFlags>,
-    // Introduced with custom statuses.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
