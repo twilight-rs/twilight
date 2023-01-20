@@ -63,7 +63,7 @@ pub mod zeroable_id {
     use serde::{
         de::{Deserializer, Error as DeError, Visitor},
         ser::Serializer,
-        Deserialize, Serialize,
+        Deserialize,
     };
     use std::{
         fmt::{Formatter, Result as FmtResult},
@@ -91,6 +91,17 @@ pub mod zeroable_id {
             self.visit_str(&stringified_number)
         }
 
+        fn visit_none<E: DeError>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
+        fn visit_some<D: Deserializer<'de>>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error> {
+            deserializer.deserialize_any(self)
+        }
+
         fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
             Id::from_str(v).map(Some).map_err(DeError::custom)
         }
@@ -108,9 +119,9 @@ pub mod zeroable_id {
         serializer: S,
     ) -> Result<S::Ok, S::Error> {
         if let Some(id) = value {
-            id.serialize(serializer)
+            serializer.serialize_some(id)
         } else {
-            serializer.serialize_u64(0)
+            serializer.serialize_none()
         }
     }
 

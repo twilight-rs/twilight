@@ -245,6 +245,44 @@ mod tests {
         }
     }
 
+    /// Assert that an emoji ID can be deserialized from a string value of "0".
+    ///
+    /// This is a bug on Discord's end that has consistently been causing issues
+    /// for Twilight users.
+    #[test]
+    fn forum_tag_emoji_name() {
+        let value = ForumTag {
+            emoji_id: None,
+            emoji_name: Some("emoji".to_owned()),
+            id: TAG_ID,
+            moderated: true,
+            name: "tag".into(),
+        };
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ForumTag",
+                    len: 5,
+                },
+                Token::Str("emoji_id"),
+                Token::None,
+                Token::Str("emoji_name"),
+                Token::Some,
+                Token::Str("emoji"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("moderated"),
+                Token::Bool(true),
+                Token::Str("name"),
+                Token::Str("tag"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
     #[test]
     fn forum_tag() {
         let value = ForumTag {
@@ -263,6 +301,7 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("emoji_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("emoji_name"),
@@ -293,7 +332,7 @@ mod tests {
             name: "tag".into(),
         };
 
-        serde_test::assert_tokens(
+        serde_test::assert_de_tokens(
             &value,
             &[
                 Token::Struct {
@@ -301,7 +340,7 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("emoji_id"),
-                Token::U64(0),
+                Token::None,
                 Token::Str("emoji_name"),
                 Token::None,
                 Token::Str("id"),
