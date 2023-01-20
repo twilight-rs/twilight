@@ -263,13 +263,18 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
         ..
     } = value;
 
-    self::description(description)?;
-
-    if let Some(description_localizations) = description_localizations {
-        for description in description_localizations.values() {
-            self::description(description)?;
+    if *kind == CommandType::ChatInput {
+        self::description(description)?;
+        if let Some(description_localizations) = description_localizations {
+            for description in description_localizations.values() {
+                self::description(description)?;
+            }
         }
-    }
+    } else if !description.is_empty() {
+        return Err(CommandValidationError {
+            kind: CommandValidationErrorType::DescriptionInvalid,
+        });
+    };
 
     if let Some(name_localizations) = name_localizations {
         for name in name_localizations.values() {
@@ -636,13 +641,28 @@ mod tests {
 
         assert!(command(&valid_command).is_ok());
 
-        let invalid_command = Command {
+        let invalid_message_command = Command {
             description: "c".repeat(101),
             name: "d".repeat(33),
+            ..valid_command.clone()
+        };
+        assert!(command(&invalid_message_command).is_err());
+
+        let valid_context_menu_command = Command {
+            description: String::new(),
+            kind: CommandType::Message,
+            ..valid_command.clone()
+        };
+
+        assert!(command(&valid_context_menu_command).is_ok());
+
+        let invalid_context_menu_command = Command {
+            description: "example description".to_string(),
+            kind: CommandType::Message,
             ..valid_command
         };
 
-        assert!(command(&invalid_command).is_err());
+        assert!(command(&invalid_context_menu_command).is_err());
     }
 
     #[test]
