@@ -92,7 +92,11 @@ pub mod zeroable_id {
         }
 
         fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
-            Ok(Id::from_str(v).ok())
+            Id::from_str(v).map(Some).map_err(DeError::custom)
+        }
+
+        fn visit_u64<E: DeError>(self, v: u64) -> Result<Self::Value, E> {
+            Ok(Id::new_checked(v))
         }
     }
 
@@ -106,7 +110,7 @@ pub mod zeroable_id {
         if let Some(id) = value {
             id.serialize(serializer)
         } else {
-            serializer.serialize_str("0")
+            serializer.serialize_u64(0)
         }
     }
 

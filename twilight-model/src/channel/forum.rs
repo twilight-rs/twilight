@@ -301,7 +301,7 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("emoji_id"),
-                Token::Str("0"),
+                Token::U64(0),
                 Token::Str("emoji_name"),
                 Token::None,
                 Token::Str("id"),
