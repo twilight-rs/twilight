@@ -47,7 +47,7 @@ bitflags! {
         const GATEWAY_RECONNECT = 1 << 9;
         /// Gift code sent in a channel has been updated.
         const GIFT_CODE_UPDATE = 1 << 49;
-        /// A audit log entry has been created.
+        /// An audit log entry has been created.
         const GUILD_AUDIT_LOG_ENTRY_CREATE = 1 << 75;
         /// A guild has been created.
         const GUILD_CREATE = 1 << 10;
