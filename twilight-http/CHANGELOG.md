@@ -1,5 +1,25 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- return `Message` from `UpdateWebhookMessage` ([#2054](https://github.com/twilight-rs/twilight/issues/2054))
+
+### Documentation
+
+- updating command perms requires oauth ([#2076](https://github.com/twilight-rs/twilight/issues/2076))
+
+### Features
+
+- add role subscriptions ([#2034](https://github.com/twilight-rs/twilight/issues/2034))
+- get current authorization route ([#2049](https://github.com/twilight-rs/twilight/issues/2049))
+
+### Refactor
+
+- human legible error debug bodies ([#2070](https://github.com/twilight-rs/twilight/issues/2070))
+- remove prelude imports
+
 ## [0.14.1] - 2023-01-07
 
 ### Bug Fixes

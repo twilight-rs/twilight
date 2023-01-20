@@ -81,7 +81,7 @@ bitflags! {
         ///
         /// [`GUILD_BAN_ADD`]: super::event::Event::BanAdd
         /// [`GUILD_BAN_REMOVE`]: super::event::Event::BanRemove
-        #[deprecated(since = "0.14.2", note = "use the `GUILD_MODERATION` intent instead")]
+        #[deprecated(since = "0.14.3", note = "use the `GUILD_MODERATION` intent instead")]
         const GUILD_BANS = 1 << 2;
         /// Guild moderation intent.
         ///

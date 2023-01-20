@@ -1,5 +1,16 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- properly validate context menu commands ([#2069](https://github.com/twilight-rs/twilight/issues/2069))
+- check for option name uniqueness ([#2073](https://github.com/twilight-rs/twilight/issues/2073))
+
+### Features
+
+- add total command char validation ([#1920](https://github.com/twilight-rs/twilight/issues/1920))
+
 ## [0.14.1] - 2023-01-07
 
 ### Features

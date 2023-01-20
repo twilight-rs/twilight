@@ -226,7 +226,7 @@ bitflags! {
         /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
         ///
         /// [`Intents::GUILD_BANS`]: crate::Intents::GUILD_BANS
-        #[deprecated(since = "0.14.2", note = "use the `GUILD_MODERATION` intent instead")]
+        #[deprecated(since = "0.14.3", note = "use the `GUILD_MODERATION` intent instead")]
         const GUILD_BANS = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits() | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits();
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MODERATION`].
         ///

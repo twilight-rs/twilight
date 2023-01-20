@@ -1,5 +1,13 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- add role subscriptions ([#2034](https://github.com/twilight-rs/twilight/issues/2034))
+- guild public updates channel id ([#2065](https://github.com/twilight-rs/twilight/issues/2065))
+- [**breaking**] support the `GUILD_AUDIT_LOG_ENTRY_CREATE` gateway event ([#2067](https://github.com/twilight-rs/twilight/issues/2067))
+
 ## [0.14.1] - 2023-01-07
 
 ### Bug Fixes
