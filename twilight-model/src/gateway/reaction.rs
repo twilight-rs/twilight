@@ -6,13 +6,9 @@ use crate::{
         Id,
     },
 };
-use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
-    Deserialize, Serialize,
-};
-use std::fmt::{Formatter, Result as FmtResult};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GatewayReaction {
     pub channel_id: Id<ChannelMarker>,
     pub emoji: ReactionType,
@@ -20,137 +16,6 @@ pub struct GatewayReaction {
     pub member: Option<Member>,
     pub message_id: Id<MessageMarker>,
     pub user_id: Id<UserMarker>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(field_identifier, rename_all = "snake_case")]
-enum Field {
-    ChannelId,
-    Emoji,
-    GuildId,
-    Member,
-    MessageId,
-    UserId,
-}
-
-struct ReactionVisitor;
-
-impl<'de> Visitor<'de> for ReactionVisitor {
-    type Value = GatewayReaction;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("struct Reaction")
-    }
-
-    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut channel_id = None;
-        let mut emoji = None;
-        let mut guild_id = None;
-        let mut member: Option<Member> = None;
-        let mut message_id = None;
-        let mut user_id = None;
-
-        let span = tracing::trace_span!("deserializing reaction");
-        let _span_enter = span.enter();
-
-        loop {
-            let span_child = tracing::trace_span!("iterating over element");
-            let _span_child_enter = span_child.enter();
-
-            let key = match map.next_key() {
-                Ok(Some(key)) => {
-                    tracing::trace!(?key, "found key");
-
-                    key
-                }
-                Ok(None) => break,
-                Err(why) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
-
-                    tracing::trace!("ran into an unknown key: {why:?}");
-
-                    continue;
-                }
-            };
-
-            match key {
-                Field::ChannelId => {
-                    if channel_id.is_some() {
-                        return Err(DeError::duplicate_field("channel_id"));
-                    }
-
-                    channel_id = Some(map.next_value()?);
-                }
-                Field::Emoji => {
-                    if emoji.is_some() {
-                        return Err(DeError::duplicate_field("emoji"));
-                    }
-
-                    emoji = Some(map.next_value()?);
-                }
-                Field::GuildId => {
-                    if guild_id.is_some() {
-                        return Err(DeError::duplicate_field("guild_id"));
-                    }
-
-                    guild_id = map.next_value()?;
-                }
-                Field::Member => {
-                    if member.is_some() {
-                        return Err(DeError::duplicate_field("member"));
-                    }
-
-                    member = map.next_value()?;
-                }
-                Field::MessageId => {
-                    if message_id.is_some() {
-                        return Err(DeError::duplicate_field("message_id"));
-                    }
-
-                    message_id = Some(map.next_value()?);
-                }
-                Field::UserId => {
-                    if user_id.is_some() {
-                        return Err(DeError::duplicate_field("user_id"));
-                    }
-
-                    user_id = Some(map.next_value()?);
-                }
-            }
-        }
-
-        let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
-        let emoji = emoji.ok_or_else(|| DeError::missing_field("emoji"))?;
-        let message_id = message_id.ok_or_else(|| DeError::missing_field("message_id"))?;
-        let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
-
-        tracing::trace!(?channel_id, ?emoji, ?message_id, ?user_id);
-
-        Ok(Self::Value {
-            channel_id,
-            emoji,
-            guild_id,
-            member,
-            message_id,
-            user_id,
-        })
-    }
-}
-
-impl<'de> Deserialize<'de> for GatewayReaction {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        const FIELDS: &[&str] = &[
-            "channel_id",
-            "emoji",
-            "guild_id",
-            "member",
-            "message_id",
-            "user_id",
-        ];
-
-        deserializer.deserialize_struct("GatewayReaction", FIELDS, ReactionVisitor)
-    }
 }
 
 #[cfg(test)]
