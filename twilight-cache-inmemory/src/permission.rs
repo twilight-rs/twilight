@@ -887,7 +887,7 @@ mod tests {
             if g_id == GUILD_ID && u_id == USER_ID
         ));
 
-        cache.update(&MemberAdd(test::member(USER_ID, GUILD_ID)));
+        cache.update(&MemberAdd(test::member(USER_ID), GUILD_ID));
 
         assert!(matches!(
             permissions.root(USER_ID, GUILD_ID).unwrap_err().kind(),
@@ -911,7 +911,7 @@ mod tests {
         let permissions = cache.permissions();
 
         cache.update(&GuildCreate(base_guild()));
-        cache.update(&MemberAdd(test::member(USER_ID, GUILD_ID)));
+        cache.update(&MemberAdd(test::member(USER_ID), GUILD_ID));
         cache.update(&MemberUpdate {
             avatar: None,
             communication_disabled_until: None,
@@ -967,12 +967,15 @@ mod tests {
             if *g_id == GUILD_ID && *u_id == USER_ID
         ));
 
-        cache.update(&MemberAdd({
-            let mut member = test::member(USER_ID, GUILD_ID);
-            member.roles.push(OTHER_ROLE_ID);
+        cache.update(&MemberAdd(
+            {
+                let mut member = test::member(USER_ID);
+                member.roles.push(OTHER_ROLE_ID);
 
-            member
-        }));
+                member
+            },
+            GUILD_ID,
+        ));
         assert!(matches!(
             permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
             &ChannelErrorType::RoleUnavailable { role_id }
@@ -1073,11 +1076,14 @@ mod tests {
         )]);
 
         cache.update(&GuildCreate(guild));
-        cache.update(&MemberAdd({
-            let mut member = test::member(USER_ID, GUILD_ID);
-            member.communication_disabled_until = Some(in_future);
-            member
-        }));
+        cache.update(&MemberAdd(
+            {
+                let mut member = test::member(USER_ID);
+                member.communication_disabled_until = Some(in_future);
+                member
+            },
+            GUILD_ID,
+        ));
         assert_eq!(
             Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY,
             permissions.root(USER_ID, GUILD_ID)?
