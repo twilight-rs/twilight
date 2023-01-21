@@ -667,8 +667,8 @@ impl InMemoryCache {
     ///
     /// Requires the [`USER`] resource type.
     ///
-    /// [`MemberAdd`]: twilight_model::gateway::event::incoming::MemberAdd
-    /// [`InteractionCreate`]: twilight_model::gateway::event::incoming::InteractionCreate
+    /// [`MemberAdd`]: twilight_model::gateway::payload::incoming::MemberAdd
+    /// [`InteractionCreate`]: twilight_model::gateway::payload::incoming::InteractionCreate
     /// [`USER`]: crate::config::ResourceType::USER
     pub fn user_guilds(
         &self,
