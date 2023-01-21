@@ -2,12 +2,9 @@
 //!
 //! Markers are used depending on the type of response that Twilight expects
 //! from an endpoint. For example, [`DeleteRole`] responses have no body, so an
-//! [`EmptyBody`] marker is used in the [`Response`]. For a request like
-//! [`GetMember`] a [`MemberBody`] is used due to member deserialization
-//! requiring special optimizations.
+//! [`EmptyBody`] marker is used in the [`Response`].
 //!
 //! [`DeleteRole`]: super::super::request::guild::role::DeleteRole
-//! [`GetMember`]: super::super::request::guild::member::GetMember
 //! [`Response`]: super::Response
 
 use std::marker::PhantomData;
