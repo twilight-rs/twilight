@@ -30,6 +30,7 @@ pub struct Member {
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
     /// requirements.
+    #[serde(default)]
     pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
@@ -105,7 +106,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 11,
+                    len: 10,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -114,9 +115,6 @@ mod tests {
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
@@ -200,7 +198,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 11,
+                    len: 10,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -210,9 +208,6 @@ mod tests {
                 Token::Str("2021-12-23T14:29:19.046000+00:00"),
                 Token::Str("deaf"),
                 Token::Bool(false),
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),

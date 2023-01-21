@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, SeqAccess, Visitor},
     Deserialize, Serialize,
 };
 use std::fmt::{Formatter, Result as FmtResult};
@@ -35,6 +35,26 @@ enum Field {
     Nonce,
     NotFound,
     Presences,
+}
+
+struct MemberListVisitor;
+
+impl<'de> Visitor<'de> for MemberListVisitor {
+    type Value = Vec<Member>;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("a sequence of members")
+    }
+
+    fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
+        let mut list = seq.size_hint().map_or_else(Vec::new, Vec::with_capacity);
+
+        while let Some(member) = seq.next_element()? {
+            list.push(member);
+        }
+
+        Ok(list)
+    }
 }
 
 struct MemberChunkVisitor;
@@ -227,6 +247,7 @@ mod tests {
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
                 "mute": false,
+                "pending": false,
                 "nick": "chunk",
                 "roles": ["6"],
                 "user": {

@@ -71,18 +71,18 @@ mod tests {
         serde_test::assert_tokens(
             &value,
             &[
-                Token::NewtypeStruct { name: "MemberAdd" },
+                Token::TupleStruct {
+                    name: "MemberAdd",
+                    len: 2,
+                },
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 8,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2021-09-19T17:30:45.000000+00:00"),
                 Token::Str("mute"),
@@ -116,6 +116,9 @@ mod tests {
                 Token::Str("ab"),
                 Token::StructEnd,
                 Token::StructEnd,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::TupleStructEnd,
             ],
         );
     }
