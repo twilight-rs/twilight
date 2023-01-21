@@ -54,7 +54,7 @@ use dashmap::{
     DashMap, DashSet,
 };
 use std::{
-    collections::{BTreeSet, HashSet, VecDeque},
+    collections::{HashSet, VecDeque},
     fmt::{Debug, Formatter, Result as FmtResult},
     hash::Hash,
     ops::Deref,
@@ -221,7 +221,7 @@ pub struct InMemoryCache {
     stickers: DashMap<Id<StickerMarker>, GuildResource<CachedSticker>>,
     unavailable_guilds: DashSet<Id<GuildMarker>>,
     users: DashMap<Id<UserMarker>, User>,
-    user_guilds: DashMap<Id<UserMarker>, BTreeSet<Id<GuildMarker>>>,
+    user_guilds: DashMap<Id<UserMarker>, HashSet<Id<GuildMarker>>>,
     /// Mapping of channels and the users currently connected.
     #[allow(clippy::type_complexity)]
     voice_state_channels: DashMap<Id<ChannelMarker>, HashSet<(Id<GuildMarker>, Id<UserMarker>)>>,
@@ -657,6 +657,24 @@ impl InMemoryCache {
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
     pub fn user(&self, user_id: Id<UserMarker>) -> Option<Reference<'_, Id<UserMarker>, User>> {
         self.users.get(&user_id).map(Reference::new)
+    }
+
+    /// Get the guilds a user is in by ID.
+    ///
+    /// Users are cached from a range of events such as [`InteractionCreate`]
+    /// and [`MemberAdd`], so although no specific intent is required to cache
+    /// users the intents required for different events are required.
+    ///
+    /// Requires the [`USER`] resource type.
+    ///
+    /// [`MemberAdd`]: twilight_model::gateway::event::incoming::MemberAdd
+    /// [`InteractionCreate`]: twilight_model::gateway::event::incoming::InteractionCreate
+    /// [`USER`]: crate::config::ResourceType::USER
+    pub fn user_guilds(
+        &self,
+        user_id: Id<UserMarker>,
+    ) -> Option<Reference<'_, Id<UserMarker>, HashSet<Id<GuildMarker>>>> {
+        self.user_guilds.get(&user_id).map(Reference::new)
     }
 
     /// Gets the voice states within a voice channel.
