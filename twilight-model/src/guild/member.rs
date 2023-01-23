@@ -17,6 +17,8 @@ use serde::{
 };
 use std::fmt::{Formatter, Result as FmtResult};
 
+use super::MemberFlags;
+
 /// [`User`] that is in a [`Guild`].
 ///
 /// [`Guild`]: super::Guild
@@ -27,6 +29,7 @@ pub struct Member {
     pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
+    pub flags: MemberFlags,
     pub guild_id: Id<GuildMarker>,
     pub joined_at: Timestamp,
     pub mute: bool,
@@ -54,6 +57,7 @@ pub(crate) struct MemberIntermediary {
     pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
+    pub flags: MemberFlags,
     pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
@@ -73,6 +77,7 @@ impl MemberIntermediary {
             avatar: self.avatar,
             communication_disabled_until: self.communication_disabled_until,
             deaf: self.deaf,
+            flags: self.flags,
             guild_id,
             joined_at: self.joined_at,
             mute: self.mute,
@@ -169,6 +174,7 @@ impl<'de> Visitor<'de> for MemberListVisitor {
 mod tests {
     use super::Member;
     use crate::{
+        guild::MemberFlags,
         id::Id,
         test::image_hash,
         user::User,
@@ -181,11 +187,13 @@ mod tests {
     fn member_deserializer() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Member {
             avatar: Some(image_hash::AVATAR),
             communication_disabled_until: None,
             deaf: false,
+            flags,
             guild_id: Id::new(1),
             joined_at,
             mute: true,
@@ -217,7 +225,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -226,6 +234,8 @@ mod tests {
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -277,11 +287,13 @@ mod tests {
         let communication_disabled_until = Timestamp::from_str("2021-12-23T14:29:19.046000+00:00")?;
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Member {
             avatar: Some(image_hash::AVATAR),
             communication_disabled_until: Some(communication_disabled_until),
             deaf: false,
+            flags,
             guild_id: Id::new(1),
             joined_at,
             mute: true,
@@ -313,7 +325,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -323,6 +335,8 @@ mod tests {
                 Token::Str("2021-12-23T14:29:19.046000+00:00"),
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),

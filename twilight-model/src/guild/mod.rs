@@ -25,6 +25,7 @@ mod integration;
 mod integration_account;
 mod integration_application;
 mod integration_expire_behavior;
+mod member_flags;
 mod mfa_level;
 mod nsfw_level;
 mod partial_guild;
@@ -50,12 +51,12 @@ pub use self::{
     explicit_content_filter::ExplicitContentFilter, feature::GuildFeature, info::GuildInfo,
     integration::GuildIntegration, integration_account::IntegrationAccount,
     integration_application::IntegrationApplication,
-    integration_expire_behavior::IntegrationExpireBehavior, mfa_level::MfaLevel,
-    nsfw_level::NSFWLevel, partial_guild::PartialGuild, partial_member::PartialMember,
-    permissions::Permissions, premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune,
-    role::Role, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
-    unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
-    verification_level::VerificationLevel, widget::GuildWidget,
+    integration_expire_behavior::IntegrationExpireBehavior, member_flags::MemberFlags,
+    mfa_level::MfaLevel, nsfw_level::NSFWLevel, partial_guild::PartialGuild,
+    partial_member::PartialMember, permissions::Permissions, premium_tier::PremiumTier,
+    preview::GuildPreview, prune::GuildPrune, role::Role, role_tags::RoleTags,
+    system_channel_flags::SystemChannelFlags, unavailable_guild::UnavailableGuild,
+    vanity_url::VanityUrl, verification_level::VerificationLevel, widget::GuildWidget,
 };
 
 use self::member::MemberListDeserializer;

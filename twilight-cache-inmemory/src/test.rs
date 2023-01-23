@@ -12,8 +12,8 @@ use twilight_model::{
         GatewayReaction,
     },
     guild::{
-        DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
-        NSFWLevel, PartialMember, Permissions, PremiumTier, Role, SystemChannelFlags,
+        DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MemberFlags,
+        MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role, SystemChannelFlags,
         VerificationLevel,
     },
     id::{
@@ -34,6 +34,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
     let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
     let cache = InMemoryCache::new();
     let avatar = ImageHash::parse(b"6961d9f1fdb5880bf4a3ec6348d3bbcf").unwrap();
+    let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
     let msg = Message {
         activity: None,
@@ -71,6 +72,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             avatar: None,
             communication_disabled_until: None,
             deaf: false,
+            flags,
             joined_at,
             mute: false,
             nick: Some("member nick".to_owned()),
@@ -106,6 +108,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             avatar: None,
             communication_disabled_until: None,
             deaf: false,
+            flags,
             guild_id: Id::new(1),
             joined_at,
             mute: false,
@@ -144,6 +147,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         avatar: None,
         communication_disabled_until: None,
         deaf: false,
+        flags,
         guild_id: Id::new(1),
         joined_at,
         mute: false,
@@ -267,11 +271,13 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
 
 pub fn member(id: Id<UserMarker>, guild_id: Id<GuildMarker>) -> Member {
     let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+    let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
     Member {
         avatar: None,
         communication_disabled_until: None,
         deaf: false,
+        flags,
         guild_id,
         joined_at,
         mute: false,
