@@ -24,11 +24,12 @@ mod get_guild_voice_regions;
 mod get_guild_webhooks;
 mod get_guild_welcome_screen;
 mod get_guild_widget;
+mod get_guild_widget_settings;
 mod update_current_member;
 mod update_guild;
 mod update_guild_mfa;
 mod update_guild_welcome_screen;
-mod update_guild_widget;
+mod update_guild_widget_settings;
 
 pub use self::{
     create_guild::CreateGuild, create_guild_channel::CreateGuildChannel,
@@ -38,8 +39,9 @@ pub use self::{
     get_guild_preview::GetGuildPreview, get_guild_prune_count::GetGuildPruneCount,
     get_guild_vanity_url::GetGuildVanityUrl, get_guild_voice_regions::GetGuildVoiceRegions,
     get_guild_webhooks::GetGuildWebhooks, get_guild_welcome_screen::GetGuildWelcomeScreen,
-    get_guild_widget::GetGuildWidget, update_current_member::UpdateCurrentMember,
-    update_guild::UpdateGuild, update_guild_channel_positions::UpdateGuildChannelPositions,
-    update_guild_mfa::UpdateGuildMfa, update_guild_welcome_screen::UpdateGuildWelcomeScreen,
-    update_guild_widget::UpdateGuildWidget,
+    get_guild_widget::GetGuildWidget, get_guild_widget_settings::GetGuildWidgetSettings,
+    update_current_member::UpdateCurrentMember, update_guild::UpdateGuild,
+    update_guild_channel_positions::UpdateGuildChannelPositions, update_guild_mfa::UpdateGuildMfa,
+    update_guild_welcome_screen::UpdateGuildWelcomeScreen,
+    update_guild_widget_settings::UpdateGuildWidgetSettings,
 };

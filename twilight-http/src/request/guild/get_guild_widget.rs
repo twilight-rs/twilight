@@ -7,11 +7,11 @@ use crate::{
 };
 use std::future::IntoFuture;
 use twilight_model::{
-    guild::GuildWidget,
+    guild::widget::GuildWidget,
     id::{marker::GuildMarker, Id},
 };
 
-/// Get the guild widget.
+/// Get a guild's widget
 ///
 /// See [Discord Docs/Get Guild Widget].
 ///

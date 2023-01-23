@@ -59,9 +59,9 @@ use crate::{
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
-            UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
-            UpdateGuildWidget,
+            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
+            UpdateGuildWidgetSettings,
         },
         scheduled_event::{
             CreateGuildScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
@@ -98,7 +98,7 @@ use std::{
 use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
-    channel::{message::allowed_mentions::AllowedMentions, ChannelType},
+    channel::{message::AllowedMentions, ChannelType},
     guild::{auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel},
     http::permission_overwrite::PermissionOverwrite,
     id::{
@@ -923,7 +923,7 @@ impl Client {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
 
-    /// Get the guild widget.
+    /// Get a guild's widget.
     ///
     /// See [Discord Docs/Get Guild Widget].
     ///
@@ -932,9 +932,28 @@ impl Client {
         GetGuildWidget::new(self, guild_id)
     }
 
-    /// Modify the guild widget.
-    pub const fn update_guild_widget(&self, guild_id: Id<GuildMarker>) -> UpdateGuildWidget<'_> {
-        UpdateGuildWidget::new(self, guild_id)
+    /// Get a guild's widget settings.
+    ///
+    /// See [Discord Docs/Get Guild Widget Settings].
+    ///
+    /// [Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget-settings
+    pub const fn guild_widget_settings(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetGuildWidgetSettings<'_> {
+        GetGuildWidgetSettings::new(self, guild_id)
+    }
+
+    /// Modify a guild's widget.
+    ///
+    /// See [Discord Docs/Modify Guild Widget].
+    ///
+    /// [Discord Docs/Modify Guild Widget]: https://discord.com/developers/docs/resources/guild#modify-guild-widget
+    pub const fn update_guild_widget_settings(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> UpdateGuildWidgetSettings<'_> {
+        UpdateGuildWidgetSettings::new(self, guild_id)
     }
 
     /// Get the guild's integrations.

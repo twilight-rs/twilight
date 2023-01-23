@@ -13,7 +13,9 @@ pub mod auto_moderation;
 pub mod invite;
 pub mod scheduled_event;
 pub mod template;
+pub mod widget;
 
+mod afk_timeout;
 mod ban;
 mod default_message_notification_level;
 mod emoji;
@@ -24,6 +26,7 @@ mod integration;
 mod integration_account;
 mod integration_application;
 mod integration_expire_behavior;
+mod integration_type;
 mod member;
 mod mfa_level;
 mod nsfw_level;
@@ -39,18 +42,20 @@ mod system_channel_flags;
 mod unavailable_guild;
 mod vanity_url;
 mod verification_level;
-mod widget;
 
 #[doc(inline)]
+pub use self::nsfw_level::NSFWLevel;
+pub use self::permissions::Permissions;
 pub use self::{
-    ban::Ban, default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
+    afk_timeout::AfkTimeout, ban::Ban,
+    default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
     explicit_content_filter::ExplicitContentFilter, feature::GuildFeature, info::GuildInfo,
     integration::GuildIntegration, integration_account::IntegrationAccount,
     integration_application::IntegrationApplication,
-    integration_expire_behavior::IntegrationExpireBehavior, member::Member, mfa_level::MfaLevel,
-    nsfw_level::NSFWLevel, partial_guild::PartialGuild, partial_member::PartialMember,
-    permissions::Permissions, premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune,
-    role::Role, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
+    integration_expire_behavior::IntegrationExpireBehavior, integration_type::GuildIntegrationType,
+    member::Member, mfa_level::MfaLevel, partial_guild::PartialGuild,
+    partial_member::PartialMember, premium_tier::PremiumTier, preview::GuildPreview,
+    prune::GuildPrune, role::Role, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
     verification_level::VerificationLevel, widget::GuildWidget,
 };
@@ -75,7 +80,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Guild {
     pub afk_channel_id: Option<Id<ChannelMarker>>,
-    pub afk_timeout: u64,
+    pub afk_timeout: AfkTimeout,
     pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_member_count: Option<u64>,
@@ -681,7 +686,7 @@ impl<'de> Deserialize<'de> for Guild {
 
                 tracing::trace!(
                     ?afk_channel_id,
-                    %afk_timeout,
+                    ?afk_timeout,
                     ?application_id,
                     ?approximate_member_count,
                     ?approximate_presence_count,
@@ -855,8 +860,8 @@ impl<'de> Deserialize<'de> for Guild {
 #[cfg(test)]
 mod tests {
     use super::{
-        DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, GuildFeature, MfaLevel,
-        NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
+        AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, GuildFeature,
+        MfaLevel, NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
     };
     use crate::{
         id::Id,
@@ -873,7 +878,7 @@ mod tests {
 
         let value = Guild {
             afk_channel_id: Some(Id::new(2)),
-            afk_timeout: 900,
+            afk_timeout: AfkTimeout::FIFTEEN_MINUTES,
             application_id: Some(Id::new(3)),
             approximate_member_count: Some(1_200),
             approximate_presence_count: Some(900),
@@ -933,7 +938,8 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("afk_timeout"),
-                Token::U64(900),
+                Token::NewtypeStruct { name: "AfkTimeout" },
+                Token::U16(900),
                 Token::Str("application_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },

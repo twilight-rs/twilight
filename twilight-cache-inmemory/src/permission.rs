@@ -663,8 +663,8 @@ mod tests {
             ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate, ThreadCreate,
         },
         guild::{
-            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
-            Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
+            AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel,
+            NSFWLevel, Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
         },
         id::{
             marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
@@ -711,7 +711,7 @@ mod tests {
         Guild {
             id: GUILD_ID,
             afk_channel_id: None,
-            afk_timeout: 300,
+            afk_timeout: AfkTimeout::FIVE_MINUTES,
             application_id: None,
             banner: None,
             channels: Vec::new(),

@@ -1,6 +1,7 @@
 use super::{
     super::OpCode, DispatchEvent, DispatchEventWithTypeDeserializer, Event, EventConversionError,
 };
+use crate::gateway::payload::incoming::Hello;
 use serde::{
     de::{
         value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,
@@ -9,8 +10,11 @@ use serde::{
     ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
-use std::fmt::{Formatter, Result as FmtResult};
-use std::str::FromStr;
+use std::{
+    borrow::Cow,
+    fmt::{Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 /// An event from the gateway, which can either be a dispatch event with
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
@@ -19,7 +23,7 @@ pub enum GatewayEvent {
     Dispatch(u64, DispatchEvent),
     Heartbeat(u64),
     HeartbeatAck,
-    Hello(u64),
+    Hello(Hello),
     InvalidateSession(bool),
     Reconnect,
 }
@@ -49,114 +53,31 @@ enum Field {
     T,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Hello {
-    heartbeat_interval: u64,
-}
-
-/// A deserializer that deserializes into a `GatewayEvent` by cloning some bits
-/// of scanned information before the actual deserialization.
-///
-/// This is the owned version of [`GatewayEventDeserializer`].
-///
-/// You should use this if you're using a mutable deserialization library
-/// like `simd-json`.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct GatewayEventDeserializerOwned {
-    event_type: Option<String>,
-    op: u8,
-    sequence: Option<u64>,
-}
-
-impl GatewayEventDeserializerOwned {
-    /// Create a new owned gateway event deserializer when you already know the
-    /// event type and opcode.
-    ///
-    /// This might be useful if you scan the payload for this information and
-    /// do some work with the event type prior to deserializing the payload.
-    pub fn new(op: u8, sequence: Option<u64>, event_type: impl Into<Option<String>>) -> Self {
-        Self {
-            event_type: event_type.into(),
-            op,
-            sequence,
-        }
-    }
-
-    pub fn from_json(input: &str) -> Option<Self> {
-        let deser = GatewayEventDeserializer::from_json(input)?;
-        let GatewayEventDeserializer {
-            event_type,
-            op,
-            sequence,
-        } = deser;
-
-        Some(Self {
-            event_type: event_type.map(ToOwned::to_owned),
-            op,
-            sequence,
-        })
-    }
-
-    /// Return an immutable reference to the event type of the payload.
-    pub fn event_type_ref(&self) -> Option<&str> {
-        self.event_type.as_deref()
-    }
-
-    /// Return the opcode of the payload.
-    pub const fn op(&self) -> u8 {
-        self.op
-    }
-
-    /// Return the sequence of the payload.
-    pub const fn sequence(&self) -> Option<u64> {
-        self.sequence
-    }
-
-    /// Consume the deserializer, returning its opcode, sequence, and event type
-    /// components.
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn into_parts(self) -> (u8, Option<u64>, Option<String>) {
-        (self.op, self.sequence, self.event_type)
-    }
-}
-
-/// A deserializer that deserializes into a `GatewayEvent` by borrowing some bits
-/// of scanned information before the actual deserialization.
-///
-/// This is the borrowed version of [`GatewayEventDeserializerOwned`].
-///
-/// You should use this if you're using an immutable deserialization library
-/// like `serde_json`.
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// Deserialize into a [`GatewayEvent`] by knowing its dispatch event type and
+/// opcode.
+#[derive(Debug)]
 pub struct GatewayEventDeserializer<'a> {
-    event_type: Option<&'a str>,
+    event_type: Option<Cow<'a, str>>,
     op: u8,
     sequence: Option<u64>,
 }
 
 impl<'a> GatewayEventDeserializer<'a> {
-    /// Create a new gateway event deserializer when you already know the event
-    /// type and opcode.
-    ///
-    /// This might be useful if you scan the payload for this information and
-    /// do some work with the event type prior to deserializing the payload.
-    pub const fn new(op: u8, sequence: Option<u64>, event_type: Option<&'a str>) -> Self {
+    /// Create a new gateway event deserializer when you already know the opcode
+    /// and dispatch event type.
+    pub fn new(op: u8, event_type: Option<&'a str>) -> Self {
         Self {
-            event_type,
+            event_type: event_type.map(Into::into),
             op,
-            sequence,
+            sequence: None,
         }
     }
 
-    /// Create a gateway event deserializer with some information found by
-    /// scanning the JSON payload to deserialize.
-    ///
-    /// This will scan the payload for the opcode and, optionally, event type if
-    /// provided. The opcode key ("op"), must be in the payload while the event
-    /// type key ("t") is optional and only required for event ops.
+    /// Create a gateway event deserializer by scanning the JSON payload for its
+    /// opcode and dispatch event type.
     pub fn from_json(input: &'a str) -> Option<Self> {
         let op = Self::find_opcode(input)?;
-        let event_type = Self::find_event_type(input);
+        let event_type = Self::find_event_type(input).map(Into::into);
         let sequence = Self::find_sequence(input);
 
         Some(Self {
@@ -166,25 +87,42 @@ impl<'a> GatewayEventDeserializer<'a> {
         })
     }
 
-    /// Return an immutable reference to the event type of the payload.
-    pub const fn event_type_ref(&self) -> Option<&str> {
-        self.event_type
+    /// Create a deserializer with an owned event type.
+    ///
+    /// This is necessary when using a mutable deserialization library such as
+    /// `simd-json`.
+    pub fn into_owned(self) -> GatewayEventDeserializer<'static> {
+        GatewayEventDeserializer {
+            event_type: self
+                .event_type
+                .map(|event_type| Cow::Owned(event_type.into_owned())),
+            op: self.op,
+            sequence: self.sequence,
+        }
     }
 
-    /// Return the opcode of the payload.
+    /// Consume the deserializer, returning its components.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn into_parts(self) -> (u8, Option<u64>, Option<Cow<'a, str>>) {
+        (self.op, self.sequence, self.event_type)
+    }
+
+    /// Dispatch event type of the payload.
+    pub fn event_type(&self) -> Option<&str> {
+        self.event_type.as_deref()
+    }
+
+    /// Opcode of the payload.
     pub const fn op(&self) -> u8 {
         self.op
     }
 
-    /// Return the sequence of the payload.
+    /// Sequence of the payload.
+    ///
+    /// May only be available if the deserializer was created via
+    /// [`from_json`][`Self::from_json`]
     pub const fn sequence(&self) -> Option<u64> {
         self.sequence
-    }
-
-    /// Consume the deserializer, returning its opcode and event type
-    /// components.
-    pub const fn into_parts(self) -> (u8, Option<u64>, Option<&'a str>) {
-        (self.op, self.sequence, self.event_type)
     }
 
     fn find_event_type(input: &'a str) -> Option<&'a str> {
@@ -239,7 +177,7 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 }
 
-struct GatewayEventVisitor<'a>(u8, Option<u64>, Option<&'a str>);
+struct GatewayEventVisitor<'a>(u8, Option<u64>, Option<Cow<'a, str>>);
 
 impl GatewayEventVisitor<'_> {
     fn field<'de, T: Deserialize<'de>, V: MapAccess<'de>>(
@@ -321,7 +259,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         })?;
 
         Ok(match op {
-            OpCode::Event => {
+            OpCode::Dispatch => {
                 let t = self
                     .2
                     .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
@@ -329,6 +267,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 tracing::trace!("deserializing gateway dispatch");
 
                 let mut d = None;
+                let mut s = None;
 
                 loop {
                     let span_child = tracing::trace_span!("iterating over element");
@@ -356,11 +295,18 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                                 return Err(DeError::duplicate_field("d"));
                             }
 
-                            let deserializer = DispatchEventWithTypeDeserializer::new(t);
+                            let deserializer = DispatchEventWithTypeDeserializer::new(&t);
 
                             d = Some(map.next_value_seed(deserializer)?);
                         }
-                        Field::Op | Field::S | Field::T => {
+                        Field::S => {
+                            if s.is_some() {
+                                return Err(DeError::duplicate_field("s"));
+                            }
+
+                            s = Some(map.next_value()?);
+                        }
+                        Field::Op | Field::T => {
                             map.next_value::<IgnoredAny>()?;
 
                             tracing::trace!(key=?key, "ignoring key");
@@ -369,9 +315,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 }
 
                 let d = d.ok_or_else(|| DeError::missing_field("d"))?;
-                let s = self.1.ok_or_else(|| DeError::missing_field("s"))?;
-
-                Self::ignore_all(&mut map)?;
+                let s = s.ok_or_else(|| DeError::missing_field("s"))?;
 
                 GatewayEvent::Dispatch(s, d)
             }
@@ -398,7 +342,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 Self::ignore_all(&mut map)?;
 
-                GatewayEvent::Hello(hello.heartbeat_interval)
+                GatewayEvent::Hello(hello)
             }
             OpCode::InvalidSession => {
                 tracing::trace!("deserializing invalid session");
@@ -425,9 +369,6 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
             OpCode::PresenceUpdate => {
                 return Err(DeError::unknown_variant("PresenceUpdate", VALID_OPCODES))
             }
-            OpCode::VoiceServerPing => {
-                return Err(DeError::unknown_variant("VoiceServerPing", VALID_OPCODES))
-            }
             OpCode::VoiceStateUpdate => {
                 return Err(DeError::unknown_variant("VoiceStateUpdate", VALID_OPCODES))
             }
@@ -439,7 +380,7 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializer<'_> {
     type Value = GatewayEvent;
 
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        const FIELDS: &[&str] = &["d", "s"];
+        const FIELDS: &[&str] = &["op", "d", "s", "t"];
 
         deserializer.deserialize_struct(
             "GatewayEvent",
@@ -449,25 +390,11 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializer<'_> {
     }
 }
 
-impl<'de> DeserializeSeed<'de> for GatewayEventDeserializerOwned {
-    type Value = GatewayEvent;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        const FIELDS: &[&str] = &["d", "s"];
-
-        deserializer.deserialize_struct(
-            "GatewayEvent",
-            FIELDS,
-            GatewayEventVisitor(self.op, self.sequence, self.event_type.as_deref()),
-        )
-    }
-}
-
 impl Serialize for GatewayEvent {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         const fn opcode(gateway_event: &GatewayEvent) -> OpCode {
             match gateway_event {
-                GatewayEvent::Dispatch(_, _) => OpCode::Event,
+                GatewayEvent::Dispatch(_, _) => OpCode::Dispatch,
                 GatewayEvent::Heartbeat(_) => OpCode::Heartbeat,
                 GatewayEvent::HeartbeatAck => OpCode::HeartbeatAck,
                 GatewayEvent::Hello(_) => OpCode::Hello,
@@ -497,11 +424,7 @@ impl Serialize for GatewayEvent {
             Self::Heartbeat(sequence) => {
                 s.serialize_field("d", &sequence)?;
             }
-            Self::Hello(interval) => {
-                let hello = Hello {
-                    heartbeat_interval: *interval,
-                };
-
+            Self::Hello(hello) => {
                 s.serialize_field("d", &hello)?;
             }
             Self::InvalidateSession(invalidate) => {
@@ -519,7 +442,11 @@ impl Serialize for GatewayEvent {
 #[cfg(test)]
 mod tests {
     use super::{DispatchEvent, GatewayEvent, GatewayEventDeserializer, OpCode};
-    use crate::{gateway::payload::incoming::RoleDelete, id::Id, test::image_hash};
+    use crate::{
+        gateway::payload::incoming::{Hello, RoleDelete},
+        id::Id,
+        test::image_hash,
+    };
     use serde::de::DeserializeSeed;
     use serde_json::de::Deserializer;
     use serde_test::Token;
@@ -766,7 +693,12 @@ mod tests {
         let mut json_deserializer = Deserializer::from_str(input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
-        assert!(matches!(event, GatewayEvent::Hello(41_250)));
+        assert!(matches!(
+            event,
+            GatewayEvent::Hello(Hello {
+                heartbeat_interval: 41_250
+            })
+        ));
     }
 
     #[test]
@@ -815,7 +747,7 @@ mod tests {
         }"#;
 
         let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
-        assert_eq!(deserializer.event_type, Some("DOESNT_MATTER"));
+        assert_eq!(deserializer.event_type(), Some("DOESNT_MATTER"));
         assert_eq!(deserializer.op, 0);
     }
 
@@ -856,7 +788,7 @@ mod tests {
                 Token::Str("s"),
                 Token::U64(2_048),
                 Token::Str("op"),
-                Token::U8(OpCode::Event as u8),
+                Token::U8(OpCode::Dispatch as u8),
                 Token::Str("d"),
                 Token::Struct {
                     name: "RoleDelete",
@@ -921,7 +853,9 @@ mod tests {
     #[test]
     fn serialize_hello() {
         serde_test::assert_ser_tokens(
-            &GatewayEvent::Hello(41250),
+            &GatewayEvent::Hello(Hello {
+                heartbeat_interval: 41250,
+            }),
             &[
                 Token::Struct {
                     name: "GatewayEvent",

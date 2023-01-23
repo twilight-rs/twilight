@@ -886,6 +886,7 @@ impl UpdateCache for Event {
             | Event::BanAdd(_)
             | Event::BanRemove(_)
             | Event::CommandPermissionsUpdate(_)
+            | Event::GatewayClose(_)
             | Event::GatewayHeartbeat(_)
             | Event::GatewayHeartbeatAck
             | Event::GatewayHello(_)
@@ -902,13 +903,6 @@ impl UpdateCache for Event {
             | Event::InviteDelete(_)
             | Event::PresencesReplace
             | Event::Resumed
-            | Event::ShardConnected(_)
-            | Event::ShardConnecting(_)
-            | Event::ShardDisconnected(_)
-            | Event::ShardIdentifying(_)
-            | Event::ShardPayload(_)
-            | Event::ShardReconnecting(_)
-            | Event::ShardResuming(_)
             | Event::ThreadMembersUpdate(_)
             | Event::ThreadMemberUpdate(_)
             | Event::TypingStart(_)

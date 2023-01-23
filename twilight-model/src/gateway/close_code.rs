@@ -5,6 +5,10 @@ use std::{
 };
 
 /// Gateway close event codes.
+///
+/// See [Discord Docs/Gateway Close Event Codes] for more information.
+///
+/// [Discord Docs/Gateway Close Event Codes]: https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-close-event-codes
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u16)]
@@ -37,6 +41,52 @@ pub enum CloseCode {
     InvalidIntents = 4013,
     /// A disallowed intent was sent, may need allowlisting.
     DisallowedIntents = 4014,
+}
+
+impl CloseCode {
+    /// Whether the close code is one that allows reconnection of a shard.
+    ///
+    /// Refer to the type-level documentation for Discord's table on close codes
+    /// that can be reconnected.
+    pub const fn can_reconnect(self) -> bool {
+        match self {
+            Self::UnknownError
+            | Self::UnknownOpcode
+            | Self::DecodeError
+            | Self::NotAuthenticated
+            | Self::AlreadyAuthenticated
+            | Self::InvalidSequence
+            | Self::RateLimited
+            | Self::SessionTimedOut => true,
+            Self::AuthenticationFailed
+            | Self::InvalidShard
+            | Self::ShardingRequired
+            | Self::InvalidApiVersion
+            | Self::InvalidIntents
+            | Self::DisallowedIntents => false,
+        }
+    }
+}
+
+impl Display for CloseCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(match self {
+            CloseCode::UnknownError => "Unknown Error",
+            CloseCode::UnknownOpcode => "Unknown Opcode",
+            CloseCode::DecodeError => "Decode Error",
+            CloseCode::NotAuthenticated => "Not Authenticated",
+            CloseCode::AuthenticationFailed => "Authentication Failed",
+            CloseCode::AlreadyAuthenticated => "Already Authenticated",
+            CloseCode::InvalidSequence => "Invalid Sequence",
+            CloseCode::RateLimited => "Rate Limited",
+            CloseCode::SessionTimedOut => "Session Timed Out",
+            CloseCode::InvalidShard => "Invalid Shard",
+            CloseCode::ShardingRequired => "Sharding Required",
+            CloseCode::InvalidApiVersion => "Invalid Api Version",
+            CloseCode::InvalidIntents => "Invalid Intents",
+            CloseCode::DisallowedIntents => "Disallowed Intents",
+        })
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]

@@ -27,7 +27,7 @@ mod tests {
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_ready() {
+    fn ready() {
         let guilds = vec![
             UnavailableGuild {
                 id: Id::new(1),
@@ -45,6 +45,7 @@ mod tests {
                 id: Id::new(100),
             },
             guilds,
+            resume_gateway_url: "wss://gateway.discord.gg".into(),
             session_id: "foo".to_owned(),
             shard: Some([4, 7]),
             user: CurrentUser {
@@ -64,7 +65,6 @@ mod tests {
                 verified: None,
             },
             version: 8,
-            resume_gateway_url: "wss://gateway.discord.gg/".to_owned(),
         };
 
         serde_test::assert_tokens(
@@ -109,7 +109,7 @@ mod tests {
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("resume_gateway_url"),
-                Token::Str("wss://gateway.discord.gg/"),
+                Token::Str("wss://gateway.discord.gg"),
                 Token::Str("session_id"),
                 Token::Str("foo"),
                 Token::Str("shard"),

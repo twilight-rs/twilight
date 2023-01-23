@@ -240,8 +240,10 @@ pub enum Path {
     GuildsIdWebhooks(u64),
     /// Operating on one of the user's guilds' welcome screen.
     GuildsIdWelcomeScreen(u64),
-    /// Operating on one of the user's guilds' widget.
+    /// Operating on one of the user's guild's widget settings.
     GuildsIdWidget(u64),
+    /// Operating on one of the user's guild's widget.
+    GuildsIdWidgetJson(u64),
     /// Operating on a guild template.
     GuildsTemplatesCode(String),
     /// Operating on an interaction's callback.
@@ -385,7 +387,6 @@ impl FromStr for Path {
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(parse_id(id)?),
             ["guilds", id, "channels"] => GuildsIdChannels(parse_id(id)?),
-            ["guilds", id, "widget" | "widget.json"] => GuildsIdWidget(parse_id(id)?),
             ["guilds", id, "emojis"] => GuildsIdEmojis(parse_id(id)?),
             ["guilds", id, "emojis", _] => GuildsIdEmojisId(parse_id(id)?),
             ["guilds", id, "integrations"] => GuildsIdIntegrations(parse_id(id)?),
@@ -419,6 +420,8 @@ impl FromStr for Path {
             ["guilds", id, "voice-states", _] => GuildsIdVoiceStates(parse_id(id)?),
             ["guilds", id, "welcome-screen"] => GuildsIdWelcomeScreen(parse_id(id)?),
             ["guilds", id, "webhooks"] => GuildsIdWebhooks(parse_id(id)?),
+            ["guilds", id, "widget"] => GuildsIdWidget(parse_id(id)?),
+            ["guilds", id, "widget.json"] => GuildsIdWidgetJson(parse_id(id)?),
             ["invites", _] => InvitesCode,
             ["interactions", id, _, "callback"] => InteractionCallback(parse_id(id)?),
             ["stage-instances", _] => StageInstances,

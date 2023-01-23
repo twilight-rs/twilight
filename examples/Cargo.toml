@@ -12,11 +12,10 @@ futures-util = { default-features = false, version = "0.3" }
 hex = "0.4"
 hyper = { features = ["client", "server", "http2", "runtime"], version = "0.14" }
 log = { default-features = false, version = "0.4" }
-metrics-runtime = { default-features = false, features = ["metrics-exporter-log", "metrics-observer-json"], version = "0.13" }
 once_cell = "1.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
+tokio = { default-features = false, features = ["macros", "signal", "rt-multi-thread"], version = "1.0" }
 tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 twilight-gateway = { path = "../twilight-gateway" }
@@ -26,16 +25,16 @@ twilight-model = { path = "../twilight-model" }
 twilight-standby = { path = "../twilight-standby" }
 
 [[example]]
-name = "gateway-cluster"
-path = "gateway-cluster.rs"
-
-[[example]]
 name = "gateway-intents"
 path = "gateway-intents.rs"
 
 [[example]]
-name = "gateway-metrics"
-path = "gateway-metrics.rs"
+name = "gateway-parallel"
+path = "gateway-parallel.rs"
+
+[[example]]
+name = "gateway-reshard"
+path = "gateway-reshard.rs"
 
 [[example]]
 name = "gateway-request-members"

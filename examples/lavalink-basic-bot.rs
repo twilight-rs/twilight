@@ -1,10 +1,9 @@
-use futures_util::StreamExt;
 use hyper::{
     client::{Client as HyperClient, HttpConnector},
     Body, Request,
 };
 use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
-use twilight_gateway::{Event, Intents, Shard};
+use twilight_gateway::{Event, Intents, MessageSender, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
     http::LoadedTracks,
@@ -24,7 +23,7 @@ struct StateRef {
     http: HttpClient,
     lavalink: Lavalink,
     hyper: HyperClient<HttpConnector>,
-    shard: Shard,
+    sender: MessageSender,
     standby: Standby,
 }
 
@@ -41,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let (mut events, state) = {
+    let (mut shard, state) = {
         let token = env::var("DISCORD_TOKEN")?;
         let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
         let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
@@ -55,23 +54,35 @@ async fn main() -> anyhow::Result<()> {
 
         let intents =
             Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES | Intents::MESSAGE_CONTENT;
-        let (shard, events) = Shard::new(token, intents);
-
-        shard.start().await?;
+        let shard = Shard::new(ShardId::ONE, token, intents);
+        let sender = shard.sender();
 
         (
-            events,
+            shard,
             Arc::new(StateRef {
                 http,
                 lavalink,
                 hyper: HyperClient::new(),
-                shard,
+                sender,
                 standby: Standby::new(),
             }),
         )
     };
 
-    while let Some(event) = events.next().await {
+    loop {
+        let event = match shard.next_event().await {
+            Ok(event) => event,
+            Err(source) => {
+                tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
+
+                continue;
+            }
+        };
+
         state.standby.process(&event);
         state.lavalink.process(&event).await?;
 
@@ -113,15 +124,12 @@ async fn join(msg: Message, state: State) -> anyhow::Result<()> {
     let channel_id = msg.content.parse()?;
     let guild_id = msg.guild_id.expect("known to be present");
 
-    state
-        .shard
-        .command(&UpdateVoiceState::new(
-            guild_id,
-            Some(channel_id),
-            false,
-            false,
-        ))
-        .await?;
+    state.sender.command(&UpdateVoiceState::new(
+        guild_id,
+        Some(channel_id),
+        false,
+        false,
+    ))?;
 
     state
         .http
@@ -143,9 +151,8 @@ async fn leave(msg: Message, state: State) -> anyhow::Result<()> {
     let player = state.lavalink.player(guild_id).await.unwrap();
     player.send(Destroy::from(guild_id))?;
     state
-        .shard
-        .command(&UpdateVoiceState::new(guild_id, None, false, false))
-        .await?;
+        .sender
+        .command(&UpdateVoiceState::new(guild_id, None, false, false))?;
 
     state
         .http

@@ -67,9 +67,9 @@ mod private {
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
-            UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
-            UpdateGuildWidget,
+            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
+            UpdateGuildWidgetSettings,
         },
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildStageInstanceScheduledEvent,
@@ -202,6 +202,7 @@ mod private {
     impl Sealed for GetGuildWebhooks<'_> {}
     impl Sealed for GetGuildWelcomeScreen<'_> {}
     impl Sealed for GetGuildWidget<'_> {}
+    impl Sealed for GetGuildWidgetSettings<'_> {}
     impl Sealed for GetInvite<'_> {}
     impl Sealed for GetJoinedPrivateArchivedThreads<'_> {}
     impl Sealed for GetMember<'_> {}
@@ -251,7 +252,7 @@ mod private {
     impl Sealed for UpdateGuildScheduledEvent<'_> {}
     impl Sealed for UpdateGuildSticker<'_> {}
     impl Sealed for UpdateGuildWelcomeScreen<'_> {}
-    impl Sealed for UpdateGuildWidget<'_> {}
+    impl Sealed for UpdateGuildWidgetSettings<'_> {}
     impl Sealed for UpdateMessage<'_> {}
     impl Sealed for UpdateResponse<'_> {}
     impl Sealed for UpdateRole<'_> {}
