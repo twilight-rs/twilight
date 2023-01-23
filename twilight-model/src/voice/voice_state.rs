@@ -1,5 +1,5 @@
 use crate::{
-    guild::member::Member,
+    guild::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,

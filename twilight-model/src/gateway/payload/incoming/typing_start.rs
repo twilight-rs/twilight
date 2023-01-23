@@ -1,5 +1,5 @@
 use crate::{
-    guild::member::Member,
+    guild::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct TypingStart {
     pub channel_id: Id<ChannelMarker>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,

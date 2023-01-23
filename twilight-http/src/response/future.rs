@@ -134,11 +134,7 @@ impl InFlight {
             #[cfg(feature = "decompression")]
             resp.headers_mut().remove(hyper::header::CONTENT_LENGTH);
 
-            let mut response = Response::new(resp);
-
-            if let Some(guild_id) = self.guild_id {
-                response.set_guild_id(guild_id);
-            }
+            let response = Response::new(resp);
 
             return InnerPoll::Ready(Ok(response));
         }

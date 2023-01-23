@@ -1,6 +1,6 @@
 use crate::{
     gateway::presence::{Presence, PresenceListDeserializer},
-    guild::member::Member,
+    guild::Member,
     id::{
         marker::{GuildMarker, UserMarker},
         Id,

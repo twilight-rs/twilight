@@ -68,7 +68,6 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use twilight_model::id::{marker::GuildMarker, Id};
 
 /// Failure when processing a response body.
 #[derive(Debug)]
@@ -175,7 +174,6 @@ pub enum DeserializeBodyErrorType {
 /// ```
 #[derive(Debug)]
 pub struct Response<T> {
-    guild_id: Option<Id<GuildMarker>>,
     inner: HyperResponse<Body>,
     phantom: PhantomData<T>,
 }
@@ -183,7 +181,6 @@ pub struct Response<T> {
 impl<T> Response<T> {
     pub(crate) const fn new(inner: HyperResponse<Body>) -> Self {
         Self {
-            guild_id: None,
             inner,
             phantom: PhantomData,
         }
@@ -299,13 +296,6 @@ impl<T> Response<T> {
     /// [`bytes`]: Self::bytes
     pub fn text(self) -> TextFuture {
         TextFuture(self.bytes())
-    }
-
-    /// Set the ID of the relevant guild.
-    ///
-    /// Necessary for [`MemberBody`] and [`MemberListBody`] deserialization.
-    pub(crate) fn set_guild_id(&mut self, guild_id: Id<GuildMarker>) {
-        self.guild_id = Some(guild_id);
     }
 }
 
@@ -619,15 +609,15 @@ async fn decompress(body: Body) -> Result<Bytes, DeserializeBodyError> {
 ///
 /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
 /// input is not valid JSON.
-// #[cfg(feature = "simd-json")]
-// fn json_deserializer(input: &mut [u8]) -> Result<JsonDeserializer<'_>, DeserializeBodyError> {
-//     JsonDeserializer::from_slice(input).map_err(|source| DeserializeBodyError {
-//         kind: DeserializeBodyErrorType::Deserializing,
-//         source: Some(Box::new(source)),
-//     })
-// }
+#[cfg(feature = "simd-json")]
+fn json_deserializer(input: &mut [u8]) -> Result<JsonDeserializer<'_>, DeserializeBodyError> {
+    JsonDeserializer::from_slice(input).map_err(|source| DeserializeBodyError {
+        kind: DeserializeBodyErrorType::Deserializing,
+        source: Some(Box::new(source)),
+    })
+}
 
-/// Create a `serde` Deserializer instance.
+// Create a `serde` Deserializer instance.
 // #[cfg(not(feature = "simd-json"))]
 // #[deny(dead_code, unused)]
 // fn json_deserializer(

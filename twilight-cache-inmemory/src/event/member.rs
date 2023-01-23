@@ -99,7 +99,7 @@ impl InMemoryCache {
 impl UpdateCache for MemberAdd {
     fn update(&self, cache: &InMemoryCache) {
         if cache.wants(ResourceType::GUILD) {
-            if let Some(mut guild) = cache.guilds.get_mut(&self.1) {
+            if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
                 guild.member_count = guild.member_count.map(|count| count + 1);
             }
         }
@@ -108,13 +108,13 @@ impl UpdateCache for MemberAdd {
             return;
         }
 
-        cache.cache_member(self.1, self.0.clone());
+        cache.cache_member(self.guild_id, self.member.clone());
 
         cache
             .guild_members
-            .entry(self.1)
+            .entry(self.guild_id)
             .or_default()
-            .insert(self.0.user.id);
+            .insert(self.member.user.id);
     }
 }
 
