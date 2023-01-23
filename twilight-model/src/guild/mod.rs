@@ -43,7 +43,6 @@ mod unavailable_guild;
 mod vanity_url;
 mod verification_level;
 
-#[doc(inline)]
 pub use self::nsfw_level::NSFWLevel;
 pub use self::permissions::Permissions;
 pub use self::{

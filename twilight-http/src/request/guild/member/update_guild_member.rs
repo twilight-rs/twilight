@@ -174,16 +174,10 @@ impl IntoFuture for UpdateGuildMember<'_> {
     type IntoFuture = ResponseFuture<Member>;
 
     fn into_future(self) -> Self::IntoFuture {
-        let guild_id = self.guild_id;
         let http = self.http;
 
         match self.try_into_request() {
-            Ok(request) => {
-                let mut future = http.request(request);
-                future.set_guild_id(guild_id);
-
-                future
-            }
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }

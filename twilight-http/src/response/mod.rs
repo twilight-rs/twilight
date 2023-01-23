@@ -603,29 +603,6 @@ async fn decompress(body: Body) -> Result<Bytes, DeserializeBodyError> {
     Ok(buf.into())
 }
 
-/// Create a `simd-json` Deserializer instance.
-///
-/// # Errors
-///
-/// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
-/// input is not valid JSON.
-// #[cfg(feature = "simd-json")]
-// fn json_deserializer(input: &mut [u8]) -> Result<JsonDeserializer<'_>, DeserializeBodyError> {
-//     JsonDeserializer::from_slice(input).map_err(|source| DeserializeBodyError {
-//         kind: DeserializeBodyErrorType::Deserializing,
-//         source: Some(Box::new(source)),
-//     })
-// }
-
-// Create a `serde` Deserializer instance.
-// #[cfg(not(feature = "simd-json"))]
-// #[deny(dead_code, unused)]
-// fn json_deserializer(
-//     input: &mut [u8],
-// ) -> Result<JsonDeserializer<serde_json::de::SliceRead<'_>>, DeserializeBodyError> {
-//     Ok(JsonDeserializer::from_slice(input))
-// }
-
 #[cfg(test)]
 mod tests {
     use super::{

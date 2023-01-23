@@ -888,8 +888,8 @@ mod tests {
         ));
 
         cache.update(&MemberAdd {
-            member: test::member(USER_ID),
             guild_id: GUILD_ID,
+            member: test::member(USER_ID),
         });
 
         assert!(matches!(
@@ -915,8 +915,8 @@ mod tests {
 
         cache.update(&GuildCreate(base_guild()));
         cache.update(&MemberAdd {
-            member: test::member(USER_ID),
             guild_id: GUILD_ID,
+            member: test::member(USER_ID),
         });
         cache.update(&MemberUpdate {
             avatar: None,
@@ -974,13 +974,13 @@ mod tests {
         ));
 
         cache.update(&MemberAdd {
+            guild_id: GUILD_ID,
             member: {
                 let mut member = test::member(USER_ID);
                 member.roles.push(OTHER_ROLE_ID);
 
                 member
             },
-            guild_id: GUILD_ID,
         });
         assert!(matches!(
             permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
@@ -1083,12 +1083,12 @@ mod tests {
 
         cache.update(&GuildCreate(guild));
         cache.update(&MemberAdd {
+            guild_id: GUILD_ID,
             member: {
                 let mut member = test::member(USER_ID);
                 member.communication_disabled_until = Some(in_future);
                 member
             },
-            guild_id: GUILD_ID,
         });
         assert_eq!(
             Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY,

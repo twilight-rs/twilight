@@ -7,8 +7,8 @@ use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberAdd {
-    pub member: Member,
     pub guild_id: Id<GuildMarker>,
+    pub member: Member,
 }
 
 impl Deref for MemberAdd {
@@ -40,6 +40,7 @@ mod tests {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
         let value = MemberAdd {
+            guild_id: Id::<GuildMarker>::new(1),
             member: Member {
                 avatar: None,
                 communication_disabled_until: None,
@@ -68,7 +69,6 @@ mod tests {
                     public_flags: None,
                 },
             },
-            guild_id: Id::<GuildMarker>::new(1),
         };
 
         serde_test::assert_tokens(
@@ -78,6 +78,9 @@ mod tests {
                     name: "MemberAdd",
                     len: 2,
                 },
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
                 Token::Str("member"),
                 Token::Struct {
                     name: "Member",
@@ -120,9 +123,6 @@ mod tests {
                 Token::Str("ab"),
                 Token::StructEnd,
                 Token::StructEnd,
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
                 Token::StructEnd,
             ],
         );

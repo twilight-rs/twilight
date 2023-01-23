@@ -1,19 +1,12 @@
 //! Mostly internal custom serde deserializers.
 
 use crate::{
-    id::{
-        marker::{GuildMarker, RoleMarker},
-        Id,
-    },
+    id::{marker::RoleMarker, Id},
     user::User,
     util::{ImageHash, Timestamp},
 };
 
-use serde::{
-    de::{value::MapAccessDeserializer, MapAccess, Visitor},
-    Deserialize, Serialize,
-};
-use std::fmt::{Formatter, Result as FmtResult};
+use serde::{Deserialize, Serialize};
 
 /// [`User`] that is in a [`Guild`].
 ///
@@ -36,23 +29,6 @@ pub struct Member {
     pub premium_since: Option<Timestamp>,
     pub roles: Vec<Id<RoleMarker>>,
     pub user: User,
-}
-
-struct MemberVisitor(Id<GuildMarker>);
-
-impl<'de> Visitor<'de> for MemberVisitor {
-    type Value = Member;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a map of member fields")
-    }
-
-    fn visit_map<M: MapAccess<'de>>(self, map: M) -> Result<Self::Value, M::Error> {
-        let deser = MapAccessDeserializer::new(map);
-        let member = Member::deserialize(deser)?;
-
-        Ok(member)
-    }
 }
 
 #[cfg(test)]
