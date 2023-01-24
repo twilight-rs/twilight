@@ -156,19 +156,7 @@ pub struct CommandOption {
 /// Note that the right variant must be selected based on the
 /// [`CommandOption`]'s [`CommandOptionType`].
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum CommandOptionChoice {
-    /// String choice.
-    String(CommandOptionChoiceData<String>),
-    /// Integer choice.
-    Integer(CommandOptionChoiceData<i64>),
-    /// Number choice.
-    Number(CommandOptionChoiceData<f64>),
-}
-
-/// Data of [`CommandOptionChoice`].
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct CommandOptionChoiceData<T> {
+pub struct CommandOptionChoice {
     /// Name of the choice. Must be 100 characters or less.
     pub name: String,
     /// Localization dictionary for the [`name`] field.
@@ -182,8 +170,30 @@ pub struct CommandOptionChoiceData<T> {
     /// [`name`]: Self::name
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
-    /// Value of the choice. Must be 100 characters or less if it is a string.
-    pub value: T,
+
+    /// Value of the choice.
+    pub value: CommandOptionChoiceValue,
+}
+
+/// The value of a [`CommandOptionChoice`].
+///
+/// Note that the right variant must be selected based on the
+/// [`CommandOption`]'s [`CommandOptionType`].
+///
+/// See [`CommandOptionChoice`]'s documentation for more info.
+///
+/// [`CommandOption`]: crate::model::interactions::application_command::CommandOption
+/// [`CommandOptionChoice`]: crate::model::interactions::application_command::CommandOptionChoice
+/// [`CommandOptionType`]: crate::model::interactions::application_command::CommandOptionType
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum CommandOptionChoiceValue {
+    /// String choice. Must be 100 characters or less.
+    String(String),
+    /// Integer choice.
+    Integer(i64),
+    /// Number choice.
+    Number(f64),
 }
 
 /// Type used in the `max_value` and `min_value` [`CommandOption`] field.

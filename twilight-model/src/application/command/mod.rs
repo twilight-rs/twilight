@@ -15,7 +15,7 @@ mod option;
 pub use self::{
     command_type::CommandType,
     option::{
-        CommandOption, CommandOptionChoice, CommandOptionChoiceData, CommandOptionType,
+        CommandOption, CommandOptionChoice, CommandOptionChoiceValue, CommandOptionType,
         CommandOptionValue,
     },
 };
@@ -97,7 +97,7 @@ pub struct Command {
 #[cfg(test)]
 mod tests {
     use super::{
-        Command, CommandOption, CommandOptionChoice, CommandOptionChoiceData, CommandOptionType,
+        Command, CommandOption, CommandOptionChoice, CommandOptionChoiceValue, CommandOptionType,
         CommandOptionValue, CommandType,
     };
     use crate::{channel::ChannelType, guild::Permissions, id::Id};
@@ -251,16 +251,14 @@ mod tests {
                         CommandOption {
                             autocomplete: Some(false),
                             channel_types: None,
-                            choices: Some(Vec::from([CommandOptionChoice::Number(
-                                CommandOptionChoiceData {
-                                    name: "number choice".to_owned(),
-                                    name_localizations: Some(HashMap::from([(
-                                        "en-US".to_owned(),
-                                        "number choice (but american)".to_owned(),
-                                    )])),
-                                    value: 10.0,
-                                },
-                            )])),
+                            choices: Some(Vec::from([CommandOptionChoice {
+                                name: "number choice".to_owned(),
+                                name_localizations: Some(HashMap::from([(
+                                    "en-US".to_owned(),
+                                    "number choice (but american)".to_owned(),
+                                )])),
+                                value: CommandOptionChoiceValue::Number(10.0),
+                            }])),
                             description: "number desc".to_owned(),
                             description_localizations: None,
                             kind: CommandOptionType::Number,
