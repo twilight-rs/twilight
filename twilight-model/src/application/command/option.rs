@@ -182,9 +182,9 @@ pub struct CommandOptionChoice {
 ///
 /// See [`CommandOptionChoice`]'s documentation for more info.
 ///
-/// [`CommandOption`]: crate::model::interactions::application_command::CommandOption
-/// [`CommandOptionChoice`]: crate::model::interactions::application_command::CommandOptionChoice
-/// [`CommandOptionType`]: crate::model::interactions::application_command::CommandOptionType
+/// [`CommandOption`]: CommandOption
+/// [`CommandOptionChoice`]: CommandOptionChoice
+/// [`CommandOptionType`]: CommandOptionType
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoiceValue {

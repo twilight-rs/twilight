@@ -493,7 +493,7 @@ mod tests {
                 Token::Some,
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "CommandOptionChoiceData",
+                    name: "CommandOptionChoice",
                     len: 3,
                 },
                 Token::Str("name"),
