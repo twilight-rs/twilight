@@ -29,6 +29,8 @@ pub struct Member {
     pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
+    /// Member's associated flags for the guild,
+    /// defaults to an empty bitfield.
     pub flags: MemberFlags,
     pub guild_id: Id<GuildMarker>,
     pub joined_at: Timestamp,

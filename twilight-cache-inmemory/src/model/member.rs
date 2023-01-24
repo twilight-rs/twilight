@@ -59,6 +59,11 @@ impl CachedMember {
         self.deaf
     }
 
+    /// The flags associated with this member.
+    pub const fn flags(&self) -> MemberFlags {
+        self.flags
+    }
+
     /// ID of the guild this member is a part of.
     pub const fn guild_id(&self) -> Id<GuildMarker> {
         self.guild_id
