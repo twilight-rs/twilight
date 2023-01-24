@@ -144,18 +144,10 @@ mod tests {
         serde_test::assert_tokens(
             &value,
             &[
-                Token::Struct {
-                    name: "MemberAdd",
-                    len: 2,
-                },
+                Token::Map { len: None },
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
-                Token::Str("member"),
-                Token::Struct {
-                    name: "Member",
-                    len: 8,
-                },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
@@ -192,8 +184,7 @@ mod tests {
                 Token::Str("username"),
                 Token::Str("ab"),
                 Token::StructEnd,
-                Token::StructEnd,
-                Token::StructEnd,
+                Token::MapEnd,
             ],
         );
     }
