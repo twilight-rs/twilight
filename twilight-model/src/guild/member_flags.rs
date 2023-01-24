@@ -13,9 +13,9 @@ bitflags! {
     const DID_REJOIN = 1 << 0;
     /// Member has completed onboarding.
     const COMPLETED_ONBOARDING = 1 << 1;
-    /// Member bypasses guild verification requirements
+    /// Member bypasses guild verification requirements.
     const BYPASSES_VERIFICATION = 1 << 2;
-    /// Member has started onboarding
+    /// Member has started onboarding.
     const STARTED_ONBOARDING = 1 << 3;
   }
 }
@@ -27,10 +27,7 @@ impl<'de> Deserialize<'de> for MemberFlags {
 }
 
 impl Serialize for MemberFlags {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_u64(self.bits())
     }
 }
