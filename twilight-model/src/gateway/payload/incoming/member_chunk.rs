@@ -227,7 +227,6 @@ mod tests {
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
                 "mute": false,
-                "pending": false,
                 "nick": "chunk",
                 "roles": ["6"],
                 "user": {
