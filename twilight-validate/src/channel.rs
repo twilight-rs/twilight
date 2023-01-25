@@ -153,7 +153,9 @@ pub const fn bitrate(value: u32) -> Result<(), ChannelValidationError> {
 ///
 /// [`BulkDeleteMessagesInvalid`]: ChannelValidationErrorType::BulkDeleteMessagesInvalid
 pub const fn bulk_delete_messages(message_count: usize) -> Result<(), ChannelValidationError> {
-    if message_count >= 2 && message_count <= 100 {
+    if message_count >= CHANNEL_BULK_DELETE_MESSAGES_MIN
+        && message_count <= CHANNEL_BULK_DELETE_MESSAGES_MAX
+    {
         Ok(())
     } else {
         Err(ChannelValidationError {
