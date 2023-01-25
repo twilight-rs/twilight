@@ -585,7 +585,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             member_roles.push((*role_id, role.permissions));
         }
 
-        let everyone_role_id: Id<RoleMarker> = guild_id.cast();
+        let everyone_role_id = guild_id.cast();
 
         if let Some(everyone_role) = self.cache.roles.get(&everyone_role_id) {
             Ok(MemberRoles {
