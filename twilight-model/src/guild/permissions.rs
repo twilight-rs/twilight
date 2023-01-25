@@ -102,3 +102,99 @@ impl Serialize for Permissions {
         serializer.serialize_str(&self.bits().to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Permissions;
+    use serde::{Deserialize, Serialize};
+    use serde_test::Token;
+    use static_assertions::{assert_impl_all, const_assert_eq};
+    use std::{
+        fmt::{Binary, Debug, LowerHex, Octal, UpperHex},
+        hash::Hash,
+        ops::{
+            BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Sub, SubAssign,
+        },
+    };
+
+    assert_impl_all!(
+        Permissions: Binary,
+        BitAnd,
+        BitAndAssign,
+        BitOr,
+        BitOrAssign,
+        BitXor,
+        BitXorAssign,
+        Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Extend<Permissions>,
+        FromIterator<Permissions>,
+        Hash,
+        LowerHex,
+        Not,
+        Octal,
+        Ord,
+        PartialEq,
+        PartialOrd,
+        Send,
+        Serialize,
+        Sub,
+        SubAssign,
+        Sync,
+        UpperHex
+    );
+    const_assert_eq!(Permissions::CREATE_INVITE.bits(), 1);
+    const_assert_eq!(Permissions::KICK_MEMBERS.bits(), 1 << 1);
+    const_assert_eq!(Permissions::BAN_MEMBERS.bits(), 1 << 2);
+    const_assert_eq!(Permissions::ADMINISTRATOR.bits(), 1 << 3);
+    const_assert_eq!(Permissions::MANAGE_CHANNELS.bits(), 1 << 4);
+    const_assert_eq!(Permissions::MANAGE_GUILD.bits(), 1 << 5);
+    const_assert_eq!(Permissions::ADD_REACTIONS.bits(), 1 << 6);
+    const_assert_eq!(Permissions::VIEW_AUDIT_LOG.bits(), 1 << 7);
+    const_assert_eq!(Permissions::PRIORITY_SPEAKER.bits(), 1 << 8);
+    const_assert_eq!(Permissions::STREAM.bits(), 1 << 9);
+    const_assert_eq!(Permissions::VIEW_CHANNEL.bits(), 1 << 10);
+    const_assert_eq!(Permissions::SEND_MESSAGES.bits(), 1 << 11);
+    const_assert_eq!(Permissions::SEND_TTS_MESSAGES.bits(), 1 << 12);
+    const_assert_eq!(Permissions::MANAGE_MESSAGES.bits(), 1 << 13);
+    const_assert_eq!(Permissions::EMBED_LINKS.bits(), 1 << 14);
+    const_assert_eq!(Permissions::ATTACH_FILES.bits(), 1 << 15);
+    const_assert_eq!(Permissions::READ_MESSAGE_HISTORY.bits(), 1 << 16);
+    const_assert_eq!(Permissions::MENTION_EVERYONE.bits(), 1 << 17);
+    const_assert_eq!(Permissions::USE_EXTERNAL_EMOJIS.bits(), 1 << 18);
+    const_assert_eq!(Permissions::VIEW_GUILD_INSIGHTS.bits(), 1 << 19);
+    const_assert_eq!(Permissions::CONNECT.bits(), 1 << 20);
+    const_assert_eq!(Permissions::SPEAK.bits(), 1 << 21);
+    const_assert_eq!(Permissions::MUTE_MEMBERS.bits(), 1 << 22);
+    const_assert_eq!(Permissions::DEAFEN_MEMBERS.bits(), 1 << 23);
+    const_assert_eq!(Permissions::MOVE_MEMBERS.bits(), 1 << 24);
+    const_assert_eq!(Permissions::USE_VAD.bits(), 1 << 25);
+    const_assert_eq!(Permissions::CHANGE_NICKNAME.bits(), 1 << 26);
+    const_assert_eq!(Permissions::MANAGE_NICKNAMES.bits(), 1 << 27);
+    const_assert_eq!(Permissions::MANAGE_ROLES.bits(), 1 << 28);
+    const_assert_eq!(Permissions::MANAGE_WEBHOOKS.bits(), 1 << 29);
+    const_assert_eq!(Permissions::MANAGE_EMOJIS_AND_STICKERS.bits(), 1 << 30);
+    const_assert_eq!(Permissions::USE_SLASH_COMMANDS.bits(), 1 << 31);
+    const_assert_eq!(Permissions::REQUEST_TO_SPEAK.bits(), 1 << 32);
+    const_assert_eq!(Permissions::MANAGE_EVENTS.bits(), 1 << 33);
+    const_assert_eq!(Permissions::MANAGE_THREADS.bits(), 1 << 34);
+    const_assert_eq!(Permissions::CREATE_PUBLIC_THREADS.bits(), 1 << 35);
+    const_assert_eq!(Permissions::CREATE_PRIVATE_THREADS.bits(), 1 << 36);
+    const_assert_eq!(Permissions::USE_EXTERNAL_STICKERS.bits(), 1 << 37);
+    const_assert_eq!(Permissions::SEND_MESSAGES_IN_THREADS.bits(), 1 << 38);
+    const_assert_eq!(Permissions::USE_EMBEDDED_ACTIVITIES.bits(), 1 << 39);
+    const_assert_eq!(Permissions::MODERATE_MEMBERS.bits(), 1 << 40);
+
+    #[test]
+    fn serde() {
+        serde_test::assert_tokens(
+            &Permissions::MANAGE_ROLES,
+            &[Token::U64(Permissions::MANAGE_ROLES.bits())],
+        );
+        // Deserialization truncates unknown bits.
+        serde_test::assert_de_tokens(&Permissions::empty(), &[Token::U64(1 << 63)]);
+    }
+}
