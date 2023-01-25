@@ -75,7 +75,9 @@ pub struct InteractionMember {
     pub avatar: Option<ImageHash>,
     /// If the member is timed out, when the timeout will expire.
     pub communication_disabled_until: Option<Timestamp>,
-    /// The flags for the member.
+    /// Flags for the member.
+    ///
+    /// Defaults to an empty bitfield.
     pub flags: MemberFlags,
     /// Member guild join date.
     pub joined_at: Timestamp,

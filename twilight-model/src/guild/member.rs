@@ -1,5 +1,6 @@
 //! Mostly internal custom serde deserializers.
 
+use super::MemberFlags;
 use crate::{
     id::{
         marker::{GuildMarker, RoleMarker},
@@ -8,7 +9,6 @@ use crate::{
     user::User,
     util::{ImageHash, Timestamp},
 };
-
 use serde::{
     de::{
         value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor,
@@ -16,8 +16,6 @@ use serde::{
     Deserialize, Serialize,
 };
 use std::fmt::{Formatter, Result as FmtResult};
-
-use super::MemberFlags;
 
 /// [`User`] that is in a [`Guild`].
 ///
@@ -29,8 +27,9 @@ pub struct Member {
     pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
-    /// Member's associated flags for the guild,
-    /// defaults to an empty bitfield.
+    /// Flags for the member.
+    ///
+    /// Defaults to an empty bitfield.
     pub flags: MemberFlags,
     pub guild_id: Id<GuildMarker>,
     pub joined_at: Timestamp,

@@ -59,7 +59,9 @@ impl CachedMember {
         self.deaf
     }
 
-    /// The flags associated with this member.
+    /// Flags for the member.
+    ///
+    /// Defaults to an empty bitfield.
     pub const fn flags(&self) -> MemberFlags {
         self.flags
     }
