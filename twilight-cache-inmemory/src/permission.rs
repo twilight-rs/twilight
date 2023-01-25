@@ -972,15 +972,12 @@ mod tests {
             ChannelErrorType::MemberUnavailable { guild_id: g_id, user_id: u_id }
             if *g_id == GUILD_ID && *u_id == USER_ID
         ));
+        let mut member = test::member(USER_ID);
+        member.roles.push(OTHER_ROLE_ID);
 
         cache.update(&MemberAdd {
             guild_id: GUILD_ID,
-            member: {
-                let mut member = test::member(USER_ID);
-                member.roles.push(OTHER_ROLE_ID);
-
-                member
-            },
+            member,
         });
         assert!(matches!(
             permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
@@ -1082,13 +1079,11 @@ mod tests {
         )]);
 
         cache.update(&GuildCreate(guild));
+        let mut member = test::member(USER_ID);
+        member.communication_disabled_until = Some(in_future);
         cache.update(&MemberAdd {
             guild_id: GUILD_ID,
-            member: {
-                let mut member = test::member(USER_ID);
-                member.communication_disabled_until = Some(in_future);
-                member
-            },
+            member,
         });
         assert_eq!(
             Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY,
