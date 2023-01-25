@@ -1,30 +1,15 @@
 use bitflags::bitflags;
-use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer},
-};
+use serde::{Deserialize, Serialize};
 
 bitflags! {
+    #[allow(clippy::unsafe_derive_deserialize)]
+    #[derive(Deserialize, Serialize)]
+    #[serde(transparent)]
     pub struct ChannelFlags: u64 {
         /// Channel is pinned in a forum.
         const PINNED = 1 << 1;
         /// New threads in a forum channel require a tag.
         const REQUIRE_TAG = 1 << 4;
-    }
-}
-
-impl<'de> Deserialize<'de> for ChannelFlags {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
-    }
-}
-
-impl Serialize for ChannelFlags {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_u64(self.bits())
     }
 }
 
@@ -80,7 +65,16 @@ mod tests {
             &ChannelFlags::PINNED,
             &[Token::U64(ChannelFlags::PINNED.bits())],
         );
-        // Deserialization truncates unknown bits.
-        serde_test::assert_de_tokens(&ChannelFlags::empty(), &[Token::U64(1 << 63)]);
+        // Safety:
+        //
+        // Deserialization doesn't truncate unknown bits.
+        //
+        // `bitflags` requires unsafe code to create bitflags with unknown bits
+        // due to an unorthodox definition of unsafe:
+        //
+        // <https://github.com/bitflags/bitflags/issues/262>
+        #[allow(unsafe_code)]
+        let value = unsafe { ChannelFlags::from_bits_unchecked(1 << 63) };
+        serde_test::assert_de_tokens(&value, &[Token::U64(1 << 63)]);
     }
 }

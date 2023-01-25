@@ -1,10 +1,10 @@
 use bitflags::bitflags;
-use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer},
-};
+use serde::{Deserialize, Serialize};
 
 bitflags! {
+    #[allow(clippy::unsafe_derive_deserialize)]
+    #[derive(Deserialize, Serialize)]
+    #[serde(transparent)]
     pub struct UserFlags: u64 {
         /// Discord Employee.
         const STAFF = 1;
@@ -42,21 +42,6 @@ bitflags! {
         ///
         /// [Active Developer]: https://support-dev.discord.com/hc/articles/10113997751447
         const ACTIVE_DEVELOPER = 1 << 22;
-    }
-}
-
-impl<'de> Deserialize<'de> for UserFlags {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
-    }
-}
-
-impl Serialize for UserFlags {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_u64(self.bits())
     }
 }
 
@@ -129,7 +114,16 @@ mod tests {
             &UserFlags::PARTNER,
             &[Token::U64(UserFlags::PARTNER.bits())],
         );
-        // Deserialization truncates unknown bits.
-        serde_test::assert_de_tokens(&UserFlags::empty(), &[Token::U64(1 << 63)]);
+        // Safety:
+        //
+        // Deserialization doesn't truncate unknown bits.
+        //
+        // `bitflags` requires unsafe code to create bitflags with unknown bits
+        // due to an unorthodox definition of unsafe:
+        //
+        // <https://github.com/bitflags/bitflags/issues/262>
+        #[allow(unsafe_code)]
+        let value = unsafe { UserFlags::from_bits_unchecked(1 << 63) };
+        serde_test::assert_de_tokens(&value, &[Token::U64(1 << 63)]);
     }
 }
