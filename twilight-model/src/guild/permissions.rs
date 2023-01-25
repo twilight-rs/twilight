@@ -190,11 +190,8 @@ mod tests {
 
     #[test]
     fn serde() {
-        serde_test::assert_tokens(
-            &Permissions::MANAGE_ROLES,
-            &[Token::U64(Permissions::MANAGE_ROLES.bits())],
-        );
+        serde_test::assert_tokens(&Permissions::CREATE_INVITE, &[Token::Str("1")]);
         // Deserialization truncates unknown bits.
-        serde_test::assert_de_tokens(&Permissions::empty(), &[Token::U64(1 << 63)]);
+        serde_test::assert_de_tokens(&Permissions::empty(), &[Token::Str("9223372036854775808")]);
     }
 }
