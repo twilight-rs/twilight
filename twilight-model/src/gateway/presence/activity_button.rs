@@ -226,47 +226,11 @@ pub struct ActivityButtonLink {
 /// );
 /// # Ok(()) }
 /// ```
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(transparent)]
 pub struct ActivityButtonText {
     /// Text shown on the button.
     pub label: String,
-}
-#[derive(Debug, Deserialize)]
-#[serde(field_identifier, rename_all = "snake_case")]
-enum ActivityButtonTextField {
-    Label,
-}
-
-struct ActivityButtonTextVisitor;
-
-impl<'de> Visitor<'de> for ActivityButtonTextVisitor {
-    type Value = ActivityButtonText;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("activity button string")
-    }
-
-    fn visit_string<E: DeError>(self, v: String) -> Result<Self::Value, E> {
-        Ok(ActivityButtonText { label: v })
-    }
-
-    fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
-        Ok(ActivityButtonText {
-            label: v.to_owned(),
-        })
-    }
-}
-
-impl<'de> Deserialize<'de> for ActivityButtonText {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer.deserialize_any(ActivityButtonTextVisitor)
-    }
-}
-
-impl Serialize for ActivityButtonText {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_str(&self.label)
-    }
 }
 
 #[cfg(test)]
