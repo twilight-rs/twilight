@@ -13,7 +13,7 @@ bitflags! {
         const DID_REJOIN = 1 << 0;
         /// Member has completed onboarding.
         const COMPLETED_ONBOARDING = 1 << 1;
-        /// Member bypasses guild verification requirements.
+        /// Member is exempt from guild verification requirements.
         const BYPASSES_VERIFICATION = 1 << 2;
         /// Member has started onboarding.
         const STARTED_ONBOARDING = 1 << 3;
