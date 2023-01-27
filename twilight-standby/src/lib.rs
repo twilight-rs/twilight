@@ -1113,6 +1113,7 @@ mod tests {
             reactions: Vec::new(),
             reference: None,
             referenced_message: None,
+            role_subscription_data: None,
             sticker_items: Vec::new(),
             timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
             thread: None,

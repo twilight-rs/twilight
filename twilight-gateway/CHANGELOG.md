@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.14.1] - 2023-01-20
+
+### Features
+
+- [**breaking**] support the `GUILD_AUDIT_LOG_ENTRY_CREATE` gateway event ([#2067](https://github.com/twilight-rs/twilight/issues/2067))
+
 ## [0.14.0] - 2022-11-14
 
 MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).

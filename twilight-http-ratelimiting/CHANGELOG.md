@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.14.2] - 2023-01-20
+
+### Features
+
+- get current authorization route ([#2049](https://github.com/twilight-rs/twilight/issues/2049))
+
+### Refactor
+
+- remove prelude imports
+
 ## [0.14.1] - 2023-01-07
 
 ### Features

@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.14.3] - 2023-01-20
+
+### Bug Fixes
+
+- include missing `RoleTags` struct member in test
+- signed channel member counts ([#2079](https://github.com/twilight-rs/twilight/issues/2079))
+- zeroable forum tag emoji ids ([#2080](https://github.com/twilight-rs/twilight/issues/2080))
+
+### Documentation
+
+- activity timestamp integer values ([#2075](https://github.com/twilight-rs/twilight/issues/2075))
+
+### Features
+
+- add role subscriptions ([#2034](https://github.com/twilight-rs/twilight/issues/2034))
+- add `guild_connections` attribute ([#2063](https://github.com/twilight-rs/twilight/issues/2063))
+- get current authorization route ([#2049](https://github.com/twilight-rs/twilight/issues/2049))
+- gif sticker format type ([#2064](https://github.com/twilight-rs/twilight/issues/2064))
+- guild public updates channel id ([#2065](https://github.com/twilight-rs/twilight/issues/2065))
+- [**breaking**] support the `GUILD_AUDIT_LOG_ENTRY_CREATE` gateway event ([#2067](https://github.com/twilight-rs/twilight/issues/2067))
+
+### Refactor
+
+- remove prelude imports
+
 ## [0.14.2] - 2023-01-08
 
 ### Features

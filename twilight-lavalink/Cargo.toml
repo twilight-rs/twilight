@@ -22,7 +22,7 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.17" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.2" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.3" }
 
 # Optional dependencies.
 percent-encoding = { default-features = false, optional = true, version = "2" }
@@ -32,8 +32,8 @@ anyhow = { default-features = false, features = ["std"], version = "1" }
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.14.0" }
-twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.14.1" }
+twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.14.1" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.14.2" }
 
 [features]
 default = ["http-support", "rustls-native-roots"]

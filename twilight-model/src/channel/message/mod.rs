@@ -14,6 +14,7 @@ mod kind;
 mod mention;
 mod reaction;
 mod reference;
+mod role_subscription_data;
 
 pub use self::{
     activity::{MessageActivity, MessageActivityType},
@@ -27,6 +28,7 @@ pub use self::{
     mention::Mention,
     reaction::{Reaction, ReactionType},
     reference::MessageReference,
+    role_subscription_data::RoleSubscriptionData,
     sticker::Sticker,
 };
 
@@ -168,6 +170,14 @@ pub struct Message {
     /// [`reference`]: Self::reference
     #[serde(skip_serializing_if = "Option::is_none")]
     pub referenced_message: Option<Box<Message>>,
+    /// Information about the role subscription purchase or renewal that
+    /// prompted this message.
+    ///
+    /// Applies to [`RoleSubscriptionPurchase`] messages.
+    ///
+    /// [`RoleSubscriptionPurchase`]: MessageType::RoleSubscriptionPurchase
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role_subscription_data: Option<RoleSubscriptionData>,
     /// Stickers within the message.
     #[serde(default)]
     pub sticker_items: Vec<MessageSticker>,
@@ -260,6 +270,7 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
+            role_subscription_data: None,
             sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::Png,
                 id: Id::new(1),
@@ -470,6 +481,7 @@ mod tests {
                 message_id: None,
                 fail_if_not_exists: None,
             }),
+            role_subscription_data: None,
             sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::Png,
                 id: Id::new(1),

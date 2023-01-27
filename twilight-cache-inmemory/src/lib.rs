@@ -892,6 +892,7 @@ impl UpdateCache for Event {
             | Event::GatewayInvalidateSession(_)
             | Event::GatewayReconnect
             | Event::GiftCodeUpdate
+            | Event::GuildAuditLogEntryCreate(_)
             | Event::GuildIntegrationsUpdate(_)
             | Event::GuildScheduledEventCreate(_)
             | Event::GuildScheduledEventDelete(_)

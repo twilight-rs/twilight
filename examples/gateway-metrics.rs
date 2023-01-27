@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let intents =
-        Intents::GUILD_BANS | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
+        Intents::GUILD_MODERATION | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
     let (cluster, mut events) = Cluster::new(env::var("DISCORD_TOKEN")?, intents).await?;
     println!("Created cluster");
 

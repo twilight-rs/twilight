@@ -17,7 +17,6 @@ use serde::{
     ser::{Serialize, Serializer},
 };
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
