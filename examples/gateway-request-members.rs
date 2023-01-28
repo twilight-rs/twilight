@@ -1,5 +1,5 @@
 use std::env;
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_gateway::{Config, Event, Intents, Shard, ShardId};
 use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
 
 #[tokio::main]
@@ -7,11 +7,10 @@ async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let mut shard = Shard::new(
-        ShardId::ONE,
-        env::var("DISCORD_TOKEN")?,
-        Intents::GUILD_MEMBERS | Intents::GUILDS,
-    );
+    let token = env::var("DISCORD_TOKEN")?;
+
+    let config = Config::new(token, Intents::GUILD_MEMBERS | Intents::GUILDS);
+    let mut shard = Shard::new(ShardId::ONE, config);
 
     loop {
         let event = match shard.next_event().await {

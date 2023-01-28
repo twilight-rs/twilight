@@ -69,7 +69,7 @@ including a handler to wait for reactions:
 ```rust,no_run
 use futures_util::StreamExt;
 use std::{env, sync::Arc};
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_gateway::{Config, Event, Intents, Shard, ShardId};
 use twilight_model::{
     channel::Message,
     gateway::payload::incoming::ReactionAdd,
@@ -80,9 +80,8 @@ use twilight_standby::Standby;
 async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
 
-    // Start a shard connected to the gateway to receive events.
-    let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
-    let mut shard = Shard::new(ShardId::ONE, token, intents);
+    let config = Config::new(token, Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS);
+    let mut shard = Shard::new(ShardId::ONE, config);
 
     let standby = Arc::new(Standby::new());
 

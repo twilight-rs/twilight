@@ -89,7 +89,7 @@ Starting a `Shard` and printing the contents of new messages as they come in:
 
 ```rust,no_run
 use std::{env, error::Error};
-use twilight_gateway::{Intents, Shard, ShardId};
+use twilight_gateway::{Config, Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -97,8 +97,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
-    let intents = Intents::GUILD_MESSAGES;
-    let mut shard = Shard::new(ShardId::ONE, token, intents);
+    let config = Config::new(token, Intents::GUILD_MESSAGES);
+    let mut shard = Shard::new(ShardId::ONE, config);
     tracing::info!("created shard");
 
     loop {

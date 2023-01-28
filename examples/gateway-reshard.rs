@@ -2,8 +2,7 @@ use futures_util::StreamExt;
 use std::{env, sync::Arc, time::Duration};
 use tokio::time;
 use twilight_gateway::{
-    queue::{LocalQueue, Queue},
-    stream::{self, ShardEventStream, ShardMessageStream},
+    stream::{ShardEventStream, ShardMessageStream},
     Config, Event, Intents, Shard, ShardId,
 };
 use twilight_http::Client;
@@ -15,21 +14,12 @@ async fn main() -> anyhow::Result<()> {
 
     let token = env::var("DISCORD_TOKEN")?;
     let client = Arc::new(Client::new(token.clone()));
-    let queue: Arc<dyn Queue> = Arc::new(LocalQueue::new());
 
-    let config_callback = |_| {
-        // A queue must be specified in the builder for the shards to reuse the
-        // same one, which is necessary to not hit any gateway queue ratelimit.
-        Config::builder(
-            token.clone(),
-            Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT,
-        )
-        .queue(Arc::clone(&queue))
-        .build()
-    };
-    let mut shards = stream::create_recommended(&client, &config_callback)
-        .await?
-        .collect::<Vec<_>>();
+    let config = Config::new(token, Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT);
+    let recommended_shards = client.gateway().authed().await?.model().await?.shards;
+    let mut shards = (0..recommended_shards)
+        .map(|id| Shard::new(ShardId::new(id, recommended_shards), config.clone()))
+        .collect();
 
     loop {
         // Run `gateway_runner` and `reshard` concurrently until the first one
@@ -40,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
             _ = gateway_runner(Arc::clone(&client), shards) => break,
             // Resharding complete! Time to run `gateway_runner` with the new
             // list of shards.
-            Ok(Some(new_shards)) = reshard(&client, config_callback) => {
+            Ok(Some(new_shards)) = reshard(&client, config.clone()) => {
                     // Assign the new list of shards to `shards`, dropping the
                     // old list.
                     shards = new_shards;
@@ -92,17 +82,15 @@ async fn event_handler(client: Arc<Client>, event: Event) -> anyhow::Result<()> 
 // Instrument to differentiate between the logs produced here and
 // in `gateway_runner`.
 #[tracing::instrument(skip_all)]
-async fn reshard(
-    client: &Client,
-    config_callback: impl Fn(ShardId) -> Config,
-) -> anyhow::Result<Option<Vec<Shard>>> {
+async fn reshard(client: &Client, config: Config) -> anyhow::Result<Option<Vec<Shard>>> {
     const RESHARD_DURATION: Duration = Duration::from_secs(60 * 60 * 8);
 
     // Reshard every eight hours.
     time::sleep(RESHARD_DURATION).await;
 
-    let mut shards = stream::create_recommended(client, config_callback)
-        .await?
+    let recommended_shards = client.gateway().authed().await?.model().await?.shards;
+    let mut shards = (0..recommended_shards)
+        .map(|id| Shard::new(ShardId::new(id, recommended_shards), config.clone()))
         .collect::<Vec<_>>();
 
     let mut identified = vec![false; shards.len()];

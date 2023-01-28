@@ -1,12 +1,5 @@
 //! Utilities for managing collections of shards.
 //!
-//! Multiple shards may easily be created at once, with a per shard config
-//! created from a `Fn(ShardId) -> Config` closure, with the help of the
-//! `create_` set of functions. These functions will also reuse shards' TLS
-//! context, something otherwise achieved by cloning an existing [`Config`], but
-//! will not by default set a shared [session queue] (see
-//! [`ConfigBuilder::queue`]).
-//!
 //! # Concurrency
 //!
 //! Multiple shards' events or websocket messages may be concurrently streamed
@@ -28,136 +21,27 @@
 //!
 //! See the [gateway-parallel] example for how to implement this.
 //!
-//! [`ConfigBuilder::queue`]: crate::ConfigBuilder::queue
 //! [gateway-parallel]: https://github.com/twilight-rs/twilight/blob/main/examples/gateway-parallel.rs
-//! [session queue]: crate::queue
 
-use crate::{
-    error::ReceiveMessageError, message::Message, tls::TlsContainer, Config, Shard, ShardId,
-};
+use crate::{error::ReceiveMessageError, message::Message, Shard};
 use futures_util::{
     future::BoxFuture,
     stream::{FuturesUnordered, Stream, StreamExt},
 };
-#[cfg(feature = "twilight-http")]
 use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
-use std::{
-    ops::{Bound, Deref, DerefMut, Range, RangeBounds},
+    ops::{Deref, DerefMut},
     pin::Pin,
     sync::mpsc,
     task::{Context, Poll},
 };
-#[cfg(feature = "twilight-http")]
-use twilight_http::Client;
 use twilight_model::gateway::event::Event;
 
 /// Generic list of unordered futures producing an item for each shard.
 type FutureList<'a, Item> = FuturesUnordered<BoxFuture<'a, NextItemOutput<'a, Item>>>;
 
-/// Failure when fetching the recommended number of shards to use from Discord's
-/// REST API.
-#[cfg(feature = "twilight-http")]
-#[derive(Debug)]
-pub struct StartRecommendedError {
-    /// Type of error.
-    pub(crate) kind: StartRecommendedErrorType,
-    /// Source error if available.
-    pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-#[cfg(feature = "twilight-http")]
-impl Display for StartRecommendedError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self.kind {
-            StartRecommendedErrorType::Deserializing => {
-                f.write_str("payload isn't a recognized type")
-            }
-            StartRecommendedErrorType::Request => f.write_str("request failed to complete"),
-        }
-    }
-}
-
-#[cfg(feature = "twilight-http")]
-impl Error for StartRecommendedError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`StartRecommendedError`] that occurred.
-#[cfg(feature = "twilight-http")]
-#[derive(Debug)]
-pub enum StartRecommendedErrorType {
-    /// Received gateway event failed to be deserialized.
-    ///
-    /// The message payload is likely an unrecognized type that is not yet
-    /// supported.
-    Deserializing,
-    /// Requesting recommended shards from Discord's REST API failed.
-    ///
-    /// May be due to something such as a network or authentication issue.
-    Request,
-}
-
 /// Stream selecting the next gateway event from a collection of shards.
 ///
-/// # Examples
-///
-/// Create the recommended number of shards and stream over their events:
-///
-/// ```no_run
-/// use futures::StreamExt;
-/// use std::{env, sync::Arc};
-/// use twilight_gateway::{
-///     queue::LocalQueue,
-///     stream::{self, ShardEventStream},
-///     Config, Intents,
-/// };
-/// use twilight_http::Client;
-///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let token = env::var("DISCORD_TOKEN")?;
-/// let client = Client::new(token.clone());
-///
-/// let queue = Arc::new(LocalQueue::new());
-/// // callback to create a config for each shard, useful for when not all shards
-/// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| {
-///     Config::builder(token.clone(), Intents::GUILDS)
-///         .queue(queue.clone())
-///         .build()
-/// };
-///
-/// let mut shards = stream::create_recommended(&client, config_callback)
-///     .await?
-///     .collect::<Vec<_>>();
-///
-/// let mut stream = ShardEventStream::new(shards.iter_mut());
-///
-/// while let Some((shard, event)) = stream.next().await {
-///     let event = match event {
-///         Ok(event) => event,
-///         Err(source) => {
-///             tracing::warn!(?source, "error receiving event");
-///
-///             if source.is_fatal() {
-///                 break;
-///             }
-///
-///             continue;
-///         }
-///     };
-///
-///     tracing::debug!(?event, shard = ?shard.id(), "received event");
-/// }
-/// # Ok(()) }
-/// ```
+/// See the crate root documentation for examples.
 pub struct ShardEventStream<'a> {
     /// Set of futures resolving to the next event of each shard.
     futures: FutureList<'a, Event>,
@@ -218,58 +102,7 @@ impl<'a> Stream for ShardEventStream<'a> {
 
 /// Stream selecting the next websocket message from a collection of shards.
 ///
-/// # Examples
-///
-/// Create the recommended number of shards and stream over their messages:
-///
-/// ```no_run
-/// use futures::StreamExt;
-/// use std::{env, sync::Arc};
-/// use twilight_gateway::{
-///     queue::LocalQueue,
-///     stream::{self, ShardMessageStream},
-///     Config, Intents,
-/// };
-/// use twilight_http::Client;
-///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let token = env::var("DISCORD_TOKEN")?;
-/// let client = Client::new(token.clone());
-///
-/// let queue = Arc::new(LocalQueue::new());
-/// // callback to create a config for each shard, useful for when not all shards
-/// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| {
-///     Config::builder(token.clone(), Intents::GUILDS)
-///         .queue(queue.clone())
-///         .build()
-/// };
-///
-/// let mut shards = stream::create_recommended(&client, config_callback)
-///     .await?
-///     .collect::<Vec<_>>();
-///
-/// let mut stream = ShardMessageStream::new(shards.iter_mut());
-///
-/// while let Some((shard, event)) = stream.next().await {
-///     let message = match event {
-///         Ok(message) => message,
-///         Err(source) => {
-///             tracing::warn!(?source, "error receiving message");
-///
-///             if source.is_fatal() {
-///                 break;
-///             }
-///
-///             continue;
-///         }
-///     };
-///
-///     tracing::debug!(?message, shard = ?shard.id(), "received message");
-/// }
-/// # Ok(()) }
-/// ```
+/// See the crate root documentation for examples.
 pub struct ShardMessageStream<'a> {
     /// Set of futures resolving to the next message of each shard.
     futures: FutureList<'a, Message>,
@@ -369,192 +202,6 @@ struct NextItemOutput<'a, Item> {
     result: Result<Item, ReceiveMessageError>,
     /// Shard that produced the result.
     shard: &'a mut Shard,
-}
-
-/// Create a single bucket's worth of shards with provided configuration for
-/// each shard.
-///
-/// # Examples
-///
-/// Start bucket 2 out of 10 with 100 shards in total and collect them into a
-/// list:
-///
-/// ```no_run
-/// use std::{env, sync::Arc};
-/// use twilight_gateway::{queue::LocalQueue, stream, Config, Intents};
-///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let token = env::var("DISCORD_TOKEN")?;
-///
-/// let queue = Arc::new(LocalQueue::new());
-/// // callback to create a config for each shard, useful for when not all shards
-/// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| {
-///     Config::builder(token.clone(), Intents::GUILDS)
-///         .queue(queue.clone())
-///         .build()
-/// };
-///
-/// let shards = stream::create_bucket(2, 10, 100, config_callback)
-///     .map(|shard| (shard.id().number(), shard))
-///     .collect::<Vec<_>>();
-///
-/// assert_eq!(shards.len(), 10);
-/// # Ok(()) }
-/// ```
-///
-/// # Panics
-///
-/// Panics if `bucket_id >= total` or if `concurrency >= total`.
-///
-/// Panics if `concurrency` doesn't fit into a usize.
-///
-/// Panics if loading TLS certificates fails.
-#[track_caller]
-pub fn create_bucket<F: Fn(ShardId) -> Config>(
-    bucket_id: u64,
-    concurrency: u64,
-    total: u64,
-    per_shard_config: F,
-) -> impl Iterator<Item = Shard> {
-    assert!(bucket_id < total, "bucket id must be less than the total");
-    assert!(
-        concurrency < total,
-        "concurrency must be less than the total"
-    );
-
-    let concurrency = concurrency.try_into().unwrap();
-    let tls = TlsContainer::new().unwrap();
-
-    (bucket_id..total).step_by(concurrency).map(move |index| {
-        let id = ShardId::new(index, total);
-        let mut config = per_shard_config(id);
-        config.set_tls(tls.clone());
-
-        Shard::with_config(id, config)
-    })
-}
-
-/// Create a range of shards with provided configuration for each shard.
-///
-/// # Examples
-///
-/// Start 10 out of 10 shards and collect them into a map:
-///
-/// ```no_run
-/// use std::{collections::HashMap, env, sync::Arc};
-/// use twilight_gateway::{queue::LocalQueue, stream, Config, Intents};
-///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let token = env::var("DISCORD_TOKEN")?;
-///
-/// let queue = Arc::new(LocalQueue::new());
-/// // callback to create a config for each shard, useful for when not all shards
-/// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| {
-///     Config::builder(token.clone(), Intents::GUILDS)
-///         .queue(queue.clone())
-///         .build()
-/// };
-///
-/// let shards = stream::create_range(0..10, 10, config_callback)
-///     .map(|shard| (shard.id().number(), shard))
-///     .collect::<HashMap<_, _>>();
-///
-/// assert_eq!(shards.len(), 10);
-/// # Ok(()) }
-/// ```
-///
-/// # Panics
-///
-/// Panics if `start >= total` or if `end > total`, where `start` and `end`
-/// refer to `range`'s start and end.
-///
-/// Panics if loading TLS certificates fails.
-#[track_caller]
-pub fn create_range<F: Fn(ShardId) -> Config>(
-    range: impl RangeBounds<u64>,
-    total: u64,
-    per_shard_config: F,
-) -> impl Iterator<Item = Shard> {
-    let range = calculate_range(range, total);
-    let tls = TlsContainer::new().unwrap();
-
-    range.map(move |index| {
-        let id = ShardId::new(index, total);
-        let mut config = per_shard_config(id);
-        config.set_tls(tls.clone());
-
-        Shard::with_config(id, config)
-    })
-}
-
-/// Create a range of shards from Discord's recommendation with configuration
-/// for each shard.
-///
-/// Internally calls [`create_range`] with the values from [`GetGatewayAuthed`].
-///
-/// # Errors
-///
-/// Returns a [`StartRecommendedErrorType::Deserializing`] error type if the
-/// response body failed to deserialize.
-///
-/// Returns a [`StartRecommendedErrorType::Request`] error type if the request
-/// failed to complete.
-///
-/// # Panics
-///
-/// Panics if loading TLS certificates fails.
-///
-/// [`GetGatewayAuthed`]: twilight_http::request::GetGatewayAuthed
-#[cfg(feature = "twilight-http")]
-pub async fn create_recommended<F: Fn(ShardId) -> Config>(
-    client: &Client,
-    per_shard_config: F,
-) -> Result<impl Iterator<Item = Shard>, StartRecommendedError> {
-    let request = client.gateway().authed();
-    let response = request.await.map_err(|source| StartRecommendedError {
-        kind: StartRecommendedErrorType::Request,
-        source: Some(Box::new(source)),
-    })?;
-    let info = response
-        .model()
-        .await
-        .map_err(|source| StartRecommendedError {
-            kind: StartRecommendedErrorType::Deserializing,
-            source: Some(Box::new(source)),
-        })?;
-
-    Ok(create_range(.., info.shards, per_shard_config))
-}
-
-/// Transform any range into a sized range based on the total.
-///
-/// # Panics
-///
-/// Panics if `start >= total` or if `end > total`, where `start` and `end`
-/// refer to `range`'s start and end.
-fn calculate_range(range: impl RangeBounds<u64>, total: u64) -> Range<u64> {
-    // 0, or the provided start bound (inclusive).
-    let start = match range.start_bound() {
-        Bound::Excluded(from) => *from + 1,
-        Bound::Included(from) => *from,
-        Bound::Unbounded => 0,
-    };
-
-    // Total, or the provided end bound (exclusive).
-    let end = match range.end_bound() {
-        Bound::Excluded(to) => *to,
-        Bound::Included(to) => *to + 1,
-        Bound::Unbounded => total,
-    };
-
-    assert!(start < total, "range start must be less than the total");
-    assert!(end <= total, "range end must be less than the total");
-
-    start..end
 }
 
 #[cfg(test)]

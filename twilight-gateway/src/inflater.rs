@@ -92,9 +92,9 @@ fn is_incomplete_message(message: &[u8]) -> bool {
 ///
 /// Calculate the percentage bytes saved:
 /// ```
-/// # use twilight_gateway::{Intents, Shard, ShardId};
+/// # use twilight_gateway::{Config, Intents, Shard, ShardId};
 /// # #[tokio::main] async fn main() {
-/// # let shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
+/// # let shard = Shard::new(ShardId::ONE, Config::new(String::new(), Intents::empty()));
 /// let inflater = shard.inflater();
 /// let total_percentage_compressed =
 ///     inflater.processed() as f64 * 100.0 / inflater.produced() as f64;

@@ -11,8 +11,6 @@ connection to Discord's gateway. Much of its functionality can be configured, an
 it's used to receive deserialized gateway event payloads or raw Websocket
 messages, useful for load balancing and microservices.
 
-Using the `stream` module, shards can be easily managed in groups.
-
 ## Features
 
 * `simd-json`: use [`simd-json`] instead of [`serde_json`] for deserializing
@@ -23,18 +21,17 @@ Using the `stream` module, shards can be easily managed in groups.
   * `rustls-native-roots` (*default*): [`rustls`] using native root certificates
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
-* `twilight-http` (*default*): enable the `stream::create_recommended` function
 * Zlib (mutually exclusive)
   * `zlib-stock` (*default*): [`flate2`]'s stock zlib implementation
   * `zlib-ng`: use [`zlib-ng`] for zlib, may have better performance
 
 ## Examples
 
-Start a shard and loop over guild and voice state events:
+Run a shard and loop over guild and voice state events:
 
 ```rust,no_run
 use std::env;
-use twilight_gateway::{Intents, Shard, ShardId};
+use twilight_gateway::{Config, Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -42,10 +39,10 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
-    let intents = Intents::GUILDS | Intents::GUILD_VOICE_STATES;
 
     // Initialize the first and only shard in use by a bot.
-    let mut shard = Shard::new(ShardId::ONE, token, intents);
+    let config = Config::new(token, Intents::GUILDS | Intents::GUILD_VOICE_STATES);
+    let mut shard = Shard::new(ShardId::ONE, config);
 
     tracing::info!("started shard");
 
@@ -73,16 +70,13 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-Create the recommended number of shards and stream over their events:
+Run the recommended number of shards, reusing the config to share the queue and
+TLS context, and loop over their events through the `stream` module:
 
 ```rust,no_run
 use futures::StreamExt;
-use std::{collections::HashMap, env, sync::Arc};
-use twilight_gateway::{
-    queue::LocalQueue,
-    stream::{self, ShardEventStream},
-    Config, Intents,
-};
+use std::env;
+use twilight_gateway::{stream::ShardEventStream, Config, Intents, Shard, ShardId};
 use twilight_http::Client;
 
 #[tokio::main]
@@ -92,19 +86,13 @@ async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
 
-    let queue = Arc::new(LocalQueue::new());
-    // Callback to create a config for each shard, useful for when not all shards
-    // have the same configuration, such as for per-shard presences.
-    let config_callback = |_| {
-        Config::builder(token.clone(), Intents::GUILDS)
-            .queue(queue.clone())
-            .build()
-    };
-
-    let mut shards = stream::create_recommended(&client, config_callback)
-        .await?
+    let config = Config::new(token, Intents::GUILDS);
+    let recommended_shards = client.gateway().authed().await?.model().await?.shards;
+    let mut shards = (0..recommended_shards)
+        .map(|id| Shard::new(ShardId::new(id, recommended_shards), config.clone()))
         .collect::<Vec<_>>();
 
+    // Create an infinite stream over the shard's events.
     let mut stream = ShardEventStream::new(shards.iter_mut());
 
     while let Some((shard, event)) = stream.next().await {

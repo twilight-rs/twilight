@@ -48,7 +48,7 @@ in from a channel:
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_gateway::{Config, Event, Intents, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 
 #[tokio::main]
@@ -58,9 +58,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Specify intents requesting events about things like new and updated
     // messages in a guild and direct messages.
     let intents = Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES | Intents::MESSAGE_CONTENT;
-
+    let config = Config::new(token.clone(), intents);
     // Create a single shard.
-    let mut shard = Shard::new(ShardId::ONE, token.clone(), intents);
+    let mut shard = Shard::new(ShardId::ONE, config);
 
     // The http client is separate from the gateway, so startup a new
     // one, also use Arc such that it can be cloned to other threads.

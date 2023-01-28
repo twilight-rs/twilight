@@ -5,13 +5,9 @@
 //! [`ShardMessageStream`]: twilight_gateway::stream::ShardMessageStream
 
 use futures_util::{future::join_all, StreamExt};
-use std::{env, iter, sync::Arc, thread};
+use std::{env, iter, thread};
 use tokio::{signal, sync::watch, task::JoinSet};
-use twilight_gateway::{
-    queue::LocalQueue,
-    stream::{self, ShardEventStream},
-    CloseFrame, Config, Intents, Shard,
-};
+use twilight_gateway::{stream::ShardEventStream, CloseFrame, Config, Intents, Shard, ShardId};
 use twilight_http::Client;
 
 #[tokio::main]
@@ -21,28 +17,23 @@ async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
 
-    let queue = Arc::new(LocalQueue::new());
-    // callback to create a config for each shard, useful for when not all
-    // shards have the same configuration, such as for per-shard presences
-    let config_callback = |_| {
-        Config::builder(token.clone(), Intents::GUILDS)
-            .queue(queue.clone())
-            .build()
+    let config = Config::new(token, Intents::GUILDS);
+    let recommended_shards = client.gateway().authed().await?.model().await?.shards;
+    let shards = {
+        let tasks = thread::available_parallelism()?.get();
+
+        // Split shards into a vec of `tasks` vecs of shards.
+        let init = iter::repeat_with(Vec::new)
+            .take(tasks)
+            .collect::<Vec<Vec<_>>>();
+        (0..recommended_shards)
+            .map(|id| Shard::new(ShardId::new(id, recommended_shards), config.clone()))
+            .enumerate()
+            .fold(init, |mut fold, (idx, shard)| {
+                fold[idx % tasks].push(shard);
+                fold
+            })
     };
-
-    let tasks = thread::available_parallelism()?.get();
-
-    // Split shards into a vec of `tasks` vecs of shards.
-    let init = iter::repeat_with(Vec::new)
-        .take(tasks)
-        .collect::<Vec<Vec<_>>>();
-    let shards = stream::create_recommended(&client, config_callback)
-        .await?
-        .enumerate()
-        .fold(init, |mut fold, (idx, shard)| {
-            fold[idx % tasks].push(shard);
-            fold
-        });
 
     let (tx, rx) = watch::channel(false);
 

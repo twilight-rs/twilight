@@ -1,5 +1,5 @@
 use std::env;
-use twilight_gateway::{Intents, Shard, ShardId};
+use twilight_gateway::{Config, Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -7,7 +7,8 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-    let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents);
+    let config = Config::new(env::var("DISCORD_TOKEN")?, intents);
+    let mut shard = Shard::new(ShardId::ONE, config);
 
     loop {
         let event = match shard.next_event().await {

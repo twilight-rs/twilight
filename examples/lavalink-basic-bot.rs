@@ -3,7 +3,7 @@ use hyper::{
     Body, Request,
 };
 use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
-use twilight_gateway::{Event, Intents, MessageSender, Shard, ShardId};
+use twilight_gateway::{Config, Event, Intents, MessageSender, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
     http::LoadedTracks,
@@ -54,7 +54,8 @@ async fn main() -> anyhow::Result<()> {
 
         let intents =
             Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES | Intents::MESSAGE_CONTENT;
-        let shard = Shard::new(ShardId::ONE, token, intents);
+        let config = Config::new(token, intents);
+        let shard = Shard::new(ShardId::ONE, config);
         let sender = shard.sender();
 
         (

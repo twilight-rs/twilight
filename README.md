@@ -121,7 +121,7 @@ bot's token. You must also depend on `futures`, `tokio`,
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
-use twilight_gateway::{Event, Shard, ShardId};
+use twilight_gateway::{Config, Event, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::Intents;
 
@@ -133,11 +133,8 @@ async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
 
     // Use intents to only receive guild message events.
-    let mut shard = Shard::new(
-        ShardId::ONE,
-        token.clone(),
-        Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT,
-    );
+    let config = Config::new(token, Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT);
+    let mut shard = Shard::new(ShardId::ONE, config);
 
     // HTTP is separate from the gateway, so create a new client.
     let http = Arc::new(HttpClient::new(token));

@@ -267,14 +267,6 @@ impl Config {
         &self.token.inner
     }
 
-    /// Set the TLS container for the configuration.
-    ///
-    /// This is necessary for sharing a TLS container across configurations.
-    #[allow(clippy::missing_const_for_fn)]
-    pub(crate) fn set_tls(&mut self, tls: TlsContainer) {
-        self.tls = tls;
-    }
-
     /// Session information to resume a shard on initialization.
     pub(crate) fn take_session(&mut self) -> Option<Session> {
         self.session.take()
@@ -450,7 +442,7 @@ impl ConfigBuilder {
     ///     )?)
     ///     .build();
     ///
-    /// let shard = Shard::with_config(ShardId::ONE, config);
+    /// let shard = Shard::new(ShardId::ONE, config);
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]

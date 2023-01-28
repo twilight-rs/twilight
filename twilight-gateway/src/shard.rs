@@ -99,7 +99,7 @@ use twilight_model::gateway::{
             Heartbeat, Identify, Resume,
         },
     },
-    CloseCode, CloseFrame, Intents, OpCode,
+    CloseCode, CloseFrame, OpCode,
 };
 
 /// Who initiated the closing of the websocket connection.
@@ -257,8 +257,10 @@ struct MinimalReady {
 ///
 /// # Sharding
 ///
-/// Bots in more than 2500 guilds must run multiple shards with different
-/// [`ShardId`]s, which is easiest done by using items in the [`stream`] module.
+/// A shard may not be connected to more than 2500 guilds, so large bots must
+/// split themselves across multiple shards. See the
+/// [Discord Docs/Sharding][docs:shards], [`ShardId`], and [`stream`]
+/// documentation for more info.
 ///
 /// # Sending shard commands in different tasks
 ///
@@ -266,54 +268,7 @@ struct MinimalReady {
 /// directly send [gateway commands] over a shard. To solve this
 /// [`Shard::sender`] can be used to receive an MPSC channel to send commands.
 ///
-/// # Examples
-///
-/// Create and start a shard and print new and deleted messages:
-///
-/// ```no_run
-/// use std::env;
-/// use twilight_gateway::{Config, Event, EventTypeFlags, Intents, Shard, ShardId};
-///
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
-/// // token. Of course, this value may be passed into the program however is
-/// // preferred.
-/// let token = env::var("DISCORD_TOKEN")?;
-/// let event_types = EventTypeFlags::MESSAGE_CREATE | EventTypeFlags::MESSAGE_DELETE;
-///
-/// let config = Config::builder(token, Intents::GUILD_MESSAGES)
-///     .event_types(event_types)
-///     .build();
-/// let mut shard = Shard::with_config(ShardId::ONE, config);
-///
-/// // Create a loop of only new messages and deleted messages.
-///
-/// loop {
-///     let event = match shard.next_event().await {
-///         Ok(event) => event,
-///         Err(source) => {
-///             tracing::warn!(?source, "error receiving event");
-///
-///             if source.is_fatal() {
-///                 break;
-///             }
-///
-///             continue;
-///         }
-///     };
-///
-///     match event {
-///         Event::MessageCreate(message) => {
-///             println!("message received with content: {}", message.content);
-///         }
-///         Event::MessageDelete(message) => {
-///             println!("message with ID {} deleted", message.id);
-///         }
-///         _ => {}
-///     }
-/// }
-/// # Ok(()) }
-/// ```
+/// See the crate root documentation for examples.
 ///
 /// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
 /// [gateway commands]: Shard::command
@@ -326,7 +281,7 @@ pub struct Shard {
     /// User provided configuration.
     ///
     /// Configurations are provided or created in shard initializing via
-    /// [`Shard::new`] or [`Shard::with_config`].
+    /// [`Shard::new`].
     config: Config,
     /// Websocket connection, which may be connected to Discord's gateway.
     ///
@@ -376,15 +331,8 @@ pub struct Shard {
 }
 
 impl Shard {
-    /// Create a new shard with the default configuration.
-    pub fn new(id: ShardId, token: String, intents: Intents) -> Self {
-        let config = Config::builder(token, intents).build();
-
-        Self::with_config(id, config)
-    }
-
     /// Create a new shard with the provided configuration.
-    pub fn with_config(shard_id: ShardId, mut config: Config) -> Self {
+    pub fn new(shard_id: ShardId, mut config: Config) -> Self {
         let session = config.take_session();
 
         Self {
@@ -704,13 +652,13 @@ impl Shard {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
-    /// use twilight_gateway::{ConnectionStatus, Intents, Shard, ShardId};
+    /// use twilight_gateway::{Config, ConnectionStatus, Intents, Shard, ShardId};
     /// use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
     ///
-    /// let intents = Intents::GUILD_VOICE_STATES;
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let mut shard = Shard::new(ShardId::ONE, token, intents);
+    /// let config = Config::new(token, Intents::GUILD_VOICE_STATES);
+    /// let mut shard = Shard::new(ShardId::ONE, config);
     ///
     /// // Discord only allows sending the `RequestGuildMembers` command after
     /// // the shard is identified.
@@ -822,9 +770,9 @@ impl Shard {
     /// Close the gateway connection but process already received messages:
     ///
     /// ```no_run
-    /// # use twilight_gateway::{Intents, Shard, ShardId};
+    /// # use twilight_gateway::{Config, Intents, Shard, ShardId};
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
+    /// # let mut shard = Shard::new(ShardId::ONE, Config::new(String::new(), Intents::empty()));
     /// use twilight_gateway::{error::ReceiveMessageErrorType, CloseFrame, Message};
     ///
     /// shard.close(CloseFrame::NORMAL).await?;

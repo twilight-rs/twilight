@@ -13,11 +13,12 @@ Process new messages that come over a shard into the cache:
 # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 use std::env;
 use twilight_cache_inmemory::InMemoryCache;
-use twilight_gateway::{Intents, Shard, ShardId};
+use twilight_gateway::{Config, Intents, Shard, ShardId};
 
 let token = env::var("DISCORD_TOKEN")?;
 
-let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILD_MESSAGES);
+let config = Config::new(token, Intents::GUILD_MESSAGES);
+let mut shard = Shard::new(ShardId::ONE, config);
 
 let cache = InMemoryCache::new();
 
