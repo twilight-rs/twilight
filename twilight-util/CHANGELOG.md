@@ -6,6 +6,12 @@
 
 - [**breaking**] clean up `AllowedMentions` ([#1869](https://github.com/twilight-rs/twilight/issues/1869))
 
+## [0.14.2] - 2023-01-20
+
+### Features
+
+- add role subscriptions ([#2034](https://github.com/twilight-rs/twilight/issues/2034))
+
 ## [0.14.1] - 2023-01-07
 
 ### Features

@@ -254,6 +254,8 @@ pub enum Path {
     InvitesCode,
     /// Operating on the user's application information.
     OauthApplicationsMe,
+    /// Operating on the current authorization's information.
+    OauthMe,
     /// Operating on stage instances.
     StageInstances,
     /// Operating on sticker packs.
@@ -428,6 +430,7 @@ impl FromStr for Path {
             ["sticker-packs"] => StickerPacks,
             ["stickers", _] => Stickers,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
+            ["oauth2", "@me"] => OauthMe,
             ["users", _] => UsersId,
             ["users", _, "connections"] => UsersIdConnections,
             ["users", _, "channels"] => UsersIdChannels,

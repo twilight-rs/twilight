@@ -9,6 +9,7 @@ pub mod user;
 
 mod audit_reason;
 mod base;
+mod get_current_authorization_information;
 mod get_gateway;
 mod get_gateway_authed;
 mod get_user_application;
@@ -19,6 +20,7 @@ mod try_into_request;
 pub use self::{
     audit_reason::AuditLogReason,
     base::{Request, RequestBuilder},
+    get_current_authorization_information::GetCurrentAuthorizationInformation,
     get_gateway::GetGateway,
     get_gateway_authed::GetGatewayAuthed,
     get_user_application::GetUserApplicationInfo,
