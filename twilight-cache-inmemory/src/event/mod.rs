@@ -14,7 +14,7 @@ pub mod thread;
 pub mod voice_state;
 
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
-use std::{borrow::Cow, collections::BTreeSet};
+use std::{borrow::Cow, collections::HashSet};
 use twilight_model::{
     gateway::payload::incoming::{Ready, UnavailableGuild, UserUpdate},
     id::{marker::GuildMarker, Id},
@@ -49,7 +49,7 @@ impl InMemoryCache {
         self.users.insert(user_id, user);
 
         if let Some(guild_id) = guild_id {
-            let mut guild_id_set = BTreeSet::new();
+            let mut guild_id_set = HashSet::new();
             guild_id_set.insert(guild_id);
             self.user_guilds.insert(user_id, guild_id_set);
         }
