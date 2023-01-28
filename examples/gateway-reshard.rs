@@ -9,10 +9,10 @@ use twilight_http::Client;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
+
     let client = Arc::new(Client::new(token.clone()));
 
     let config = Config::new(token, Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT);

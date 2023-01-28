@@ -5,6 +5,7 @@ name = "book"
 version = "0.0.0"
 
 [dependencies]
+anyhow = { default-features = false, features = ["std"], version = "1.0.50" }
 futures = { version = "0.3", default-features = false }
 skeptic = "0.13.5"
 twilight-gateway = { path = "../../twilight-gateway" }

@@ -33,16 +33,16 @@ Refer to the `permission` module for more documentation.
 Update a cache with events that come in through the gateway:
 
 ```rust,no_run
-use std::{env, error::Error};
+use std::env;
 use twilight_cache_inmemory::InMemoryCache;
 use twilight_gateway::{Config, Intents, Shard, ShardId};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    // Initialize the tracing subscriber.
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
+
     let config = Config::new(token, Intents::GUILD_MESSAGES);
     let mut shard = Shard::new(ShardId::ONE, config);
 

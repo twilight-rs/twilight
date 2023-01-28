@@ -21,8 +21,8 @@ type State = Arc<StateRef>;
 #[derive(Debug)]
 struct StateRef {
     http: HttpClient,
-    lavalink: Lavalink,
     hyper: HyperClient<HttpConnector>,
+    lavalink: Lavalink,
     sender: MessageSender,
     standby: Standby,
 }
@@ -37,38 +37,29 @@ fn spawn(fut: impl Future<Output = anyhow::Result<()>> + Send + 'static) {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let (mut shard, state) = {
-        let token = env::var("DISCORD_TOKEN")?;
-        let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
-        let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
-        let shard_count = 1u64;
+    let token = env::var("DISCORD_TOKEN")?;
 
-        let http = HttpClient::new(token.clone());
-        let user_id = http.current_user().await?.model().await?.id;
+    let http = HttpClient::new(token.clone());
 
-        let lavalink = Lavalink::new(user_id, shard_count);
-        lavalink.add(lavalink_host, lavalink_auth).await?;
+    let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES | Intents::MESSAGE_CONTENT;
+    let config = Config::new(token, intents);
+    let mut shard = Shard::new(ShardId::ONE, config);
 
-        let intents =
-            Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES | Intents::MESSAGE_CONTENT;
-        let config = Config::new(token, intents);
-        let shard = Shard::new(ShardId::ONE, config);
-        let sender = shard.sender();
+    let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
+    let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
+    let user_id = http.current_user().await?.model().await?.id;
+    let lavalink = Lavalink::new(user_id, 1);
+    lavalink.add(lavalink_host, lavalink_auth).await?;
 
-        (
-            shard,
-            Arc::new(StateRef {
-                http,
-                lavalink,
-                hyper: HyperClient::new(),
-                sender,
-                standby: Standby::new(),
-            }),
-        )
-    };
+    let state = Arc::new(StateRef {
+        http,
+        lavalink,
+        hyper: HyperClient::new(),
+        sender: shard.sender(),
+        standby: Standby::new(),
+    });
 
     loop {
         let event = match shard.next_event().await {

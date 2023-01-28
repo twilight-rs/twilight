@@ -4,7 +4,6 @@ use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;

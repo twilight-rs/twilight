@@ -78,6 +78,8 @@ use twilight_standby::Standby;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
+
     let token = env::var("DISCORD_TOKEN")?;
 
     let config = Config::new(token, Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS);

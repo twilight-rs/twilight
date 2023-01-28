@@ -10,7 +10,7 @@ Process new messages that come over a shard into the cache:
 
 ```rust,no_run
 # #[tokio::main]
-# async fn main() -> Result<(), Box<dyn std::error::Error>> {
+# async fn main() -> anyhow::Result<()> {
 use std::env;
 use twilight_cache_inmemory::InMemoryCache;
 use twilight_gateway::{Config, Intents, Shard, ShardId};

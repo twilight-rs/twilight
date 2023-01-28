@@ -119,25 +119,24 @@ bot's token. You must also depend on `futures`, `tokio`,
 `twilight-model` in your `Cargo.toml`.
 
 ```rust,no_run
-use std::{env, error::Error, sync::Arc};
+use std::{env, sync::Arc};
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Config, Event, Shard, ShardId};
-use twilight_http::Client as HttpClient;
+use twilight_http::Client;
 use twilight_model::gateway::Intents;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
 
+    // HTTP is separate from the gateway, so create a new client.
+    let client = Arc::new(Client::new(token.clone()));
+
     // Use intents to only receive guild message events.
     let config = Config::new(token, Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT);
     let mut shard = Shard::new(ShardId::ONE, config);
-
-    // HTTP is separate from the gateway, so create a new client.
-    let http = Arc::new(HttpClient::new(token));
 
     // Since we only care about new messages, make the cache only
     // cache new messages.
@@ -163,19 +162,16 @@ async fn main() -> anyhow::Result<()> {
         // Update the cache with the event.
         cache.update(&event);
 
-        tokio::spawn(handle_event(event, Arc::clone(&http)));
+        tokio::spawn(handle_event(event, Arc::clone(&client)));
     }
 
     Ok(())
 }
 
-async fn handle_event(
-    event: Event,
-    http: Arc<HttpClient>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn handle_event(event: Event, client: Arc<Client>) -> anyhow::Result<()> {
     match event {
         Event::MessageCreate(msg) if msg.content == "!ping" => {
-            http.create_message(msg.channel_id)
+            client.create_message(msg.channel_id)
                 .content("Pong!")?
                 .await?;
         }

@@ -35,7 +35,6 @@ use twilight_gateway::{Config, Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
@@ -84,6 +83,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
+
     let client = Client::new(token.clone());
 
     let config = Config::new(token, Intents::GUILDS);

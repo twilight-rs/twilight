@@ -88,18 +88,17 @@ the dependency tree it will make use of that instead of [zlib-ng].
 Starting a `Shard` and printing the contents of new messages as they come in:
 
 ```rust,no_run
-use std::{env, error::Error};
+use std::env;
 use twilight_gateway::{Config, Intents, Shard, ShardId};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    // Initialize the tracing subscriber.
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
+
     let config = Config::new(token, Intents::GUILD_MESSAGES);
     let mut shard = Shard::new(ShardId::ONE, config);
-    tracing::info!("created shard");
 
     loop {
         let event = match shard.next_event().await {

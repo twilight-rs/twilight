@@ -46,25 +46,27 @@ Below is a quick example of a program printing "Pong!" when a ping command comes
 in from a channel:
 
 ```rust,no_run
-use std::{env, error::Error, sync::Arc};
+use std::{env, sync::Arc};
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Config, Event, Intents, Shard, ShardId};
-use twilight_http::Client as HttpClient;
+use twilight_http::Client;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
+
     let token = env::var("DISCORD_TOKEN")?;
+
+    // HTTP is separate from the gateway, so create a new client, also use an
+    // Arc such that it can be shared between threads.
+    let client = Arc::new(Client::new(token.clone()));
 
     // Specify intents requesting events about things like new and updated
     // messages in a guild and direct messages.
     let intents = Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES | Intents::MESSAGE_CONTENT;
-    let config = Config::new(token.clone(), intents);
+    let config = Config::new(token, intents);
     // Create a single shard.
     let mut shard = Shard::new(ShardId::ONE, config);
-
-    // The http client is separate from the gateway, so startup a new
-    // one, also use Arc such that it can be cloned to other threads.
-    let http = Arc::new(HttpClient::new(token));
 
     // Since we only care about messages, make the cache only process messages.
     let cache = InMemoryCache::builder()
@@ -90,19 +92,16 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cache.update(&event);
 
         // Spawn a new task to handle the event
-        tokio::spawn(handle_event(event, Arc::clone(&http)));
+        tokio::spawn(handle_event(event, Arc::clone(&client)));
     }
 
     Ok(())
 }
 
-async fn handle_event(
-    event: Event,
-    http: Arc<HttpClient>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn handle_event(event: Event, client: Arc<Client>) -> anyhow::Result<()> {
     match event {
         Event::MessageCreate(msg) if msg.content == "!ping" => {
-            http.create_message(msg.channel_id).content("Pong!")?.await?;
+            client.create_message(msg.channel_id).content("Pong!")?.await?;
         }
         Event::Ready(_) => {
             println!("Shard is ready");

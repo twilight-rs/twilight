@@ -42,31 +42,27 @@ Create a [client], add a [node], and give events to the client to [process]
 events:
 
 ```rust,no_run
-use std::{
-    env,
-    error::Error,
-    net::SocketAddr,
-    str::FromStr,
-};
+use std::{env, net::SocketAddr, str::FromStr};
 use twilight_gateway::{Config, Intents, Shard, ShardId};
-use twilight_http::Client as HttpClient;
+use twilight_http::Client;
 use twilight_lavalink::Lavalink;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
+
     let token = env::var("DISCORD_TOKEN")?;
-    let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
-    let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
-    let shard_count = 1_u64;
 
-    let http = HttpClient::new(token.clone());
-    let user_id = http.current_user().await?.model().await?.id;
-
-    let lavalink = Lavalink::new(user_id, shard_count);
-    lavalink.add(lavalink_host, lavalink_auth).await?;
+    let client = Client::new(token.clone());
 
     let config = Config::new(token, Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES);
     let mut shard = Shard::new(ShardId::ONE, config);
+
+    let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
+    let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
+    let user_id = client.current_user().await?.model().await?.id;
+    let lavalink = Lavalink::new(user_id, 1);
+    lavalink.add(lavalink_host, lavalink_auth).await?;
 
     loop {
         let event = match shard.next_event().await {
