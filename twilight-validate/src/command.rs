@@ -347,11 +347,10 @@ pub fn option_characters(option: &CommandOption) -> usize {
         CommandOptionType::String => {
             if let Some(choices) = option.choices.as_ref() {
                 for choice in choices {
+                    characters +=
+                        longest_localization_characters(&choice.name, &choice.name_localizations);
                     if let CommandOptionChoiceValue::String(str_value) = &choice.value {
-                        characters += longest_localization_characters(
-                            &choice.name,
-                            &choice.name_localizations,
-                        ) + str_value.len();
+                        characters += str_value.len();
                     }
                 }
             }
