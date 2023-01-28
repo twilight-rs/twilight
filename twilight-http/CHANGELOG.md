@@ -1,5 +1,12 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- resolve new clippy lints ([#2091](https://github.com/twilight-rs/twilight/issues/2091))
+- create auto moderation type field name ([#2093](https://github.com/twilight-rs/twilight/issues/2093))
+
 ## [0.14.2] - 2023-01-20
 
 ### Bug Fixes
