@@ -25,10 +25,6 @@ twilight-model = { path = "../twilight-model" }
 twilight-standby = { path = "../twilight-standby" }
 
 [[example]]
-name = "gateway-intents"
-path = "gateway-intents.rs"
-
-[[example]]
 name = "gateway-parallel"
 path = "gateway-parallel.rs"
 
@@ -39,10 +35,6 @@ path = "gateway-reshard.rs"
 [[example]]
 name = "gateway-request-members"
 path = "gateway-request-members.rs"
-
-[[example]]
-name = "gateway-shard"
-path = "gateway-shard.rs"
 
 [[example]]
 name = "http-allowed-mentions"
