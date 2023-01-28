@@ -4,17 +4,18 @@ use futures_util::{
     sink::SinkExt,
     stream::StreamExt,
 };
-use std::time::Duration;
+use std::{io::ErrorKind, time::Duration};
 use tokio::{
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     time::timeout,
 };
-use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::tungstenite::{Error, Message};
 
 pub struct SocketForwarder {
     rx: UnboundedReceiver<Message>,
     pub stream: ShardStream,
     tx: UnboundedSender<Message>,
+    shutdown: bool,
 }
 
 impl SocketForwarder {
@@ -31,6 +32,7 @@ impl SocketForwarder {
                 rx: from_user,
                 stream,
                 tx: to_user,
+                shutdown: false,
             },
             from_forwarder,
             to_forwarder,
@@ -52,6 +54,10 @@ impl SocketForwarder {
                     if let Some(msg) = maybe_msg {
                         tracing::trace!("sending message: {msg}");
 
+                        if msg.is_close() {
+                            self.shutdown = true;
+                        }
+
                         if let Err(source) = self.stream.send(msg).await {
                             tracing::warn!("sending failed: {source}");
 
@@ -62,6 +68,8 @@ impl SocketForwarder {
 
                         let _res = self.stream.close(None).await;
 
+                        self.shutdown = true;
+
                         break;
                     }
                 }
@@ -71,6 +79,11 @@ impl SocketForwarder {
                         if self.tx.send(msg).is_err() {
                             break;
                         }
+                    }
+                    Some(Err(Error::Io(e)))
+                        if e.kind() == ErrorKind::UnexpectedEof && self.shutdown =>
+                    {
+                        break;
                     }
                     Some(Err(source)) => {
                         tracing::warn!("socket errored: {source}");
