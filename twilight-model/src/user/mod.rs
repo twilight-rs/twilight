@@ -3,13 +3,14 @@ mod connection_visibility;
 mod current_user;
 mod current_user_guild;
 mod flags;
+mod locale;
 mod premium_type;
 mod profile;
 
 pub use self::{
     connection::Connection, connection_visibility::ConnectionVisibility, current_user::CurrentUser,
-    current_user_guild::CurrentUserGuild, flags::UserFlags, premium_type::PremiumType,
-    profile::UserProfile,
+    current_user_guild::CurrentUserGuild, flags::UserFlags, locale::Locale,
+    premium_type::PremiumType, profile::UserProfile,
 };
 
 use crate::{
@@ -144,7 +145,7 @@ pub struct User {
     pub flags: Option<UserFlags>,
     pub id: Id<UserMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub locale: Option<String>,
+    pub locale: Option<Locale>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mfa_enabled: Option<bool>,
     #[serde(rename = "username")]
@@ -170,7 +171,7 @@ impl User {
 
 #[cfg(test)]
 mod tests {
-    use super::{DiscriminatorDisplay, PremiumType, User, UserFlags};
+    use super::{DiscriminatorDisplay, Locale, PremiumType, User, UserFlags};
     use crate::{id::Id, test::image_hash};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
@@ -216,7 +217,8 @@ mod tests {
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
-            Token::Str("en-us"),
+            Token::NewtypeStruct { name: "Locale" },
+            Token::Str(Locale::ENGLISH_US.get()),
             Token::Str("mfa_enabled"),
             Token::Some,
             Token::Bool(true),
@@ -267,7 +269,8 @@ mod tests {
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
-            Token::Str("en-us"),
+            Token::NewtypeStruct { name: "Locale" },
+            Token::Str(Locale::ENGLISH_US.get()),
             Token::Str("mfa_enabled"),
             Token::Some,
             Token::Bool(true),
@@ -312,7 +315,7 @@ mod tests {
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             id: Id::new(1),
-            locale: Some("en-us".to_owned()),
+            locale: Some(Locale::ENGLISH_US),
             mfa_enabled: Some(true),
             name: "test".to_owned(),
             premium_type: Some(PremiumType::NITRO),
@@ -342,7 +345,7 @@ mod tests {
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             id: Id::new(1),
-            locale: Some("en-us".to_owned()),
+            locale: Some(Locale::ENGLISH_US),
             mfa_enabled: Some(true),
             name: "test".to_owned(),
             premium_type: Some(PremiumType::NITRO),

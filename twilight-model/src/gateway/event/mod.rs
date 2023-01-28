@@ -446,6 +446,7 @@ impl Error for EventConversionError {}
 
 #[cfg(test)]
 mod tests {
+    #![allow(unused)]
     //! `EVENT_THRESHOLD` is equivalent to 192 bytes. This was decided based on
     //! the size of `Event` at the time of writing. The assertions here are to
     //! ensure that in the case the events themselves grow or shrink past the
@@ -468,7 +469,7 @@ mod tests {
     // requires a variable to be used in a function, so this is a false
     // positive.
     #[allow(dead_code)]
-    const EVENT_THRESHOLD: usize = 184;
+    const EVENT_THRESHOLD: usize = 160;
 
     const_assert!(mem::size_of::<Event>() == EVENT_THRESHOLD);
 

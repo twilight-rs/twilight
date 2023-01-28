@@ -1,4 +1,4 @@
-use super::{DiscriminatorDisplay, PremiumType, UserFlags};
+use super::{DiscriminatorDisplay, Locale, PremiumType, UserFlags};
 use crate::{
     id::{marker::UserMarker, Id},
     util::image_hash::ImageHash,
@@ -45,7 +45,7 @@ pub struct CurrentUser {
     pub id: Id<UserMarker>,
     /// User's chosen language option.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub locale: Option<String>,
+    pub locale: Option<Locale>,
     /// Whether the user has two factor enabled on their account.
     pub mfa_enabled: bool,
     /// User's username, not unique across the platform.
@@ -78,7 +78,7 @@ impl CurrentUser {
 #[cfg(test)]
 mod tests {
     use super::{CurrentUser, PremiumType, UserFlags};
-    use crate::{id::Id, test::image_hash};
+    use crate::{id::Id, test::image_hash, user::Locale};
     use serde_test::Token;
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
@@ -104,7 +104,8 @@ mod tests {
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
-            Token::Str("test locale"),
+            Token::NewtypeStruct { name: "Locale" },
+            Token::Str(Locale::ENGLISH_US.get()),
             Token::Str("mfa_enabled"),
             Token::Bool(true),
             Token::Str("username"),
@@ -154,7 +155,8 @@ mod tests {
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
-            Token::Str("test locale"),
+            Token::NewtypeStruct { name: "Locale" },
+            Token::Str(Locale::ENGLISH_US.get()),
             Token::Str("mfa_enabled"),
             Token::Bool(true),
             Token::Str("username"),
@@ -191,7 +193,7 @@ mod tests {
             premium_type: Some(PremiumType::NITRO_CLASSIC),
             public_flags: Some(UserFlags::STAFF),
             flags: None,
-            locale: Some("test locale".to_owned()),
+            locale: Some(Locale::ENGLISH_US),
         };
 
         // Deserializing a current user with a string discriminator (which
@@ -220,7 +222,7 @@ mod tests {
             premium_type: Some(PremiumType::NITRO_CLASSIC),
             public_flags: Some(UserFlags::STAFF),
             flags: Some(UserFlags::STAFF),
-            locale: Some("test locale".to_owned()),
+            locale: Some(Locale::ENGLISH_US),
         };
 
         // Deserializing a current user with a string discriminator (which

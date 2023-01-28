@@ -155,7 +155,7 @@ mod tests {
             Sticker,
         },
         id::Id,
-        user::{PremiumType, User, UserFlags},
+        user::{Locale, PremiumType, User, UserFlags},
         util::{image_hash::ImageHashParseError, ImageHash},
     };
 
@@ -207,7 +207,7 @@ mod tests {
                 email: Some("address@example.com".to_owned()),
                 flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
                 id: Id::new(1),
-                locale: Some("en-us".to_owned()),
+                locale: Some(Locale::ENGLISH_US),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
                 premium_type: Some(PremiumType::NITRO),

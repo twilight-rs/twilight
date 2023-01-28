@@ -65,6 +65,7 @@ pub use self::{
 
 use self::member::MemberListDeserializer;
 use super::gateway::presence::PresenceListDeserializer;
+use crate::user::Locale;
 use crate::{
     channel::{message::sticker::Sticker, Channel, StageInstance},
     gateway::presence::Presence,
@@ -123,7 +124,7 @@ pub struct Guild {
     pub owner: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
-    pub preferred_locale: String,
+    pub preferred_locale: Locale,
     /// Whether the premium progress bar is enabled in the guild.
     pub premium_progress_bar_enabled: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -876,6 +877,7 @@ mod tests {
     use crate::{
         id::Id,
         test::image_hash,
+        user::Locale,
         util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
@@ -915,7 +917,7 @@ mod tests {
             owner_id: Id::new(5),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
-            preferred_locale: "en-us".to_owned(),
+            preferred_locale: Locale::ENGLISH_US,
             premium_progress_bar_enabled: false,
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::TIER_1,
@@ -1036,7 +1038,8 @@ mod tests {
                 Token::Some,
                 Token::Str("2048"),
                 Token::Str("preferred_locale"),
-                Token::Str("en-us"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::ENGLISH_US.get()),
                 Token::Str("premium_progress_bar_enabled"),
                 Token::Bool(false),
                 Token::Str("premium_subscription_count"),

@@ -14,6 +14,7 @@ use twilight_model::{
         marker::{ApplicationMarker, GuildMarker},
         Id,
     },
+    user::Locale,
 };
 use twilight_validate::command::{
     chat_input_name as validate_chat_input_name, description as validate_description,
@@ -33,12 +34,12 @@ pub struct CreateGuildChatInputCommand<'a> {
     application_id: Id<ApplicationMarker>,
     default_member_permissions: Option<Permissions>,
     description: &'a str,
-    description_localizations: Option<&'a HashMap<String, String>>,
+    description_localizations: Option<&'a HashMap<Locale, String>>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     name: &'a str,
     nsfw: Option<bool>,
-    name_localizations: Option<&'a HashMap<String, String>>,
+    name_localizations: Option<&'a HashMap<Locale, String>>,
     options: Option<&'a [CommandOption]>,
 }
 
@@ -111,7 +112,7 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     /// [`DescriptionInvalid`]: twilight_validate::command::CommandValidationErrorType::DescriptionInvalid
     pub fn description_localizations(
         mut self,
-        localizations: &'a HashMap<String, String>,
+        localizations: &'a HashMap<Locale, String>,
     ) -> Result<Self, CommandValidationError> {
         for description in localizations.values() {
             validate_description(description)?;
@@ -138,7 +139,7 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     /// [`NameCharacterInvalid`]: twilight_validate::command::CommandValidationErrorType::NameCharacterInvalid
     pub fn name_localizations(
         mut self,
-        localizations: &'a HashMap<String, String>,
+        localizations: &'a HashMap<Locale, String>,
     ) -> Result<Self, CommandValidationError> {
         for name in localizations.values() {
             validate_chat_input_name(name)?;

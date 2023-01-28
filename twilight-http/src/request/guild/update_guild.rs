@@ -16,6 +16,7 @@ use twilight_model::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
+    user::Locale,
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason, guild_name as validate_guild_name, ValidationError,
@@ -56,7 +57,7 @@ struct UpdateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     public_updates_channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    preferred_locale: Option<Nullable<&'a str>>,
+    preferred_locale: Option<Nullable<Locale>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     premium_progress_bar_enabled: Option<bool>,
 }
@@ -276,8 +277,8 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the preferred locale for the guild.
     ///
-    /// Defaults to `en-US`. Requires the guild to be `PUBLIC`.
-    pub const fn preferred_locale(mut self, preferred_locale: Option<&'a str>) -> Self {
+    /// Defaults to [`Locale::ENGLISH_US`]. Requires the guild to be `PUBLIC`.
+    pub const fn preferred_locale(mut self, preferred_locale: Option<Locale>) -> Self {
         self.fields.preferred_locale = Some(Nullable(preferred_locale));
 
         self

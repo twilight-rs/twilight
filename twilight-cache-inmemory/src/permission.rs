@@ -667,6 +667,7 @@ mod tests {
             marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
             Id,
         },
+        user::Locale,
         util::Timestamp,
     };
 
@@ -731,7 +732,7 @@ mod tests {
             owner: Some(false),
             owner_id: OWNER_ID,
             permissions: None,
-            preferred_locale: "en-GB".to_owned(),
+            preferred_locale: Locale::ENGLISH_UK,
             premium_progress_bar_enabled: false,
             premium_subscription_count: Some(0),
             premium_tier: PremiumTier::NONE,
