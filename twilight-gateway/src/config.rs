@@ -152,7 +152,15 @@ impl Display for ShardId {
 
 /// Configuration used by the shard to identify with the gateway and operate.
 ///
-/// Use [`Config::builder`] to configure a shard's configuration.
+/// Use [`ConfigBuilder`] to configure all settings, easily created through the
+/// [`Config::builder`] or [`ConfigBuilder::with_config`] functions, and turn it
+/// into a config through the [`ConfigBuilder::build`] method.
+///
+/// May be reused by cloning, also reusing the hidden TLS context---reducing
+/// memory usage. The TLS context may still be reused with an otherwise
+/// different config by turning it into to a [`ConfigBuilder`] through the
+/// [`ConfigBuilder::with_config`] function and then rebuilding it into a new
+/// config.
 #[derive(Clone, Debug)]
 pub struct Config {
     /// Event type flags.
