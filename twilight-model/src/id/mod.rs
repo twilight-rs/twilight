@@ -411,7 +411,8 @@ mod tests {
         marker::{
             ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
             CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
-            InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
+            InteractionMarker, MessageMarker, RoleMarker, RoleSubscriptionSkuMarker, StageMarker,
+            UserMarker, WebhookMarker,
         },
         Id,
     };
@@ -440,6 +441,7 @@ mod tests {
     assert_impl_all!(InteractionMarker: Debug, Send, Sync);
     assert_impl_all!(MessageMarker: Debug, Send, Sync);
     assert_impl_all!(RoleMarker: Debug, Send, Sync);
+    assert_impl_all!(RoleSubscriptionSkuMarker: Debug, Send, Sync);
     assert_impl_all!(StageMarker: Debug, Send, Sync);
     assert_impl_all!(UserMarker: Debug, Send, Sync);
     assert_impl_all!(WebhookMarker: Debug, Send, Sync);
@@ -733,6 +735,13 @@ mod tests {
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
+            ],
+        );
+        serde_test::assert_tokens(
+            &Id::<RoleSubscriptionSkuMarker>::new(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_tokens(

@@ -81,7 +81,7 @@ mod tests {
             Message,
         },
         gateway::payload::incoming::InteractionCreate,
-        guild::{PartialMember, Permissions, Role},
+        guild::{MemberFlags, PartialMember, Permissions, Role},
         id::Id,
         user::User,
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
@@ -94,6 +94,7 @@ mod tests {
         // let avatar1 = ImageHash::parse(b"1ef6bca4fddaa303a9cd32dd70fb395d")?;
         let avatar2 = ImageHash::parse(b"3a43231a99f4dfcf0fd94d1d8defd301")?;
         let avatar3 = ImageHash::parse(b"5e23c298295ad37936cfe24ad314774f")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let cache = InMemoryCache::new();
 
@@ -115,6 +116,7 @@ mod tests {
                         InteractionMember {
                             avatar: None,
                             communication_disabled_until: None,
+                            flags,
                             joined_at: timestamp,
                             nick: None,
                             pending: false,
@@ -161,6 +163,7 @@ mod tests {
                                 avatar: None,
                                 communication_disabled_until: None,
                                 deaf: false,
+                                flags,
                                 joined_at: timestamp,
                                 mute: false,
                                 nick: Some("member nick".to_owned()),
@@ -176,6 +179,7 @@ mod tests {
                             pinned: false,
                             reactions: Vec::new(),
                             reference: None,
+                            role_subscription_data: None,
                             sticker_items: vec![MessageSticker {
                                 format_type: StickerFormatType::Png,
                                 id: Id::new(1),
@@ -236,6 +240,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at: timestamp,
                 mute: false,
                 nick: None,

@@ -7,6 +7,20 @@
 - [**breaking**] add `AfkTimeout` for `Guild::afk_timeout` ([#1922](https://github.com/twilight-rs/twilight/issues/1922))
 - [**breaking**] add `Event::GatewayClose` variant ([#2044](https://github.com/twilight-rs/twilight/issues/2044))
 
+## [0.14.3] - 2023-01-28
+
+### Features
+
+- add `Member::flags` ([#2086](https://github.com/twilight-rs/twilight/issues/2086))
+
+## [0.14.2] - 2023-01-20
+
+### Features
+
+- add role subscriptions ([#2034](https://github.com/twilight-rs/twilight/issues/2034))
+- guild public updates channel id ([#2065](https://github.com/twilight-rs/twilight/issues/2065))
+- [**breaking**] support the `GUILD_AUDIT_LOG_ENTRY_CREATE` gateway event ([#2067](https://github.com/twilight-rs/twilight/issues/2067))
+
 ## [0.14.1] - 2023-01-07
 
 ### Bug Fixes

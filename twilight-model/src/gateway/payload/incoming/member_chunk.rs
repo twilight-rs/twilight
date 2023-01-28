@@ -197,7 +197,7 @@ mod tests {
     use super::super::MemberChunk;
     use crate::{
         gateway::presence::{ClientStatus, Presence, Status, UserOrId},
-        guild::Member,
+        guild::{Member, MemberFlags},
         id::Id,
         test::image_hash,
         user::{User, UserFlags},
@@ -209,6 +209,7 @@ mod tests {
     #[test]
     fn simple_member_chunk() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-04-04T04:04:04.000000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let input = serde_json::json!({
             "chunk_count": 1,
@@ -217,6 +218,7 @@ mod tests {
             "members": [{
                 "communication_disabled_until": null,
                 "deaf": false,
+                "flags": flags.bits(),
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
                 "mute": false,
@@ -233,6 +235,7 @@ mod tests {
             }, {
                 "communication_disabled_until": null,
                 "deaf": false,
+                "flags": flags.bits(),
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
                 "mute": false,
@@ -247,6 +250,7 @@ mod tests {
             }, {
                 "communication_disabled_until": null,
                 "deaf": false,
+                "flags": flags.bits(),
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
                 "mute": false,
@@ -262,6 +266,7 @@ mod tests {
             }, {
                 "communication_disabled_until": null,
                 "deaf": false,
+                "flags": flags.bits(),
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
                 "mute": false,
@@ -320,6 +325,7 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
+                    flags,
                     guild_id: Id::new(1),
                     joined_at,
                     mute: false,
@@ -349,6 +355,7 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
+                    flags,
                     guild_id: Id::new(1),
                     joined_at,
                     mute: false,
@@ -378,6 +385,7 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
+                    flags,
                     guild_id: Id::new(1),
                     joined_at,
                     mute: false,
@@ -407,6 +415,7 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
+                    flags,
                     guild_id: Id::new(1),
                     joined_at,
                     mute: false,

@@ -893,6 +893,7 @@ impl UpdateCache for Event {
             | Event::GatewayInvalidateSession(_)
             | Event::GatewayReconnect
             | Event::GiftCodeUpdate
+            | Event::GuildAuditLogEntryCreate(_)
             | Event::GuildIntegrationsUpdate(_)
             | Event::GuildScheduledEventCreate(_)
             | Event::GuildScheduledEventDelete(_)
@@ -917,7 +918,7 @@ mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
         gateway::payload::incoming::RoleDelete,
-        guild::{Member, Permissions, Role},
+        guild::{Member, MemberFlags, Permissions, Role},
         id::Id,
         util::Timestamp,
     };
@@ -947,12 +948,14 @@ mod tests {
         let cache = InMemoryCache::new();
         let guild_id = Id::new(1);
         let user = test::user(Id::new(1));
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
         cache.cache_member(
             guild_id,
             Member {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 guild_id,
                 joined_at,
                 mute: false,
