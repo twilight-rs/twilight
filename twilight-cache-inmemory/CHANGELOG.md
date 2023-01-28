@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.14.3] - 2023-01-28
 
 ### Features
 
