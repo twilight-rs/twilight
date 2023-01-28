@@ -167,7 +167,6 @@ pub struct CommandOptionChoice {
     /// [`name`]: Self::name
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
-
     /// Value of the choice.
     pub value: CommandOptionChoiceValue,
 }

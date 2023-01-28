@@ -497,7 +497,7 @@ impl IntegerBuilder {
     ///
     /// # Panics
     ///
-    /// Panics if choices are not set.
+    /// Panics if the choice was not set.
     ///
     /// [`choices`]: Self::choices
     #[track_caller]
@@ -510,14 +510,17 @@ impl IntegerBuilder {
             .0
             .choices
             .as_mut()
-            .expect("choices are set")
+            .expect("choice exists")
             .iter_mut()
-            .find(
-                |choice| matches!(choice, CommandOptionChoice{ name, .. }  if name == choice_name),
-            )
+            .find(|choice| choice.name == choice_name)
             .expect("choice exists");
 
-        set_choice_localizations(choice, name_localizations);
+        choice.name_localizations = Some(
+            name_localizations
+                .into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect(),
+        );
 
         self
     }
@@ -747,7 +750,7 @@ impl NumberBuilder {
     ///
     /// # Panics
     ///
-    /// Panics if choices are not set.
+    /// Panics if the choice was not set.
     ///
     /// [`choices`]: Self::choices
     #[track_caller]
@@ -760,12 +763,17 @@ impl NumberBuilder {
             .0
             .choices
             .as_mut()
-            .expect("choices are set")
+            .expect("choice exists")
             .iter_mut()
-            .find(|choice| matches!(choice, CommandOptionChoice {name, ..} if name == choice_name))
+            .find(|choice| choice.name == choice_name)
             .expect("choice exists");
 
-        set_choice_localizations(choice, name_localizations);
+        choice.name_localizations = Some(
+            name_localizations
+                .into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect(),
+        );
 
         self
     }
@@ -995,7 +1003,7 @@ impl StringBuilder {
     ///
     /// # Panics
     ///
-    /// Panics if choices are not set.
+    /// Panics if the choice was not set.
     ///
     /// [`choices`]: Self::choices
     #[track_caller]
@@ -1008,12 +1016,17 @@ impl StringBuilder {
             .0
             .choices
             .as_mut()
-            .expect("choices are set")
+            .expect("choice exists")
             .iter_mut()
-            .find(|choice| matches!(choice, CommandOptionChoice{name, .. } if name == choice_name))
+            .find(|choice| choice.name == choice_name)
             .expect("choice exists");
 
-        set_choice_localizations(choice, name_localizations);
+        choice.name_localizations = Some(
+            name_localizations
+                .into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect(),
+        );
 
         self
     }
@@ -1370,18 +1383,6 @@ impl From<UserBuilder> for CommandOption {
     fn from(builder: UserBuilder) -> CommandOption {
         builder.build()
     }
-}
-
-fn set_choice_localizations<K: Into<String>, V: Into<String>>(
-    choice: &mut CommandOptionChoice,
-    localizations: impl IntoIterator<Item = (K, V)>,
-) {
-    choice.name_localizations = Some(
-        localizations
-            .into_iter()
-            .map(|(k, v)| (k.into(), v.into()))
-            .collect(),
-    );
 }
 
 #[cfg(test)]
