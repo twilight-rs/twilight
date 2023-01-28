@@ -71,6 +71,8 @@ bitflags! {
         const GATEWAY_RECONNECT = 1 << 9;
         /// Gift code sent in a channel has been updated.
         const GIFT_CODE_UPDATE = 1 << 49;
+        /// An audit log entry has been created.
+        const GUILD_AUDIT_LOG_ENTRY_CREATE = 1 << 75;
         /// A guild has been created.
         const GUILD_CREATE = 1 << 10;
         /// A guild has been deleted or the current user has been removed from a guild.
@@ -234,7 +236,12 @@ bitflags! {
         /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
         ///
         /// [`Intents::GUILD_BANS`]: crate::Intents::GUILD_BANS
-        const GUILD_BANS = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits();
+        #[deprecated(since = "0.14.3", note = "use the `GUILD_MODERATION` intent instead")]
+        const GUILD_BANS = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits() | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits();
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_MODERATION`].
+        ///
+        /// [`Intents::GUILD_MODERATION`]: crate::Intents::GUILD_MODERATION
+        const GUILD_MODERATION = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits() | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits();
         /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS_AND_STICKERS`].
         ///
         /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
@@ -332,6 +339,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::GatewayInvalidateSession => Self::GATEWAY_INVALIDATE_SESSION,
             EventType::GatewayReconnect => Self::GATEWAY_RECONNECT,
             EventType::GiftCodeUpdate => Self::GIFT_CODE_UPDATE,
+            EventType::GuildAuditLogEntryCreate => Self::GUILD_AUDIT_LOG_ENTRY_CREATE,
             EventType::GuildCreate => Self::GUILD_CREATE,
             EventType::GuildDelete => Self::GUILD_DELETE,
             EventType::GuildEmojisUpdate => Self::GUILD_EMOJIS_UPDATE,

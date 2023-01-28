@@ -7,7 +7,7 @@ use twilight_model::{
         message::{
             sticker::MessageSticker, Component, Embed, Message, MessageActivity,
             MessageApplication, MessageFlags, MessageInteraction, MessageReference, MessageType,
-            Reaction,
+            Reaction, RoleSubscriptionData,
         },
         Attachment, ChannelMention,
     },
@@ -104,6 +104,7 @@ pub struct CachedMessage {
     pub(crate) pinned: bool,
     pub(crate) reactions: Vec<Reaction>,
     reference: Option<MessageReference>,
+    role_subscription_data: Option<RoleSubscriptionData>,
     sticker_items: Vec<MessageSticker>,
     thread_id: Option<Id<ChannelMarker>>,
     pub(crate) timestamp: Timestamp,
@@ -251,6 +252,12 @@ impl CachedMessage {
         self.reference.as_ref()
     }
 
+    /// Information about the role subscription purchase or renewal that
+    /// prompted this message.
+    pub const fn role_subscription_data(&self) -> Option<&RoleSubscriptionData> {
+        self.role_subscription_data.as_ref()
+    }
+
     /// Stickers within the message.
     pub fn sticker_items(&self) -> &[MessageSticker] {
         &self.sticker_items
@@ -303,6 +310,7 @@ impl CachedMessage {
             reactions,
             reference,
             referenced_message: _,
+            role_subscription_data,
             sticker_items,
             timestamp,
             thread,
@@ -334,6 +342,7 @@ impl CachedMessage {
             pinned,
             reactions,
             reference,
+            role_subscription_data,
             sticker_items,
             thread_id: thread.map(|thread| thread.id),
             timestamp,

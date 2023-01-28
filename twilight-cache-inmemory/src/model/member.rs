@@ -1,7 +1,7 @@
 use serde::Serialize;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
-    guild::{Member, PartialMember},
+    guild::{Member, MemberFlags, PartialMember},
     id::{
         marker::{GuildMarker, RoleMarker, UserMarker},
         Id,
@@ -25,6 +25,7 @@ pub struct CachedMember {
     pub(crate) avatar: Option<ImageHash>,
     pub(crate) communication_disabled_until: Option<Timestamp>,
     pub(crate) deaf: Option<bool>,
+    pub(crate) flags: MemberFlags,
     pub(crate) guild_id: Id<GuildMarker>,
     pub(crate) joined_at: Timestamp,
     pub(crate) mute: Option<bool>,
@@ -56,6 +57,13 @@ impl CachedMember {
     /// Whether the member is deafened in a voice channel.
     pub const fn deaf(&self) -> Option<bool> {
         self.deaf
+    }
+
+    /// Flags for the member.
+    ///
+    /// Defaults to an empty bitfield.
+    pub const fn flags(&self) -> MemberFlags {
+        self.flags
     }
 
     /// ID of the guild this member is a part of.
@@ -106,6 +114,7 @@ impl CachedMember {
             avatar,
             communication_disabled_until,
             deaf,
+            flags,
             guild_id,
             joined_at,
             mute,
@@ -120,6 +129,7 @@ impl CachedMember {
             avatar,
             communication_disabled_until,
             deaf: Some(deaf),
+            flags,
             guild_id,
             joined_at,
             mute: Some(mute),
@@ -143,6 +153,7 @@ impl CachedMember {
         let InteractionMember {
             avatar: _,
             communication_disabled_until,
+            flags,
             joined_at,
             nick,
             pending,
@@ -156,6 +167,7 @@ impl CachedMember {
             avatar,
             communication_disabled_until,
             deaf,
+            flags,
             guild_id,
             joined_at,
             mute,
@@ -176,6 +188,7 @@ impl CachedMember {
             avatar,
             communication_disabled_until,
             deaf,
+            flags,
             joined_at,
             mute,
             nick,
@@ -189,6 +202,7 @@ impl CachedMember {
             avatar,
             communication_disabled_until,
             deaf: Some(deaf),
+            flags,
             guild_id,
             joined_at,
             mute: Some(mute),
@@ -242,7 +256,7 @@ mod tests {
     use super::CachedMember;
     use static_assertions::assert_fields;
     use twilight_model::{
-        guild::{Member, PartialMember},
+        guild::{Member, MemberFlags, PartialMember},
         id::Id,
         user::User,
         util::Timestamp,
@@ -262,11 +276,12 @@ mod tests {
 
     fn cached_member() -> CachedMember {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
-
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
         CachedMember {
             avatar: None,
             communication_disabled_until: None,
             deaf: Some(false),
+            flags,
             guild_id: Id::new(3),
             joined_at,
             mute: Some(true),
@@ -301,11 +316,13 @@ mod tests {
     #[test]
     fn eq_member() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let member = Member {
             avatar: None,
             communication_disabled_until: None,
             deaf: false,
+            flags,
             guild_id: Id::new(3),
             joined_at,
             mute: true,
@@ -322,11 +339,13 @@ mod tests {
     #[test]
     fn eq_partial_member() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let member = PartialMember {
             avatar: None,
             communication_disabled_until: None,
             deaf: false,
+            flags,
             joined_at,
             mute: true,
             nick: Some("member nick".to_owned()),
