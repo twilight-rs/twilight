@@ -1,3 +1,4 @@
+use super::Token;
 use crate::{client::connector, Client};
 use hyper::header::HeaderMap;
 use std::{
@@ -6,8 +7,6 @@ use std::{
 };
 use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
 use twilight_model::channel::message::AllowedMentions;
-
-use super::Token;
 
 /// A builder for [`Client`].
 #[derive(Debug)]
