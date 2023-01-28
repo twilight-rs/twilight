@@ -13,7 +13,7 @@ rust-version.workspace = true
 version = "0.14.0"
 
 [dependencies]
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.3" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.4" }
 
 [dev-dependencies]
 criterion = { default-features = false, version = "0.3" }
