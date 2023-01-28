@@ -25,6 +25,7 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct CreateAutoModerationRuleFieldsAction {
     /// Type of action.
+    #[serde(rename = "type")]
     pub kind: AutoModerationActionType,
     /// Additional metadata needed during execution for this specific action
     /// type.
