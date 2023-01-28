@@ -9,6 +9,12 @@ use twilight_model::channel::ChannelType;
 /// Minimum bitrate of a voice channel.
 pub const CHANNEL_BITRATE_MIN: u32 = 8000;
 
+/// Maximum number of bulk messages that can be deleted.
+pub const CHANNEL_BULK_DELETE_MESSAGES_MAX: usize = 100;
+
+/// Minimum number of bulk messages that can be deleted.
+pub const CHANNEL_BULK_DELETE_MESSAGES_MIN: usize = 2;
+
 /// Maximum length of a forum channel's topic.
 pub const CHANNEL_FORUM_TOPIC_LENGTH_MAX: usize = 4096;
 
@@ -67,6 +73,13 @@ impl Display for ChannelValidationError {
                 f.write_str("bitrate is less than ")?;
                 Display::fmt(&CHANNEL_BITRATE_MIN, f)
             }
+            ChannelValidationErrorType::BulkDeleteMessagesInvalid => {
+                f.write_str("number of messages deleted in bulk is less than ")?;
+                Display::fmt(&CHANNEL_BULK_DELETE_MESSAGES_MIN, f)?;
+                f.write_str(" or greater than ")?;
+
+                Display::fmt(&CHANNEL_BULK_DELETE_MESSAGES_MAX, f)
+            }
             ChannelValidationErrorType::ForumTopicInvalid => {
                 f.write_str("the forum topic is invalid")
             }
@@ -99,6 +112,8 @@ impl Error for ChannelValidationError {}
 pub enum ChannelValidationErrorType {
     /// The bitrate is less than 8000.
     BitrateInvalid,
+    /// Number of messages being deleted in bulk is invalid.
+    BulkDeleteMessagesInvalid,
     /// The length of the topic is more than 4096 UTF-16 characters.
     ForumTopicInvalid,
     /// The length of the name is either fewer than 1 UTF-16 characters or
@@ -135,6 +150,26 @@ pub const fn bitrate(value: u32) -> Result<(), ChannelValidationError> {
     } else {
         Err(ChannelValidationError {
             kind: ChannelValidationErrorType::BitrateInvalid,
+        })
+    }
+}
+
+/// Ensure the number of messages to delete in bulk is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`BulkDeleteMessagesInvalid`] if the number of
+/// messages to delete in bulk is invalid.
+///
+/// [`BulkDeleteMessagesInvalid`]: ChannelValidationErrorType::BulkDeleteMessagesInvalid
+pub const fn bulk_delete_messages(message_count: usize) -> Result<(), ChannelValidationError> {
+    if message_count >= CHANNEL_BULK_DELETE_MESSAGES_MIN
+        && message_count <= CHANNEL_BULK_DELETE_MESSAGES_MAX
+    {
+        Ok(())
+    } else {
+        Err(ChannelValidationError {
+            kind: ChannelValidationErrorType::BulkDeleteMessagesInvalid,
         })
     }
 }
@@ -268,6 +303,23 @@ pub const fn user_limit(value: u16) -> Result<(), ChannelValidationError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bulk_delete_messages() {
+        assert!(matches!(
+            super::bulk_delete_messages(0).unwrap_err().kind(),
+            ChannelValidationErrorType::BulkDeleteMessagesInvalid,
+        ));
+        assert!(matches!(
+            super::bulk_delete_messages(1).unwrap_err().kind(),
+            ChannelValidationErrorType::BulkDeleteMessagesInvalid,
+        ));
+        assert!(super::bulk_delete_messages(100).is_ok());
+        assert!(matches!(
+            super::bulk_delete_messages(101).unwrap_err().kind(),
+            ChannelValidationErrorType::BulkDeleteMessagesInvalid,
+        ));
+    }
 
     #[test]
     fn channel_bitrate() {
