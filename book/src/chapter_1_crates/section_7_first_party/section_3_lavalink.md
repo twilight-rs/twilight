@@ -81,11 +81,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
 ## Links
 
-**source**: <https://github.com/twilight-rs/twilight/tree/main/twilight-lavalink>
+*source*: <https://github.com/twilight-rs/twilight/tree/main/twilight-lavalink>
 
-**docs**: <https://docs.rs/twilight-lavalink>
+*docs*: <https://docs.rs/twilight-lavalink>
 
-**crates.io**: <https://crates.io/crates/twilight-lavalink>
+*crates.io*: <https://crates.io/crates/twilight-lavalink>
 
 [RusTLS]: https://crates.io/crates/rustls
 [Lavalink]: https://github.com/freyacodes/Lavalink
