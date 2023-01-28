@@ -25,7 +25,10 @@
 //! use twilight_http::{client::Client, request::AuditLogReason};
 //!
 //! let client = Client::new(std::env::var("DISCORD_TOKEN")?);
-//! client.delete_ban(guild_id, user_id).reason("ban expired")?.await?;
+//! client
+//!     .delete_ban(guild_id, user_id)
+//!     .reason("ban expired")?
+//!     .await?;
 //! # Ok(()) }
 //! ```
 //!
