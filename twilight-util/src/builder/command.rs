@@ -514,11 +514,10 @@ impl IntegerBuilder {
             .iter_mut()
             .find(
                 |choice| matches!(choice, CommandOptionChoice{ name, .. }  if name == choice_name),
-            );
+            )
+            .expect("choice exists");
 
-        if let Some(choice) = choice {
-            set_choice_localizations(choice, name_localizations);
-        }
+        set_choice_localizations(choice, name_localizations);
 
         self
     }
@@ -757,13 +756,16 @@ impl NumberBuilder {
         choice_name: &str,
         name_localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
-        let choice = self.0.choices.as_mut().expect("choices are set").iter_mut().find(
-            |choice| matches!(choice, CommandOptionChoice {name, value: CommandOptionChoiceValue::Number(_), ..} if name == choice_name),
-        );
+        let choice = self
+            .0
+            .choices
+            .as_mut()
+            .expect("choices are set")
+            .iter_mut()
+            .find(|choice| matches!(choice, CommandOptionChoice {name, ..} if name == choice_name))
+            .expect("choice exists");
 
-        if let Some(choice) = choice {
-            set_choice_localizations(choice, name_localizations);
-        }
+        set_choice_localizations(choice, name_localizations);
 
         self
     }
@@ -1002,13 +1004,16 @@ impl StringBuilder {
         choice_name: &str,
         name_localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
-        let choice = self.0.choices.as_mut().expect("choices are set").iter_mut().find(
-            |choice| matches!(choice, CommandOptionChoice{name, value: CommandOptionChoiceValue::String(_), ..} if name == choice_name),
-        );
+        let choice = self
+            .0
+            .choices
+            .as_mut()
+            .expect("choices are set")
+            .iter_mut()
+            .find(|choice| matches!(choice, CommandOptionChoice{name, .. } if name == choice_name))
+            .expect("choice exists");
 
-        if let Some(choice) = choice {
-            set_choice_localizations(choice, name_localizations);
-        }
+        set_choice_localizations(choice, name_localizations);
 
         self
     }
