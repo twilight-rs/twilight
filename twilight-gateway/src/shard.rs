@@ -546,8 +546,16 @@ impl Shard {
 
             let tungstenite_message = match future.await {
                 NextMessageFutureOutput::Message(Some(Ok(message))) => message,
-                // Work around #1428.
-                #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
+                // Discord does not send a close_notify prior to shutting down the TCP stream, which
+                // is against the TLS specification. This match arm tries to catch and gracefully
+                // handle this. Tungstenite, in accordance with the Websocket specification,
+                // considers the connection unusable after encountering an IO error, returning None.
+                // I.e. the logic for closing the connection happens in the `None` match arm.
+                //
+                // Note that some TLS implementations may handle this for us, but RusTLS explicitly
+                // does not.
+                //
+                // This was previously reported as a bug in #1428
                 NextMessageFutureOutput::Message(Some(Err(TungsteniteError::Io(e))))
                     if self.status.is_disconnected() && e.kind() == IoErrorKind::UnexpectedEof =>
                 {
