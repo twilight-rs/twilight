@@ -77,9 +77,14 @@ mod tests {
             &ActivityFlags::EMBEDDED,
             &[Token::U64(ActivityFlags::EMBEDDED.bits())],
         );
+        // Safety:
+        //
         // Deserialization doesn't truncate unknown bits.
         //
-        // `bitflags` requires unsafe code to create bitflags with unknown bits.
+        // `bitflags` requires unsafe code to create bitflags with unknown bits
+        // due to an unorthodox definition of unsafe:
+        //
+        // <https://github.com/bitflags/bitflags/issues/262>
         #[allow(unsafe_code)]
         let value = unsafe { ActivityFlags::from_bits_unchecked(1 << 63) };
         serde_test::assert_de_tokens(&value, &[Token::U64(1 << 63)]);
