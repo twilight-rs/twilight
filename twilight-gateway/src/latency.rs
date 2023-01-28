@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 /// [`Shard`]'s gateway connection latency.
 ///
 /// Measures the difference between sending a heartbeat and receiving an
-/// acknowledgement, also known as a heartbeat period. Sprious heartbeat
+/// acknowledgement, also known as a heartbeat period. Spurious heartbeat
 /// acknowledgements are ignored.
 ///
 /// May be obtained via [`Shard::latency`].
