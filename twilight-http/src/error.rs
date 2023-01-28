@@ -92,7 +92,6 @@ impl StdError for Error {
 }
 
 /// Type of [`Error`] that occurred.
-#[derive(Debug)]
 #[non_exhaustive]
 pub enum ErrorType {
     BuildingRequest,
@@ -125,4 +124,145 @@ pub enum ErrorType {
     /// This can occur if a bot token is invalidated or an access token expires
     /// or is revoked. Recreate the client to configure a new token.
     Unauthorized,
+}
+
+impl Debug for ErrorType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::BuildingRequest => f.write_str("BuildingRequest"),
+            Self::ChunkingResponse => f.write_str("ChunkingResponse"),
+            Self::CreatingHeader { name } => f
+                .debug_struct("CreatingHeader")
+                .field("name", name)
+                .finish(),
+            Self::Json => f.write_str("Json"),
+            Self::Parsing { body } => {
+                let mut debug = f.debug_struct("Parsing");
+
+                if let Ok(body_string) = str::from_utf8(body) {
+                    debug.field("body_string", &body_string);
+                }
+
+                debug.field("body", body).finish()
+            }
+            Self::RatelimiterTicket => f.write_str("RatelimiterTicket"),
+            Self::RequestCanceled => f.write_str("RequestCanceled"),
+            Self::RequestError => f.write_str("RequestError"),
+            Self::RequestTimedOut => f.write_str("RequestTimedOut"),
+            Self::Response {
+                body,
+                error,
+                status,
+            } => {
+                let mut debug = f.debug_struct("Response");
+
+                if let Ok(body_string) = str::from_utf8(body) {
+                    debug.field("body_string", &body_string);
+                }
+
+                debug
+                    .field("body", body)
+                    .field("error", error)
+                    .field("status", status)
+                    .finish()
+            }
+            Self::ServiceUnavailable { response } => f
+                .debug_struct("ServiceUnavailable")
+                .field("response", response)
+                .finish(),
+            Self::Unauthorized => f.write_str("Unauthorized"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ErrorType;
+    use crate::{
+        api_error::{ApiError, GeneralApiError},
+        response::StatusCode,
+    };
+
+    /// Ensure
+    #[test]
+    fn parsing_variant_debug() {
+        let body = br#"{"message": "aaa"#.to_vec();
+
+        let error = ErrorType::Parsing { body };
+
+        assert_eq!(
+            "Parsing {
+    body_string: \"{\\\"message\\\": \\\"aaa\",
+    body: [
+        123,
+        34,
+        109,
+        101,
+        115,
+        115,
+        97,
+        103,
+        101,
+        34,
+        58,
+        32,
+        34,
+        97,
+        97,
+        97,
+    ],
+}",
+            format!("{error:#?}"),
+        );
+    }
+
+    #[test]
+    fn response_variant_debug() {
+        let body = br#"{"message": "aaa"}"#.to_vec();
+
+        let error = ErrorType::Response {
+            body,
+            error: ApiError::General(GeneralApiError {
+                code: 0,
+                message: "401: Unauthorized".to_owned(),
+            }),
+            status: StatusCode::new(401),
+        };
+
+        assert_eq!(
+            "Response {
+    body_string: \"{\\\"message\\\": \\\"aaa\\\"}\",
+    body: [
+        123,
+        34,
+        109,
+        101,
+        115,
+        115,
+        97,
+        103,
+        101,
+        34,
+        58,
+        32,
+        34,
+        97,
+        97,
+        97,
+        34,
+        125,
+    ],
+    error: General(
+        GeneralApiError {
+            code: 0,
+            message: \"401: Unauthorized\",
+        },
+    ),
+    status: StatusCode(
+        401,
+    ),
+}",
+            format!("{error:#?}"),
+        );
+    }
 }

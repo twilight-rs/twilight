@@ -26,6 +26,7 @@ pub enum DispatchEvent {
     ChannelUpdate(Box<ChannelUpdate>),
     CommandPermissionsUpdate(CommandPermissionsUpdate),
     GiftCodeUpdate,
+    GuildAuditLogEntryCreate(Box<GuildAuditLogEntryCreate>),
     GuildCreate(Box<GuildCreate>),
     GuildDelete(GuildDelete),
     GuildEmojisUpdate(GuildEmojisUpdate),
@@ -95,6 +96,7 @@ impl DispatchEvent {
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
             Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
             Self::GiftCodeUpdate => EventType::GiftCodeUpdate,
+            Self::GuildAuditLogEntryCreate(_) => EventType::GuildAuditLogEntryCreate,
             Self::GuildCreate(_) => EventType::GuildCreate,
             Self::GuildDelete(_) => EventType::GuildDelete,
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
@@ -167,6 +169,7 @@ impl TryFrom<Event> for DispatchEvent {
             Event::ChannelUpdate(v) => Self::ChannelUpdate(v),
             Event::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
             Event::GiftCodeUpdate => Self::GiftCodeUpdate,
+            Event::GuildAuditLogEntryCreate(v) => Self::GuildAuditLogEntryCreate(v),
             Event::GuildCreate(v) => Self::GuildCreate(v),
             Event::GuildDelete(v) => Self::GuildDelete(v),
             Event::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
@@ -274,6 +277,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
 
                 DispatchEvent::GiftCodeUpdate
             }
+            "GUILD_AUDIT_LOG_ENTRY_CREATE" => DispatchEvent::GuildAuditLogEntryCreate(Box::new(
+                GuildAuditLogEntryCreate::deserialize(deserializer)?,
+            )),
             "GUILD_BAN_ADD" => DispatchEvent::BanAdd(BanAdd::deserialize(deserializer)?),
             "GUILD_BAN_REMOVE" => DispatchEvent::BanRemove(BanRemove::deserialize(deserializer)?),
             "GUILD_CREATE" => {

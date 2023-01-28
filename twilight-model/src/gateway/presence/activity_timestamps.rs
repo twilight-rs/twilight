@@ -2,8 +2,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ActivityTimestamps {
+    /// Unix time of when the activity started, in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub end: Option<u64>,
+    /// Unix time of when the activity ends, in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start: Option<u64>,
 }

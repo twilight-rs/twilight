@@ -13,6 +13,8 @@ pub enum StickerFormatType {
     Apng,
     /// Sticker format is a LOTTIE.
     Lottie,
+    /// Sticker format is a GIF.
+    Gif,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -23,6 +25,7 @@ impl From<u8> for StickerFormatType {
             1 => StickerFormatType::Png,
             2 => StickerFormatType::Apng,
             3 => StickerFormatType::Lottie,
+            4 => StickerFormatType::Gif,
             unknown => StickerFormatType::Unknown(unknown),
         }
     }
@@ -34,6 +37,7 @@ impl From<StickerFormatType> for u8 {
             StickerFormatType::Png => 1,
             StickerFormatType::Apng => 2,
             StickerFormatType::Lottie => 3,
+            StickerFormatType::Gif => 4,
             StickerFormatType::Unknown(unknown) => unknown,
         }
     }
@@ -49,6 +53,7 @@ mod tests {
         serde_test::assert_tokens(&StickerFormatType::Png, &[Token::U8(1)]);
         serde_test::assert_tokens(&StickerFormatType::Apng, &[Token::U8(2)]);
         serde_test::assert_tokens(&StickerFormatType::Lottie, &[Token::U8(3)]);
+        serde_test::assert_tokens(&StickerFormatType::Gif, &[Token::U8(4)]);
         serde_test::assert_tokens(&StickerFormatType::Unknown(99), &[Token::U8(99)]);
     }
 
@@ -57,6 +62,7 @@ mod tests {
         assert_eq!(StickerFormatType::from(1), StickerFormatType::Png);
         assert_eq!(StickerFormatType::from(2), StickerFormatType::Apng);
         assert_eq!(StickerFormatType::from(3), StickerFormatType::Lottie);
+        assert_eq!(StickerFormatType::from(4), StickerFormatType::Gif);
         assert_eq!(StickerFormatType::from(99), StickerFormatType::Unknown(99));
     }
 }

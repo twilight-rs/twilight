@@ -433,6 +433,8 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get the current OAuth authorization information.
+    GetCurrentAuthorizationInformation,
     /// Route information to get the current user.
     GetCurrentUser,
     /// Route information to get info about application the current bot user belongs to
@@ -1148,6 +1150,7 @@ impl<'a> Route<'a> {
             | Self::GetChannelWebhooks { .. }
             | Self::GetChannels { .. }
             | Self::GetCommandPermissions { .. }
+            | Self::GetCurrentAuthorizationInformation
             | Self::GetCurrentUserApplicationInfo
             | Self::GetCurrentUser
             | Self::GetCurrentUserGuildMember { .. }
@@ -1517,6 +1520,7 @@ impl<'a> Route<'a> {
             | Self::UpdateCommandPermissions { application_id, .. } => {
                 Path::ApplicationGuildCommandId(application_id)
             }
+            Self::GetCurrentAuthorizationInformation => Path::OauthMe,
             Self::GetCurrentUserApplicationInfo => Path::OauthApplicationsMe,
             Self::GetCurrentUser | Self::GetUser { .. } | Self::UpdateCurrentUser => Path::UsersId,
             Self::GetCurrentUserGuildMember { .. } => Path::UsersIdGuildsIdMember,
@@ -2333,6 +2337,7 @@ impl Display for Route<'_> {
 
                 f.write_str("/permissions")
             }
+            Route::GetCurrentAuthorizationInformation => f.write_str("oauth2/@me"),
             Route::GetCurrentUserApplicationInfo => f.write_str("oauth2/applications/@me"),
             Route::GetCurrentUser | Route::UpdateCurrentUser => f.write_str("users/@me"),
             Route::GetCurrentUserGuildMember { guild_id } => {
@@ -3121,10 +3126,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/commands?with_localizations=true",
-                application_id = APPLICATION_ID
-            )
+            format!("applications/{APPLICATION_ID}/commands?with_localizations=true")
         );
 
         let route = Route::GetGlobalCommands {
@@ -3176,9 +3178,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "applications/{application_id}/guilds/{guild_id}/commands?with_localizations=true",
-                application_id = APPLICATION_ID,
-                guild_id = GUILD_ID
+                "applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands?with_localizations=true"
             )
         );
 
@@ -3963,6 +3963,12 @@ mod tests {
                 "applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands/{COMMAND_ID}/permissions"
             )
         );
+    }
+
+    #[test]
+    fn get_current_authorization_info() {
+        let route = Route::GetCurrentAuthorizationInformation;
+        assert_eq!(route.to_string(), "oauth2/@me");
     }
 
     #[test]

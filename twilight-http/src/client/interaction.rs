@@ -332,6 +332,9 @@ impl<'a> InteractionClient<'a> {
     /// This overwrites the command permissions so the full set of permissions
     /// have to be sent every time.
     ///
+    /// This request requires that the client was configured with an OAuth Bearer
+    /// token.
+    ///
     /// # Errors
     ///
     /// Returns an error of type [`PermissionsCountInvalid`] if the permissions

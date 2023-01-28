@@ -4,6 +4,7 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
+use crate::request::GetCurrentAuthorizationInformation;
 #[allow(deprecated)]
 use crate::{
     client::connector::Connector,
@@ -679,6 +680,11 @@ impl Client {
         guild_id: Id<GuildMarker>,
     ) -> GetCurrentUserGuildMember<'_> {
         GetCurrentUserGuildMember::new(self, guild_id)
+    }
+
+    /// Get information about the current OAuth authorization.
+    pub const fn current_authorization(&self) -> GetCurrentAuthorizationInformation<'_> {
+        GetCurrentAuthorizationInformation::new(self)
     }
 
     /// Get information about the current bot application.
@@ -1405,12 +1411,20 @@ impl Client {
     /// and upper limits. This method will not delete messages older than two
     /// weeks. See [Discord Docs/Bulk Delete Messages].
     ///
+    /// # Errors
+    ///
+    /// Returns an error of type
+    /// [`ChannelValidationErrorType::BulkDeleteMessagesInvalid`] when the number of
+    /// messages to delete in bulk is invalid.
+    /// is not between 1 and 120 characters in length.
+    ///
     /// [Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
-    pub const fn delete_messages<'a>(
+    /// [`ChannelValidationErrorType::BulkDeleteMessagesInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BulkDeleteMessagesInvalid
+    pub fn delete_messages<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
         message_ids: &'a [Id<MessageMarker>],
-    ) -> DeleteMessages<'a> {
+    ) -> Result<DeleteMessages<'a>, ChannelValidationError> {
         DeleteMessages::new(self, channel_id, message_ids)
     }
 

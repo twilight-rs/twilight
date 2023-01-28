@@ -11,6 +11,33 @@
 
 - [**breaking**] clean up `AllowedMentions` ([#1869](https://github.com/twilight-rs/twilight/issues/1869))
 
+## [0.14.3] - 2023-01-28
+
+### Bug Fixes
+
+- resolve new clippy lints ([#2091](https://github.com/twilight-rs/twilight/issues/2091))
+- create auto moderation type field name ([#2093](https://github.com/twilight-rs/twilight/issues/2093))
+
+## [0.14.2] - 2023-01-20
+
+### Bug Fixes
+
+- return `Message` from `UpdateWebhookMessage` ([#2054](https://github.com/twilight-rs/twilight/issues/2054))
+
+### Documentation
+
+- updating command perms requires oauth ([#2076](https://github.com/twilight-rs/twilight/issues/2076))
+
+### Features
+
+- add role subscriptions ([#2034](https://github.com/twilight-rs/twilight/issues/2034))
+- get current authorization route ([#2049](https://github.com/twilight-rs/twilight/issues/2049))
+
+### Refactor
+
+- human legible error debug bodies ([#2070](https://github.com/twilight-rs/twilight/issues/2070))
+- remove prelude imports
+
 ## [0.14.1] - 2023-01-07
 
 ### Bug Fixes
