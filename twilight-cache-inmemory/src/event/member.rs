@@ -110,12 +110,6 @@ impl UpdateCache for MemberAdd {
         }
 
         cache.cache_member(self.guild_id, self.0.clone());
-
-        cache
-            .guild_members
-            .entry(self.guild_id)
-            .or_default()
-            .insert(self.0.user.id);
     }
 }
 
@@ -130,8 +124,6 @@ impl UpdateCache for MemberChunk {
         }
 
         cache.cache_members(self.guild_id, self.members.clone());
-        let mut guild = cache.guild_members.entry(self.guild_id).or_default();
-        guild.extend(self.members.iter().map(|member| member.user.id));
     }
 }
 
