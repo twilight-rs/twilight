@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -29,9 +29,9 @@ impl<'a> GetGuildAutoModerationRules<'a> {
 }
 
 impl IntoFuture for GetGuildAutoModerationRules<'_> {
-    type Output = Result<Response<ListBody<AutoModerationRule>>, Error>;
+    type Output = Result<Response<Vec<AutoModerationRule>>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<AutoModerationRule>>;
+    type IntoFuture = ResponseFuture<Vec<AutoModerationRule>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

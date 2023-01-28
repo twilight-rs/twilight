@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -37,9 +37,9 @@ impl<'a> GetGuildScheduledEvents<'a> {
 }
 
 impl IntoFuture for GetGuildScheduledEvents<'_> {
-    type Output = Result<Response<ListBody<GuildScheduledEvent>>, Error>;
+    type Output = Result<Response<Vec<GuildScheduledEvent>>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<GuildScheduledEvent>>;
+    type IntoFuture = ResponseFuture<Vec<GuildScheduledEvent>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

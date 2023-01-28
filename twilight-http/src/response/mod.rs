@@ -52,7 +52,6 @@ mod status_code;
 
 pub use self::{future::ResponseFuture, status_code::StatusCode};
 
-use self::marker::ListBody;
 use http::{
     header::{HeaderValue, Iter as HeaderMapIter},
     Response as HyperResponse,
@@ -316,39 +315,21 @@ impl<T: DeserializeOwned> Response<T> {
     pub fn model(self) -> ModelFuture<T> {
         ModelFuture::new(self.bytes())
     }
-}
 
-impl<T: DeserializeOwned> Response<ListBody<T>> {
     /// Consume the response, chunking the body and then deserializing it into
-    /// a list of something.
-    ///
-    /// This is an alias for [`models`].
+    /// the request's matching model.
     ///
     /// # Errors
+    ///
     ///
     /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
     /// response body could not be entirely read.
     ///
     /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
-    /// response body could not be deserialized into a list of something.
-    ///
-    /// [`models`]: Self::models
-    pub fn model(self) -> ModelFuture<Vec<T>> {
-        self.models()
-    }
-
-    /// Consume the response, chunking the body and then deserializing it into
-    /// a list of something.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
-    /// response body could not be entirely read.
-    ///
-    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
-    /// response body could not be deserialized into a list of something.
-    pub fn models(self) -> ModelFuture<Vec<T>> {
-        Response::<Vec<T>>::new(self.inner).model()
+    /// response body could not be deserialized into the target model.
+    #[deprecated(since = "0.15.0", note = "use `model` instead")]
+    pub fn models(self) -> ModelFuture<T> {
+        self.model()
     }
 }
 
@@ -612,13 +593,12 @@ where
 #[cfg(test)]
 mod tests {
     use super::{
-        marker::{EmptyBody, ListBody},
-        BytesFuture, DeserializeBodyError, DeserializeBodyErrorType, HeaderIter, ModelFuture,
-        Response, TextFuture,
+        marker::EmptyBody, BytesFuture, DeserializeBodyError, DeserializeBodyErrorType, HeaderIter,
+        ModelFuture, Response, TextFuture,
     };
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, future::Future, iter::FusedIterator};
-    use twilight_model::{channel::Message, guild::Emoji};
+    use twilight_model::guild::Emoji;
 
     #[cfg(feature = "decompression")]
     use std::error::Error;
@@ -629,7 +609,6 @@ mod tests {
     assert_impl_all!(HeaderIter<'_>: Debug, FusedIterator, Iterator, Send, Sync);
     assert_impl_all!(ModelFuture<Emoji>: Future);
     assert_impl_all!(Response<EmptyBody>: Debug, Send, Sync);
-    assert_impl_all!(Response<ListBody<Message>>: Debug, Send, Sync);
     assert_impl_all!(TextFuture: Future);
 
     #[cfg(feature = "decompression")]

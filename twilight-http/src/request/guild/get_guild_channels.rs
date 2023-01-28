@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -25,9 +25,9 @@ impl<'a> GetGuildChannels<'a> {
 }
 
 impl IntoFuture for GetGuildChannels<'_> {
-    type Output = Result<Response<ListBody<Channel>>, Error>;
+    type Output = Result<Response<Vec<Channel>>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<Channel>>;
+    type IntoFuture = ResponseFuture<Vec<Channel>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

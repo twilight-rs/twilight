@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -37,9 +37,9 @@ impl<'a> GetGuildCommandPermissions<'a> {
 }
 
 impl IntoFuture for GetGuildCommandPermissions<'_> {
-    type Output = Result<Response<ListBody<GuildCommandPermissions>>, Error>;
+    type Output = Result<Response<Vec<GuildCommandPermissions>>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<GuildCommandPermissions>>;
+    type IntoFuture = ResponseFuture<Vec<GuildCommandPermissions>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

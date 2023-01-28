@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -42,7 +42,7 @@ struct GetBansFields {
 /// let user_id = Id::new(2);
 ///
 /// let response = client.bans(guild_id).after(user_id).limit(25).await?;
-/// let bans = response.models().await?;
+/// let bans = response.model().await?;
 ///
 /// for ban in bans {
 ///     println!("{} was banned for: {:?}", ban.user.name, ban.reason);
@@ -122,9 +122,9 @@ impl<'a> GetBans<'a> {
 }
 
 impl IntoFuture for GetBans<'_> {
-    type Output = Result<Response<ListBody<Ban>>, Error>;
+    type Output = Result<Response<Vec<Ban>>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<Ban>>;
+    type IntoFuture = ResponseFuture<Vec<Ban>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

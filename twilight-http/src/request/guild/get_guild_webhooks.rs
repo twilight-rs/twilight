@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -25,9 +25,9 @@ impl<'a> GetGuildWebhooks<'a> {
 }
 
 impl IntoFuture for GetGuildWebhooks<'_> {
-    type Output = Result<Response<ListBody<Webhook>>, Error>;
+    type Output = Result<Response<Vec<Webhook>>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<Webhook>>;
+    type IntoFuture = ResponseFuture<Vec<Webhook>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

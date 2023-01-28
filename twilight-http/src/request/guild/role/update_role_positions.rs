@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -39,9 +39,9 @@ impl<'a> UpdateRolePositions<'a> {
 }
 
 impl IntoFuture for UpdateRolePositions<'_> {
-    type Output = Result<Response<ListBody<Role>>, Error>;
+    type Output = Result<Response<Vec<Role>>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<Role>>;
+    type IntoFuture = ResponseFuture<Vec<Role>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

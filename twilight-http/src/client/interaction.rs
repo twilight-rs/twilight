@@ -40,7 +40,7 @@ use twilight_model::{
 ///
 /// let interaction_client = client.interaction(application_id);
 ///
-/// let commands = interaction_client.global_commands().await?.models().await?;
+/// let commands = interaction_client.global_commands().await?.model().await?;
 ///
 /// println!("there are {} global commands", commands.len());
 /// # Ok(()) }

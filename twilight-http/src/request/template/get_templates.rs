@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -25,9 +25,9 @@ impl<'a> GetTemplates<'a> {
 }
 
 impl IntoFuture for GetTemplates<'_> {
-    type Output = Result<Response<ListBody<Template>>, Error>;
+    type Output = Result<Response<Vec<Template>>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<Template>>;
+    type IntoFuture = ResponseFuture<Vec<Template>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

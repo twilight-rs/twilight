@@ -289,7 +289,7 @@ impl Client {
     ///     .interaction(application_id)
     ///     .global_commands()
     ///     .await?
-    ///     .models()
+    ///     .model()
     ///     .await?;
     ///
     /// println!("there are {} global commands", commands.len());
@@ -2412,7 +2412,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     ///
     /// let guild_id = Id::new(1);
-    /// let stickers = client.guild_stickers(guild_id).await?.models().await?;
+    /// let stickers = client.guild_stickers(guild_id).await?.model().await?;
     ///
     /// println!("{}", stickers.len());
     /// # Ok(()) }
