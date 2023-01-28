@@ -28,6 +28,7 @@ mod integration_application;
 mod integration_expire_behavior;
 mod integration_type;
 mod member;
+mod member_flags;
 mod mfa_level;
 mod nsfw_level;
 mod partial_guild;
@@ -52,7 +53,7 @@ pub use self::{
     integration::GuildIntegration, integration_account::IntegrationAccount,
     integration_application::IntegrationApplication,
     integration_expire_behavior::IntegrationExpireBehavior, integration_type::GuildIntegrationType,
-    member::Member, mfa_level::MfaLevel, partial_guild::PartialGuild,
+    member::Member, member_flags::MemberFlags, mfa_level::MfaLevel, partial_guild::PartialGuild,
     partial_member::PartialMember, premium_tier::PremiumTier, preview::GuildPreview,
     prune::GuildPrune, role::Role, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
@@ -127,6 +128,9 @@ pub struct Guild {
     pub premium_tier: PremiumTier,
     #[serde(default)]
     pub presences: Vec<Presence>,
+    /// ID of the where moderators of Community guilds receive notices from
+    /// Discord.
+    pub public_updates_channel_id: Option<Id<ChannelMarker>>,
     pub roles: Vec<Role>,
     pub rules_channel_id: Option<Id<ChannelMarker>>,
     pub splash: Option<ImageHash>,
@@ -189,6 +193,7 @@ impl<'de> Deserialize<'de> for Guild {
             PremiumSubscriptionCount,
             PremiumTier,
             Presences,
+            PublicUpdatesChannelId,
             Roles,
             Splash,
             StageInstances,
@@ -249,6 +254,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut premium_subscription_count = None::<Option<_>>;
                 let mut premium_tier = None;
                 let mut presences = None;
+                let mut public_updates_channel_id = None::<Option<_>>;
                 let mut roles = None;
                 let mut splash = None::<Option<_>>;
                 let mut stage_instances = None::<Vec<StageInstance>>;
@@ -526,6 +532,13 @@ impl<'de> Deserialize<'de> for Guild {
 
                             presences = Some(map.next_value_seed(deserializer)?);
                         }
+                        Field::PublicUpdatesChannelId => {
+                            if public_updates_channel_id.is_some() {
+                                return Err(DeError::duplicate_field("public_updates_channel_id"));
+                            }
+
+                            public_updates_channel_id = Some(map.next_value()?);
+                        }
                         Field::Roles => {
                             if roles.is_some() {
                                 return Err(DeError::duplicate_field("roles"));
@@ -671,6 +684,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let premium_subscription_count = premium_subscription_count.unwrap_or_default();
                 let premium_tier = premium_tier.unwrap_or_default();
                 let mut presences = presences.unwrap_or_default();
+                let public_updates_channel_id = public_updates_channel_id.unwrap_or_default();
                 let rules_channel_id = rules_channel_id.unwrap_or_default();
                 let splash = splash.unwrap_or_default();
                 let stage_instances = stage_instances.unwrap_or_default();
@@ -720,6 +734,7 @@ impl<'de> Deserialize<'de> for Guild {
                     ?premium_subscription_count,
                     ?premium_tier,
                     ?presences,
+                    ?public_updates_channel_id,
                     ?rules_channel_id,
                     ?roles,
                     ?splash,
@@ -786,6 +801,7 @@ impl<'de> Deserialize<'de> for Guild {
                     premium_subscription_count,
                     premium_tier,
                     presences,
+                    public_updates_channel_id,
                     roles,
                     rules_channel_id,
                     splash,
@@ -838,6 +854,7 @@ impl<'de> Deserialize<'de> for Guild {
             "premium_subscription_count",
             "premium_tier",
             "presences",
+            "public_updates_channel_id",
             "roles",
             "splash",
             "system_channel_id",
@@ -909,6 +926,7 @@ mod tests {
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
             presences: Vec::new(),
+            public_updates_channel_id: None,
             roles: Vec::new(),
             rules_channel_id: Some(Id::new(6)),
             splash: Some(image_hash::SPLASH),
@@ -930,7 +948,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 45,
+                    len: 46,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -1025,6 +1043,8 @@ mod tests {
                 Token::Str("presences"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
+                Token::Str("public_updates_channel_id"),
+                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

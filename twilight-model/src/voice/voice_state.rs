@@ -58,7 +58,7 @@ pub struct VoiceState {
 mod tests {
     use super::VoiceState;
     use crate::{
-        guild::Member,
+        guild::{Member, MemberFlags},
         id::Id,
         user::User,
         util::datetime::{Timestamp, TimestampParseError},
@@ -131,6 +131,7 @@ mod tests {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
         let request_to_speak_timestamp = Timestamp::from_str("2021-04-21T22:16:50.000000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = VoiceState {
             channel_id: Some(Id::new(1)),
@@ -140,6 +141,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: true,
                 nick: Some("twilight".to_owned()),
@@ -196,12 +198,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),

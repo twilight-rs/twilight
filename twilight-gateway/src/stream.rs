@@ -140,10 +140,10 @@ pub enum StartRecommendedErrorType {
 ///
 /// let mut stream = ShardEventStream::new(shards.iter_mut());
 ///
-/// loop {
-///     let (shard, event) = match stream.next().await {
-///         Some((shard, Ok(event))) => (shard, event),
-///         Some((_, Err(source))) => {
+/// while let Some((shard, event)) = stream.next().await {
+///     let event = match event {
+///         Ok(event) => event,
+///         Err(source) => {
 ///             tracing::warn!(?source, "error receiving event");
 ///
 ///             if source.is_fatal() {
@@ -152,7 +152,6 @@ pub enum StartRecommendedErrorType {
 ///
 ///             continue;
 ///         }
-///         None => break,
 ///     };
 ///
 ///     tracing::debug!(?event, shard = ?shard.id(), "received event");
@@ -253,10 +252,10 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///
 /// let mut stream = ShardMessageStream::new(shards.iter_mut());
 ///
-/// loop {
-///     let (shard, message) = match stream.next().await {
-///         Some((shard, Ok(message))) => (shard, message),
-///         Some((_, Err(source))) => {
+/// while let Some((shard, event)) = stream.next().await {
+///     let message = match event {
+///         Ok(message) => message,
+///         Err(source) => {
 ///             tracing::warn!(?source, "error receiving message");
 ///
 ///             if source.is_fatal() {
@@ -265,7 +264,6 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///
 ///             continue;
 ///         }
-///         None => break,
 ///     };
 ///
 ///     tracing::debug!(?message, shard = ?shard.id(), "received message");

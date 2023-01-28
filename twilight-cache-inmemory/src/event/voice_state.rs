@@ -94,7 +94,7 @@ mod tests {
     use std::str::FromStr;
     use twilight_model::{
         gateway::payload::incoming::VoiceStateUpdate,
-        guild::Member,
+        guild::{Member, MemberFlags},
         id::{
             marker::{ChannelMarker, GuildMarker, UserMarker},
             Id,
@@ -286,6 +286,7 @@ mod tests {
         let cache = InMemoryCache::new();
 
         let avatar = ImageHash::parse(b"169280485ba78d541a9090e7ea35a14e")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let mutation = VoiceStateUpdate(VoiceState {
             channel_id: Some(Id::new(4)),
@@ -295,6 +296,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: None,

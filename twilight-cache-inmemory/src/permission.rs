@@ -739,6 +739,7 @@ mod tests {
             premium_subscription_count: Some(0),
             premium_tier: PremiumTier::None,
             presences: Vec::new(),
+            public_updates_channel_id: None,
             roles: Vec::from([
                 // Give the `@everyone` role a guild level and channel level
                 // permission.

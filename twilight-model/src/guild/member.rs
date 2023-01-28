@@ -1,5 +1,6 @@
 //! Mostly internal custom serde deserializers.
 
+use super::MemberFlags;
 use crate::{
     id::{marker::RoleMarker, Id},
     user::User,
@@ -18,6 +19,10 @@ pub struct Member {
     pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
+    /// Flags for the member.
+    ///
+    /// Defaults to an empty bitfield.
+    pub flags: MemberFlags,
     pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
@@ -35,6 +40,7 @@ pub struct Member {
 mod tests {
     use super::Member;
     use crate::{
+        guild::MemberFlags,
         id::Id,
         test::image_hash,
         user::User,
@@ -47,11 +53,13 @@ mod tests {
     fn member_deserializer() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Member {
             avatar: Some(image_hash::AVATAR),
             communication_disabled_until: None,
             deaf: false,
+            flags,
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -82,7 +90,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -91,6 +99,8 @@ mod tests {
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
@@ -139,11 +149,13 @@ mod tests {
         let communication_disabled_until = Timestamp::from_str("2021-12-23T14:29:19.046000+00:00")?;
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Member {
             avatar: Some(image_hash::AVATAR),
             communication_disabled_until: Some(communication_disabled_until),
             deaf: false,
+            flags,
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -174,7 +186,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -184,6 +196,8 @@ mod tests {
                 Token::Str("2021-12-23T14:29:19.046000+00:00"),
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),

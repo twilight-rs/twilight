@@ -23,7 +23,7 @@ impl DerefMut for VoiceStateUpdate {
 mod tests {
     use super::{VoiceState, VoiceStateUpdate};
     use crate::{
-        guild::Member,
+        guild::{Member, MemberFlags},
         id::Id,
         test::image_hash,
         user::User,
@@ -36,6 +36,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     fn voice_state_update() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
@@ -45,6 +46,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: None,
@@ -102,12 +104,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2021-09-19T17:30:45.000000+00:00"),
                 Token::Str("mute"),
@@ -172,6 +176,7 @@ mod tests {
     fn voice_state_update_deser_tokens() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2016-12-08T18:41:21.954000+00:00")?;
         let request_to_speak_timestamp = Timestamp::from_str("2021-03-31T18:45:31.297561+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
@@ -181,6 +186,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("Twilight".to_string()),
@@ -242,12 +248,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2016-12-08T18:41:21.954000+00:00"),
                 Token::Str("mute"),

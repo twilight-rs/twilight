@@ -11,7 +11,10 @@ use twilight_model::id::{
     marker::{ChannelMarker, MessageMarker},
     Id,
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::{
+    channel::{bulk_delete_messages as validate_bulk_delete_messages, ChannelValidationError},
+    request::{audit_reason as validate_audit_reason, ValidationError},
+};
 
 #[derive(Serialize)]
 struct DeleteMessagesFields<'a> {
@@ -35,17 +38,19 @@ pub struct DeleteMessages<'a> {
 }
 
 impl<'a> DeleteMessages<'a> {
-    pub(crate) const fn new(
+    pub(crate) fn new(
         http: &'a Client,
         channel_id: Id<ChannelMarker>,
         messages: &'a [Id<MessageMarker>],
-    ) -> Self {
-        Self {
+    ) -> Result<Self, ChannelValidationError> {
+        validate_bulk_delete_messages(messages.len())?;
+
+        Ok(Self {
             channel_id,
             fields: DeleteMessagesFields { messages },
             http,
             reason: None,
-        }
+        })
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].

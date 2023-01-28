@@ -107,10 +107,10 @@ async fn main() -> anyhow::Result<()> {
 
     let mut stream = ShardEventStream::new(shards.iter_mut());
 
-    loop {
-        let (shard, event) = match stream.next().await {
-            Some((shard, Ok(event))) => (shard, event),
-            Some((_, Err(source))) => {
+    while let Some((shard, event)) = stream.next().await {
+        let event = match event {
+            Ok(event) => event,
+            Err(source) => {
                 tracing::warn!(?source, "error receiving event");
 
                 if source.is_fatal() {
@@ -118,8 +118,7 @@ async fn main() -> anyhow::Result<()> {
                 }
 
                 continue;
-            },
-            None => break,
+            }
         };
 
         tracing::debug!(?event, shard = ?shard.id(), "received event");

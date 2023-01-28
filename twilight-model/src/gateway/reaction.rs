@@ -22,7 +22,11 @@ pub struct GatewayReaction {
 mod tests {
     use super::GatewayReaction;
     use crate::{
-        channel::message::ReactionType, guild::Member, id::Id, test::image_hash, user::User,
+        channel::message::ReactionType,
+        guild::{Member, MemberFlags},
+        id::Id,
+        test::image_hash,
+        user::User,
         util::Timestamp,
     };
     use serde_test::Token;
@@ -32,6 +36,7 @@ mod tests {
     #[test]
     fn reaction_with_member() {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap();
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = GatewayReaction {
             channel_id: Id::new(2),
@@ -43,6 +48,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),
@@ -97,12 +103,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),

@@ -30,6 +30,7 @@ impl DerefMut for MemberAdd {
 mod tests {
     use super::{Member, MemberAdd};
     use crate::{
+        guild::MemberFlags,
         id::{marker::GuildMarker, Id},
         user::User,
         util::Timestamp,
@@ -39,6 +40,7 @@ mod tests {
     #[test]
     fn member_add() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = MemberAdd {
             guild_id: Id::<GuildMarker>::new(1),
@@ -46,6 +48,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: None,
@@ -83,6 +86,8 @@ mod tests {
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2021-09-19T17:30:45.000000+00:00"),
                 Token::Str("mute"),

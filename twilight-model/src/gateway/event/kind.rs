@@ -25,6 +25,7 @@ pub enum EventType {
     GatewayInvalidateSession,
     GatewayReconnect,
     GiftCodeUpdate,
+    GuildAuditLogEntryCreate,
     GuildCreate,
     GuildDelete,
     GuildEmojisUpdate,
@@ -104,6 +105,7 @@ impl EventType {
             Self::ChannelUpdate => Some("CHANNEL_UPDATE"),
             Self::CommandPermissionsUpdate => Some("APPLICATION_COMMAND_PERMISSIONS_UPDATE"),
             Self::GiftCodeUpdate => Some("GIFT_CODE_UPDATE"),
+            Self::GuildAuditLogEntryCreate => Some("GUILD_AUDIT_LOG_ENTRY_CREATE"),
             Self::GuildCreate => Some("GUILD_CREATE"),
             Self::GuildDelete => Some("GUILD_DELETE"),
             Self::GuildEmojisUpdate => Some("GUILD_EMOJIS_UPDATE"),
@@ -174,6 +176,7 @@ impl<'a> TryFrom<&'a str> for EventType {
             "AUTO_MODERATION_RULE_CREATE" => Ok(Self::AutoModerationRuleCreate),
             "AUTO_MODERATION_RULE_DELETE" => Ok(Self::AutoModerationRuleDelete),
             "AUTO_MODERATION_RULE_UPDATE" => Ok(Self::AutoModerationRuleUpdate),
+            "GUILD_AUDIT_LOG_ENTRY_CREATE" => Ok(Self::GuildAuditLogEntryCreate),
             "GUILD_BAN_ADD" => Ok(Self::BanAdd),
             "GUILD_BAN_REMOVE" => Ok(Self::BanRemove),
             "CHANNEL_CREATE" => Ok(Self::ChannelCreate),
@@ -291,6 +294,10 @@ mod tests {
         );
         assert_variant(EventType::GatewayReconnect, "GATEWAY_RECONNECT");
         assert_variant(EventType::GiftCodeUpdate, "GIFT_CODE_UPDATE");
+        assert_variant(
+            EventType::GuildAuditLogEntryCreate,
+            "GUILD_AUDIT_LOG_ENTRY_CREATE",
+        );
         assert_variant(EventType::GuildCreate, "GUILD_CREATE");
         assert_variant(EventType::GuildDelete, "GUILD_DELETE");
         assert_variant(EventType::GuildEmojisUpdate, "GUILD_EMOJIS_UPDATE");

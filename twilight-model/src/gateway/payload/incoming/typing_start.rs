@@ -22,7 +22,7 @@ pub struct TypingStart {
 mod tests {
     use super::TypingStart;
     use crate::{
-        guild::Member,
+        guild::{Member, MemberFlags},
         id::Id,
         test::image_hash,
         user::User,
@@ -35,6 +35,7 @@ mod tests {
     #[test]
     fn typing_start_with_member() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = TypingStart {
             channel_id: Id::new(2),
@@ -43,6 +44,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),
@@ -89,12 +91,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
