@@ -24,6 +24,9 @@ pub const CHANNEL_RATE_LIMIT_PER_USER_MAX: u16 = 21_600;
 /// Maximum length of a channel's topic.
 pub const CHANNEL_TOPIC_LENGTH_MAX: usize = 1024;
 
+/// Maximum user limit of an audio channel.
+pub const CHANNEL_USER_LIMIT_MAX: u16 = 99;
+
 /// Returned when the channel can not be updated as configured.
 #[derive(Debug)]
 pub struct ChannelValidationError {
@@ -79,6 +82,11 @@ impl Display for ChannelValidationError {
 
                 f.write_str(" is not a thread")
             }
+            ChannelValidationErrorType::UserLimitInvalid => {
+                f.write_str("user limit is greater than ")?;
+
+                Display::fmt(&CHANNEL_USER_LIMIT_MAX, f)
+            }
         }
     }
 }
@@ -108,6 +116,8 @@ pub enum ChannelValidationErrorType {
         /// Provided type.
         kind: ChannelType,
     },
+    /// User limit is greater than 99.
+    UserLimitInvalid,
 }
 
 /// Ensure a channel's bitrate is collect.
@@ -236,6 +246,25 @@ pub fn topic(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
     }
 }
 
+/// Ensure a channel's user limit is correct.
+///
+/// Must be at most 99.
+///
+/// # Errors
+///
+/// Returns an error of type [`UserLimitInvalid`] if the user limit is invalid.
+///
+/// [`UserLimitInvalid`]: ChannelValidationErrorType::BitrateInvalid
+pub const fn user_limit(value: u16) -> Result<(), ChannelValidationError> {
+    if value <= CHANNEL_USER_LIMIT_MAX {
+        Ok(())
+    } else {
+        Err(ChannelValidationError {
+            kind: ChannelValidationErrorType::UserLimitInvalid,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -280,5 +309,15 @@ mod tests {
         assert!(topic("a".repeat(1_024)).is_ok());
 
         assert!(topic("a".repeat(1_025)).is_err());
+    }
+
+    #[test]
+    fn user_limit() {
+        assert!(super::user_limit(0).is_ok());
+        assert!(super::user_limit(99).is_ok());
+        assert!(matches!(
+            super::user_limit(100).unwrap_err().kind(),
+            ChannelValidationErrorType::UserLimitInvalid
+        ));
     }
 }
