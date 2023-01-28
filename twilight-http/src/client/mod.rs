@@ -88,7 +88,8 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::AsRef,
+    fmt::{Debug, Formatter, Result as FmtResult},
+    ops::Deref,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -121,6 +122,35 @@ const TWILIGHT_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_VERSION"),
     ") Twilight-rs",
 );
+
+/// Wrapper for an authorization token with a debug implementation that redacts
+/// the string.
+#[derive(Default)]
+struct Token {
+    /// Authorization token that is redacted in the Debug implementation.
+    inner: Box<str>,
+}
+
+impl Token {
+    /// Create a new authorization wrapper.
+    const fn new(token: Box<str>) -> Self {
+        Self { inner: token }
+    }
+}
+
+impl Debug for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("<redacted>")
+    }
+}
+
+impl Deref for Token {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
 
 /// Twilight's http client.
 ///
@@ -206,7 +236,7 @@ pub struct Client {
     /// Whether an invalid token is tracked can be configured via
     /// [`ClientBuilder::remember_invalid_token`].
     token_invalidated: Option<Arc<AtomicBool>>,
-    token: Option<Box<str>>,
+    token: Option<Token>,
     use_http: bool,
 }
 
@@ -2542,7 +2572,7 @@ impl Client {
         let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);
 
         if use_authorization_token {
-            if let Some(token) = &self.token {
+            if let Some(token) = self.token.as_deref() {
                 let value = HeaderValue::from_str(token).map_err(|source| {
                     let name = AUTHORIZATION.to_string();
 
@@ -2621,5 +2651,55 @@ impl Client {
         } else {
             ResponseFuture::new(Box::pin(time::timeout(self.timeout, inner)), invalid_token)
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Client;
+
+    fn assert_client_debug(client: &Client, token_text: &str) {
+        assert_eq!(
+            format!("{client:#?}"),
+            format!(
+                r#"Client {{
+    default_allowed_mentions: None,
+    default_headers: None,
+    http: {:?},
+    proxy: None,
+    ratelimiter: Some(
+        InMemoryRatelimiter {{
+            buckets: Mutex {{
+                data: {{}},
+                poisoned: false,
+                ..
+            }},
+            global: GlobalLockPair(
+                Mutex {{
+                    data: (),
+                }},
+                false,
+            ),
+        }},
+    ),
+    timeout: 10s,
+    token_invalidated: Some(
+        false,
+    ),
+    token: {token_text},
+    use_http: false,
+}}"#,
+                client.http
+            ),
+        );
+    }
+
+    #[test]
+    fn client_debug_with_token() {
+        assert_client_debug(
+            &Client::new("Bot foo".to_owned()),
+            "Some(\n        <redacted>,\n    )",
+        );
+        assert_client_debug(&Client::builder().build(), "None");
     }
 }

@@ -7,8 +7,10 @@ use std::{
 use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
 use twilight_model::channel::message::AllowedMentions;
 
-#[derive(Debug)]
+use super::Token;
+
 /// A builder for [`Client`].
+#[derive(Debug)]
 #[must_use = "has no effect if not built into a Client"]
 pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
@@ -17,7 +19,7 @@ pub struct ClientBuilder {
     remember_invalid_token: bool,
     pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
-    pub(crate) token: Option<Box<str>>,
+    pub(super) token: Option<Token>,
     pub(crate) use_http: bool,
 }
 
@@ -141,7 +143,7 @@ impl ClientBuilder {
             token.insert_str(0, "Bot ");
         }
 
-        self.token.replace(token.into_boxed_str());
+        self.token.replace(Token::new(token.into_boxed_str()));
 
         self
     }
@@ -170,4 +172,45 @@ mod tests {
     use std::fmt::Debug;
 
     assert_impl_all!(ClientBuilder: Debug, Default, Send, Sync);
+
+    fn assert_client_builder_debug(client_builder: &ClientBuilder, token_text: &str) {
+        assert_eq!(
+            format!("{client_builder:#?}"),
+            format!(
+                r#"ClientBuilder {{
+    default_allowed_mentions: None,
+    proxy: None,
+    ratelimiter: Some(
+        InMemoryRatelimiter {{
+            buckets: Mutex {{
+                data: {{}},
+                poisoned: false,
+                ..
+            }},
+            global: GlobalLockPair(
+                Mutex {{
+                    data: (),
+                }},
+                false,
+            ),
+        }},
+    ),
+    remember_invalid_token: true,
+    default_headers: None,
+    timeout: 10s,
+    token: {token_text},
+    use_http: false,
+}}"#,
+            ),
+        );
+    }
+
+    #[test]
+    fn client_debug() {
+        assert_client_builder_debug(
+            &ClientBuilder::new().token("Bot foo".to_owned()),
+            "Some(\n        <redacted>,\n    )",
+        );
+        assert_client_builder_debug(&ClientBuilder::new(), "None");
+    }
 }
