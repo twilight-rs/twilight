@@ -17,8 +17,7 @@
 //! 1. If the user sends a [command] via [`Shard::command`] the command is
 //! serialized into a raw websocket message and then...
 //! 2. [`Shard::send`] is called and the sending of the message goes through
-//! ratelimiting via [`CommandRatelimiter`] if ratelimiting [is enabled] and
-//! it's not a [close message];
+//! ratelimiting via [`CommandRatelimiter`] if ratelimiting [is enabled];
 //! 3. The [websocket message] is sent over the [websocket connection].
 //!
 //! Receiving a message is a little bit more complicated, but follows as:
@@ -26,19 +25,23 @@
 //! 1. The user calls [`Shard::next_message`] to receive the next message from
 //! the Websocket;
 //! 2. If the shard is disconnected then the connection is reconnected;
-//! 3. One of three things wait to happen:
-//!   a. the interval for the shard to send the next heartbeat occurs, in which
+//! 3. One of five things wait to happen:
+//!   a. the shard receives a close frame from the user over the [user channel],
+//!   which is then forwarded via [`Shard::close`]; or
+//!   b. the interval for the shard to send the next heartbeat occurs, in which
 //!   case [`Shard::heartbeat`] is called; or
-//!   b. the shard receives a [raw websocket message] from the user over the
-//!   [user channel], which is then forwarded via [`Shard::send`]; or
-//!   c. the shard receives a message from Discord via the websocket connection.
-//! 4. In the case of 3(a) and 3(b), 3 is repeated; otherwise...
+//!   c. the background identify queue task finishes, in which case
+//!   [`Shard::send`] is called with the identify payload; or
+//!   d. the shard receives a command from the user over the [user channel],
+//!   which is then forwarded via [`Shard::send`]; or
+//!   e. the shard receives a message from Discord via the websocket connection.
+//! 4. In the case of 3(a) through 3(d), 3 is repeated; otherwise...
 //! 5. If the message is not a close it's [processed] by the shard;
 //! 6. The raw Websocket message is returned to the user
 //!
 //! If the user called [`Shard::next_event`] instead of [`Shard::next_message`],
 //! then the previous steps are taken and the resultant message is deserialized
-//! into a [`GatewayEvent`].
+//! into a [`GatewayEvent`] if it matches the user's [`EventTypeFlags`].
 //!
 //! # Reconnecting
 //!
@@ -50,8 +53,10 @@
 //! [`resume_gateway_url`]: twilight_model::gateway::payload::incoming::Ready::resume_gateway_url
 //! [command]: crate::Command
 //! [close message]: Message::Close
+//! [`EventTypeFlags`]: crate::EventTypeFlags
 //! [is enabled]: Config::ratelimit_messages
 //! [processed]: Shard::process
+//! [user channel]: crate::MessageSender
 //! [websocket connection]: Shard::connection
 //! [websocket message]: Message
 
@@ -77,7 +82,10 @@ use serde::{de::DeserializeOwned, Deserialize};
 #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
 use std::io::ErrorKind as IoErrorKind;
 use std::{env::consts::OS, str};
-use tokio::time::{self, Duration, Instant, Interval, MissedTickBehavior};
+use tokio::{
+    task::JoinHandle,
+    time::{self, Duration, Instant, Interval, MissedTickBehavior},
+};
 #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
 use tokio_tungstenite::tungstenite::Error as TungsteniteError;
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
@@ -338,6 +346,8 @@ pub struct Shard {
     heartbeat_interval_event: bool,
     /// ID of the shard.
     id: ShardId,
+    /// Identify queue background task handle.
+    identify_handle: Option<JoinHandle<()>>,
     /// Zlib decompressor.
     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
     inflater: Inflater,
@@ -355,12 +365,8 @@ pub struct Shard {
     resume_gateway_url: Option<String>,
     /// Active session of the shard.
     ///
-    /// The shard may not have an active session if it hasn't completed a full
-    /// identify, done via [`identify`] in response to receiving a
-    /// [`GatewayEvent::Hello`].
-    ///
-    /// [`GatewayEvent::Hello`]: twilight_model::gateway::event::GatewayEvent::Hello
-    /// [`identify`]: Self::identify
+    /// The shard may not have an active session if it hasn't yet identified and
+    /// received a `READY` dispatch event response.
     session: Option<Session>,
     /// Current connection status of the Websocket connection.
     status: ConnectionStatus,
@@ -387,6 +393,7 @@ impl Shard {
             heartbeat_interval: None,
             heartbeat_interval_event: false,
             id: shard_id,
+            identify_handle: None,
             #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
             inflater: Inflater::new(),
             latency: Latency::new(),
@@ -528,10 +535,13 @@ impl Shard {
 
         let message = loop {
             let future = NextMessageFuture::new(
-                self.user_channel.rx_mut(),
+                &mut self.user_channel.close_rx,
+                &mut self.user_channel.command_rx,
+                &self.status,
+                self.identify_handle.as_mut(),
                 self.connection.as_mut().expect("connected").next(),
-                self.ratelimiter.as_mut(),
                 self.heartbeat_interval.as_mut(),
+                self.ratelimiter.as_mut(),
             );
 
             let tungstenite_message = match future.await {
@@ -598,8 +608,42 @@ impl Shard {
 
                     continue;
                 }
-                NextMessageFutureOutput::UserChannelMessage(message) => {
-                    tracing::debug!("sending message from user channel");
+                NextMessageFutureOutput::SendIdentify => {
+                    self.identify_handle = None;
+
+                    tracing::debug!("sending identify");
+                    let identify = Identify::new(IdentifyInfo {
+                        compress: false,
+                        intents: self.config.intents(),
+                        large_threshold: self.config.large_threshold(),
+                        presence: self.config.presence().cloned(),
+                        properties: self
+                            .config
+                            .identify_properties()
+                            .cloned()
+                            .unwrap_or_else(default_identify_properties),
+                        shard: Some([self.id().number(), self.id().total()]),
+                        token: self.config.token().to_owned(),
+                    });
+                    let json =
+                        command::prepare(&identify).map_err(ReceiveMessageError::from_send)?;
+                    self.send(json)
+                        .await
+                        .map_err(ReceiveMessageError::from_send)?;
+
+                    continue;
+                }
+                NextMessageFutureOutput::UserClose(frame) => {
+                    tracing::debug!("sending close frame from user channel");
+                    self.session = self
+                        .close(frame)
+                        .await
+                        .map_err(ReceiveMessageError::from_send)?;
+
+                    continue;
+                }
+                NextMessageFutureOutput::UserCommand(message) => {
+                    tracing::debug!("sending command from user channel");
                     self.send(message)
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
@@ -686,7 +730,7 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns a [`SendErrorType::Sending`] error type if the message could
+    /// Returns a [`SendErrorType::Sending`] error type if the command could
     /// not be sent over the websocket. This indicates the shard is either
     /// currently restarting or closed and will restart.
     ///
@@ -695,54 +739,38 @@ impl Shard {
     ///
     /// [`send`]: Self::send
     pub async fn command(&mut self, command: &impl Command) -> Result<(), SendError> {
-        let message = command::prepare(command)?;
+        // Types implementing `Command` may only be sent when identified.
+        if !self.status.is_identified() {
+            return Err(SendError {
+                kind: SendErrorType::Sending,
+                source: None,
+            });
+        }
 
-        self.send(message).await
+        let json = command::prepare(command)?;
+
+        self.send(json).await
     }
 
-    /// Send a raw websocket message.
+    /// Send a JSON encoded gateway event.
     ///
-    /// For non [close messages], a permit from the shard's [ratelimiter] will
-    /// be awaited (if ratelimiting is [enabled]) before sending the message.
-    ///
-    /// # Examples
-    ///
-    /// Send a normal close, which [`Shard::close`] is shorthand for:
-    ///
-    /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::{borrow::Cow, env};
-    /// use twilight_gateway::{CloseFrame, Intents, Message, Shard, ShardId};
-    ///
-    /// let token = env::var("DISCORD_TOKEN")?;
-    /// let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILDS);
-    ///
-    /// // The shard will try to connect on the first call to either
-    /// // `next_event` or `next_message`.
-    /// shard.next_message().await?;
-    ///
-    /// let message = Message::Close(Some(CloseFrame::NORMAL));
-    /// shard.send(message).await?;
-    /// # Ok(()) }
-    /// ```
+    /// A permit from the shard's [ratelimiter] is first awaited (if
+    /// ratelimiting is [enabled]) before sending the event.
     ///
     /// # Errors
     ///
-    /// Returns a [`SendErrorType::Sending`] error type if the message could
-    /// not be sent over the websocket. This indicates the shard is either
-    /// currently restarting or closed and will restart.
+    /// Returns a [`SendErrorType::Sending`] error type if the event could not
+    /// be sent over the websocket. This indicates the shard is either currently
+    /// restarting or closed and will restart.
     ///
-    /// [close messages]: Message::Close
     /// [enabled]: crate::ConfigBuilder::ratelimit_messages
     /// [ratelimiter]: CommandRatelimiter
-    pub async fn send(&mut self, message: Message) -> Result<(), SendError> {
-        if !matches!(message, Message::Close(_)) {
-            if let Some(ratelimiter) = &mut self.ratelimiter {
-                ratelimiter.acquire().await;
-            }
+    pub async fn send(&mut self, json: String) -> Result<(), SendError> {
+        if let Some(ratelimiter) = &mut self.ratelimiter {
+            ratelimiter.acquire().await;
         }
 
-        self.send_unratelimited(message).await
+        self.send_unratelimited(Message::Text(json)).await
     }
 
     /// Send a raw websocket message without first passing the ratelimiter.
@@ -761,7 +789,8 @@ impl Shard {
             })
     }
 
-    /// Retrieve a channel to send messages over the shard to the gateway.
+    /// Retrieve a channel to send outgoing gateway events over the shard to the
+    /// gateway.
     ///
     /// This is primarily useful for sending to other tasks and threads where
     /// the shard won't be available.
@@ -769,8 +798,8 @@ impl Shard {
         self.user_channel.sender()
     }
 
-    /// Close the gateway connection with a close frame indicating whether to
-    /// also invalidate the shard's session.
+    /// Send a Websocket close frame indicating whether to also invalidate the
+    /// shard's session.
     ///
     /// Returns the shard's session if the close frame code is not `1000` or
     /// `1001`, which invalidates the session and shows the application's bot as
@@ -818,7 +847,7 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns a [`SendErrorType::Sending`] error type if the message could
+    /// Returns a [`SendErrorType::Sending`] error type if the close frame could
     /// not be sent over the websocket. This indicates the shard is either
     /// currently restarting or closed and will restart.
     ///
@@ -832,7 +861,7 @@ impl Shard {
         tracing::debug!(frame = ?close_frame, "sending websocket close message");
         let message = Message::Close(Some(close_frame));
 
-        self.send(message).await?;
+        self.send_unratelimited(message).await?;
 
         self.disconnect(CloseInitiator::Shard(close_code));
 
@@ -865,50 +894,13 @@ impl Shard {
         // Sequence should be null if no dispatch event has been received.
         let sequence = self.session().map(Session::sequence);
         tracing::debug!(?sequence, "sending heartbeat");
-        let message = command::prepare(&Heartbeat::new(sequence))?;
+        let message = Message::Text(command::prepare(&Heartbeat::new(sequence))?);
         // The ratelimiter reserves capacity for heartbeat messages.
         self.send_unratelimited(message).await?;
 
         self.latency.track_sent();
 
         Ok(())
-    }
-
-    /// Identify a new session with the Discord gateway.
-    ///
-    /// Spawn a background task that awaits permission from the gateway queue
-    /// and then sends an identify event back to the shard through a
-    /// [`MessageSender`].
-    fn identify(&self) {
-        tokio::spawn({
-            let sender = self.sender();
-            let shard_id = self.id();
-            let span = tracing::Span::current();
-            let queue = self.config().queue().clone();
-            let properties = self
-                .config()
-                .identify_properties()
-                .cloned()
-                .unwrap_or_else(default_identify_properties);
-
-            let identify = Identify::new(IdentifyInfo {
-                compress: false,
-                large_threshold: self.config.large_threshold(),
-                intents: self.config.intents(),
-                properties,
-                shard: Some([self.id().number(), self.id().total()]),
-                presence: self.config.presence().cloned(),
-                token: self.config.token().to_owned(),
-            });
-
-            async move {
-                queue.request([shard_id.number(), shard_id.total()]).await;
-                let _span = span.entered();
-                tracing::debug!("sending identify");
-                #[allow(renamed_and_removed_lints, clippy::let_underscore_drop)]
-                let _ = sender.command(&identify);
-            }
-        });
     }
 
     /// Updates the shard's internal state from a gateway event by recording
@@ -1030,11 +1022,21 @@ impl Shard {
                         tracing::debug!(sequence = session.sequence(), "sending resume");
                         let resume =
                             Resume::new(session.sequence(), session.id(), self.config().token());
-                        self.command(&resume)
-                            .await
-                            .map_err(ProcessError::from_send)?;
+                        let json = command::prepare(&resume).map_err(ProcessError::from_send)?;
+                        self.send(json).await.map_err(ProcessError::from_send)?;
                     }
-                    None => self.identify(),
+                    None => {
+                        // Can not use `MessageSender` since it is only polled
+                        // after the shard is identified.
+                        self.identify_handle = Some(tokio::spawn({
+                            let shard_id = self.id();
+                            let queue = self.config().queue().clone();
+
+                            async move {
+                                queue.request([shard_id.number(), shard_id.total()]).await;
+                            }
+                        }));
+                    }
                 }
             }
             Some(OpCode::InvalidSession) => {
