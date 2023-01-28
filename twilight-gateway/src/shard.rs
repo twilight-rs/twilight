@@ -622,7 +622,7 @@ impl Shard {
                             .identify_properties()
                             .cloned()
                             .unwrap_or_else(default_identify_properties),
-                        shard: Some([self.id().number(), self.id().total()]),
+                        shard: Some(self.id()),
                         token: self.config.token().to_owned(),
                     });
                     let json =
