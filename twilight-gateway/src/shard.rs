@@ -905,7 +905,7 @@ impl Shard {
                 queue.request([shard_id.number(), shard_id.total()]).await;
                 let _span = span.entered();
                 tracing::debug!("sending identify");
-                #[allow(clippy::let_underscore_drop)]
+                #[allow(let_underscore_drop)]
                 let _ = sender.command(&identify);
             }
         });
