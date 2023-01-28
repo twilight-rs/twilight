@@ -1,7 +1,7 @@
 //! Typed request builders, [multipart form support], a [manual request builder]
 //! for low-level request construction, and [audit log reason] support.
 //!
-//! ## Typed Request Builders
+//! ## Request Builders
 //!
 //! Requests are created in the form of builders. These can be `await`ed to
 //! receive a [`Response`]. Every route of Discord's API has its own builder:
