@@ -513,7 +513,7 @@ impl IntegerBuilder {
             .expect("choices are set")
             .iter_mut()
             .find(
-                |choice| matches!(choice, CommandOptionChoice{ name, value: CommandOptionChoiceValue::Integer(_), ..}  if name == choice_name),
+                |choice| matches!(choice, CommandOptionChoice{ name, .. }  if name == choice_name),
             );
 
         if let Some(choice) = choice {
@@ -1371,11 +1371,7 @@ fn set_choice_localizations<K: Into<String>, V: Into<String>>(
     choice: &mut CommandOptionChoice,
     localizations: impl IntoIterator<Item = (K, V)>,
 ) {
-    let CommandOptionChoice {
-        name_localizations, ..
-    } = choice;
-
-    *name_localizations = Some(
+    choice.name_localizations = Some(
         localizations
             .into_iter()
             .map(|(k, v)| (k.into(), v.into()))

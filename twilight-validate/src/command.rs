@@ -6,7 +6,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::application::command::{
-    Command, CommandOption, CommandOptionChoice, CommandOptionType, CommandType,
+    Command, CommandOption, CommandOptionChoiceValue, CommandOptionType, CommandType,
 };
 
 /// Maximum number of choices an option can have.
@@ -347,11 +347,11 @@ pub fn option_characters(option: &CommandOption) -> usize {
         CommandOptionType::String => {
             if let Some(choices) = option.choices.as_ref() {
                 for choice in choices {
-                    if let CommandOptionChoice::String(string_choice) = choice {
+                    if let CommandOptionChoiceValue::String(str_value) = &choice.value {
                         characters += longest_localization_characters(
-                            &string_choice.name,
-                            &string_choice.name_localizations,
-                        ) + string_choice.value.len();
+                            &choice.name,
+                            &choice.name_localizations,
+                        ) + str_value.len();
                     }
                 }
             }
@@ -642,7 +642,7 @@ mod tests {
     use std::collections::HashMap;
     use twilight_model::{
         application::command::{
-            CommandOptionChoice, CommandOptionChoiceData, CommandOptionType, CommandType,
+            CommandOptionChoice, CommandOptionChoiceValue, CommandOptionType, CommandType,
         },
         id::Id,
     };
@@ -773,16 +773,14 @@ mod tests {
                     options: Some(Vec::from([CommandOption {
                         autocomplete: Some(false),
                         channel_types: None,
-                        choices: Some(Vec::from([CommandOptionChoice::String(
-                            CommandOptionChoiceData {
-                                name: "b".repeat(32),
-                                name_localizations: Some(HashMap::from([(
-                                    "en-US".to_string(),
-                                    "b".repeat(10),
-                                )])),
-                                value: "c".repeat(100),
-                            },
-                        )])),
+                        choices: Some(Vec::from([CommandOptionChoice {
+                            name: "b".repeat(32),
+                            name_localizations: Some(HashMap::from([(
+                                "en-US".to_string(),
+                                "b".repeat(10),
+                            )])),
+                            value: CommandOptionChoiceValue::String("c".repeat(100)),
+                        }])),
                         description: "a".repeat(100),
                         description_localizations: Some(HashMap::from([(
                             "en-US".to_string(),

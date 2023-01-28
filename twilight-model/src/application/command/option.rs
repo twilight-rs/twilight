@@ -152,9 +152,6 @@ pub struct CommandOption {
 }
 
 /// A predetermined choice users can select.
-///
-/// Note that the right variant must be selected based on the
-/// [`CommandOption`]'s [`CommandOptionType`].
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CommandOptionChoice {
     /// Name of the choice. Must be 100 characters or less.
@@ -179,8 +176,6 @@ pub struct CommandOptionChoice {
 ///
 /// Note that the right variant must be selected based on the
 /// [`CommandOption`]'s [`CommandOptionType`].
-///
-/// See [`CommandOptionChoice`]'s documentation for more info.
 ///
 /// [`CommandOption`]: CommandOption
 /// [`CommandOptionChoice`]: CommandOptionChoice
