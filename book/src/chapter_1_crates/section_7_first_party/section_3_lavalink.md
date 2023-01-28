@@ -81,7 +81,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
 ## Links
 
-**source**: <https://github.com/twilight-rs/twilight/tree/main/lavalink>
+**source**: <https://github.com/twilight-rs/twilight/tree/main/twilight-lavalink>
 
 **docs**: <https://docs.rs/twilight-lavalink>
 
