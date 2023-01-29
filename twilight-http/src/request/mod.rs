@@ -1,7 +1,7 @@
 //! Typed request builders, [multipart form support], a [manual request builder]
 //! for low-level request construction, and [audit log reason] support.
 //!
-//! ## Request Builders
+//! # Request Builders
 //!
 //! Requests are created in the form of builders. These can be `await`ed to
 //! receive a [`Response`]. Every route of Discord's API has its own builder:
@@ -11,7 +11,7 @@
 //! support a new feature or fine-grained support is required, requests can be
 //! manually built via [`RequestBuilder`].
 //!
-//! ## Audit Log Reasons
+//! # Audit Log Reasons
 //!
 //! Audit log reasons can be added to supported requests via the
 //! [`AuditLogReason`] trait:
