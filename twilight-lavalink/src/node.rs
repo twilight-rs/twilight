@@ -241,9 +241,20 @@ pub struct NodeConfig {
 
 impl Debug for NodeConfig {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        /// Debug as `<redacted>`. Necessary because debugging a struct field
+        /// with a value of of `"<redacted>"` will insert quotations in the
+        /// string, which doesn't align with other token debugs.
+        struct Redacted;
+
+        impl Debug for Redacted {
+            fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("<redacted>")
+            }
+        }
+
         f.debug_struct("NodeConfig")
             .field("address", &self.address)
-            .field("authorization", &"<redacted>")
+            .field("authorization", &Redacted)
             .field("resume", &self.resume)
             .field("user_id", &self.user_id)
             .finish()
@@ -742,9 +753,6 @@ mod tests {
             user_id: Id::new(123),
         };
 
-        assert_eq!(
-            format!("{config:?}"),
-            format!("NodeConfig {{ address: {address:?}, authorization: \"<redacted>\", resume: None, user_id: {user_id:?} }}", address = config.address, user_id = config.user_id),
-        );
+        assert!(format!("{config:?}").contains("authorization: <redacted>"));
     }
 }
