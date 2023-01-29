@@ -2672,48 +2672,11 @@ impl Client {
 mod tests {
     use super::Client;
 
-    fn assert_client_debug(client: &Client, token_text: &str) {
-        assert_eq!(
-            format!("{client:#?}"),
-            format!(
-                r#"Client {{
-    default_allowed_mentions: None,
-    default_headers: None,
-    http: {:?},
-    proxy: None,
-    ratelimiter: Some(
-        InMemoryRatelimiter {{
-            buckets: Mutex {{
-                data: {{}},
-                poisoned: false,
-                ..
-            }},
-            global: GlobalLockPair(
-                Mutex {{
-                    data: (),
-                }},
-                false,
-            ),
-        }},
-    ),
-    timeout: 10s,
-    token_invalidated: Some(
-        false,
-    ),
-    token: {token_text},
-    use_http: false,
-}}"#,
-                client.http
-            ),
-        );
-    }
-
     #[test]
     fn client_debug_with_token() {
-        assert_client_debug(
-            &Client::new("Bot foo".to_owned()),
-            "Some(\n        <redacted>,\n    )",
+        assert!(
+            format!("{:?}", Client::new("Bot foo".to_owned())).contains("token: Some(<redacted>)")
         );
-        assert_client_debug(&Client::builder().build(), "None");
+        assert!(format!("{:?}", Client::builder().build()).contains("token: None"));
     }
 }

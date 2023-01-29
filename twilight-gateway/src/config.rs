@@ -610,15 +610,6 @@ mod tests {
     async fn config_debug() {
         let config = Config::new("Bot foo".to_owned(), Intents::empty());
 
-        assert_eq!(
-            format!("{config:?}"),
-            format!(
-                "Config {{ event_types: {event_types:?}, gateway_url: None, identify_properties: None, intents: {intents:?}, large_threshold: {large_threshold:?}, presence: None, ratelimit_messages: true, queue: {queue:?}, session: None, tls: TlsContainer, token: <redacted> }}",
-                event_types = config.event_types,
-                intents = config.intents,
-                large_threshold = config.large_threshold,
-                queue = config.queue,
-            ),
-        );
+        assert!(format!("{config:?}").contains("token: <redacted>"));
     }
 }

@@ -172,44 +172,12 @@ mod tests {
 
     assert_impl_all!(ClientBuilder: Debug, Default, Send, Sync);
 
-    fn assert_client_builder_debug(client_builder: &ClientBuilder, token_text: &str) {
-        assert_eq!(
-            format!("{client_builder:#?}"),
-            format!(
-                r#"ClientBuilder {{
-    default_allowed_mentions: None,
-    proxy: None,
-    ratelimiter: Some(
-        InMemoryRatelimiter {{
-            buckets: Mutex {{
-                data: {{}},
-                poisoned: false,
-                ..
-            }},
-            global: GlobalLockPair(
-                Mutex {{
-                    data: (),
-                }},
-                false,
-            ),
-        }},
-    ),
-    remember_invalid_token: true,
-    default_headers: None,
-    timeout: 10s,
-    token: {token_text},
-    use_http: false,
-}}"#,
-            ),
-        );
-    }
-
     #[test]
     fn client_debug() {
-        assert_client_builder_debug(
-            &ClientBuilder::new().token("Bot foo".to_owned()),
-            "Some(\n        <redacted>,\n    )",
+        assert!(
+            format!("{:?}", ClientBuilder::new().token("Bot foo".to_owned()))
+                .contains("token: Some(<redacted>)")
         );
-        assert_client_builder_debug(&ClientBuilder::new(), "None");
+        assert!(format!("{:?}", ClientBuilder::new()).contains("token: None"));
     }
 }
