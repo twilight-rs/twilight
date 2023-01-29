@@ -1,5 +1,9 @@
 use twilight_validate::request::ValidationError;
 
+/// Attach a reason for a request.
+///
+/// Reasons are associated with the audit log entries that are automatically
+/// created for certain requests.
 pub trait AuditLogReason<'a>: private::Sealed {
     /// Attach an audit log reason to the request.
     ///
