@@ -225,6 +225,7 @@ impl NodeSender {
 /// The configuration that a [`Node`] uses to connect to a Lavalink server.
 #[derive(Clone, Eq, PartialEq)]
 #[non_exhaustive]
+// Keep fields in sync with its Debug implementation.
 pub struct NodeConfig {
     /// The address of the node.
     pub address: SocketAddr,
