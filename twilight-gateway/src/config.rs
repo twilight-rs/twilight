@@ -449,8 +449,7 @@ impl ConfigBuilder {
 
     /// Set the proxy URL for connecting to the gateway.
     ///
-    /// When reconnecting, the shard will always use this URL instead of
-    /// [`resume_gateway_url`]. Proper reconnection is left to the proxy.
+    /// Resumes are always done to the URL specified in [`resume_gateway_url`].
     ///
     /// [`resume_gateway_url`]: twilight_model::gateway::payload::incoming::Ready::resume_gateway_url
     #[allow(clippy::missing_const_for_fn)]

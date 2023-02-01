@@ -1084,9 +1084,9 @@ impl Shard {
         future::reconnect_delay(reconnect_attempts).await;
 
         let maybe_gateway_url = self
-            .config
-            .proxy_url()
-            .or(self.resume_gateway_url.as_deref());
+            .resume_gateway_url
+            .as_deref()
+            .or_else(|| self.config.proxy_url());
 
         self.connection = Some(
             connection::connect(maybe_gateway_url, self.config.tls())
