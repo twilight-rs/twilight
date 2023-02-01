@@ -554,10 +554,11 @@ impl Shard {
 
             let tungstenite_message = match future.await {
                 NextMessageFutureOutput::Message(Some(Ok(message))) => message,
-                // Discord, against the WebSocket spec, does not send a
-                // close_notify prior to shutting down the TCP stream. This arm
-                // tries to gracefully handle this. The connection is considered
-                // unusable after encountering an io error, returning `None`.
+                // Discord, against recommendations from the WebSocket spec,
+                // does not send a close_notify prior to shutting down the TCP
+                // stream. This arm tries to gracefully handle this. The
+                // connection is considered unusable after encountering an io
+                // error, returning `None`.
                 #[cfg(any(
                     feature = "native",
                     feature = "rustls-native-roots",
