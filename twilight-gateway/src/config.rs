@@ -1,12 +1,36 @@
 //! User configuration for shards.
 
 use crate::{tls::TlsContainer, EventTypeFlags, Session};
-use std::sync::Arc;
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    sync::Arc,
+};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+
+/// Wrapper for an authorization token with a debug implementation that redacts
+/// the string.
+#[derive(Clone, Default)]
+struct Token {
+    /// Authorization token that is redacted in the Debug implementation.
+    inner: Box<str>,
+}
+
+impl Token {
+    /// Create a new authorization wrapper.
+    const fn new(token: Box<str>) -> Self {
+        Self { inner: token }
+    }
+}
+
+impl Debug for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("<redacted>")
+    }
+}
 
 /// Configuration used by the shard to identify with the gateway and operate.
 ///
@@ -42,7 +66,7 @@ pub struct Config {
     ///
     /// The token is prefixed with "Bot ", which is required by Discord for
     /// authentication.
-    token: Box<str>,
+    token: Token,
 }
 
 impl Config {
@@ -122,7 +146,7 @@ impl Config {
     /// Immutable reference to the token used to authenticate when identifying
     /// with the gateway.
     pub const fn token(&self) -> &str {
-        &self.token
+        &self.token.inner
     }
 
     /// Set the TLS container for the configuration.
@@ -172,7 +196,7 @@ impl ConfigBuilder {
                 ratelimit_messages: true,
                 session: None,
                 tls: TlsContainer::new().unwrap(),
-                token: token.into_boxed_str(),
+                token: Token::new(token.into_boxed_str()),
             },
         }
     }
@@ -406,6 +430,7 @@ mod tests {
             ConfigBuilder::new(WITHOUT.to_owned(), Intents::empty())
                 .build()
                 .token
+                .inner
                 .as_ref(),
             WITH
         );
@@ -413,8 +438,16 @@ mod tests {
             ConfigBuilder::new(WITH.to_owned(), Intents::empty())
                 .build()
                 .token
+                .inner
                 .as_ref(),
             WITH
         );
+    }
+
+    #[tokio::test]
+    async fn config_debug() {
+        let config = Config::new("Bot foo".to_owned(), Intents::empty());
+
+        assert!(format!("{config:?}").contains("token: <redacted>"));
     }
 }
