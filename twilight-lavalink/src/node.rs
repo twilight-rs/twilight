@@ -655,7 +655,13 @@ async fn reconnect(
 
 async fn backoff(
     config: &NodeConfig,
-) -> Result<(WebSocketStream<MaybeTlsStream<TcpStream>>, Response<()>), NodeError> {
+) -> Result<
+    (
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+        Response<Option<Vec<u8>>>,
+    ),
+    NodeError,
+> {
     let mut seconds = 1;
 
     loop {
