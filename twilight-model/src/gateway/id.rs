@@ -81,7 +81,6 @@ pub enum ShardIdParseErrorType {
 /// It may be helpful to visualize the logic in code:
 ///
 /// ```ignore
-/// # let shards = [];
 /// for shard in shards {
 ///     if shard.id().number() == (guild_id >> 22) % shard.id().total() {
 ///         unimplemented!("send event to shard");
