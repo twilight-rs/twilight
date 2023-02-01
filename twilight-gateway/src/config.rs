@@ -167,7 +167,7 @@ pub struct Config {
     /// Presence to set when identifying with the gateway.
     presence: Option<UpdatePresencePayload>,
     /// Gateway proxy URL.
-    proxy_url: Option<String>,
+    proxy_url: Option<Box<str>>,
     /// Queue in use by the shard.
     queue: Arc<dyn Queue>,
     /// Whether [outgoing message] ratelimiting is enabled.
@@ -454,7 +454,7 @@ impl ConfigBuilder {
     /// [`resume_gateway_url`]: twilight_model::gateway::payload::incoming::Ready::resume_gateway_url
     #[allow(clippy::missing_const_for_fn)]
     pub fn proxy_url(mut self, proxy_url: String) -> Self {
-        self.inner.proxy_url = Some(proxy_url);
+        self.inner.proxy_url = Some(proxy_url.into_boxed_str());
 
         self
     }

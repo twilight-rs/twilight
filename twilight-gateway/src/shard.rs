@@ -232,7 +232,7 @@ struct MinimalEvent<T> {
 #[derive(Deserialize)]
 struct MinimalReady {
     /// Used for resuming connections.
-    resume_gateway_url: String,
+    resume_gateway_url: Box<str>,
     /// ID of the new identified session.
     session_id: String,
 }
@@ -362,7 +362,7 @@ pub struct Shard {
     /// [`Config::ratelimit_messages`].
     ratelimiter: Option<CommandRatelimiter>,
     /// Used for resuming connections.
-    resume_gateway_url: Option<String>,
+    resume_gateway_url: Option<Box<str>>,
     /// Active session of the shard.
     ///
     /// The shard may not have an active session if it hasn't yet identified and
