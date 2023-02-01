@@ -1085,7 +1085,7 @@ impl Shard {
 
         let maybe_gateway_url = self
             .config
-            .gateway_url()
+            .proxy_url()
             .or(self.resume_gateway_url.as_deref());
 
         self.connection = Some(
