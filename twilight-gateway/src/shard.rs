@@ -259,20 +259,28 @@ struct MinimalReady {
 /// calls [`next_message`].
 ///
 /// Shards go through an [identify queue][`queue`] that ratelimits the amount of
-/// concurrent identify events (across all shards) per 5 seconds. Note that
-/// shards must be identified before they start receiving dispatch events and
-/// are able to send most other events.
+/// concurrent identifies (across all shards) per 5 seconds. Exceeding this
+/// limit invalidates the shard's session and it is therefore very important to
+/// reuse the same queue when running multiple shards. Note that shards must be
+/// identified before they start receiving dispatch events and are able to send
+/// [`Command`]s.
 ///
 /// # Sharding
 ///
-/// Bots in more than 2500 guilds must run multiple shards with different
-/// [`ShardId`]s, which is easiest done by using items in the [`stream`] module.
+/// A shard may not be connected to more than 2500 guilds, so large bots must
+/// split themselves across multiple shards. See the
+/// [Discord Docs/Sharding][docs:sharding], [`ShardId`], and [`stream`]
+/// documentation for more info.
 ///
 /// # Sending shard commands in different tasks
 ///
-/// Because a shard itself can't be used in multiple tasks it's not possible to
-/// directly send [gateway commands] over a shard. To solve this
-/// [`Shard::sender`] can be used to receive an MPSC channel to send commands.
+/// Because shards should not be used across multiple tasks it's not always easy
+/// to directly send [gateway commands] over a shard. As a convenience method,
+/// [`Shard::sender`] can be used to receive an MPSC channel sender which, in
+/// addition to being cheaply cloned, also only sends queued up commands when
+/// the shard is identified and not ratelimited. Multiple shards' senders can,
+/// for example, be collected into an `Arc<Vec<MessageSender>>` and be shared
+/// across all event handler tasks.
 ///
 /// # Examples
 ///
@@ -323,7 +331,7 @@ struct MinimalReady {
 /// # Ok(()) }
 /// ```
 ///
-/// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
+/// [docs:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 /// [gateway commands]: Shard::command
 /// [`next_event`]: Shard::next_event
 /// [`next_message`]: Shard::next_message
@@ -833,8 +841,8 @@ impl Shard {
     /// until it returns the response close message or a
     /// [`ReceiveMessageErrorType::Io`] error type.
     ///
-    /// You do not need to call this method upon receiving a close message to
-    /// respond do it, Twilight handles this for you.
+    /// You do not need to call this method upon receiving a close message,
+    /// Twilight automatically responds for you.
     ///
     /// # Example
     ///
