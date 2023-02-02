@@ -38,7 +38,7 @@ pub struct AffectedRole {
 /// Value of a change which may be one of multiple types.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
-pub enum ChangeValue {
+pub enum AuditLogChangeTypeValue {
     /// Value is an unsigned integer.
     Unsigned(u64),
     /// Value is a string.
@@ -642,10 +642,10 @@ pub enum AuditLogChange {
     Type {
         /// New target type.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<ChangeValue>,
+        new: Option<AuditLogChangeTypeValue>,
         /// Old target type.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<ChangeValue>,
+        old: Option<AuditLogChangeTypeValue>,
     },
     /// Unicode emoji of a role icon changed.
     UnicodeEmoji {
@@ -825,7 +825,7 @@ impl AuditLogChange {
 
 #[cfg(test)]
 mod tests {
-    use super::{super::AuditLogChangeKey, AffectedRole, AuditLogChange, ChangeValue};
+    use super::{super::AuditLogChangeKey, AffectedRole, AuditLogChange, AuditLogChangeTypeValue};
     use crate::{channel::ChannelType, guild::Permissions, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -913,7 +913,7 @@ mod tests {
         Sync
     );
     assert_impl_all!(
-        ChangeValue: Clone,
+        AuditLogChangeTypeValue: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
@@ -986,7 +986,7 @@ mod tests {
     #[test]
     fn channel_type() {
         let value = AuditLogChange::Type {
-            new: Some(ChangeValue::Unsigned(u64::from(u8::from(
+            new: Some(AuditLogChangeTypeValue::Unsigned(u64::from(u8::from(
                 ChannelType::PrivateThread,
             )))),
             old: None,
@@ -1012,7 +1012,7 @@ mod tests {
     #[test]
     fn integration_type() {
         let value = AuditLogChange::Type {
-            new: Some(ChangeValue::String("discord".to_owned())),
+            new: Some(AuditLogChangeTypeValue::String("discord".to_owned())),
             old: None,
         };
 
