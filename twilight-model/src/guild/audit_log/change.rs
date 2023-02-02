@@ -35,6 +35,16 @@ pub struct AffectedRole {
     pub name: String,
 }
 
+/// Value of a change which may be one of multiple types.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum ChangeValue {
+    /// Value is an unsigned integer.
+    Unsigned(u64),
+    /// Value is a string.
+    String(String),
+}
+
 /// Individual change within an [`AuditLogEntry`].
 ///
 /// [`AuditLogEntry`]: super::AuditLogEntry
@@ -626,13 +636,16 @@ pub enum AuditLogChange {
         old: Option<String>,
     },
     /// Type of a created entity.
+    ///
+    /// The value of a type is dependent on the entity. For example, a channel's
+    /// type may be an integer while an integration's may be a string.
     Type {
         /// New target type.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u64>,
+        new: Option<ChangeValue>,
         /// Old target type.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u64>,
+        old: Option<ChangeValue>,
     },
     /// Unicode emoji of a role icon changed.
     UnicodeEmoji {
@@ -812,8 +825,8 @@ impl AuditLogChange {
 
 #[cfg(test)]
 mod tests {
-    use super::{super::AuditLogChangeKey, AffectedRole, AuditLogChange};
-    use crate::{guild::Permissions, id::Id};
+    use super::{super::AuditLogChangeKey, AffectedRole, AuditLogChange, ChangeValue};
+    use crate::{channel::ChannelType, guild::Permissions, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -899,6 +912,17 @@ mod tests {
         Serialize,
         Sync
     );
+    assert_impl_all!(
+        ChangeValue: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
+    );
 
     #[test]
     fn afk_channel_id() {
@@ -954,6 +978,56 @@ mod tests {
                 Token::String("old_value"),
                 Token::Some,
                 Token::Str("2048"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn channel_type() {
+        let value = AuditLogChange::Type {
+            new: Some(ChangeValue::Unsigned(u64::from(u8::from(
+                ChannelType::PrivateThread,
+            )))),
+            old: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "AuditLogChange",
+                    len: 2,
+                },
+                Token::String("key"),
+                Token::Str("type"),
+                Token::String("new_value"),
+                Token::Some,
+                Token::U64(u64::from(u8::from(ChannelType::PrivateThread))),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn integration_type() {
+        let value = AuditLogChange::Type {
+            new: Some(ChangeValue::String("discord".to_owned())),
+            old: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "AuditLogChange",
+                    len: 2,
+                },
+                Token::String("key"),
+                Token::Str("type"),
+                Token::String("new_value"),
+                Token::Some,
+                Token::Str("discord"),
                 Token::StructEnd,
             ],
         );
