@@ -108,8 +108,9 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     while let Some(req) = rx.recv().await {
         if let Err(source) = req.send(()) {
             tracing::warn!("skipping, send failed: {source:?}");
+        } else {
+            sleep(DUR).await;
         }
-        sleep(DUR).await;
     }
 }
 

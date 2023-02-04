@@ -109,12 +109,6 @@ impl UpdateCache for MemberAdd {
         }
 
         cache.cache_member(self.guild_id, self.member.clone());
-
-        cache
-            .guild_members
-            .entry(self.guild_id)
-            .or_default()
-            .insert(self.member.user.id);
     }
 }
 
@@ -129,8 +123,6 @@ impl UpdateCache for MemberChunk {
         }
 
         cache.cache_members(self.guild_id, self.members.clone());
-        let mut guild = cache.guild_members.entry(self.guild_id).or_default();
-        guild.extend(self.members.iter().map(|member| member.user.id));
     }
 }
 
@@ -264,7 +256,7 @@ mod tests {
 
         // Test the guild's ID is the only one in the user's set of guilds.
         {
-            let user_guilds = cache.user_guilds.get(&user_id).unwrap();
+            let user_guilds = cache.user_guilds(user_id).unwrap();
             assert!(user_guilds.contains(&Id::new(1)));
             assert_eq!(1, user_guilds.len());
         }
@@ -273,7 +265,7 @@ mod tests {
         cache.cache_user(Cow::Owned(test::user(user_id)), Some(Id::new(3)));
 
         {
-            let user_guilds = cache.user_guilds.get(&user_id).unwrap();
+            let user_guilds = cache.user_guilds(user_id).unwrap();
             assert!(user_guilds.contains(&Id::new(3)));
             assert_eq!(2, user_guilds.len());
         }
@@ -286,7 +278,7 @@ mod tests {
         });
 
         {
-            let user_guilds = cache.user_guilds.get(&user_id).unwrap();
+            let user_guilds = cache.user_guilds(user_id).unwrap();
             assert!(!user_guilds.contains(&Id::new(3)));
             assert_eq!(1, user_guilds.len());
         }
