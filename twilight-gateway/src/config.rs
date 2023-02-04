@@ -39,8 +39,6 @@ impl Debug for Token {
 pub struct Config {
     /// Event type flags.
     event_types: EventTypeFlags,
-    /// URL used to connect to the gateway.
-    gateway_url: Option<String>,
     /// Identification properties the shard will use.
     identify_properties: Option<IdentifyProperties>,
     /// Intents that the shard requests when identifying with the gateway.
@@ -50,12 +48,14 @@ pub struct Config {
     large_threshold: u64,
     /// Presence to set when identifying with the gateway.
     presence: Option<UpdatePresencePayload>,
+    /// Gateway proxy URL.
+    proxy_url: Option<Box<str>>,
+    /// Queue in use by the shard.
+    queue: Arc<dyn Queue>,
     /// Whether [outgoing message] ratelimiting is enabled.
     ///
     /// [outgoing message]: crate::Shard::send
     ratelimit_messages: bool,
-    /// Queue in use by the shard.
-    queue: Arc<dyn Queue>,
     /// Session information to resume a shard on initialization.
     session: Option<Session>,
     /// TLS connector for Websocket connections.
@@ -96,11 +96,6 @@ impl Config {
         self.event_types
     }
 
-    /// Immutable reference to the URL used to connect to the gateway.
-    pub fn gateway_url(&self) -> Option<&str> {
-        self.gateway_url.as_deref()
-    }
-
     /// Immutable reference to the identification properties the shard will use.
     pub const fn identify_properties(&self) -> Option<&IdentifyProperties> {
         self.identify_properties.as_ref()
@@ -117,11 +112,6 @@ impl Config {
         self.large_threshold
     }
 
-    /// Immutable reference to the queue in use by the shard.
-    pub fn queue(&self) -> &Arc<dyn Queue> {
-        &self.queue
-    }
-
     /// Immutable reference to the presence to set when identifying
     /// with the gateway.
     ///
@@ -129,6 +119,16 @@ impl Config {
     /// to Do Not Disturb will show the status in the bot's presence.
     pub const fn presence(&self) -> Option<&UpdatePresencePayload> {
         self.presence.as_ref()
+    }
+
+    /// Immutable reference to the gateway proxy URL.
+    pub fn proxy_url(&self) -> Option<&str> {
+        self.proxy_url.as_deref()
+    }
+
+    /// Immutable reference to the queue in use by the shard.
+    pub fn queue(&self) -> &Arc<dyn Queue> {
+        &self.queue
     }
 
     /// Whether [outgoing message] ratelimiting is enabled.
@@ -187,11 +187,11 @@ impl ConfigBuilder {
         Self {
             inner: Config {
                 event_types: EventTypeFlags::all(),
-                gateway_url: None,
                 identify_properties: None,
                 intents,
                 large_threshold: 50,
                 presence: None,
+                proxy_url: None,
                 queue: Arc::new(LocalQueue::new()),
                 ratelimit_messages: true,
                 session: None,
@@ -219,19 +219,6 @@ impl ConfigBuilder {
     /// will be discarded.
     pub const fn event_types(mut self, event_types: EventTypeFlags) -> Self {
         self.inner.event_types = event_types;
-
-        self
-    }
-
-    /// Set the proxy URL for connecting to the gateway.
-    ///
-    /// When reconnecting, the shard will always use this URL instead of
-    /// [`resume_gateway_url`]. Proper reconnection is left to the proxy.
-    ///
-    /// [`resume_gateway_url`]: twilight_model::gateway::payload::incoming::Ready::resume_gateway_url
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn gateway_url(mut self, gateway_url: String) -> Self {
-        self.inner.gateway_url = Some(gateway_url);
 
         self
     }
@@ -338,6 +325,18 @@ impl ConfigBuilder {
     #[allow(clippy::missing_const_for_fn)]
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.inner.presence = Some(presence);
+
+        self
+    }
+
+    /// Set the proxy URL for connecting to the gateway.
+    ///
+    /// Resumes are always done to the URL specified in [`resume_gateway_url`].
+    ///
+    /// [`resume_gateway_url`]: twilight_model::gateway::payload::incoming::Ready::resume_gateway_url
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn proxy_url(mut self, proxy_url: String) -> Self {
+        self.inner.proxy_url = Some(proxy_url.into_boxed_str());
 
         self
     }

@@ -240,7 +240,7 @@ struct MinimalEvent<T> {
 #[derive(Deserialize)]
 struct MinimalReady {
     /// Used for resuming connections.
-    resume_gateway_url: String,
+    resume_gateway_url: Box<str>,
     /// ID of the new identified session.
     session_id: String,
 }
@@ -370,7 +370,7 @@ pub struct Shard {
     /// [`Config::ratelimit_messages`].
     ratelimiter: Option<CommandRatelimiter>,
     /// Used for resuming connections.
-    resume_gateway_url: Option<String>,
+    resume_gateway_url: Option<Box<str>>,
     /// Active session of the shard.
     ///
     /// The shard may not have an active session if it hasn't yet identified and
@@ -567,7 +567,7 @@ impl Shard {
                 NextMessageFutureOutput::Message(Some(Err(TungsteniteError::Io(e))))
                     if e.kind() == IoErrorKind::UnexpectedEof
                         // Assert we're directly connected to Discord's gateway.
-                        && self.config.gateway_url().is_none()
+                        && self.config.proxy_url().is_none()
                         && (self.status.is_disconnected() || self.status.is_fatally_closed()) =>
                 {
                     continue
@@ -1103,9 +1103,9 @@ impl Shard {
         future::reconnect_delay(reconnect_attempts).await;
 
         let maybe_gateway_url = self
-            .config
-            .gateway_url()
-            .or(self.resume_gateway_url.as_deref());
+            .resume_gateway_url
+            .as_deref()
+            .or_else(|| self.config.proxy_url());
 
         self.connection = Some(
             connection::connect(maybe_gateway_url, self.config.tls())
