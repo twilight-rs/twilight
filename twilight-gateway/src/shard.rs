@@ -79,14 +79,22 @@ use crate::{
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
-#[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
 use std::io::ErrorKind as IoErrorKind;
 use std::{env::consts::OS, str};
 use tokio::{
     task::JoinHandle,
     time::{self, Duration, Instant, Interval, MissedTickBehavior},
 };
-#[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
 use tokio_tungstenite::tungstenite::Error as TungsteniteError;
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
@@ -546,10 +554,21 @@ impl Shard {
 
             let tungstenite_message = match future.await {
                 NextMessageFutureOutput::Message(Some(Ok(message))) => message,
-                // Work around #1428.
-                #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
+                // Discord, against recommendations from the WebSocket spec,
+                // does not send a close_notify prior to shutting down the TCP
+                // stream. This arm tries to gracefully handle this. The
+                // connection is considered unusable after encountering an io
+                // error, returning `None`.
+                #[cfg(any(
+                    feature = "native",
+                    feature = "rustls-native-roots",
+                    feature = "rustls-webpki-roots"
+                ))]
                 NextMessageFutureOutput::Message(Some(Err(TungsteniteError::Io(e))))
-                    if self.status.is_disconnected() && e.kind() == IoErrorKind::UnexpectedEof =>
+                    if e.kind() == IoErrorKind::UnexpectedEof
+                        // Assert we're directly connected to Discord's gateway.
+                        && self.config.gateway_url().is_none()
+                        && (self.status.is_disconnected() || self.status.is_fatally_closed()) =>
                 {
                     continue
                 }
@@ -622,7 +641,7 @@ impl Shard {
                             .identify_properties()
                             .cloned()
                             .unwrap_or_else(default_identify_properties),
-                        shard: Some([self.id().number(), self.id().total()]),
+                        shard: Some(self.id()),
                         token: self.config.token().to_owned(),
                     });
                     let json =

@@ -1,5 +1,5 @@
 use super::update_presence::UpdatePresencePayload;
-use crate::gateway::{intents::Intents, opcode::OpCode};
+use crate::gateway::{intents::Intents, opcode::OpCode, ShardId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -24,7 +24,7 @@ pub struct IdentifyInfo {
     pub large_threshold: u64,
     pub presence: Option<UpdatePresencePayload>,
     pub properties: IdentifyProperties,
-    pub shard: Option<[u64; 2]>,
+    pub shard: Option<ShardId>,
     pub token: String,
 }
 

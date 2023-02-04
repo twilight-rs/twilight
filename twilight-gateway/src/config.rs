@@ -2,7 +2,7 @@
 
 use crate::{tls::TlsContainer, EventTypeFlags, Session};
 use std::{
-    fmt::{Debug, Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Formatter, Result as FmtResult},
     sync::Arc,
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
@@ -29,124 +29,6 @@ impl Token {
 impl Debug for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("<redacted>")
-    }
-}
-
-/// [`Shard`] identifier to calculate if it receivies a given event.
-///
-/// A shard ID consist of two fields: `number` and `total`. These values do not
-/// need to be unique, and are used by Discord for calculating which events to
-/// send to which shard. Shards should in general share the same `total` value
-/// and have an unique `number` value, but users may deviate from this when
-/// resharding/migrating to a new set of shards.
-///
-/// # Advanced use
-///
-/// Incoming events are split by their originating guild and are received by the
-/// shard with the id calculated from the following formula:
-///
-/// > `number = (guild_id >> 22) % total`.
-///
-/// `total` is in other words unrelated to the total number of shards and is
-/// only used to specify the share of events a shard will receive. The formula
-/// is independently calculated for all shards, which means that events may be
-/// duplicated or lost if it's determined that an event should be sent to
-/// multiple or no shard.
-///
-/// It may be helpful to visualize the logic in code:
-///
-/// ```
-/// use twilight_gateway::Shard;
-///
-/// fn send(shards: &[Shard], guild_id: u64) {
-///     for shard in shards {
-///         if shard.id().number() == (guild_id >> 22) % shard.id().total() {
-///             unimplemented!("send event to shard");
-///         }
-///     }
-/// }
-/// ```
-///
-/// See [Discord Docs/Sharding].
-///
-/// [`shard`]: crate::Shard
-/// [Discord Docs/Sharding]: https://discord.com/developers/docs/topics/gateway#sharding
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct ShardId {
-    /// Number of the shard, 0-indexed.
-    number: u64,
-    /// Total number of shards used by the bot, 1-indexed.
-    total: u64,
-}
-
-impl ShardId {
-    /// ID of a bot that has only one shard.
-    ///
-    /// Should *only* be used by small bots in under one or two thousand guilds.
-    pub const ONE: ShardId = ShardId::new(0, 1);
-
-    /// Create a new shard identifier.
-    ///
-    /// The shard number is 0-indexed while the total number of shards is
-    /// 1-indexed. A shard number of 7 with a total of 8 is therefore valid,
-    /// whilst a shard number of 8 out of 8 total shards is invalid.
-    ///
-    /// # Examples
-    ///
-    /// Create a new shard with a shard number of 13 out of a total of 24
-    /// shards:
-    ///
-    /// ```
-    /// use twilight_gateway::ShardId;
-    ///
-    /// let id = ShardId::new(13, 24);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the shard number is greater than or equal to the total number
-    /// of shards, or if the total number of shards is zero.
-    pub const fn new(number: u64, total: u64) -> Self {
-        assert!(total > 0, "total must be non-zero");
-        assert!(
-            number < total,
-            "shard number (0-indexed) must be less than total (1-indexed)",
-        );
-
-        Self { number, total }
-    }
-
-    /// Create a new shard identifier if the shard indexes are valid.
-    pub const fn new_checked(number: u64, total: u64) -> Option<Self> {
-        if total > 0 && number < total {
-            Some(Self { number, total })
-        } else {
-            None
-        }
-    }
-
-    /// Identifying number of the shard, 0-indexed.
-    pub const fn number(self) -> u64 {
-        self.number
-    }
-
-    /// Total number of shards, 1-indexed.
-    pub const fn total(self) -> u64 {
-        self.total
-    }
-}
-
-/// Display the shard ID.
-///
-/// Formats as `[{number}, {total}]`.
-impl Display for ShardId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("[")?;
-        Display::fmt(&self.number, f)?;
-        f.write_str(", ")?;
-        Display::fmt(&self.total, f)?;
-
-        f.write_str("]")
     }
 }
 
@@ -502,16 +384,13 @@ impl ConfigBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::{Config, ConfigBuilder, ShardId};
-    use static_assertions::{assert_impl_all, const_assert_eq};
-    use std::{fmt::Debug, hash::Hash};
+    use super::{Config, ConfigBuilder};
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
     use twilight_model::gateway::Intents;
 
-    const_assert_eq!(ShardId::ONE.number(), 0);
-    const_assert_eq!(ShardId::ONE.total(), 1);
     assert_impl_all!(Config: Clone, Debug, Send, Sync);
     assert_impl_all!(ConfigBuilder: Debug, Send, Sync);
-    assert_impl_all!(ShardId: Clone, Copy, Debug, Eq, Hash, PartialEq, Send, Sync);
 
     fn builder() -> ConfigBuilder {
         ConfigBuilder::new("test".to_owned(), Intents::empty())
@@ -539,47 +418,6 @@ mod tests {
     #[tokio::test]
     async fn large_threshold_maximum() {
         drop(builder().large_threshold(251));
-    }
-
-    #[test]
-    const fn shard_id() {
-        let id = ShardId::new(2, 4);
-
-        assert!(id.number() == 2);
-        assert!(id.total() == 4);
-    }
-
-    #[should_panic]
-    #[test]
-    const fn shard_id_number_equal_invalid() {
-        ShardId::new(4, 4);
-    }
-
-    #[should_panic]
-    #[test]
-    const fn shard_id_number_greater_invalid() {
-        ShardId::new(10, 4);
-    }
-
-    #[should_panic]
-    #[test]
-    const fn shard_id_total_zero_invalid() {
-        ShardId::new(0, 0);
-    }
-
-    #[test]
-    const fn shard_id_new_checked() {
-        assert!(ShardId::new_checked(0, 1).is_some());
-        assert!(ShardId::new_checked(1, 1).is_none());
-        assert!(ShardId::new_checked(2, 1).is_none());
-        assert!(ShardId::new_checked(0, 0).is_none());
-    }
-
-    #[test]
-    fn shard_id_display() {
-        assert_eq!("[0, 1]", ShardId::ONE.to_string());
-        assert_eq!("[2, 4]", ShardId::new(2, 4).to_string());
-        assert_eq!("[13, 102]", ShardId::new(13, 102).to_string());
     }
 
     #[tokio::test]
