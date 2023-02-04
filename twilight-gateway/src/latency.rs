@@ -171,7 +171,6 @@ mod tests {
             recent: [Duration::MAX; Latency::RECENT_LEN],
             sent: None,
         };
-        println!("{:?}", no_recents.recent());
         assert!(no_recents.recent().is_empty());
 
         // Assert that when only some recent latencies aren't the sentinel value
