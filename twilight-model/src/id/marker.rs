@@ -231,6 +231,15 @@ pub struct StickerPackMarker;
 #[non_exhaustive]
 pub struct StickerPackSkuMarker;
 
+/// Marker for SKU IDs.
+///
+/// Types such as [`RoleTags`] use this ID marker.
+///
+/// [`RoleTags`]: crate::guild::RoleTags
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct RoleSubscriptionSkuMarker;
+
 /// Marker for forum tag IDs.
 ///
 /// Types such as [`ForumTag`] use this ID marker.

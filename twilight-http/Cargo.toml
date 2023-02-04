@@ -17,7 +17,7 @@ version = "0.15.0-rc.1"
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
 hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.23" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
-hyper-trust-dns = { default-features = false, optional = true, version = "0.4" }
+hyper-trust-dns = { default-features = false, optional = true, version = "0.5" }
 percent-encoding = { default-features = false, version = "2" }
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
 serde = { default-features = false, features = ["derive"], version = "1" }
@@ -30,7 +30,7 @@ twilight-validate = { default-features = false, path = "../twilight-validate", v
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.7" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.8" }
 
 [features]
 default = ["decompression", "rustls-native-roots"]

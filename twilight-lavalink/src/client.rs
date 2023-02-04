@@ -13,7 +13,7 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
-    gateway::{event::Event, payload::incoming::VoiceServerUpdate},
+    gateway::{event::Event, payload::incoming::VoiceServerUpdate, ShardId},
     id::{
         marker::{GuildMarker, UserMarker},
         Id,
@@ -175,7 +175,7 @@ impl Lavalink {
 
         let guild_id = match event {
             Event::Ready(e) => {
-                let shard_id = e.shard.map_or(0, |[id, _]| id);
+                let shard_id = e.shard.map_or(0, ShardId::number);
 
                 self.clear_shard_states(shard_id);
 

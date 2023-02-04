@@ -20,7 +20,7 @@ tokio = { version = "1", default-features = false, features = ["rt", "sync", "ti
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1.23" }
 
 [dev-dependencies]
-criterion = { default-features = false, version = "0.3" }
+criterion = { default-features = false, version = "0.4" }
 static_assertions = { default-features = false, version = "1.1.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 

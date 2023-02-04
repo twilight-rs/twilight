@@ -45,6 +45,7 @@ pub struct CachedGuild {
     pub(crate) premium_progress_bar_enabled: bool,
     pub(crate) premium_subscription_count: Option<u64>,
     pub(crate) premium_tier: PremiumTier,
+    pub(crate) public_updates_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) rules_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) splash: Option<ImageHash>,
     pub(crate) system_channel_id: Option<Id<ChannelMarker>>,
@@ -208,6 +209,12 @@ impl CachedGuild {
     /// Server boost level.
     pub const fn premium_tier(&self) -> PremiumTier {
         self.premium_tier
+    }
+
+    /// ID of the where moderators of Community guilds receive notices from
+    /// Discord.
+    pub const fn public_updates_channel_id(&self) -> Option<Id<ChannelMarker>> {
+        self.public_updates_channel_id
     }
 
     /// For Community guilds, the ID of the rules channel.

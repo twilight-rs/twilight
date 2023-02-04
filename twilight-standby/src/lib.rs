@@ -316,7 +316,7 @@ impl Standby {
     /// let ready = standby
     ///     .wait_for_event(|event: &Event| {
     ///         if let Event::Ready(ready) = event {
-    ///             ready.shard.map(|[id, _]| id == 5).unwrap_or(false)
+    ///             ready.shard.map_or(false, |id| id.number() == 5)
     ///         } else {
     ///             false
     ///         }
@@ -373,7 +373,7 @@ impl Standby {
     ///
     /// let mut events = standby.wait_for_event_stream(|event: &Event| {
     ///     if let Event::Ready(ready) = event {
-    ///         ready.shard.map(|[id, _]| id == 5).unwrap_or(false)
+    ///         ready.shard.map_or(false, |id| id.number() == 5)
     ///     } else {
     ///         false
     ///     }
@@ -1060,7 +1060,7 @@ mod tests {
         channel::message::{component::ComponentType, Message, MessageType, ReactionType},
         gateway::{
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
-            GatewayReaction,
+            GatewayReaction, ShardId,
         },
         guild::Permissions,
         id::{marker::GuildMarker, Id},
@@ -1113,6 +1113,7 @@ mod tests {
             reactions: Vec::new(),
             reference: None,
             referenced_message: None,
+            role_subscription_data: None,
             sticker_items: Vec::new(),
             timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
             thread: None,
@@ -1319,7 +1320,7 @@ mod tests {
             guilds: Vec::new(),
             resume_gateway_url: "wss://gateway.discord.gg".into(),
             session_id: String::new(),
-            shard: Some([5, 7]),
+            shard: Some(ShardId::new(5, 7)),
             user: CurrentUser {
                 accent_color: None,
                 avatar: None,
@@ -1342,7 +1343,7 @@ mod tests {
 
         let standby = Standby::new();
         let wait = standby.wait_for_event(|event: &Event| match event {
-            Event::Ready(ready) => ready.shard.map_or(false, |[id, _]| id == 5),
+            Event::Ready(ready) => ready.shard.map_or(false, |id| id.number() == 5),
             _ => false,
         });
         assert!(!standby.events.is_empty());

@@ -1,3 +1,4 @@
+use super::Token;
 use crate::{client::connector, Client};
 use hyper::header::HeaderMap;
 use std::{
@@ -7,8 +8,8 @@ use std::{
 use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
 use twilight_model::channel::message::AllowedMentions;
 
-#[derive(Debug)]
 /// A builder for [`Client`].
+#[derive(Debug)]
 #[must_use = "has no effect if not built into a Client"]
 pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
@@ -17,7 +18,7 @@ pub struct ClientBuilder {
     remember_invalid_token: bool,
     pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
-    pub(crate) token: Option<Box<str>>,
+    pub(super) token: Option<Token>,
     pub(crate) use_http: bool,
 }
 
@@ -141,7 +142,7 @@ impl ClientBuilder {
             token.insert_str(0, "Bot ");
         }
 
-        self.token.replace(token.into_boxed_str());
+        self.token.replace(Token::new(token.into_boxed_str()));
 
         self
     }
@@ -170,4 +171,13 @@ mod tests {
     use std::fmt::Debug;
 
     assert_impl_all!(ClientBuilder: Debug, Default, Send, Sync);
+
+    #[test]
+    fn client_debug() {
+        assert!(
+            format!("{:?}", ClientBuilder::new().token("Bot foo".to_owned()))
+                .contains("token: Some(<redacted>)")
+        );
+        assert!(format!("{:?}", ClientBuilder::new()).contains("token: None"));
+    }
 }

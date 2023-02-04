@@ -29,7 +29,7 @@ use futures_util::{
 use http::{header::HeaderName, Request, Response, StatusCode};
 use std::{
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
     net::SocketAddr,
     pin::Pin,
     task::{Context, Poll},
@@ -223,8 +223,9 @@ impl NodeSender {
 }
 
 /// The configuration that a [`Node`] uses to connect to a Lavalink server.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 #[non_exhaustive]
+// Keep fields in sync with its Debug implementation.
 pub struct NodeConfig {
     /// The address of the node.
     pub address: SocketAddr,
@@ -236,6 +237,28 @@ pub struct NodeConfig {
     pub resume: Option<Resume>,
     /// The user ID of the bot.
     pub user_id: Id<UserMarker>,
+}
+
+impl Debug for NodeConfig {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        /// Debug as `<redacted>`. Necessary because debugging a struct field
+        /// with a value of of `"<redacted>"` will insert quotations in the
+        /// string, which doesn't align with other token debugs.
+        struct Redacted;
+
+        impl Debug for Redacted {
+            fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("<redacted>")
+            }
+        }
+
+        f.debug_struct("NodeConfig")
+            .field("address", &self.address)
+            .field("authorization", &Redacted)
+            .field("resume", &self.resume)
+            .field("user_id", &self.user_id)
+            .finish()
+    }
 }
 
 /// Configuration for a session which can be resumed.
@@ -655,7 +678,13 @@ async fn reconnect(
 
 async fn backoff(
     config: &NodeConfig,
-) -> Result<(WebSocketStream<MaybeTlsStream<TcpStream>>, Response<()>), NodeError> {
+) -> Result<
+    (
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+        Response<Option<Vec<u8>>>,
+    ),
+    NodeError,
+> {
     let mut seconds = 1;
 
     loop {
@@ -704,7 +733,12 @@ async fn backoff(
 mod tests {
     use super::{Node, NodeConfig, NodeError, NodeErrorType, Resume};
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{error::Error, fmt::Debug};
+    use std::{
+        error::Error,
+        fmt::Debug,
+        net::{Ipv4Addr, SocketAddr, SocketAddrV4},
+    };
+    use twilight_model::id::Id;
 
     assert_fields!(NodeConfig: address, authorization, resume, user_id);
     assert_impl_all!(NodeConfig: Clone, Debug, Send, Sync);
@@ -715,4 +749,16 @@ mod tests {
     assert_impl_all!(Node: Debug, Send, Sync);
     assert_fields!(Resume: timeout);
     assert_impl_all!(Resume: Clone, Debug, Default, Eq, PartialEq, Send, Sync);
+
+    #[test]
+    fn node_config_debug() {
+        let config = NodeConfig {
+            address: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 1312)),
+            authorization: "some auth".to_owned(),
+            resume: None,
+            user_id: Id::new(123),
+        };
+
+        assert!(format!("{config:?}").contains("authorization: <redacted>"));
+    }
 }
