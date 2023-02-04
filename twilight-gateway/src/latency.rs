@@ -36,7 +36,7 @@ impl Latency {
             latency_sum: Duration::ZERO,
             periods: 0,
             received: None,
-            recent: [Duration::ZERO; Self::RECENT_LEN],
+            recent: [Duration::MAX; Self::RECENT_LEN],
             sent: None,
         }
     }
@@ -58,7 +58,13 @@ impl Latency {
 
     /// Most recent latencies from newest to oldest.
     pub fn recent(&self) -> &[Duration] {
-        let maybe_zero_idx = self.recent.iter().position(Duration::is_zero);
+        // We use the sentinel value of Duration::MAX since using
+        // `Duration::ZERO` would cause tests depending on elapsed time on fast
+        // CPUs to flake. See issue #2114.
+        let maybe_zero_idx = self
+            .recent
+            .iter()
+            .position(|duration| *duration == Duration::MAX);
 
         &self.recent[0..maybe_zero_idx.unwrap_or(Self::RECENT_LEN)]
     }
@@ -150,6 +156,62 @@ mod tests {
         assert_eq!(iter.next_back(), Some(&Duration::from_millis(35)));
         assert!(iter.next().is_none());
         assert!(iter.next_back().is_none());
+    }
+
+    /// Test that only recent values up to and not including the sentinel value
+    /// are returned.
+    #[test]
+    fn recent() {
+        // Assert that when all recent latencies are the sentinel value then an
+        // empty slice is returned.
+        let no_recents = Latency {
+            latency_sum: Duration::ZERO,
+            periods: 0,
+            received: None,
+            recent: [Duration::MAX; Latency::RECENT_LEN],
+            sent: None,
+        };
+        assert!(no_recents.recent().is_empty());
+
+        // Assert that when only some recent latencies aren't the sentinel value
+        // then a partial slice is returned.
+        let partial = Latency {
+            recent: [
+                Duration::from_millis(40),
+                Duration::from_millis(50),
+                Duration::MAX,
+                Duration::MAX,
+                Duration::MAX,
+            ],
+            ..no_recents
+        };
+        assert_eq!(
+            [Duration::from_millis(40), Duration::from_millis(50)],
+            partial.recent()
+        );
+
+        // Assert that when all recent latencies aren't the sentinel value then
+        // the full slice is returned.
+        let full = Latency {
+            recent: [
+                Duration::from_millis(40),
+                Duration::from_millis(50),
+                Duration::from_millis(60),
+                Duration::from_millis(70),
+                Duration::from_millis(60),
+            ],
+            ..no_recents
+        };
+        assert_eq!(
+            [
+                Duration::from_millis(40),
+                Duration::from_millis(50),
+                Duration::from_millis(60),
+                Duration::from_millis(70),
+                Duration::from_millis(60),
+            ],
+            full.recent()
+        );
     }
 
     #[test]
