@@ -32,15 +32,6 @@ In addition to enabling the feature, you will need to add the following to your
 rustflags = ["-C", "target-cpu=native"]
 ```
 
-### Metrics
-
-The `metrics` feature provides metrics information via the [`metrics`] crate.
-Some of the metrics logged are counters about received event counts and their
-types and gauges about the capacity and efficiency of the inflater of each
-shard.
-
-This is disabled by default.
-
 ### TLS
 
 `twilight-gateway` has features to enable [`tokio-tungstenite`]'s TLS features.
@@ -135,10 +126,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 [cmake]: https://cmake.org/
 [flate2]: https://github.com/alexcrichton/flate2-rs
 [zlib-ng]: https://github.com/zlib-ng/zlib-ng
-[`async-tungstenite`]: https://crates.io/crates/async-tungstenite
 [`hyper-rustls`]: https://crates.io/crates/hyper-rustls
 [`hyper-tls`]: https://crates.io/crates/hyper-tls
-[`metrics`]: https://crates.io/crates/metrics
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
-[`twilight-http`]: ./section_2_http.md
+[`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
