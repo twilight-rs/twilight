@@ -128,7 +128,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 [zlib-ng]: https://github.com/zlib-ng/zlib-ng
 [`hyper-rustls`]: https://crates.io/crates/hyper-rustls
 [`hyper-tls`]: https://crates.io/crates/hyper-tls
-[`metrics`]: https://crates.io/crates/metrics
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
