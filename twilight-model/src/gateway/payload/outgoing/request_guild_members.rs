@@ -135,8 +135,8 @@ impl RequestGuildMembersBuilder {
     /// If you specify no limit, then Discord's default will be used, which will
     /// be an unbounded number of members. Specifying 0 is also equivalent.
     ///
-    /// To request the entire member list, pass in an empty string and a None limit. You must also
-    /// have the `GUILD_MEMBERS` intent enabled.
+    /// To request the entire member list, pass in an empty string and no limit.
+    /// You must also have the `GUILD_MEMBERS` intent enabled.
     ///
     /// # Examples
     ///
