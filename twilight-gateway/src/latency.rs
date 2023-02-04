@@ -36,7 +36,7 @@ impl Latency {
             latency_sum: Duration::ZERO,
             periods: 0,
             received: None,
-            recent: [Duration::ZERO; Self::RECENT_LEN],
+            recent: [Duration::MAX; Self::RECENT_LEN],
             sent: None,
         }
     }
@@ -58,7 +58,10 @@ impl Latency {
 
     /// Most recent latencies from newest to oldest.
     pub fn recent(&self) -> &[Duration] {
-        let maybe_zero_idx = self.recent.iter().position(Duration::is_zero);
+        // We use the sentinel value of Duration::MAX since using
+        // Duration::ZERO would in rare cases lead to a test
+        // failing. see #2114.
+        let maybe_zero_idx = self.recent.iter().position(|x| *x == Duration::MAX);
 
         &self.recent[0..maybe_zero_idx.unwrap_or(Self::RECENT_LEN)]
     }
