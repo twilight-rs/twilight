@@ -567,7 +567,7 @@ impl Shard {
                 NextMessageFutureOutput::Message(Some(Err(TungsteniteError::Io(e))))
                     if e.kind() == IoErrorKind::UnexpectedEof
                         // Assert we're directly connected to Discord's gateway.
-                        && self.config.gateway_url().is_none()
+                        && self.config.proxy_url().is_none()
                         && (self.status.is_disconnected() || self.status.is_fatally_closed()) =>
                 {
                     continue
