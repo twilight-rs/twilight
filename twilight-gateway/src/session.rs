@@ -65,7 +65,7 @@ impl Session {
     /// [`Identify`]: twilight_model::gateway::payload::outgoing::Identify
     /// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
     /// [ID of the shard]: crate::ShardId
-    pub fn id(&self) -> &str {
+    pub const fn id(&self) -> &str {
         &self.id
     }
 
