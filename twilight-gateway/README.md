@@ -77,9 +77,8 @@ Create the recommended number of shards and stream over their events:
 
 ```rust,no_run
 use futures::StreamExt;
-use std::{collections::HashMap, env, sync::Arc};
+use std::{collections::HashMap, env};
 use twilight_gateway::{
-    queue::LocalQueue,
     stream::{self, ShardEventStream},
     Config, Intents,
 };
@@ -91,17 +90,9 @@ async fn main() -> anyhow::Result<()> {
 
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
+    let config = Config::new(token.clone(), Intents::GUILDS);
 
-    let queue = Arc::new(LocalQueue::new());
-    // Callback to create a config for each shard, useful for when not all shards
-    // have the same configuration, such as for per-shard presences.
-    let config_callback = |_| {
-        Config::builder(token.clone(), Intents::GUILDS)
-            .queue(queue.clone())
-            .build()
-    };
-
-    let mut shards = stream::create_recommended(&client, config_callback)
+    let mut shards = stream::create_recommended(&client, config, |_, builder| builder.build())
         .await?
         .collect::<Vec<_>>();
 
