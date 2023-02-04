@@ -216,7 +216,7 @@ mod tests {
         cache.update(&MessageCreate(msg));
 
         {
-            let entry = cache.user_guilds.get(&Id::new(3)).unwrap();
+            let entry = cache.user_guilds(Id::new(3)).unwrap();
             assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(

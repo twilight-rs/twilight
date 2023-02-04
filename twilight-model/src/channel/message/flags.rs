@@ -53,19 +53,65 @@ impl Serialize for MessageFlags {
 mod tests {
     use super::MessageFlags;
     use serde::{Deserialize, Serialize};
-    use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, hash::Hash};
+    use serde_test::Token;
+    use static_assertions::{assert_impl_all, const_assert_eq};
+    use std::{
+        fmt::{Binary, Debug, LowerHex, Octal, UpperHex},
+        hash::Hash,
+        ops::{
+            BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Sub, SubAssign,
+        },
+    };
 
     assert_impl_all!(
-        MessageFlags: Copy,
+        MessageFlags: Binary,
+        BitAnd,
+        BitAndAssign,
+        BitOr,
+        BitOrAssign,
+        BitXor,
+        BitXorAssign,
         Clone,
+        Copy,
         Debug,
         Deserialize<'static>,
         Eq,
+        Extend<MessageFlags>,
+        FromIterator<MessageFlags>,
         Hash,
+        LowerHex,
+        Not,
+        Octal,
+        Ord,
         PartialEq,
+        PartialOrd,
         Send,
         Serialize,
-        Sync
+        Sub,
+        SubAssign,
+        Sync,
+        UpperHex
     );
+    const_assert_eq!(MessageFlags::CROSSPOSTED.bits(), 1);
+    const_assert_eq!(MessageFlags::IS_CROSSPOST.bits(), 1 << 1);
+    const_assert_eq!(MessageFlags::SUPPRESS_EMBEDS.bits(), 1 << 2);
+    const_assert_eq!(MessageFlags::SOURCE_MESSAGE_DELETED.bits(), 1 << 3);
+    const_assert_eq!(MessageFlags::URGENT.bits(), 1 << 4);
+    const_assert_eq!(MessageFlags::HAS_THREAD.bits(), 1 << 5);
+    const_assert_eq!(MessageFlags::EPHEMERAL.bits(), 1 << 6);
+    const_assert_eq!(MessageFlags::LOADING.bits(), 1 << 7);
+    const_assert_eq!(
+        MessageFlags::FAILED_TO_MENTION_SOME_ROLES_IN_THREAD.bits(),
+        1 << 8
+    );
+
+    #[test]
+    fn serde() {
+        serde_test::assert_tokens(
+            &MessageFlags::CROSSPOSTED,
+            &[Token::U64(MessageFlags::CROSSPOSTED.bits())],
+        );
+        // Deserialization truncates unknown bits.
+        serde_test::assert_de_tokens(&MessageFlags::empty(), &[Token::U64(1 << 63)]);
+    }
 }
