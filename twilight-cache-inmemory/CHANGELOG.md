@@ -7,6 +7,16 @@
 - [**breaking**] add `AfkTimeout` for `Guild::afk_timeout` ([#1922](https://github.com/twilight-rs/twilight/issues/1922))
 - [**breaking**] add `Event::GatewayClose` variant ([#2044](https://github.com/twilight-rs/twilight/issues/2044))
 
+## [0.14.4] - 2023-02-05
+
+### Features
+
+- user guilds getter ([#2085](https://github.com/twilight-rs/twilight/issues/2085))
+
+### Refactor
+
+- remove redundant member relation insertions ([#2094](https://github.com/twilight-rs/twilight/issues/2094))
+
 ## [0.14.3] - 2023-01-28
 
 ### Features

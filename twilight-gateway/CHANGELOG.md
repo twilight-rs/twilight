@@ -70,6 +70,12 @@
 - [**breaking**] rewrite `Inflater` ([#1993](https://github.com/twilight-rs/twilight/issues/1993))
 - [**breaking**] unify event deserialization into one type ([#2023](https://github.com/twilight-rs/twilight/issues/2023))
 
+## [0.14.2] - 2023-02-05
+
+### Bug Fixes
+
+- backport unexpected eof handling ([#2099](https://github.com/twilight-rs/twilight/issues/2099))
+
 ## [0.14.1] - 2023-01-20
 
 ### Features

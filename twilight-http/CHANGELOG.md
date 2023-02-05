@@ -11,6 +11,12 @@
 
 - [**breaking**] clean up `AllowedMentions` ([#1869](https://github.com/twilight-rs/twilight/issues/1869))
 
+## [0.14.4] - 2023-02-05
+
+### Documentation
+
+- basic request module documentation ([#2100](https://github.com/twilight-rs/twilight/issues/2100))
+
 ## [0.14.3] - 2023-01-28
 
 ### Bug Fixes
