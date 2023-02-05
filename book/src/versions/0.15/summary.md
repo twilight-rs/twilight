@@ -271,48 +271,48 @@ an integer. This allows use of valid values of AFK timeouts, and implements a
 conversion into a [`Duration`]. Neat! `AfkTimeout` has a getter for accessing
 the raw integer, [`AfkTimeout::get`].
 
-[`AfkTimeout`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/guild/struct.AfkTimeout.html
-[`AfkTimeout::get`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/guild/struct.AfkTimeout.html#method.get
-[`AllowedMentions`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/channel/message/struct.AllowedMentions.html
-[`Client`]: https://docs.rs/twilight-http/0.15.0-rc.1/twilight_http/client/struct.Client.html
-[`CommandOptionChoice`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/application/command/struct.CommandOptionChoice.html
-[`ConfigBuilder`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.ConfigBuilder.html
+[`AfkTimeout`]: https://docs.rs/twilight-model/0.15.0/twilight_model/guild/struct.AfkTimeout.html
+[`AfkTimeout::get`]: https://docs.rs/twilight-model/0.15.0/twilight_model/guild/struct.AfkTimeout.html#method.get
+[`AllowedMentions`]: https://docs.rs/twilight-model/0.15.0/twilight_model/channel/message/struct.AllowedMentions.html
+[`Client`]: https://docs.rs/twilight-http/0.15.0/twilight_http/client/struct.Client.html
+[`CommandOptionChoice`]: https://docs.rs/twilight-model/0.15.0/twilight_model/application/command/struct.CommandOptionChoice.html
+[`ConfigBuilder`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.ConfigBuilder.html
 [`Debug`]: https://doc.rust-lang.org/stable/std/fmt/trait.Debug.html
 [`Duration`]: https://doc.rust-lang.org/stable/std/time/struct.Duration.html
-[`Event`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/gateway/event/enum.Event.html
+[`Event`]: https://docs.rs/twilight-model/0.15.0/twilight_model/gateway/event/enum.Event.html
 [`Events::next`]: https://docs.rs/twilight-gateway/0.14.2/twilight_gateway/shard/struct.Events.html
-[`GetGuildMembers`]: https://docs.rs/twilight-http/0.15.0-rc.1/twilight_http/request/guild/member/struct.GetGuildMembers.html
-[`GetGuildWidgetSettings`]: https://docs.rs/twilight-http/0.15.0-rc.1/twilight_http/client/struct.Client.html#method.guild_widget_settings
-[`Guild::afk_timeout`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/guild/struct.Guild.html#structfield.afk_timeout
-[`GuildIntegration`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/guild/struct.GuildIntegration.html
-[`InMemoryCache::member`]: https://docs.rs/twilight-cache-inmemory/0.15.0-rc.1/twilight_cache_inmemory/struct.InMemoryCache.html#method.member
-[`Member`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/guild/struct.Member.html
-[`MemberAdd`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/gateway/payload/incoming/struct.MemberAdd.html
-[`MemberChunk`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/gateway/payload/incoming/struct.MemberChunk.html
-[`MentionType`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/channel/message/enum.MentionType.html
-[`Message`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/enum.Message.html
-[`Shard`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html
-[`Shard::config`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.config
-[`Shard::inflater`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.inflater
-[`Shard::latency`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.latency
+[`GetGuildMembers`]: https://docs.rs/twilight-http/0.15.0/twilight_http/request/guild/member/struct.GetGuildMembers.html
+[`GetGuildWidgetSettings`]: https://docs.rs/twilight-http/0.15.0/twilight_http/client/struct.Client.html#method.guild_widget_settings
+[`Guild::afk_timeout`]: https://docs.rs/twilight-model/0.15.0/twilight_model/guild/struct.Guild.html#structfield.afk_timeout
+[`GuildIntegration`]: https://docs.rs/twilight-model/0.15.0/twilight_model/guild/struct.GuildIntegration.html
+[`InMemoryCache::member`]: https://docs.rs/twilight-cache-inmemory/0.15.0/twilight_cache_inmemory/struct.InMemoryCache.html#method.member
+[`Member`]: https://docs.rs/twilight-model/0.15.0/twilight_model/guild/struct.Member.html
+[`MemberAdd`]: https://docs.rs/twilight-model/0.15.0/twilight_model/gateway/payload/incoming/struct.MemberAdd.html
+[`MemberChunk`]: https://docs.rs/twilight-model/0.15.0/twilight_model/gateway/payload/incoming/struct.MemberChunk.html
+[`MentionType`]: https://docs.rs/twilight-model/0.15.0/twilight_model/channel/message/enum.MentionType.html
+[`Message`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/enum.Message.html
+[`Shard`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html
+[`Shard::config`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.config
+[`Shard::inflater`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.inflater
+[`Shard::latency`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.latency
 [`Shard::new`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.new
-[`Shard::next_event`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.next_event
-[`Shard::ratelimiter`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.ratelimiter
-[`Shard::sender`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.sender
-[`Shard::session`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.session
-[`Shard::status`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.status
+[`Shard::next_event`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.next_event
+[`Shard::ratelimiter`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.ratelimiter
+[`Shard::sender`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.sender
+[`Shard::session`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.session
+[`Shard::status`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.status
 [`Shard::with_config`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.with_config
-[`ShardEventStream`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/struct.ShardEventStream.html
-[`ShardMessageStream`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/struct.ShardMessageStream.html
-[`create_bucket`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/fn.create_bucket.html
-[`create_range`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/fn.create_range.html
-[`create_recommended`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/fn.create_recommended.html
-[`stream`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/index.html
+[`ShardEventStream`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/stream/struct.ShardEventStream.html
+[`ShardMessageStream`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/stream/struct.ShardMessageStream.html
+[`create_bucket`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/stream/fn.create_bucket.html
+[`create_range`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/stream/fn.create_range.html
+[`create_recommended`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/stream/fn.create_recommended.html
+[`stream`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/stream/index.html
 [0.14:`ParseTypes`]: https://docs.rs/twilight-model/0.14.5/twilight_model/channel/message/allowed_mentions/enum.ParseTypes.html
 [0.14:`Shard::command`]: https://docs.rs/twilight-gateway/0.14.2/twilight_gateway/shard/struct.Shard.html#method.command
 [GitHub Discussions]: https://github.com/twilight-rs/twilight/discussions
 [changelog]: ./changelog.md
-[gateway documentation]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/index.html
+[gateway documentation]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/index.html
 [issue #2058]: https://github.com/twilight-rs/twilight/issues/2058
 [our Discord server]: https://discord.twilight.rs
 [version 0.15]: ./summary.md
