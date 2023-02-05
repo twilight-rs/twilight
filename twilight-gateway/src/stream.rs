@@ -1,11 +1,10 @@
 //! Utilities for managing collections of shards.
 //!
 //! Multiple shards may easily be created at once, with a per shard config
-//! created from a `Fn(ShardId) -> Config` closure, with the help of the
-//! `create_` set of functions. These functions will also reuse shards' TLS
-//! context, something otherwise achieved by cloning an existing [`Config`], but
-//! will not by default set a shared [session queue] (see
-//! [`ConfigBuilder::queue`]).
+//! created from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help
+//! of the `create_` set of functions. These functions will reuse shards'
+//! TLS context and [session queue], something otherwise achieved by cloning an
+//! existing [`Config`].
 //!
 //! # Concurrency
 //!
@@ -353,8 +352,8 @@ struct NextItemOutput<'a, Item> {
 
 /// Create a single bucket's worth of shards.
 ///
-/// Passing a primary config is required to ensure shared queue functionality.
-/// Further customization may be performed in the callback.
+/// Passing a primary config is required. Further customization of this config
+/// may be performed in the callback.
 ///
 /// # Examples
 ///
@@ -411,8 +410,8 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
 
 /// Create a range of shards.
 ///
-/// Passing a primary config is required to ensure shared queue functionality.
-/// Further customization may be performed in the callback.
+/// Passing a primary config is required. Further customization of this config
+/// may be performed in the callback.
 ///
 /// # Examples
 ///
@@ -460,8 +459,8 @@ pub fn create_range<F: Fn(ShardId, ConfigBuilder) -> Config>(
 
 /// Create a range of shards from Discord's recommendation.
 ///
-/// Passing a primary config is required to ensure shared queue functionality.
-/// Further customization may be performed in the callback.
+/// Passing a primary config is required. Further customization of this config
+/// may be performed in the callback.
 ///
 /// Internally calls [`create_range`] with the values from [`GetGatewayAuthed`].
 ///
