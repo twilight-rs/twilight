@@ -3,13 +3,13 @@
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
 `twilight-gateway` is an implementation of Discord's sharding gateway sessions.
-This is responsible for receiving stateful events in real-time from Discord
-and sending *some* stateful information.
+This is responsible for receiving stateful events in real-time from Discord and
+sending *some* stateful information.
 
 The primary type is the `Shard`, a stateful interface to maintain a Websocket
-connection to Discord's gateway. Much of its functionality can be configured, and
-it's used to receive deserialized gateway event payloads or raw Websocket
-messages, useful for load balancing and microservices.
+connection to Discord's gateway. Much of its functionality can be configured,
+and it's used to receive gateway events or raw Websocket messages, useful for
+load balancing and microservices.
 
 Using the `stream` module, shards can be easily managed in groups.
 
@@ -19,7 +19,6 @@ Using the `stream` module, shards can be easily managed in groups.
   events
 * TLS (mutually exclusive)
   * `native`: platform's native TLS implementation via [`native-tls`]
-    equivalents
   * `rustls-native-roots` (*default*): [`rustls`] using native root certificates
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
@@ -30,7 +29,7 @@ Using the `stream` module, shards can be easily managed in groups.
 
 ## Examples
 
-Start a shard and loop over guild and voice state events:
+Create a shard and loop over guild and voice state events:
 
 ```rust,no_run
 use std::env;
@@ -66,6 +65,8 @@ async fn main() -> anyhow::Result<()> {
             },
         };
 
+        // You'd normally want to spawn a new tokio task for each event and
+        // handle the event there to not block the shard.
         tracing::debug!(?event, "received event");
     }
 
@@ -73,7 +74,8 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-Create the recommended number of shards and stream over their events:
+Create the recommended number of shards and run them concurrently through
+`ShardEventStream`:
 
 ```rust,no_run
 use futures::StreamExt;
@@ -96,6 +98,7 @@ async fn main() -> anyhow::Result<()> {
         .await?
         .collect::<Vec<_>>();
 
+    // Create an infinite stream over the shards' events.
     let mut stream = ShardEventStream::new(shards.iter_mut());
 
     while let Some((shard, event)) = stream.next().await {
@@ -112,6 +115,8 @@ async fn main() -> anyhow::Result<()> {
             }
         };
 
+        // You'd normally want to spawn a new tokio task for each event and
+        // handle the event there to not block the shards.
         tracing::debug!(?event, shard = ?shard.id(), "received event");
     }
 
@@ -122,13 +127,11 @@ async fn main() -> anyhow::Result<()> {
 There are a few additional examples located in the
 [repository][github examples link].
 
+[`flate2`]: https://crates.io/crates/flate2
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls
-[`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
-[`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
-[`twilight-http`]: https://twilight-rs.github.io/twilight/twilight_http/index.html
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [`zlib-ng`]: https://github.com/zlib-ng/zlib-ng
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
