@@ -776,8 +776,16 @@ pub enum Route<'a> {
     },
     /// Route information to get members of a thread.
     GetThreadMembers {
+        /// Fetch thread members after this user ID.
+        after: Option<u64>,
         /// ID of the thread.
         channel_id: u64,
+        /// Maximum number of thread members to return.
+        ///
+        /// Must be between 1 and 100. Defaults to 100.
+        limit: Option<u32>,
+        /// Whether to include associated member objects.
+        with_member: Option<bool>,
     },
     /// Route information to get a user.
     GetUser {
@@ -2746,11 +2754,33 @@ impl Display for Route<'_> {
 
                 Display::fmt(sticker_id, f)
             }
-            Route::GetThreadMembers { channel_id } => {
+            Route::GetThreadMembers {
+                after,
+                channel_id,
+                limit,
+                with_member,
+            } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
+                f.write_str("/thread-members")?;
+                f.write_str("?")?;
 
-                f.write_str("/thread-members")
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                if let Some(with_member) = with_member {
+                    f.write_str("&with_member=")?;
+                    Display::fmt(with_member, f)?;
+                }
+
+                Ok(())
             }
             Route::GetUserConnections => f.write_str("users/@me/connections"),
             Route::GetUser { user_id } => {
@@ -4144,11 +4174,28 @@ mod tests {
     #[test]
     fn get_thread_members() {
         let route = Route::GetThreadMembers {
+            after: None,
             channel_id: CHANNEL_ID,
+            limit: None,
+            with_member: None,
         };
         assert_eq!(
             route.to_string(),
-            format!("channels/{CHANNEL_ID}/thread-members")
+            format!("channels/{CHANNEL_ID}/thread-members?")
+        );
+
+        let route = Route::GetThreadMembers {
+            after: Some(USER_ID),
+            channel_id: CHANNEL_ID,
+            limit: Some(1),
+            with_member: Some(true),
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "channels/{CHANNEL_ID}/thread-members?after={USER_ID}&limit=1&with_member=true"
+            )
         );
     }
 
