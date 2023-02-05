@@ -32,10 +32,7 @@
 //! [gateway-parallel]: https://github.com/twilight-rs/twilight/blob/main/examples/gateway-parallel.rs
 //! [session queue]: crate::queue
 
-use crate::{
-    error::ReceiveMessageError, message::Message, tls::TlsContainer, Config, ConfigBuilder, Shard,
-    ShardId,
-};
+use crate::{error::ReceiveMessageError, message::Message, Config, ConfigBuilder, Shard, ShardId};
 use futures_util::{
     future::BoxFuture,
     stream::{FuturesUnordered, Stream, StreamExt},
@@ -393,7 +390,7 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
     bucket_id: u64,
     concurrency: u64,
     total: u64,
-    mut config: Config,
+    config: Config,
     per_shard_config: F,
 ) -> impl Iterator<Item = Shard> {
     assert!(bucket_id < total, "bucket id must be less than the total");
@@ -403,7 +400,6 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
     );
 
     let concurrency = concurrency.try_into().unwrap();
-    config.set_tls(TlsContainer::new().unwrap());
 
     (bucket_id..total).step_by(concurrency).map(move |index| {
         let id = ShardId::new(index, total);
@@ -449,11 +445,10 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
 pub fn create_range<F: Fn(ShardId, ConfigBuilder) -> Config>(
     range: impl RangeBounds<u64>,
     total: u64,
-    mut config: Config,
+    config: Config,
     per_shard_config: F,
 ) -> impl Iterator<Item = Shard> {
     let range = calculate_range(range, total);
-    config.set_tls(TlsContainer::new().unwrap());
 
     range.map(move |index| {
         let id = ShardId::new(index, total);
