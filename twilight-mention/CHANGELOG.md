@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.15.0] - 2023-02-05
 
 This major version bump of the Gateway Queue is done to match all of the other
 crates in the ecosystem receiving a major version bump. There are no changes.
