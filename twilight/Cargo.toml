@@ -28,4 +28,4 @@ twilight-mention = { default-features = false, path = "../twilight-mention", ver
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.0" }
 twilight-standby = { default-features = false, path = "../twilight-standby", version = "0.15.0-rc.1" }
 twilight-util = { default-features = false, path = "../twilight-util", version = "0.15.0-rc.1" }
-twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.15.0-rc.1" }
+twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.15.0" }
