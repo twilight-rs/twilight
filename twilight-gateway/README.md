@@ -77,7 +77,7 @@ Create the recommended number of shards and stream over their events:
 
 ```rust,no_run
 use futures::StreamExt;
-use std::{collections::HashMap, env};
+use std::env;
 use twilight_gateway::{
     stream::{self, ShardEventStream},
     Config, Intents,
