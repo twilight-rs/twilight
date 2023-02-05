@@ -61,7 +61,6 @@ while let Some(event) = events.next().await {
 ```rust
 # use std::{env, error::Error};
 # use twilight_gateway::{Intents, Shard, ShardId};
-# use twilight_http::Client;
 #
 # #[tokio::main] async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 let intents = Intents::GUILDS | Intents::GUILD_MODERATION;
