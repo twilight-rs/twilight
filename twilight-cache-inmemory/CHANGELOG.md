@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- user guilds getter ([#2085](https://github.com/twilight-rs/twilight/issues/2085))
+
+### Refactor
+
+- remove redundant member relation insertions ([#2094](https://github.com/twilight-rs/twilight/issues/2094))
+
 ## [0.14.3] - 2023-01-28
 
 ### Features

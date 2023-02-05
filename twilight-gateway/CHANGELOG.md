@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- backport unexpected eof handling ([#2099](https://github.com/twilight-rs/twilight/issues/2099))
+
 ## [0.14.1] - 2023-01-20
 
 ### Features

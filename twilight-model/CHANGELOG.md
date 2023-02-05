@@ -1,5 +1,23 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- [**breaking**] audit log change type may be a string ([#2111](https://github.com/twilight-rs/twilight/issues/2111))
+
+### Documentation
+
+- clarify `RequestGuildMembersBuilder` empty queries ([#2108](https://github.com/twilight-rs/twilight/issues/2108))
+
+### Refactor
+
+- simplify activity button text (de)serialization ([#2087](https://github.com/twilight-rs/twilight/issues/2087))
+
+### Testing
+
+- bitflags static assertions + serde ([#2088](https://github.com/twilight-rs/twilight/issues/2088))
+
 ## [0.14.4] - 2023-01-28
 
 ### Features

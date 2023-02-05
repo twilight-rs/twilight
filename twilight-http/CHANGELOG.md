@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- basic request module documentation ([#2100](https://github.com/twilight-rs/twilight/issues/2100))
+
 ## [0.14.3] - 2023-01-28
 
 ### Bug Fixes
