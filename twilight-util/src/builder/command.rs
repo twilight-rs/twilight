@@ -46,7 +46,7 @@
 
 use twilight_model::{
     application::command::{
-        Command, CommandOption, CommandOptionChoice, CommandOptionChoiceData, CommandOptionType,
+        Command, CommandOption, CommandOptionChoice, CommandOptionChoiceValue, CommandOptionType,
         CommandOptionValue, CommandType,
     },
     channel::ChannelType,
@@ -497,7 +497,7 @@ impl IntegerBuilder {
     ///
     /// # Panics
     ///
-    /// Panics if choices are not set.
+    /// Panics if the choice was not set.
     ///
     /// [`choices`]: Self::choices
     #[track_caller]
@@ -506,13 +506,21 @@ impl IntegerBuilder {
         choice_name: &str,
         name_localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
-        let choice = self.0.choices.as_mut().expect("choices are set").iter_mut().find(
-            |choice| matches!(choice, CommandOptionChoice::Integer(CommandOptionChoiceData{ name, ..})  if name == choice_name),
-        );
+        let choice = self
+            .0
+            .choices
+            .as_mut()
+            .expect("choice exists")
+            .iter_mut()
+            .find(|choice| choice.name == choice_name)
+            .expect("choice exists");
 
-        if let Some(choice) = choice {
-            set_choice_localizations(choice, name_localizations);
-        }
+        choice.name_localizations = Some(
+            name_localizations
+                .into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect(),
+        );
 
         self
     }
@@ -529,12 +537,10 @@ impl IntegerBuilder {
         self.0.choices = Some(
             choices
                 .into_iter()
-                .map(|(name, value, ..)| {
-                    CommandOptionChoice::Integer(CommandOptionChoiceData {
-                        name: name.into(),
-                        name_localizations: None,
-                        value,
-                    })
+                .map(|(name, value, ..)| CommandOptionChoice {
+                    name: name.into(),
+                    name_localizations: None,
+                    value: CommandOptionChoiceValue::Integer(value),
                 })
                 .collect(),
         );
@@ -744,7 +750,7 @@ impl NumberBuilder {
     ///
     /// # Panics
     ///
-    /// Panics if choices are not set.
+    /// Panics if the choice was not set.
     ///
     /// [`choices`]: Self::choices
     #[track_caller]
@@ -753,13 +759,21 @@ impl NumberBuilder {
         choice_name: &str,
         name_localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
-        let choice = self.0.choices.as_mut().expect("choices are set").iter_mut().find(
-            |choice| matches!(choice, CommandOptionChoice::Number(CommandOptionChoiceData {name, ..}) if name == choice_name),
-        );
+        let choice = self
+            .0
+            .choices
+            .as_mut()
+            .expect("choice exists")
+            .iter_mut()
+            .find(|choice| choice.name == choice_name)
+            .expect("choice exists");
 
-        if let Some(choice) = choice {
-            set_choice_localizations(choice, name_localizations);
-        }
+        choice.name_localizations = Some(
+            name_localizations
+                .into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect(),
+        );
 
         self
     }
@@ -776,12 +790,10 @@ impl NumberBuilder {
         self.0.choices = Some(
             choices
                 .into_iter()
-                .map(|(name, value, ..)| {
-                    CommandOptionChoice::Number(CommandOptionChoiceData {
-                        name: name.into(),
-                        name_localizations: None,
-                        value,
-                    })
+                .map(|(name, value, ..)| CommandOptionChoice {
+                    name: name.into(),
+                    name_localizations: None,
+                    value: CommandOptionChoiceValue::Number(value),
                 })
                 .collect(),
         );
@@ -991,7 +1003,7 @@ impl StringBuilder {
     ///
     /// # Panics
     ///
-    /// Panics if choices are not set.
+    /// Panics if the choice was not set.
     ///
     /// [`choices`]: Self::choices
     #[track_caller]
@@ -1000,13 +1012,21 @@ impl StringBuilder {
         choice_name: &str,
         name_localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
-        let choice = self.0.choices.as_mut().expect("choices are set").iter_mut().find(
-            |choice| matches!(choice, CommandOptionChoice::String(CommandOptionChoiceData{name, ..}) if name == choice_name),
-        );
+        let choice = self
+            .0
+            .choices
+            .as_mut()
+            .expect("choice exists")
+            .iter_mut()
+            .find(|choice| choice.name == choice_name)
+            .expect("choice exists");
 
-        if let Some(choice) = choice {
-            set_choice_localizations(choice, name_localizations);
-        }
+        choice.name_localizations = Some(
+            name_localizations
+                .into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect(),
+        );
 
         self
     }
@@ -1026,12 +1046,10 @@ impl StringBuilder {
         self.0.choices = Some(
             choices
                 .into_iter()
-                .map(|(name, value, ..)| {
-                    CommandOptionChoice::String(CommandOptionChoiceData {
-                        name: name.into(),
-                        name_localizations: None,
-                        value: value.into(),
-                    })
+                .map(|(name, value, ..)| CommandOptionChoice {
+                    name: name.into(),
+                    name_localizations: None,
+                    value: CommandOptionChoiceValue::String(value.into()),
                 })
                 .collect(),
         );
@@ -1365,30 +1383,6 @@ impl From<UserBuilder> for CommandOption {
     fn from(builder: UserBuilder) -> CommandOption {
         builder.build()
     }
-}
-
-fn set_choice_localizations<K: Into<String>, V: Into<String>>(
-    choice: &mut CommandOptionChoice,
-    localizations: impl IntoIterator<Item = (K, V)>,
-) {
-    let name_localizations = match choice {
-        CommandOptionChoice::String(CommandOptionChoiceData {
-            name_localizations, ..
-        })
-        | CommandOptionChoice::Integer(CommandOptionChoiceData {
-            name_localizations, ..
-        })
-        | CommandOptionChoice::Number(CommandOptionChoiceData {
-            name_localizations, ..
-        }) => name_localizations,
-    };
-
-    *name_localizations = Some(
-        localizations
-            .into_iter()
-            .map(|(k, v)| (k.into(), v.into()))
-            .collect(),
-    );
 }
 
 #[cfg(test)]
