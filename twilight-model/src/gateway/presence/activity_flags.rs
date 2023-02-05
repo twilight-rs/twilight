@@ -90,3 +90,67 @@ mod tests {
         serde_test::assert_de_tokens(&value, &[Token::U64(1 << 63)]);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::ActivityFlags;
+    use serde::{Deserialize, Serialize};
+    use serde_test::Token;
+    use static_assertions::{assert_impl_all, const_assert_eq};
+    use std::{
+        fmt::{Binary, Debug, LowerHex, Octal, UpperHex},
+        hash::Hash,
+        ops::{
+            BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Sub, SubAssign,
+        },
+    };
+
+    assert_impl_all!(
+        ActivityFlags: Binary,
+        BitAnd,
+        BitAndAssign,
+        BitOr,
+        BitOrAssign,
+        BitXor,
+        BitXorAssign,
+        Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Extend<ActivityFlags>,
+        FromIterator<ActivityFlags>,
+        Hash,
+        LowerHex,
+        Not,
+        Octal,
+        Ord,
+        PartialEq,
+        PartialOrd,
+        Send,
+        Serialize,
+        Sub,
+        SubAssign,
+        Sync,
+        UpperHex
+    );
+    const_assert_eq!(ActivityFlags::INSTANCE.bits(), 1);
+    const_assert_eq!(ActivityFlags::JOIN.bits(), 1 << 1);
+    const_assert_eq!(ActivityFlags::SPECTATE.bits(), 1 << 2);
+    const_assert_eq!(ActivityFlags::JOIN_REQUEST.bits(), 1 << 3);
+    const_assert_eq!(ActivityFlags::SYNC.bits(), 1 << 4);
+    const_assert_eq!(ActivityFlags::PLAY.bits(), 1 << 5);
+    const_assert_eq!(ActivityFlags::PARTY_PRIVACY_FRIENDS.bits(), 1 << 6);
+    const_assert_eq!(ActivityFlags::PARTY_PRIVACY_VOICE_CHANNEL.bits(), 1 << 7);
+    const_assert_eq!(ActivityFlags::EMBEDDED.bits(), 1 << 8);
+
+    #[test]
+    fn serde() {
+        serde_test::assert_tokens(
+            &ActivityFlags::EMBEDDED,
+            &[Token::U64(ActivityFlags::EMBEDDED.bits())],
+        );
+        // Deserialization truncates unknown bits.
+        serde_test::assert_de_tokens(&ActivityFlags::empty(), &[Token::U64(1 << 63)]);
+    }
+}

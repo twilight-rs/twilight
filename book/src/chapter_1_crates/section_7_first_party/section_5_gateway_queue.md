@@ -6,7 +6,7 @@ re-exports of these crates through the [gateway].
 
 ## Links
 
-*source*: <https://github.com/twilight-rs/twilight/tree/main/gateway/queue>
+*source*: <https://github.com/twilight-rs/twilight/tree/main/twilight-gateway-queue>
 
 *docs*: <https://docs.rs/twilight-gateway-queue>
 

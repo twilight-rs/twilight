@@ -3113,10 +3113,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/commands?with_localizations=true",
-                application_id = APPLICATION_ID
-            )
+            format!("applications/{APPLICATION_ID}/commands?with_localizations=true")
         );
 
         let route = Route::GetGlobalCommands {
@@ -3168,9 +3165,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "applications/{application_id}/guilds/{guild_id}/commands?with_localizations=true",
-                application_id = APPLICATION_ID,
-                guild_id = GUILD_ID
+                "applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands?with_localizations=true"
             )
         );
 

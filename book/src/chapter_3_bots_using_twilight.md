@@ -47,7 +47,7 @@ A invite tracker and autoresponder bot.
 
 [HTTP client]: ./chapter_1_crates/section_2_http.html
 [core crates]: ./chapter_1_crates/summary.html
-[repo]: https://github.com/twilight-rs/twilight-rs.github.io
+[repo]: https://github.com/twilight-rs/twilight/tree/main/book
 [the gateway]: ./chapter_1_crates/section_3_gateway.html
 
 [bot:gearbot:source]: https://github.com/gearbot/GearBot-2

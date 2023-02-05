@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.14.4] - 2023-01-28
+
+### Features
+
+- add `Member::flags` ([#2086](https://github.com/twilight-rs/twilight/issues/2086))
+
 ## [0.14.3] - 2023-01-20
 
 ### Bug Fixes

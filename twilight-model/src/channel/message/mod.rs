@@ -202,7 +202,7 @@ mod tests {
     };
     use crate::{
         channel::{ChannelMention, ChannelType},
-        guild::PartialMember,
+        guild::{MemberFlags, PartialMember},
         id::Id,
         test::image_hash,
         user::User,
@@ -216,6 +216,7 @@ mod tests {
     fn message_deserialization() {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap();
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Message {
             activity: None,
@@ -253,6 +254,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("member nick".to_owned()),
@@ -339,12 +341,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
@@ -398,6 +402,7 @@ mod tests {
         let edited_timestamp = Timestamp::from_str("2021-08-10T12:41:51.602000+00:00")?;
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Message {
             activity: Some(MessageActivity {
@@ -444,6 +449,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("member nick".to_owned()),
@@ -580,12 +586,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),

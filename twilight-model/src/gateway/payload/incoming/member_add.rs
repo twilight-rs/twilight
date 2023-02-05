@@ -22,17 +22,19 @@ impl DerefMut for MemberAdd {
 #[cfg(test)]
 mod tests {
     use super::{Member, MemberAdd};
-    use crate::{id::Id, user::User, util::Timestamp};
+    use crate::{guild::MemberFlags, id::Id, user::User, util::Timestamp};
     use serde_test::Token;
 
     #[test]
     fn member_add() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = MemberAdd(Member {
             avatar: None,
             communication_disabled_until: None,
             deaf: false,
+            flags,
             guild_id: Id::new(1),
             joined_at,
             mute: false,
@@ -65,12 +67,14 @@ mod tests {
                 Token::NewtypeStruct { name: "MemberAdd" },
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
