@@ -63,7 +63,7 @@ impl InMemoryCache {
             .or_default()
             .insert(user_id);
 
-        let cached = CachedMember::from_partial_member(guild_id, user_id, member.clone());
+        let cached = CachedMember::from_partial_member(user_id, member.clone());
         self.members.insert(id, cached);
     }
 
@@ -87,7 +87,6 @@ impl InMemoryCache {
             .insert(user_id);
 
         let cached = CachedMember::from_interaction_member(
-            guild_id,
             user_id,
             member.clone(),
             ComputedInteractionMemberFields { avatar, deaf, mute },
@@ -109,13 +108,7 @@ impl UpdateCache for MemberAdd {
             return;
         }
 
-        cache.cache_member(self.guild_id, self.0.clone());
-
-        cache
-            .guild_members
-            .entry(self.guild_id)
-            .or_default()
-            .insert(self.0.user.id);
+        cache.cache_member(self.guild_id, self.member.clone());
     }
 }
 
@@ -130,8 +123,6 @@ impl UpdateCache for MemberChunk {
         }
 
         cache.cache_members(self.guild_id, self.members.clone());
-        let mut guild = cache.guild_members.entry(self.guild_id).or_default();
-        guild.extend(self.members.iter().map(|member| member.user.id));
     }
 }
 
@@ -210,7 +201,7 @@ mod tests {
             let guild_1_members = guild_1_user_ids
                 .iter()
                 .copied()
-                .map(|id| test::member(id, Id::new(1)))
+                .map(test::member)
                 .collect::<Vec<_>>();
 
             for member in guild_1_members {
@@ -237,7 +228,7 @@ mod tests {
             let guild_2_members = guild_2_user_ids
                 .iter()
                 .copied()
-                .map(|id| test::member(id, Id::new(2)))
+                .map(test::member)
                 .collect::<Vec<_>>();
             cache.cache_members(Id::new(2), guild_2_members);
 
@@ -265,7 +256,7 @@ mod tests {
 
         // Test the guild's ID is the only one in the user's set of guilds.
         {
-            let user_guilds = cache.user_guilds.get(&user_id).unwrap();
+            let user_guilds = cache.user_guilds(user_id).unwrap();
             assert!(user_guilds.contains(&Id::new(1)));
             assert_eq!(1, user_guilds.len());
         }
@@ -274,7 +265,7 @@ mod tests {
         cache.cache_user(Cow::Owned(test::user(user_id)), Some(Id::new(3)));
 
         {
-            let user_guilds = cache.user_guilds.get(&user_id).unwrap();
+            let user_guilds = cache.user_guilds(user_id).unwrap();
             assert!(user_guilds.contains(&Id::new(3)));
             assert_eq!(2, user_guilds.len());
         }
@@ -287,7 +278,7 @@ mod tests {
         });
 
         {
-            let user_guilds = cache.user_guilds.get(&user_id).unwrap();
+            let user_guilds = cache.user_guilds(user_id).unwrap();
             assert!(!user_guilds.contains(&Id::new(3)));
             assert_eq!(1, user_guilds.len());
         }

@@ -62,3 +62,76 @@ impl Serialize for ApplicationFlags {
         serializer.serialize_u64(self.bits())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::ApplicationFlags;
+    use serde::{Deserialize, Serialize};
+    use serde_test::Token;
+    use static_assertions::{assert_impl_all, const_assert_eq};
+    use std::{
+        fmt::{Binary, Debug, LowerHex, Octal, UpperHex},
+        hash::Hash,
+        ops::{
+            BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Sub, SubAssign,
+        },
+    };
+
+    assert_impl_all!(
+        ApplicationFlags: Binary,
+        BitAnd,
+        BitAndAssign,
+        BitOr,
+        BitOrAssign,
+        BitXor,
+        BitXorAssign,
+        Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Extend<ApplicationFlags>,
+        FromIterator<ApplicationFlags>,
+        Hash,
+        LowerHex,
+        Not,
+        Octal,
+        Ord,
+        PartialEq,
+        PartialOrd,
+        Send,
+        Serialize,
+        Sub,
+        SubAssign,
+        Sync,
+        UpperHex
+    );
+    const_assert_eq!(ApplicationFlags::GATEWAY_PRESENCE.bits(), 1 << 12);
+    const_assert_eq!(ApplicationFlags::GATEWAY_PRESENCE_LIMITED.bits(), 1 << 13);
+    const_assert_eq!(ApplicationFlags::GATEWAY_GUILD_MEMBERS.bits(), 1 << 14);
+    const_assert_eq!(
+        ApplicationFlags::GATEWAY_GUILD_MEMBERS_LIMITED.bits(),
+        1 << 15
+    );
+    const_assert_eq!(
+        ApplicationFlags::VERIFICATION_PENDING_GUILD_LIMIT.bits(),
+        1 << 16
+    );
+    const_assert_eq!(ApplicationFlags::EMBEDDED.bits(), 1 << 17);
+    const_assert_eq!(ApplicationFlags::GATEWAY_MESSAGE_CONTENT.bits(), 1 << 18);
+    const_assert_eq!(
+        ApplicationFlags::GATEWAY_MESSAGE_CONTENT_LIMITED.bits(),
+        1 << 19
+    );
+    const_assert_eq!(ApplicationFlags::APPLICATION_COMMAND_BADGE.bits(), 1 << 23);
+
+    #[test]
+    fn serde() {
+        serde_test::assert_tokens(
+            &ApplicationFlags::GATEWAY_MESSAGE_CONTENT,
+            &[Token::U64(ApplicationFlags::GATEWAY_MESSAGE_CONTENT.bits())],
+        );
+        // Deserialization truncates unknown bits.
+        serde_test::assert_de_tokens(&ApplicationFlags::empty(), &[Token::U64(1 << 63)]);
+    }
+}

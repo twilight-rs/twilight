@@ -18,7 +18,6 @@ use std::{
 };
 use tokio::time::{self, Timeout};
 use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
-use twilight_model::id::{marker::GuildMarker, Id};
 
 type Output<T> = Result<Response<T>, Error>;
 
@@ -74,7 +73,6 @@ impl Failed {
 
 struct InFlight {
     future: Pin<Box<Timeout<HyperResponseFuture>>>,
-    guild_id: Option<Id<GuildMarker>>,
     invalid_token: Option<Arc<AtomicBool>>,
     tx: Option<TicketSender>,
 }
@@ -134,13 +132,7 @@ impl InFlight {
             #[cfg(feature = "decompression")]
             resp.headers_mut().remove(hyper::header::CONTENT_LENGTH);
 
-            let mut response = Response::new(resp);
-
-            if let Some(guild_id) = self.guild_id {
-                response.set_guild_id(guild_id);
-            }
-
-            return InnerPoll::Ready(Ok(response));
+            return InnerPoll::Ready(Ok(Response::new(resp)));
         }
 
         match status {
@@ -174,7 +166,6 @@ impl InFlight {
 }
 
 struct RatelimitQueue {
-    guild_id: Option<Id<GuildMarker>>,
     invalid_token: Option<Arc<AtomicBool>>,
     response_future: HyperResponseFuture,
     timeout: Duration,
@@ -206,7 +197,6 @@ impl RatelimitQueue {
 
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
             future: Box::pin(time::timeout(self.timeout, self.response_future)),
-            guild_id: self.guild_id,
             invalid_token: self.invalid_token,
             tx: Some(tx),
         }))
@@ -277,7 +267,6 @@ impl<T> ResponseFuture<T> {
             phantom: PhantomData,
             stage: ResponseFutureStage::InFlight(InFlight {
                 future,
-                guild_id: None,
                 invalid_token,
                 tx: None,
             }),
@@ -366,28 +355,12 @@ impl<T> ResponseFuture<T> {
         Self {
             phantom: PhantomData,
             stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
-                guild_id: None,
                 invalid_token,
                 response_future,
                 timeout,
                 pre_flight_check: None,
                 wait_for_sender,
             }),
-        }
-    }
-
-    /// Set the ID of the relevant guild.
-    ///
-    /// Necessary for [`MemberBody`] and [`MemberListBody`] deserialization.
-    pub(crate) fn set_guild_id(&mut self, guild_id: Id<GuildMarker>) {
-        match &mut self.stage {
-            ResponseFutureStage::InFlight(stage) => {
-                stage.guild_id.replace(guild_id);
-            }
-            ResponseFutureStage::RatelimitQueue(stage) => {
-                stage.guild_id.replace(guild_id);
-            }
-            _ => {}
         }
     }
 }

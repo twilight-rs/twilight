@@ -38,7 +38,7 @@ let message = standby
 
 ## Links
 
-*source*: <https://github.com/twilight-rs/twilight/tree/main/standby>
+*source*: <https://github.com/twilight-rs/twilight/tree/main/twilight-standby>
 
 *docs*: <https://docs.rs/twilight-standby>
 

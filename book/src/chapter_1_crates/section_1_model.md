@@ -50,7 +50,7 @@ let everyone_role_id: Id<RoleMarker> = guild_id.cast();
 
 ## Links
 
-*source*: <https://github.com/twilight-rs/twilight/tree/main/model>
+*source*: <https://github.com/twilight-rs/twilight/tree/main/twilight-model>
 
 *docs*: <https://docs.rs/twilight-model>
 

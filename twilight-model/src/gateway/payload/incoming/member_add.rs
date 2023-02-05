@@ -1,28 +1,40 @@
-use crate::guild::Member;
+use crate::{
+    guild::Member,
+    id::{marker::GuildMarker, Id},
+};
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct MemberAdd(pub Member);
+pub struct MemberAdd {
+    pub guild_id: Id<GuildMarker>,
+    #[serde(flatten)]
+    pub member: Member,
+}
 
 impl Deref for MemberAdd {
     type Target = Member;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.member
     }
 }
 
 impl DerefMut for MemberAdd {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        &mut self.member
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{Member, MemberAdd};
-    use crate::{guild::MemberFlags, id::Id, user::User, util::Timestamp};
+    use crate::{
+        guild::MemberFlags,
+        id::{marker::GuildMarker, Id},
+        user::User,
+        util::Timestamp,
+    };
     use serde_test::Token;
 
     #[test]
@@ -30,54 +42,52 @@ mod tests {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
-        let value = MemberAdd(Member {
-            avatar: None,
-            communication_disabled_until: None,
-            deaf: false,
-            flags,
-            guild_id: Id::new(1),
-            joined_at,
-            mute: false,
-            nick: None,
-            pending: true,
-            premium_since: None,
-            roles: vec![],
-            user: User {
-                id: Id::new(2),
-                accent_color: None,
+        let value = MemberAdd {
+            guild_id: Id::<GuildMarker>::new(1),
+            member: Member {
                 avatar: None,
-                banner: None,
-                bot: false,
-                discriminator: 987,
-                name: "ab".to_string(),
-                mfa_enabled: None,
-                locale: None,
-                verified: None,
-                email: None,
-                flags: None,
-                premium_type: None,
-                system: None,
-                public_flags: None,
+                communication_disabled_until: None,
+                deaf: false,
+                flags,
+                joined_at,
+                mute: false,
+                nick: None,
+                pending: true,
+                premium_since: None,
+                roles: vec![],
+                user: User {
+                    id: Id::new(2),
+                    accent_color: None,
+                    avatar: None,
+                    banner: None,
+                    bot: false,
+                    discriminator: 987,
+                    name: "ab".to_string(),
+                    mfa_enabled: None,
+                    locale: None,
+                    verified: None,
+                    email: None,
+                    flags: None,
+                    premium_type: None,
+                    system: None,
+                    public_flags: None,
+                },
             },
-        });
+        };
 
         serde_test::assert_tokens(
             &value,
             &[
-                Token::NewtypeStruct { name: "MemberAdd" },
-                Token::Struct {
-                    name: "Member",
-                    len: 10,
-                },
+                Token::Map { len: None },
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2021-09-19T17:30:45.000000+00:00"),
                 Token::Str("mute"),
@@ -110,7 +120,7 @@ mod tests {
                 Token::Str("username"),
                 Token::Str("ab"),
                 Token::StructEnd,
-                Token::StructEnd,
+                Token::MapEnd,
             ],
         );
     }

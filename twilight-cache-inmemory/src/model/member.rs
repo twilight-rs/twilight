@@ -3,7 +3,7 @@ use twilight_model::{
     application::interaction::application_command::InteractionMember,
     guild::{Member, MemberFlags, PartialMember},
     id::{
-        marker::{GuildMarker, RoleMarker, UserMarker},
+        marker::{RoleMarker, UserMarker},
         Id,
     },
     util::{ImageHash, Timestamp},
@@ -26,7 +26,6 @@ pub struct CachedMember {
     pub(crate) communication_disabled_until: Option<Timestamp>,
     pub(crate) deaf: Option<bool>,
     pub(crate) flags: MemberFlags,
-    pub(crate) guild_id: Id<GuildMarker>,
     pub(crate) joined_at: Timestamp,
     pub(crate) mute: Option<bool>,
     pub(crate) nick: Option<String>,
@@ -64,11 +63,6 @@ impl CachedMember {
     /// Defaults to an empty bitfield.
     pub const fn flags(&self) -> MemberFlags {
         self.flags
-    }
-
-    /// ID of the guild this member is a part of.
-    pub const fn guild_id(&self) -> Id<GuildMarker> {
-        self.guild_id
     }
 
     /// [`Timestamp`] of this member's join date.
@@ -115,7 +109,6 @@ impl CachedMember {
             communication_disabled_until,
             deaf,
             flags,
-            guild_id,
             joined_at,
             mute,
             nick,
@@ -130,7 +123,6 @@ impl CachedMember {
             communication_disabled_until,
             deaf: Some(deaf),
             flags,
-            guild_id,
             joined_at,
             mute: Some(mute),
             nick,
@@ -145,7 +137,6 @@ impl CachedMember {
     // clippy: the contents of `fields` is consumed
     #[allow(clippy::missing_const_for_fn, clippy::needless_pass_by_value)]
     pub(crate) fn from_interaction_member(
-        guild_id: Id<GuildMarker>,
         user_id: Id<UserMarker>,
         member: InteractionMember,
         fields: ComputedInteractionMemberFields,
@@ -168,7 +159,6 @@ impl CachedMember {
             communication_disabled_until,
             deaf,
             flags,
-            guild_id,
             joined_at,
             mute,
             nick,
@@ -179,11 +169,7 @@ impl CachedMember {
         }
     }
 
-    pub(crate) fn from_partial_member(
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
-        member: PartialMember,
-    ) -> Self {
+    pub(crate) fn from_partial_member(user_id: Id<UserMarker>, member: PartialMember) -> Self {
         let PartialMember {
             avatar,
             communication_disabled_until,
@@ -203,7 +189,6 @@ impl CachedMember {
             communication_disabled_until,
             deaf: Some(deaf),
             flags,
-            guild_id,
             joined_at,
             mute: Some(mute),
             nick,
@@ -264,7 +249,6 @@ mod tests {
 
     assert_fields!(
         CachedMember: deaf,
-        guild_id,
         joined_at,
         mute,
         nick,
@@ -282,7 +266,6 @@ mod tests {
             communication_disabled_until: None,
             deaf: Some(false),
             flags,
-            guild_id: Id::new(3),
             joined_at,
             mute: Some(true),
             nick: Some("member nick".to_owned()),
@@ -323,7 +306,6 @@ mod tests {
             communication_disabled_until: None,
             deaf: false,
             flags,
-            guild_id: Id::new(3),
             joined_at,
             mute: true,
             nick: Some("member nick".to_owned()),

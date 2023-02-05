@@ -297,7 +297,6 @@ mod tests {
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
-                guild_id: Id::new(2),
                 joined_at,
                 mute: false,
                 nick: None,
@@ -339,7 +338,7 @@ mod tests {
 
         assert_eq!(cache.members.len(), 1);
         {
-            let entry = cache.user_guilds.get(&Id::new(3)).unwrap();
+            let entry = cache.user_guilds(Id::new(3)).unwrap();
             assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(

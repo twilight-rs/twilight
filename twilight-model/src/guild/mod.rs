@@ -11,7 +11,6 @@
 pub mod audit_log;
 pub mod auto_moderation;
 pub mod invite;
-pub mod member;
 pub mod scheduled_event;
 pub mod template;
 pub mod widget;
@@ -28,6 +27,7 @@ mod integration_account;
 mod integration_application;
 mod integration_expire_behavior;
 mod integration_type;
+mod member;
 mod member_flags;
 mod mfa_level;
 mod nsfw_level;
@@ -44,10 +44,6 @@ mod unavailable_guild;
 mod vanity_url;
 mod verification_level;
 
-// `Member` should appear inline, as the `member` module is only for advanced
-// use. Public documentation is not available for re-exports.
-#[doc(inline)]
-pub use self::member::Member;
 pub use self::nsfw_level::NSFWLevel;
 pub use self::permissions::Permissions;
 pub use self::{
@@ -57,14 +53,13 @@ pub use self::{
     integration::GuildIntegration, integration_account::IntegrationAccount,
     integration_application::IntegrationApplication,
     integration_expire_behavior::IntegrationExpireBehavior, integration_type::GuildIntegrationType,
-    member_flags::MemberFlags, mfa_level::MfaLevel, partial_guild::PartialGuild,
+    member::Member, member_flags::MemberFlags, mfa_level::MfaLevel, partial_guild::PartialGuild,
     partial_member::PartialMember, premium_tier::PremiumTier, preview::GuildPreview,
     prune::GuildPrune, role::Role, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
     verification_level::VerificationLevel, widget::GuildWidget,
 };
 
-use self::member::MemberListDeserializer;
 use super::gateway::presence::PresenceListDeserializer;
 use crate::{
     channel::{message::sticker::Sticker, Channel, StageInstance},
@@ -454,9 +449,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("members"));
                             }
 
-                            let deserializer = MemberListDeserializer::new(Id::new(1));
-
-                            members = Some(map.next_value_seed(deserializer)?);
+                            members = Some(map.next_value()?);
                         }
                         Field::MfaLevel => {
                             if mfa_level.is_some() {
@@ -684,7 +677,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let max_presences = max_presences.unwrap_or_default();
                 let max_video_channel_users = max_video_channel_users.unwrap_or_default();
                 let member_count = member_count.unwrap_or_default();
-                let mut members = members.unwrap_or_default();
+                let members = members.unwrap_or_default();
                 let nsfw_level = nsfw_level.ok_or_else(|| DeError::missing_field("nsfw_level"))?;
                 let owner = owner.unwrap_or_default();
                 let permissions = permissions.unwrap_or_default();
@@ -760,10 +753,6 @@ impl<'de> Deserialize<'de> for Guild {
 
                 for channel in &mut channels {
                     channel.guild_id = Some(id);
-                }
-
-                for member in &mut members {
-                    member.guild_id = id;
                 }
 
                 for presence in &mut presences {

@@ -32,7 +32,7 @@ use std::mem;
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Session {
     /// ID of the gateway session.
-    id: String,
+    id: Box<str>,
     /// Sequence of the most recently received gateway event.
     ///
     /// The first sequence of a session is always 1.
@@ -45,10 +45,10 @@ impl Session {
     /// Can be provided to [`ConfigBuilder::session`].
     ///
     /// [`ConfigBuilder::session`]: crate::ConfigBuilder::session
-    pub const fn new(sequence: u64, session_id: String) -> Self {
+    pub fn new(sequence: u64, session_id: String) -> Self {
         Self {
             sequence,
-            id: session_id,
+            id: session_id.into_boxed_str(),
         }
     }
 
@@ -65,7 +65,7 @@ impl Session {
     /// [`Identify`]: twilight_model::gateway::payload::outgoing::Identify
     /// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
     /// [ID of the shard]: crate::ShardId
-    pub fn id(&self) -> &str {
+    pub const fn id(&self) -> &str {
         &self.id
     }
 

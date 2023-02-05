@@ -2,13 +2,16 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::MemberBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
-use twilight_model::id::{
-    marker::{GuildMarker, UserMarker},
-    Id,
+use twilight_model::{
+    guild::Member,
+    id::{
+        marker::{GuildMarker, UserMarker},
+        Id,
+    },
 };
 
 /// Get a member of a guild, by id.
@@ -34,27 +37,21 @@ impl<'a> GetMember<'a> {
 
     /// Execute the request, returning a future resolving to a [`Response`].
     #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<MemberBody> {
+    pub fn exec(self) -> ResponseFuture<Member> {
         self.into_future()
     }
 }
 
 impl IntoFuture for GetMember<'_> {
-    type Output = Result<Response<MemberBody>, Error>;
+    type Output = Result<Response<Member>, Error>;
 
-    type IntoFuture = ResponseFuture<MemberBody>;
+    type IntoFuture = ResponseFuture<Member>;
 
     fn into_future(self) -> Self::IntoFuture {
-        let guild_id = self.guild_id;
         let http = self.http;
 
         match self.try_into_request() {
-            Ok(request) => {
-                let mut future = http.request(request);
-                future.set_guild_id(guild_id);
-
-                future
-            }
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }

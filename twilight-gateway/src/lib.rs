@@ -39,10 +39,12 @@ mod session;
 mod shard;
 mod tls;
 
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+pub use self::inflater::Inflater;
 pub use self::{
     channel::MessageSender,
     command::Command,
-    config::{Config, ConfigBuilder, ShardId},
+    config::{Config, ConfigBuilder},
     event::EventTypeFlags,
     json::parse,
     latency::Latency,
@@ -51,9 +53,7 @@ pub use self::{
     session::Session,
     shard::{ConnectionStatus, Shard},
 };
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-pub use inflater::Inflater;
-pub use twilight_model::gateway::{CloseFrame, Intents};
+pub use twilight_model::gateway::{CloseFrame, Intents, ShardId};
 
 #[doc(no_inline)]
 pub use twilight_gateway_queue as queue;

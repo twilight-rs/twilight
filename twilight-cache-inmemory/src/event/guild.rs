@@ -519,11 +519,11 @@ mod tests {
         let guild_id = Id::new(1);
         let cache = InMemoryCache::new();
         let user = test::user(user_id);
-        let member = test::member(user_id, guild_id);
+        let member = test::member(user_id);
         let guild = test::guild(guild_id, Some(1));
 
         cache.update(&GuildCreate(guild));
-        cache.update(&MemberAdd(member));
+        cache.update(&MemberAdd { guild_id, member });
 
         assert_eq!(cache.guild(guild_id).unwrap().member_count, Some(2));
 
@@ -537,7 +537,7 @@ mod tests {
         let user_id = Id::new(2);
         let guild_id = Id::new(1);
         let cache = InMemoryCache::new();
-        let member = test::member(user_id, guild_id);
+        let member = test::member(user_id);
         let mut guild = test::guild(guild_id, Some(1));
         guild.members.push(member);
 
