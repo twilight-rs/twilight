@@ -145,12 +145,12 @@ events looks like:
 <summary>Loop over the events of a group of shards</summary>
 
 ```rust,no_run
+use futures::StreamExt;
 use std::{env, error::Error};
 use twilight_gateway::{
     stream::{self, ShardEventStream},
     Config,
     Intents,
-    Shard,
 };
 
 #[tokio::main]
