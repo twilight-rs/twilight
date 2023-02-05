@@ -171,14 +171,10 @@ pub struct CommandOptionChoice {
     pub value: CommandOptionChoiceValue,
 }
 
-/// The value of a [`CommandOptionChoice`].
+/// Value of a [`CommandOptionChoice`].
 ///
 /// Note that the right variant must be selected based on the
 /// [`CommandOption`]'s [`CommandOptionType`].
-///
-/// [`CommandOption`]: CommandOption
-/// [`CommandOptionChoice`]: CommandOptionChoice
-/// [`CommandOptionType`]: CommandOptionType
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoiceValue {
