@@ -90,7 +90,7 @@ async fn main() -> anyhow::Result<()> {
 
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
-    let config = Config::new(token.clone(), Intents::GUILDS);
+    let config = Config::new(token, Intents::GUILDS);
 
     let mut shards = stream::create_recommended(&client, config, |_, builder| builder.build())
         .await?
