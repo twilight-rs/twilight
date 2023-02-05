@@ -164,7 +164,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut shards = stream::create_range(
         0..10,
         20,
-        config, |_, builder| builder.build(),
+        config,
+        |_, builder| builder.build(),
     ).collect::<Vec<_>>();
 
     // Create a stream to collect all of the shards and poll them for their next
