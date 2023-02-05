@@ -3,9 +3,6 @@
 //! [`Guild`]s allow, for example, assigning [`Role`]s to [`Member`]s to limit
 //! their [`Permissions`] globally, or per [`Channel`].
 //!
-//! Advanced user's may look inside the [`member`] module for custom
-//! [`Member`] deserializers.
-//!
 //! [`User`]: super::user::User
 
 pub mod audit_log;
