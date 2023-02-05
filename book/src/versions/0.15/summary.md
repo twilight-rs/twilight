@@ -4,12 +4,12 @@ Version 0.15 of the Twilight ecosystem brings a new implementation of the
 Gateway undertaken over the last year, with quality of life improvements and
 bugfixes made in other areas.
 
-With the new gateway implementation we have introduced finer controls over
-shards, improved performance, and new documentation. Although overall usage of
-the gateway crate is not very dissimilar from existing usage for most use cases,
-the core event loop and setting up of shards is different. Besides the gateway,
-a number quality of life improvements have been made in the model crate, with a
-sprinkling of bugfixes across the ecosystem.
+With the new gateway implementation finer controls over shards, improved
+performance, and new documentation have been introduced. Although overall usage
+of the gateway crate is not very dissimilar from existing usage for most use
+cases, the core event loop and setting up of shards is different. Besides the
+gateway, a number quality of life improvements have been made in the model
+crate, with a sprinkling of bugfixes across the ecosystem.
 
 The changelog [is available here](./api_changelog.md).
 
@@ -58,7 +58,7 @@ while let Some(event) = events.next().await {
 <details>
 <summary>Twilight 0.15</summary>
 
-```rust
+```rust,no_run
 # use std::{env, error::Error};
 # use twilight_gateway::{Intents, Shard, ShardId};
 #
@@ -92,8 +92,8 @@ reference. This makes sharing a reference to a shard across tasks for sending
 messages and accessing shard information - such as a
 [shard's status][`Shard::status`] or [its configuration][`Shard::config`] -
 impossible to achieve the same way as with Twilight 0.14. Instead of sharing the
-shard itself to spawned tasks we recommend providing necessary information to
-tasks when they are spawned, or maintaining a mutex of necessary shard
+shard itself to spawned tasks it's recommended to provide necessary information
+to tasks when they are spawned, or maintaining a mutex of necessary shard
 information that is passed around to tasks.
 
 Sending messages - such as member chunk requests or presence updates - over the
@@ -110,24 +110,48 @@ are more concise.
 
 ### Clusters
 
-<!--
-## The new API
+Twilight 0.14 had an API surface on top of shards: clusters. Clusters were
+essentially a wrapper over shards with the intention of being used for managing
+multiple shards within one type. The Cluster API duplicated most of the shard
+API, with an equivalent event stream that wrapped multiple shards' streams,
+a `Cluster` type that instantiated and owned multiple shards with methods mostly
+equvialent to shards' methods, and errors wrapping shard errors.
 
-Shards no longer return an additional event stream, which was run by a
-background task. They are now driven through `next_message` or `next_event`.
+With Twilight 0.15 the concept of a "cluster" has largely been done away with
+and replaced by the [`stream`] module. Our aim with this change was to create
+transparency about what is happening under the hood, reduce the API surface, and
+reduce complexity.
 
-To start multiple shards at once, the `stream` module exposes helper functions.
+The module contains three functions for creating groups of shards:
 
-## Basic "Cluster" Example
+- [`create_recommended`] to create the number of shards Discord recommends;
+- [`create_range`] to create the shards within a range; and
+- [`create_bucket`] to create the shards within a bucket, necessary for very
+  large bot sharding.
 
-Instead of creating a cluster that starts up all shards, use
-`create_recommended` to create the recommended number of shards, and stream over
-their events:
+These functions all return an iterator of shards. Implementing loops to receive
+events from this group of shards can be difficult, so we've provided two types
+for collecting shards and efficiently polling all of them:
+
+- [`ShardEventStream`] to poll a group of shards for the next
+  [gateway event][`Event`]; and
+- [`ShardMessageStream`] to poll a group of shards for the next
+  [WebSocket message][`Message`].
+
+Let's take a look at what starting a range of shards and iterating over their
+events looks like:
+
+<details>
+<summary>Loop over the events of a group of shards</summary>
 
 ```rust,no_run
 use std::{env, error::Error};
-use twilight_gateway::{Intents, Shard, ShardId};
-use twilight_http::Client;
+use twilight_gateway::{
+    stream::{self, ShardEventStream},
+    Config,
+    Intents,
+    Shard,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -135,13 +159,18 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
-    let client = Client::new(token.clone());
     let config = Config::new(token, Intents::GUILD_MESSAGES);
 
-    let mut shards = stream::create_recommended(&client, config, |_, builder| builder.build())
-        .await?
-        .collect<Vec<_>>();
+    // Create a group of shards with IDs 0 through 10, out of a total of 20
+    // shards.
+    let mut shards = stream::create_range(
+        0..10,
+        20,
+        config, |_, builder| builder.build(),
+    ).collect::<Vec<_>>();
 
+    // Create a stream to collect all of the shards and poll them for their next
+    // Discord gateway events.
     let mut stream = ShardEventStream::new(shards.iter_mut());
 
     while let Some((shard, event)) = stream.next().await {
@@ -150,6 +179,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
 
+                // An error may be fatal when something like invalid privileged
+                // intents are specified or the Discord token is invalid.
                 if source.is_fatal() {
                     break;
                 }
@@ -164,9 +195,22 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     Ok(())
 }
 ```
--->
+</details>
 
-TODO
+In each iteration the next received event and the shard that produced the event
+are returned. Implementing this kind of stream manually is somewhat trivial to
+do, but there are some hidden aspects that make this API particularly efficient.
+The shard is a *mutable reference* to the shard. When an iteration is over and
+it loops back over, the shard is re-inserted into the stream. Because the stream
+is never re-created, the futures polling shards aren't re-created on each loop.
+This allows for a constant and fast iteration over shards.
+
+We hope that this thin yet powerful layer over shards will allow for a greater
+level of flexibility while not being cumbersome to use. Be sure to check out
+[the documentation][gateway documentation] to see the full picture of how the
+gateway looks. If you have questions about how to migrate your application to
+the new Gateway, please ask in the #support channel in [our Discord server] or
+in our [GitHub Discussions]!
 
 ## Token Debugging
 
@@ -236,6 +280,7 @@ the raw integer, [`AfkTimeout::get`].
 [`ConfigBuilder`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.ConfigBuilder.html
 [`Debug`]: https://doc.rust-lang.org/stable/std/fmt/trait.Debug.html
 [`Duration`]: https://doc.rust-lang.org/stable/std/time/struct.Duration.html
+[`Event`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/gateway/event/enum.Event.html
 [`Events::next`]: https://docs.rs/twilight-gateway/0.14.2/twilight_gateway/shard/struct.Events.html
 [`GetGuildMembers`]: https://docs.rs/twilight-http/0.15.0-rc.1/twilight_http/request/guild/member/struct.GetGuildMembers.html
 [`GetGuildWidgetSettings`]: https://docs.rs/twilight-http/0.15.0-rc.1/twilight_http/client/struct.Client.html#method.guild_widget_settings
@@ -246,6 +291,7 @@ the raw integer, [`AfkTimeout::get`].
 [`MemberAdd`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/gateway/payload/incoming/struct.MemberAdd.html
 [`MemberChunk`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/gateway/payload/incoming/struct.MemberChunk.html
 [`MentionType`]: https://docs.rs/twilight-model/0.15.0-rc.1/twilight_model/channel/message/enum.MentionType.html
+[`Message`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/enum.Message.html
 [`Shard`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html
 [`Shard::config`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.config
 [`Shard::inflater`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.inflater
@@ -257,8 +303,17 @@ the raw integer, [`AfkTimeout::get`].
 [`Shard::session`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.session
 [`Shard::status`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/struct.Shard.html#method.status
 [`Shard::with_config`]: https://docs.rs/twilight-gateway/0.15.0/twilight_gateway/struct.Shard.html#method.with_config
+[`ShardEventStream`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/struct.ShardEventStream.html
+[`ShardMessageStream`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/struct.ShardMessageStream.html
+[`create_bucket`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/fn.create_bucket.html
+[`create_range`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/fn.create_range.html
+[`create_recommended`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/fn.create_recommended.html
+[`stream`]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/stream/index.html
 [0.14:`ParseTypes`]: https://docs.rs/twilight-model/0.14.5/twilight_model/channel/message/allowed_mentions/enum.ParseTypes.html
 [0.14:`Shard::command`]: https://docs.rs/twilight-gateway/0.14.2/twilight_gateway/shard/struct.Shard.html#method.command
+[GitHub Discussions]: https://github.com/twilight-rs/twilight/discussions
 [changelog]: ./changelog.md
+[gateway documentation]: https://docs.rs/twilight-gateway/0.15.0-rc.2/twilight_gateway/index.html
 [issue #2058]: https://github.com/twilight-rs/twilight/issues/2058
+[our Discord server]: https://discord.twilight.rs
 [version 0.15]: ./summary.md
