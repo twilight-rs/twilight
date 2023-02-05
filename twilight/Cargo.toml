@@ -23,7 +23,7 @@ twilight-gateway = { default-features = false, features = ["rustls-native-roots"
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.15.0" }
 twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.15.0" }
 twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.15.0" }
-twilight-lavalink = { default-features = false, path = "../twilight-lavalink", version = "0.15.0-rc.1" }
+twilight-lavalink = { default-features = false, path = "../twilight-lavalink", version = "0.15.0" }
 twilight-mention = { default-features = false, path = "../twilight-mention", version = "0.15.0-rc.1" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.0" }
 twilight-standby = { default-features = false, path = "../twilight-standby", version = "0.15.0-rc.1" }
