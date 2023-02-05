@@ -8,7 +8,7 @@ With the new gateway implementation finer controls over shards, improved
 performance, and new documentation have been introduced. Although overall usage
 of the gateway crate is not very dissimilar from existing usage for most use
 cases, the core event loop and setting up of shards is different. Besides the
-gateway, a number quality of life improvements have been made in the model
+gateway, a number of quality of life improvements have been made in the model
 crate, with a sprinkling of bugfixes across the ecosystem.
 
 ## New Gateway
