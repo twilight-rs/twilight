@@ -11,8 +11,6 @@ cases, the core event loop and setting up of shards is different. Besides the
 gateway, a number quality of life improvements have been made in the model
 crate, with a sprinkling of bugfixes across the ecosystem.
 
-The changelog [is available here](./api_changelog.md).
-
 ## New Gateway
 
 We have rewritten the internals of the gateway from scratch, with focuses on
