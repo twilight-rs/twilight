@@ -21,7 +21,7 @@ tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log
 twilight-cache-inmemory = { default-features = false, path = "../twilight-cache-inmemory", version = "0.15.0" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.15.0-rc.2" }
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.15.0-rc.1" }
-twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.15.0-rc.1" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.15.0" }
 twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.15.0" }
 twilight-lavalink = { default-features = false, path = "../twilight-lavalink", version = "0.15.0-rc.1" }
 twilight-mention = { default-features = false, path = "../twilight-mention", version = "0.15.0-rc.1" }

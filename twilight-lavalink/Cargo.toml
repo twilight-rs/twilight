@@ -34,7 +34,7 @@ static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.15.0-rc.2" }
-twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.15.0-rc.1" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.15.0" }
 
 [features]
 default = ["http-support", "rustls-native-roots"]
