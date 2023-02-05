@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+### Features
+
+- [**breaking**] flatten `CommandOptionChoice` ([#2081](https://github.com/twilight-rs/twilight/issues/2081))
+
 ### Refactor
 
 - [**breaking**] clean up `AllowedMentions` ([#1869](https://github.com/twilight-rs/twilight/issues/1869))

@@ -8,20 +8,24 @@
 - [**breaking**] heartbeat with a `null` sequence until a session is initialized ([#1940](https://github.com/twilight-rs/twilight/issues/1940))
 - [**breaking**] use typed features for guild invite ([#2043](https://github.com/twilight-rs/twilight/issues/2043))
 
+### Documentation
+
+- remove link to member module ([#2117](https://github.com/twilight-rs/twilight/issues/2117))
+
 ### Features
 
 - [**breaking**] bring widgets up to date ([#1848](https://github.com/twilight-rs/twilight/issues/1848))
 - [**breaking**] add `AfkTimeout` for `Guild::afk_timeout` ([#1922](https://github.com/twilight-rs/twilight/issues/1922))
 - [**breaking**] add `Event::GatewayClose` variant ([#2044](https://github.com/twilight-rs/twilight/issues/2044))
+- [**breaking**] remove member::guild_id ([#2083](https://github.com/twilight-rs/twilight/issues/2083))
+- [**breaking**] flatten `CommandOptionChoice` ([#2081](https://github.com/twilight-rs/twilight/issues/2081))
 
 ### Refactor
 
 - [**breaking**] move `gateway::Hello` to `payloads::incoming::Hello` ([#1928](https://github.com/twilight-rs/twilight/issues/1928))
 - [**breaking**] redo `gateway::OpCode` ([#1945](https://github.com/twilight-rs/twilight/issues/1945))
 - [**breaking**] clean up `AllowedMentions` ([#1869](https://github.com/twilight-rs/twilight/issues/1869))
-
-### Reafactor
-
+- [**breaking**] move ShardId from gateway to model ([#2097](https://github.com/twilight-rs/twilight/issues/2097))
 - [**breaking**] unify event deserialization into one type ([#2023](https://github.com/twilight-rs/twilight/issues/2023))
 
 ## [0.14.5] - 2023-02-05

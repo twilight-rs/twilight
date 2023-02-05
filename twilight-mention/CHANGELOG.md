@@ -1,5 +1,10 @@
 # Changelog
 
+## [unreleased]
+
+This major version bump of the Gateway Queue is done to match all of the other
+crates in the ecosystem receiving a major version bump. There are no changes.
+
 ## [0.14.0] - 2022-11-14
 
 MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).

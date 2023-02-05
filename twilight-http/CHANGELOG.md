@@ -2,10 +2,17 @@
 
 ## [unreleased]
 
+### Bug Fixes
+
+- don't debug tokens ([#2101](https://github.com/twilight-rs/twilight/issues/2101))
+
 ### Features
 
 - [**breaking**] bring widgets up to date ([#1848](https://github.com/twilight-rs/twilight/issues/1848))
 - [**breaking**] add `AfkTimeout` for `Guild::afk_timeout` ([#1922](https://github.com/twilight-rs/twilight/issues/1922))
+- [**breaking**] channel user limits ([#2077](https://github.com/twilight-rs/twilight/issues/2077))
+- [**breaking**] bulk delete message count ([#2078](https://github.com/twilight-rs/twilight/issues/2078))
+- [**breaking**] remove member::guild_id ([#2083](https://github.com/twilight-rs/twilight/issues/2083))
 
 ### Refactor
 

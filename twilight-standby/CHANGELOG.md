@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Refactor
+
+- [**breaking**] move ShardId from gateway to model ([#2097](https://github.com/twilight-rs/twilight/issues/2097))
+
 ## [0.14.1] - 2023-01-20
 
 ### Features

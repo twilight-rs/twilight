@@ -5,6 +5,12 @@
 ### Bug Fixes
 
 - [**breaking**] don't truncate volume values ([#2017](https://github.com/twilight-rs/twilight/issues/2017))
+- don't debug tokens ([#2101](https://github.com/twilight-rs/twilight/issues/2101))
+
+### Refactor
+
+- update dependencies ([#2103](https://github.com/twilight-rs/twilight/issues/2103))
+- [**breaking**] move ShardId from gateway to model ([#2097](https://github.com/twilight-rs/twilight/issues/2097))
 
 ## [0.14.1] - 2023-01-07
 
