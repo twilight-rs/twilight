@@ -1,74 +1,16 @@
 # Changelog
 
-## [unreleased]
+## [0.15.0] - 2023-02-05
 
-### Features
+Check out [the migration guide] for a summary of Gateway changes.
 
-- expose `json::parse` ([#2050](https://github.com/twilight-rs/twilight/issues/2050))
+[the migration guide]: https://twilight.rs/versions/0.15
 
-### Performance
-
-- defer creating `Deserializer` until checking event is wanted ([#2048](https://github.com/twilight-rs/twilight/issues/2048))
-
-## [unreleased]
+## [0.14.2] - 2023-02-05
 
 ### Bug Fixes
 
-- [**breaking**] within a stream, reinsert shard on error ([#1892](https://github.com/twilight-rs/twilight/issues/1892))
-- [**breaking**] `ConnectionStatus` methods borrow ([#1891](https://github.com/twilight-rs/twilight/issues/1891))
-- respect `EventTypeFlags` ([#1929](https://github.com/twilight-rs/twilight/issues/1929))
-- [**breaking**] heartbeat with a `null` sequence until a session is initialized ([#1940](https://github.com/twilight-rs/twilight/issues/1940))
-- reset `resume_gateway_url` on reconnect failure and invalidated sessions ([#1942](https://github.com/twilight-rs/twilight/issues/1942))
-- call `Session::set_sequence` on first dispatch event ([#1944](https://github.com/twilight-rs/twilight/issues/1944))
-- make `Shard::heartbeat` bypass the ratelimiter ([#1946](https://github.com/twilight-rs/twilight/issues/1946))
-- properly handle disconnects ([#1932](https://github.com/twilight-rs/twilight/issues/1932))
-- make close messages bypass the command ratelimiter ([#1951](https://github.com/twilight-rs/twilight/issues/1951))
-- don't panic on zombied connection ([#1964](https://github.com/twilight-rs/twilight/issues/1964))
-- catch unrequested heartbeat acks ([#1969](https://github.com/twilight-rs/twilight/issues/1969))
-- respond to `Heartbeat` with stored sequence ([#1968](https://github.com/twilight-rs/twilight/issues/1968))
-- defer resuming to Hello ([#1973](https://github.com/twilight-rs/twilight/issues/1973))
-- reset `heartbeat_interval` on disconnect ([#1974](https://github.com/twilight-rs/twilight/issues/1974))
-- reset ratelimiter on disconnect ([#1975](https://github.com/twilight-rs/twilight/issues/1975))
-- zombied detection accept any event ([#1997](https://github.com/twilight-rs/twilight/issues/1997))
-- remove `#[track_caller]` from async fn ([#2006](https://github.com/twilight-rs/twilight/issues/2006))
-
-### Documentation
-
-- redo and clarify `Latency` docs ([#1948](https://github.com/twilight-rs/twilight/issues/1948))
-- touch up `ShardId` and add section about receiving events ([#1949](https://github.com/twilight-rs/twilight/issues/1949))
-- remove unused imports in examples ([#1963](https://github.com/twilight-rs/twilight/issues/1963))
-- ratelimiter hygiene & don't mention internals ([#1967](https://github.com/twilight-rs/twilight/issues/1967))
-- [**breaking**] touch up `stream` and rename `start_` fns -> `create_` ([#1981](https://github.com/twilight-rs/twilight/issues/1981))
-- update `ConnectionStatus` notes ([#1988](https://github.com/twilight-rs/twilight/issues/1988))
-
-### Features
-
-- [**breaking**] make `twilight_http` optional ([#1760](https://github.com/twilight-rs/twilight/issues/1760))
-- zombie connection detection ([#1934](https://github.com/twilight-rs/twilight/issues/1934))
-- heartbeat jitter ([#1933](https://github.com/twilight-rs/twilight/issues/1933))
-- `Latency::recent` filter zero ([#1966](https://github.com/twilight-rs/twilight/issues/1966))
-- instrument and extend `Shard` logging ([#1943](https://github.com/twilight-rs/twilight/issues/1943))
-- [**breaking**] include payload in deserializing error ([#1995](https://github.com/twilight-rs/twilight/issues/1995))
-- [**breaking**] mark `Message` exhaustive ([#2022](https://github.com/twilight-rs/twilight/issues/2022))
-- make `Shard*Stream` `Send` ([#1999](https://github.com/twilight-rs/twilight/issues/1999))
-- notify on disconnect ([#2003](https://github.com/twilight-rs/twilight/issues/2003))
-- add `is_identified` helper method ([#2042](https://github.com/twilight-rs/twilight/issues/2042))
-- [**breaking**] add `Event::GatewayClose` variant ([#2044](https://github.com/twilight-rs/twilight/issues/2044))
-
-### Performance
-
-- use `tokio::time::Interval` for heartbeating ([#1955](https://github.com/twilight-rs/twilight/issues/1955))
-
-### Refactor
-
-- [**breaking**] move `gateway::Hello` to `payloads::incoming::Hello` ([#1928](https://github.com/twilight-rs/twilight/issues/1928))
-- don't pass `WEBSOCKET_CONFIG` in an `Option` ([#1931](https://github.com/twilight-rs/twilight/issues/1931))
-- [**breaking**] simplify `ConnectionStatus::from_close_frame` ([#1939](https://github.com/twilight-rs/twilight/issues/1939))
-- [**breaking**] redo `gateway::OpCode` ([#1945](https://github.com/twilight-rs/twilight/issues/1945))
-- [**breaking**] rewrite ratelimiter ([#1947](https://github.com/twilight-rs/twilight/issues/1947))
-- [**breaking**] defer establishing a websocket connection to `Shard::next_message` ([#1952](https://github.com/twilight-rs/twilight/issues/1952))
-- [**breaking**] rewrite `Inflater` ([#1993](https://github.com/twilight-rs/twilight/issues/1993))
-- [**breaking**] unify event deserialization into one type ([#2023](https://github.com/twilight-rs/twilight/issues/2023))
+- backport unexpected eof handling ([#2099](https://github.com/twilight-rs/twilight/issues/2099))
 
 ## [0.14.1] - 2023-01-20
 

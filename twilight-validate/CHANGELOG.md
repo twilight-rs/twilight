@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.0] - 2023-02-05
+
+### Features
+
+- [**breaking**] channel user limits ([#2077](https://github.com/twilight-rs/twilight/issues/2077))
+- [**breaking**] bulk delete message count ([#2078](https://github.com/twilight-rs/twilight/issues/2078))
+- [**breaking**] flatten `CommandOptionChoice` ([#2081](https://github.com/twilight-rs/twilight/issues/2081))
+
 ## [0.14.2] - 2023-01-20
 
 ### Bug Fixes

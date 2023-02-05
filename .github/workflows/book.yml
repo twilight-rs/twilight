@@ -26,5 +26,5 @@ jobs:
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages publish render --project-name twilight-book --commit-dirty=true --branch docs
+          command: pages publish render --project-name twilight-book --commit-dirty=true --branch main
           workingDirectory: "book"

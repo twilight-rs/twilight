@@ -1,11 +1,10 @@
 //! Utilities for managing collections of shards.
 //!
 //! Multiple shards may easily be created at once, with a per shard config
-//! created from a `Fn(ShardId) -> Config` closure, with the help of the
-//! `create_` set of functions. These functions will also reuse shards' TLS
-//! context, something otherwise achieved by cloning an existing [`Config`], but
-//! will not by default set a shared [session queue] (see
-//! [`ConfigBuilder::queue`]).
+//! created from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help
+//! of the `create_` set of functions. These functions will reuse shards'
+//! TLS context and [session queue], something otherwise achieved by cloning an
+//! existing [`Config`].
 //!
 //! # Concurrency
 //!
@@ -21,10 +20,10 @@
 //!
 //! A multi-threaded executor is able to run tasks in parallel, but splitting
 //! shards across tasks requires channels to communicate between them, for
-//! example, to coordinate shutdowns or to collect all events to a single event
-//! handler task. It is therefore **not** recommended unless required for
-//! performance reasons (a single core should, on a reasonably performant CPU,
-//! be capable of handling tens of thousands of Discord events per second).
+//! example, to coordinate shutdowns. It is therefore **not** recommended unless
+//! required for performance reasons (a single core should, on a reasonably
+//! performant CPU, be capable of handling tens of thousands of Discord events
+//! per second).
 //!
 //! See the [gateway-parallel] example for how to implement this.
 //!
@@ -32,9 +31,7 @@
 //! [gateway-parallel]: https://github.com/twilight-rs/twilight/blob/main/examples/gateway-parallel.rs
 //! [session queue]: crate::queue
 
-use crate::{
-    error::ReceiveMessageError, message::Message, tls::TlsContainer, Config, Shard, ShardId,
-};
+use crate::{error::ReceiveMessageError, message::Message, Config, ConfigBuilder, Shard, ShardId};
 use futures_util::{
     future::BoxFuture,
     stream::{FuturesUnordered, Stream, StreamExt},
@@ -112,9 +109,8 @@ pub enum StartRecommendedErrorType {
 ///
 /// ```no_run
 /// use futures::StreamExt;
-/// use std::{env, sync::Arc};
+/// use std::env;
 /// use twilight_gateway::{
-///     queue::LocalQueue,
 ///     stream::{self, ShardEventStream},
 ///     Config, Intents,
 /// };
@@ -124,17 +120,9 @@ pub enum StartRecommendedErrorType {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
 /// let client = Client::new(token.clone());
+/// let config = Config::new(token.clone(), Intents::GUILDS);
 ///
-/// let queue = Arc::new(LocalQueue::new());
-/// // callback to create a config for each shard, useful for when not all shards
-/// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| {
-///     Config::builder(token.clone(), Intents::GUILDS)
-///         .queue(queue.clone())
-///         .build()
-/// };
-///
-/// let mut shards = stream::create_recommended(&client, config_callback)
+/// let mut shards = stream::create_recommended(&client, config, |_, builder| builder.build())
 ///     .await?
 ///     .collect::<Vec<_>>();
 ///
@@ -224,9 +212,8 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///
 /// ```no_run
 /// use futures::StreamExt;
-/// use std::{env, sync::Arc};
+/// use std::env;
 /// use twilight_gateway::{
-///     queue::LocalQueue,
 ///     stream::{self, ShardMessageStream},
 ///     Config, Intents,
 /// };
@@ -236,17 +223,9 @@ impl<'a> Stream for ShardEventStream<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
 /// let client = Client::new(token.clone());
+/// let config = Config::new(token.clone(), Intents::GUILDS);
 ///
-/// let queue = Arc::new(LocalQueue::new());
-/// // callback to create a config for each shard, useful for when not all shards
-/// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| {
-///     Config::builder(token.clone(), Intents::GUILDS)
-///         .queue(queue.clone())
-///         .build()
-/// };
-///
-/// let mut shards = stream::create_recommended(&client, config_callback)
+/// let mut shards = stream::create_recommended(&client, config, |_, builder| builder.build())
 ///     .await?
 ///     .collect::<Vec<_>>();
 ///
@@ -371,8 +350,10 @@ struct NextItemOutput<'a, Item> {
     shard: &'a mut Shard,
 }
 
-/// Create a single bucket's worth of shards with provided configuration for
-/// each shard.
+/// Create a single bucket's worth of shards.
+///
+/// Passing a primary config is required. Further customization of this config
+/// may be performed in the callback.
 ///
 /// # Examples
 ///
@@ -380,23 +361,15 @@ struct NextItemOutput<'a, Item> {
 /// list:
 ///
 /// ```no_run
-/// use std::{env, sync::Arc};
-/// use twilight_gateway::{queue::LocalQueue, stream, Config, Intents};
+/// use std::env;
+/// use twilight_gateway::{stream, Config, Intents};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
-/// let queue = Arc::new(LocalQueue::new());
-/// // callback to create a config for each shard, useful for when not all shards
-/// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| {
-///     Config::builder(token.clone(), Intents::GUILDS)
-///         .queue(queue.clone())
-///         .build()
-/// };
-///
-/// let shards = stream::create_bucket(2, 10, 100, config_callback)
+/// let config = Config::new(token.clone(), Intents::GUILDS);
+/// let shards = stream::create_bucket(2, 10, 100, config, |_, builder| builder.build())
 ///     .map(|shard| (shard.id().number(), shard))
 ///     .collect::<Vec<_>>();
 ///
@@ -412,10 +385,11 @@ struct NextItemOutput<'a, Item> {
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
-pub fn create_bucket<F: Fn(ShardId) -> Config>(
+pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
     bucket_id: u64,
     concurrency: u64,
     total: u64,
+    config: Config,
     per_shard_config: F,
 ) -> impl Iterator<Item = Shard> {
     assert!(bucket_id < total, "bucket id must be less than the total");
@@ -425,18 +399,19 @@ pub fn create_bucket<F: Fn(ShardId) -> Config>(
     );
 
     let concurrency = concurrency.try_into().unwrap();
-    let tls = TlsContainer::new().unwrap();
 
     (bucket_id..total).step_by(concurrency).map(move |index| {
         let id = ShardId::new(index, total);
-        let mut config = per_shard_config(id);
-        config.set_tls(tls.clone());
+        let config = per_shard_config(id, ConfigBuilder::with_config(config.clone()));
 
         Shard::with_config(id, config)
     })
 }
 
-/// Create a range of shards with provided configuration for each shard.
+/// Create a range of shards.
+///
+/// Passing a primary config is required. Further customization of this config
+/// may be performed in the callback.
 ///
 /// # Examples
 ///
@@ -450,16 +425,8 @@ pub fn create_bucket<F: Fn(ShardId) -> Config>(
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
-/// let queue = Arc::new(LocalQueue::new());
-/// // callback to create a config for each shard, useful for when not all shards
-/// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| {
-///     Config::builder(token.clone(), Intents::GUILDS)
-///         .queue(queue.clone())
-///         .build()
-/// };
-///
-/// let shards = stream::create_range(0..10, 10, config_callback)
+/// let config = Config::new(token.clone(), Intents::GUILDS);
+/// let shards = stream::create_range(0..10, 10, config, |_, builder| builder.build())
 ///     .map(|shard| (shard.id().number(), shard))
 ///     .collect::<HashMap<_, _>>();
 ///
@@ -474,25 +441,26 @@ pub fn create_bucket<F: Fn(ShardId) -> Config>(
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
-pub fn create_range<F: Fn(ShardId) -> Config>(
+pub fn create_range<F: Fn(ShardId, ConfigBuilder) -> Config>(
     range: impl RangeBounds<u64>,
     total: u64,
+    config: Config,
     per_shard_config: F,
 ) -> impl Iterator<Item = Shard> {
     let range = calculate_range(range, total);
-    let tls = TlsContainer::new().unwrap();
 
     range.map(move |index| {
         let id = ShardId::new(index, total);
-        let mut config = per_shard_config(id);
-        config.set_tls(tls.clone());
+        let config = per_shard_config(id, ConfigBuilder::with_config(config.clone()));
 
         Shard::with_config(id, config)
     })
 }
 
-/// Create a range of shards from Discord's recommendation with configuration
-/// for each shard.
+/// Create a range of shards from Discord's recommendation.
+///
+/// Passing a primary config is required. Further customization of this config
+/// may be performed in the callback.
 ///
 /// Internally calls [`create_range`] with the values from [`GetGatewayAuthed`].
 ///
@@ -510,8 +478,9 @@ pub fn create_range<F: Fn(ShardId) -> Config>(
 ///
 /// [`GetGatewayAuthed`]: twilight_http::request::GetGatewayAuthed
 #[cfg(feature = "twilight-http")]
-pub async fn create_recommended<F: Fn(ShardId) -> Config>(
+pub async fn create_recommended<F: Fn(ShardId, ConfigBuilder) -> Config>(
     client: &Client,
+    config: Config,
     per_shard_config: F,
 ) -> Result<impl Iterator<Item = Shard>, StartRecommendedError> {
     let request = client.gateway().authed();
@@ -527,7 +496,7 @@ pub async fn create_recommended<F: Fn(ShardId) -> Config>(
             source: Some(Box::new(source)),
         })?;
 
-    Ok(create_range(.., info.shards, per_shard_config))
+    Ok(create_range(.., info.shards, config, per_shard_config))
 }
 
 /// Transform any range into a sized range based on the total.

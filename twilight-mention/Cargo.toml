@@ -10,10 +10,10 @@ name = "twilight-mention"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.15.0-rc.1"
+version = "0.15.0"
 
 [dependencies]
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.0-rc.1" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.0" }
 
 [dev-dependencies]
 criterion = { default-features = false, version = "0.4" }

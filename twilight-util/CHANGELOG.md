@@ -1,6 +1,10 @@
 # Changelog
 
-## [unreleased]
+## [0.15.0] - 2023-02-05
+
+### Features
+
+- [**breaking**] flatten `CommandOptionChoice` ([#2081](https://github.com/twilight-rs/twilight/issues/2081))
 
 ### Refactor
 

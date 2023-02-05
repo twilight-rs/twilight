@@ -5,10 +5,9 @@
 //! [`ShardMessageStream`]: twilight_gateway::stream::ShardMessageStream
 
 use futures_util::{future::join_all, StreamExt};
-use std::{env, iter, sync::Arc, thread};
+use std::{env, iter, thread};
 use tokio::{signal, sync::watch, task::JoinSet};
 use twilight_gateway::{
-    queue::LocalQueue,
     stream::{self, ShardEventStream},
     CloseFrame, Config, Intents, Shard,
 };
@@ -20,15 +19,7 @@ async fn main() -> anyhow::Result<()> {
 
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
-
-    let queue = Arc::new(LocalQueue::new());
-    // callback to create a config for each shard, useful for when not all
-    // shards have the same configuration, such as for per-shard presences
-    let config_callback = |_| {
-        Config::builder(token.clone(), Intents::GUILDS)
-            .queue(queue.clone())
-            .build()
-    };
+    let config = Config::new(token.clone(), Intents::GUILDS);
 
     let tasks = thread::available_parallelism()?.get();
 
@@ -36,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
     let init = iter::repeat_with(Vec::new)
         .take(tasks)
         .collect::<Vec<Vec<_>>>();
-    let shards = stream::create_recommended(&client, config_callback)
+    let shards = stream::create_recommended(&client, config, |_, builder| builder.build())
         .await?
         .enumerate()
         .fold(init, |mut fold, (idx, shard)| {
