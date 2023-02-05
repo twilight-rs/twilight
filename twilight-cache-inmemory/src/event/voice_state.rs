@@ -297,7 +297,6 @@ mod tests {
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
-                guild_id: Id::new(2),
                 joined_at,
                 mute: false,
                 nick: None,

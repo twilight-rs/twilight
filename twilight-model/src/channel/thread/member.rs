@@ -1,6 +1,6 @@
 use crate::{
     gateway::presence::{Presence, PresenceIntermediary},
-    guild::{member::MemberIntermediary, Member},
+    guild::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
@@ -34,7 +34,7 @@ pub(crate) struct ThreadMemberIntermediary {
     pub id: Option<Id<ChannelMarker>>,
     pub join_timestamp: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub member: Option<MemberIntermediary>,
+    pub member: Option<Member>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<PresenceIntermediary>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,13 +44,12 @@ pub(crate) struct ThreadMemberIntermediary {
 impl ThreadMemberIntermediary {
     /// Inject a guild ID into a thread member intermediary
     pub fn into_thread_member(self, guild_id: Id<GuildMarker>) -> ThreadMember {
-        let member = self.member.map(|m| m.into_member(guild_id));
         let presence = self.presence.map(|p| p.into_presence(guild_id));
         ThreadMember {
             flags: self.flags,
             id: self.id,
             join_timestamp: self.join_timestamp,
-            member,
+            member: self.member,
             presence,
             user_id: self.user_id,
         }

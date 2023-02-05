@@ -2,20 +2,12 @@
 
 use super::MemberFlags;
 use crate::{
-    id::{
-        marker::{GuildMarker, RoleMarker},
-        Id,
-    },
+    id::{marker::RoleMarker, Id},
     user::User,
     util::{ImageHash, Timestamp},
 };
-use serde::{
-    de::{
-        value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor,
-    },
-    Deserialize, Serialize,
-};
-use std::fmt::{Formatter, Result as FmtResult};
+
+use serde::{Deserialize, Serialize};
 
 /// [`User`] that is in a [`Guild`].
 ///
@@ -31,144 +23,17 @@ pub struct Member {
     ///
     /// Defaults to an empty bitfield.
     pub flags: MemberFlags,
-    pub guild_id: Id<GuildMarker>,
     pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
     /// requirements.
-    pub pending: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_since: Option<Timestamp>,
-    pub roles: Vec<Id<RoleMarker>>,
-    pub user: User,
-}
-
-/// Version of [`Member`] but without a guild ID, useful in some contexts.
-///
-/// The HTTP and Gateway APIs don't always include guild IDs in their payloads,
-/// so this can be useful when you're unable to use a deserialization seed like
-/// [`MemberDeserializer`].
-// Used in the guild deserializer.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(rename(deserialize = "Member"))]
-pub(crate) struct MemberIntermediary {
-    /// Member's guild avatar.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<ImageHash>,
-    pub communication_disabled_until: Option<Timestamp>,
-    pub deaf: bool,
-    pub flags: MemberFlags,
-    pub joined_at: Timestamp,
-    pub mute: bool,
-    pub nick: Option<String>,
     #[serde(default)]
     pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
     pub roles: Vec<Id<RoleMarker>>,
     pub user: User,
-}
-
-impl MemberIntermediary {
-    /// Inject a guild ID to create a [`Member`].
-    #[allow(clippy::missing_const_for_fn)] // false positive
-    pub fn into_member(self, guild_id: Id<GuildMarker>) -> Member {
-        Member {
-            avatar: self.avatar,
-            communication_disabled_until: self.communication_disabled_until,
-            deaf: self.deaf,
-            flags: self.flags,
-            guild_id,
-            joined_at: self.joined_at,
-            mute: self.mute,
-            nick: self.nick,
-            pending: self.pending,
-            premium_since: self.premium_since,
-            roles: self.roles,
-            user: self.user,
-        }
-    }
-}
-
-/// Deserialize a member when the payload doesn't have the guild ID but
-/// you already know the guild ID.
-///
-/// Member payloads from the HTTP API, for example, don't have the guild
-/// ID.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberDeserializer(Id<GuildMarker>);
-
-impl MemberDeserializer {
-    /// Create a new deserializer for a member when you know the ID but the
-    /// payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
-        Self(guild_id)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for MemberDeserializer {
-    type Value = Member;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_map(MemberVisitor(self.0))
-    }
-}
-
-struct MemberVisitor(Id<GuildMarker>);
-
-impl<'de> Visitor<'de> for MemberVisitor {
-    type Value = Member;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a map of member fields")
-    }
-
-    fn visit_map<M: MapAccess<'de>>(self, map: M) -> Result<Self::Value, M::Error> {
-        let deser = MapAccessDeserializer::new(map);
-        let member = MemberIntermediary::deserialize(deser)?;
-
-        Ok(member.into_member(self.0))
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberListDeserializer(Id<GuildMarker>);
-
-impl MemberListDeserializer {
-    /// Create a new deserializer for a map of members when you know the
-    /// Guild ID but the payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
-        Self(guild_id)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
-    type Value = Vec<Member>;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_any(MemberListVisitor(self.0))
-    }
-}
-
-struct MemberListVisitor(Id<GuildMarker>);
-
-impl<'de> Visitor<'de> for MemberListVisitor {
-    type Value = Vec<Member>;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a sequence of members")
-    }
-
-    fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut list = seq.size_hint().map_or_else(Vec::new, Vec::with_capacity);
-
-        while let Some(member) = seq.next_element_seed(MemberDeserializer(self.0))? {
-            list.push(member);
-        }
-
-        Ok(list)
-    }
 }
 
 #[cfg(test)]
@@ -195,7 +60,6 @@ mod tests {
             communication_disabled_until: None,
             deaf: false,
             flags,
-            guild_id: Id::new(1),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -226,7 +90,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 12,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -237,9 +101,6 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
@@ -295,7 +156,6 @@ mod tests {
             communication_disabled_until: Some(communication_disabled_until),
             deaf: false,
             flags,
-            guild_id: Id::new(1),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -326,7 +186,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 12,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -338,9 +198,6 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
