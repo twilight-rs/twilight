@@ -89,14 +89,14 @@ loop {
 Notably, receiving and sending messages now require a *mutable reference* to the
 shard instance, as opposed to Twilight 0.14 which only required an immutable
 reference. This makes sharing a reference to a shard across tasks for sending
-messages and accessing shard information - such as a
-[shard's status][`Shard::status`] or [its configuration][`Shard::config`] -
+messages and accessing shard information — such as a
+[shard's status][`Shard::status`] or [its configuration][`Shard::config`] —
 impossible to achieve the same way as with Twilight 0.14. Instead of sharing the
 shard itself to spawned tasks it's recommended to provide necessary information
 to tasks when they are spawned, or maintaining a mutex of necessary shard
 information that is passed around to tasks.
 
-Sending messages - such as member chunk requests or presence updates - over the
+Sending messages — such as member chunk requests or presence updates — over the
 shard from spawned tasks is now different: instead of being able to directly
 [send a message (0.14)][0.14:`Shard::command`], a [message sender][`Shard::sender`] can
 be obtained and passed to tasks. This will allow the sending of messages from
