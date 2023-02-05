@@ -42,7 +42,7 @@ usage of a shard has changed:
 <details>
 <summary>Twilight 0.14</summary>
 
-```rust
+```rust,ignore
 let intents = Intents::GUILDS | Intents::GUILD_MODERATION;
 let (shard, mut events) = Shard::new(env::var("DISCORD_TOKEN")?, intents);
 
@@ -59,6 +59,11 @@ while let Some(event) = events.next().await {
 <summary>Twilight 0.15</summary>
 
 ```rust
+# use std::{env, error::Error};
+# use twilight_gateway::{Intents, Shard, ShardId};
+# use twilight_http::Client;
+#
+# #[tokio::main] async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 let intents = Intents::GUILDS | Intents::GUILD_MODERATION;
 let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents);
 
@@ -78,6 +83,7 @@ loop {
 
     println!("Event: {event:?}");
 }
+# Ok(()) }
 ```
 </details>
 
