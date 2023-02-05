@@ -18,4 +18,4 @@
 - [Bots Using Twilight](./chapter_3_bots_using_twilight.md)
 - [Versions](./versions/summary.md)
     - [Version 0.15](./versions/0.15/summary.md)
-      - [Migration Guide](./versions/0.15/migration_guide.md)
+        - [0.15 API Changelog](./versions/0.15/api_changelog.md)
