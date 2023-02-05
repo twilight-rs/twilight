@@ -11,3 +11,6 @@ edition = "2021"
 
 [output.html]
 default-theme = "rust"
+
+[output.html.playground]
+runnable = false
