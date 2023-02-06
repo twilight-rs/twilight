@@ -72,32 +72,6 @@ pub enum OpCode {
 }
 
 impl OpCode {
-    /// Whether the opcode is received by the client.
-    pub const fn received(self) -> bool {
-        matches!(
-            self,
-            Self::Dispatch
-                | Self::Heartbeat
-                | Self::HeartbeatAck
-                | Self::Hello
-                | Self::InvalidSession
-                | Self::Reconnect
-        )
-    }
-
-    /// Whether the opcode is sent by the client.
-    pub const fn sent(self) -> bool {
-        matches!(
-            self,
-            Self::Heartbeat
-                | Self::Identify
-                | Self::PresenceUpdate
-                | Self::Resume
-                | Self::RequestGuildMembers
-                | Self::VoiceStateUpdate
-        )
-    }
-
     /// Try to match an integer value to an opcode, returning [`None`] if no
     /// match is found.
     pub const fn from(code: u8) -> Option<Self> {
@@ -115,6 +89,32 @@ impl OpCode {
             11 => Self::HeartbeatAck,
             _ => return None,
         })
+    }
+
+    /// Whether the opcode is received by the client.
+    pub const fn is_received(self) -> bool {
+        matches!(
+            self,
+            Self::Dispatch
+                | Self::Heartbeat
+                | Self::HeartbeatAck
+                | Self::Hello
+                | Self::InvalidSession
+                | Self::Reconnect
+        )
+    }
+
+    /// Whether the opcode is sent by the client.
+    pub const fn is_sent(self) -> bool {
+        matches!(
+            self,
+            Self::Heartbeat
+                | Self::Identify
+                | Self::PresenceUpdate
+                | Self::Resume
+                | Self::RequestGuildMembers
+                | Self::VoiceStateUpdate
+        )
     }
 }
 
@@ -156,8 +156,8 @@ mod tests {
     fn variants() {
         for (value, integer, received, sent) in MAP {
             serde_test::assert_tokens(value, &[Token::U8(*integer)]);
-            assert_eq!(value.received(), *received);
-            assert_eq!(value.sent(), *sent);
+            assert_eq!(value.is_received(), *received);
+            assert_eq!(value.is_sent(), *sent);
         }
     }
 }
