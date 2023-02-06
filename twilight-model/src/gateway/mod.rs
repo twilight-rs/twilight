@@ -7,7 +7,6 @@ mod close_code;
 mod frame;
 mod id;
 mod intents;
-mod opcode;
 mod reaction;
 mod session_start_limit;
 
@@ -16,7 +15,6 @@ pub use self::{
     frame::CloseFrame,
     id::{ShardId, ShardIdParseError, ShardIdParseErrorType},
     intents::Intents,
-    opcode::OpCode,
     reaction::GatewayReaction,
     session_start_limit::SessionStartLimit,
 };

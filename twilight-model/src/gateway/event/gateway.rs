@@ -1,11 +1,8 @@
-use super::{
-    super::OpCode, DispatchEvent, DispatchEventWithTypeDeserializer, Event, EventConversionError,
-};
+use super::{dispatch::DispatchEventDeserializer, DispatchEvent, EventType, OpCode};
 use crate::gateway::payload::incoming::Hello;
 use serde::{
     de::{
-        value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,
-        IntoDeserializer, MapAccess, Unexpected, Visitor,
+        DeserializeSeed, Deserializer, Error as DeError, IgnoredAny, MapAccess, Unexpected, Visitor,
     },
     ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
@@ -20,27 +17,45 @@ use std::{
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
 #[derive(Clone, Debug)]
 pub enum GatewayEvent {
+    /// Dispatch event sequence number and inner dispatch event.
     Dispatch(u64, DispatchEvent),
+    /// Heartbeat event, indicating that a heartbeat should be sent immediately.
     Heartbeat(u64),
+    /// Heartbeat acknowledgement.
     HeartbeatAck,
+    /// Hello event containinig heartbeat interval.
     Hello(Hello),
+    /// Shard's session was invalidated.
+    ///
+    /// `true` if resumable. If not, then the shard must do a full reconnect.
     InvalidateSession(bool),
+    /// Gateway indicating to permform a reconnect.
     Reconnect,
 }
 
-impl TryFrom<Event> for GatewayEvent {
-    type Error = EventConversionError;
+impl GatewayEvent {
+    /// Opcode of event.
+    pub const fn opcode(&self) -> OpCode {
+        match self {
+            Self::Dispatch(_, _) => OpCode::Dispatch,
+            Self::Heartbeat(_) => OpCode::Heartbeat,
+            Self::HeartbeatAck => OpCode::HeartbeatAck,
+            Self::Hello(_) => OpCode::Hello,
+            Self::InvalidateSession(_) => OpCode::InvalidSession,
+            Self::Reconnect => OpCode::Reconnect,
+        }
+    }
 
-    fn try_from(event: Event) -> Result<Self, Self::Error> {
-        Ok(match event {
-            Event::GatewayHeartbeat(v) => Self::Heartbeat(v),
-            Event::GatewayHeartbeatAck => Self::HeartbeatAck,
-            Event::GatewayHello(v) => Self::Hello(v),
-            Event::GatewayInvalidateSession(v) => Self::InvalidateSession(v),
-            Event::GatewayReconnect => Self::Reconnect,
-
-            _ => return Err(EventConversionError::new(event)),
-        })
+    /// Type of event.
+    pub fn kind(&self) -> EventType {
+        match self {
+            GatewayEvent::Dispatch(_, dispatch) => dispatch.kind().into(),
+            GatewayEvent::Heartbeat(_) => EventType::GatewayHeartbeat,
+            GatewayEvent::HeartbeatAck => EventType::GatewayHeartbeatAck,
+            GatewayEvent::Hello(_) => EventType::GatewayHello,
+            GatewayEvent::InvalidateSession(_) => EventType::GatewayInvalidateSession,
+            GatewayEvent::Reconnect => EventType::GatewayReconnect,
+        }
     }
 }
 
@@ -180,15 +195,12 @@ impl<'a> GatewayEventDeserializer<'a> {
 struct GatewayEventVisitor<'a>(u8, Option<u64>, Option<Cow<'a, str>>);
 
 impl GatewayEventVisitor<'_> {
-    fn field<'de, T: Deserialize<'de>, V: MapAccess<'de>>(
-        map: &mut V,
-        field: Field,
-    ) -> Result<T, V::Error> {
+    fn data<'de, T: Deserialize<'de>, V: MapAccess<'de>>(map: &mut V) -> Result<T, V::Error> {
         let mut found = None;
 
         loop {
             match map.next_key::<Field>() {
-                Ok(Some(key)) if key == field => found = Some(map.next_value()?),
+                Ok(Some(key)) if key == Field::D => found = Some(map.next_value()?),
                 Ok(Some(_)) | Err(_) => {
                     map.next_value::<IgnoredAny>()?;
 
@@ -200,24 +212,13 @@ impl GatewayEventVisitor<'_> {
             }
         }
 
-        found.ok_or_else(|| {
-            DeError::missing_field(match field {
-                Field::D => "d",
-                Field::Op => "op",
-                Field::S => "s",
-                Field::T => "t",
-            })
-        })
+        found.ok_or_else(|| DeError::missing_field("d"))
     }
 
     fn ignore_all<'de, V: MapAccess<'de>>(map: &mut V) -> Result<(), V::Error> {
-        tracing::trace!("ignoring all other fields");
-
         while let Ok(Some(_)) | Err(_) = map.next_key::<Field>() {
             map.next_value::<IgnoredAny>()?;
         }
-
-        tracing::trace!("ignored all other fields");
 
         Ok(())
     }
@@ -231,12 +232,13 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
     }
 
     #[allow(clippy::too_many_lines)]
+    #[tracing::instrument(level = "trace", name = "deserializing gateway event", skip_all)]
     fn visit_map<V>(self, mut map: V) -> Result<GatewayEvent, V::Error>
     where
         V: MapAccess<'de>,
     {
-        static VALID_OPCODES: &[&str] = &[
-            "EVENT",
+        const VALID_OPCODES: &[&str] = &[
+            "DISPATCH",
             "HEARTBEAT",
             "HEARTBEAT_ACK",
             "HELLO",
@@ -245,24 +247,19 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
             "RECONNECT",
         ];
 
-        let span = tracing::trace_span!("deserializing gateway event");
-        let _span_enter = span.enter();
         tracing::trace!(event_type=?self.2, op=self.0, seq=?self.1);
 
-        let op_deser: U8Deserializer<V::Error> = self.0.into_deserializer();
-
-        let op = OpCode::deserialize(op_deser).ok().ok_or_else(|| {
-            tracing::trace!(op = self.0, "unknown opcode");
-            let unexpected = Unexpected::Unsigned(u64::from(self.0));
-
-            DeError::invalid_value(unexpected, &"an opcode")
+        let opcode = OpCode::from(self.0).ok_or_else(|| {
+            DeError::invalid_value(Unexpected::Unsigned(self.0.into()), &"an opcode")
         })?;
 
-        Ok(match op {
+        Ok(match opcode {
             OpCode::Dispatch => {
                 let t = self
                     .2
-                    .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
+                    .ok_or_else(|| DeError::custom("event type not provided beforehand"))?
+                    .parse()
+                    .map_err(|_| todo!())?;
 
                 tracing::trace!("deserializing gateway dispatch");
 
@@ -270,8 +267,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 let mut s = None;
 
                 loop {
-                    let span_child = tracing::trace_span!("iterating over element");
-                    let _span_child_enter = span_child.enter();
+                    let _span = tracing::trace_span!("iterating over element").entered();
 
                     let key = match map.next_key() {
                         Ok(Some(key)) => {
@@ -295,7 +291,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                                 return Err(DeError::duplicate_field("d"));
                             }
 
-                            let deserializer = DispatchEventWithTypeDeserializer::new(&t);
+                            let deserializer = DispatchEventDeserializer(t);
 
                             d = Some(map.next_value_seed(deserializer)?);
                         }
@@ -321,7 +317,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
             }
             OpCode::Heartbeat => {
                 tracing::trace!("deserializing gateway heartbeat");
-                let seq = Self::field(&mut map, Field::D)?;
+                let seq = Self::data(&mut map)?;
                 tracing::trace!(seq = %seq);
 
                 Self::ignore_all(&mut map)?;
@@ -337,7 +333,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
             }
             OpCode::Hello => {
                 tracing::trace!("deserializing gateway hello");
-                let hello = Self::field::<Hello, _>(&mut map, Field::D)?;
+                let hello = Self::data(&mut map)?;
                 tracing::trace!(hello = ?hello);
 
                 Self::ignore_all(&mut map)?;
@@ -346,7 +342,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
             }
             OpCode::InvalidSession => {
                 tracing::trace!("deserializing invalid session");
-                let invalidate = Self::field::<bool, _>(&mut map, Field::D)?;
+                let invalidate = Self::data(&mut map)?;
                 tracing::trace!(invalidate = %invalidate);
 
                 Self::ignore_all(&mut map)?;
@@ -392,58 +388,39 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializer<'_> {
 
 impl Serialize for GatewayEvent {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        const fn opcode(gateway_event: &GatewayEvent) -> OpCode {
-            match gateway_event {
-                GatewayEvent::Dispatch(_, _) => OpCode::Dispatch,
-                GatewayEvent::Heartbeat(_) => OpCode::Heartbeat,
-                GatewayEvent::HeartbeatAck => OpCode::HeartbeatAck,
-                GatewayEvent::Hello(_) => OpCode::Hello,
-                GatewayEvent::InvalidateSession(_) => OpCode::InvalidSession,
-                GatewayEvent::Reconnect => OpCode::Reconnect,
-            }
-        }
-
         let mut s = serializer.serialize_struct("GatewayEvent", 4)?;
 
-        if let Self::Dispatch(sequence, event) = self {
-            s.serialize_field("t", &event.kind())?;
-            s.serialize_field("s", &sequence)?;
-            s.serialize_field("op", &opcode(self))?;
-            s.serialize_field("d", &event)?;
-
-            return s.end();
-        }
-
-        // S and T are always null when not a Dispatch event
-        s.serialize_field("t", &None::<&str>)?;
-        s.serialize_field("s", &None::<u64>)?;
-        s.serialize_field("op", &opcode(self))?;
-
+        s.serialize_field("op", &self.opcode())?;
         match self {
-            Self::Dispatch(_, _) => unreachable!("dispatch already handled"),
-            Self::Heartbeat(sequence) => {
-                s.serialize_field("d", &sequence)?;
+            GatewayEvent::Dispatch(seq, event) => {
+                s.serialize_field("d", event)?;
+                s.serialize_field("s", seq)?;
+                s.serialize_field("t", &event.kind())?;
+
+                return s.end();
             }
-            Self::Hello(hello) => {
-                s.serialize_field("d", &hello)?;
-            }
-            Self::InvalidateSession(invalidate) => {
-                s.serialize_field("d", &invalidate)?;
-            }
-            Self::HeartbeatAck | Self::Reconnect => {
-                s.serialize_field("d", &None::<u64>)?;
+            GatewayEvent::Heartbeat(seq) => s.serialize_field("d", seq)?,
+            GatewayEvent::Hello(hello) => s.serialize_field("d", hello)?,
+            GatewayEvent::InvalidateSession(resumable) => s.serialize_field("d", resumable)?,
+            GatewayEvent::HeartbeatAck | GatewayEvent::Reconnect => {
+                s.serialize_field("d", &None::<()>)?
             }
         }
 
+        s.serialize_field("s", &None::<()>)?;
+        s.serialize_field("t", &None::<()>)?;
         s.end()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{DispatchEvent, GatewayEvent, GatewayEventDeserializer, OpCode};
+    use super::{GatewayEvent, GatewayEventDeserializer};
     use crate::{
-        gateway::payload::incoming::{Hello, RoleDelete},
+        gateway::{
+            event::{DispatchEvent, OpCode},
+            payload::incoming::{Hello, RoleDelete},
+        },
         id::Id,
         test::image_hash,
     };
@@ -780,13 +757,6 @@ mod tests {
                     name: "GatewayEvent",
                     len: 4,
                 },
-                Token::Str("t"),
-                Token::UnitVariant {
-                    name: "EventType",
-                    variant: "GUILD_ROLE_DELETE",
-                },
-                Token::Str("s"),
-                Token::U64(2_048),
                 Token::Str("op"),
                 Token::U8(OpCode::Dispatch as u8),
                 Token::Str("d"),
@@ -801,6 +771,13 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::StructEnd,
+                Token::Str("s"),
+                Token::U64(2_048),
+                Token::Str("t"),
+                Token::UnitVariant {
+                    name: "DispatchEventType",
+                    variant: "GUILD_ROLE_DELETE",
+                },
                 Token::StructEnd,
             ],
         );
@@ -815,14 +792,14 @@ mod tests {
                     name: "GatewayEvent",
                     len: 4,
                 },
-                Token::Str("t"),
-                Token::None,
-                Token::Str("s"),
-                Token::None,
                 Token::Str("op"),
                 Token::U8(OpCode::Heartbeat as u8),
                 Token::Str("d"),
                 Token::U64(1024),
+                Token::Str("s"),
+                Token::None,
+                Token::Str("t"),
+                Token::None,
                 Token::StructEnd,
             ],
         );
@@ -837,13 +814,13 @@ mod tests {
                     name: "GatewayEvent",
                     len: 4,
                 },
-                Token::Str("t"),
-                Token::None,
-                Token::Str("s"),
-                Token::None,
                 Token::Str("op"),
                 Token::U8(OpCode::HeartbeatAck as u8),
                 Token::Str("d"),
+                Token::None,
+                Token::Str("s"),
+                Token::None,
+                Token::Str("t"),
                 Token::None,
                 Token::StructEnd,
             ],
@@ -861,10 +838,6 @@ mod tests {
                     name: "GatewayEvent",
                     len: 4,
                 },
-                Token::Str("t"),
-                Token::None,
-                Token::Str("s"),
-                Token::None,
                 Token::Str("op"),
                 Token::U8(OpCode::Hello as u8),
                 Token::Str("d"),
@@ -875,6 +848,10 @@ mod tests {
                 Token::Str("heartbeat_interval"),
                 Token::U64(41250),
                 Token::StructEnd,
+                Token::Str("s"),
+                Token::None,
+                Token::Str("t"),
+                Token::None,
                 Token::StructEnd,
             ],
         );
@@ -891,14 +868,14 @@ mod tests {
                     name: "GatewayEvent",
                     len: 4,
                 },
-                Token::Str("t"),
-                Token::None,
-                Token::Str("s"),
-                Token::None,
                 Token::Str("op"),
                 Token::U8(OpCode::InvalidSession as u8),
                 Token::Str("d"),
                 Token::Bool(true),
+                Token::Str("s"),
+                Token::None,
+                Token::Str("t"),
+                Token::None,
                 Token::StructEnd,
             ],
         );
@@ -913,13 +890,13 @@ mod tests {
                     name: "GatewayEvent",
                     len: 4,
                 },
-                Token::Str("t"),
-                Token::None,
-                Token::Str("s"),
-                Token::None,
                 Token::Str("op"),
                 Token::U8(OpCode::Reconnect as u8),
                 Token::Str("d"),
+                Token::None,
+                Token::Str("s"),
+                Token::None,
+                Token::Str("t"),
                 Token::None,
                 Token::StructEnd,
             ],

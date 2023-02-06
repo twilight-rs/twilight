@@ -1,7 +1,7 @@
 //! Optimization for skipping deserialization of unwanted events.
 
 use bitflags::bitflags;
-use twilight_model::gateway::{event::EventType, OpCode};
+use twilight_model::gateway::event::{DispatchEventType, OpCode};
 
 bitflags! {
     /// Important optimization for narrowing requested event types.
@@ -319,97 +319,92 @@ bitflags! {
     }
 }
 
-impl From<EventType> for EventTypeFlags {
-    fn from(event_type: EventType) -> Self {
+impl From<DispatchEventType> for EventTypeFlags {
+    fn from(event_type: DispatchEventType) -> Self {
         match event_type {
-            EventType::AutoModerationActionExecution => Self::AUTO_MODERATION_ACTION_EXECUTION,
-            EventType::AutoModerationRuleCreate => Self::AUTO_MODERATION_RULE_CREATE,
-            EventType::AutoModerationRuleDelete => Self::AUTO_MODERATION_RULE_DELETE,
-            EventType::AutoModerationRuleUpdate => Self::AUTO_MODERATION_RULE_UPDATE,
-            EventType::BanAdd => Self::BAN_ADD,
-            EventType::BanRemove => Self::BAN_REMOVE,
-            EventType::ChannelCreate => Self::CHANNEL_CREATE,
-            EventType::ChannelDelete => Self::CHANNEL_DELETE,
-            EventType::ChannelPinsUpdate => Self::CHANNEL_PINS_UPDATE,
-            EventType::ChannelUpdate => Self::CHANNEL_UPDATE,
-            EventType::CommandPermissionsUpdate => Self::COMMAND_PERMISSIONS_UPDATE,
-            EventType::GatewayClose => Self::empty(),
-            EventType::GatewayHeartbeat => Self::GATEWAY_HEARTBEAT,
-            EventType::GatewayHeartbeatAck => Self::GATEWAY_HEARTBEAT_ACK,
-            EventType::GatewayHello => Self::GATEWAY_HELLO,
-            EventType::GatewayInvalidateSession => Self::GATEWAY_INVALIDATE_SESSION,
-            EventType::GatewayReconnect => Self::GATEWAY_RECONNECT,
-            EventType::GiftCodeUpdate => Self::GIFT_CODE_UPDATE,
-            EventType::GuildAuditLogEntryCreate => Self::GUILD_AUDIT_LOG_ENTRY_CREATE,
-            EventType::GuildCreate => Self::GUILD_CREATE,
-            EventType::GuildDelete => Self::GUILD_DELETE,
-            EventType::GuildEmojisUpdate => Self::GUILD_EMOJIS_UPDATE,
-            EventType::GuildIntegrationsUpdate => Self::GUILD_INTEGRATIONS_UPDATE,
-            EventType::GuildScheduledEventCreate => Self::GUILD_SCHEDULED_EVENT_CREATE,
-            EventType::GuildScheduledEventDelete => Self::GUILD_SCHEDULED_EVENT_DELETE,
-            EventType::GuildScheduledEventUpdate => Self::GUILD_SCHEDULED_EVENT_UPDATE,
-            EventType::GuildScheduledEventUserAdd => Self::GUILD_SCHEDULED_EVENT_USER_ADD,
-            EventType::GuildScheduledEventUserRemove => Self::GUILD_SCHEDULED_EVENT_USER_REMOVE,
-            EventType::GuildStickersUpdate => Self::GUILD_STICKERS_UPDATE,
-            EventType::GuildUpdate => Self::GUILD_UPDATE,
-            EventType::IntegrationCreate => Self::INTEGRATION_CREATE,
-            EventType::IntegrationDelete => Self::INTEGRATION_DELETE,
-            EventType::IntegrationUpdate => Self::INTEGRATION_UPDATE,
-            EventType::InteractionCreate => Self::INTERACTION_CREATE,
-            EventType::InviteCreate => Self::INVITE_CREATE,
-            EventType::InviteDelete => Self::INVITE_DELETE,
-            EventType::MemberAdd => Self::MEMBER_ADD,
-            EventType::MemberRemove => Self::MEMBER_REMOVE,
-            EventType::MemberUpdate => Self::MEMBER_UPDATE,
-            EventType::MemberChunk => Self::MEMBER_CHUNK,
-            EventType::MessageCreate => Self::MESSAGE_CREATE,
-            EventType::MessageDelete => Self::MESSAGE_DELETE,
-            EventType::MessageDeleteBulk => Self::MESSAGE_DELETE_BULK,
-            EventType::MessageUpdate => Self::MESSAGE_UPDATE,
-            EventType::PresenceUpdate => Self::PRESENCE_UPDATE,
-            EventType::PresencesReplace => Self::PRESENCES_REPLACE,
-            EventType::ReactionAdd => Self::REACTION_ADD,
-            EventType::ReactionRemove => Self::REACTION_REMOVE,
-            EventType::ReactionRemoveAll => Self::REACTION_REMOVE_ALL,
-            EventType::ReactionRemoveEmoji => Self::REACTION_REMOVE_EMOJI,
-            EventType::Ready => Self::READY,
-            EventType::Resumed => Self::RESUMED,
-            EventType::RoleCreate => Self::ROLE_CREATE,
-            EventType::RoleDelete => Self::ROLE_DELETE,
-            EventType::RoleUpdate => Self::ROLE_UPDATE,
-            EventType::StageInstanceCreate => Self::STAGE_INSTANCE_CREATE,
-            EventType::StageInstanceDelete => Self::STAGE_INSTANCE_DELETE,
-            EventType::StageInstanceUpdate => Self::STAGE_INSTANCE_UPDATE,
-            EventType::ThreadCreate => Self::THREAD_CREATE,
-            EventType::ThreadDelete => Self::THREAD_DELETE,
-            EventType::ThreadListSync => Self::THREAD_LIST_SYNC,
-            EventType::ThreadMembersUpdate => Self::THREAD_MEMBERS_UPDATE,
-            EventType::ThreadMemberUpdate => Self::THREAD_MEMBER_UPDATE,
-            EventType::ThreadUpdate => Self::THREAD_UPDATE,
-            EventType::TypingStart => Self::TYPING_START,
-            EventType::UnavailableGuild => Self::UNAVAILABLE_GUILD,
-            EventType::UserUpdate => Self::USER_UPDATE,
-            EventType::VoiceServerUpdate => Self::VOICE_SERVER_UPDATE,
-            EventType::VoiceStateUpdate => Self::VOICE_STATE_UPDATE,
-            EventType::WebhooksUpdate => Self::WEBHOOKS_UPDATE,
+            DispatchEventType::AutoModerationActionExecution => {
+                Self::AUTO_MODERATION_ACTION_EXECUTION
+            }
+            DispatchEventType::AutoModerationRuleCreate => Self::AUTO_MODERATION_RULE_CREATE,
+            DispatchEventType::AutoModerationRuleDelete => Self::AUTO_MODERATION_RULE_DELETE,
+            DispatchEventType::AutoModerationRuleUpdate => Self::AUTO_MODERATION_RULE_UPDATE,
+            DispatchEventType::BanAdd => Self::BAN_ADD,
+            DispatchEventType::BanRemove => Self::BAN_REMOVE,
+            DispatchEventType::ChannelCreate => Self::CHANNEL_CREATE,
+            DispatchEventType::ChannelDelete => Self::CHANNEL_DELETE,
+            DispatchEventType::ChannelPinsUpdate => Self::CHANNEL_PINS_UPDATE,
+            DispatchEventType::ChannelUpdate => Self::CHANNEL_UPDATE,
+            DispatchEventType::CommandPermissionsUpdate => Self::COMMAND_PERMISSIONS_UPDATE,
+            DispatchEventType::GiftCodeUpdate => Self::GIFT_CODE_UPDATE,
+            DispatchEventType::GuildAuditLogEntryCreate => Self::GUILD_AUDIT_LOG_ENTRY_CREATE,
+            DispatchEventType::GuildCreate => Self::GUILD_CREATE,
+            DispatchEventType::GuildDelete => Self::GUILD_DELETE,
+            DispatchEventType::GuildEmojisUpdate => Self::GUILD_EMOJIS_UPDATE,
+            DispatchEventType::GuildIntegrationsUpdate => Self::GUILD_INTEGRATIONS_UPDATE,
+            DispatchEventType::GuildScheduledEventCreate => Self::GUILD_SCHEDULED_EVENT_CREATE,
+            DispatchEventType::GuildScheduledEventDelete => Self::GUILD_SCHEDULED_EVENT_DELETE,
+            DispatchEventType::GuildScheduledEventUpdate => Self::GUILD_SCHEDULED_EVENT_UPDATE,
+            DispatchEventType::GuildScheduledEventUserAdd => Self::GUILD_SCHEDULED_EVENT_USER_ADD,
+            DispatchEventType::GuildScheduledEventUserRemove => {
+                Self::GUILD_SCHEDULED_EVENT_USER_REMOVE
+            }
+            DispatchEventType::GuildStickersUpdate => Self::GUILD_STICKERS_UPDATE,
+            DispatchEventType::GuildUpdate => Self::GUILD_UPDATE,
+            DispatchEventType::IntegrationCreate => Self::INTEGRATION_CREATE,
+            DispatchEventType::IntegrationDelete => Self::INTEGRATION_DELETE,
+            DispatchEventType::IntegrationUpdate => Self::INTEGRATION_UPDATE,
+            DispatchEventType::InteractionCreate => Self::INTERACTION_CREATE,
+            DispatchEventType::InviteCreate => Self::INVITE_CREATE,
+            DispatchEventType::InviteDelete => Self::INVITE_DELETE,
+            DispatchEventType::MemberAdd => Self::MEMBER_ADD,
+            DispatchEventType::MemberRemove => Self::MEMBER_REMOVE,
+            DispatchEventType::MemberUpdate => Self::MEMBER_UPDATE,
+            DispatchEventType::MemberChunk => Self::MEMBER_CHUNK,
+            DispatchEventType::MessageCreate => Self::MESSAGE_CREATE,
+            DispatchEventType::MessageDelete => Self::MESSAGE_DELETE,
+            DispatchEventType::MessageDeleteBulk => Self::MESSAGE_DELETE_BULK,
+            DispatchEventType::MessageUpdate => Self::MESSAGE_UPDATE,
+            DispatchEventType::PresenceUpdate => Self::PRESENCE_UPDATE,
+            DispatchEventType::PresencesReplace => Self::PRESENCES_REPLACE,
+            DispatchEventType::ReactionAdd => Self::REACTION_ADD,
+            DispatchEventType::ReactionRemove => Self::REACTION_REMOVE,
+            DispatchEventType::ReactionRemoveAll => Self::REACTION_REMOVE_ALL,
+            DispatchEventType::ReactionRemoveEmoji => Self::REACTION_REMOVE_EMOJI,
+            DispatchEventType::Ready => Self::READY,
+            DispatchEventType::Resumed => Self::RESUMED,
+            DispatchEventType::RoleCreate => Self::ROLE_CREATE,
+            DispatchEventType::RoleDelete => Self::ROLE_DELETE,
+            DispatchEventType::RoleUpdate => Self::ROLE_UPDATE,
+            DispatchEventType::StageInstanceCreate => Self::STAGE_INSTANCE_CREATE,
+            DispatchEventType::StageInstanceDelete => Self::STAGE_INSTANCE_DELETE,
+            DispatchEventType::StageInstanceUpdate => Self::STAGE_INSTANCE_UPDATE,
+            DispatchEventType::ThreadCreate => Self::THREAD_CREATE,
+            DispatchEventType::ThreadDelete => Self::THREAD_DELETE,
+            DispatchEventType::ThreadListSync => Self::THREAD_LIST_SYNC,
+            DispatchEventType::ThreadMembersUpdate => Self::THREAD_MEMBERS_UPDATE,
+            DispatchEventType::ThreadMemberUpdate => Self::THREAD_MEMBER_UPDATE,
+            DispatchEventType::ThreadUpdate => Self::THREAD_UPDATE,
+            DispatchEventType::TypingStart => Self::TYPING_START,
+            DispatchEventType::UnavailableGuild => Self::UNAVAILABLE_GUILD,
+            DispatchEventType::UserUpdate => Self::USER_UPDATE,
+            DispatchEventType::VoiceServerUpdate => Self::VOICE_SERVER_UPDATE,
+            DispatchEventType::VoiceStateUpdate => Self::VOICE_STATE_UPDATE,
+            DispatchEventType::WebhooksUpdate => Self::WEBHOOKS_UPDATE,
         }
     }
 }
 
-impl TryFrom<(OpCode, Option<&str>)> for EventTypeFlags {
+impl TryFrom<OpCode> for EventTypeFlags {
     type Error = ();
 
-    fn try_from((op, event_type): (OpCode, Option<&str>)) -> Result<Self, Self::Error> {
-        match (op, event_type) {
-            (OpCode::Heartbeat, _) => Ok(Self::GATEWAY_HEARTBEAT),
-            (OpCode::Reconnect, _) => Ok(Self::GATEWAY_RECONNECT),
-            (OpCode::InvalidSession, _) => Ok(Self::GATEWAY_INVALIDATE_SESSION),
-            (OpCode::Hello, _) => Ok(Self::GATEWAY_HELLO),
-            (OpCode::HeartbeatAck, _) => Ok(Self::GATEWAY_HEARTBEAT_ACK),
-            (_, Some(event_type)) => EventType::try_from(event_type)
-                .map(Self::from)
-                .map_err(|_| ()),
-            (_, None) => Err(()),
+    fn try_from(op: OpCode) -> Result<Self, Self::Error> {
+        match op {
+            OpCode::Heartbeat => Ok(Self::GATEWAY_HEARTBEAT),
+            OpCode::Reconnect => Ok(Self::GATEWAY_RECONNECT),
+            OpCode::InvalidSession => Ok(Self::GATEWAY_INVALIDATE_SESSION),
+            OpCode::Hello => Ok(Self::GATEWAY_HELLO),
+            OpCode::HeartbeatAck => Ok(Self::GATEWAY_HEARTBEAT_ACK),
+            _ => Err(()),
         }
     }
 }
@@ -419,17 +414,18 @@ mod tests {
     use super::EventTypeFlags;
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, hash::Hash};
-    use twilight_model::gateway::event::EventType;
+    use twilight_model::gateway::event::{DispatchEventType, OpCode};
 
     assert_impl_all!(
         EventTypeFlags: Copy,
         Clone,
         Debug,
         Eq,
-        From<EventType>,
+        From<DispatchEventType>,
         Hash,
         PartialEq,
         Send,
         Sync,
+        TryFrom<OpCode>,
     );
 }

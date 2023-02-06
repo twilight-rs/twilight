@@ -1,5 +1,5 @@
 use crate::{
-    gateway::opcode::OpCode,
+    gateway::event::OpCode,
     id::{
         marker::{GuildMarker, UserMarker},
         Id,

@@ -1,5 +1,5 @@
 use super::update_presence::UpdatePresencePayload;
-use crate::gateway::{intents::Intents, opcode::OpCode, ShardId};
+use crate::gateway::{event::OpCode, intents::Intents, ShardId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
