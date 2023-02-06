@@ -1,8 +1,8 @@
 use crate::{
-    gateway::presence::{Presence, PresenceIntermediary},
+    gateway::presence::Presence,
     guild::Member,
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
+        marker::{ChannelMarker, UserMarker},
         Id,
     },
     util::Timestamp,
@@ -22,38 +22,6 @@ pub struct ThreadMember {
     pub presence: Option<Presence>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_id: Option<Id<UserMarker>>,
-}
-
-/// Version of [`ThreadMember`], but without a guild ID in the
-/// [`Self::member`] field.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
-pub(crate) struct ThreadMemberIntermediary {
-    // Values currently unknown and undocumented.
-    pub flags: u64,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<Id<ChannelMarker>>,
-    pub join_timestamp: Timestamp,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub member: Option<Member>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub presence: Option<PresenceIntermediary>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<Id<UserMarker>>,
-}
-
-impl ThreadMemberIntermediary {
-    /// Inject a guild ID into a thread member intermediary
-    pub fn into_thread_member(self, guild_id: Id<GuildMarker>) -> ThreadMember {
-        let presence = self.presence.map(|p| p.into_presence(guild_id));
-        ThreadMember {
-            flags: self.flags,
-            id: self.id,
-            join_timestamp: self.join_timestamp,
-            member: self.member,
-            presence,
-            user_id: self.user_id,
-        }
-    }
 }
 
 #[cfg(test)]

@@ -14,7 +14,7 @@ use twilight_model::{
 pub struct CachedPresence {
     pub(crate) activities: Vec<Activity>,
     pub(crate) client_status: ClientStatus,
-    pub(crate) guild_id: Id<GuildMarker>,
+    pub(crate) guild_id: Option<Id<GuildMarker>>,
     pub(crate) status: Status,
     pub(crate) user_id: Id<UserMarker>,
 }
@@ -31,7 +31,7 @@ impl CachedPresence {
     }
 
     /// ID of the guild.
-    pub const fn guild_id(&self) -> Id<GuildMarker> {
+    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         self.guild_id
     }
 
