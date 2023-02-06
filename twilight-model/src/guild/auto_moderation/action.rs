@@ -1,6 +1,5 @@
 use crate::id::{marker::ChannelMarker, Id};
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// An action which will execute whenever a rule is triggered.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -49,27 +48,6 @@ impl AutoModerationActionType {
     /// [`Permissions::MODERATE_MEMBERS`]: crate::guild::Permissions::MODERATE_MEMBERS
     pub const TIMEOUT: Self = Self::new(3);
 
-    /// Create a new auto moderation action type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`BLOCK_MESSAGE`][`Self::BLOCK_MESSAGE`].
-    pub const fn new(auto_moderation_action_type: u8) -> Self {
-        Self(auto_moderation_action_type)
-    }
-
-    /// Retrieve the value of the auto moderation action type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::auto_moderation::AutoModerationActionType;
-    ///
-    /// assert_eq!(3, AutoModerationActionType::TIMEOUT.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -83,32 +61,7 @@ impl AutoModerationActionType {
     }
 }
 
-impl Debug for AutoModerationActionType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("AutoModerationActionType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("AutoModerationActionType")
-                .field(&self.0)
-                .finish()
-        }
-    }
-}
-
-impl From<u8> for AutoModerationActionType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<AutoModerationActionType> for u8 {
-    fn from(value: AutoModerationActionType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(AutoModerationActionType, u8);
 
 #[cfg(test)]
 mod tests {

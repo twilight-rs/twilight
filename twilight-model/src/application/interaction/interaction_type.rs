@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Type of interaction.
 ///
@@ -31,27 +30,6 @@ impl InteractionType {
     /// Interaction involves a modal submit.
     pub const MODAL_SUBMIT: Self = Self::new(5);
 
-    /// Create a new interaction type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`MODAL_SUBMIT`][`Self::MODAL_SUBMIT`].
-    pub const fn new(connection_visibility: u8) -> Self {
-        Self(connection_visibility)
-    }
-
-    /// Retrieve the value of the interaction type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::application::interaction::InteractionType;
-    ///
-    /// assert_eq!(3, InteractionType::MESSAGE_COMPONENT.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -67,30 +45,7 @@ impl InteractionType {
     }
 }
 
-impl Debug for InteractionType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("InteractionType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("InteractionType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for InteractionType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<InteractionType> for u8 {
-    fn from(value: InteractionType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(InteractionType, u8);
 
 #[cfg(test)]
 mod tests {

@@ -6,11 +6,6 @@
 
 use crate::util::known_string::KnownString;
 use serde::{Deserialize, Serialize};
-use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    ops::Deref,
-    str::FromStr,
-};
 
 /// OAuth 2 scope.
 ///
@@ -160,22 +155,6 @@ impl Scope {
     /// authorization code grants.
     pub const WEBHOOK_INCOMING: Self = Self::from_bytes(b"webhook.incoming");
 
-    /// Create a scope from a dynamic value.
-    ///
-    /// The provided scope must be 64 bytes or smaller.
-    pub fn new(scope: &str) -> Option<Self> {
-        KnownString::from_str(scope).map(Self)
-    }
-
-    /// Get the value of the scope.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the scope isn't valid UTF-8.
-    pub fn get(&self) -> &str {
-        self.0.get()
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -214,54 +193,9 @@ impl Scope {
             _ => return None,
         })
     }
-
-    /// Create a scope from a set of bytes.
-    const fn from_bytes(input: &[u8]) -> Self {
-        Self(KnownString::from_bytes(input))
-    }
 }
 
-impl AsRef<str> for Scope {
-    fn as_ref(&self) -> &str {
-        self.get()
-    }
-}
-
-impl Debug for Scope {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.name().unwrap_or_else(|| self.get()))
-    }
-}
-
-impl Deref for Scope {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.get()
-    }
-}
-
-impl FromStr for Scope {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from(s)
-    }
-}
-
-impl ToString for Scope {
-    fn to_string(&self) -> String {
-        KnownString::to_string(&self.0)
-    }
-}
-
-impl TryFrom<&str> for Scope {
-    type Error = ();
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::new(value).ok_or(())
-    }
-}
+impl_typed!(Scope, String);
 
 #[cfg(test)]
 mod tests {

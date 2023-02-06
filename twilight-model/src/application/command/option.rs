@@ -1,10 +1,6 @@
 use crate::channel::ChannelType;
 use serde::{Deserialize, Serialize};
-use std::{
-    cmp::Eq,
-    collections::HashMap,
-    fmt::{Debug, Formatter, Result as FmtResult},
-};
+use std::{cmp::Eq, collections::HashMap};
 
 /// Option for a [`Command`].
 ///
@@ -229,27 +225,6 @@ impl CommandOptionType {
 
     pub const ATTACHMENT: Self = Self::new(11);
 
-    /// Create a new command option type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`STRING`][`Self::STRING`].
-    pub const fn new(command_option_type: u8) -> Self {
-        Self(command_option_type)
-    }
-
-    /// Retrieve the value of the command option type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::application::command::CommandOptionType;
-    ///
-    /// assert_eq!(4, CommandOptionType::INTEGER.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -271,30 +246,7 @@ impl CommandOptionType {
     }
 }
 
-impl Debug for CommandOptionType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("CommandOptionType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("CommandOptionType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for CommandOptionType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<CommandOptionType> for u8 {
-    fn from(value: CommandOptionType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(CommandOptionType, u8);
 
 #[cfg(test)]
 mod tests {

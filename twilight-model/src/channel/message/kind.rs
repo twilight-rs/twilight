@@ -1,6 +1,5 @@
 use crate::guild::Permissions;
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Type of a [`Message`].
 ///
@@ -93,27 +92,6 @@ impl MessageType {
 
     /// System message denoting a guild application premium subscription.
     pub const GUILD_APPLICATION_PREMIUM_SUBSCRIPTION: Self = Self::new(32);
-
-    /// Create a new message type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`REGULAR`][`Self::REGULAR`].
-    pub const fn new(message_type: u8) -> Self {
-        Self(message_type)
-    }
-
-    /// Retrieve the value of the message type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::message::MessageType;
-    ///
-    /// assert_eq!(19, MessageType::REPLY.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
 
     /// Name of the associated constant.
     ///
@@ -216,30 +194,7 @@ impl MessageType {
     }
 }
 
-impl Debug for MessageType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("MessageType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("MessageType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for MessageType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<MessageType> for u8 {
-    fn from(value: MessageType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(MessageType, u8);
 
 #[cfg(test)]
 mod tests {

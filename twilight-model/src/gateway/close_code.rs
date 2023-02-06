@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Gateway close event codes.
 ///
@@ -52,27 +51,6 @@ impl CloseCode {
     /// A disallowed intent was sent, may need allowlisting.
     pub const DISALLOWED_INTENTS: Self = Self::new(4014);
 
-    /// Create a new command type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`UNKNOWN_OPCODE`][`Self::UNKNOWN_OPCODE`].
-    pub const fn new(command_type: u16) -> Self {
-        Self(command_type)
-    }
-
-    /// Retrieve the value of the command type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::gateway::CloseCode;
-    ///
-    /// assert_eq!(4014, CloseCode::DISALLOWED_INTENTS.get());
-    /// ```
-    pub const fn get(&self) -> u16 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -113,30 +91,7 @@ impl CloseCode {
     }
 }
 
-impl Debug for CloseCode {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("CloseCode")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("CloseCode").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u16> for CloseCode {
-    fn from(value: u16) -> Self {
-        Self(value)
-    }
-}
-
-impl From<CloseCode> for u16 {
-    fn from(value: CloseCode) -> Self {
-        value.get()
-    }
-}
+impl_typed!(CloseCode, u16);
 
 #[cfg(test)]
 mod tests {

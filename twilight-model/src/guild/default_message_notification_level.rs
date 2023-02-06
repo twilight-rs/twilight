@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct DefaultMessageNotificationLevel(u8);
@@ -8,27 +7,6 @@ impl DefaultMessageNotificationLevel {
     pub const ALL: Self = Self::new(0);
 
     pub const MENTIONS: Self = Self::new(1);
-
-    /// Create a new command type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`ALL`][`Self::ALL`].
-    pub const fn new(default_message_notification_level: u8) -> Self {
-        Self(default_message_notification_level)
-    }
-
-    /// Retrieve the value of the command type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::DefaultMessageNotificationLevel;
-    ///
-    /// assert_eq!(1, DefaultMessageNotificationLevel::MENTIONS.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
 
     /// Name of the associated constant.
     ///
@@ -42,32 +20,7 @@ impl DefaultMessageNotificationLevel {
     }
 }
 
-impl Debug for DefaultMessageNotificationLevel {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("DefaultMessageNotificationLevel")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("DefaultMessageNotificationLevel")
-                .field(&self.0)
-                .finish()
-        }
-    }
-}
-
-impl From<u8> for DefaultMessageNotificationLevel {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<DefaultMessageNotificationLevel> for u8 {
-    fn from(value: DefaultMessageNotificationLevel) -> Self {
-        value.get()
-    }
-}
+impl_typed!(DefaultMessageNotificationLevel, u8);
 
 #[cfg(test)]
 mod tests {

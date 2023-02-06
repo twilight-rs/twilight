@@ -1,10 +1,5 @@
 use crate::util::known_string::KnownString;
 use serde::{Deserialize, Serialize};
-use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    ops::Deref,
-    str::FromStr,
-};
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Status(KnownString<16>);
@@ -20,22 +15,6 @@ impl Status {
 
     pub const ONLINE: Self = Self::from_bytes(b"online");
 
-    /// Create a status from a dynamic value.
-    ///
-    /// The provided status must be 64 bytes or smaller.
-    pub fn new(status: &str) -> Option<Self> {
-        KnownString::from_str(status).map(Self)
-    }
-
-    /// Get the value of the status.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the status isn't valid UTF-8.
-    pub fn get(&self) -> &str {
-        self.0.get()
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -49,54 +28,9 @@ impl Status {
             _ => return None,
         })
     }
-
-    /// Create a status from a set of bytes.
-    const fn from_bytes(input: &[u8]) -> Self {
-        Self(KnownString::from_bytes(input))
-    }
 }
 
-impl AsRef<str> for Status {
-    fn as_ref(&self) -> &str {
-        self.get()
-    }
-}
-
-impl Debug for Status {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.name().unwrap_or_else(|| self.get()))
-    }
-}
-
-impl Deref for Status {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.get()
-    }
-}
-
-impl FromStr for Status {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from(s)
-    }
-}
-
-impl ToString for Status {
-    fn to_string(&self) -> String {
-        KnownString::to_string(&self.0)
-    }
-}
-
-impl TryFrom<&str> for Status {
-    type Error = ();
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::new(value).ok_or(())
-    }
-}
+impl_typed!(Status, String);
 
 #[cfg(test)]
 mod tests {

@@ -1,6 +1,5 @@
 use crate::channel::message::ReactionType;
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Clickable [`Component`] below messages.
 ///
@@ -66,27 +65,6 @@ impl ButtonStyle {
     /// field.
     pub const LINK: Self = Self::new(5);
 
-    /// Create a new button style from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`DANGER`][`Self::DANGER`].
-    pub const fn new(button_style: u8) -> Self {
-        Self(button_style)
-    }
-
-    /// Retrieve the value of the button style.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::message::component::ButtonStyle;
-    ///
-    /// assert_eq!(3, ButtonStyle::SUCCESS.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -102,30 +80,7 @@ impl ButtonStyle {
     }
 }
 
-impl Debug for ButtonStyle {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("ButtonStyle")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("ButtonStyle").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for ButtonStyle {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<ButtonStyle> for u8 {
-    fn from(value: ButtonStyle) -> Self {
-        value.get()
-    }
-}
+impl_typed!(ButtonStyle, u8);
 
 #[cfg(test)]
 mod tests {

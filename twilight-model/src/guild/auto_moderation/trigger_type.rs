@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Characterizes the type of content which can trigger the rule.
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -24,27 +23,6 @@ impl AutoModerationTriggerType {
     /// Check if content contains more unique mentions than allowed.
     pub const MENTION_SPAM: Self = Self::new(5);
 
-    /// Create a new auto moderation trigger type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`SPAM`][`Self::SPAM`].
-    pub const fn new(auto_moderation_trigger_type: u8) -> Self {
-        Self(auto_moderation_trigger_type)
-    }
-
-    /// Retrieve the value of the auto moderation trigger type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::auto_moderation::AutoModerationTriggerType;
-    ///
-    /// assert_eq!(5, AutoModerationTriggerType::MENTION_SPAM.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -59,32 +37,7 @@ impl AutoModerationTriggerType {
     }
 }
 
-impl Debug for AutoModerationTriggerType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("AutoModerationTriggerType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("AutoModerationTriggerType")
-                .field(&self.0)
-                .finish()
-        }
-    }
-}
-
-impl From<u8> for AutoModerationTriggerType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<AutoModerationTriggerType> for u8 {
-    fn from(value: AutoModerationTriggerType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(AutoModerationTriggerType, u8);
 
 #[cfg(test)]
 mod tests {

@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Activity associated with a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -30,27 +29,6 @@ impl MessageActivityType {
     /// Request to join the party.
     pub const JOIN_REQUEST: Self = Self::new(5);
 
-    /// Create a new message activity type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`SPECTATE`][`Self::SPECTATE`].
-    pub const fn new(message_activity_type: u8) -> Self {
-        Self(message_activity_type)
-    }
-
-    /// Retrieve the value of the message activity type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::message::MessageActivityType;
-    ///
-    /// assert_eq!(1, MessageActivityType::JOIN.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -65,30 +43,7 @@ impl MessageActivityType {
     }
 }
 
-impl Debug for MessageActivityType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("MessageActivityType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("MessageActivityType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for MessageActivityType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<MessageActivityType> for u8 {
-    fn from(value: MessageActivityType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(MessageActivityType, u8);
 
 #[cfg(test)]
 mod tests {

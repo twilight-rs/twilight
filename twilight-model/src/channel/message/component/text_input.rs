@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Pop-up [`Component`] that renders on modals.
 ///
@@ -39,27 +38,6 @@ impl TextInputStyle {
     /// Intended for much longer inputs.
     pub const PARAGRAPH: Self = Self::new(2);
 
-    /// Create a new text input style from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`SHORT`][`Self::SHORT`].
-    pub const fn new(text_input_style: u8) -> Self {
-        Self(text_input_style)
-    }
-
-    /// Retrieve the value of the text input style.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::message::component::TextInputStyle;
-    ///
-    /// assert_eq!(2, TextInputStyle::PARAGRAPH.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -72,30 +50,7 @@ impl TextInputStyle {
     }
 }
 
-impl Debug for TextInputStyle {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("TextInputStyle")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("TextInputStyle").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for TextInputStyle {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<TextInputStyle> for u8 {
-    fn from(value: TextInputStyle) -> Self {
-        value.get()
-    }
-}
+impl_typed!(TextInputStyle, u8);
 
 #[cfg(test)]
 mod tests {

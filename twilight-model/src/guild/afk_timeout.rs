@@ -1,8 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    time::Duration,
-};
+use std::time::Duration;
 
 /// Duration of a user being AFK before being timed out from a voice channel.
 ///
@@ -37,19 +34,6 @@ impl AfkTimeout {
     /// AFK timeout of one hour.
     pub const ONE_HOUR: Self = Self(3600);
 
-    /// Retrieve the duration of the AFK timeout in seconds.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::AfkTimeout;
-    ///
-    /// assert_eq!(60, AfkTimeout::ONE_MINUTE.get());
-    /// ```
-    pub const fn get(self) -> u16 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -62,25 +46,6 @@ impl AfkTimeout {
             Self::ONE_HOUR => "ONE_HOUR",
             _ => return None,
         })
-    }
-}
-
-impl Debug for AfkTimeout {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("AfkTimeout")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("AfkTimeout").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u16> for AfkTimeout {
-    fn from(value: u16) -> Self {
-        Self(value)
     }
 }
 
@@ -101,6 +66,8 @@ impl PartialEq<AfkTimeout> for u16 {
         *self == other.get()
     }
 }
+
+impl_typed!(AfkTimeout, u16);
 
 #[cfg(test)]
 mod tests {

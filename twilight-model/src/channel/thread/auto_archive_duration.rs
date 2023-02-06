@@ -1,8 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    time::Duration,
-};
+use std::time::Duration;
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AutoArchiveDuration(u16);
@@ -15,27 +12,6 @@ impl AutoArchiveDuration {
     pub const THREE_DAYS: Self = Self::new(Self::DAY.get() * 3);
 
     pub const WEEK: Self = Self::new(Self::DAY.get() * 7);
-
-    /// Create a new auto archive duration from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants, such as [`HOUR`][`Self::HOUR`] or [`WEEK`][`Self::WEEK`].
-    pub const fn new(auto_archive_duration: u16) -> Self {
-        Self(auto_archive_duration)
-    }
-
-    /// Retrieve the value of the auto archive duration.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::thread::AutoArchiveDuration;
-    ///
-    /// assert_eq!(60, AutoArchiveDuration::HOUR.get());
-    /// ```
-    pub const fn get(&self) -> u16 {
-        self.0
-    }
 
     /// Name of the associated constant.
     ///
@@ -51,36 +27,13 @@ impl AutoArchiveDuration {
     }
 }
 
-impl Debug for AutoArchiveDuration {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("AutoArchiveDuration")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("AutoArchiveDuration").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u16> for AutoArchiveDuration {
-    fn from(value: u16) -> Self {
-        Self::new(value)
-    }
-}
-
-impl From<AutoArchiveDuration> for u16 {
-    fn from(value: AutoArchiveDuration) -> Self {
-        value.get()
-    }
-}
-
 impl From<AutoArchiveDuration> for Duration {
     fn from(value: AutoArchiveDuration) -> Self {
         Self::from_secs(u64::from(value.get()) * 60)
     }
 }
+
+impl_typed!(AutoArchiveDuration, u16);
 
 #[cfg(test)]
 mod tests {

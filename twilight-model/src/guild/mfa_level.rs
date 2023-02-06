@@ -1,33 +1,12 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MfaLevel(u8);
 
 impl MfaLevel {
     pub const NONE: Self = Self::new(0);
+
     pub const ELEVATED: Self = Self::new(1);
-
-    /// Create a new MFA Level from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`ELEVATED`][`Self::ELEVATED`].
-    pub const fn new(mfa_level: u8) -> Self {
-        Self(mfa_level)
-    }
-
-    /// Retrieve the value of the MFA Level.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::MfaLevel;
-    ///
-    /// assert_eq!(1, MfaLevel::ELEVATED.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
 
     /// Name of the associated constant.
     ///
@@ -41,30 +20,7 @@ impl MfaLevel {
     }
 }
 
-impl Debug for MfaLevel {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("MfaLevel")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("MfaLevel").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for MfaLevel {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<MfaLevel> for u8 {
-    fn from(value: MfaLevel) -> Self {
-        value.get()
-    }
-}
+impl_typed!(MfaLevel, u8);
 
 #[cfg(test)]
 mod tests {

@@ -1,35 +1,16 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PremiumTier(u8);
 
 impl PremiumTier {
     pub const NONE: Self = Self::new(0);
+
     pub const TIER_1: Self = Self::new(1);
+
     pub const TIER_2: Self = Self::new(2);
+
     pub const TIER_3: Self = Self::new(3);
-
-    /// Create a new premium tier from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`TIER_!`][`Self::TIER_1`].
-    pub const fn new(premium_tier: u8) -> Self {
-        Self(premium_tier)
-    }
-
-    /// Retrieve the value of the premium tier.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::PremiumTier;
-    ///
-    /// assert_eq!(2, PremiumTier::TIER_2.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
 
     /// Name of the associated constant.
     ///
@@ -45,36 +26,13 @@ impl PremiumTier {
     }
 }
 
-impl Debug for PremiumTier {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("PremiumTier")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("PremiumTier").field(&self.0).finish()
-        }
-    }
-}
-
 impl Default for PremiumTier {
     fn default() -> Self {
         Self::NONE
     }
 }
 
-impl From<u8> for PremiumTier {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<PremiumTier> for u8 {
-    fn from(value: PremiumTier) -> Self {
-        value.get()
-    }
-}
+impl_typed!(PremiumTier, u8);
 
 #[cfg(test)]
 mod tests {

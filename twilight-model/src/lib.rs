@@ -17,6 +17,9 @@
     clippy::used_underscore_binding
 )]
 
+#[macro_use]
+pub mod util;
+
 pub mod application;
 pub mod channel;
 pub mod gateway;
@@ -25,7 +28,6 @@ pub mod http;
 pub mod id;
 pub mod oauth;
 pub mod user;
-pub mod util;
 pub mod voice;
 
 mod visitor;

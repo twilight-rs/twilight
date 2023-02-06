@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChannelType(u8);
@@ -32,27 +31,6 @@ impl ChannelType {
 
     /// Channel that can only contain threads.
     pub const GUILD_FORUM: Self = Self::new(15);
-
-    /// Create a new channel type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`GUILD_TEXT`][`Self::GUILD_TEXT`].
-    pub const fn new(channel_type: u8) -> Self {
-        Self(channel_type)
-    }
-
-    /// Retrieve the value of the channel type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::ChannelType;
-    ///
-    /// assert_eq!(15, ChannelType::GUILD_FORUM.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
 
     /// Name of the associated constant.
     ///
@@ -118,30 +96,7 @@ impl ChannelType {
     }
 }
 
-impl Debug for ChannelType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("ChannelType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("ChannelType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for ChannelType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<ChannelType> for u8 {
-    fn from(value: ChannelType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(ChannelType, u8);
 
 #[cfg(test)]
 mod tests {

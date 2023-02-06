@@ -3,7 +3,6 @@ use crate::id::{
     Id,
 };
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Emoji to use as the default way to react to a forum post.
 ///
@@ -37,27 +36,6 @@ impl ForumLayout {
     /// No default has been set for the forum channel.
     pub const NOT_SET: Self = Self::new(0);
 
-    /// Create a new forum layout from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`GALLERY_VIEW`][`Self::GALLERY_VIEW`].
-    pub const fn new(forum_layout: u8) -> Self {
-        Self(forum_layout)
-    }
-
-    /// Retrieve the value of the forum layout.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::forum::ForumLayout;
-    ///
-    /// assert_eq!(1, ForumLayout::LIST_VIEW.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -71,30 +49,7 @@ impl ForumLayout {
     }
 }
 
-impl Debug for ForumLayout {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("ForumLayout")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("ForumLayout").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for ForumLayout {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<ForumLayout> for u8 {
-    fn from(value: ForumLayout) -> Self {
-        value.get()
-    }
-}
+impl_typed!(ForumLayout, u8);
 
 /// Layout of a [channel] that is a [forum].
 ///
@@ -110,27 +65,6 @@ impl ForumSortOrder {
     /// Sort forum posts by creation time (from most recent to oldest).
     pub const CREATION_DATE: Self = Self::new(1);
 
-    /// Create a new forum sort order from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`CREATION_DATE`][`Self::CREATION_DATE`].
-    pub const fn new(forum_sort_order: u8) -> Self {
-        Self(forum_sort_order)
-    }
-
-    /// Retrieve the value of the forum sort order.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::forum::ForumSortOrder;
-    ///
-    /// assert_eq!(0, ForumSortOrder::LATEST_ACTIVITY.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     pub const fn name(self) -> Option<&'static str> {
         Some(match self {
             Self::CREATION_DATE => "CREATION_DATE",
@@ -140,30 +74,7 @@ impl ForumSortOrder {
     }
 }
 
-impl Debug for ForumSortOrder {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("ForumSortOrder")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("ForumSortOrder").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for ForumSortOrder {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<ForumSortOrder> for u8 {
-    fn from(value: ForumSortOrder) -> Self {
-        value.get()
-    }
-}
+impl_typed!(ForumSortOrder, u8);
 
 /// Tag that is able to be applied to a thread in a [`GUILD_FORUM`] [`Channel`].
 ///

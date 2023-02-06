@@ -16,7 +16,6 @@ use crate::{
     util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Representation of a scheduled event.
 ///
@@ -103,27 +102,6 @@ impl EntityType {
     /// Event takes place outside of Discord.
     pub const EXTERNAL: Self = Self::new(3);
 
-    /// Create a new scheduled event entity type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`STAGE_INSTANCE`][`Self::STAGE_INSTANCE`].
-    pub const fn new(entity_type: u8) -> Self {
-        Self(entity_type)
-    }
-
-    /// Retrieve the value of the scheduled event entity type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::scheduled_event::EntityType;
-    ///
-    /// assert_eq!(2, EntityType::VOICE.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -137,30 +115,7 @@ impl EntityType {
     }
 }
 
-impl Debug for EntityType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("EntityType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("EntityType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for EntityType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<EntityType> for u8 {
-    fn from(value: EntityType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(EntityType, u8);
 
 /// Privacy level of an event.
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -169,27 +124,6 @@ pub struct PrivacyLevel(u8);
 impl PrivacyLevel {
     /// Event is only accessible to guild members.
     pub const GUILD_ONLY: Self = Self::new(2);
-
-    /// Create a new privacy level from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`GUILD_ONLY`][`Self::GUILD_ONLY`].
-    pub const fn new(privacy_level: u8) -> Self {
-        Self(privacy_level)
-    }
-
-    /// Retrieve the value of the privacy level.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::scheduled_event::PrivacyLevel;
-    ///
-    /// assert_eq!(2, PrivacyLevel::GUILD_ONLY.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
 
     /// Name of the associated constant.
     ///
@@ -202,30 +136,7 @@ impl PrivacyLevel {
     }
 }
 
-impl Debug for PrivacyLevel {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("PrivacyLevel")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("PrivacyLevel").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for PrivacyLevel {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<PrivacyLevel> for u8 {
-    fn from(value: PrivacyLevel) -> Self {
-        value.get()
-    }
-}
+impl_typed!(PrivacyLevel, u8);
 
 /// Status of an event.
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -248,27 +159,6 @@ impl Status {
     /// Event is cancelled.
     pub const CANCELLED: Self = Self::new(4);
 
-    /// Create a new scheduled event status from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`SCHEDULED`][`Self::SCHEDULED`].
-    pub const fn new(scheduled_event_status: u8) -> Self {
-        Self(scheduled_event_status)
-    }
-
-    /// Retrieve the value of the scheduled event status.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::scheduled_event::Status;
-    ///
-    /// assert_eq!(2, Status::ACTIVE.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -283,30 +173,7 @@ impl Status {
     }
 }
 
-impl Debug for Status {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("Status")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("Status").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for Status {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<Status> for u8 {
-    fn from(value: Status) -> Self {
-        value.get()
-    }
-}
+impl_typed!(Status, u8);
 
 #[cfg(test)]
 mod tests {

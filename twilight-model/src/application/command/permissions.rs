@@ -8,7 +8,6 @@ use crate::id::{
     Id,
 };
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// List of [`CommandPermission`]s for a command in a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -96,27 +95,6 @@ impl CommandPermissionDataType {
 
     pub const CHANNEL: Self = Self::new(3);
 
-    /// Create a new command permission data type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`ROLE`][`Self::ROLE`].
-    pub const fn new(command_permission_data_type: u8) -> Self {
-        Self(command_permission_data_type)
-    }
-
-    /// Retrieve the value of the command permission data type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::application::command::permissions::CommandPermissionDataType;
-    ///
-    /// assert_eq!(3, CommandPermissionDataType::CHANNEL.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -130,32 +108,7 @@ impl CommandPermissionDataType {
     }
 }
 
-impl Debug for CommandPermissionDataType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("CommandPermissionDataType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("CommandPermissionDataType")
-                .field(&self.0)
-                .finish()
-        }
-    }
-}
-
-impl From<u8> for CommandPermissionDataType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<CommandPermissionDataType> for u8 {
-    fn from(value: CommandPermissionDataType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(CommandPermissionDataType, u8);
 
 impl<'de> Deserialize<'de> for CommandPermission {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {

@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Type of [`Component`].
 ///
@@ -28,27 +27,6 @@ impl ComponentType {
     /// [`TextInput`]: super::TextInput
     pub const TEXT_INPUT: Self = Self::new(4);
 
-    /// Create a new command type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`ACTION_ROW`][`Self::ACTION_ROW`].
-    pub const fn new(command_type: u8) -> Self {
-        Self(command_type)
-    }
-
-    /// Retrieve the value of the command type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::message::component::ComponentType;
-    ///
-    /// assert_eq!(2, ComponentType::BUTTON.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -75,30 +53,7 @@ impl ComponentType {
     }
 }
 
-impl Debug for ComponentType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("ComponentType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("ComponentType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for ComponentType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<ComponentType> for u8 {
-    fn from(value: ComponentType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(ComponentType, u8);
 
 #[cfg(test)]
 mod tests {

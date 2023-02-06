@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Behavior to perform when the user's integration expires.
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -11,27 +10,6 @@ impl IntegrationExpireBehavior {
 
     /// Kick the user when the integration expires.
     pub const KICK: Self = Self::new(1);
-
-    /// Create a new integration expire behavior from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`REMOVE_ROLE`][`Self::REMOVE_ROLE`].
-    pub const fn new(integration_expire_behavior: u8) -> Self {
-        Self(integration_expire_behavior)
-    }
-
-    /// Retrieve the value of the integration expire behavior.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::IntegrationExpireBehavior;
-    ///
-    /// assert_eq!(1, IntegrationExpireBehavior::KICK.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
 
     /// Name of the associated constant.
     ///
@@ -45,32 +23,7 @@ impl IntegrationExpireBehavior {
     }
 }
 
-impl Debug for IntegrationExpireBehavior {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("IntegrationExpireBehavior")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("IntegrationExpireBehavior")
-                .field(&self.0)
-                .finish()
-        }
-    }
-}
-
-impl From<u8> for IntegrationExpireBehavior {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<IntegrationExpireBehavior> for u8 {
-    fn from(value: IntegrationExpireBehavior) -> Self {
-        value.get()
-    }
-}
+impl_typed!(IntegrationExpireBehavior, u8);
 
 #[cfg(test)]
 mod tests {

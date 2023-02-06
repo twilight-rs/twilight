@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Action to cause an [`AuditLogEntry`].
 ///
@@ -282,27 +281,6 @@ impl AuditLogEventType {
     /// A member has been timed out by Automod.
     pub const AUTO_MODERATION_USER_COMMUNICATION_DISABLED: Self = Self::new(145);
 
-    /// Create a new audit log event type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`GUILD_UPDATE`][`Self::GUILD_UPDATE`].
-    pub const fn new(audit_log_event_type: u16) -> Self {
-        Self(audit_log_event_type)
-    }
-
-    /// Retrieve the value of the audit log event type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::audit_log::AuditLogEventType;
-    ///
-    /// assert_eq!(40, AuditLogEventType::INVITE_CREATE.get());
-    /// ```
-    pub const fn get(&self) -> u16 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -369,30 +347,7 @@ impl AuditLogEventType {
     }
 }
 
-impl Debug for AuditLogEventType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("AuditLogEventType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("AuditLogEventType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u16> for AuditLogEventType {
-    fn from(value: u16) -> Self {
-        Self(value)
-    }
-}
-
-impl From<AuditLogEventType> for u16 {
-    fn from(value: AuditLogEventType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(AuditLogEventType, u16);
 
 #[cfg(test)]
 mod tests {

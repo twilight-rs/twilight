@@ -6,7 +6,6 @@ use crate::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
 };
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Interaction response sent to Discord.
 ///
@@ -107,27 +106,6 @@ impl InteractionResponseType {
     /// Respond to an interaction with a popup modal.
     pub const MODAL: Self = Self::new(9);
 
-    /// Create a new interaction response type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`UPDATE_MESSAGE`][`Self::UPDATE_MESSAGE`].
-    pub const fn new(interaction_response_type: u8) -> Self {
-        Self(interaction_response_type)
-    }
-
-    /// Retrieve the value of the interaction response type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::http::interaction::InteractionResponseType;
-    ///
-    /// assert_eq!(9, InteractionResponseType::MODAL.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -147,32 +125,7 @@ impl InteractionResponseType {
     }
 }
 
-impl Debug for InteractionResponseType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("InteractionResponseType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("InteractionResponseType")
-                .field(&self.0)
-                .finish()
-        }
-    }
-}
-
-impl From<u8> for InteractionResponseType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<InteractionResponseType> for u8 {
-    fn from(value: InteractionResponseType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(InteractionResponseType, u8);
 
 #[cfg(test)]
 mod tests {

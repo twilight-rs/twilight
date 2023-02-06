@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Voice gateway opcodes.
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -39,27 +38,6 @@ impl OpCode {
     /// Received to indicate someone was disconnected.
     pub const CLIENT_DISCONNECT: Self = Self::new(13);
 
-    /// Create a new opcode from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`IDENTIFY`][`Self::IDENTIFY`].
-    pub const fn new(opcode: u8) -> Self {
-        Self(opcode)
-    }
-
-    /// Retrieve the value of the opcode.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::voice::OpCode;
-    ///
-    /// assert_eq!(5, OpCode::SPEAKING.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -81,30 +59,7 @@ impl OpCode {
     }
 }
 
-impl Debug for OpCode {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("OpCode")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("OpCode").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for OpCode {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<OpCode> for u8 {
-    fn from(value: OpCode) -> Self {
-        value.get()
-    }
-}
+impl_typed!(OpCode, u8);
 
 #[cfg(test)]
 mod tests {

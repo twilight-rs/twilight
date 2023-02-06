@@ -3,7 +3,6 @@ use crate::{
     id::{marker::GenericMarker, Id},
 };
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Permission overwrite data for a role or member.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -27,27 +26,6 @@ impl PermissionOverwriteType {
     /// Permission overwrite targets an individual role.
     pub const ROLE: Self = Self::new(0);
 
-    /// Create a new permission overwrite type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`MEMBER`][`Self::MEMBER`].
-    pub const fn new(permission_overwrite_type: u8) -> Self {
-        Self(permission_overwrite_type)
-    }
-
-    /// Retrieve the value of the permission overwrite type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::permission_overwrite::PermissionOverwriteType;
-    ///
-    /// assert_eq!(0, PermissionOverwriteType::ROLE.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -60,32 +38,7 @@ impl PermissionOverwriteType {
     }
 }
 
-impl Debug for PermissionOverwriteType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("PermissionOverwriteType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("PermissionOverwriteType")
-                .field(&self.0)
-                .finish()
-        }
-    }
-}
-
-impl From<u8> for PermissionOverwriteType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<PermissionOverwriteType> for u8 {
-    fn from(value: PermissionOverwriteType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(PermissionOverwriteType, u8);
 
 #[cfg(test)]
 mod tests {

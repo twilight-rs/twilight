@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Format type of a [`Sticker`].
 ///
@@ -20,27 +19,6 @@ impl StickerFormatType {
     /// Sticker format is a GIF.
     pub const GIF: Self = Self::new(4);
 
-    /// Create a new sticker format type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`LOTTIE`][`Self::LOTTIE`].
-    pub const fn new(command_type: u8) -> Self {
-        Self(command_type)
-    }
-
-    /// Retrieve the value of the sticker format type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::channel::message::sticker::StickerFormatType;
-    ///
-    /// assert_eq!(1, StickerFormatType::PNG.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -54,30 +32,7 @@ impl StickerFormatType {
     }
 }
 
-impl Debug for StickerFormatType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("StickerFormatType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("StickerFormatType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for StickerFormatType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<StickerFormatType> for u8 {
-    fn from(value: StickerFormatType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(StickerFormatType, u8);
 
 #[cfg(test)]
 mod tests {

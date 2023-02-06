@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Type of premium tier for a [`User`].
 ///
@@ -20,27 +19,6 @@ impl PremiumType {
     /// User has Nitro Basic.
     pub const NITRO_BASIC: Self = Self::new(3);
 
-    /// Create a new premium type from a dynamic value.
-    ///
-    /// The provided value isn't validated. Known valid values are associated
-    /// constants such as [`NITRO`][`Self::NITRO`].
-    pub const fn new(premium_type: u8) -> Self {
-        Self(premium_type)
-    }
-
-    /// Retrieve the value of the premium type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::user::PremiumType;
-    ///
-    /// assert_eq!(2, PremiumType::NITRO.get());
-    /// ```
-    pub const fn get(&self) -> u8 {
-        self.0
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -55,30 +33,7 @@ impl PremiumType {
     }
 }
 
-impl Debug for PremiumType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if let Some(name) = self.name() {
-            f.debug_struct("PremiumType")
-                .field("name", &name)
-                .field("value", &self.0)
-                .finish()
-        } else {
-            f.debug_tuple("PremiumType").field(&self.0).finish()
-        }
-    }
-}
-
-impl From<u8> for PremiumType {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-impl From<PremiumType> for u8 {
-    fn from(value: PremiumType) -> Self {
-        value.get()
-    }
-}
+impl_typed!(PremiumType, u8);
 
 #[cfg(test)]
 mod tests {

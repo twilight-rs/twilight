@@ -1,10 +1,5 @@
 use crate::util::known_string::KnownString;
 use serde::{Deserialize, Serialize};
-use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    ops::Deref,
-    str::FromStr,
-};
 
 /// The type of an event.
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -159,22 +154,6 @@ impl EventType {
 
     pub const WEBHOOKS_UPDATE: Self = Self::from_bytes(b"WEBHOOKS_UPDATE");
 
-    /// Create a event type from a dynamic value.
-    ///
-    /// The provided event type must be 64 bytes or smaller.
-    pub fn new(event_type: &str) -> Option<Self> {
-        KnownString::from_str(event_type).map(Self)
-    }
-
-    /// Get the value of the event type.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the event type isn't valid UTF-8.
-    pub fn get(&self) -> &str {
-        self.0.get()
-    }
-
     /// Name of the associated constant.
     ///
     /// Returns `None` if the value doesn't have a defined constant.
@@ -247,54 +226,9 @@ impl EventType {
             _ => None,
         }
     }
-
-    /// Create a event type from a set of bytes.
-    const fn from_bytes(input: &[u8]) -> Self {
-        Self(KnownString::from_bytes(input))
-    }
 }
 
-impl AsRef<str> for EventType {
-    fn as_ref(&self) -> &str {
-        self.get()
-    }
-}
-
-impl Debug for EventType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.name().unwrap_or_else(|| self.get()))
-    }
-}
-
-impl Deref for EventType {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.get()
-    }
-}
-
-impl FromStr for EventType {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from(s)
-    }
-}
-
-impl ToString for EventType {
-    fn to_string(&self) -> String {
-        KnownString::to_string(&self.0)
-    }
-}
-
-impl TryFrom<&str> for EventType {
-    type Error = ();
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::new(value).ok_or(())
-    }
-}
+impl_typed!(EventType, String);
 
 #[cfg(test)]
 mod tests {
