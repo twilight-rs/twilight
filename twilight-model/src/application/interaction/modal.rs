@@ -1,16 +1,16 @@
-//! [`ModalSubmit`] interaction.
+//! [`MODAL_SUBMIT`] interaction.
 //!
 //!
-//! [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
+//! [`MODAL_SUBMIT`]: crate::application::interaction::InteractionType::MODAL_SUBMIT
 
 use crate::channel::message::component::ComponentType;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
-/// Data received when an [`ModalSubmit`] interaction is executed.
+/// Data received when an [`MODAL_SUBMIT`] interaction is executed.
 ///
 /// See [Discord Docs/Modal Submit Data Structure].
 ///
-/// [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
+/// [`MODAL_SUBMIT`]: crate::application::interaction::InteractionType::MODAL_SUBMIT
 /// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ModalInteractionData {
@@ -40,7 +40,7 @@ impl Serialize for ModalInteractionDataActionRow {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("ModalInteractionDataActionRow", 2)?;
 
-        state.serialize_field("type", &ComponentType::ActionRow)?;
+        state.serialize_field("type", &ComponentType::ACTION_ROW)?;
         state.serialize_field("components", &self.components)?;
 
         state.end()
@@ -117,7 +117,7 @@ mod tests {
             components: Vec::from([ModalInteractionDataActionRow {
                 components: Vec::from([ModalInteractionDataComponent {
                     custom_id: "the-data-id".to_owned(),
-                    kind: ComponentType::TextInput,
+                    kind: ComponentType::TEXT_INPUT,
                     value: Some("input value".into()),
                 }]),
             }]),
@@ -137,7 +137,10 @@ mod tests {
                     len: 2,
                 },
                 Token::String("type"),
-                Token::U8(ComponentType::ActionRow.into()),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
+                Token::U8(ComponentType::ACTION_ROW.get()),
                 Token::String("components"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -147,7 +150,10 @@ mod tests {
                 Token::String("custom_id"),
                 Token::String("the-data-id"),
                 Token::String("type"),
-                Token::U8(ComponentType::TextInput.into()),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
+                Token::U8(ComponentType::TEXT_INPUT.get()),
                 Token::String("value"),
                 Token::Some,
                 Token::String("input value"),

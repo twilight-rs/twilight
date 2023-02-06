@@ -316,7 +316,7 @@ impl TextFieldsBuilder {
 
         Ok(Self(TextFields {
             id: Id::new(1),
-            kind: ChannelType::GuildText,
+            kind: ChannelType::GUILD_TEXT,
             name,
             nsfw: None,
             permission_overwrites: None,
@@ -490,7 +490,7 @@ impl VoiceFieldsBuilder {
         Ok(Self(VoiceFields {
             bitrate: None,
             id: Id::new(1),
-            kind: ChannelType::GuildVoice,
+            kind: ChannelType::GUILD_VOICE,
             name,
             permission_overwrites: None,
             parent_id: None,
@@ -642,7 +642,7 @@ impl CategoryFieldsBuilder {
             fields: CategoryFields {
                 id: Id::new(1),
                 name,
-                kind: ChannelType::GuildCategory,
+                kind: ChannelType::GUILD_CATEGORY,
                 permission_overwrites: None,
             },
             channels: Vec::new(),
@@ -776,7 +776,7 @@ mod tests {
             allow: Some(perms()),
             deny: Some(Permissions::empty()),
             id: Id::new(2),
-            kind: PermissionOverwriteType::Role,
+            kind: PermissionOverwriteType::ROLE,
         }
     }
 
@@ -836,13 +836,13 @@ mod tests {
             VoiceFields {
                 bitrate: Some(96_000),
                 id: Id::new(1),
-                kind: ChannelType::GuildVoice,
+                kind: ChannelType::GUILD_VOICE,
                 name: String::from("voicename"),
                 permission_overwrites: Some(vec![PermissionOverwrite {
                     allow: Some(perms()),
                     deny: Some(Permissions::empty()),
                     id: Id::new(2),
-                    kind: PermissionOverwriteType::Role,
+                    kind: PermissionOverwriteType::ROLE,
                 }]),
                 parent_id: None,
                 user_limit: Some(40),
@@ -874,14 +874,14 @@ mod tests {
             text(),
             TextFields {
                 id: Id::new(1),
-                kind: ChannelType::GuildText,
+                kind: ChannelType::GUILD_TEXT,
                 name: String::from("textname"),
                 nsfw: Some(true),
                 permission_overwrites: Some(vec![PermissionOverwrite {
                     allow: Some(perms()),
                     deny: Some(Permissions::empty()),
                     id: Id::new(2),
-                    kind: PermissionOverwriteType::Role
+                    kind: PermissionOverwriteType::ROLE
                 }]),
                 parent_id: None,
                 rate_limit_per_user: Some(4_000),
@@ -913,13 +913,13 @@ mod tests {
             vec![
                 GuildChannelFields::Category(CategoryFields {
                     id: Id::new(2),
-                    kind: ChannelType::GuildCategory,
+                    kind: ChannelType::GUILD_CATEGORY,
                     name: String::from("category"),
                     permission_overwrites: None,
                 }),
                 GuildChannelFields::Text(TextFields {
                     id: Id::new(1),
-                    kind: ChannelType::GuildText,
+                    kind: ChannelType::GUILD_TEXT,
                     name: String::from("textname"),
                     nsfw: Some(true),
                     permission_overwrites: Some(vec![PermissionOverwrite {
@@ -930,7 +930,7 @@ mod tests {
                         ),
                         deny: Some(Permissions::empty()),
                         id: Id::new(2),
-                        kind: PermissionOverwriteType::Role,
+                        kind: PermissionOverwriteType::ROLE,
                     }]),
                     parent_id: Some(Id::new(2)),
                     rate_limit_per_user: Some(4_000),
@@ -939,7 +939,7 @@ mod tests {
                 GuildChannelFields::Voice(VoiceFields {
                     bitrate: Some(96_000),
                     id: Id::new(1),
-                    kind: ChannelType::GuildVoice,
+                    kind: ChannelType::GUILD_VOICE,
                     name: String::from("voicename"),
                     permission_overwrites: Some(vec![PermissionOverwrite {
                         allow: Some(
@@ -949,7 +949,7 @@ mod tests {
                         ),
                         deny: Some(Permissions::empty()),
                         id: Id::new(2),
-                        kind: PermissionOverwriteType::Role,
+                        kind: PermissionOverwriteType::ROLE,
                     }]),
                     parent_id: Some(Id::new(2)),
                     user_limit: Some(40),
@@ -969,7 +969,7 @@ mod tests {
             vec![
                 GuildChannelFields::Text(TextFields {
                     id: Id::new(1),
-                    kind: ChannelType::GuildText,
+                    kind: ChannelType::GUILD_TEXT,
                     name: String::from("textname"),
                     nsfw: Some(true),
                     permission_overwrites: Some(vec![PermissionOverwrite {
@@ -980,7 +980,7 @@ mod tests {
                         ),
                         deny: Some(Permissions::empty()),
                         id: Id::new(2),
-                        kind: PermissionOverwriteType::Role,
+                        kind: PermissionOverwriteType::ROLE,
                     }]),
                     parent_id: None,
                     rate_limit_per_user: Some(4_000),
@@ -989,7 +989,7 @@ mod tests {
                 GuildChannelFields::Voice(VoiceFields {
                     bitrate: Some(96_000),
                     id: Id::new(1),
-                    kind: ChannelType::GuildVoice,
+                    kind: ChannelType::GUILD_VOICE,
                     name: String::from("voicename"),
                     permission_overwrites: Some(vec![PermissionOverwrite {
                         allow: Some(
@@ -999,7 +999,7 @@ mod tests {
                         ),
                         deny: Some(Permissions::empty()),
                         id: Id::new(2),
-                        kind: PermissionOverwriteType::Role,
+                        kind: PermissionOverwriteType::ROLE,
                     }]),
                     parent_id: None,
                     user_limit: Some(40),

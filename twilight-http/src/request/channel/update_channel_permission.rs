@@ -50,7 +50,7 @@ struct UpdateChannelPermissionFields {
 ///     allow: Some(Permissions::VIEW_CHANNEL),
 ///     deny: Some(Permissions::SEND_MESSAGES),
 ///     id: Id::new(432),
-///     kind: PermissionOverwriteType::Role,
+///     kind: PermissionOverwriteType::ROLE,
 /// };
 ///
 /// client
@@ -144,7 +144,7 @@ mod tests {
             allow: None,
             deny: Some(Permissions::SEND_MESSAGES),
             id: Id::new(2),
-            kind: PermissionOverwriteType::Member,
+            kind: PermissionOverwriteType::MEMBER,
         };
 
         let client = Client::new("foo".to_owned());
@@ -156,7 +156,7 @@ mod tests {
         let body = crate::json::to_vec(&UpdateChannelPermissionFields {
             allow: None,
             deny: Some(Permissions::SEND_MESSAGES),
-            kind: PermissionOverwriteType::Member,
+            kind: PermissionOverwriteType::MEMBER,
         })
         .expect("failed to serialize payload");
         let route = Route::UpdatePermissionOverwrite {

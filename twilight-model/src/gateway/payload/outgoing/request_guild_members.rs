@@ -169,7 +169,7 @@ impl RequestGuildMembersBuilder {
                 query: Some(query),
                 user_ids: None,
             },
-            op: OpCode::RequestGuildMembers,
+            op: OpCode::REQUEST_GUILD_MEMBERS,
         }
     }
 
@@ -208,7 +208,7 @@ impl RequestGuildMembersBuilder {
                 query: None,
                 user_ids: Some(RequestGuildMemberId::One(user_id)),
             },
-            op: OpCode::RequestGuildMembers,
+            op: OpCode::REQUEST_GUILD_MEMBERS,
         }
     }
 
@@ -264,7 +264,7 @@ impl RequestGuildMembersBuilder {
                 query: None,
                 user_ids: Some(RequestGuildMemberId::Multiple(user_ids)),
             },
-            op: OpCode::RequestGuildMembers,
+            op: OpCode::REQUEST_GUILD_MEMBERS,
         })
     }
 }

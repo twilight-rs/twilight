@@ -50,14 +50,14 @@ mod tests {
         let value = InviteGuild {
             banner: Some(image_hash::BANNER),
             description: Some("a description".to_owned()),
-            features: Vec::from([GuildFeature::Community]),
+            features: Vec::from([GuildFeature::COMMUNITY]),
             icon: Some(image_hash::ICON),
             id: Id::new(1),
             name: "guild name".to_owned(),
             premium_subscription_count: Some(14),
             splash: Some(image_hash::SPLASH),
             vanity_url_code: Some("twilight".to_owned()),
-            verification_level: VerificationLevel::Medium,
+            verification_level: VerificationLevel::MEDIUM,
             welcome_screen: Some(WelcomeScreen {
                 description: Some("welcome description".to_owned()),
                 welcome_channels: vec![
@@ -92,7 +92,10 @@ mod tests {
                 Token::Str("a description"),
                 Token::Str("features"),
                 Token::Seq { len: Some(1) },
-                Token::Str("COMMUNITY"),
+                Token::NewtypeStruct {
+                    name: "GuildFeature",
+                },
+                Token::Str(GuildFeature::COMMUNITY.get()),
                 Token::SeqEnd,
                 Token::Str("icon"),
                 Token::Some,
@@ -112,6 +115,9 @@ mod tests {
                 Token::Some,
                 Token::Str("twilight"),
                 Token::Str("verification_level"),
+                Token::NewtypeStruct {
+                    name: "VerificationLevel",
+                },
                 Token::U8(2),
                 Token::Str("welcome_screen"),
                 Token::Some,

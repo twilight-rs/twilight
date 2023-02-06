@@ -12,7 +12,7 @@ mod reaction;
 mod session_start_limit;
 
 pub use self::{
-    close_code::{CloseCode, CloseCodeConversionError},
+    close_code::CloseCode,
     frame::CloseFrame,
     id::{ShardId, ShardIdParseError, ShardIdParseErrorType},
     intents::Intents,

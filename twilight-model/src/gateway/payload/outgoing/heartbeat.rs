@@ -11,7 +11,7 @@ impl Heartbeat {
     pub const fn new(seq: Option<u64>) -> Self {
         Self {
             d: seq,
-            op: OpCode::Heartbeat,
+            op: OpCode::HEARTBEAT,
         }
     }
 }

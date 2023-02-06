@@ -13,68 +13,68 @@ pub struct AuditLogOptionalEntryInfo {
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::AutoModerationBlockMessage`]
-    /// - [`AuditLogEventType::AutoModerationFlagToChannel`]
-    /// - [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]
+    /// - [`AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE`]
+    /// - [`AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL`]
+    /// - [`AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED`]
     ///
-    /// [`AuditLogEventType::AutoModerationBlockMessage`]: super::AuditLogEventType::AutoModerationBlockMessage
-    /// [`AuditLogEventType::AutoModerationFlagToChannel`]: super::AuditLogEventType::AutoModerationFlagToChannel
-    /// [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]: super::AuditLogEventType::AutoModerationUserCommunicationDisabled
+    /// [`AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE`]: super::AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE
+    /// [`AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL`]: super::AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL
+    /// [`AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED`]: super::AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED
     #[serde(skip_serializing_if = "Option::is_none")]
     pub auto_moderation_rule_name: Option<String>,
     /// Trigger type of the Auto Moderation rule that was triggered.
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::AutoModerationBlockMessage`]
-    /// - [`AuditLogEventType::AutoModerationFlagToChannel`]
-    /// - [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]
+    /// - [`AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE`]
+    /// - [`AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL`]
+    /// - [`AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED`]
     ///
-    /// [`AuditLogEventType::AutoModerationBlockMessage`]: super::AuditLogEventType::AutoModerationBlockMessage
-    /// [`AuditLogEventType::AutoModerationFlagToChannel`]: super::AuditLogEventType::AutoModerationFlagToChannel
-    /// [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]: super::AuditLogEventType::AutoModerationUserCommunicationDisabled
+    /// [`AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE`]: super::AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE
+    /// [`AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL`]: super::AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL
+    /// [`AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED`]: super::AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED
     #[serde(skip_serializing_if = "Option::is_none")]
     pub auto_moderation_rule_trigger_type: Option<String>,
     /// Channel in which the entities were targeted.
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::AutoModerationBlockMessage`]
-    /// - [`AuditLogEventType::AutoModerationFlagToChannel`]
-    /// - [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]
-    /// - [`AuditLogEventType::MemberMove`]
-    /// - [`AuditLogEventType::MessageDelete`]
-    /// - [`AuditLogEventType::MessagePin`]
-    /// - [`AuditLogEventType::MessageUnpin`]
-    /// - [`AuditLogEventType::StageInstanceCreate`]
-    /// - [`AuditLogEventType::StageInstanceDelete`]
-    /// - [`AuditLogEventType::StageInstanceUpdate`]
+    /// - [`AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE`]
+    /// - [`AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL`]
+    /// - [`AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED`]
+    /// - [`AuditLogEventType::MEMBER_MOVE`]
+    /// - [`AuditLogEventType::MESSAGE_DELETE`]
+    /// - [`AuditLogEventType::MESSAGE_PIN`]
+    /// - [`AuditLogEventType::MESSAGE_UNPIN`]
+    /// - [`AuditLogEventType::STAGE_INSTANCE_CREATE`]
+    /// - [`AuditLogEventType::STAGE_INSTANCE_DELETE`]
+    /// - [`AuditLogEventType::STAGE_INSTANCE_UPDATE`]
     ///
-    /// [`AuditLogEventType::AutoModerationBlockMessage`]: super::AuditLogEventType::AutoModerationBlockMessage
-    /// [`AuditLogEventType::AutoModerationFlagToChannel`]: super::AuditLogEventType::AutoModerationFlagToChannel
-    /// [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]: super::AuditLogEventType::AutoModerationUserCommunicationDisabled
-    /// [`AuditLogEventType::MemberMove`]: super::AuditLogEventType::MemberMove
-    /// [`AuditLogEventType::MessageDelete`]: super::AuditLogEventType::MessageDelete
-    /// [`AuditLogEventType::MessagePin`]: super::AuditLogEventType::MessagePin
-    /// [`AuditLogEventType::MessageUnpin`]: super::AuditLogEventType::MessageUnpin
-    /// [`AuditLogEventType::StageInstanceCreate`]: super::AuditLogEventType::StageInstanceCreate
-    /// [`AuditLogEventType::StageInstanceDelete`]: super::AuditLogEventType::StageInstanceDelete
-    /// [`AuditLogEventType::StageInstanceUpdate`]: super::AuditLogEventType::StageInstanceUpdate
+    /// [`AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE`]: super::AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE
+    /// [`AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL`]: super::AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL
+    /// [`AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED`]: super::AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED
+    /// [`AuditLogEventType::MEMBER_MOVE`]: super::AuditLogEventType::MEMBER_MOVE
+    /// [`AuditLogEventType::MESSAGE_DELETE`]: super::AuditLogEventType::MESSAGE_DELETE
+    /// [`AuditLogEventType::MESSAGE_PIN`]: super::AuditLogEventType::MESSAGE_PIN
+    /// [`AuditLogEventType::MESSAGE_UNPIN`]: super::AuditLogEventType::MESSAGE_UNPIN
+    /// [`AuditLogEventType::STAGE_INSTANCE_CREATE`]: super::AuditLogEventType::STAGE_INSTANCE_CREATE
+    /// [`AuditLogEventType::STAGE_INSTANCE_DELETE`]: super::AuditLogEventType::STAGE_INSTANCE_DELETE
+    /// [`AuditLogEventType::STAGE_INSTANCE_UPDATE`]: super::AuditLogEventType::STAGE_INSTANCE_UPDATE
     #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// Number of entities that were targeted.
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::MemberDisconnect`]
-    /// - [`AuditLogEventType::MemberMove`]
-    /// - [`AuditLogEventType::MessageBulkDelete`]
-    /// - [`AuditLogEventType::MessageDelete`]
+    /// - [`AuditLogEventType::MEMBER_DISCONNECT`]
+    /// - [`AuditLogEventType::MEMBER_MOVE`]
+    /// - [`AuditLogEventType::MESSAGE_BULK_DELETE`]
+    /// - [`AuditLogEventType::MESSAGE_DELETE`]
     ///
-    /// [`AuditLogEventType::MemberDisconnect`]: super::AuditLogEventType::MemberDisconnect
-    /// [`AuditLogEventType::MemberMove`]: super::AuditLogEventType::MemberMove
-    /// [`AuditLogEventType::MessageBulkDelete`]: super::AuditLogEventType::MessageBulkDelete
-    /// [`AuditLogEventType::MessageDelete`]: super::AuditLogEventType::MessageDelete
+    /// [`AuditLogEventType::MEMBER_DISCONNECT`]: super::AuditLogEventType::MEMBER_DISCONNECT
+    /// [`AuditLogEventType::MEMBER_MOVE`]: super::AuditLogEventType::MEMBER_MOVE
+    /// [`AuditLogEventType::MESSAGE_BULK_DELETE`]: super::AuditLogEventType::MESSAGE_BULK_DELETE
+    /// [`AuditLogEventType::MESSAGE_DELETE`]: super::AuditLogEventType::MESSAGE_DELETE
     #[serde(skip_serializing_if = "Option::is_none")]
     pub count: Option<String>,
     /// Specified number of days' worth of inactivity members must have in order
@@ -82,67 +82,67 @@ pub struct AuditLogOptionalEntryInfo {
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::MemberPrune`]
+    /// - [`AuditLogEventType::MEMBER_PRUNE`]
     ///
-    /// [`AuditLogEventType::MemberPrune`]: super::AuditLogEventType::MemberPrune
+    /// [`AuditLogEventType::MEMBER_PRUNE`]: super::AuditLogEventType::MEMBER_PRUNE
     #[serde(skip_serializing_if = "Option::is_none")]
     pub delete_member_days: Option<String>,
     /// ID of overwritten entity.
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::ChannelOverwriteCreate`]
-    /// - [`AuditLogEventType::ChannelOverwriteDelete`]
-    /// - [`AuditLogEventType::ChannelOverwriteUpdate`]
+    /// - [`AuditLogEventType::CHANNEL_OVERWRITE_CREATE`]
+    /// - [`AuditLogEventType::CHANNEL_OVERWRITE_DELETE`]
+    /// - [`AuditLogEventType::CHANNEL_OVERWRITE_UPDATE`]
     ///
-    /// [`AuditLogEventType::ChannelOverwriteCreate`]: super::AuditLogEventType::ChannelOverwriteCreate
-    /// [`AuditLogEventType::ChannelOverwriteDelete`]: super::AuditLogEventType::ChannelOverwriteDelete
-    /// [`AuditLogEventType::ChannelOverwriteUpdate`]: super::AuditLogEventType::ChannelOverwriteUpdate
+    /// [`AuditLogEventType::CHANNEL_OVERWRITE_CREATE`]: super::AuditLogEventType::CHANNEL_OVERWRITE_CREATE
+    /// [`AuditLogEventType::CHANNEL_OVERWRITE_DELETE`]: super::AuditLogEventType::CHANNEL_OVERWRITE_DELETE
+    /// [`AuditLogEventType::CHANNEL_OVERWRITE_UPDATE`]: super::AuditLogEventType::CHANNEL_OVERWRITE_UPDATE
     pub id: Option<Id<GenericMarker>>,
     /// Type of overwritten entity.
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::ChannelOverwriteCreate`]
-    /// - [`AuditLogEventType::ChannelOverwriteDelete`]
-    /// - [`AuditLogEventType::ChannelOverwriteUpdate`]
+    /// - [`AuditLogEventType::CHANNEL_OVERWRITE_CREATE`]
+    /// - [`AuditLogEventType::CHANNEL_OVERWRITE_DELETE`]
+    /// - [`AuditLogEventType::CHANNEL_OVERWRITE_UPDATE`]
     ///
-    /// [`AuditLogEventType::ChannelOverwriteCreate`]: super::AuditLogEventType::ChannelOverwriteCreate
-    /// [`AuditLogEventType::ChannelOverwriteDelete`]: super::AuditLogEventType::ChannelOverwriteDelete
-    /// [`AuditLogEventType::ChannelOverwriteUpdate`]: super::AuditLogEventType::ChannelOverwriteUpdate
+    /// [`AuditLogEventType::CHANNEL_OVERWRITE_CREATE`]: super::AuditLogEventType::CHANNEL_OVERWRITE_CREATE
+    /// [`AuditLogEventType::CHANNEL_OVERWRITE_DELETE`]: super::AuditLogEventType::CHANNEL_OVERWRITE_DELETE
+    /// [`AuditLogEventType::CHANNEL_OVERWRITE_UPDATE`]: super::AuditLogEventType::CHANNEL_OVERWRITE_UPDATE
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub kind: Option<String>,
     /// Number of members removed from a change.
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::MemberPrune`]
+    /// - [`AuditLogEventType::MEMBER_PRUNE`]
     ///
-    /// [`AuditLogEventType::MemberPrune`]: super::AuditLogEventType::MemberPrune
+    /// [`AuditLogEventType::MEMBER_PRUNE`]: super::AuditLogEventType::MEMBER_PRUNE
     #[serde(skip_serializing_if = "Option::is_none")]
     pub members_removed: Option<String>,
     /// ID of the affected message.
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::MessagePin`]
-    /// - [`AuditLogEventType::MessageUnpin`]
+    /// - [`AuditLogEventType::MESSAGE_PIN`]
+    /// - [`AuditLogEventType::MESSAGE_UNPIN`]
     ///
-    /// [`AuditLogEventType::MessagePin`]: super::AuditLogEventType::MessagePin
-    /// [`AuditLogEventType::MessageUnpin`]: super::AuditLogEventType::MessageUnpin
+    /// [`AuditLogEventType::MESSAGE_PIN`]: super::AuditLogEventType::MESSAGE_PIN
+    /// [`AuditLogEventType::MESSAGE_UNPIN`]: super::AuditLogEventType::MESSAGE_UNPIN
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_id: Option<Id<MessageMarker>>,
     /// Name of a role.
     ///
     /// The following events have this option:
     ///
-    /// - [`AuditLogEventType::ChannelOverwriteCreate`]
-    /// - [`AuditLogEventType::ChannelOverwriteDelete`]
-    /// - [`AuditLogEventType::ChannelOverwriteUpdate`]
+    /// - [`AuditLogEventType::CHANNEL_OVERWRITE_CREATE`]
+    /// - [`AuditLogEventType::CHANNEL_OVERWRITE_DELETE`]
+    /// - [`AuditLogEventType::CHANNEL_OVERWRITE_UPDATE`]
     ///
-    /// [`AuditLogEventType::ChannelOverwriteCreate`]: super::AuditLogEventType::ChannelOverwriteCreate
-    /// [`AuditLogEventType::ChannelOverwriteDelete`]: super::AuditLogEventType::ChannelOverwriteDelete
-    /// [`AuditLogEventType::ChannelOverwriteUpdate`]: super::AuditLogEventType::ChannelOverwriteUpdate
+    /// [`AuditLogEventType::CHANNEL_OVERWRITE_CREATE`]: super::AuditLogEventType::CHANNEL_OVERWRITE_CREATE
+    /// [`AuditLogEventType::CHANNEL_OVERWRITE_DELETE`]: super::AuditLogEventType::CHANNEL_OVERWRITE_DELETE
+    /// [`AuditLogEventType::CHANNEL_OVERWRITE_UPDATE`]: super::AuditLogEventType::CHANNEL_OVERWRITE_UPDATE
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role_name: Option<String>,
 }

@@ -94,6 +94,9 @@ mod tests {
             Token::Str("user name"),
             Token::Str("premium_type"),
             Token::Some,
+            Token::NewtypeStruct {
+                name: "PremiumType",
+            },
             Token::U8(2),
             Token::Str("verified"),
             Token::Some,
@@ -116,7 +119,7 @@ mod tests {
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
             name: "user name".to_owned(),
-            premium_type: Some(PremiumType::Nitro),
+            premium_type: Some(PremiumType::NITRO),
             verified: Some(true),
         };
 

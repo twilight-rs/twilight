@@ -47,23 +47,14 @@ pub fn parse(
             });
         };
 
-    let opcode = if let Some(opcode) = OpCode::from(gateway_deserializer.op()) {
-        opcode
-    } else {
-        let opcode = gateway_deserializer.op();
-
-        return Err(ReceiveMessageError {
-            kind: ReceiveMessageErrorType::Deserializing { event },
-            source: Some(format!("unknown opcode: {opcode}").into()),
-        });
-    };
+    let opcode = OpCode::new(gateway_deserializer.op());
 
     let event_type = gateway_deserializer.event_type();
 
     let event_type = if let Ok(event_type) = EventTypeFlags::try_from((opcode, event_type)) {
         event_type
     } else {
-        let opcode = opcode as u8;
+        let opcode = gateway_deserializer.op();
         let source = format!("unknown opcode/dispatch event type: {opcode}/{event_type:?}");
 
         return Err(ReceiveMessageError {

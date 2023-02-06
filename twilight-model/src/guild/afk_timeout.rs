@@ -14,7 +14,7 @@ use std::time::Duration;
 /// ```
 ///
 /// [`Guild::afk_timeout`]: super::Guild::afk_timeout
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 pub struct AfkTimeout(u16);
 
@@ -34,23 +34,18 @@ impl AfkTimeout {
     /// AFK timeout of one hour.
     pub const ONE_HOUR: Self = Self(3600);
 
-    /// Retrieve the duration of the AFK timeout in seconds.
+    /// Name of the associated constant.
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::guild::AfkTimeout;
-    ///
-    /// assert_eq!(60, AfkTimeout::ONE_MINUTE.get());
-    /// ```
-    pub const fn get(self) -> u16 {
-        self.0
-    }
-}
-
-impl From<u16> for AfkTimeout {
-    fn from(value: u16) -> Self {
-        Self(value)
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ONE_MINUTE => "ONE_MINUTE",
+            Self::FIVE_MINUTES => "FIVE_MINUTES",
+            Self::FIFTEEN_MINUTES => "FIFTEEN_MINUTES",
+            Self::THIRTY_MINUTES => "THIRTY_MINUTES",
+            Self::ONE_HOUR => "ONE_HOUR",
+            _ => return None,
+        })
     }
 }
 
@@ -71,6 +66,8 @@ impl PartialEq<AfkTimeout> for u16 {
         *self == other.get()
     }
 }
+
+impl_typed!(AfkTimeout, u16);
 
 #[cfg(test)]
 mod tests {

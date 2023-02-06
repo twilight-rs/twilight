@@ -60,19 +60,19 @@
 //!         allow: Permissions::ADD_REACTIONS | Permissions::EMBED_LINKS,
 //!         deny: Permissions::empty(),
 //!         id: Id::new(1),
-//!         kind: PermissionOverwriteType::Role,
+//!         kind: PermissionOverwriteType::ROLE,
 //!     },
 //!     // Member is denied the Send Messages permission.
 //!     PermissionOverwrite {
 //!         allow: Permissions::empty(),
 //!         deny: Permissions::SEND_MESSAGES,
 //!         id: user_id.cast(),
-//!         kind: PermissionOverwriteType::Member,
+//!         kind: PermissionOverwriteType::MEMBER,
 //!     },
 //! ];
 //!
 //! let calculator = PermissionCalculator::new(guild_id, user_id, everyone_role, member_roles);
-//! let calculated_permissions = calculator.in_channel(ChannelType::GuildText, channel_overwrites);
+//! let calculated_permissions = calculator.in_channel(ChannelType::GUILD_TEXT, channel_overwrites);
 //!
 //! // Now that we've got the member's permissions in the channel, we can
 //! // check that they have the server-wide View Channel permission and
@@ -388,11 +388,11 @@ impl<'a> PermissionCalculator<'a> {
 
         // Remove the permissions not used by a channel depending on the channel
         // type.
-        if matches!(channel_type, ChannelType::GuildStageVoice) {
+        if matches!(channel_type, ChannelType::GUILD_STAGE_VOICE) {
             permissions = bitops::remove(permissions, PERMISSIONS_STAGE_OMIT);
-        } else if matches!(channel_type, ChannelType::GuildText) {
+        } else if matches!(channel_type, ChannelType::GUILD_TEXT) {
             permissions = bitops::remove(permissions, PERMISSIONS_TEXT_OMIT);
-        } else if matches!(channel_type, ChannelType::GuildVoice) {
+        } else if matches!(channel_type, ChannelType::GUILD_VOICE) {
             permissions = bitops::remove(permissions, PERMISSIONS_VOICE_OMIT);
         }
 
@@ -438,7 +438,7 @@ const fn process_permission_overwrites(
         let overwrite = &channel_overwrites[idx];
 
         match overwrite.kind {
-            PermissionOverwriteType::Role => {
+            PermissionOverwriteType::ROLE => {
                 // We need to process the @everyone role first, so apply it
                 // straight to the permissions. The other roles' permissions
                 // will be applied later.
@@ -460,15 +460,14 @@ const fn process_permission_overwrites(
                 roles_allow = bitops::insert(roles_allow, overwrite.allow);
                 roles_deny = bitops::insert(roles_deny, overwrite.deny);
             }
-            PermissionOverwriteType::Member => {
+            PermissionOverwriteType::MEMBER => {
                 if overwrite.id.get() == configured_user_id.get() {
                     member_allow = bitops::insert(member_allow, overwrite.allow);
                     member_deny = bitops::insert(member_deny, overwrite.deny);
                 }
             }
             // Unknown, impossible to try and calculate with this
-            PermissionOverwriteType::Unknown(_) => (),
-            _ => unimplemented!(),
+            _ => (),
         }
 
         idx += 1;
@@ -558,11 +557,11 @@ mod tests {
                 allow: Permissions::SEND_TTS_MESSAGES,
                 deny: Permissions::VIEW_CHANNEL,
                 id: Id::new(3),
-                kind: PermissionOverwriteType::Role,
+                kind: PermissionOverwriteType::ROLE,
             }];
 
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
-                .in_channel(ChannelType::GuildText, overwrites);
+                .in_channel(ChannelType::GUILD_TEXT, overwrites);
 
             assert_eq!(calculated, Permissions::empty());
         }
@@ -573,11 +572,11 @@ mod tests {
                 allow: Permissions::SEND_TTS_MESSAGES,
                 deny: Permissions::VIEW_CHANNEL,
                 id: Id::new(2),
-                kind: PermissionOverwriteType::Member,
+                kind: PermissionOverwriteType::MEMBER,
             }];
 
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
-                .in_channel(ChannelType::GuildText, overwrites);
+                .in_channel(ChannelType::GUILD_TEXT, overwrites);
 
             assert_eq!(calculated, Permissions::empty());
         }
@@ -589,18 +588,18 @@ mod tests {
                     allow: Permissions::VIEW_CHANNEL,
                     deny: Permissions::empty(),
                     id: Id::new(2),
-                    kind: PermissionOverwriteType::Member,
+                    kind: PermissionOverwriteType::MEMBER,
                 },
                 PermissionOverwrite {
                     allow: Permissions::empty(),
                     deny: Permissions::VIEW_CHANNEL,
                     id: Id::new(3),
-                    kind: PermissionOverwriteType::Role,
+                    kind: PermissionOverwriteType::ROLE,
                 },
             ];
 
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
-                .in_channel(ChannelType::GuildText, overwrites);
+                .in_channel(ChannelType::GUILD_TEXT, overwrites);
 
             assert_eq!(
                 calculated,
@@ -619,7 +618,7 @@ mod tests {
         let roles = &[(Id::new(3), Permissions::SEND_MESSAGES)];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
-            .in_channel(ChannelType::GuildVoice, &[]);
+            .in_channel(ChannelType::GUILD_VOICE, &[]);
 
         assert_eq!(calculated, Permissions::CONNECT);
     }
@@ -632,7 +631,7 @@ mod tests {
         let roles = &[(Id::new(3), Permissions::SEND_MESSAGES)];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
-            .in_channel(ChannelType::GuildText, &[]);
+            .in_channel(ChannelType::GUILD_TEXT, &[]);
 
         // The `CONNECT` permission isn't included because text channels don't
         // have the permission.
@@ -654,11 +653,11 @@ mod tests {
             allow: Permissions::ATTACH_FILES,
             deny: Permissions::SEND_MESSAGES,
             id: Id::new(3),
-            kind: PermissionOverwriteType::Role,
+            kind: PermissionOverwriteType::ROLE,
         }];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
-            .in_channel(ChannelType::GuildText, overwrites);
+            .in_channel(ChannelType::GUILD_TEXT, overwrites);
 
         assert_eq!(calculated, Permissions::MANAGE_MESSAGES);
     }
@@ -674,7 +673,7 @@ mod tests {
 
         // Ensure that the denial of "send messages" doesn't actually occur due
         // to the user being an administrator.
-        assert!(calc.in_channel(ChannelType::GuildText, &[]).is_all());
+        assert!(calc.in_channel(ChannelType::GUILD_TEXT, &[]).is_all());
     }
 
     /// Test that guild-level permissions are removed in the permissions for a
@@ -682,11 +681,11 @@ mod tests {
     #[test]
     fn guild_level_removed_in_channel() {
         const CHANNEL_TYPES: &[ChannelType] = &[
-            ChannelType::GuildCategory,
-            ChannelType::GuildAnnouncement,
-            ChannelType::GuildStageVoice,
-            ChannelType::GuildText,
-            ChannelType::GuildVoice,
+            ChannelType::GUILD_CATEGORY,
+            ChannelType::GUILD_ANNOUNCEMENT,
+            ChannelType::GUILD_STAGE_VOICE,
+            ChannelType::GUILD_TEXT,
+            ChannelType::GUILD_VOICE,
         ];
 
         // We need to remove the `ADMINISTRATOR` permission or else the

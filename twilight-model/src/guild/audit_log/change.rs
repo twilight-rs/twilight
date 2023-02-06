@@ -732,92 +732,92 @@ impl AuditLogChange {
     ///     old: Some(3),
     /// };
     ///
-    /// assert_eq!(Some(AuditLogChangeKey::UserLimit), change.key());
+    /// assert_eq!(Some(AuditLogChangeKey::USER_LIMIT), change.key());
     /// ```
     ///
     /// [`Other`]: Self::Other
     /// [`Uses`]: Self::Uses
     pub const fn key(&self) -> Option<AuditLogChangeKey> {
         Some(match self {
-            Self::AfkChannelId { .. } => AuditLogChangeKey::AfkChannelId,
-            Self::AfkTimeout { .. } => AuditLogChangeKey::AfkTimeout,
-            Self::Allow { .. } => AuditLogChangeKey::Allow,
-            Self::ApplicationId { .. } => AuditLogChangeKey::ApplicationId,
-            Self::Archived { .. } => AuditLogChangeKey::Archived,
-            Self::Asset { .. } => AuditLogChangeKey::Asset,
-            Self::AutoArchiveDuration { .. } => AuditLogChangeKey::AutoArchiveDuration,
-            Self::Available { .. } => AuditLogChangeKey::Available,
-            Self::AvatarHash { .. } => AuditLogChangeKey::AvatarHash,
-            Self::BannerHash { .. } => AuditLogChangeKey::BannerHash,
-            Self::Bitrate { .. } => AuditLogChangeKey::Bitrate,
-            Self::ChannelId { .. } => AuditLogChangeKey::ChannelId,
-            Self::Code { .. } => AuditLogChangeKey::Code,
-            Self::Color { .. } => AuditLogChangeKey::Color,
-            Self::CommandId { .. } => AuditLogChangeKey::CommandId,
+            Self::AfkChannelId { .. } => AuditLogChangeKey::AFK_CHANNEL_ID,
+            Self::AfkTimeout { .. } => AuditLogChangeKey::AFK_TIMEOUT,
+            Self::Allow { .. } => AuditLogChangeKey::ALLOW,
+            Self::ApplicationId { .. } => AuditLogChangeKey::APPLICATION_ID,
+            Self::Archived { .. } => AuditLogChangeKey::ARCHIVED,
+            Self::Asset { .. } => AuditLogChangeKey::ASSET,
+            Self::AutoArchiveDuration { .. } => AuditLogChangeKey::AUTO_ARCHIVE_DURATION,
+            Self::Available { .. } => AuditLogChangeKey::AVAILABLE,
+            Self::AvatarHash { .. } => AuditLogChangeKey::AVATAR_HASH,
+            Self::BannerHash { .. } => AuditLogChangeKey::BANNER_HASH,
+            Self::Bitrate { .. } => AuditLogChangeKey::BITRATE,
+            Self::ChannelId { .. } => AuditLogChangeKey::CHANNEL_ID,
+            Self::Code { .. } => AuditLogChangeKey::CODE,
+            Self::Color { .. } => AuditLogChangeKey::COLOR,
+            Self::CommandId { .. } => AuditLogChangeKey::COMMAND_ID,
             Self::CommunicationDisabledUntil { .. } => {
-                AuditLogChangeKey::CommunicationDisabledUntil
+                AuditLogChangeKey::COMMUNICATION_DISABLED_UNTIL
             }
-            Self::Deaf { .. } => AuditLogChangeKey::Deaf,
+            Self::Deaf { .. } => AuditLogChangeKey::DEAF,
             Self::DefaultAutoArchiveDuration { .. } => {
-                AuditLogChangeKey::DefaultAutoArchiveDuration
+                AuditLogChangeKey::DEFAULT_AUTO_ARCHIVE_DURATION
             }
             Self::DefaultMessageNotifications { .. } => {
-                AuditLogChangeKey::DefaultMessageNotifications
+                AuditLogChangeKey::DEFAULT_MESSAGE_NOTIFICATIONS
             }
-            Self::Deny { .. } => AuditLogChangeKey::Deny,
-            Self::Description { .. } => AuditLogChangeKey::Description,
-            Self::DiscoverySplashHash { .. } => AuditLogChangeKey::DiscoverySplashHash,
-            Self::EnableEmoticons { .. } => AuditLogChangeKey::EnableEmoticons,
-            Self::EntityType { .. } => AuditLogChangeKey::EntityType,
-            Self::ExpireBehavior { .. } => AuditLogChangeKey::ExpireBehavior,
-            Self::ExpireGracePeriod { .. } => AuditLogChangeKey::ExpireGracePeriod,
-            Self::ExplicitContentFilter { .. } => AuditLogChangeKey::ExplicitContentFilter,
-            Self::FormatType { .. } => AuditLogChangeKey::FormatType,
-            Self::GuildId { .. } => AuditLogChangeKey::GuildId,
-            Self::Hoist { .. } => AuditLogChangeKey::Hoist,
-            Self::IconHash { .. } => AuditLogChangeKey::IconHash,
-            Self::Id { .. } => AuditLogChangeKey::Id,
-            Self::ImageHash { .. } => AuditLogChangeKey::ImageHash,
-            Self::Invitable { .. } => AuditLogChangeKey::Invitable,
-            Self::InviterId { .. } => AuditLogChangeKey::InviterId,
-            Self::Location { .. } => AuditLogChangeKey::Location,
-            Self::Locked { .. } => AuditLogChangeKey::Locked,
-            Self::MaxAge { .. } => AuditLogChangeKey::MaxAge,
-            Self::MaxUses { .. } => AuditLogChangeKey::MaxUses,
-            Self::Mentionable { .. } => AuditLogChangeKey::Mentionable,
-            Self::MfaLevel { .. } => AuditLogChangeKey::MfaLevel,
-            Self::Mute { .. } => AuditLogChangeKey::Mute,
-            Self::Name { .. } => AuditLogChangeKey::Name,
-            Self::Nick { .. } => AuditLogChangeKey::Nick,
-            Self::Nsfw { .. } => AuditLogChangeKey::Nsfw,
-            Self::NsfwLevel { .. } => AuditLogChangeKey::NsfwLevel,
-            Self::OwnerId { .. } => AuditLogChangeKey::OwnerId,
-            Self::PermissionOverwrites { .. } => AuditLogChangeKey::PermissionOverwrites,
-            Self::Permissions { .. } => AuditLogChangeKey::Permissions,
-            Self::Position { .. } => AuditLogChangeKey::Position,
-            Self::PreferredLocale { .. } => AuditLogChangeKey::PreferredLocale,
-            Self::PrivacyLevel { .. } => AuditLogChangeKey::PrivacyLevel,
-            Self::PruneDeleteDays { .. } => AuditLogChangeKey::PruneDeleteDays,
-            Self::PublicUpdatesChannelId { .. } => AuditLogChangeKey::PublicUpdatesChannelId,
-            Self::RateLimitPerUser { .. } => AuditLogChangeKey::RateLimitPerUser,
-            Self::Region { .. } => AuditLogChangeKey::Region,
-            Self::RoleAdded { .. } => AuditLogChangeKey::RoleAdded,
-            Self::RoleRemoved { .. } => AuditLogChangeKey::RoleRemoved,
-            Self::RulesChannelId { .. } => AuditLogChangeKey::RulesChannelId,
-            Self::SplashHash { .. } => AuditLogChangeKey::SplashHash,
-            Self::Status { .. } => AuditLogChangeKey::Status,
-            Self::SystemChannelId { .. } => AuditLogChangeKey::SystemChannelId,
-            Self::Tags { .. } => AuditLogChangeKey::Tags,
-            Self::Temporary { .. } => AuditLogChangeKey::Temporary,
-            Self::Topic { .. } => AuditLogChangeKey::Topic,
-            Self::Type { .. } => AuditLogChangeKey::Type,
-            Self::UnicodeEmoji { .. } => AuditLogChangeKey::UnicodeEmoji,
-            Self::UserLimit { .. } => AuditLogChangeKey::UserLimit,
-            Self::Uses { .. } => AuditLogChangeKey::Uses,
-            Self::VanityUrlCode { .. } => AuditLogChangeKey::VanityUrlCode,
-            Self::VerificationLevel { .. } => AuditLogChangeKey::VerificationLevel,
-            Self::WidgetChannelId { .. } => AuditLogChangeKey::WidgetChannelId,
-            Self::WidgetEnabled { .. } => AuditLogChangeKey::WidgetEnabled,
+            Self::Deny { .. } => AuditLogChangeKey::DENY,
+            Self::Description { .. } => AuditLogChangeKey::DESCRIPTION,
+            Self::DiscoverySplashHash { .. } => AuditLogChangeKey::DISCOVERY_SPLASH_HASH,
+            Self::EnableEmoticons { .. } => AuditLogChangeKey::ENABLE_EMOTICONS,
+            Self::EntityType { .. } => AuditLogChangeKey::ENTITY_TYPE,
+            Self::ExpireBehavior { .. } => AuditLogChangeKey::EXPIRE_BEHAVIOR,
+            Self::ExpireGracePeriod { .. } => AuditLogChangeKey::EXPIRE_GRACE_PERIOD,
+            Self::ExplicitContentFilter { .. } => AuditLogChangeKey::EXPLICIT_CONTENT_FILTER,
+            Self::FormatType { .. } => AuditLogChangeKey::FORMAT_TYPE,
+            Self::GuildId { .. } => AuditLogChangeKey::GUILD_ID,
+            Self::Hoist { .. } => AuditLogChangeKey::HOIST,
+            Self::IconHash { .. } => AuditLogChangeKey::ICON_HASH,
+            Self::Id { .. } => AuditLogChangeKey::ID,
+            Self::ImageHash { .. } => AuditLogChangeKey::IMAGE_HASH,
+            Self::Invitable { .. } => AuditLogChangeKey::INVITABLE,
+            Self::InviterId { .. } => AuditLogChangeKey::INVITER_ID,
+            Self::Location { .. } => AuditLogChangeKey::LOCATION,
+            Self::Locked { .. } => AuditLogChangeKey::LOCKED,
+            Self::MaxAge { .. } => AuditLogChangeKey::MAX_AGE,
+            Self::MaxUses { .. } => AuditLogChangeKey::MAX_USES,
+            Self::Mentionable { .. } => AuditLogChangeKey::MENTIONABLE,
+            Self::MfaLevel { .. } => AuditLogChangeKey::MFA_LEVEL,
+            Self::Mute { .. } => AuditLogChangeKey::MUTE,
+            Self::Name { .. } => AuditLogChangeKey::NAME,
+            Self::Nick { .. } => AuditLogChangeKey::NICK,
+            Self::Nsfw { .. } => AuditLogChangeKey::NSFW,
+            Self::NsfwLevel { .. } => AuditLogChangeKey::NSFW_LEVEL,
+            Self::OwnerId { .. } => AuditLogChangeKey::OWNER_ID,
+            Self::PermissionOverwrites { .. } => AuditLogChangeKey::PERMISSION_OVERWRITES,
+            Self::Permissions { .. } => AuditLogChangeKey::PERMISSIONS,
+            Self::Position { .. } => AuditLogChangeKey::POSITION,
+            Self::PreferredLocale { .. } => AuditLogChangeKey::PREFERRED_LOCALE,
+            Self::PrivacyLevel { .. } => AuditLogChangeKey::PRIVACY_LEVEL,
+            Self::PruneDeleteDays { .. } => AuditLogChangeKey::PRUNE_DELETE_DAYS,
+            Self::PublicUpdatesChannelId { .. } => AuditLogChangeKey::PUBLIC_UPDATES_CHANNEL_ID,
+            Self::RateLimitPerUser { .. } => AuditLogChangeKey::RATE_LIMIT_PER_USER,
+            Self::Region { .. } => AuditLogChangeKey::REGION,
+            Self::RoleAdded { .. } => AuditLogChangeKey::ROLE_ADDED,
+            Self::RoleRemoved { .. } => AuditLogChangeKey::ROLE_REMOVED,
+            Self::RulesChannelId { .. } => AuditLogChangeKey::RULES_CHANNEL_ID,
+            Self::SplashHash { .. } => AuditLogChangeKey::SPLASH_HASH,
+            Self::Status { .. } => AuditLogChangeKey::STATUS,
+            Self::SystemChannelId { .. } => AuditLogChangeKey::SYSTEM_CHANNEL_ID,
+            Self::Tags { .. } => AuditLogChangeKey::TAGS,
+            Self::Temporary { .. } => AuditLogChangeKey::TEMPORARY,
+            Self::Topic { .. } => AuditLogChangeKey::TOPIC,
+            Self::Type { .. } => AuditLogChangeKey::TYPE,
+            Self::UnicodeEmoji { .. } => AuditLogChangeKey::UNICODE_EMOJI,
+            Self::UserLimit { .. } => AuditLogChangeKey::USER_LIMIT,
+            Self::Uses { .. } => AuditLogChangeKey::USES,
+            Self::VanityUrlCode { .. } => AuditLogChangeKey::VANITY_URL_CODE,
+            Self::VerificationLevel { .. } => AuditLogChangeKey::VERIFICATION_LEVEL,
+            Self::WidgetChannelId { .. } => AuditLogChangeKey::WIDGET_CHANNEL_ID,
+            Self::WidgetEnabled { .. } => AuditLogChangeKey::WIDGET_ENABLED,
             Self::Other => return None,
         })
     }
@@ -931,7 +931,7 @@ mod tests {
             old: None,
         };
 
-        assert_eq!(Some(AuditLogChangeKey::AfkChannelId), value.key());
+        assert_eq!(Some(AuditLogChangeKey::AFK_CHANNEL_ID), value.key());
 
         serde_test::assert_tokens(
             &value,
@@ -961,7 +961,7 @@ mod tests {
             old: Some(old),
         };
 
-        assert_eq!(Some(AuditLogChangeKey::Permissions), value.key());
+        assert_eq!(Some(AuditLogChangeKey::PERMISSIONS), value.key());
 
         serde_test::assert_tokens(
             &value,
@@ -987,7 +987,7 @@ mod tests {
     fn channel_type() {
         let value = AuditLogChange::Type {
             new: Some(AuditLogChangeTypeValue::Unsigned(u64::from(u8::from(
-                ChannelType::PrivateThread,
+                ChannelType::PRIVATE_THREAD,
             )))),
             old: None,
         };
@@ -1003,7 +1003,7 @@ mod tests {
                 Token::Str("type"),
                 Token::String("new_value"),
                 Token::Some,
-                Token::U64(u64::from(u8::from(ChannelType::PrivateThread))),
+                Token::U64(u64::from(u8::from(ChannelType::PRIVATE_THREAD))),
                 Token::StructEnd,
             ],
         );

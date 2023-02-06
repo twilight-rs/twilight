@@ -3,7 +3,7 @@ use crate::{
         marker::{RoleMarker, UserMarker},
         Id,
     },
-    util::is_false,
+    util::{is_false, known_string::KnownString},
 };
 use serde::{Deserialize, Serialize};
 
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 pub struct AllowedMentions {
     /// List of allowed mention types.
     ///
-    /// [`MentionType::Roles`] and [`MentionType::Users`] allows all roles and users to be
+    /// [`MentionType::ROLES`] and [`MentionType::USERS`] allows all roles and users to be
     /// mentioned; they are mutually exclusive with the [`roles`] and [`users`] fields.
     ///
     /// [`roles`]: Self::roles
@@ -44,17 +44,33 @@ pub struct AllowedMentions {
 }
 
 /// Allowed mention type.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(rename_all = "lowercase")]
-pub enum MentionType {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct MentionType(KnownString<16>);
+
+impl MentionType {
     /// `@everyone` and `@here` mentions.
-    Everyone,
+    pub const EVERYONE: Self = Self::from_bytes(b"everyone");
+
     /// Role mentions.
-    Roles,
+    pub const ROLES: Self = Self::from_bytes(b"roles");
+
     /// User mentions.
-    Users,
+    pub const USERS: Self = Self::from_bytes(b"users");
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::EVERYONE => "EVERYONE",
+            Self::ROLES => "ROLES",
+            Self::USERS => "USERS",
+            _ => return None,
+        })
+    }
 }
+
+impl_typed!(MentionType, String);
 
 #[cfg(test)]
 mod tests {
@@ -89,7 +105,7 @@ mod tests {
     #[test]
     fn full() {
         let value = AllowedMentions {
-            parse: Vec::from([MentionType::Everyone]),
+            parse: Vec::from([MentionType::EVERYONE]),
             users: Vec::from([Id::new(100)]),
             roles: Vec::from([Id::new(200)]),
             replied_user: true,
@@ -104,10 +120,10 @@ mod tests {
                 },
                 Token::Str("parse"),
                 Token::Seq { len: Some(1) },
-                Token::UnitVariant {
+                Token::NewtypeStruct {
                     name: "MentionType",
-                    variant: "everyone",
                 },
+                Token::Str("everyone"),
                 Token::SeqEnd,
                 Token::Str("replied_user"),
                 Token::Bool(true),

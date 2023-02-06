@@ -1,126 +1,86 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Type of [`Component`].
 ///
 /// [`Component`]: super::Component
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum ComponentType {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct ComponentType(u8);
+
+impl ComponentType {
     /// Component is an [`ActionRow`].
     ///
     /// [`ActionRow`]: super::ActionRow
-    ActionRow,
+    pub const ACTION_ROW: Self = Self::new(1);
+
     /// Component is an [`Button`].
     ///
     /// [`Button`]: super::Button
-    Button,
+    pub const BUTTON: Self = Self::new(2);
+
     /// Component is an [`SelectMenu`].
     ///
     /// [`SelectMenu`]: super::SelectMenu
-    SelectMenu,
+    pub const SELECT_MENU: Self = Self::new(3);
+
     /// Component is an [`TextInput`].
     ///
     /// [`TextInput`]: super::TextInput
-    TextInput,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+    pub const TEXT_INPUT: Self = Self::new(4);
 
-impl From<u8> for ComponentType {
-    fn from(value: u8) -> Self {
-        match value {
-            1 => ComponentType::ActionRow,
-            2 => ComponentType::Button,
-            3 => ComponentType::SelectMenu,
-            4 => ComponentType::TextInput,
-            unknown => ComponentType::Unknown(unknown),
-        }
-    }
-}
-
-impl From<ComponentType> for u8 {
-    fn from(value: ComponentType) -> Self {
-        match value {
-            ComponentType::ActionRow => 1,
-            ComponentType::Button => 2,
-            ComponentType::SelectMenu => 3,
-            ComponentType::TextInput => 4,
-            ComponentType::Unknown(unknown) => unknown,
-        }
-    }
-}
-
-impl ComponentType {
-    /// Name of the component type.
+    /// Name of the associated constant.
     ///
-    /// Variants have a name equivalent to the variant name itself.
+    /// Returns `None` if the value doesn't have a defined constant.
     ///
     /// # Examples
     ///
-    /// Check the [`ActionRow`] variant's name:
+    /// Check the [`ACTION_ROW`] constant's name:
     ///
     /// ```
     /// use twilight_model::channel::message::component::ComponentType;
     ///
-    /// assert_eq!("ActionRow", ComponentType::ActionRow.name());
+    /// assert_eq!(Some("ACTION_ROW"), ComponentType::ACTION_ROW.name());
     /// ```
     ///
-    /// [`ActionRow`]: Self::ActionRow
-    pub const fn name(self) -> &'static str {
-        match self {
-            Self::ActionRow => "ActionRow",
-            Self::Button => "Button",
-            Self::SelectMenu => "SelectMenu",
-            Self::TextInput => "TextInput",
-            Self::Unknown(_) => "Unknown",
-        }
+    /// [`ACTION_ROW`]: Self::ACTION_ROW
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ACTION_ROW => "ACTION_ROW",
+            Self::BUTTON => "BUTTON",
+            Self::SELECT_MENU => "SELECT_MENU",
+            Self::TEXT_INPUT => "TEXT_INPUT",
+            _ => return None,
+        })
     }
 }
 
-impl Display for ComponentType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.name())
-    }
-}
+impl_typed!(ComponentType, u8);
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use serde::{Deserialize, Serialize};
+    use super::ComponentType;
     use serde_test::Token;
-    use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, hash::Hash};
 
-    assert_impl_all!(
-        ComponentType: Clone,
-        Copy,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        Hash,
-        PartialEq,
-        Send,
-        Serialize,
-        Sync
-    );
+    const MAP: &[(ComponentType, u8)] = &[
+        (ComponentType::ACTION_ROW, 1),
+        (ComponentType::BUTTON, 2),
+        (ComponentType::SELECT_MENU, 3),
+        (ComponentType::TEXT_INPUT, 4),
+    ];
 
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&ComponentType::ActionRow, &[Token::U8(1)]);
-        serde_test::assert_tokens(&ComponentType::Button, &[Token::U8(2)]);
-        serde_test::assert_tokens(&ComponentType::SelectMenu, &[Token::U8(3)]);
-        serde_test::assert_tokens(&ComponentType::TextInput, &[Token::U8(4)]);
-        serde_test::assert_tokens(&ComponentType::Unknown(99), &[Token::U8(99)]);
-    }
-
-    #[test]
-    fn names() {
-        assert_eq!("ActionRow", ComponentType::ActionRow.name());
-        assert_eq!("Button", ComponentType::Button.name());
-        assert_eq!("SelectMenu", ComponentType::SelectMenu.name());
-        assert_eq!("TextInput", ComponentType::TextInput.name());
-        assert_eq!("Unknown", ComponentType::Unknown(99).name());
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "ComponentType",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, ComponentType::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

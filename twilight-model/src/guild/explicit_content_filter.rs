@@ -1,48 +1,55 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum ExplicitContentFilter {
-    None,
-    MembersWithoutRole,
-    AllMembers,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct ExplicitContentFilter(u8);
 
-impl From<u8> for ExplicitContentFilter {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => ExplicitContentFilter::None,
-            1 => ExplicitContentFilter::MembersWithoutRole,
-            2 => ExplicitContentFilter::AllMembers,
-            unknown => ExplicitContentFilter::Unknown(unknown),
-        }
+impl ExplicitContentFilter {
+    pub const NONE: Self = Self::new(0);
+
+    pub const MEMBERS_WITHOUT_ROLE: Self = Self::new(1);
+
+    pub const ALL_MEMBERS: Self = Self::new(2);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ALL_MEMBERS => "ALL_MEMBERS",
+            Self::MEMBERS_WITHOUT_ROLE => "MEMBERS_WITHOUT_ROLE",
+            Self::NONE => "NONE",
+            _ => return None,
+        })
     }
 }
 
-impl From<ExplicitContentFilter> for u8 {
-    fn from(value: ExplicitContentFilter) -> Self {
-        match value {
-            ExplicitContentFilter::None => 0,
-            ExplicitContentFilter::MembersWithoutRole => 1,
-            ExplicitContentFilter::AllMembers => 2,
-            ExplicitContentFilter::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(ExplicitContentFilter, u8);
 
 #[cfg(test)]
 mod tests {
     use super::ExplicitContentFilter;
     use serde_test::Token;
 
+    const MAP: &[(ExplicitContentFilter, u8)] = &[
+        (ExplicitContentFilter::NONE, 0),
+        (ExplicitContentFilter::MEMBERS_WITHOUT_ROLE, 1),
+        (ExplicitContentFilter::ALL_MEMBERS, 2),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&ExplicitContentFilter::None, &[Token::U8(0)]);
-        serde_test::assert_tokens(&ExplicitContentFilter::MembersWithoutRole, &[Token::U8(1)]);
-        serde_test::assert_tokens(&ExplicitContentFilter::AllMembers, &[Token::U8(2)]);
-        serde_test::assert_tokens(&ExplicitContentFilter::Unknown(99), &[Token::U8(99)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "ExplicitContentFilter",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, ExplicitContentFilter::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

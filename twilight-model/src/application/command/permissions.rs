@@ -8,7 +8,6 @@ use crate::id::{
     Id,
 };
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// List of [`CommandPermission`]s for a command in a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -47,6 +46,10 @@ pub enum CommandPermissionType {
     Role(Id<RoleMarker>),
     /// Affected member.
     User(Id<UserMarker>),
+    Unknown {
+        kind: CommandPermissionDataType,
+        id: Id<GenericMarker>,
+    },
 }
 
 impl CommandPermissionType {
@@ -56,15 +59,17 @@ impl CommandPermissionType {
             Self::Channel(id) => id.cast(),
             Self::Role(id) => id.cast(),
             Self::User(id) => id.cast(),
+            Self::Unknown { id, .. } => id,
         }
     }
 
     /// Get the associated resource type.
     const fn kind(self) -> CommandPermissionDataType {
         match self {
-            Self::Channel(_) => CommandPermissionDataType::Channel,
-            Self::Role(_) => CommandPermissionDataType::Role,
-            Self::User(_) => CommandPermissionDataType::User,
+            Self::Channel(_) => CommandPermissionDataType::CHANNEL,
+            Self::Role(_) => CommandPermissionDataType::ROLE,
+            Self::User(_) => CommandPermissionDataType::USER,
+            Self::Unknown { kind, .. } => kind,
         }
     }
 }
@@ -80,14 +85,30 @@ struct CommandPermissionData {
     permission: bool,
 }
 
-#[derive(Clone, Debug, Deserialize_repr, Eq, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
-enum CommandPermissionDataType {
-    Role = 1,
-    User = 2,
-    Channel = 3,
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct CommandPermissionDataType(u8);
+
+impl CommandPermissionDataType {
+    pub const ROLE: Self = Self::new(1);
+
+    pub const USER: Self = Self::new(2);
+
+    pub const CHANNEL: Self = Self::new(3);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::CHANNEL => "CHANNEL",
+            Self::ROLE => "ROLE",
+            Self::USER => "USER",
+            _ => return None,
+        })
+    }
 }
+
+impl_typed!(CommandPermissionDataType, u8);
 
 impl<'de> Deserialize<'de> for CommandPermission {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
@@ -97,9 +118,13 @@ impl<'de> Deserialize<'de> for CommandPermission {
         let _span_enter = span.enter();
 
         let id = match data.kind {
-            CommandPermissionDataType::Role => CommandPermissionType::Role(data.id.cast()),
-            CommandPermissionDataType::User => CommandPermissionType::User(data.id.cast()),
-            CommandPermissionDataType::Channel => CommandPermissionType::Channel(data.id.cast()),
+            CommandPermissionDataType::ROLE => CommandPermissionType::Role(data.id.cast()),
+            CommandPermissionDataType::USER => CommandPermissionType::User(data.id.cast()),
+            CommandPermissionDataType::CHANNEL => CommandPermissionType::Channel(data.id.cast()),
+            other => CommandPermissionType::Unknown {
+                kind: other,
+                id: data.id,
+            },
         };
 
         tracing::trace!(id = %data.id, kind = ?data.kind);
@@ -150,7 +175,10 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Str("type"),
-                Token::U8(CommandPermissionDataType::Role as u8),
+                Token::NewtypeStruct {
+                    name: "CommandPermissionDataType",
+                },
+                Token::U8(CommandPermissionDataType::ROLE.get()),
                 Token::Str("permission"),
                 Token::Bool(true),
                 Token::StructEnd,
@@ -202,7 +230,10 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("50"),
                 Token::Str("type"),
-                Token::U8(CommandPermissionDataType::Channel as u8),
+                Token::NewtypeStruct {
+                    name: "CommandPermissionDataType",
+                },
+                Token::U8(CommandPermissionDataType::CHANNEL.get()),
                 Token::Str("permission"),
                 Token::Bool(false),
                 Token::StructEnd,
@@ -214,7 +245,10 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("200"),
                 Token::Str("type"),
-                Token::U8(CommandPermissionDataType::User as u8),
+                Token::NewtypeStruct {
+                    name: "CommandPermissionDataType",
+                },
+                Token::U8(CommandPermissionDataType::USER.get()),
                 Token::Str("permission"),
                 Token::Bool(true),
                 Token::StructEnd,

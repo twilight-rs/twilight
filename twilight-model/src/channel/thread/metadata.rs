@@ -39,7 +39,7 @@ mod tests {
 
         let value = ThreadMetadata {
             archived: true,
-            auto_archive_duration: AutoArchiveDuration::Day,
+            auto_archive_duration: AutoArchiveDuration::DAY,
             archive_timestamp: timestamp,
             create_timestamp: Some(timestamp),
             invitable: Some(false),
@@ -56,6 +56,9 @@ mod tests {
                 Token::Str("archived"),
                 Token::Bool(true),
                 Token::Str("auto_archive_duration"),
+                Token::NewtypeStruct {
+                    name: "AutoArchiveDuration",
+                },
                 Token::U16(1440),
                 Token::Str("archive_timestamp"),
                 Token::Str(DATETIME),

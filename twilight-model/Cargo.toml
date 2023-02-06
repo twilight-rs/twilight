@@ -16,7 +16,6 @@ version = "0.15.0"
 bitflags = { default-features = false, version = "1" }
 serde = { default-features = false, features = ["derive", "std"], version = "1.0.103" }
 serde-value = { default-features = false, version = "0.7" }
-serde_repr = { default-features = false, version = "0.1.5" }
 time = { default-features = false, features = ["parsing", "std"], version = "0.3" }
 tracing = { default-features = false, version = "0.1.16" }
 

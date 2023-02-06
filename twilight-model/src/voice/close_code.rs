@@ -1,53 +1,99 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
 /// Voice gateway close event codes.
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u16)]
-pub enum CloseCode {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct CloseCode(u16);
+
+impl CloseCode {
     /// An invalid opcode was sent.
-    UnknownOpcode = 4001,
+    pub const UNKNOWN_OPCODE: Self = Self::new(4001);
+
     /// An invalid payload was sent.
-    DecodeError = 4002,
+    pub const DECODE_ERROR: Self = Self::new(4002);
+
     /// A payload was sent prior to identifying.
-    NotAuthenticated = 4003,
+    pub const NOT_AUTHENTICATED: Self = Self::new(4003);
+
     /// An invalid token was sent when identifying.
-    AuthenticationFailed = 4004,
+    pub const AUTHENTICATION_FAILED: Self = Self::new(4004);
+
     /// Multiple identify payloads were sent.
-    AlreadyAuthenticated = 4005,
+    pub const ALREADY_AUTHENTICATED: Self = Self::new(4005);
+
     /// The session was invalidated.
-    SessionNoLongerValid = 4006,
+    pub const SESSION_NO_LONGER_VALID: Self = Self::new(4006);
+
     /// The session timed out.
-    SessionTimedOut = 4009,
+    pub const SESSION_TIMED_OUT: Self = Self::new(4009);
+
     /// The specified voice server was not found.
-    ServerNotFound = 4011,
+    pub const SERVER_NOT_FOUND: Self = Self::new(4011);
+
     /// An unknown protocol was sent.
-    UnknownProtocol = 4012,
+    pub const UNKNOWN_PROTOCOL: Self = Self::new(4012);
+
     /// Disconnected from the voice channel.
-    Disconnected = 4014,
+    pub const DISCONNECTED: Self = Self::new(4014);
+
     /// The voice server crashed.
-    VoiceServerCrashed = 4015,
+    pub const VOICE_SERVER_CRASHED: Self = Self::new(4015);
+
     /// The encryption could not be recognized.
-    UnknownEncryptionMode = 4016,
+    pub const UNKNOWN_ENCRYPTION_MODE: Self = Self::new(4016);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::UNKNOWN_OPCODE => "UNKNOWN_OPCODE",
+            Self::DECODE_ERROR => "DECODE_ERROR",
+            Self::NOT_AUTHENTICATED => "NOT_AUTHENTICATED",
+            Self::AUTHENTICATION_FAILED => "AUTHENTICATION_FAILED",
+            Self::ALREADY_AUTHENTICATED => "ALREADY_AUTHENTICATED",
+            Self::SESSION_NO_LONGER_VALID => "SESSION_NO_LONGER_VALID",
+            Self::SESSION_TIMED_OUT => "SESSION_TIMED_OUT",
+            Self::SERVER_NOT_FOUND => "SERVER_NOT_FOUND",
+            Self::UNKNOWN_PROTOCOL => "UNKNOWN_PROTOCOL",
+            Self::DISCONNECTED => "DISCONNECTED",
+            Self::VOICE_SERVER_CRASHED => "VOICE_SERVER_CRASHED",
+            Self::UNKNOWN_ENCRYPTION_MODE => "UNKNOWN_ENCRYPTION_MODE",
+            _ => return None,
+        })
+    }
 }
+
+impl_typed!(CloseCode, u16);
 
 #[cfg(test)]
 mod tests {
     use super::CloseCode;
     use serde_test::Token;
 
+    const MAP: &[(CloseCode, u16)] = &[
+        (CloseCode::UNKNOWN_OPCODE, 4001),
+        (CloseCode::DECODE_ERROR, 4002),
+        (CloseCode::NOT_AUTHENTICATED, 4003),
+        (CloseCode::AUTHENTICATION_FAILED, 4004),
+        (CloseCode::ALREADY_AUTHENTICATED, 4005),
+        (CloseCode::SESSION_NO_LONGER_VALID, 4006),
+        (CloseCode::SESSION_TIMED_OUT, 4009),
+        (CloseCode::SERVER_NOT_FOUND, 4011),
+        (CloseCode::UNKNOWN_PROTOCOL, 4012),
+        (CloseCode::DISCONNECTED, 4014),
+        (CloseCode::VOICE_SERVER_CRASHED, 4015),
+        (CloseCode::UNKNOWN_ENCRYPTION_MODE, 4016),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&CloseCode::UnknownOpcode, &[Token::U16(4001)]);
-        serde_test::assert_tokens(&CloseCode::DecodeError, &[Token::U16(4002)]);
-        serde_test::assert_tokens(&CloseCode::NotAuthenticated, &[Token::U16(4003)]);
-        serde_test::assert_tokens(&CloseCode::AuthenticationFailed, &[Token::U16(4004)]);
-        serde_test::assert_tokens(&CloseCode::AlreadyAuthenticated, &[Token::U16(4005)]);
-        serde_test::assert_tokens(&CloseCode::SessionTimedOut, &[Token::U16(4009)]);
-        serde_test::assert_tokens(&CloseCode::ServerNotFound, &[Token::U16(4011)]);
-        serde_test::assert_tokens(&CloseCode::UnknownProtocol, &[Token::U16(4012)]);
-        serde_test::assert_tokens(&CloseCode::Disconnected, &[Token::U16(4014)]);
-        serde_test::assert_tokens(&CloseCode::VoiceServerCrashed, &[Token::U16(4015)]);
-        serde_test::assert_tokens(&CloseCode::UnknownEncryptionMode, &[Token::U16(4016)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[Token::NewtypeStruct { name: "CloseCode" }, Token::U16(*num)],
+            );
+            assert_eq!(*kind, CloseCode::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

@@ -156,8 +156,8 @@ pub enum ConnectionStatus {
     /// [invalid intents], or other reasons. Refer to the documentation for
     /// [`CloseCode`] for possible reasons.
     ///
-    /// [failed authentication]: CloseCode::AuthenticationFailed
-    /// [invalid intents]: CloseCode::InvalidIntents
+    /// [failed authentication]: CloseCode::AUTHENTICATION_FAILED
+    /// [invalid intents]: CloseCode::INVALID_INTENTS
     FatallyClosed {
         /// Close code of the close message.
         close_code: CloseCode,
@@ -961,7 +961,7 @@ impl Shard {
         }
 
         match OpCode::from(raw_opcode) {
-            Some(OpCode::Dispatch) => {
+            OpCode::DISPATCH => {
                 let event_type = maybe_event_type.ok_or(ProcessError {
                     kind: ProcessErrorType::Deserializing {
                         event: event.to_owned(),
@@ -1011,11 +1011,11 @@ impl Shard {
                     tracing::info!("unable to store sequence");
                 }
             }
-            Some(OpCode::Heartbeat) => {
+            OpCode::HEARTBEAT => {
                 tracing::debug!("received heartbeat");
                 self.heartbeat().await.map_err(ProcessError::from_send)?;
             }
-            Some(OpCode::HeartbeatAck) => {
+            OpCode::HEARTBEAT_ACK => {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
                 if requested {
                     tracing::debug!("received heartbeat ack");
@@ -1024,7 +1024,7 @@ impl Shard {
                     tracing::info!("received unrequested heartbeat ack");
                 }
             }
-            Some(OpCode::Hello) => {
+            OpCode::HELLO => {
                 let event = Self::parse_event::<Hello>(event)?;
                 let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
                 // First heartbeat should have some jitter, see
@@ -1066,7 +1066,7 @@ impl Shard {
                     }
                 }
             }
-            Some(OpCode::InvalidSession) => {
+            OpCode::INVALID_SESSION => {
                 let resumable = Self::parse_event(event)?.data;
                 tracing::debug!(resumable, "received invalid session");
                 if resumable {
@@ -1080,7 +1080,7 @@ impl Shard {
                         .map_err(ProcessError::from_send)?;
                 }
             }
-            Some(OpCode::Reconnect) => {
+            OpCode::RECONNECT => {
                 tracing::debug!("received reconnect");
                 self.session = self
                     .close(CloseFrame::RESUME)
@@ -1200,7 +1200,7 @@ mod tests {
             }
         );
 
-        let non_fatal_code = CloseCode::SessionTimedOut as u16;
+        let non_fatal_code = CloseCode::SESSION_TIMED_OUT.get();
         let non_fatal_status = ConnectionStatus::from_close_code(Some(non_fatal_code));
 
         assert_eq!(
@@ -1211,8 +1211,8 @@ mod tests {
             }
         );
 
-        let fatal_code = CloseCode::AuthenticationFailed;
-        let fatal_status = ConnectionStatus::from_close_code(Some(fatal_code as u16));
+        let fatal_code = CloseCode::AUTHENTICATION_FAILED;
+        let fatal_status = ConnectionStatus::from_close_code(Some(fatal_code.get()));
 
         assert_eq!(
             fatal_status,

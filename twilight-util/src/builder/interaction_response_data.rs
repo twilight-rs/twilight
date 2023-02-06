@@ -16,7 +16,7 @@ use twilight_model::{
 ///
 /// let component = Component::ActionRow(ActionRow {
 ///     components: Vec::from([Component::Button(Button {
-///         style: ButtonStyle::Primary,
+///         style: ButtonStyle::PRIMARY,
 ///         emoji: None,
 ///         label: Some("Button label".to_string()),
 ///         custom_id: Some("button_id".to_string()),
@@ -83,9 +83,9 @@ impl InteractionResponseDataBuilder {
     /// Set the autocomplete choices of the response.
     ///
     /// Only valid when the type of the interaction is
-    /// [`ApplicationCommandAutocompleteResult`].
+    /// [`APPLICATION_COMMAND_AUTOCOMPLETE_RESULT`].
     ///
-    /// [`ApplicationCommandAutocompleteResult`]: twilight_model::http::interaction::InteractionResponseType::ApplicationCommandAutocompleteResult
+    /// [`APPLICATION_COMMAND_AUTOCOMPLETE_RESULT`]: twilight_model::http::interaction::InteractionResponseType::APPLICATION_COMMAND_AUTOCOMPLETE_RESULT
     pub fn choices(mut self, choices: impl IntoIterator<Item = CommandOptionChoice>) -> Self {
         self.0.choices = Some(choices.into_iter().collect());
 
@@ -191,12 +191,12 @@ mod tests {
     #[test]
     fn callback_data_builder() {
         let allowed_mentions = AllowedMentions {
-            parse: Vec::from([MentionType::Everyone]),
+            parse: Vec::from([MentionType::EVERYONE]),
             ..Default::default()
         };
 
         let component = Component::Button(Button {
-            style: ButtonStyle::Primary,
+            style: ButtonStyle::PRIMARY,
             emoji: None,
             label: Some("test label".into()),
             custom_id: Some("test custom id".into()),

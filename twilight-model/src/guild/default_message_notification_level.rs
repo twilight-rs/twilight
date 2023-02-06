@@ -1,47 +1,51 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum DefaultMessageNotificationLevel {
-    All,
-    Mentions,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct DefaultMessageNotificationLevel(u8);
 
-impl From<u8> for DefaultMessageNotificationLevel {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => DefaultMessageNotificationLevel::All,
-            1 => DefaultMessageNotificationLevel::Mentions,
-            unknown => DefaultMessageNotificationLevel::Unknown(unknown),
-        }
+impl DefaultMessageNotificationLevel {
+    pub const ALL: Self = Self::new(0);
+
+    pub const MENTIONS: Self = Self::new(1);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ALL => "ALL",
+            Self::MENTIONS => "MENTIONS",
+            _ => return None,
+        })
     }
 }
 
-impl From<DefaultMessageNotificationLevel> for u8 {
-    fn from(value: DefaultMessageNotificationLevel) -> Self {
-        match value {
-            DefaultMessageNotificationLevel::All => 0,
-            DefaultMessageNotificationLevel::Mentions => 1,
-            DefaultMessageNotificationLevel::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(DefaultMessageNotificationLevel, u8);
 
 #[cfg(test)]
 mod tests {
     use super::DefaultMessageNotificationLevel;
     use serde_test::Token;
 
+    const MAP: &[(DefaultMessageNotificationLevel, u8)] = &[
+        (DefaultMessageNotificationLevel::ALL, 0),
+        (DefaultMessageNotificationLevel::MENTIONS, 1),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&DefaultMessageNotificationLevel::All, &[Token::U8(0)]);
-        serde_test::assert_tokens(&DefaultMessageNotificationLevel::Mentions, &[Token::U8(1)]);
-        serde_test::assert_tokens(
-            &DefaultMessageNotificationLevel::Unknown(99),
-            &[Token::U8(99)],
-        );
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "DefaultMessageNotificationLevel",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, DefaultMessageNotificationLevel::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

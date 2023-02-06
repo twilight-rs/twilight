@@ -1,4 +1,4 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
 /// Pop-up [`Component`] that renders on modals.
 ///
@@ -28,22 +28,36 @@ pub struct TextInput {
 }
 
 /// Style of an [`TextInput`].
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
-pub enum TextInputStyle {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct TextInputStyle(u8);
+
+impl TextInputStyle {
     /// Intended for short single-line text.
-    Short = 1,
+    pub const SHORT: Self = Self::new(1);
+
     /// Intended for much longer inputs.
-    Paragraph = 2,
+    pub const PARAGRAPH: Self = Self::new(2);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::PARAGRAPH => "PARAGRAPH",
+            Self::SHORT => "SHORT",
+            _ => return None,
+        })
+    }
 }
+
+impl_typed!(TextInputStyle, u8);
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
-    use static_assertions::{assert_fields, assert_impl_all, const_assert_eq};
+    use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(
@@ -69,12 +83,26 @@ mod tests {
         Serialize,
         Sync
     );
-    const_assert_eq!(1, TextInputStyle::Short as u8);
-    const_assert_eq!(2, TextInputStyle::Paragraph as u8);
 
     #[test]
     fn text_input_style() {
-        serde_test::assert_tokens(&TextInputStyle::Short, &[Token::U8(1)]);
-        serde_test::assert_tokens(&TextInputStyle::Paragraph, &[Token::U8(2)]);
+        serde_test::assert_tokens(
+            &TextInputStyle::SHORT,
+            &[
+                Token::NewtypeStruct {
+                    name: "TextInputStyle",
+                },
+                Token::U8(1),
+            ],
+        );
+        serde_test::assert_tokens(
+            &TextInputStyle::PARAGRAPH,
+            &[
+                Token::NewtypeStruct {
+                    name: "TextInputStyle",
+                },
+                Token::U8(2),
+            ],
+        );
     }
 }

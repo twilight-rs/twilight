@@ -173,7 +173,7 @@ impl<'a> CreateInvite<'a> {
 
     /// Set the target application ID for this invite.
     ///
-    /// This only works if [`target_type`] is set to [`TargetType::EmbeddedApplication`].
+    /// This only works if [`target_type`] is set to [`TargetType::EMBEDDED_APPLICATION`].
     ///
     /// [`target_type`]: Self::target_type
     pub const fn target_application_id(

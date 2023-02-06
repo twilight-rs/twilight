@@ -1,93 +1,65 @@
 use serde::{Deserialize, Serialize};
 
 // Keep in sync with `twilight-validate::command`!
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum CommandType {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct CommandType(u8);
+
+impl CommandType {
     /// Slash command.
     ///
     /// Text-based command that appears when a user types `/`.
-    ChatInput,
+    pub const CHAT_INPUT: Self = Self::new(1);
+
     /// UI-based command.
     ///
     /// Appears when a user right clicks or taps on a user.
-    User,
+    pub const USER: Self = Self::new(2);
+
     /// UI-based command.
     ///
     /// Appears when a user right clicks or taps on a message.
-    Message,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+    pub const MESSAGE: Self = Self::new(3);
 
-impl CommandType {
-    pub const fn kind(self) -> &'static str {
-        match self {
-            Self::ChatInput => "ChatInput",
-            Self::User => "User",
-            Self::Message => "Message",
-            Self::Unknown(_) => "Unknown",
-        }
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::CHAT_INPUT => "CHAT_INPUT",
+            Self::MESSAGE => "MESSAGE",
+            Self::USER => "USER",
+            _ => return None,
+        })
     }
 }
 
-impl From<u8> for CommandType {
-    fn from(value: u8) -> Self {
-        match value {
-            1 => Self::ChatInput,
-            2 => Self::User,
-            3 => Self::Message,
-            unknown => Self::Unknown(unknown),
-        }
-    }
-}
-
-impl From<CommandType> for u8 {
-    fn from(value: CommandType) -> Self {
-        match value {
-            CommandType::ChatInput => 1,
-            CommandType::User => 2,
-            CommandType::Message => 3,
-            CommandType::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(CommandType, u8);
 
 #[cfg(test)]
 mod tests {
     use super::CommandType;
-    use serde::{Deserialize, Serialize};
     use serde_test::Token;
-    use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, hash::Hash};
 
-    assert_impl_all!(
-        CommandType: Clone,
-        Copy,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        Hash,
-        PartialEq,
-        Serialize,
-        Send,
-        Sync
-    );
+    const MAP: &[(CommandType, u8)] = &[
+        (CommandType::CHAT_INPUT, 1),
+        (CommandType::USER, 2),
+        (CommandType::MESSAGE, 3),
+    ];
 
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&CommandType::ChatInput, &[Token::U8(1)]);
-        serde_test::assert_tokens(&CommandType::User, &[Token::U8(2)]);
-        serde_test::assert_tokens(&CommandType::Message, &[Token::U8(3)]);
-        serde_test::assert_tokens(&CommandType::Unknown(99), &[Token::U8(99)]);
-    }
-
-    #[test]
-    fn kinds() {
-        assert_eq!("ChatInput", CommandType::ChatInput.kind());
-        assert_eq!("User", CommandType::User.kind());
-        assert_eq!("Message", CommandType::Message.kind());
-        assert_eq!("Unknown", CommandType::Unknown(99).kind());
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "CommandType",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, CommandType::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

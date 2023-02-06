@@ -1,32 +1,25 @@
 use serde::{Deserialize, Serialize};
 
 /// Indicates in what event context a rule should be checked.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(from = "u8", into = "u8")]
-pub enum AutoModerationEventType {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct AutoModerationEventType(u8);
+
+impl AutoModerationEventType {
     /// When a member sends or edits a message in a guild.
-    MessageSend,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+    pub const MESSAGE_SEND: Self = Self::new(1);
 
-impl From<u8> for AutoModerationEventType {
-    fn from(value: u8) -> Self {
-        match value {
-            1 => Self::MessageSend,
-            _ => Self::Unknown(value),
-        }
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::MESSAGE_SEND => "MESSAGE_SEND",
+            _ => return None,
+        })
     }
 }
 
-impl From<AutoModerationEventType> for u8 {
-    fn from(value: AutoModerationEventType) -> Self {
-        match value {
-            AutoModerationEventType::MessageSend => 1,
-            AutoModerationEventType::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(AutoModerationEventType, u8);
 
 #[cfg(test)]
 mod tests {
@@ -50,7 +43,7 @@ mod tests {
 
     #[test]
     fn values() {
-        assert_eq!(1, u8::from(AutoModerationEventType::MessageSend));
-        assert_eq!(250, u8::from(AutoModerationEventType::Unknown(250)));
+        assert_eq!(1, u8::from(AutoModerationEventType::MESSAGE_SEND));
+        assert_eq!(250, u8::from(AutoModerationEventType::new(250)));
     }
 }

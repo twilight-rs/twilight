@@ -52,9 +52,9 @@ mod tests {
             allow_list: Some(Vec::from(["heck".into()])),
             keyword_filter: Some(Vec::from(["shoot".into(), "darn".into()])),
             presets: Some(Vec::from([
-                AutoModerationKeywordPresetType::Profanity,
-                AutoModerationKeywordPresetType::SexualContent,
-                AutoModerationKeywordPresetType::Slurs,
+                AutoModerationKeywordPresetType::PROFANITY,
+                AutoModerationKeywordPresetType::SEXUAL_CONTENT,
+                AutoModerationKeywordPresetType::SLURS,
             ])),
         };
 
@@ -79,9 +79,18 @@ mod tests {
                 Token::Str("presets"),
                 Token::Some,
                 Token::Seq { len: Some(3) },
-                Token::U8(u8::from(AutoModerationKeywordPresetType::Profanity)),
-                Token::U8(u8::from(AutoModerationKeywordPresetType::SexualContent)),
-                Token::U8(u8::from(AutoModerationKeywordPresetType::Slurs)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationKeywordPresetType",
+                },
+                Token::U8(u8::from(AutoModerationKeywordPresetType::PROFANITY)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationKeywordPresetType",
+                },
+                Token::U8(u8::from(AutoModerationKeywordPresetType::SEXUAL_CONTENT)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationKeywordPresetType",
+                },
+                Token::U8(u8::from(AutoModerationKeywordPresetType::SLURS)),
                 Token::SeqEnd,
                 Token::StructEnd,
             ],

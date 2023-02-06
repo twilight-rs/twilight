@@ -77,7 +77,7 @@ mod tests {
     #[test]
     fn serde() {
         let value = AuditLogEntry {
-            action_type: AuditLogEventType::GuildUpdate,
+            action_type: AuditLogEventType::GUILD_UPDATE,
             changes: Vec::from([AuditLogChange::IconHash {
                 new: None,
                 old: Some(image_hash::ICON),
@@ -98,7 +98,10 @@ mod tests {
                     len: 6,
                 },
                 Token::Str("action_type"),
-                Token::U16(AuditLogEventType::GuildUpdate.into()),
+                Token::NewtypeStruct {
+                    name: "AuditLogEventType",
+                },
+                Token::U16(AuditLogEventType::GUILD_UPDATE.get()),
                 Token::Str("changes"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

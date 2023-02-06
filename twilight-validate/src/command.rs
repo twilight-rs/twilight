@@ -285,7 +285,7 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
         ..
     } = value;
 
-    if *kind == CommandType::ChatInput {
+    if *kind == CommandType::CHAT_INPUT {
         self::description(description)?;
         if let Some(description_localizations) = description_localizations {
             for description in description_localizations.values() {
@@ -300,22 +300,20 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
 
     if let Some(name_localizations) = name_localizations {
         for name in name_localizations.values() {
-            match kind {
-                CommandType::ChatInput => self::chat_input_name(name)?,
-                CommandType::User | CommandType::Message => {
+            match *kind {
+                CommandType::CHAT_INPUT => self::chat_input_name(name)?,
+                CommandType::USER | CommandType::MESSAGE => {
                     self::name(name)?;
                 }
-                CommandType::Unknown(_) => (),
-                _ => unimplemented!(),
+                _ => {}
             }
         }
     }
 
-    match kind {
-        CommandType::ChatInput => self::chat_input_name(name),
-        CommandType::User | CommandType::Message => self::name(name),
-        CommandType::Unknown(_) => Ok(()),
-        _ => unimplemented!(),
+    match *kind {
+        CommandType::CHAT_INPUT => self::chat_input_name(name),
+        CommandType::USER | CommandType::MESSAGE => self::name(name),
+        _ => Ok(()),
     }
 }
 
@@ -344,7 +342,7 @@ pub fn option_characters(option: &CommandOption) -> usize {
         longest_localization_characters(&option.description, &option.description_localizations);
 
     match option.kind {
-        CommandOptionType::String => {
+        CommandOptionType::STRING => {
             if let Some(choices) = option.choices.as_ref() {
                 for choice in choices {
                     if let CommandOptionChoiceValue::String(string_choice) = &choice.value {
@@ -356,7 +354,7 @@ pub fn option_characters(option: &CommandOption) -> usize {
                 }
             }
         }
-        CommandOptionType::SubCommandGroup | CommandOptionType::SubCommand => {
+        CommandOptionType::SUB_COMMAND_GROUP | CommandOptionType::SUB_COMMAND => {
             if let Some(options) = option.options.as_ref() {
                 for option in options {
                     characters += option_characters(option);
@@ -427,9 +425,9 @@ pub fn description(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 ///
 /// Returns an error of type [`NameLengthInvalid`] if the name is invalid.
 ///
-/// [`User`]: CommandType::User
-/// [`Message`]: CommandType::Message
-/// [`ChatInput`]: CommandType::ChatInput
+/// [`User`]: CommandType::USER
+/// [`Message`]: CommandType::MESSAGE
+/// [`ChatInput`]: CommandType::CHAT_INPUT
 /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
 pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     let len = value.as_ref().chars().count();
@@ -459,7 +457,7 @@ pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
 /// non-alphanumeric character or an uppercase character for which a lowercase
 /// variant exists.
 ///
-/// [`ChatInput`]: CommandType::ChatInput
+/// [`ChatInput`]: CommandType::CHAT_INPUT
 /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
 /// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 pub fn chat_input_name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
@@ -513,7 +511,7 @@ pub fn option_name(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 /// non-alphanumeric character or an uppercase character for which a lowercase
 /// variant exists.
 ///
-/// [`ChatInput`]: CommandType::ChatInput
+/// [`ChatInput`]: CommandType::CHAT_INPUT
 /// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 fn name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     let chars = value.as_ref().chars();
@@ -661,7 +659,7 @@ mod tests {
             )])),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             name: "b".repeat(32),
             name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
             nsfw: None,
@@ -680,7 +678,7 @@ mod tests {
 
         let valid_context_menu_command = Command {
             description: String::new(),
-            kind: CommandType::Message,
+            kind: CommandType::MESSAGE,
             ..valid_command.clone()
         };
 
@@ -688,7 +686,7 @@ mod tests {
 
         let invalid_context_menu_command = Command {
             description: "example description".to_string(),
-            kind: CommandType::Message,
+            kind: CommandType::MESSAGE,
             ..valid_command
         };
 
@@ -731,7 +729,7 @@ mod tests {
             )])),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             name: "b".repeat(10),
             name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
             nsfw: None,
@@ -744,7 +742,7 @@ mod tests {
                     "en-US".to_string(),
                     "a".repeat(100),
                 )])),
-                kind: CommandOptionType::SubCommandGroup,
+                kind: CommandOptionType::SUB_COMMAND_GROUP,
                 max_length: None,
                 max_value: None,
                 min_length: None,
@@ -760,7 +758,7 @@ mod tests {
                         "en-US".to_string(),
                         "a".repeat(10),
                     )])),
-                    kind: CommandOptionType::SubCommand,
+                    kind: CommandOptionType::SUB_COMMAND,
                     max_length: None,
                     max_value: None,
                     min_length: None,
@@ -786,7 +784,7 @@ mod tests {
                             "en-US".to_string(),
                             "a".repeat(10),
                         )])),
-                        kind: CommandOptionType::String,
+                        kind: CommandOptionType::STRING,
                         max_length: None,
                         max_value: None,
                         min_length: None,
@@ -827,7 +825,7 @@ mod tests {
             choices: None,
             description: "a description".to_owned(),
             description_localizations: None,
-            kind: CommandOptionType::String,
+            kind: CommandOptionType::STRING,
             max_length: None,
             max_value: None,
             min_length: None,

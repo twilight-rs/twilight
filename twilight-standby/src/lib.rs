@@ -156,7 +156,7 @@ impl Standby {
 
         match event {
             Event::InteractionCreate(e) => {
-                if e.kind == InteractionType::MessageComponent {
+                if e.kind == InteractionType::MESSAGE_COMPONENT {
                     if let Some(message) = &e.message {
                         completions.add_with(&Self::process_specific_event(
                             &self.components,
@@ -216,7 +216,7 @@ impl Standby {
     /// let guild_id = Id::new(123);
     ///
     /// let reaction = standby
-    ///     .wait_for(guild_id, |event: &Event| event.kind() == EventType::BanAdd)
+    ///     .wait_for(guild_id, |event: &Event| event.kind() == EventType::BAN_ADD)
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -265,7 +265,7 @@ impl Standby {
     /// let guild_id = Id::new(123);
     ///
     /// let mut stream =
-    ///     standby.wait_for_stream(guild_id, |event: &Event| event.kind() == EventType::BanAdd);
+    ///     standby.wait_for_stream(guild_id, |event: &Event| event.kind() == EventType::BAN_ADD);
     ///
     /// while let Some(event) = stream.next().await {
     ///     if let Event::BanAdd(ban) = event {
@@ -1103,7 +1103,7 @@ mod tests {
             guild_id: Some(Id::new(4)),
             id: Id::new(3),
             interaction: None,
-            kind: MessageType::Regular,
+            kind: MessageType::REGULAR,
             member: None,
             mention_channels: Vec::new(),
             mention_everyone: false,
@@ -1143,14 +1143,14 @@ mod tests {
             data: Some(InteractionData::MessageComponent(
                 MessageComponentInteractionData {
                     custom_id: String::from("Click"),
-                    component_type: ComponentType::Button,
+                    component_type: ComponentType::BUTTON,
                     values: Vec::new(),
                 },
             )),
             guild_id: Some(Id::new(3)),
             guild_locale: None,
             id: Id::new(4),
-            kind: InteractionType::MessageComponent,
+            kind: InteractionType::MESSAGE_COMPONENT,
             locale: Some("en-GB".to_owned()),
             member: None,
             message: Some(message()),
@@ -1359,7 +1359,7 @@ mod tests {
     async fn test_wait_for_event_stream() {
         let standby = Standby::new();
         let mut stream =
-            standby.wait_for_event_stream(|event: &Event| event.kind() == EventType::Resumed);
+            standby.wait_for_event_stream(|event: &Event| event.kind() == EventType::RESUMED);
         standby.process(&Event::Resumed);
         assert_eq!(stream.next().await, Some(Event::Resumed));
         assert!(!standby.events.is_empty());
@@ -1481,7 +1481,7 @@ mod tests {
     #[tokio::test]
     async fn test_handles_wrong_events() {
         let standby = Standby::new();
-        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::Resumed);
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::RESUMED);
 
         standby.process(&Event::PresencesReplace);
         standby.process(&Event::PresencesReplace);
@@ -1499,17 +1499,18 @@ mod tests {
         let standby = Standby::new();
 
         // generic event handler gets message creates
-        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::MessageCreate);
+        let wait =
+            standby.wait_for_event(|event: &Event| event.kind() == EventType::MESSAGE_CREATE);
         standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
         assert!(matches!(wait.await, Ok(Event::MessageCreate(_))));
 
         // generic event handler gets reaction adds
-        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::ReactionAdd);
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::REACTION_ADD);
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
         assert!(matches!(wait.await, Ok(Event::ReactionAdd(_))));
 
         // generic event handler gets other guild events
-        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::RoleDelete);
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::ROLE_DELETE);
         standby.process(&Event::RoleDelete(RoleDelete {
             guild_id: Id::new(1),
             role_id: Id::new(2),
@@ -1518,7 +1519,7 @@ mod tests {
 
         // guild event handler gets message creates or reaction events
         let wait = standby.wait_for(Id::new(1), |event: &Event| {
-            event.kind() == EventType::ReactionAdd
+            event.kind() == EventType::REACTION_ADD
         });
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
         assert!(matches!(wait.await, Ok(Event::ReactionAdd(_))));

@@ -6,7 +6,6 @@ use crate::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
 };
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Interaction response sent to Discord.
 ///
@@ -21,15 +20,15 @@ pub struct InteractionResponse {
     /// Data of the response.
     ///
     /// This is required if the type is any of the following:
-    /// - [`ChannelMessageWithSource`]
-    /// - [`UpdateMessage`]
-    /// - [`Modal`]
-    /// - [`ApplicationCommandAutocompleteResult`]
+    /// - [`CHANNEL_MESSAGE_WITH_SOURCE`]
+    /// - [`UPDATE_MESSAGE`]
+    /// - [`MODAL`]
+    /// - [`APPLICATION_COMMAND_AUTOCOMPLETE_RESULT`]
     ///
-    /// [`ApplicationCommandAutocompleteResult`]: InteractionResponseType::ApplicationCommandAutocompleteResult
-    /// [`ChannelMessageWithSource`]: InteractionResponseType::ChannelMessageWithSource
-    /// [`Modal`]: InteractionResponseType::Modal
-    /// [`UpdateMessage`]: InteractionResponseType::UpdateMessage
+    /// [`APPLICATION_COMMAND_AUTOCOMPLETE_RESULT`]: InteractionResponseType::APPLICATION_COMMAND_AUTOCOMPLETE_RESULT
+    /// [`CHANNEL_MESSAGE_WITH_SOURCE`]: InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE
+    /// [`MODAL`]: InteractionResponseType::MODAL
+    /// [`UPDATE_MESSAGE`]: InteractionResponseType::UPDATE_MESSAGE
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<InteractionResponseData>,
 }
@@ -46,7 +45,7 @@ pub struct InteractionResponseData {
     /// List of autocomplete alternatives.
     ///
     /// Can only be used with
-    /// [`InteractionResponseType::ApplicationCommandAutocompleteResult`].
+    /// [`InteractionResponseType::APPLICATION_COMMAND_AUTOCOMPLETE_RESULT`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub choices: Option<Vec<CommandOptionChoice>>,
     /// List of components on the response.
@@ -55,7 +54,7 @@ pub struct InteractionResponseData {
     /// Content of the response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
-    /// For [`InteractionResponseType::Modal`], user defined identifier.
+    /// For [`InteractionResponseType::MODAL`], user defined identifier.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub custom_id: Option<String>,
     /// Embeds of the response.
@@ -67,7 +66,7 @@ pub struct InteractionResponseData {
     /// [`MessageFlags::EPHEMERAL`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
-    /// For [`InteractionResponseType::Modal`], title of the modal.
+    /// For [`InteractionResponseType::MODAL`], title of the modal.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     /// Whether the response is TTS.
@@ -76,31 +75,57 @@ pub struct InteractionResponseData {
 }
 
 /// Type of interaction response.
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
-pub enum InteractionResponseType {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct InteractionResponseType(u8);
+
+impl InteractionResponseType {
     /// Used when responding to a Ping from Discord.
-    Pong = 1,
+    pub const PONG: Self = Self::new(1);
+
     /// Responds to an interaction with a message.
-    ChannelMessageWithSource = 4,
+    pub const CHANNEL_MESSAGE_WITH_SOURCE: Self = Self::new(4);
+
     /// Acknowledges an interaction, showing a loading state, and allowing for
     /// the message to be edited later.
-    DeferredChannelMessageWithSource = 5,
+    pub const DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE: Self = Self::new(5);
+
     /// Acknowledges a component interaction, allowing for the message to be
     /// edited later.
     ///
     /// This is only valid for components and modal submits.
-    DeferredUpdateMessage = 6,
+    pub const DEFERRED_UPDATE_MESSAGE: Self = Self::new(6);
+
     /// Acknowledges a component interaction and edits the message.
     ///
     /// This is only valid for components and modal submits.
-    UpdateMessage = 7,
+    pub const UPDATE_MESSAGE: Self = Self::new(7);
+
     /// Respond to an autocomplete interaction with suggested choices.
-    ApplicationCommandAutocompleteResult = 8,
+    pub const APPLICATION_COMMAND_AUTOCOMPLETE_RESULT: Self = Self::new(8);
+
     /// Respond to an interaction with a popup modal.
-    Modal = 9,
+    pub const MODAL: Self = Self::new(9);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::APPLICATION_COMMAND_AUTOCOMPLETE_RESULT => {
+                "Self::APPLICATION_COMMAND_AUTOCOMPLETE_RESULT"
+            }
+            Self::CHANNEL_MESSAGE_WITH_SOURCE => "CHANNEL_MESSAGE_WITH_SOURCE",
+            Self::DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE => "DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE",
+            Self::DEFERRED_UPDATE_MESSAGE => "DEFERRED_UPDATE_MESSAGE",
+            Self::MODAL => "MODAL",
+            Self::PONG => "PONG",
+            Self::UPDATE_MESSAGE => "UPDATE_MESSAGE",
+            _ => return None,
+        })
+    }
 }
+
+impl_typed!(InteractionResponseType, u8);
 
 #[cfg(test)]
 mod tests {
@@ -138,7 +163,7 @@ mod tests {
     #[test]
     fn interaction_response() {
         let value = InteractionResponse {
-            kind: InteractionResponseType::ChannelMessageWithSource,
+            kind: InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE,
             data: Some(InteractionResponseData {
                 allowed_mentions: None,
                 attachments: None,
@@ -161,6 +186,9 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "InteractionResponseType",
+                },
                 Token::U8(4),
                 Token::Str("data"),
                 Token::Some,
@@ -183,7 +211,7 @@ mod tests {
     #[test]
     fn interaction_response_with_attachments() {
         let value = InteractionResponse {
-            kind: InteractionResponseType::ChannelMessageWithSource,
+            kind: InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE,
             data: Some(InteractionResponseData {
                 attachments: Some(Vec::from([Attachment {
                     description: None,
@@ -203,7 +231,10 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("type"),
-                Token::U8(InteractionResponseType::ChannelMessageWithSource as u8),
+                Token::NewtypeStruct {
+                    name: "InteractionResponseType",
+                },
+                Token::U8(InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE.get()),
                 Token::Str("data"),
                 Token::Some,
                 Token::Struct {

@@ -167,7 +167,11 @@ impl Display for ReceiveMessageError {
             ReceiveMessageErrorType::FatallyClosed { close_code } => {
                 f.write_str("shard fatally closed: ")?;
 
-                Display::fmt(&close_code, f)
+                if let Some(name) = close_code.name() {
+                    Display::fmt(&name, f)
+                } else {
+                    Display::fmt(&close_code.get(), f)
+                }
             }
             ReceiveMessageErrorType::Io => f.write_str("websocket connection error"),
             ReceiveMessageErrorType::Process => {
@@ -338,9 +342,9 @@ mod tests {
             ),
             (
                 ReceiveMessageErrorType::FatallyClosed {
-                    close_code: CloseCode::InvalidIntents,
+                    close_code: CloseCode::INVALID_INTENTS,
                 },
-                "shard fatally closed: Invalid Intents",
+                "shard fatally closed: INVALID_INTENTS",
             ),
             (ReceiveMessageErrorType::Io, "websocket connection error"),
             (
@@ -368,7 +372,7 @@ mod tests {
     fn receive_message_error_is_fatal() {
         let fatal = ReceiveMessageError {
             kind: ReceiveMessageErrorType::FatallyClosed {
-                close_code: CloseCode::AuthenticationFailed,
+                close_code: CloseCode::AUTHENTICATION_FAILED,
             },
             source: None,
         };

@@ -1,15 +1,15 @@
-//! [`MessageComponent`] interaction.
+//! [`MESSAGE_COMPONENT`] interaction.
 //!
-//! [`MessageComponent`]: crate::application::interaction::InteractionType::MessageComponent
+//! [`MESSAGE_COMPONENT`]: crate::application::interaction::InteractionType::MESSAGE_COMPONENT
 
 use crate::channel::message::component::ComponentType;
 use serde::{Deserialize, Serialize};
 
-/// Data received when an [`MessageComponent`] interaction is executed.
+/// Data received when an [`MESSAGE_COMPONENT`] interaction is executed.
 ///
 /// See [Discord Docs/Message Component Data Structure].
 ///
-/// [`MessageComponent`]: crate::application::interaction::InteractionType::MessageComponent
+/// [`MESSAGE_COMPONENT`]: crate::application::interaction::InteractionType::MESSAGE_COMPONENT
 /// [Discord Docs/Message Component Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-message-component-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageComponentInteractionData {
@@ -23,9 +23,9 @@ pub struct MessageComponentInteractionData {
     pub component_type: ComponentType,
     /// Values selected by the user.
     ///
-    /// Only used for [`SelectMenu`] components.
+    /// Only used for [`SELECT_MENU`] components.
     ///
-    /// [`SelectMenu`]: ComponentType::SelectMenu
+    /// [`SELECT_MENU`]: ComponentType::SELECT_MENU
     #[serde(default)]
     pub values: Vec<String>,
 }
@@ -60,7 +60,7 @@ mod tests {
     fn message_component_interaction_data() {
         let value = MessageComponentInteractionData {
             custom_id: "test".to_owned(),
-            component_type: ComponentType::Button,
+            component_type: ComponentType::BUTTON,
             values: Vec::from(["1".to_owned(), "2".to_owned()]),
         };
 
@@ -74,7 +74,10 @@ mod tests {
                 Token::String("custom_id"),
                 Token::String("test"),
                 Token::String("component_type"),
-                Token::U8(ComponentType::Button.into()),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
+                Token::U8(ComponentType::BUTTON.get()),
                 Token::String("values"),
                 Token::Seq { len: Some(2) },
                 Token::String("1"),

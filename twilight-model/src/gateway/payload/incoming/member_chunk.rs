@@ -437,10 +437,10 @@ mod tests {
                     client_status: ClientStatus {
                         desktop: None,
                         mobile: None,
-                        web: Some(Status::Online),
+                        web: Some(Status::ONLINE),
                     },
                     guild_id: Id::new(1),
-                    status: Status::Online,
+                    status: Status::ONLINE,
                     user: UserOrId::UserId { id: Id::new(2) },
                 },
                 Presence {
@@ -448,21 +448,21 @@ mod tests {
                     client_status: ClientStatus {
                         desktop: None,
                         mobile: None,
-                        web: Some(Status::Online),
+                        web: Some(Status::ONLINE),
                     },
                     guild_id: Id::new(1),
-                    status: Status::Online,
+                    status: Status::ONLINE,
                     user: UserOrId::UserId { id: Id::new(3) },
                 },
                 Presence {
                     activities: Vec::new(),
                     client_status: ClientStatus {
-                        desktop: Some(Status::DoNotDisturb),
+                        desktop: Some(Status::DO_NOT_DISTURB),
                         mobile: None,
                         web: None,
                     },
                     guild_id: Id::new(1),
-                    status: Status::DoNotDisturb,
+                    status: Status::DO_NOT_DISTURB,
                     user: UserOrId::UserId { id: Id::new(5) },
                 },
             ]),

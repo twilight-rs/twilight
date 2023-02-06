@@ -115,18 +115,18 @@ mod tests {
         let value = AutoModerationRule {
             actions: Vec::from([
                 AutoModerationAction {
-                    kind: AutoModerationActionType::BlockMessage,
+                    kind: AutoModerationActionType::BLOCK_MESSAGE,
                     metadata: None,
                 },
                 AutoModerationAction {
-                    kind: AutoModerationActionType::SendAlertMessage,
+                    kind: AutoModerationActionType::SEND_ALERT_MESSAGE,
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: Some(ACTION_CHANNEL_ID),
                         duration_seconds: None,
                     }),
                 },
                 AutoModerationAction {
-                    kind: AutoModerationActionType::Timeout,
+                    kind: AutoModerationActionType::TIMEOUT,
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: None,
                         duration_seconds: Some(120),
@@ -135,7 +135,7 @@ mod tests {
             ]),
             creator_id: CREATOR_ID,
             enabled: true,
-            event_type: AutoModerationEventType::MessageSend,
+            event_type: AutoModerationEventType::MESSAGE_SEND,
             exempt_channels: Vec::from([EXEMPT_CHANNEL_ID]),
             exempt_roles: Vec::from([EXEMPT_ROLE_ID]),
             guild_id: GUILD_ID,
@@ -146,7 +146,7 @@ mod tests {
                 keyword_filter: Some(Vec::from(["shoot".into(), "darn".into()])),
                 presets: None,
             },
-            trigger_type: AutoModerationTriggerType::Keyword,
+            trigger_type: AutoModerationTriggerType::KEYWORD,
         };
 
         serde_test::assert_tokens(
@@ -163,14 +163,20 @@ mod tests {
                     len: 1,
                 },
                 Token::Str("type"),
-                Token::U8(u8::from(AutoModerationActionType::BlockMessage)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationActionType",
+                },
+                Token::U8(u8::from(AutoModerationActionType::BLOCK_MESSAGE)),
                 Token::StructEnd,
                 Token::Struct {
                     name: "AutoModerationAction",
                     len: 2,
                 },
                 Token::Str("type"),
-                Token::U8(u8::from(AutoModerationActionType::SendAlertMessage)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationActionType",
+                },
+                Token::U8(u8::from(AutoModerationActionType::SEND_ALERT_MESSAGE)),
                 Token::Str("metadata"),
                 Token::Some,
                 Token::Struct {
@@ -188,7 +194,10 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("type"),
-                Token::U8(u8::from(AutoModerationActionType::Timeout)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationActionType",
+                },
+                Token::U8(u8::from(AutoModerationActionType::TIMEOUT)),
                 Token::Str("metadata"),
                 Token::Some,
                 Token::Struct {
@@ -207,7 +216,10 @@ mod tests {
                 Token::Str("enabled"),
                 Token::Bool(true),
                 Token::Str("event_type"),
-                Token::U8(u8::from(AutoModerationEventType::MessageSend)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationEventType",
+                },
+                Token::U8(u8::from(AutoModerationEventType::MESSAGE_SEND)),
                 Token::Str("exempt_channels"),
                 Token::Seq { len: Some(1) },
                 Token::NewtypeStruct { name: "Id" },
@@ -239,7 +251,10 @@ mod tests {
                 Token::SeqEnd,
                 Token::StructEnd,
                 Token::Str("trigger_type"),
-                Token::U8(u8::from(AutoModerationTriggerType::Keyword)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationTriggerType",
+                },
+                Token::U8(u8::from(AutoModerationTriggerType::KEYWORD)),
                 Token::StructEnd,
             ],
         );

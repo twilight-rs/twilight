@@ -22,7 +22,7 @@ mod tests {
     #[test]
     fn team_member() {
         let value = TeamMember {
-            membership_state: TeamMembershipState::Accepted,
+            membership_state: TeamMembershipState::ACCEPTED,
             permissions: vec!["*".to_owned()],
             team_id: Id::new(1),
             user: User {
@@ -52,6 +52,9 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("membership_state"),
+                Token::NewtypeStruct {
+                    name: "TeamMembershipState",
+                },
                 Token::U8(2),
                 Token::Str("permissions"),
                 Token::Seq { len: Some(1) },

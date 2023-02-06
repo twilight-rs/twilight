@@ -419,9 +419,9 @@ impl<'a> InMemoryCachePermissions<'a> {
             .map_err(ChannelError::from_member_roles)?;
 
         let overwrites = match channel.kind {
-            ChannelType::AnnouncementThread
-            | ChannelType::PrivateThread
-            | ChannelType::PublicThread => self.parent_overwrites(&channel)?,
+            ChannelType::ANNOUNCEMENT_THREAD
+            | ChannelType::PRIVATE_THREAD
+            | ChannelType::PUBLIC_THREAD => self.parent_overwrites(&channel)?,
             _ => channel.permission_overwrites.clone().unwrap_or_default(),
         };
 
@@ -715,11 +715,11 @@ mod tests {
             application_id: None,
             banner: None,
             channels: Vec::new(),
-            default_message_notifications: DefaultMessageNotificationLevel::Mentions,
+            default_message_notifications: DefaultMessageNotificationLevel::MENTIONS,
             description: None,
             discovery_splash: None,
             emojis: Vec::new(),
-            explicit_content_filter: ExplicitContentFilter::AllMembers,
+            explicit_content_filter: ExplicitContentFilter::ALL_MEMBERS,
             features: Vec::new(),
             icon: None,
             joined_at: None,
@@ -728,16 +728,16 @@ mod tests {
             max_presences: None,
             member_count: None,
             members: Vec::new(),
-            mfa_level: MfaLevel::Elevated,
+            mfa_level: MfaLevel::ELEVATED,
             name: "this is a guild".to_owned(),
-            nsfw_level: NSFWLevel::AgeRestricted,
+            nsfw_level: NSFWLevel::AGE_RESTRICTED,
             owner: Some(false),
             owner_id: OWNER_ID,
             permissions: None,
             preferred_locale: "en-GB".to_owned(),
             premium_progress_bar_enabled: false,
             premium_subscription_count: Some(0),
-            premium_tier: PremiumTier::None,
+            premium_tier: PremiumTier::NONE,
             presences: Vec::new(),
             public_updates_channel_id: None,
             roles: Vec::from([
@@ -756,7 +756,7 @@ mod tests {
             threads: Vec::new(),
             rules_channel_id: None,
             unavailable: false,
-            verification_level: VerificationLevel::VeryHigh,
+            verification_level: VerificationLevel::VERY_HIGH,
             voice_states: Vec::new(),
             vanity_url_code: None,
             widget_channel_id: None,
@@ -783,7 +783,7 @@ mod tests {
             icon: None,
             id: CHANNEL_ID,
             invitable: None,
-            kind: ChannelType::GuildText,
+            kind: ChannelType::GUILD_TEXT,
             last_message_id: None,
             last_pin_timestamp: None,
             member: None,
@@ -799,13 +799,13 @@ mod tests {
                     allow: Permissions::empty(),
                     deny: Permissions::CREATE_INVITE,
                     id: EVERYONE_ROLE_ID.cast(),
-                    kind: PermissionOverwriteType::Role,
+                    kind: PermissionOverwriteType::ROLE,
                 },
                 PermissionOverwrite {
                     allow: Permissions::EMBED_LINKS,
                     deny: Permissions::empty(),
                     id: USER_ID.cast(),
-                    kind: PermissionOverwriteType::Member,
+                    kind: PermissionOverwriteType::MEMBER,
                 },
             ])),
             position: Some(0),
@@ -835,7 +835,7 @@ mod tests {
             icon: None,
             id: THREAD_ID,
             invitable: None,
-            kind: ChannelType::PublicThread,
+            kind: ChannelType::PUBLIC_THREAD,
             last_message_id: None,
             last_pin_timestamp: None,
             member: None,
@@ -850,7 +850,7 @@ mod tests {
                 allow: Permissions::ATTACH_FILES,
                 deny: Permissions::empty(),
                 id: EVERYONE_ROLE_ID.cast(),
-                kind: PermissionOverwriteType::Role,
+                kind: PermissionOverwriteType::ROLE,
             }])),
             position: Some(0),
             rate_limit_per_user: None,

@@ -1,72 +1,83 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
 /// Gateway event opcodes.
 ///
 /// The documentation is written from a client's perspective.
 ///
-/// [`PresenceUpdate`], [`RequestGuildMembers`], and [`VoiceStateUpdate`] are
+/// [`PRESENCE_UPDATE`], [`REQUEST_GUILD_MEMBERS`], and [`VOICE_STATE_UPDATE`] are
 /// not requiried for establishing or maintaining a gateway connection.
 ///
-/// [`PresenceUpdate`]: Self::PresenceUpdate
-/// [`RequestGuildMembers`]: Self::RequestGuildMembers
-/// [`VoiceStateUpdate`]: Self::VoiceStateUpdate
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
-pub enum OpCode {
+/// [`PRESENCE_UPDATE`]: Self::PRESENCE_UPDATE
+/// [`REQUEST_GUILD_MEMBERS`]: Self::REQUEST_GUILD_MEMBERS
+/// [`VOICE_STATE_UPDATE`]: Self::VOICE_STATE_UPDATE
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct OpCode(u8);
+
+impl OpCode {
     /// [`DispatchEvent`] and sequence number.
     ///
     /// Will only be received after establishing or resuming a session.
     ///
     /// [`DispatchEvent`]: super::event::DispatchEvent
-    Dispatch = 0,
+    pub const DISPATCH: Self = Self::new(0);
+
     /// Periodically sent to maintain the connection and may be received to
     /// immediately request one.
-    Heartbeat = 1,
-    /// Start a new session.
-    Identify = 2,
-    /// Request to update the client's presence.
-    PresenceUpdate = 3,
-    /// Request to join, leave or move between voice channels.
-    VoiceStateUpdate = 4,
-    /// Resume a previously disconnected session, skipping over [`Identify`].
-    ///
-    /// [`Identify`]: Self::Identify
-    Resume = 6,
-    /// Indicates that a reconnect is required.
-    Reconnect = 7,
-    /// Request a list of members for a guild.
-    RequestGuildMembers = 8,
-    /// Received when the session is invalidated.
-    InvalidSession = 9,
-    /// Received after connecting, contains the heartbeat interval.
-    Hello = 10,
-    /// Received in response to sending a [`Heartbeat`].
-    ///
-    /// [`Heartbeat`]: Self::Heartbeat
-    HeartbeatAck = 11,
-}
+    pub const HEARTBEAT: Self = Self::new(1);
 
-impl OpCode {
-    /// Try to match an integer value to an opcode, returning [`None`] if no
-    /// match is found.
-    pub const fn from(code: u8) -> Option<Self> {
-        Some(match code {
-            0 => Self::Dispatch,
-            1 => Self::Heartbeat,
-            2 => Self::Identify,
-            3 => Self::PresenceUpdate,
-            4 => Self::VoiceStateUpdate,
-            6 => Self::Resume,
-            7 => Self::Reconnect,
-            8 => Self::RequestGuildMembers,
-            9 => Self::InvalidSession,
-            10 => Self::Hello,
-            11 => Self::HeartbeatAck,
+    /// Start a new session.
+    pub const IDENTIFY: Self = Self::new(2);
+
+    /// Request to update the client's presence.
+    pub const PRESENCE_UPDATE: Self = Self::new(3);
+
+    /// Request to join, leave or move between voice channels.
+    pub const VOICE_STATE_UPDATE: Self = Self::new(4);
+
+    /// Resume a previously disconnected session, skipping over [`IDENTIFY`].
+    ///
+    /// [`IDENTIFY`]: Self::IDENTIFY
+    pub const RESUME: Self = Self::new(6);
+
+    /// Indicates that a reconnect is required.
+    pub const RECONNECT: Self = Self::new(7);
+
+    /// Request a list of members for a guild.
+    pub const REQUEST_GUILD_MEMBERS: Self = Self::new(8);
+
+    /// Received when the session is invalidated.
+    pub const INVALID_SESSION: Self = Self::new(9);
+
+    /// Received after connecting, contains the heartbeat interval.
+    pub const HELLO: Self = Self::new(10);
+
+    /// Received in response to sending a [`HEARTBEAT`].
+    ///
+    /// [`HEARTBEAT`]: Self::HEARTBEAT
+    pub const HEARTBEAT_ACK: Self = Self::new(11);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::DISPATCH => "DISPATCH",
+            Self::HEARTBEAT => "HEARTBEAT",
+            Self::HEARTBEAT_ACK => "HEARTBEAT_ACK",
+            Self::HELLO => "HELLO",
+            Self::IDENTIFY => "IDENTIFY",
+            Self::INVALID_SESSION => "INVALID_SESSION",
+            Self::PRESENCE_UPDATE => "PRESENCE_UPDATE",
+            Self::RECONNECT => "RECONNECT",
+            Self::REQUEST_GUILD_MEMBERS => "REQUEST_GUILD_MEMBERS",
+            Self::RESUME => "RESUME",
+            Self::VOICE_STATE_UPDATE => "VOICE_STATE_UPDATE",
             _ => return None,
         })
     }
 }
+
+impl_typed!(OpCode, u8);
 
 #[cfg(test)]
 mod tests {
@@ -88,18 +99,29 @@ mod tests {
         Sync,
     );
 
+    const MAP: &[(OpCode, u8)] = &[
+        (OpCode::DISPATCH, 0),
+        (OpCode::HEARTBEAT, 1),
+        (OpCode::IDENTIFY, 2),
+        (OpCode::PRESENCE_UPDATE, 3),
+        (OpCode::VOICE_STATE_UPDATE, 4),
+        (OpCode::RESUME, 6),
+        (OpCode::RECONNECT, 7),
+        (OpCode::REQUEST_GUILD_MEMBERS, 8),
+        (OpCode::INVALID_SESSION, 9),
+        (OpCode::HELLO, 10),
+        (OpCode::HEARTBEAT_ACK, 11),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&OpCode::Dispatch, &[Token::U8(0)]);
-        serde_test::assert_tokens(&OpCode::Heartbeat, &[Token::U8(1)]);
-        serde_test::assert_tokens(&OpCode::Identify, &[Token::U8(2)]);
-        serde_test::assert_tokens(&OpCode::PresenceUpdate, &[Token::U8(3)]);
-        serde_test::assert_tokens(&OpCode::VoiceStateUpdate, &[Token::U8(4)]);
-        serde_test::assert_tokens(&OpCode::Resume, &[Token::U8(6)]);
-        serde_test::assert_tokens(&OpCode::Reconnect, &[Token::U8(7)]);
-        serde_test::assert_tokens(&OpCode::RequestGuildMembers, &[Token::U8(8)]);
-        serde_test::assert_tokens(&OpCode::InvalidSession, &[Token::U8(9)]);
-        serde_test::assert_tokens(&OpCode::Hello, &[Token::U8(10)]);
-        serde_test::assert_tokens(&OpCode::HeartbeatAck, &[Token::U8(11)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[Token::NewtypeStruct { name: "OpCode" }, Token::U8(*num)],
+            );
+            assert_eq!(*kind, OpCode::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

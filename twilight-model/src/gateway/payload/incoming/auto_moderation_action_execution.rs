@@ -21,9 +21,9 @@ pub struct AutoModerationActionExecution {
     /// action.
     ///
     /// Will not exist if this event does not correspond to an action with type
-    /// [`SendAlertMessage`].
+    /// [`SEND_ALERT_MESSAGE`].
     ///
-    /// [`SendAlertMessage`]: crate::guild::auto_moderation::AutoModerationActionType::SendAlertMessage
+    /// [`SEND_ALERT_MESSAGE`]: crate::guild::auto_moderation::AutoModerationActionType::SEND_ALERT_MESSAGE
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alert_system_message_id: Option<Id<MessageMarker>>,
     /// ID of the channel in which user content was posted.
@@ -114,7 +114,7 @@ mod tests {
 
         let value = AutoModerationActionExecution {
             action: AutoModerationAction {
-                kind: AutoModerationActionType::BlockMessage,
+                kind: AutoModerationActionType::BLOCK_MESSAGE,
                 metadata: None,
             },
             alert_system_message_id: Some(ALERT_SYSTEM_MESSAGE_ID),
@@ -125,7 +125,7 @@ mod tests {
             matched_keyword: Some("darn".into()),
             message_id: Some(MESSAGE_ID),
             rule_id: RULE_ID,
-            rule_trigger_type: AutoModerationTriggerType::Keyword,
+            rule_trigger_type: AutoModerationTriggerType::KEYWORD,
             user_id: USER_ID,
         };
 
@@ -142,7 +142,10 @@ mod tests {
                     len: 1,
                 },
                 Token::Str("type"),
-                Token::U8(u8::from(AutoModerationActionType::BlockMessage)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationActionType",
+                },
+                Token::U8(u8::from(AutoModerationActionType::BLOCK_MESSAGE)),
                 Token::StructEnd,
                 Token::Str("alert_system_message_id"),
                 Token::Some,
@@ -171,7 +174,10 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("5"),
                 Token::Str("rule_trigger_type"),
-                Token::U8(u8::from(AutoModerationTriggerType::Keyword)),
+                Token::NewtypeStruct {
+                    name: "AutoModerationTriggerType",
+                },
+                Token::U8(AutoModerationTriggerType::KEYWORD.get()),
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("6"),

@@ -3,10 +3,7 @@ use super::{
 };
 use crate::gateway::payload::incoming::Hello;
 use serde::{
-    de::{
-        value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,
-        IntoDeserializer, MapAccess, Unexpected, Visitor,
-    },
+    de::{DeserializeSeed, Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
@@ -236,7 +233,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         V: MapAccess<'de>,
     {
         static VALID_OPCODES: &[&str] = &[
-            "EVENT",
+            "DISPATCH",
             "HEARTBEAT",
             "HEARTBEAT_ACK",
             "HELLO",
@@ -249,17 +246,10 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         let _span_enter = span.enter();
         tracing::trace!(event_type=?self.2, op=self.0, seq=?self.1);
 
-        let op_deser: U8Deserializer<V::Error> = self.0.into_deserializer();
-
-        let op = OpCode::deserialize(op_deser).ok().ok_or_else(|| {
-            tracing::trace!(op = self.0, "unknown opcode");
-            let unexpected = Unexpected::Unsigned(u64::from(self.0));
-
-            DeError::invalid_value(unexpected, &"an opcode")
-        })?;
+        let op = OpCode::new(self.0);
 
         Ok(match op {
-            OpCode::Dispatch => {
+            OpCode::DISPATCH => {
                 let t = self
                     .2
                     .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
@@ -319,7 +309,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 GatewayEvent::Dispatch(s, d)
             }
-            OpCode::Heartbeat => {
+            OpCode::HEARTBEAT => {
                 tracing::trace!("deserializing gateway heartbeat");
                 let seq = Self::field(&mut map, Field::D)?;
                 tracing::trace!(seq = %seq);
@@ -328,14 +318,14 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 GatewayEvent::Heartbeat(seq)
             }
-            OpCode::HeartbeatAck => {
+            OpCode::HEARTBEAT_ACK => {
                 tracing::trace!("deserializing gateway heartbeat ack");
 
                 Self::ignore_all(&mut map)?;
 
                 GatewayEvent::HeartbeatAck
             }
-            OpCode::Hello => {
+            OpCode::HELLO => {
                 tracing::trace!("deserializing gateway hello");
                 let hello = Self::field::<Hello, _>(&mut map, Field::D)?;
                 tracing::trace!(hello = ?hello);
@@ -344,7 +334,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 GatewayEvent::Hello(hello)
             }
-            OpCode::InvalidSession => {
+            OpCode::INVALID_SESSION => {
                 tracing::trace!("deserializing invalid session");
                 let invalidate = Self::field::<bool, _>(&mut map, Field::D)?;
                 tracing::trace!(invalidate = %invalidate);
@@ -353,24 +343,16 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 GatewayEvent::InvalidateSession(invalidate)
             }
-            OpCode::Identify => return Err(DeError::unknown_variant("Identify", VALID_OPCODES)),
-            OpCode::Reconnect => {
+            OpCode::RECONNECT => {
                 Self::ignore_all(&mut map)?;
 
                 GatewayEvent::Reconnect
             }
-            OpCode::RequestGuildMembers => {
+            other => {
                 return Err(DeError::unknown_variant(
-                    "RequestGuildMembers",
+                    other.name().unwrap_or("UNKNOWN"),
                     VALID_OPCODES,
-                ))
-            }
-            OpCode::Resume => return Err(DeError::unknown_variant("Resume", VALID_OPCODES)),
-            OpCode::PresenceUpdate => {
-                return Err(DeError::unknown_variant("PresenceUpdate", VALID_OPCODES))
-            }
-            OpCode::VoiceStateUpdate => {
-                return Err(DeError::unknown_variant("VoiceStateUpdate", VALID_OPCODES))
+                ));
             }
         })
     }
@@ -394,12 +376,12 @@ impl Serialize for GatewayEvent {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         const fn opcode(gateway_event: &GatewayEvent) -> OpCode {
             match gateway_event {
-                GatewayEvent::Dispatch(_, _) => OpCode::Dispatch,
-                GatewayEvent::Heartbeat(_) => OpCode::Heartbeat,
-                GatewayEvent::HeartbeatAck => OpCode::HeartbeatAck,
-                GatewayEvent::Hello(_) => OpCode::Hello,
-                GatewayEvent::InvalidateSession(_) => OpCode::InvalidSession,
-                GatewayEvent::Reconnect => OpCode::Reconnect,
+                GatewayEvent::Dispatch(_, _) => OpCode::DISPATCH,
+                GatewayEvent::Heartbeat(_) => OpCode::HEARTBEAT,
+                GatewayEvent::HeartbeatAck => OpCode::HEARTBEAT_ACK,
+                GatewayEvent::Hello(_) => OpCode::HELLO,
+                GatewayEvent::InvalidateSession(_) => OpCode::INVALID_SESSION,
+                GatewayEvent::Reconnect => OpCode::RECONNECT,
             }
         }
 
@@ -781,14 +763,13 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("t"),
-                Token::UnitVariant {
-                    name: "EventType",
-                    variant: "GUILD_ROLE_DELETE",
-                },
+                Token::NewtypeStruct { name: "EventType" },
+                Token::Str("GUILD_ROLE_DELETE"),
                 Token::Str("s"),
                 Token::U64(2_048),
                 Token::Str("op"),
-                Token::U8(OpCode::Dispatch as u8),
+                Token::NewtypeStruct { name: "OpCode" },
+                Token::U8(OpCode::DISPATCH.get()),
                 Token::Str("d"),
                 Token::Struct {
                     name: "RoleDelete",
@@ -820,7 +801,8 @@ mod tests {
                 Token::Str("s"),
                 Token::None,
                 Token::Str("op"),
-                Token::U8(OpCode::Heartbeat as u8),
+                Token::NewtypeStruct { name: "OpCode" },
+                Token::U8(OpCode::HEARTBEAT.get()),
                 Token::Str("d"),
                 Token::U64(1024),
                 Token::StructEnd,
@@ -842,7 +824,8 @@ mod tests {
                 Token::Str("s"),
                 Token::None,
                 Token::Str("op"),
-                Token::U8(OpCode::HeartbeatAck as u8),
+                Token::NewtypeStruct { name: "OpCode" },
+                Token::U8(OpCode::HEARTBEAT_ACK.get()),
                 Token::Str("d"),
                 Token::None,
                 Token::StructEnd,
@@ -866,7 +849,8 @@ mod tests {
                 Token::Str("s"),
                 Token::None,
                 Token::Str("op"),
-                Token::U8(OpCode::Hello as u8),
+                Token::NewtypeStruct { name: "OpCode" },
+                Token::U8(OpCode::HELLO.get()),
                 Token::Str("d"),
                 Token::Struct {
                     name: "Hello",
@@ -896,7 +880,8 @@ mod tests {
                 Token::Str("s"),
                 Token::None,
                 Token::Str("op"),
-                Token::U8(OpCode::InvalidSession as u8),
+                Token::NewtypeStruct { name: "OpCode" },
+                Token::U8(OpCode::INVALID_SESSION.get()),
                 Token::Str("d"),
                 Token::Bool(true),
                 Token::StructEnd,
@@ -918,7 +903,8 @@ mod tests {
                 Token::Str("s"),
                 Token::None,
                 Token::Str("op"),
-                Token::U8(OpCode::Reconnect as u8),
+                Token::NewtypeStruct { name: "OpCode" },
+                Token::U8(OpCode::RECONNECT.get()),
                 Token::Str("d"),
                 Token::None,
                 Token::StructEnd,

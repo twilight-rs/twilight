@@ -17,15 +17,15 @@ use twilight_model::{
 ///
 /// Threads are ordered by [`archive_timestamp`] in descending order.
 ///
-/// When called in a [`GuildText`] channel, returns [`PublicThread`]s.
+/// When called in a [`GUILD_TEXT`] channel, returns [`PUBLIC_THREAD`]s.
 ///
-/// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
+/// When called in a [`GUILD_ANNOUNCEMENT`] channel, returns [`ANNOUNCEMENT_THREAD`]s.
 ///
-/// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
+/// [`ANNOUNCEMENT_THREAD`]: twilight_model::channel::ChannelType::ANNOUNCEMENT_THREAD
 /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
-/// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-/// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
-/// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
+/// [`GUILD_ANNOUNCEMENT`]: twilight_model::channel::ChannelType::GUILD_ANNOUNCEMENT
+/// [`GUILD_TEXT`]: twilight_model::channel::ChannelType::GUILD_TEXT
+/// [`PUBLIC_THREAD`]: twilight_model::channel::ChannelType::PUBLIC_THREAD
 /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
 #[must_use = "requests must be configured and executed"]
 pub struct GetPublicArchivedThreads<'a> {

@@ -1,6 +1,6 @@
-//! [`ApplicationCommand`] interaction.
+//! [`APPLICATION_COMMAND`] interaction.
 //!
-//! [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
+//! [`APPLICATION_COMMAND`]: crate::application::interaction::InteractionType::APPLICATION_COMMAND
 
 mod option;
 mod resolved;
@@ -19,13 +19,13 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-/// Data received when an [`ApplicationCommand`] or [`ApplicationCommandAutocomplete`]
-/// interaction is executed.
+/// Data received when an [`APPLICATION_COMMAND`] or
+/// [`APPLICATION_COMMAND_AUTOCOMPLETE`] interaction is executed.
 ///
 /// See [Discord Docs/Application Command Data Structure].
 ///
-/// [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
-/// [`ApplicationCommandAutocomplete`]: crate::application::interaction::InteractionType::ApplicationCommandAutocomplete
+/// [`APPLICATION_COMMAND`]: crate::application::interaction::InteractionType::APPLICATION_COMMAND
+/// [`APPLICATION_COMMAND_AUTOCOMPLETE`]: crate::application::interaction::InteractionType::APPLICATION_COMMAND_AUTOCOMPLETE
 /// [Discord Docs/Application Command Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-application-command-data-structure
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CommandData {

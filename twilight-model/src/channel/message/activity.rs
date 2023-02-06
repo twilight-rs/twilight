@@ -12,45 +12,38 @@ pub struct MessageActivity {
 }
 
 /// Activity of this message.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum MessageActivityType {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+
+pub struct MessageActivityType(u8);
+
+impl MessageActivityType {
     /// Join the the party.
-    Join,
+    pub const JOIN: Self = Self::new(1);
+
     /// Spectate on or with the party.
-    Spectate,
+    pub const SPECTATE: Self = Self::new(2);
+
     /// Listen to or with the party.
-    Listen,
+    pub const LISTEN: Self = Self::new(3);
+
     /// Request to join the party.
-    JoinRequest,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+    pub const JOIN_REQUEST: Self = Self::new(5);
 
-impl From<u8> for MessageActivityType {
-    fn from(value: u8) -> Self {
-        match value {
-            1 => Self::Join,
-            2 => Self::Spectate,
-            3 => Self::Listen,
-            5 => Self::JoinRequest,
-            unknown => Self::Unknown(unknown),
-        }
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::JOIN => "JOIN",
+            Self::SPECTATE => "SPECTATE",
+            Self::LISTEN => "LISTEN",
+            Self::JOIN_REQUEST => "JOIN_REQUEST",
+            _ => return None,
+        })
     }
 }
 
-impl From<MessageActivityType> for u8 {
-    fn from(value: MessageActivityType) -> Self {
-        match value {
-            MessageActivityType::Join => 1,
-            MessageActivityType::Spectate => 2,
-            MessageActivityType::Listen => 3,
-            MessageActivityType::JoinRequest => 5,
-            MessageActivityType::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(MessageActivityType, u8);
 
 #[cfg(test)]
 mod tests {
@@ -60,7 +53,7 @@ mod tests {
     #[test]
     fn message_activity() {
         let value = MessageActivity {
-            kind: MessageActivityType::Join,
+            kind: MessageActivityType::JOIN,
             party_id: None,
         };
 
@@ -72,6 +65,9 @@ mod tests {
                     len: 1,
                 },
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "MessageActivityType",
+                },
                 Token::U8(1),
                 Token::StructEnd,
             ],
@@ -81,7 +77,7 @@ mod tests {
     #[test]
     fn message_activity_complete() {
         let value = MessageActivity {
-            kind: MessageActivityType::Join,
+            kind: MessageActivityType::JOIN,
             party_id: Some("test".to_owned()),
         };
 
@@ -93,6 +89,9 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "MessageActivityType",
+                },
                 Token::U8(1),
                 Token::Str("party_id"),
                 Token::Some,
@@ -104,10 +103,50 @@ mod tests {
 
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&MessageActivityType::Join, &[Token::U8(1)]);
-        serde_test::assert_tokens(&MessageActivityType::Spectate, &[Token::U8(2)]);
-        serde_test::assert_tokens(&MessageActivityType::Listen, &[Token::U8(3)]);
-        serde_test::assert_tokens(&MessageActivityType::JoinRequest, &[Token::U8(5)]);
-        serde_test::assert_tokens(&MessageActivityType::Unknown(99), &[Token::U8(99)]);
+        serde_test::assert_tokens(
+            &MessageActivityType::JOIN,
+            &[
+                Token::NewtypeStruct {
+                    name: "MessageActivityType",
+                },
+                Token::U8(1),
+            ],
+        );
+        serde_test::assert_tokens(
+            &MessageActivityType::SPECTATE,
+            &[
+                Token::NewtypeStruct {
+                    name: "MessageActivityType",
+                },
+                Token::U8(2),
+            ],
+        );
+        serde_test::assert_tokens(
+            &MessageActivityType::LISTEN,
+            &[
+                Token::NewtypeStruct {
+                    name: "MessageActivityType",
+                },
+                Token::U8(3),
+            ],
+        );
+        serde_test::assert_tokens(
+            &MessageActivityType::JOIN_REQUEST,
+            &[
+                Token::NewtypeStruct {
+                    name: "MessageActivityType",
+                },
+                Token::U8(5),
+            ],
+        );
+        serde_test::assert_tokens(
+            &MessageActivityType::new(99),
+            &[
+                Token::NewtypeStruct {
+                    name: "MessageActivityType",
+                },
+                Token::U8(99),
+            ],
+        );
     }
 }

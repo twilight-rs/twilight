@@ -1,47 +1,54 @@
 use serde::{Deserialize, Serialize};
 
 /// Behavior to perform when the user's integration expires.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum IntegrationExpireBehavior {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct IntegrationExpireBehavior(u8);
+
+impl IntegrationExpireBehavior {
     /// Remove the role when the integration expires.
-    RemoveRole,
+    pub const REMOVE_ROLE: Self = Self::new(0);
+
     /// Kick the user when the integration expires.
-    Kick,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+    pub const KICK: Self = Self::new(1);
 
-impl From<u8> for IntegrationExpireBehavior {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => IntegrationExpireBehavior::RemoveRole,
-            1 => IntegrationExpireBehavior::Kick,
-            unknown => IntegrationExpireBehavior::Unknown(unknown),
-        }
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::KICK => "KICK",
+            Self::REMOVE_ROLE => "REMOVE_ROLE",
+            _ => return None,
+        })
     }
 }
 
-impl From<IntegrationExpireBehavior> for u8 {
-    fn from(value: IntegrationExpireBehavior) -> Self {
-        match value {
-            IntegrationExpireBehavior::RemoveRole => 0,
-            IntegrationExpireBehavior::Kick => 1,
-            IntegrationExpireBehavior::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(IntegrationExpireBehavior, u8);
 
 #[cfg(test)]
 mod tests {
     use super::IntegrationExpireBehavior;
     use serde_test::Token;
 
+    const MAP: &[(IntegrationExpireBehavior, u8)] = &[
+        (IntegrationExpireBehavior::REMOVE_ROLE, 0),
+        (IntegrationExpireBehavior::KICK, 1),
+    ];
+
     #[test]
-    fn integration_expire_behavior() {
-        serde_test::assert_tokens(&IntegrationExpireBehavior::RemoveRole, &[Token::U8(0)]);
-        serde_test::assert_tokens(&IntegrationExpireBehavior::Kick, &[Token::U8(1)]);
-        serde_test::assert_tokens(&IntegrationExpireBehavior::Unknown(99), &[Token::U8(99)]);
+    fn variants() {
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "IntegrationExpireBehavior",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, IntegrationExpireBehavior::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

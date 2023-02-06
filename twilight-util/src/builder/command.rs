@@ -9,7 +9,7 @@
 //! CommandBuilder::new(
 //!     "blep",
 //!     "Send a random adorable animal photo",
-//!     CommandType::ChatInput,
+//!     CommandType::CHAT_INPUT,
 //! )
 //! .option(
 //!     StringBuilder::new("animal", "The type of animal")
@@ -33,7 +33,7 @@
 //! CommandBuilder::new(
 //!     "birthday",
 //!     "Wish a friend a happy birthday",
-//!     CommandType::ChatInput,
+//!     CommandType::CHAT_INPUT,
 //! )
 //! .name_localizations([("zh-CN", "生日"), ("el", "γενέθλια")])
 //! .description_localizations([("zh-Cn", "祝你朋友生日快乐")])
@@ -202,7 +202,7 @@ impl AttachmentBuilder {
             choices: None,
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::Attachment,
+            kind: CommandOptionType::ATTACHMENT,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -286,7 +286,7 @@ impl BooleanBuilder {
             choices: None,
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::Boolean,
+            kind: CommandOptionType::BOOLEAN,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -370,7 +370,7 @@ impl ChannelBuilder {
             choices: None,
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::Channel,
+            kind: CommandOptionType::CHANNEL,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -462,7 +462,7 @@ impl IntegerBuilder {
             choices: Some(Vec::new()),
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::Integer,
+            kind: CommandOptionType::INTEGER,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -631,7 +631,7 @@ impl MentionableBuilder {
             choices: None,
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::Mentionable,
+            kind: CommandOptionType::MENTIONABLE,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -715,7 +715,7 @@ impl NumberBuilder {
             choices: Some(Vec::new()),
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::Number,
+            kind: CommandOptionType::NUMBER,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -884,7 +884,7 @@ impl RoleBuilder {
             choices: None,
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::Role,
+            kind: CommandOptionType::ROLE,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -968,7 +968,7 @@ impl StringBuilder {
             choices: Some(Vec::new()),
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::String,
+            kind: CommandOptionType::STRING,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -1140,7 +1140,7 @@ impl SubCommandBuilder {
             choices: None,
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::SubCommand,
+            kind: CommandOptionType::SUB_COMMAND,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -1232,7 +1232,7 @@ impl SubCommandGroupBuilder {
             choices: None,
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::SubCommandGroup,
+            kind: CommandOptionType::SUB_COMMAND_GROUP,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -1316,7 +1316,7 @@ impl UserBuilder {
             choices: None,
             description: description.into(),
             description_localizations: None,
-            kind: CommandOptionType::User,
+            kind: CommandOptionType::USER,
             max_length: None,
             max_value: None,
             min_length: None,
@@ -1410,7 +1410,7 @@ mod tests {
             CommandBuilder::new(
                 "permissions",
                 "Get or edit permissions for a user or a role",
-                CommandType::ChatInput,
+                CommandType::CHAT_INPUT,
             )
             .nsfw(true)
             .option(
@@ -1460,7 +1460,7 @@ mod tests {
             description: String::from("Get or edit permissions for a user or a role"),
             guild_id: None,
             id: None,
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             name: String::from("permissions"),
             name_localizations: None,
             nsfw: Some(true),
@@ -1472,7 +1472,7 @@ mod tests {
                     choices: None,
                     description: "Get or edit permissions for a user".to_owned(),
                     description_localizations: None,
-                    kind: CommandOptionType::SubCommandGroup,
+                    kind: CommandOptionType::SUB_COMMAND_GROUP,
                     max_length: None,
                     max_value: None,
                     min_length: None,
@@ -1486,7 +1486,7 @@ mod tests {
                             choices: None,
                             description: "Get permissions for a user".to_owned(),
                             description_localizations: None,
-                            kind: CommandOptionType::SubCommand,
+                            kind: CommandOptionType::SUB_COMMAND,
                             max_length: None,
                             max_value: None,
                             min_length: None,
@@ -1500,7 +1500,7 @@ mod tests {
                                     choices: None,
                                     description: "The user to get".to_owned(),
                                     description_localizations: None,
-                                    kind: CommandOptionType::User,
+                                    kind: CommandOptionType::USER,
                                     max_length: None,
                                     max_value: None,
                                     min_length: None,
@@ -1519,7 +1519,7 @@ mod tests {
                                         permissions will be returned"
                                             .to_owned(),
                                     description_localizations: None,
-                                    kind: CommandOptionType::Channel,
+                                    kind: CommandOptionType::CHANNEL,
                                     max_length: None,
                                     max_value: None,
                                     min_length: None,
@@ -1538,7 +1538,7 @@ mod tests {
                             choices: None,
                             description: "Edit permissions for a user".to_owned(),
                             description_localizations: None,
-                            kind: CommandOptionType::SubCommand,
+                            kind: CommandOptionType::SUB_COMMAND,
                             max_length: None,
                             max_value: None,
                             min_length: None,
@@ -1552,7 +1552,7 @@ mod tests {
                                     choices: None,
                                     description: "The user to edit".to_owned(),
                                     description_localizations: None,
-                                    kind: CommandOptionType::User,
+                                    kind: CommandOptionType::USER,
                                     max_length: None,
                                     max_value: None,
                                     min_length: None,
@@ -1571,7 +1571,7 @@ mod tests {
                                         permissions will be edited"
                                             .to_owned(),
                                     description_localizations: None,
-                                    kind: CommandOptionType::Channel,
+                                    kind: CommandOptionType::CHANNEL,
                                     max_length: None,
                                     max_value: None,
                                     min_length: None,
@@ -1593,7 +1593,7 @@ mod tests {
                     choices: None,
                     description: "Get or edit permissions for a role".to_owned(),
                     description_localizations: None,
-                    kind: CommandOptionType::SubCommandGroup,
+                    kind: CommandOptionType::SUB_COMMAND_GROUP,
                     max_length: None,
                     max_value: None,
                     min_length: None,
@@ -1607,7 +1607,7 @@ mod tests {
                             choices: None,
                             description: "Get permissions for a role".to_owned(),
                             description_localizations: None,
-                            kind: CommandOptionType::SubCommand,
+                            kind: CommandOptionType::SUB_COMMAND,
                             max_length: None,
                             max_value: None,
                             min_length: None,
@@ -1621,7 +1621,7 @@ mod tests {
                                     choices: None,
                                     description: "The role to get".to_owned(),
                                     description_localizations: None,
-                                    kind: CommandOptionType::Role,
+                                    kind: CommandOptionType::ROLE,
                                     max_length: None,
                                     max_value: None,
                                     min_length: None,
@@ -1640,7 +1640,7 @@ mod tests {
                                 permissions will be returned"
                                             .to_owned(),
                                     description_localizations: None,
-                                    kind: CommandOptionType::Channel,
+                                    kind: CommandOptionType::CHANNEL,
                                     max_length: None,
                                     max_value: None,
                                     min_length: None,
@@ -1659,7 +1659,7 @@ mod tests {
                             choices: None,
                             description: "Edit permissions for a role".to_owned(),
                             description_localizations: None,
-                            kind: CommandOptionType::SubCommand,
+                            kind: CommandOptionType::SUB_COMMAND,
                             max_length: None,
                             max_value: None,
                             min_length: None,
@@ -1673,7 +1673,7 @@ mod tests {
                                     choices: None,
                                     description: "The role to edit".to_owned(),
                                     description_localizations: None,
-                                    kind: CommandOptionType::Role,
+                                    kind: CommandOptionType::ROLE,
                                     max_length: None,
                                     max_value: None,
                                     min_length: None,
@@ -1692,7 +1692,7 @@ mod tests {
                                 permissions will be edited"
                                             .to_owned(),
                                     description_localizations: None,
-                                    kind: CommandOptionType::Channel,
+                                    kind: CommandOptionType::CHANNEL,
                                     max_length: None,
                                     max_value: None,
                                     min_length: None,
@@ -1717,7 +1717,7 @@ mod tests {
 
     #[test]
     fn validate() {
-        let result = CommandBuilder::new("", "", CommandType::ChatInput).validate();
+        let result = CommandBuilder::new("", "", CommandType::CHAT_INPUT).validate();
 
         assert!(result.is_err());
     }

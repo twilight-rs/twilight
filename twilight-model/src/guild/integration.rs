@@ -6,6 +6,7 @@ use crate::{
         marker::{GuildMarker, IntegrationMarker, RoleMarker},
         Id,
     },
+    oauth::Scope,
     user::User,
     util::Timestamp,
 };
@@ -38,9 +39,9 @@ pub struct GuildIntegration {
     pub role_id: Option<Id<RoleMarker>>,
     /// An array of [OAuth2 scopes] which the application has been authorized for.
     ///
-    /// [OAuth2 scopes]: crate::oauth::scope
+    /// [OAuth2 scopes]: crate::oauth::Scope
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: Option<Vec<Scope>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subscriber_count: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -60,7 +61,7 @@ mod tests {
     use crate::{
         guild::GuildIntegrationType,
         id::Id,
-        oauth::scope,
+        oauth::Scope,
         test::image_hash,
         util::datetime::{Timestamp, TimestampParseError},
     };
@@ -80,18 +81,15 @@ mod tests {
             application: None,
             enable_emoticons: Some(true),
             enabled: Some(true),
-            expire_behavior: Some(IntegrationExpireBehavior::Kick),
+            expire_behavior: Some(IntegrationExpireBehavior::KICK),
             expire_grace_period: Some(3_600),
             guild_id: None,
             id: Id::new(2),
-            kind: GuildIntegrationType::Discord,
+            kind: GuildIntegrationType::DISCORD,
             name: "integration name".to_owned(),
             revoked: Some(false),
             role_id: Some(Id::new(3)),
-            scopes: Some(Vec::from([
-                scope::APPLICATIONS_COMMANDS.to_owned(),
-                scope::BOT.to_owned(),
-            ])),
+            scopes: Some(Vec::from([Scope::APPLICATIONS_COMMANDS, Scope::BOT])),
             subscriber_count: Some(1337),
             synced_at: Some(synced_at),
             syncing: Some(false),
@@ -139,6 +137,9 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("expire_behavior"),
                 Token::Some,
+                Token::NewtypeStruct {
+                    name: "IntegrationExpireBehavior",
+                },
                 Token::U8(1),
                 Token::Str("expire_grace_period"),
                 Token::Some,
@@ -147,6 +148,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "GuildIntegrationType",
+                },
                 Token::Str("discord"),
                 Token::Str("name"),
                 Token::Str("integration name"),
@@ -160,8 +164,10 @@ mod tests {
                 Token::Str("scopes"),
                 Token::Some,
                 Token::Seq { len: Some(2) },
-                Token::Str(scope::APPLICATIONS_COMMANDS),
-                Token::Str(scope::BOT),
+                Token::NewtypeStruct { name: "Scope" },
+                Token::Str(Scope::APPLICATIONS_COMMANDS.get()),
+                Token::NewtypeStruct { name: "Scope" },
+                Token::Str(Scope::BOT.get()),
                 Token::SeqEnd,
                 Token::Str("subscriber_count"),
                 Token::Some,
@@ -221,18 +227,15 @@ mod tests {
             }),
             enable_emoticons: Some(true),
             enabled: None,
-            expire_behavior: Some(IntegrationExpireBehavior::Kick),
+            expire_behavior: Some(IntegrationExpireBehavior::KICK),
             expire_grace_period: Some(3_600),
             guild_id: None,
             id: Id::new(2),
-            kind: GuildIntegrationType::Discord,
+            kind: GuildIntegrationType::DISCORD,
             name: "integration name".to_owned(),
             revoked: Some(false),
             role_id: Some(Id::new(3)),
-            scopes: Some(Vec::from([
-                scope::APPLICATIONS_COMMANDS.to_owned(),
-                scope::BOT.to_owned(),
-            ])),
+            scopes: Some(Vec::from([Scope::APPLICATIONS_COMMANDS, Scope::BOT])),
             subscriber_count: Some(1337),
             synced_at: Some(synced_at),
             syncing: Some(false),
@@ -295,6 +298,9 @@ mod tests {
                 Token::None,
                 Token::Str("expire_behavior"),
                 Token::Some,
+                Token::NewtypeStruct {
+                    name: "IntegrationExpireBehavior",
+                },
                 Token::U8(1),
                 Token::Str("expire_grace_period"),
                 Token::Some,
@@ -303,6 +309,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "GuildIntegrationType",
+                },
                 Token::Str("discord"),
                 Token::Str("name"),
                 Token::Str("integration name"),
@@ -316,8 +325,10 @@ mod tests {
                 Token::Str("scopes"),
                 Token::Some,
                 Token::Seq { len: Some(2) },
-                Token::Str(scope::APPLICATIONS_COMMANDS),
-                Token::Str(scope::BOT),
+                Token::NewtypeStruct { name: "Scope" },
+                Token::Str("applications.commands"),
+                Token::NewtypeStruct { name: "Scope" },
+                Token::Str("bot"),
                 Token::SeqEnd,
                 Token::Str("subscriber_count"),
                 Token::Some,

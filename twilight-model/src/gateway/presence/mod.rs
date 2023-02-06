@@ -190,7 +190,7 @@ mod tests {
             flags: None,
             id: Some("aaaaaaaaaaaaaaaa".to_owned()),
             instance: None,
-            kind: ActivityType::Custom,
+            kind: ActivityType::CUSTOM,
             name: "foo".to_owned(),
             emoji: Some(ActivityEmoji {
                 name: "Test".to_string(),
@@ -206,12 +206,12 @@ mod tests {
         let value = Presence {
             activities: vec![activity],
             client_status: ClientStatus {
-                desktop: Some(Status::Online),
+                desktop: Some(Status::ONLINE),
                 mobile: None,
                 web: None,
             },
             guild_id: Id::new(2),
-            status: Status::Online,
+            status: Status::ONLINE,
             user: UserOrId::UserId { id: Id::new(1) },
         };
 
@@ -234,9 +234,8 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("status"),
-                Token::Enum { name: "Status" },
+                Token::NewtypeStruct { name: "Status" },
                 Token::Str("online"),
-                Token::Unit,
                 Token::Str("client_status"),
                 Token::Struct {
                     name: "ClientStatus",
@@ -244,9 +243,8 @@ mod tests {
                 },
                 Token::Str("desktop"),
                 Token::Some,
-                Token::Enum { name: "Status" },
+                Token::NewtypeStruct { name: "Status" },
                 Token::Str("online"),
-                Token::Unit,
                 Token::Str("mobile"),
                 Token::None,
                 Token::Str("web"),
@@ -259,6 +257,9 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "ActivityType",
+                },
                 Token::U8(4),
                 Token::Str("name"),
                 Token::Str("foo"),
@@ -308,12 +309,12 @@ mod tests {
         let expected = Vec::from([Presence {
             activities: vec![],
             client_status: ClientStatus {
-                desktop: Some(Status::Online),
+                desktop: Some(Status::ONLINE),
                 mobile: None,
                 web: None,
             },
             guild_id: Id::new(2),
-            status: Status::Online,
+            status: Status::ONLINE,
             user: UserOrId::UserId { id: Id::new(1) },
         }]);
 

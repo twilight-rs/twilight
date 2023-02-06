@@ -30,7 +30,7 @@ use twilight_util::builder::command::{BooleanBuilder, CommandBuilder, StringBuil
 CommandBuilder::new(
     "blep",
     "Send a random adorable animal photo",
-    CommandType::ChatInput,
+    CommandType::CHAT_INPUT,
 )
 .option(
     StringBuilder::new("animal", "The type of animal")

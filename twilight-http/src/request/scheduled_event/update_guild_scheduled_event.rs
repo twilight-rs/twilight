@@ -49,10 +49,10 @@ struct UpdateGuildScheduledEventFields<'a> {
 /// Update a scheduled event in a guild.
 ///
 /// This endpoint supports changing the type of event. When changing the entity
-/// type to either [`EntityType::StageInstance`] or [`EntityType::Voice`], an
+/// type to either [`EntityType::STAGE_INSTANCE`] or [`EntityType::VOICE`], an
 /// [`Id<ChannelMarker>`] must be provided if it does not already exist.
 ///
-/// When changing the entity type to [`EntityType::External`], the `channel_id`
+/// When changing the entity type to [`EntityType::EXTERNAL`], the `channel_id`
 /// field is cleared and the [`channel_id`] method has no effect.  Additionally,
 /// you must set a location with [`location`].
 ///
@@ -97,11 +97,11 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
 
     /// Set the channel ID.
     ///
-    /// If `entity_type` is already [`EntityType::External`], this has no
+    /// If `entity_type` is already [`EntityType::EXTERNAL`], this has no
     /// effect.
     pub fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
         if let Some(entity_type) = self.fields.entity_type {
-            if entity_type == EntityType::External {
+            if entity_type == EntityType::EXTERNAL {
                 return self;
             }
         }
@@ -136,7 +136,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     /// See the struct-level documentation for information about required fields
     /// for each type.
     pub fn entity_type(mut self, entity_type: EntityType) -> Self {
-        if entity_type == EntityType::External {
+        if entity_type == EntityType::EXTERNAL {
             self.fields.channel_id = None;
         }
 
@@ -162,9 +162,9 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
 
     /// Set the location of the external scheduled event.
     ///
-    /// This only functions if the event's [`EntityType`] is [`External`].
+    /// This only functions if the event's [`EntityType`] is [`EXTERNAL`].
     ///
-    /// [`External`]: EntityType::External
+    /// [`EXTERNAL`]: EntityType::EXTERNAL
     pub const fn location(mut self, location: Option<&'a str>) -> Self {
         self.fields.entity_metadata = Some(EntityMetadataFields { location });
 
@@ -206,14 +206,14 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
 
     /// Set the status of the event.
     ///
-    /// If an event is currently [`Scheduled`], it can only be set to [`Active`]
-    /// or [`Cancelled`]. If it is currently [`Active`], it can only be set to
-    /// [`Completed`]. Otherwise, the status can not be updated.
+    /// If an event is currently [`SCHEDULED`], it can only be set to [`ACTIVE`]
+    /// or [`CANCELLED`]. If it is currently [`ACTIVE`], it can only be set to
+    /// [`COMPLETED`]. Otherwise, the status can not be updated.
     ///
-    /// [`Active`]: Status::Active
-    /// [`Cancelled`]: Status::Cancelled
-    /// [`Completed`]: Status::Completed
-    /// [`Scheduled`]: Status::Scheduled
+    /// [`ACTIVE`]: Status::ACTIVE
+    /// [`CANCELLED`]: Status::CANCELLED
+    /// [`COMPLETED`]: Status::COMPLETED
+    /// [`SCHEDULED`]: Status::SCHEDULED
     pub const fn status(mut self, status: Status) -> Self {
         self.fields.status = Some(status);
 

@@ -1,51 +1,54 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum NSFWLevel {
-    Default,
-    Explicit,
-    Safe,
-    AgeRestricted,
-    Unknown(u8),
-}
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct NSFWLevel(u8);
 
-impl From<u8> for NSFWLevel {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => NSFWLevel::Default,
-            1 => NSFWLevel::Explicit,
-            2 => NSFWLevel::Safe,
-            3 => NSFWLevel::AgeRestricted,
-            unknown => NSFWLevel::Unknown(unknown),
-        }
+impl NSFWLevel {
+    pub const DEFAULT: Self = Self::new(0);
+
+    pub const EXPLICIT: Self = Self::new(1);
+
+    pub const SAFE: Self = Self::new(2);
+
+    pub const AGE_RESTRICTED: Self = Self::new(3);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::AGE_RESTRICTED => "AGE_RESTRICTED",
+            Self::DEFAULT => "DEFAULT",
+            Self::EXPLICIT => "EXPLICIT",
+            Self::SAFE => "SAFE",
+            _ => return None,
+        })
     }
 }
 
-impl From<NSFWLevel> for u8 {
-    fn from(value: NSFWLevel) -> Self {
-        match value {
-            NSFWLevel::Default => 0,
-            NSFWLevel::Explicit => 1,
-            NSFWLevel::Safe => 2,
-            NSFWLevel::AgeRestricted => 3,
-            NSFWLevel::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(NSFWLevel, u8);
 
 #[cfg(test)]
 mod tests {
     use super::NSFWLevel;
     use serde_test::Token;
 
+    const MAP: &[(NSFWLevel, u8)] = &[
+        (NSFWLevel::DEFAULT, 0),
+        (NSFWLevel::EXPLICIT, 1),
+        (NSFWLevel::SAFE, 2),
+        (NSFWLevel::AGE_RESTRICTED, 3),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&NSFWLevel::Default, &[Token::U8(0)]);
-        serde_test::assert_tokens(&NSFWLevel::Explicit, &[Token::U8(1)]);
-        serde_test::assert_tokens(&NSFWLevel::Safe, &[Token::U8(2)]);
-        serde_test::assert_tokens(&NSFWLevel::AgeRestricted, &[Token::U8(3)]);
-        serde_test::assert_tokens(&NSFWLevel::Unknown(99), &[Token::U8(99)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[Token::NewtypeStruct { name: "NSFWLevel" }, Token::U8(*num)],
+            );
+            assert_eq!(*kind, NSFWLevel::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

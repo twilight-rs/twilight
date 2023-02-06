@@ -133,7 +133,7 @@ impl TryIntoRequest for CreateGlobalUserCommand<'_> {
             dm_permission: self.dm_permission,
             description: None,
             description_localizations: None,
-            kind: CommandType::User,
+            kind: CommandType::USER,
             name: self.name,
             name_localizations: self.name_localizations,
             nsfw: self.nsfw,

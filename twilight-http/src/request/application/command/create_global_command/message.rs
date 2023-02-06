@@ -133,7 +133,7 @@ impl TryIntoRequest for CreateGlobalMessageCommand<'_> {
             dm_permission: self.dm_permission,
             description: None,
             description_localizations: None,
-            kind: CommandType::Message,
+            kind: CommandType::MESSAGE,
             name: self.name,
             name_localizations: self.name_localizations,
             nsfw: self.nsfw,

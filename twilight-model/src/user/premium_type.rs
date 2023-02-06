@@ -3,45 +3,37 @@ use serde::{Deserialize, Serialize};
 /// Type of premium tier for a [`User`].
 ///
 /// [`User`]: super::User
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum PremiumType {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct PremiumType(u8);
+
+impl PremiumType {
     /// User doesn't have premium.
-    None,
+    pub const NONE: Self = Self::new(0);
+
     /// User has Nitro Classic.
-    NitroClassic,
+    pub const NITRO_CLASSIC: Self = Self::new(1);
+
     /// User has the standard Nitro.
-    Nitro,
+    pub const NITRO: Self = Self::new(2);
+
     /// User has Nitro Basic.
-    NitroBasic,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+    pub const NITRO_BASIC: Self = Self::new(3);
 
-impl From<u8> for PremiumType {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => Self::None,
-            1 => Self::NitroClassic,
-            2 => Self::Nitro,
-            3 => Self::NitroBasic,
-            unknown => PremiumType::Unknown(unknown),
-        }
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::NITRO_BASIC => "NITRO_BASIC",
+            Self::NITRO_CLASSIC => "NITRO_CLASSIC",
+            Self::NITRO => "NITRO",
+            Self::NONE => "NONE",
+            _ => return None,
+        })
     }
 }
 
-impl From<PremiumType> for u8 {
-    fn from(value: PremiumType) -> Self {
-        match value {
-            PremiumType::None => 0,
-            PremiumType::NitroClassic => 1,
-            PremiumType::Nitro => 2,
-            PremiumType::NitroBasic => 3,
-            PremiumType::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(PremiumType, u8);
 
 #[cfg(test)]
 mod tests {
@@ -64,12 +56,27 @@ mod tests {
         Sync
     );
 
+    const MAP: &[(PremiumType, u8)] = &[
+        (PremiumType::NONE, 0),
+        (PremiumType::NITRO_CLASSIC, 1),
+        (PremiumType::NITRO, 2),
+        (PremiumType::NITRO_BASIC, 3),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&PremiumType::None, &[Token::U8(0)]);
-        serde_test::assert_tokens(&PremiumType::NitroClassic, &[Token::U8(1)]);
-        serde_test::assert_tokens(&PremiumType::Nitro, &[Token::U8(2)]);
-        serde_test::assert_tokens(&PremiumType::NitroBasic, &[Token::U8(3)]);
-        serde_test::assert_tokens(&PremiumType::Unknown(42), &[Token::U8(42)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "PremiumType",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, PremiumType::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

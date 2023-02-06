@@ -1,44 +1,51 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum TeamMembershipState {
-    Invited,
-    Accepted,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct TeamMembershipState(u8);
 
-impl From<u8> for TeamMembershipState {
-    fn from(value: u8) -> Self {
-        match value {
-            1 => TeamMembershipState::Invited,
-            2 => TeamMembershipState::Accepted,
-            unknown => TeamMembershipState::Unknown(unknown),
-        }
+impl TeamMembershipState {
+    pub const INVITED: Self = Self::new(1);
+
+    pub const ACCEPTED: Self = Self::new(2);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ACCEPTED => "ACCEPTED",
+            Self::INVITED => "INVITED",
+            _ => return None,
+        })
     }
 }
 
-impl From<TeamMembershipState> for u8 {
-    fn from(value: TeamMembershipState) -> Self {
-        match value {
-            TeamMembershipState::Invited => 1,
-            TeamMembershipState::Accepted => 2,
-            TeamMembershipState::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(TeamMembershipState, u8);
 
 #[cfg(test)]
 mod tests {
     use super::TeamMembershipState;
     use serde_test::Token;
 
+    const MAP: &[(TeamMembershipState, u8)] = &[
+        (TeamMembershipState::INVITED, 1),
+        (TeamMembershipState::ACCEPTED, 2),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&TeamMembershipState::Invited, &[Token::U8(1)]);
-        serde_test::assert_tokens(&TeamMembershipState::Accepted, &[Token::U8(2)]);
-        serde_test::assert_tokens(&TeamMembershipState::Unknown(99), &[Token::U8(99)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "TeamMembershipState",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, TeamMembershipState::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

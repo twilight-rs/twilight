@@ -1,4 +1,4 @@
-use super::Application;
+use super::{Application, Scope};
 use crate::{user::User, util::Timestamp};
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +22,7 @@ pub struct CurrentAuthorizationInformation {
     /// [`application`]: Self::application
     /// [`user`]: Self::user
     /// [scopes]: crate::oauth::scope
-    pub scopes: Vec<String>,
+    pub scopes: Vec<Scope>,
     /// User who has authorized, if the user has authorized with the
     /// [`IDENTIFY`] scope.
     ///
@@ -35,7 +35,7 @@ pub struct CurrentAuthorizationInformation {
 mod tests {
     use crate::{
         id::Id,
-        oauth::{scope, Application},
+        oauth::{Application, Scope},
         test::image_hash,
         util::{datetime::TimestampParseError, Timestamp},
     };
@@ -93,7 +93,7 @@ mod tests {
                 verify_key: "a".to_owned(),
             },
             expires: Timestamp::parse("2023-01-09T17:19:44.000000+00:00")?,
-            scopes: Vec::from([scope::APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE.to_owned()]),
+            scopes: Vec::from([Scope::APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE]),
             user: None,
         };
 
@@ -147,7 +147,8 @@ mod tests {
                 Token::Str("2023-01-09T17:19:44.000000+00:00"),
                 Token::Str("scopes"),
                 Token::Seq { len: Some(1) },
-                Token::Str(scope::APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE),
+                Token::NewtypeStruct { name: "Scope" },
+                Token::Str(Scope::APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE.get()),
                 Token::SeqEnd,
                 Token::StructEnd,
             ],

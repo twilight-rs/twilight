@@ -3,356 +3,351 @@ use serde::{Deserialize, Serialize};
 /// Action to cause an [`AuditLogEntry`].
 ///
 /// [`AuditLogEntry`]: super::AuditLogEntry
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(from = "u16", into = "u16")]
-pub enum AuditLogEventType {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct AuditLogEventType(u16);
+
+impl AuditLogEventType {
     /// [Guild] was updated.
     ///
     /// [Guild]: crate::guild::Guild
-    GuildUpdate,
+    pub const GUILD_UPDATE: Self = Self::new(1);
+
     /// [Channel] was created.
     ///
     /// [Channel]: crate::channel::Channel
-    ChannelCreate,
+    pub const CHANNEL_CREATE: Self = Self::new(10);
+
     /// [Channel] was updated.
     ///
     /// [Channel]: crate::channel::Channel
-    ChannelUpdate,
+    pub const CHANNEL_UPDATE: Self = Self::new(11);
+
     /// [Channel] was deleted.
     ///
     /// [Channel]: crate::channel::Channel
-    ChannelDelete,
+    pub const CHANNEL_DELETE: Self = Self::new(12);
+
     /// [Permission overwrite] for a [channel] was created.
     ///
     /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
-    ChannelOverwriteCreate,
+    pub const CHANNEL_OVERWRITE_CREATE: Self = Self::new(13);
+
     /// [Permission overwrite] for a [channel] was updated.
     ///
     /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
-    ChannelOverwriteUpdate,
+    pub const CHANNEL_OVERWRITE_UPDATE: Self = Self::new(14);
+
     /// [Permission overwrite] for a [channel] was deleted.
     ///
     /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
-    ChannelOverwriteDelete,
+    pub const CHANNEL_OVERWRITE_DELETE: Self = Self::new(15);
+
     /// [Member] was kicked.
     ///
     /// [Member]: crate::guild::Member
-    MemberKick,
+    pub const MEMBER_KICK: Self = Self::new(20);
+
     /// [Member] prune began.
     ///
     /// [Member]: crate::guild::Member
-    MemberPrune,
+    pub const MEMBER_PRUNE: Self = Self::new(21);
+
     /// [Member] was banned.
     ///
     /// [Member]: crate::guild::Member
-    MemberBanAdd,
+    pub const MEMBER_BAN_ADD: Self = Self::new(22);
+
     /// [Member]'s [ban] was removed.
     ///
     /// [ban]: crate::guild::Ban
     /// [Member]: crate::guild::Member
-    MemberBanRemove,
+    pub const MEMBER_BAN_REMOVE: Self = Self::new(23);
+
     /// [Member] was updated.
     ///
     /// [Member]: crate::guild::Member
-    MemberUpdate,
+    pub const MEMBER_UPDATE: Self = Self::new(24);
+
     /// [Member] either had a [role] attached or removed.
     ///
     /// [Member]: crate::guild::Member
     /// [role]: crate::guild::Role
-    MemberRoleUpdate,
+    pub const MEMBER_ROLE_UPDATE: Self = Self::new(25);
+
     /// [Member] was moved between voice [channel]s.
     ///
     /// [Member]: crate::guild::Member
     /// [channel]: crate::channel::Channel
-    MemberMove,
+    pub const MEMBER_MOVE: Self = Self::new(26);
+
     /// [Member] was disconnected from a voice [channel].
     ///
     /// [Member]: crate::guild::Member
     /// [channel]: crate::channel::Channel
-    MemberDisconnect,
+    pub const MEMBER_DISCONNECT: Self = Self::new(27);
+
     /// [Bot user] was added to a [guild].
     ///
     /// [Bot user]: crate::user::User::bot
     /// [guild]: crate::guild::Guild
-    BotAdd,
+    pub const BOT_ADD: Self = Self::new(28);
+
     /// [Role] was created.
     ///
     /// [Role]: crate::guild::Role
-    RoleCreate,
+    pub const ROLE_CREATE: Self = Self::new(30);
+
     /// [Role] was updated.
     ///
     /// [Role]: crate::guild::Role
-    RoleUpdate,
+    pub const ROLE_UPDATE: Self = Self::new(31);
+
     /// [Role] was deleted.
     ///
     /// [Role]: crate::guild::Role
-    RoleDelete,
+    pub const ROLE_DELETE: Self = Self::new(32);
+
     /// [Invite] was created.
     ///
     /// [Invite]: crate::guild::invite::Invite
-    InviteCreate,
+    pub const INVITE_CREATE: Self = Self::new(40);
+
     /// [Invite] was updated.
     ///
     /// [Invite]: crate::guild::invite::Invite
-    InviteUpdate,
+    pub const INVITE_UPDATE: Self = Self::new(41);
+
     /// [Invite] was deleted.
     ///
     /// [Invite]: crate::guild::invite::Invite
-    InviteDelete,
+    pub const INVITE_DELETE: Self = Self::new(42);
+
     /// [Webhook] was created.
     ///
     /// [Webhook]: crate::channel::webhook::Webhook
-    WebhookCreate,
+    pub const WEBHOOK_CREATE: Self = Self::new(50);
+
     /// [Webhook] was updated.
     ///
     /// [Webhook]: crate::channel::webhook::Webhook
-    WebhookUpdate,
+    pub const WEBHOOK_UPDATE: Self = Self::new(51);
+
     /// [Webhook] was deleted.
     ///
     /// [Webhook]: crate::channel::webhook::Webhook
-    WebhookDelete,
+    pub const WEBHOOK_DELETE: Self = Self::new(52);
+
     /// [Emoji] was created.
     ///
     /// [Emoji]: crate::guild::Emoji
-    EmojiCreate,
+    pub const EMOJI_CREATE: Self = Self::new(60);
+
     /// [Emoji] was updated.
     ///
     /// [Emoji]: crate::guild::Emoji
-    EmojiUpdate,
+    pub const EMOJI_UPDATE: Self = Self::new(61);
+
     /// [Emoji] was deleted.
     ///
     /// [Emoji]: crate::guild::Emoji
-    EmojiDelete,
+    pub const EMOJI_DELETE: Self = Self::new(62);
+
     /// [Message] was deleted.
     ///
     /// [Message]: crate::channel::message::Message
-    MessageDelete,
+    pub const MESSAGE_DELETE: Self = Self::new(72);
+
     /// Multiple [messages] were deleted.
     ///
     /// [messages]: crate::channel::message::Message
-    MessageBulkDelete,
+    pub const MESSAGE_BULK_DELETE: Self = Self::new(73);
+
     /// [Message] was pinned to a [channel].
     ///
     /// [Message]: crate::channel::message::Message
     /// [channel]: crate::channel::Channel
-    MessagePin,
+    pub const MESSAGE_PIN: Self = Self::new(74);
+
     /// [Message] was unpinned from a [channel].
     ///
     /// [Message]: crate::channel::message::Message
     /// [channel]: crate::channel::Channel
-    MessageUnpin,
+    pub const MESSAGE_UNPIN: Self = Self::new(75);
+
     /// [Integration] was created.
     ///
     /// [Integration]: crate::guild::GuildIntegration
-    IntegrationCreate,
+    pub const INTEGRATION_CREATE: Self = Self::new(80);
+
     /// [Integration] was updated.
     ///
     /// [Integration]: crate::guild::GuildIntegration
-    IntegrationUpdate,
+    pub const INTEGRATION_UPDATE: Self = Self::new(81);
+
     /// [Integration] was deleted.
     ///
     /// [Integration]: crate::guild::GuildIntegration
-    IntegrationDelete,
+    pub const INTEGRATION_DELETE: Self = Self::new(82);
+
     /// [Stage instance] was created.
     ///
     /// [Stage instance]: crate::channel::stage_instance::StageInstance
-    StageInstanceCreate,
+    pub const STAGE_INSTANCE_CREATE: Self = Self::new(83);
+
     /// [Stage instance] was updated.
     ///
     /// [Stage instance]: crate::channel::stage_instance::StageInstance
-    StageInstanceUpdate,
+    pub const STAGE_INSTANCE_UPDATE: Self = Self::new(84);
+
     /// [Stage instance] was deleted.
     ///
     /// [Stage instance]: crate::channel::stage_instance::StageInstance
-    StageInstanceDelete,
+    pub const STAGE_INSTANCE_DELETE: Self = Self::new(85);
+
     /// [Sticker] was created.
     ///
     /// [Sticker]: crate::channel::message::sticker::Sticker
-    StickerCreate,
+    pub const STICKER_CREATE: Self = Self::new(90);
+
     /// [Sticker] was updated.
     ///
     /// [Sticker]: crate::channel::message::sticker::Sticker
-    StickerUpdate,
+    pub const STICKER_UPDATE: Self = Self::new(91);
+
     /// [Sticker] was deleted.
     ///
     /// [Sticker]: crate::channel::message::sticker::Sticker
-    StickerDelete,
+    pub const STICKER_DELETE: Self = Self::new(92);
+
     /// [`GuildScheduledEvent`] was created.
     ///
     /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
-    GuildScheduledEventCreate,
+    pub const GUILD_SCHEDULED_EVENT_CREATE: Self = Self::new(100);
+
     /// [`GuildScheduledEvent`] was updated.
     ///
     /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
-    GuildScheduledEventUpdate,
+    pub const GUILD_SCHEDULED_EVENT_UPDATE: Self = Self::new(101);
+
     /// [`GuildScheduledEvent`] was deleted.
     ///
     /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
-    GuildScheduledEventDelete,
+    pub const GUILD_SCHEDULED_EVENT_DELETE: Self = Self::new(102);
+
     /// Thread [channel] was created.
     ///
     /// [channel]: crate::channel::Channel
-    ThreadCreate,
+    pub const THREAD_CREATE: Self = Self::new(110);
+
     /// Thread [channel] was updated.
     ///
     /// [channel]: crate::channel::Channel
-    ThreadUpdate,
+    pub const THREAD_UPDATE: Self = Self::new(111);
+
     /// Thread [channel] was deleted.
     ///
     /// [channel]: crate::channel::Channel
-    ThreadDelete,
-    /// A [GuildCommandPermissions] was updated.
+    pub const THREAD_DELETE: Self = Self::new(112);
+
+    /// A [`GuildCommandPermissions`] was updated.
     ///
-    /// [GuildCommandPermissions]: crate::application::command::permissions::GuildCommandPermissions
-    ApplicationCommandPermissionUpdate,
+    /// [`GuildCommandPermissions`]: crate::application::command::permissions::GuildCommandPermissions
+    pub const APPLICATION_COMMAND_PERMISSION_UPDATE: Self = Self::new(121);
+
     /// [`AutoModerationRule`] has been created.
     ///
     /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
-    AutoModerationRuleCreate,
+    pub const AUTO_MODERATION_RULE_CREATE: Self = Self::new(140);
+
     /// [`AutoModerationRule`] has been updated.
     ///
     /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
-    AutoModerationRuleUpdate,
+    pub const AUTO_MODERATION_RULE_UPDATE: Self = Self::new(141);
+
     /// [`AutoModerationRule`] has been deleted.
     ///
     /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
-    AutoModerationRuleDelete,
-    /// Message has been blocked by AutoMod.
-    AutoModerationBlockMessage,
-    /// Message has been flagged by AutoMod.
-    AutoModerationFlagToChannel,
-    /// A member has been timed out by AutoMod.
-    AutoModerationUserCommunicationDisabled,
-    /// Variant value is unknown to the library.
-    Unknown(u16),
-}
+    pub const AUTO_MODERATION_RULE_DELETE: Self = Self::new(142);
 
-impl From<u16> for AuditLogEventType {
-    fn from(value: u16) -> Self {
-        match value {
-            1 => AuditLogEventType::GuildUpdate,
-            10 => AuditLogEventType::ChannelCreate,
-            11 => AuditLogEventType::ChannelUpdate,
-            12 => AuditLogEventType::ChannelDelete,
-            13 => AuditLogEventType::ChannelOverwriteCreate,
-            14 => AuditLogEventType::ChannelOverwriteUpdate,
-            15 => AuditLogEventType::ChannelOverwriteDelete,
-            20 => AuditLogEventType::MemberKick,
-            21 => AuditLogEventType::MemberPrune,
-            22 => AuditLogEventType::MemberBanAdd,
-            23 => AuditLogEventType::MemberBanRemove,
-            24 => AuditLogEventType::MemberUpdate,
-            25 => AuditLogEventType::MemberRoleUpdate,
-            26 => AuditLogEventType::MemberMove,
-            17 => AuditLogEventType::MemberDisconnect,
-            28 => AuditLogEventType::BotAdd,
-            30 => AuditLogEventType::RoleCreate,
-            31 => AuditLogEventType::RoleUpdate,
-            32 => AuditLogEventType::RoleDelete,
-            40 => AuditLogEventType::InviteCreate,
-            41 => AuditLogEventType::InviteUpdate,
-            42 => AuditLogEventType::InviteDelete,
-            50 => AuditLogEventType::WebhookCreate,
-            51 => AuditLogEventType::WebhookUpdate,
-            52 => AuditLogEventType::WebhookDelete,
-            60 => AuditLogEventType::EmojiCreate,
-            61 => AuditLogEventType::EmojiUpdate,
-            62 => AuditLogEventType::EmojiDelete,
-            72 => AuditLogEventType::MessageDelete,
-            73 => AuditLogEventType::MessageBulkDelete,
-            74 => AuditLogEventType::MessagePin,
-            75 => AuditLogEventType::MessageUnpin,
-            80 => AuditLogEventType::IntegrationCreate,
-            81 => AuditLogEventType::IntegrationUpdate,
-            82 => AuditLogEventType::IntegrationDelete,
-            83 => AuditLogEventType::StageInstanceCreate,
-            84 => AuditLogEventType::StageInstanceUpdate,
-            85 => AuditLogEventType::StageInstanceDelete,
-            90 => AuditLogEventType::StickerCreate,
-            91 => AuditLogEventType::StickerUpdate,
-            92 => AuditLogEventType::StickerDelete,
-            100 => AuditLogEventType::GuildScheduledEventCreate,
-            101 => AuditLogEventType::GuildScheduledEventUpdate,
-            102 => AuditLogEventType::GuildScheduledEventDelete,
-            110 => AuditLogEventType::ThreadCreate,
-            111 => AuditLogEventType::ThreadUpdate,
-            112 => AuditLogEventType::ThreadDelete,
-            121 => AuditLogEventType::ApplicationCommandPermissionUpdate,
-            140 => AuditLogEventType::AutoModerationRuleCreate,
-            141 => AuditLogEventType::AutoModerationRuleUpdate,
-            142 => AuditLogEventType::AutoModerationRuleDelete,
-            143 => AuditLogEventType::AutoModerationBlockMessage,
-            144 => AuditLogEventType::AutoModerationFlagToChannel,
-            145 => AuditLogEventType::AutoModerationUserCommunicationDisabled,
-            unknown => AuditLogEventType::Unknown(unknown),
-        }
+    /// Message has been blocked by Automod.
+    pub const AUTO_MODERATION_BLOCK_MESSAGE: Self = Self::new(143);
+
+    /// Message has been flagged by Automod.
+    pub const AUTO_MODERATION_FLAG_TO_CHANNEL: Self = Self::new(144);
+
+    /// A member has been timed out by Automod.
+    pub const AUTO_MODERATION_USER_COMMUNICATION_DISABLED: Self = Self::new(145);
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::GUILD_UPDATE => "GUILD_UPDATE",
+            Self::CHANNEL_CREATE => "CHANNEL_CREATE",
+            Self::CHANNEL_UPDATE => "CHANNEL_UPDATE",
+            Self::CHANNEL_DELETE => "CHANNEL_DELETE",
+            Self::CHANNEL_OVERWRITE_CREATE => "CHANNEL_OVERWRITE_CREATE",
+            Self::CHANNEL_OVERWRITE_UPDATE => "CHANNEL_OVERWRITE_UPDATE",
+            Self::CHANNEL_OVERWRITE_DELETE => "CHANNEL_OVERWRITE_DELETE",
+            Self::MEMBER_KICK => "MEMBER_KICK",
+            Self::MEMBER_PRUNE => "MEMBER_PRUNE",
+            Self::MEMBER_BAN_ADD => "MEMBER_BAN_ADD",
+            Self::MEMBER_BAN_REMOVE => "MEMBER_BAN_REMOVE",
+            Self::MEMBER_UPDATE => "MEMBER_UPDATE",
+            Self::MEMBER_ROLE_UPDATE => "MEMBER_ROLE_UPDATE",
+            Self::MEMBER_MOVE => "MEMBER_MOVE",
+            Self::MEMBER_DISCONNECT => "MEMBER_DISCONNECT",
+            Self::BOT_ADD => "BOT_ADD",
+            Self::ROLE_CREATE => "ROLE_CREATE",
+            Self::ROLE_UPDATE => "ROLE_UPDATE",
+            Self::ROLE_DELETE => "ROLE_DELETE",
+            Self::INVITE_CREATE => "INVITE_CREATE",
+            Self::INVITE_UPDATE => "INVITE_UPDATE",
+            Self::INVITE_DELETE => "INVITE_DELETE",
+            Self::WEBHOOK_CREATE => "WEBHOOK_CREATE",
+            Self::WEBHOOK_UPDATE => "WEBHOOK_UPDATE",
+            Self::WEBHOOK_DELETE => "WEBHOOK_DELETE",
+            Self::EMOJI_CREATE => "EMOJI_CREATE",
+            Self::EMOJI_UPDATE => "EMOJI_UPDATE",
+            Self::EMOJI_DELETE => "EMOJI_DELETE",
+            Self::MESSAGE_DELETE => "MESSAGE_DELETE",
+            Self::MESSAGE_BULK_DELETE => "MESSAGE_BULK_DELETE",
+            Self::MESSAGE_PIN => "MESSAGE_PIN",
+            Self::MESSAGE_UNPIN => "MESSAGE_UNPIN",
+            Self::INTEGRATION_CREATE => "INTEGRATION_CREATE",
+            Self::INTEGRATION_UPDATE => "INTEGRATION_UPDATE",
+            Self::INTEGRATION_DELETE => "INTEGRATION_DELETE",
+            Self::STAGE_INSTANCE_CREATE => "STAGE_INSTANCE_CREATE",
+            Self::STAGE_INSTANCE_UPDATE => "STAGE_INSTANCE_UPDATE",
+            Self::STAGE_INSTANCE_DELETE => "STAGE_INSTANCE_DELETE",
+            Self::STICKER_CREATE => "STICKER_CREATE",
+            Self::STICKER_UPDATE => "STICKER_UPDATE",
+            Self::STICKER_DELETE => "STICKER_DELETE",
+            Self::GUILD_SCHEDULED_EVENT_CREATE => "GUILD_SCHEDULED_EVENT_CREATE",
+            Self::GUILD_SCHEDULED_EVENT_UPDATE => "GUILD_SCHEDULED_EVENT_UPDATE",
+            Self::GUILD_SCHEDULED_EVENT_DELETE => "GUILD_SCHEDULED_EVENT_DELETE",
+            Self::THREAD_CREATE => "THREAD_CREATE",
+            Self::THREAD_UPDATE => "THREAD_UPDATE",
+            Self::THREAD_DELETE => "THREAD_DELETE",
+            Self::APPLICATION_COMMAND_PERMISSION_UPDATE => "APPLICATION_COMMAND_PERMISSION_UPDATE",
+            Self::AUTO_MODERATION_RULE_CREATE => "AUTO_MODERATION_RULE_CREATE",
+            Self::AUTO_MODERATION_RULE_UPDATE => "AUTO_MODERATION_RULE_UPDATE",
+            Self::AUTO_MODERATION_RULE_DELETE => "AUTO_MODERATION_RULE_DELETE",
+            Self::AUTO_MODERATION_BLOCK_MESSAGE => "AUTO_MODERATION_BLOCK_MESSAGE",
+            Self::AUTO_MODERATION_FLAG_TO_CHANNEL => "AUTO_MODERATION_FLAG_TO_CHANNEL",
+            Self::AUTO_MODERATION_USER_COMMUNICATION_DISABLED => {
+                "AUTO_MODERATION_USER_COMMUNICATION_DISABLED"
+            }
+            _ => return None,
+        })
     }
 }
 
-impl From<AuditLogEventType> for u16 {
-    fn from(value: AuditLogEventType) -> Self {
-        match value {
-            AuditLogEventType::GuildUpdate => 1,
-            AuditLogEventType::ChannelCreate => 10,
-            AuditLogEventType::ChannelUpdate => 11,
-            AuditLogEventType::ChannelDelete => 12,
-            AuditLogEventType::ChannelOverwriteCreate => 13,
-            AuditLogEventType::ChannelOverwriteUpdate => 14,
-            AuditLogEventType::ChannelOverwriteDelete => 15,
-            AuditLogEventType::MemberKick => 20,
-            AuditLogEventType::MemberPrune => 21,
-            AuditLogEventType::MemberBanAdd => 22,
-            AuditLogEventType::MemberBanRemove => 23,
-            AuditLogEventType::MemberUpdate => 24,
-            AuditLogEventType::MemberRoleUpdate => 25,
-            AuditLogEventType::MemberMove => 26,
-            AuditLogEventType::MemberDisconnect => 27,
-            AuditLogEventType::BotAdd => 28,
-            AuditLogEventType::RoleCreate => 30,
-            AuditLogEventType::RoleUpdate => 31,
-            AuditLogEventType::RoleDelete => 32,
-            AuditLogEventType::InviteCreate => 40,
-            AuditLogEventType::InviteUpdate => 41,
-            AuditLogEventType::InviteDelete => 42,
-            AuditLogEventType::WebhookCreate => 50,
-            AuditLogEventType::WebhookUpdate => 51,
-            AuditLogEventType::WebhookDelete => 52,
-            AuditLogEventType::EmojiCreate => 60,
-            AuditLogEventType::EmojiUpdate => 61,
-            AuditLogEventType::EmojiDelete => 62,
-            AuditLogEventType::MessageDelete => 72,
-            AuditLogEventType::MessageBulkDelete => 73,
-            AuditLogEventType::MessagePin => 74,
-            AuditLogEventType::MessageUnpin => 75,
-            AuditLogEventType::IntegrationCreate => 80,
-            AuditLogEventType::IntegrationUpdate => 81,
-            AuditLogEventType::IntegrationDelete => 82,
-            AuditLogEventType::StageInstanceCreate => 83,
-            AuditLogEventType::StageInstanceUpdate => 84,
-            AuditLogEventType::StageInstanceDelete => 85,
-            AuditLogEventType::StickerCreate => 90,
-            AuditLogEventType::StickerUpdate => 91,
-            AuditLogEventType::StickerDelete => 92,
-            AuditLogEventType::GuildScheduledEventCreate => 100,
-            AuditLogEventType::GuildScheduledEventUpdate => 101,
-            AuditLogEventType::GuildScheduledEventDelete => 102,
-            AuditLogEventType::ThreadCreate => 110,
-            AuditLogEventType::ThreadUpdate => 111,
-            AuditLogEventType::ThreadDelete => 112,
-            AuditLogEventType::ApplicationCommandPermissionUpdate => 121,
-            AuditLogEventType::AutoModerationRuleCreate => 140,
-            AuditLogEventType::AutoModerationRuleUpdate => 141,
-            AuditLogEventType::AutoModerationRuleDelete => 142,
-            AuditLogEventType::AutoModerationBlockMessage => 143,
-            AuditLogEventType::AutoModerationFlagToChannel => 144,
-            AuditLogEventType::AutoModerationUserCommunicationDisabled => 145,
-            AuditLogEventType::Unknown(unknown) => unknown,
-        }
-    }
-}
+impl_typed!(AuditLogEventType, u16);
 
 #[cfg(test)]
 mod tests {
@@ -376,71 +371,89 @@ mod tests {
 
     #[test]
     fn test_values() {
-        assert_eq!(1, u16::from(AuditLogEventType::GuildUpdate));
-        assert_eq!(10, u16::from(AuditLogEventType::ChannelCreate));
-        assert_eq!(11, u16::from(AuditLogEventType::ChannelUpdate));
-        assert_eq!(12, u16::from(AuditLogEventType::ChannelDelete));
-        assert_eq!(13, u16::from(AuditLogEventType::ChannelOverwriteCreate));
-        assert_eq!(14, u16::from(AuditLogEventType::ChannelOverwriteUpdate));
-        assert_eq!(15, u16::from(AuditLogEventType::ChannelOverwriteDelete));
-        assert_eq!(20, u16::from(AuditLogEventType::MemberKick));
-        assert_eq!(21, u16::from(AuditLogEventType::MemberPrune));
-        assert_eq!(22, u16::from(AuditLogEventType::MemberBanAdd));
-        assert_eq!(23, u16::from(AuditLogEventType::MemberBanRemove));
-        assert_eq!(24, u16::from(AuditLogEventType::MemberUpdate));
-        assert_eq!(25, u16::from(AuditLogEventType::MemberRoleUpdate));
-        assert_eq!(26, u16::from(AuditLogEventType::MemberMove));
-        assert_eq!(27, u16::from(AuditLogEventType::MemberDisconnect));
-        assert_eq!(28, u16::from(AuditLogEventType::BotAdd));
-        assert_eq!(30, u16::from(AuditLogEventType::RoleCreate));
-        assert_eq!(31, u16::from(AuditLogEventType::RoleUpdate));
-        assert_eq!(32, u16::from(AuditLogEventType::RoleDelete));
-        assert_eq!(40, u16::from(AuditLogEventType::InviteCreate));
-        assert_eq!(41, u16::from(AuditLogEventType::InviteUpdate));
-        assert_eq!(42, u16::from(AuditLogEventType::InviteDelete));
-        assert_eq!(50, u16::from(AuditLogEventType::WebhookCreate));
-        assert_eq!(51, u16::from(AuditLogEventType::WebhookUpdate));
-        assert_eq!(52, u16::from(AuditLogEventType::WebhookDelete));
-        assert_eq!(60, u16::from(AuditLogEventType::EmojiCreate));
-        assert_eq!(61, u16::from(AuditLogEventType::EmojiUpdate));
-        assert_eq!(62, u16::from(AuditLogEventType::EmojiDelete));
-        assert_eq!(72, u16::from(AuditLogEventType::MessageDelete));
-        assert_eq!(73, u16::from(AuditLogEventType::MessageBulkDelete));
-        assert_eq!(74, u16::from(AuditLogEventType::MessagePin));
-        assert_eq!(75, u16::from(AuditLogEventType::MessageUnpin));
-        assert_eq!(80, u16::from(AuditLogEventType::IntegrationCreate));
-        assert_eq!(81, u16::from(AuditLogEventType::IntegrationUpdate));
-        assert_eq!(82, u16::from(AuditLogEventType::IntegrationDelete));
-        assert_eq!(83, u16::from(AuditLogEventType::StageInstanceCreate));
-        assert_eq!(84, u16::from(AuditLogEventType::StageInstanceUpdate));
-        assert_eq!(90, u16::from(AuditLogEventType::StickerCreate));
-        assert_eq!(91, u16::from(AuditLogEventType::StickerUpdate));
-        assert_eq!(92, u16::from(AuditLogEventType::StickerDelete));
-        assert_eq!(100, u16::from(AuditLogEventType::GuildScheduledEventCreate));
-        assert_eq!(101, u16::from(AuditLogEventType::GuildScheduledEventUpdate));
-        assert_eq!(102, u16::from(AuditLogEventType::GuildScheduledEventDelete));
-        assert_eq!(110, u16::from(AuditLogEventType::ThreadCreate));
-        assert_eq!(111, u16::from(AuditLogEventType::ThreadUpdate));
-        assert_eq!(112, u16::from(AuditLogEventType::ThreadDelete));
+        assert_eq!(1, u16::from(AuditLogEventType::GUILD_UPDATE));
+        assert_eq!(10, u16::from(AuditLogEventType::CHANNEL_CREATE));
+        assert_eq!(11, u16::from(AuditLogEventType::CHANNEL_UPDATE));
+        assert_eq!(12, u16::from(AuditLogEventType::CHANNEL_DELETE));
+        assert_eq!(13, u16::from(AuditLogEventType::CHANNEL_OVERWRITE_CREATE));
+        assert_eq!(14, u16::from(AuditLogEventType::CHANNEL_OVERWRITE_UPDATE));
+        assert_eq!(15, u16::from(AuditLogEventType::CHANNEL_OVERWRITE_DELETE));
+        assert_eq!(20, u16::from(AuditLogEventType::MEMBER_KICK));
+        assert_eq!(21, u16::from(AuditLogEventType::MEMBER_PRUNE));
+        assert_eq!(22, u16::from(AuditLogEventType::MEMBER_BAN_ADD));
+        assert_eq!(23, u16::from(AuditLogEventType::MEMBER_BAN_REMOVE));
+        assert_eq!(24, u16::from(AuditLogEventType::MEMBER_UPDATE));
+        assert_eq!(25, u16::from(AuditLogEventType::MEMBER_ROLE_UPDATE));
+        assert_eq!(26, u16::from(AuditLogEventType::MEMBER_MOVE));
+        assert_eq!(27, u16::from(AuditLogEventType::MEMBER_DISCONNECT));
+        assert_eq!(28, u16::from(AuditLogEventType::BOT_ADD));
+        assert_eq!(30, u16::from(AuditLogEventType::ROLE_CREATE));
+        assert_eq!(31, u16::from(AuditLogEventType::ROLE_UPDATE));
+        assert_eq!(32, u16::from(AuditLogEventType::ROLE_DELETE));
+        assert_eq!(40, u16::from(AuditLogEventType::INVITE_CREATE));
+        assert_eq!(41, u16::from(AuditLogEventType::INVITE_UPDATE));
+        assert_eq!(42, u16::from(AuditLogEventType::INVITE_DELETE));
+        assert_eq!(50, u16::from(AuditLogEventType::WEBHOOK_CREATE));
+        assert_eq!(51, u16::from(AuditLogEventType::WEBHOOK_UPDATE));
+        assert_eq!(52, u16::from(AuditLogEventType::WEBHOOK_DELETE));
+        assert_eq!(60, u16::from(AuditLogEventType::EMOJI_CREATE));
+        assert_eq!(61, u16::from(AuditLogEventType::EMOJI_UPDATE));
+        assert_eq!(62, u16::from(AuditLogEventType::EMOJI_DELETE));
+        assert_eq!(72, u16::from(AuditLogEventType::MESSAGE_DELETE));
+        assert_eq!(73, u16::from(AuditLogEventType::MESSAGE_BULK_DELETE));
+        assert_eq!(74, u16::from(AuditLogEventType::MESSAGE_PIN));
+        assert_eq!(75, u16::from(AuditLogEventType::MESSAGE_UNPIN));
+        assert_eq!(80, u16::from(AuditLogEventType::INTEGRATION_CREATE));
+        assert_eq!(81, u16::from(AuditLogEventType::INTEGRATION_UPDATE));
+        assert_eq!(82, u16::from(AuditLogEventType::INTEGRATION_DELETE));
+        assert_eq!(83, u16::from(AuditLogEventType::STAGE_INSTANCE_CREATE));
+        assert_eq!(84, u16::from(AuditLogEventType::STAGE_INSTANCE_UPDATE));
+        assert_eq!(90, u16::from(AuditLogEventType::STICKER_CREATE));
+        assert_eq!(91, u16::from(AuditLogEventType::STICKER_UPDATE));
+        assert_eq!(92, u16::from(AuditLogEventType::STICKER_DELETE));
+        assert_eq!(
+            100,
+            u16::from(AuditLogEventType::GUILD_SCHEDULED_EVENT_CREATE)
+        );
+        assert_eq!(
+            101,
+            u16::from(AuditLogEventType::GUILD_SCHEDULED_EVENT_UPDATE)
+        );
+        assert_eq!(
+            102,
+            u16::from(AuditLogEventType::GUILD_SCHEDULED_EVENT_DELETE)
+        );
+        assert_eq!(110, u16::from(AuditLogEventType::THREAD_CREATE));
+        assert_eq!(111, u16::from(AuditLogEventType::THREAD_UPDATE));
+        assert_eq!(112, u16::from(AuditLogEventType::THREAD_DELETE));
         assert_eq!(
             121,
-            u16::from(AuditLogEventType::ApplicationCommandPermissionUpdate)
+            u16::from(AuditLogEventType::APPLICATION_COMMAND_PERMISSION_UPDATE)
         );
-        assert_eq!(140, u16::from(AuditLogEventType::AutoModerationRuleCreate));
-        assert_eq!(141, u16::from(AuditLogEventType::AutoModerationRuleUpdate));
-        assert_eq!(142, u16::from(AuditLogEventType::AutoModerationRuleDelete));
+        assert_eq!(
+            140,
+            u16::from(AuditLogEventType::AUTO_MODERATION_RULE_CREATE)
+        );
+        assert_eq!(
+            141,
+            u16::from(AuditLogEventType::AUTO_MODERATION_RULE_UPDATE)
+        );
+        assert_eq!(
+            142,
+            u16::from(AuditLogEventType::AUTO_MODERATION_RULE_DELETE)
+        );
         assert_eq!(
             143,
-            u16::from(AuditLogEventType::AutoModerationBlockMessage)
+            u16::from(AuditLogEventType::AUTO_MODERATION_BLOCK_MESSAGE)
         );
         assert_eq!(
             144,
-            u16::from(AuditLogEventType::AutoModerationFlagToChannel)
+            u16::from(AuditLogEventType::AUTO_MODERATION_FLAG_TO_CHANNEL)
         );
         assert_eq!(
             145,
-            u16::from(AuditLogEventType::AutoModerationUserCommunicationDisabled)
+            u16::from(AuditLogEventType::AUTO_MODERATION_USER_COMMUNICATION_DISABLED)
         );
-        assert_eq!(250, u16::from(AuditLogEventType::Unknown(250)));
+        assert_eq!(250, u16::from(AuditLogEventType::new(250)));
     }
 }

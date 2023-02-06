@@ -12,7 +12,7 @@ impl Identify {
     pub const fn new(info: IdentifyInfo) -> Self {
         Self {
             d: info,
-            op: OpCode::Identify,
+            op: OpCode::IDENTIFY,
         }
     }
 }
