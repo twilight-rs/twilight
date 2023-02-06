@@ -1,12 +1,13 @@
 //! Constants, error types, and functions for validating [`Command`]s.
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{hash_map::RandomState, HashMap, HashSet},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::application::command::{
-    Command, CommandOption, CommandOptionChoiceValue, CommandOptionType, CommandType,
+    Command, CommandOption, CommandOptionChoice, CommandOptionChoiceValue, CommandOptionType,
+    CommandType,
 };
 
 /// Maximum number of choices an option can have.
@@ -29,6 +30,24 @@ pub const NAME_LENGTH_MIN: usize = 1;
 
 /// Maximum amount of options a command may have.
 pub const OPTIONS_LIMIT: usize = 25;
+
+/// Minimum length of an option choice name.
+pub const OPTION_CHOICE_NAME_LENGTH_MIN: usize = 1;
+
+/// Maximum length of an option choice name.
+pub const OPTION_CHOICE_NAME_LENGTH_MAX: usize = 100;
+
+/// Maximum length of an option choice name.
+pub const OPTION_CHOICE_NAME_LOCALIZATION_MAX: usize = OPTION_CHOICE_NAME_LENGTH_MAX;
+
+/// Minimum length of an option choice name.
+pub const OPTION_CHOICE_NAME_LOCALIZATION_MIN: usize = OPTION_CHOICE_NAME_LENGTH_MIN;
+
+/// Maximum length of an option choice string value.
+pub const OPTION_CHOICE_STRING_VALUE_LENGTH_MAX: usize = 100;
+
+/// Minimum length of an option choice string value.
+pub const OPTION_CHOICE_STRING_VALUE_LENGTH_MIN: usize = 1;
 
 /// Maximum length of a command's description.
 pub const OPTION_DESCRIPTION_LENGTH_MAX: usize = 100;
@@ -178,6 +197,30 @@ impl Display for CommandValidationError {
 
                 f.write_str("`")
             }
+            CommandValidationErrorType::OptionChoiceNameLengthInvalid => {
+                f.write_str("command option choice name must be between ")?;
+                Display::fmt(&OPTION_CHOICE_NAME_LENGTH_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&OPTION_CHOICE_NAME_LENGTH_MAX, f)?;
+
+                f.write_str(" characters")
+            }
+            CommandValidationErrorType::OptionChoiceNameLocalizationLengthInvalid => {
+                f.write_str("command option choice name localization must be between ")?;
+                Display::fmt(&OPTION_CHOICE_NAME_LOCALIZATION_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&OPTION_CHOICE_NAME_LOCALIZATION_MAX, f)?;
+
+                f.write_str(" characters")
+            }
+            CommandValidationErrorType::OptionChoiceStringValueLengthInvalid => {
+                f.write_str("command option choice string value must be between ")?;
+                Display::fmt(&OPTION_CHOICE_STRING_VALUE_LENGTH_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&OPTION_CHOICE_STRING_VALUE_LENGTH_MAX, f)?;
+
+                f.write_str(" characters")
+            }
             CommandValidationErrorType::OptionsCountInvalid => {
                 f.write_str("more than ")?;
                 Display::fmt(&OPTIONS_LIMIT, f)?;
@@ -243,6 +286,12 @@ pub enum CommandValidationErrorType {
         /// Invalid character.
         character: char,
     },
+    /// Command option choice name length is invalid.
+    OptionChoiceNameLengthInvalid,
+    /// Command option choice name localization length is invalid.
+    OptionChoiceNameLocalizationLengthInvalid,
+    /// String command option choice value length is invalid.
+    OptionChoiceStringValueLengthInvalid,
     /// Command options count invalid.
     OptionsCountInvalid,
     /// Required command options have to be passed before optional ones.
@@ -535,6 +584,67 @@ fn name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError>
     Ok(())
 }
 
+/// Validate a single name localization in a [`CommandOptionChoice`].
+///
+/// # Errors
+///
+/// Returns an error of type [`OptionChoiceNameLocalizationLengthInvalid`] if the name is
+/// less than [`OPTION_CHOICE_NAME_LENGTH_MIN`] or more than [`OPTION_CHOICE_NAME_LENGTH_MAX`].
+///
+/// [`OptionChoiceNameLocalizationLengthInvalid`]: CommandValidationErrorType::OptionChoiceNameLocalizationLengthInvalid
+pub fn choice_name_localizations(
+    name_localizations: &HashMap<String, String, RandomState>,
+) -> Result<(), CommandValidationError> {
+    for localized_name in name_localizations.values() {
+        let localized_name_len = localized_name.chars().count();
+
+        if !(OPTION_CHOICE_NAME_LOCALIZATION_MIN..=OPTION_CHOICE_NAME_LOCALIZATION_MAX)
+            .contains(&localized_name_len)
+        {
+            return Err(CommandValidationError {
+                kind: CommandValidationErrorType::OptionChoiceNameLengthInvalid,
+            });
+        }
+    }
+
+    Ok(())
+}
+
+/// Validate a single [`CommandOptionChoice`].
+///
+/// # Errors
+///
+/// Returns an error of type [`OptionChoiceNameLengthInvalid`] if the name is
+/// less than [`OPTION_CHOICE_NAME_LENGTH_MIN`] or more than [`OPTION_CHOICE_NAME_LENGTH_MAX`].
+///
+/// [`OptionChoiceNameLengthInvalid`]: CommandValidationErrorType::OptionChoiceNameLengthInvalid
+pub fn choice(choice: &CommandOptionChoice) -> Result<(), CommandValidationError> {
+    let name_len = choice.name.chars().count();
+    if !(OPTION_CHOICE_NAME_LENGTH_MIN..=OPTION_CHOICE_NAME_LENGTH_MAX).contains(&name_len) {
+        return Err(CommandValidationError {
+            kind: CommandValidationErrorType::OptionChoiceNameLengthInvalid,
+        });
+    }
+
+    if let CommandOptionChoiceValue::String(value) = &choice.value {
+        let value_len = value.chars().count();
+
+        if !(OPTION_CHOICE_STRING_VALUE_LENGTH_MIN..=OPTION_CHOICE_STRING_VALUE_LENGTH_MAX)
+            .contains(&value_len)
+        {
+            return Err(CommandValidationError {
+                kind: CommandValidationErrorType::OptionChoiceStringValueLengthInvalid,
+            });
+        }
+    }
+
+    if let Some(name_localizations) = &choice.name_localizations {
+        self::choice_name_localizations(name_localizations)?;
+    }
+
+    Ok(())
+}
+
 /// Validate a single [`CommandOption`].
 ///
 /// # Errors
@@ -556,6 +666,10 @@ pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
         return Err(CommandValidationError {
             kind: CommandValidationErrorType::OptionDescriptionInvalid,
         });
+    }
+
+    if let Some(choices) = &option.choices {
+        choices.iter().try_for_each(self::choice)?;
     }
 
     self::option_name(&option.name)
@@ -646,6 +760,109 @@ mod tests {
         },
         id::Id,
     };
+
+    #[test]
+    fn choice_name_limit() {
+        let valid_choice = CommandOptionChoice {
+            name: "a".repeat(100),
+            name_localizations: None,
+            value: CommandOptionChoiceValue::String("a".to_string()),
+        };
+
+        assert!(choice(&valid_choice).is_ok());
+
+        let invalid_choice = CommandOptionChoice {
+            name: "a".repeat(101),
+            name_localizations: None,
+            value: CommandOptionChoiceValue::String("b".to_string()),
+        };
+
+        assert!(choice(&invalid_choice).is_err());
+
+        let invalid_choice = CommandOptionChoice {
+            name: String::new(),
+            name_localizations: None,
+            value: CommandOptionChoiceValue::String("c".to_string()),
+        };
+
+        assert!(choice(&invalid_choice).is_err());
+    }
+
+    #[test]
+    fn choice_name_localizations() {
+        let mut name_localizations = HashMap::new();
+        name_localizations.insert("en-US".to_string(), "a".repeat(100));
+
+        let valid_choice = CommandOptionChoice {
+            name: "a".to_string(),
+            name_localizations: Some(name_localizations),
+            value: CommandOptionChoiceValue::String("a".to_string()),
+        };
+
+        assert!(choice(&valid_choice).is_ok());
+
+        let mut name_localizations = HashMap::new();
+        name_localizations.insert("en-US".to_string(), "a".repeat(101));
+
+        let invalid_choice = CommandOptionChoice {
+            name: "a".to_string(),
+            name_localizations: Some(name_localizations),
+            value: CommandOptionChoiceValue::String("b".to_string()),
+        };
+
+        assert!(choice(&invalid_choice).is_err());
+
+        let mut name_localizations = HashMap::new();
+        name_localizations.insert("en-US".to_string(), String::new());
+
+        let invalid_choice = CommandOptionChoice {
+            name: "a".to_string(),
+            name_localizations: Some(name_localizations),
+            value: CommandOptionChoiceValue::String("c".to_string()),
+        };
+
+        assert!(choice(&invalid_choice).is_err());
+
+        let mut name_localizations = HashMap::new();
+        name_localizations.insert("en-US".to_string(), String::from("a"));
+        name_localizations.insert("en-GB".to_string(), "a".repeat(101));
+        name_localizations.insert("es-ES".to_string(), "a".repeat(100));
+
+        let invalid_choice = CommandOptionChoice {
+            name: "a".to_string(),
+            name_localizations: Some(name_localizations),
+            value: CommandOptionChoiceValue::String("c".to_string()),
+        };
+
+        assert!(choice(&invalid_choice).is_err());
+    }
+
+    #[test]
+    fn choice_string_value() {
+        let valid_choice = CommandOptionChoice {
+            name: "a".to_string(),
+            name_localizations: None,
+            value: CommandOptionChoiceValue::String("a".to_string()),
+        };
+
+        assert!(choice(&valid_choice).is_ok());
+
+        let invalid_choice = CommandOptionChoice {
+            name: "b".to_string(),
+            name_localizations: None,
+            value: CommandOptionChoiceValue::String("b".repeat(101)),
+        };
+
+        assert!(choice(&invalid_choice).is_err());
+
+        let invalid_choice = CommandOptionChoice {
+            name: "c".to_string(),
+            name_localizations: None,
+            value: CommandOptionChoiceValue::String(String::new()),
+        };
+
+        assert!(choice(&invalid_choice).is_err());
+    }
 
     // This tests [`description`] and [`name`] by proxy.
     #[test]
