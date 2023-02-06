@@ -1,5 +1,3 @@
-#![allow(clippy::wildcard_imports)]
-
 use super::{Event, EventConversionError};
 use crate::{
     gateway::payload::incoming::*,

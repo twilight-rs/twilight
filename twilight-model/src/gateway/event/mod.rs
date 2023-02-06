@@ -13,6 +13,8 @@
 //! [`Deserialize`]: serde::Deserialize
 //! [`DeserializeSeed`]: serde::de::DeserializeSeed
 
+#![allow(clippy::wildcard_imports)]
+
 mod dispatch;
 mod gateway;
 mod kind;

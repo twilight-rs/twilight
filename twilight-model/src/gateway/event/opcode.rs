@@ -6,19 +6,19 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 ///
 /// * [`Dispatch`]
 /// * [`Heartbeat`]
-/// * [`Reconnect`]
-/// * [`InvalidSession`]
-/// * [`Hello`]
 /// * [`HeartbeatAck`]
+/// * [`Hello`]
+/// * [`InvalidSession`]
+/// * [`Reconnect`]
 ///
 /// # Sent by the client
 ///
 /// * [`Heartbeat`]
 /// * [`Identify`]
 /// * [`PresenceUpdate`]
-/// * [`VoiceStateUpdate`]
 /// * [`Resume`]
 /// * [`RequestGuildMembers`]
+/// * [`VoiceStateUpdate`]
 ///
 /// Corresponds to an event's `op` field.
 ///
@@ -74,28 +74,28 @@ pub enum OpCode {
 impl OpCode {
     /// Whether the opcode is received by the client.
     pub const fn received(self) -> bool {
-        match self {
-            OpCode::Dispatch => true,
-            OpCode::Heartbeat => true,
-            OpCode::Reconnect => true,
-            OpCode::InvalidSession => true,
-            OpCode::Hello => true,
-            OpCode::HeartbeatAck => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Self::Dispatch
+                | Self::Heartbeat
+                | Self::HeartbeatAck
+                | Self::Hello
+                | Self::InvalidSession
+                | Self::Reconnect
+        )
     }
 
     /// Whether the opcode is sent by the client.
     pub const fn sent(self) -> bool {
-        match self {
-            OpCode::Heartbeat => true,
-            OpCode::Identify => true,
-            OpCode::PresenceUpdate => true,
-            OpCode::VoiceStateUpdate => true,
-            OpCode::Resume => true,
-            OpCode::RequestGuildMembers => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Self::Heartbeat
+                | Self::Identify
+                | Self::PresenceUpdate
+                | Self::Resume
+                | Self::RequestGuildMembers
+                | Self::VoiceStateUpdate
+        )
     }
 
     /// Try to match an integer value to an opcode, returning [`None`] if no
