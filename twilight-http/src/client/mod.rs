@@ -4,6 +4,7 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
+use crate::request::GetCurrentAuthorizationInformation;
 #[allow(deprecated)]
 use crate::{
     client::connector::Connector,
@@ -88,7 +89,8 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::AsRef,
+    fmt::{Debug, Formatter, Result as FmtResult},
+    ops::Deref,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -121,6 +123,35 @@ const TWILIGHT_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_VERSION"),
     ") Twilight-rs",
 );
+
+/// Wrapper for an authorization token with a debug implementation that redacts
+/// the string.
+#[derive(Default)]
+struct Token {
+    /// Authorization token that is redacted in the Debug implementation.
+    inner: Box<str>,
+}
+
+impl Token {
+    /// Create a new authorization wrapper.
+    const fn new(token: Box<str>) -> Self {
+        Self { inner: token }
+    }
+}
+
+impl Debug for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("<redacted>")
+    }
+}
+
+impl Deref for Token {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
 
 /// Twilight's http client.
 ///
@@ -206,7 +237,7 @@ pub struct Client {
     /// Whether an invalid token is tracked can be configured via
     /// [`ClientBuilder::remember_invalid_token`].
     token_invalidated: Option<Arc<AtomicBool>>,
-    token: Option<Box<str>>,
+    token: Option<Token>,
     use_http: bool,
 }
 
@@ -649,6 +680,11 @@ impl Client {
         guild_id: Id<GuildMarker>,
     ) -> GetCurrentUserGuildMember<'_> {
         GetCurrentUserGuildMember::new(self, guild_id)
+    }
+
+    /// Get information about the current OAuth authorization.
+    pub const fn current_authorization(&self) -> GetCurrentAuthorizationInformation<'_> {
+        GetCurrentAuthorizationInformation::new(self)
     }
 
     /// Get information about the current bot application.
@@ -1375,12 +1411,20 @@ impl Client {
     /// and upper limits. This method will not delete messages older than two
     /// weeks. See [Discord Docs/Bulk Delete Messages].
     ///
+    /// # Errors
+    ///
+    /// Returns an error of type
+    /// [`ChannelValidationErrorType::BulkDeleteMessagesInvalid`] when the number of
+    /// messages to delete in bulk is invalid.
+    /// is not between 1 and 120 characters in length.
+    ///
     /// [Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
-    pub const fn delete_messages<'a>(
+    /// [`ChannelValidationErrorType::BulkDeleteMessagesInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BulkDeleteMessagesInvalid
+    pub fn delete_messages<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
         message_ids: &'a [Id<MessageMarker>],
-    ) -> DeleteMessages<'a> {
+    ) -> Result<DeleteMessages<'a>, ChannelValidationError> {
         DeleteMessages::new(self, channel_id, message_ids)
     }
 
@@ -2542,7 +2586,7 @@ impl Client {
         let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);
 
         if use_authorization_token {
-            if let Some(token) = &self.token {
+            if let Some(token) = self.token.as_deref() {
                 let value = HeaderValue::from_str(token).map_err(|source| {
                     let name = AUTHORIZATION.to_string();
 
@@ -2621,5 +2665,18 @@ impl Client {
         } else {
             ResponseFuture::new(Box::pin(time::timeout(self.timeout, inner)), invalid_token)
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Client;
+
+    #[test]
+    fn client_debug_with_token() {
+        assert!(
+            format!("{:?}", Client::new("Bot foo".to_owned())).contains("token: Some(<redacted>)")
+        );
+        assert!(format!("{:?}", Client::builder().build()).contains("token: None"));
     }
 }

@@ -2,9 +2,8 @@ use futures_util::StreamExt;
 use std::{env, sync::Arc, time::Duration};
 use tokio::time;
 use twilight_gateway::{
-    queue::{LocalQueue, Queue},
     stream::{self, ShardEventStream, ShardMessageStream},
-    Config, Event, Intents, Shard, ShardId,
+    Config, ConfigBuilder, Event, Intents, Shard, ShardId,
 };
 use twilight_http::Client;
 
@@ -15,19 +14,13 @@ async fn main() -> anyhow::Result<()> {
 
     let token = env::var("DISCORD_TOKEN")?;
     let client = Arc::new(Client::new(token.clone()));
-    let queue: Arc<dyn Queue> = Arc::new(LocalQueue::new());
+    let config = Config::new(
+        token.clone(),
+        Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT,
+    );
+    let config_callback = |_, builder: ConfigBuilder| builder.build();
 
-    let config_callback = |_| {
-        // A queue must be specified in the builder for the shards to reuse the
-        // same one, which is necessary to not hit any gateway queue ratelimit.
-        Config::builder(
-            token.clone(),
-            Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT,
-        )
-        .queue(Arc::clone(&queue))
-        .build()
-    };
-    let mut shards = stream::create_recommended(&client, &config_callback)
+    let mut shards = stream::create_recommended(&client, config.clone(), &config_callback)
         .await?
         .collect::<Vec<_>>();
 
@@ -40,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
             _ = gateway_runner(Arc::clone(&client), shards) => break,
             // Resharding complete! Time to run `gateway_runner` with the new
             // list of shards.
-            Ok(Some(new_shards)) = reshard(&client, config_callback) => {
+            Ok(Some(new_shards)) = reshard(&client, config.clone(), config_callback) => {
                     // Assign the new list of shards to `shards`, dropping the
                     // old list.
                     shards = new_shards;
@@ -94,14 +87,15 @@ async fn event_handler(client: Arc<Client>, event: Event) -> anyhow::Result<()> 
 #[tracing::instrument(skip_all)]
 async fn reshard(
     client: &Client,
-    config_callback: impl Fn(ShardId) -> Config,
+    config: Config,
+    config_callback: impl Fn(ShardId, ConfigBuilder) -> Config,
 ) -> anyhow::Result<Option<Vec<Shard>>> {
     const RESHARD_DURATION: Duration = Duration::from_secs(60 * 60 * 8);
 
     // Reshard every eight hours.
     time::sleep(RESHARD_DURATION).await;
 
-    let mut shards = stream::create_recommended(client, config_callback)
+    let mut shards = stream::create_recommended(client, config, config_callback)
         .await?
         .collect::<Vec<_>>();
 

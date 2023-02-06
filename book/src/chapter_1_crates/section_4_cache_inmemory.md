@@ -43,7 +43,7 @@ loop {
 
 ## Links
 
-*source*: <https://github.com/twilight-rs/twilight/tree/main/cache/in-memory>
+*source*: <https://github.com/twilight-rs/twilight/tree/main/twilight-cache-inmemory>
 
 *docs*: <https://docs.rs/twilight-cache-inmemory>
 

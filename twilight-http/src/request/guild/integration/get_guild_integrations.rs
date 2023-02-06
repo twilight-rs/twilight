@@ -12,6 +12,9 @@ use twilight_model::{
 };
 
 /// Get the guild's integrations.
+///
+/// This endpoint returns a maximum of 50 integrations. If a guild has more
+/// integrations then they can't be accessed.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildIntegrations<'a> {
     guild_id: Id<GuildMarker>,

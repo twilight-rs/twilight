@@ -1,5 +1,4 @@
-//! Home of [`EventTypeFlags`], and optimization technique for skipping gateway
-//! event deserialization.
+//! Optimization for skipping deserialization of unwanted events.
 
 use bitflags::bitflags;
 use twilight_model::gateway::{event::EventType, OpCode};
@@ -8,25 +7,27 @@ bitflags! {
     /// Important optimization for narrowing requested event types.
     ///
     /// Specifying event types is an important optimization technique on top of
-    /// [intents], which can dramatically decrease processor usage in many
+    /// [`Intents`], which can dramatically decrease processor usage in many
     /// circumstances. While specifying intents are required by Discord and
-    /// allow filtering groups of [events], event type flags are a
+    /// allow filtering groups of [`Event`]s, event type flags are a
     /// Twilight-specific technique to filter out individual events from being
-    /// deserialized at all, effectively discarding those events.
+    /// deserialized at all, effectively discarding them.
     ///
     /// For example, [`Intents::GUILDS`] includes a wide range of events from
-    /// [`GuildCreate`] to [`GuildRoleUpdate`] to [`ChannelPinsUpdate`]. If the
-    /// only events used in this group of events is, say, [`ChannelCreate`] and
-    /// [`GuildRoleCreate`], then the [`CHANNEL_CREATE`] and
-    /// [`GUILD_ROLE_CREATE`] event type flags can be specified in combination
-    /// with that intent. This reduces the events received and deserialized to
-    /// only those events.
+    /// [`GuildCreate`] to [`RoleUpdate`] to [`ChannelPinsUpdate`]. If the only
+    /// events used in this group of events is, say, [`ChannelCreate`] and
+    /// [`RoleCreate`], then the [`CHANNEL_CREATE`][Self::CHANNEL_CREATE] and
+    /// [`ROLE_CREATE`][Self::ROLE_CREATE] event type flags can be specified in
+    /// combination with that intent to only deserialize those events.
     ///
-    /// [`CHANNEL_CREATE`]: Self::CHANNEL_CREATE
-    /// [`GUILD_ROLE_CREATE`]: Self::GUILD_ROLE_CREATE
-    /// [`ChannelCreate`]: twilight_model::gateway::payload::incoming::ChannelCreate
-    /// [`ChannelPinsUpdate`]: twilight_model::gateway::payload::incoming::ChannelPinsUpdate
-    /// [`GuildRoleCreate`]: twilight_model::gateway::payload::incoming::GuildRoleCreate
+    /// [`ChannelCreate`]: twilight_model::gateway::event::Event::ChannelCreate
+    /// [`ChannelPinsUpdate`]: twilight_model::gateway::event::Event::ChannelPinsUpdate
+    /// [`Event`]: twilight_model::gateway::event::Event
+    /// [`GuildCreate`]: twilight_model::gateway::event::Event::GuildCreate
+    /// [`Intents`]: twilight_model::gateway::Intents
+    /// [`Intents::GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`RoleCreate`]: twilight_model::gateway::event::Event::RoleCreate
+    /// [`RoleUpdate`]: twilight_model::gateway::event::Event::RoleUpdate
     pub struct EventTypeFlags: u128 {
         /// Message has been blocked by AutoMod according to a rule.
         const AUTO_MODERATION_ACTION_EXECUTION = 1 << 71;
@@ -71,6 +72,8 @@ bitflags! {
         const GATEWAY_RECONNECT = 1 << 9;
         /// Gift code sent in a channel has been updated.
         const GIFT_CODE_UPDATE = 1 << 49;
+        /// An audit log entry has been created.
+        const GUILD_AUDIT_LOG_ENTRY_CREATE = 1 << 75;
         /// A guild has been created.
         const GUILD_CREATE = 1 << 10;
         /// A guild has been deleted or the current user has been removed from a guild.
@@ -234,7 +237,12 @@ bitflags! {
         /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
         ///
         /// [`Intents::GUILD_BANS`]: crate::Intents::GUILD_BANS
-        const GUILD_BANS = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits();
+        #[deprecated(since = "0.14.3", note = "use the `GUILD_MODERATION` intent instead")]
+        const GUILD_BANS = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits() | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits();
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_MODERATION`].
+        ///
+        /// [`Intents::GUILD_MODERATION`]: crate::Intents::GUILD_MODERATION
+        const GUILD_MODERATION = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits() | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits();
         /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS_AND_STICKERS`].
         ///
         /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
@@ -331,6 +339,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::GATEWAY_INVALIDATE_SESSION => Self::GATEWAY_INVALIDATE_SESSION,
             EventType::GATEWAY_RECONNECT => Self::GATEWAY_RECONNECT,
             EventType::GIFT_CODE_UPDATE => Self::GIFT_CODE_UPDATE,
+            EventType::GUILD_AUDIT_LOG_ENTRY_CREATE => Self::GUILD_AUDIT_LOG_ENTRY_CREATE,
             EventType::GUILD_CREATE => Self::GUILD_CREATE,
             EventType::GUILD_DELETE => Self::GUILD_DELETE,
             EventType::GUILD_EMOJIS_UPDATE => Self::GUILD_EMOJIS_UPDATE,

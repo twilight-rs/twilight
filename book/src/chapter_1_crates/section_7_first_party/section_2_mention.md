@@ -22,7 +22,7 @@ let message = format!("Hey there, {}!", user_id.mention());
 
 ## Links
 
-*source*: <https://github.com/twilight-rs/twilight/tree/main/utils/mention>
+*source*: <https://github.com/twilight-rs/twilight/tree/main/twilight-mention>
 
 *docs*: <https://docs.rs/twilight-mention>
 

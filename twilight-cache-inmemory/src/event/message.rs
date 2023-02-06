@@ -134,7 +134,7 @@ mod tests {
     use twilight_model::{
         channel::message::{Message, MessageFlags, MessageType},
         gateway::payload::incoming::MessageCreate,
-        guild::PartialMember,
+        guild::{MemberFlags, PartialMember},
         id::Id,
         user::User,
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
@@ -149,6 +149,7 @@ mod tests {
             .build();
 
         let avatar = ImageHash::parse(b"e91c75bc7656063cc745f4e79d0b7664")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
         let mut msg = Message {
             activity: None,
             application: None,
@@ -185,6 +186,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("member nick".to_owned()),
@@ -200,6 +202,7 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
+            role_subscription_data: None,
             sticker_items: Vec::new(),
             thread: None,
             referenced_message: None,
@@ -213,7 +216,7 @@ mod tests {
         cache.update(&MessageCreate(msg));
 
         {
-            let entry = cache.user_guilds.get(&Id::new(3)).unwrap();
+            let entry = cache.user_guilds(Id::new(3)).unwrap();
             assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(

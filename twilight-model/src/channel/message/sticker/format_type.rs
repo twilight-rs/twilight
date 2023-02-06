@@ -17,6 +17,9 @@ impl StickerFormatType {
     /// Sticker format is a LOTTIE.
     pub const LOTTIE: Self = Self::new(3);
 
+    /// Sticker format is a GIF.
+    pub const GIF: Self = Self::new(4);
+
     /// Create a new sticker format type from a dynamic value.
     ///
     /// The provided value isn't validated. Known valid values are associated
@@ -85,6 +88,7 @@ mod tests {
         (StickerFormatType::PNG, 1),
         (StickerFormatType::APNG, 2),
         (StickerFormatType::LOTTIE, 3),
+        (StickerFormatType::GIF, 4),
     ];
 
     #[test]

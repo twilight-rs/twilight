@@ -1,20 +1,16 @@
 use crate::{
-    guild::member::{Member, MemberIntermediary},
+    guild::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
     util::Timestamp,
 };
-use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
-    Deserialize, Serialize,
-};
-use std::fmt::{Formatter, Result as FmtResult};
+use serde::{Deserialize, Serialize};
 
 /// User's voice connection status.
 #[allow(clippy::struct_excessive_bools)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceState {
     /// Channel this user is connected to.
     ///
@@ -58,244 +54,11 @@ pub struct VoiceState {
     pub request_to_speak_timestamp: Option<Timestamp>,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(field_identifier, rename_all = "snake_case")]
-enum Field {
-    ChannelId,
-    Deaf,
-    GuildId,
-    Member,
-    Mute,
-    SelfDeaf,
-    SelfMute,
-    SelfStream,
-    SelfVideo,
-    SessionId,
-    Suppress,
-    UserId,
-    RequestToSpeakTimestamp,
-}
-
-struct VoiceStateVisitor;
-
-impl<'de> Visitor<'de> for VoiceStateVisitor {
-    type Value = VoiceState;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("struct VoiceState")
-    }
-
-    #[allow(clippy::too_many_lines)]
-    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut channel_id = None;
-        let mut deaf = None;
-        let mut guild_id = None;
-        let mut member: Option<MemberIntermediary> = None;
-        let mut mute = None;
-        let mut self_deaf = None;
-        let mut self_mute = None;
-        let mut self_stream = None;
-        let mut self_video = None;
-        let mut session_id = None;
-        let mut suppress = None;
-        let mut user_id = None;
-        let mut request_to_speak_timestamp = None;
-
-        let span = tracing::trace_span!("deserializing voice state");
-        let _span_enter = span.enter();
-
-        loop {
-            let span_child = tracing::trace_span!("iterating over element");
-            let _span_child_enter = span_child.enter();
-
-            let key = match map.next_key() {
-                Ok(Some(key)) => {
-                    tracing::trace!(?key, "found key");
-
-                    key
-                }
-                Ok(None) => break,
-                Err(why) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
-
-                    tracing::trace!("ran into an unknown key: {why:?}");
-
-                    continue;
-                }
-            };
-
-            match key {
-                Field::ChannelId => {
-                    if channel_id.is_some() {
-                        return Err(DeError::duplicate_field("channel_id"));
-                    }
-
-                    channel_id = map.next_value()?;
-                }
-                Field::Deaf => {
-                    if deaf.is_some() {
-                        return Err(DeError::duplicate_field("deaf"));
-                    }
-
-                    deaf = Some(map.next_value()?);
-                }
-                Field::GuildId => {
-                    if guild_id.is_some() {
-                        return Err(DeError::duplicate_field("guild_id"));
-                    }
-
-                    guild_id = map.next_value()?;
-                }
-                Field::Member => {
-                    if member.is_some() {
-                        return Err(DeError::duplicate_field("member"));
-                    }
-
-                    member = map.next_value()?;
-                }
-                Field::Mute => {
-                    if mute.is_some() {
-                        return Err(DeError::duplicate_field("mute"));
-                    }
-
-                    mute = Some(map.next_value()?);
-                }
-                Field::SelfDeaf => {
-                    if self_deaf.is_some() {
-                        return Err(DeError::duplicate_field("self_deaf"));
-                    }
-
-                    self_deaf = Some(map.next_value()?);
-                }
-                Field::SelfMute => {
-                    if self_mute.is_some() {
-                        return Err(DeError::duplicate_field("self_mute"));
-                    }
-
-                    self_mute = Some(map.next_value()?);
-                }
-                Field::SelfStream => {
-                    if self_stream.is_some() {
-                        return Err(DeError::duplicate_field("self_stream"));
-                    }
-
-                    self_stream = Some(map.next_value()?);
-                }
-                Field::SelfVideo => {
-                    if self_video.is_some() {
-                        return Err(DeError::duplicate_field("self_video"));
-                    }
-
-                    self_video = Some(map.next_value()?);
-                }
-                Field::SessionId => {
-                    if session_id.is_some() {
-                        return Err(DeError::duplicate_field("session_id"));
-                    }
-
-                    session_id = Some(map.next_value()?);
-                }
-                Field::Suppress => {
-                    if suppress.is_some() {
-                        return Err(DeError::duplicate_field("suppress"));
-                    }
-
-                    suppress = Some(map.next_value()?);
-                }
-                Field::UserId => {
-                    if user_id.is_some() {
-                        return Err(DeError::duplicate_field("user_id"));
-                    }
-
-                    user_id = Some(map.next_value()?);
-                }
-                Field::RequestToSpeakTimestamp => {
-                    if request_to_speak_timestamp.is_some() {
-                        return Err(DeError::duplicate_field("request_to_speak_timestamp"));
-                    }
-
-                    request_to_speak_timestamp = map.next_value()?;
-                }
-            }
-        }
-
-        let deaf = deaf.ok_or_else(|| DeError::missing_field("deaf"))?;
-        let mute = mute.ok_or_else(|| DeError::missing_field("mute"))?;
-        let self_deaf = self_deaf.ok_or_else(|| DeError::missing_field("self_deaf"))?;
-        let self_mute = self_mute.ok_or_else(|| DeError::missing_field("self_mute"))?;
-        let self_video = self_video.ok_or_else(|| DeError::missing_field("self_video"))?;
-        let session_id = session_id.ok_or_else(|| DeError::missing_field("session_id"))?;
-        let suppress = suppress.ok_or_else(|| DeError::missing_field("suppress"))?;
-        let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
-
-        let self_stream = self_stream.unwrap_or_default();
-
-        tracing::trace!(
-            %deaf,
-            %mute,
-            %self_deaf,
-            %self_mute,
-            %self_stream,
-            %self_video,
-            ?session_id,
-            %suppress,
-            %user_id,
-        );
-
-        let member = if let (Some(guild_id), Some(member)) = (guild_id, member) {
-            tracing::trace!(%guild_id, ?member, "setting member guild id");
-
-            Some(member.into_member(guild_id))
-        } else {
-            None
-        };
-
-        Ok(VoiceState {
-            channel_id,
-            deaf,
-            guild_id,
-            member,
-            mute,
-            self_deaf,
-            self_mute,
-            self_stream,
-            self_video,
-            session_id,
-            suppress,
-            user_id,
-            request_to_speak_timestamp,
-        })
-    }
-}
-
-impl<'de> Deserialize<'de> for VoiceState {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        const FIELDS: &[&str] = &[
-            "channel_id",
-            "deaf",
-            "guild_id",
-            "member",
-            "mute",
-            "self_deaf",
-            "self_mute",
-            "self_stream",
-            "session_id",
-            "suppress",
-            "token",
-            "user_id",
-            "request_to_speak_timestamp",
-        ];
-
-        deserializer.deserialize_struct("VoiceState", FIELDS, VoiceStateVisitor)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::VoiceState;
     use crate::{
-        guild::Member,
+        guild::{Member, MemberFlags},
         id::Id,
         user::User,
         util::datetime::{Timestamp, TimestampParseError},
@@ -368,6 +131,7 @@ mod tests {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
         let request_to_speak_timestamp = Timestamp::from_str("2021-04-21T22:16:50.000000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = VoiceState {
             channel_id: Some(Id::new(1)),
@@ -377,7 +141,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(2),
+                flags,
                 joined_at,
                 mute: true,
                 nick: Some("twilight".to_owned()),
@@ -440,9 +204,8 @@ mod tests {
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("2"),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),

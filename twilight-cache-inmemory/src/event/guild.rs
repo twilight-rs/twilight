@@ -48,6 +48,7 @@ impl InMemoryCache {
             premium_subscription_count,
             premium_tier,
             presences,
+            public_updates_channel_id,
             roles,
             rules_channel_id,
             splash,
@@ -148,6 +149,7 @@ impl InMemoryCache {
                 premium_progress_bar_enabled,
                 premium_subscription_count,
                 premium_tier,
+                public_updates_channel_id,
                 rules_channel_id,
                 splash,
                 system_channel_id,
@@ -425,6 +427,7 @@ mod tests {
             premium_subscription_count: Some(0),
             premium_tier: PremiumTier::NONE,
             presences: Vec::new(),
+            public_updates_channel_id: None,
             roles: Vec::new(),
             rules_channel_id: None,
             splash: None,
@@ -491,6 +494,7 @@ mod tests {
             premium_progress_bar_enabled: guild.premium_progress_bar_enabled,
             premium_subscription_count: guild.premium_subscription_count,
             premium_tier: guild.premium_tier,
+            public_updates_channel_id: None,
             roles: guild.roles,
             rules_channel_id: guild.rules_channel_id,
             splash: guild.splash,
@@ -515,11 +519,11 @@ mod tests {
         let guild_id = Id::new(1);
         let cache = InMemoryCache::new();
         let user = test::user(user_id);
-        let member = test::member(user_id, guild_id);
+        let member = test::member(user_id);
         let guild = test::guild(guild_id, Some(1));
 
         cache.update(&GuildCreate(guild));
-        cache.update(&MemberAdd(member));
+        cache.update(&MemberAdd { guild_id, member });
 
         assert_eq!(cache.guild(guild_id).unwrap().member_count, Some(2));
 
@@ -533,7 +537,7 @@ mod tests {
         let user_id = Id::new(2);
         let guild_id = Id::new(1);
         let cache = InMemoryCache::new();
-        let member = test::member(user_id, guild_id);
+        let member = test::member(user_id);
         let mut guild = test::guild(guild_id, Some(1));
         guild.members.push(member);
 

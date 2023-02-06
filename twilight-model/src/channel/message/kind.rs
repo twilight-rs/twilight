@@ -85,6 +85,9 @@ impl MessageType {
     /// Message is an auto moderation action.
     pub const AUTO_MODERATION_ACTION: Self = Self::new(24);
 
+    /// System message denoting a user subscribed to a role.
+    pub const ROLE_SUBSCRIPTION_PURCHASE: Self = Self::new(25);
+
     /// System message denoting a interaction premium upsell.
     pub const INTERACTION_PREMIUM_UPSELL: Self = Self::new(26);
 
@@ -183,6 +186,7 @@ impl MessageType {
                 | Self::GUILD_INVITE_REMINDER
                 | Self::CONTEXT_MENU_COMMAND
                 | Self::AUTO_MODERATION_ACTION
+                | Self::ROLE_SUBSCRIPTION_PURCHASE
                 | Self::INTERACTION_PREMIUM_UPSELL
         )
     }
@@ -295,6 +299,7 @@ mod tests {
             (MessageType::GUILD_INVITE_REMINDER, 22, true),
             (MessageType::CONTEXT_MENU_COMMAND, 23, true),
             (MessageType::AUTO_MODERATION_ACTION, 24, true),
+            (MessageType::ROLE_SUBSCRIPTION_PURCHASE, 25, true),
             (MessageType::INTERACTION_PREMIUM_UPSELL, 26, true),
             (
                 MessageType::GUILD_APPLICATION_PREMIUM_SUBSCRIPTION,

@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.15.0] - 2023-02-05
 
 ### Bug Fixes
 
@@ -8,21 +8,74 @@
 - [**breaking**] heartbeat with a `null` sequence until a session is initialized ([#1940](https://github.com/twilight-rs/twilight/issues/1940))
 - [**breaking**] use typed features for guild invite ([#2043](https://github.com/twilight-rs/twilight/issues/2043))
 
+### Documentation
+
+- remove link to member module ([#2117](https://github.com/twilight-rs/twilight/issues/2117))
+
 ### Features
 
 - [**breaking**] bring widgets up to date ([#1848](https://github.com/twilight-rs/twilight/issues/1848))
 - [**breaking**] add `AfkTimeout` for `Guild::afk_timeout` ([#1922](https://github.com/twilight-rs/twilight/issues/1922))
 - [**breaking**] add `Event::GatewayClose` variant ([#2044](https://github.com/twilight-rs/twilight/issues/2044))
+- [**breaking**] remove member::guild_id ([#2083](https://github.com/twilight-rs/twilight/issues/2083))
+- [**breaking**] flatten `CommandOptionChoice` ([#2081](https://github.com/twilight-rs/twilight/issues/2081))
 
 ### Refactor
 
 - [**breaking**] move `gateway::Hello` to `payloads::incoming::Hello` ([#1928](https://github.com/twilight-rs/twilight/issues/1928))
 - [**breaking**] redo `gateway::OpCode` ([#1945](https://github.com/twilight-rs/twilight/issues/1945))
 - [**breaking**] clean up `AllowedMentions` ([#1869](https://github.com/twilight-rs/twilight/issues/1869))
-
-### Reafactor
-
+- [**breaking**] move ShardId from gateway to model ([#2097](https://github.com/twilight-rs/twilight/issues/2097))
 - [**breaking**] unify event deserialization into one type ([#2023](https://github.com/twilight-rs/twilight/issues/2023))
+
+## [0.14.5] - 2023-02-05
+
+### Bug Fixes
+
+- [**breaking**] audit log change type may be a string ([#2111](https://github.com/twilight-rs/twilight/issues/2111))
+
+### Documentation
+
+- clarify `RequestGuildMembersBuilder` empty queries ([#2108](https://github.com/twilight-rs/twilight/issues/2108))
+
+### Refactor
+
+- simplify activity button text (de)serialization ([#2087](https://github.com/twilight-rs/twilight/issues/2087))
+
+### Testing
+
+- bitflags static assertions + serde ([#2088](https://github.com/twilight-rs/twilight/issues/2088))
+
+## [0.14.4] - 2023-01-28
+
+### Features
+
+- add `Member::flags` ([#2086](https://github.com/twilight-rs/twilight/issues/2086))
+
+## [0.14.3] - 2023-01-20
+
+### Bug Fixes
+
+- include missing `RoleTags` struct member in test
+- signed channel member counts ([#2079](https://github.com/twilight-rs/twilight/issues/2079))
+- zeroable forum tag emoji ids ([#2080](https://github.com/twilight-rs/twilight/issues/2080))
+
+### Documentation
+
+- activity timestamp integer values ([#2075](https://github.com/twilight-rs/twilight/issues/2075))
+
+### Features
+
+- add role subscriptions ([#2034](https://github.com/twilight-rs/twilight/issues/2034))
+- add `guild_connections` attribute ([#2063](https://github.com/twilight-rs/twilight/issues/2063))
+- get current authorization route ([#2049](https://github.com/twilight-rs/twilight/issues/2049))
+- gif sticker format type ([#2064](https://github.com/twilight-rs/twilight/issues/2064))
+- guild public updates channel id ([#2065](https://github.com/twilight-rs/twilight/issues/2065))
+- [**breaking**] support the `GUILD_AUDIT_LOG_ENTRY_CREATE` gateway event ([#2067](https://github.com/twilight-rs/twilight/issues/2067))
+
+### Refactor
+
+- remove prelude imports
 
 ## [0.14.2] - 2023-01-08
 

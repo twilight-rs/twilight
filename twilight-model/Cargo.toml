@@ -10,7 +10,7 @@ name = "twilight-model"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.15.0-rc.1"
+version = "0.15.0"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
@@ -20,7 +20,7 @@ time = { default-features = false, features = ["parsing", "std"], version = "0.3
 tracing = { default-features = false, version = "0.1.16" }
 
 [dev-dependencies]
-criterion = { default-features = false, version = "0.3" }
+criterion = { default-features = false, version = "0.4" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.0" }

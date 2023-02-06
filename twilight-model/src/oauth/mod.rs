@@ -10,13 +10,15 @@ pub mod current_application_info {
 
 mod application;
 mod application_flags;
+mod current_authorization_information;
 mod install_params;
 mod partial_application;
 mod scope;
 
 pub use self::{
-    application::Application, application_flags::ApplicationFlags, install_params::InstallParams,
-    partial_application::PartialApplication, scope::Scope,
+    application::Application, application_flags::ApplicationFlags,
+    current_authorization_information::CurrentAuthorizationInformation,
+    install_params::InstallParams, partial_application::PartialApplication, scope::Scope,
 };
 
 #[allow(deprecated)]

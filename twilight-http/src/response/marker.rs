@@ -2,12 +2,9 @@
 //!
 //! Markers are used depending on the type of response that Twilight expects
 //! from an endpoint. For example, [`DeleteRole`] responses have no body, so an
-//! [`EmptyBody`] marker is used in the [`Response`]. For a request like
-//! [`GetMember`] a [`MemberBody`] is used due to member deserialization
-//! requiring special optimizations.
+//! [`EmptyBody`] marker is used in the [`Response`].
 //!
 //! [`DeleteRole`]: super::super::request::guild::role::DeleteRole
-//! [`GetMember`]: super::super::request::guild::member::GetMember
 //! [`Response`]: super::Response
 
 use std::marker::PhantomData;
@@ -33,24 +30,12 @@ pub struct ListBody<T> {
     phantom: PhantomData<T>,
 }
 
-/// Marker that a response has a member.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
-pub struct MemberBody;
-
-/// Marker that a response has a list of members.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
-pub struct MemberListBody;
-
 #[cfg(test)]
 mod tests {
-    use super::{EmptyBody, ListBody, MemberBody, MemberListBody};
+    use super::{EmptyBody, ListBody};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
     assert_impl_all!(EmptyBody: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(ListBody<String>: Clone, Debug, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(MemberBody: Clone, Debug, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(MemberListBody: Clone, Debug, Eq, PartialEq, Send, Sync);
 }

@@ -18,7 +18,7 @@ use twilight_model::{
 use twilight_validate::{
     channel::{
         bitrate as validate_bitrate, forum_topic as validate_forum_topic, name as validate_name,
-        topic as validate_topic, ChannelValidationError,
+        topic as validate_topic, user_limit as validate_user_limit, ChannelValidationError,
     },
     request::{audit_reason as validate_audit_reason, ValidationError},
 };
@@ -334,11 +334,18 @@ impl<'a> UpdateChannel<'a> {
     /// Set to 0 for no limit. Limit can otherwise be between 1 and 99
     /// inclusive. See [Discord Docs/Modify Channel].
     ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`UserLimitInvalid`] if the bitrate is invalid.
+    ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
-    pub const fn user_limit(mut self, user_limit: u16) -> Self {
+    /// [`UserLimitInvalid`]: twilight_validate::channel::ChannelValidationErrorType::UserLimitInvalid
+    pub fn user_limit(mut self, user_limit: u16) -> Result<Self, ChannelValidationError> {
+        validate_user_limit(user_limit)?;
+
         self.fields.user_limit = Some(user_limit);
 
-        self
+        Ok(self)
     }
 
     /// Set the [`VideoQualityMode`] for the voice channel.

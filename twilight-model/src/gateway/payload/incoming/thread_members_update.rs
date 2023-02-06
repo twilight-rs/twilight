@@ -92,7 +92,7 @@ mod tests {
         gateway::presence::{
             Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, Status, UserOrId,
         },
-        guild::Member,
+        guild::{Member, MemberFlags},
         id::Id,
         test::image_hash,
         user::User,
@@ -109,12 +109,13 @@ mod tests {
 
         let joined_at = Timestamp::from_str(JOIN_TIMESTAMP).expect("timestamp error");
         let premium_since = Timestamp::from_str(PREMIUM_SINCE).expect("timestamp error");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let member = Member {
             avatar: Some(image_hash::AVATAR),
             communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(2),
+            flags,
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -216,7 +217,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -225,6 +226,8 @@ mod tests {
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),

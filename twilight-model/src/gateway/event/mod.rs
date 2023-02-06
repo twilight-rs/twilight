@@ -61,6 +61,8 @@ pub enum Event {
     GatewayReconnect,
     /// Undocumented event, should be ignored.
     GiftCodeUpdate,
+    /// A audit log entry was created.
+    GuildAuditLogEntryCreate(Box<GuildAuditLogEntryCreate>),
     /// A guild was created.
     GuildCreate(Box<GuildCreate>),
     /// A guild was deleted or the current user was removed from a guild.
@@ -189,6 +191,7 @@ impl Event {
             Event::ChannelDelete(e) => e.0.guild_id,
             Event::ChannelUpdate(e) => e.0.guild_id,
             Event::CommandPermissionsUpdate(e) => Some(e.0.guild_id),
+            Event::GuildAuditLogEntryCreate(e) => e.0.guild_id,
             Event::GuildCreate(e) => Some(e.0.id),
             Event::GuildDelete(e) => Some(e.id),
             Event::GuildEmojisUpdate(e) => Some(e.guild_id),
@@ -206,7 +209,7 @@ impl Event {
             Event::InteractionCreate(e) => e.0.guild_id,
             Event::InviteCreate(e) => Some(e.guild_id),
             Event::InviteDelete(e) => Some(e.guild_id),
-            Event::MemberAdd(e) => Some(e.0.guild_id),
+            Event::MemberAdd(e) => Some(e.guild_id),
             Event::MemberChunk(e) => Some(e.guild_id),
             Event::MemberRemove(e) => Some(e.guild_id),
             Event::MemberUpdate(e) => Some(e.guild_id),
@@ -271,6 +274,7 @@ impl Event {
             Self::GatewayInvalidateSession(_) => EventType::GATEWAY_INVALIDATE_SESSION,
             Self::GatewayReconnect => EventType::GATEWAY_RECONNECT,
             Self::GiftCodeUpdate => EventType::GIFT_CODE_UPDATE,
+            Self::GuildAuditLogEntryCreate(_) => EventType::GUILD_AUDIT_LOG_ENTRY_CREATE,
             Self::GuildCreate(_) => EventType::GUILD_CREATE,
             Self::GuildDelete(_) => EventType::GUILD_DELETE,
             Self::GuildEmojisUpdate(_) => EventType::GUILD_EMOJIS_UPDATE,
@@ -343,6 +347,7 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::ChannelUpdate(v) => Self::ChannelUpdate(v),
             DispatchEvent::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
             DispatchEvent::GiftCodeUpdate => Self::GiftCodeUpdate,
+            DispatchEvent::GuildAuditLogEntryCreate(v) => Self::GuildAuditLogEntryCreate(v),
             DispatchEvent::GuildCreate(v) => Self::GuildCreate(v),
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),
             DispatchEvent::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),

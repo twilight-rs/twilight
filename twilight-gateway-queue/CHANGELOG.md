@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.0] - 2023-02-05
+
+This major version bump of the Gateway Queue is done to match all of the other
+crates in the ecosystem receiving a major version bump. There are no changes.
+
+## [0.14.1] - 2023-02-05
+
+### Bug Fixes
+
+- skip sleep on failed messages ([#2113](https://github.com/twilight-rs/twilight/issues/2113))
+
 ## [0.14.0] - 2022-11-14
 
 MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).

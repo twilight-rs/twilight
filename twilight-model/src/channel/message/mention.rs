@@ -48,6 +48,7 @@ impl Mention {
 mod tests {
     use super::{Mention, PartialMember, UserFlags};
     use crate::{
+        guild::MemberFlags,
         id::Id,
         util::datetime::{Timestamp, TimestampParseError},
     };
@@ -94,6 +95,7 @@ mod tests {
     #[test]
     fn mention_with_member() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Mention {
             avatar: None,
@@ -104,6 +106,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: true,
                 nick: Some("bar".to_owned()),
@@ -136,12 +139,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),

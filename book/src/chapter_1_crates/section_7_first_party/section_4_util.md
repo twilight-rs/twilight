@@ -137,7 +137,7 @@ let timestamp = user.timestamp();
 
 ## Links
 
-*source*: <https://github.com/twilight-rs/twilight/tree/main/util>
+*source*: <https://github.com/twilight-rs/twilight/tree/main/twilight-util>
 
 *docs*: <https://docs.rs/twilight-util>
 

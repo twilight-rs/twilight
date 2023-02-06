@@ -285,7 +285,7 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn from_bytes_too_long() {
+    const fn from_bytes_too_long() {
         KnownString::<3>::from_bytes(b"TEST");
     }
 

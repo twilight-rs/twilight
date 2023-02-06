@@ -1,17 +1,13 @@
 use crate::{
-    guild::member::{Member, MemberIntermediary},
+    guild::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
 };
-use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
-    Deserialize, Serialize,
-};
-use std::fmt::{Formatter, Result as FmtResult};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct TypingStart {
     pub channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -22,138 +18,11 @@ pub struct TypingStart {
     pub user_id: Id<UserMarker>,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(field_identifier, rename_all = "snake_case")]
-enum Field {
-    ChannelId,
-    GuildId,
-    Member,
-    Timestamp,
-    UserId,
-}
-
-struct TypingStartVisitor;
-
-impl<'de> Visitor<'de> for TypingStartVisitor {
-    type Value = TypingStart;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("struct TypingStart")
-    }
-
-    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut channel_id = None;
-        let mut guild_id = None;
-        let mut member: Option<MemberIntermediary> = None;
-        let mut timestamp = None;
-        let mut user_id = None;
-
-        let span = tracing::trace_span!("deserializing typing start");
-        let _span_enter = span.enter();
-
-        loop {
-            let span_child = tracing::trace_span!("iterating over element");
-            let _span_child_enter = span_child.enter();
-
-            let key = match map.next_key() {
-                Ok(Some(key)) => {
-                    tracing::trace!(?key, "found key");
-
-                    key
-                }
-                Ok(None) => break,
-                Err(why) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
-
-                    tracing::trace!("ran into an unknown key: {why:?}");
-
-                    continue;
-                }
-            };
-
-            match key {
-                Field::ChannelId => {
-                    if channel_id.is_some() {
-                        return Err(DeError::duplicate_field("channel_id"));
-                    }
-
-                    channel_id = Some(map.next_value()?);
-                }
-                Field::GuildId => {
-                    if guild_id.is_some() {
-                        return Err(DeError::duplicate_field("guild_id"));
-                    }
-
-                    guild_id = Some(map.next_value()?);
-                }
-                Field::Member => {
-                    if member.is_some() {
-                        return Err(DeError::duplicate_field("member"));
-                    }
-
-                    member = map.next_value()?;
-                }
-                Field::Timestamp => {
-                    if timestamp.is_some() {
-                        return Err(DeError::duplicate_field("timestamp"));
-                    }
-
-                    timestamp = Some(map.next_value()?);
-                }
-                Field::UserId => {
-                    if user_id.is_some() {
-                        return Err(DeError::duplicate_field("user_id"));
-                    }
-
-                    user_id = Some(map.next_value()?);
-                }
-            }
-        }
-
-        let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
-        let guild_id = guild_id.unwrap_or_default();
-        let timestamp = timestamp.ok_or_else(|| DeError::missing_field("timestamp"))?;
-        let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
-
-        tracing::trace!(
-            %channel_id,
-            ?guild_id,
-            %timestamp,
-            %user_id,
-        );
-
-        let member = if let (Some(guild_id), Some(member)) = (guild_id, member) {
-            tracing::trace!(%guild_id, ?member, "setting member guild id");
-
-            Some(member.into_member(guild_id))
-        } else {
-            None
-        };
-
-        Ok(TypingStart {
-            channel_id,
-            guild_id,
-            member,
-            timestamp,
-            user_id,
-        })
-    }
-}
-
-impl<'de> Deserialize<'de> for TypingStart {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        const FIELDS: &[&str] = &["channel_id", "guild_id", "member", "timestamp", "user_id"];
-
-        deserializer.deserialize_struct("TypingStart", FIELDS, TypingStartVisitor)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::TypingStart;
     use crate::{
-        guild::Member,
+        guild::{Member, MemberFlags},
         id::Id,
         test::image_hash,
         user::User,
@@ -166,6 +35,7 @@ mod tests {
     #[test]
     fn typing_start_with_member() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = TypingStart {
             channel_id: Id::new(2),
@@ -174,7 +44,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(1),
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),
@@ -227,9 +97,8 @@ mod tests {
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),

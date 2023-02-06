@@ -35,10 +35,8 @@ const WEBSOCKET_CONFIG: WebSocketConfig = WebSocketConfig {
 
 /// [`tokio_tungstenite`] library Websocket connection.
 ///
-/// Connections are used by [`Shard`]s when [initially connecting] and when
-/// reconnecting.
+/// Connections are used by [`Shard`]s when reconnecting.
 ///
-/// [initially connecting]: crate::Shard::with_config
 /// [`Shard`]: crate::Shard
 pub type Connection = WebSocketStream<MaybeTlsStream<TcpStream>>;
 

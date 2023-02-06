@@ -14,6 +14,7 @@ mod kind;
 mod mention;
 mod reaction;
 mod reference;
+mod role_subscription_data;
 
 pub use self::{
     activity::{MessageActivity, MessageActivityType},
@@ -27,6 +28,7 @@ pub use self::{
     mention::Mention,
     reaction::{Reaction, ReactionType},
     reference::MessageReference,
+    role_subscription_data::RoleSubscriptionData,
     sticker::Sticker,
 };
 
@@ -168,6 +170,14 @@ pub struct Message {
     /// [`reference`]: Self::reference
     #[serde(skip_serializing_if = "Option::is_none")]
     pub referenced_message: Option<Box<Message>>,
+    /// Information about the role subscription purchase or renewal that
+    /// prompted this message.
+    ///
+    /// Applies to [`RoleSubscriptionPurchase`] messages.
+    ///
+    /// [`RoleSubscriptionPurchase`]: MessageType::RoleSubscriptionPurchase
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role_subscription_data: Option<RoleSubscriptionData>,
     /// Stickers within the message.
     #[serde(default)]
     pub sticker_items: Vec<MessageSticker>,
@@ -192,7 +202,7 @@ mod tests {
     };
     use crate::{
         channel::{ChannelMention, ChannelType},
-        guild::PartialMember,
+        guild::{MemberFlags, PartialMember},
         id::Id,
         test::image_hash,
         user::User,
@@ -206,6 +216,7 @@ mod tests {
     fn message_deserialization() {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap();
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Message {
             activity: None,
@@ -243,6 +254,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("member nick".to_owned()),
@@ -258,6 +270,7 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
+            role_subscription_data: None,
             sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::PNG,
                 id: Id::new(1),
@@ -331,12 +344,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
@@ -393,6 +408,7 @@ mod tests {
         let edited_timestamp = Timestamp::from_str("2021-08-10T12:41:51.602000+00:00")?;
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Message {
             activity: Some(MessageActivity {
@@ -439,6 +455,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("member nick".to_owned()),
@@ -470,6 +487,7 @@ mod tests {
                 message_id: None,
                 fail_if_not_exists: None,
             }),
+            role_subscription_data: None,
             sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::PNG,
                 id: Id::new(1),
@@ -580,12 +598,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),

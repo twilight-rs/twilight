@@ -1,18 +1,14 @@
 use crate::{
     channel::message::ReactionType,
-    guild::member::{Member, MemberIntermediary},
+    guild::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
         Id,
     },
 };
-use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
-    Deserialize, Serialize,
-};
-use std::fmt::{Formatter, Result as FmtResult};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GatewayReaction {
     pub channel_id: Id<ChannelMarker>,
     pub emoji: ReactionType,
@@ -22,150 +18,15 @@ pub struct GatewayReaction {
     pub user_id: Id<UserMarker>,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(field_identifier, rename_all = "snake_case")]
-enum Field {
-    ChannelId,
-    Emoji,
-    GuildId,
-    Member,
-    MessageId,
-    UserId,
-}
-
-struct ReactionVisitor;
-
-impl<'de> Visitor<'de> for ReactionVisitor {
-    type Value = GatewayReaction;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("struct Reaction")
-    }
-
-    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut channel_id = None;
-        let mut emoji = None;
-        let mut guild_id = None;
-        let mut member: Option<MemberIntermediary> = None;
-        let mut message_id = None;
-        let mut user_id = None;
-
-        let span = tracing::trace_span!("deserializing reaction");
-        let _span_enter = span.enter();
-
-        loop {
-            let span_child = tracing::trace_span!("iterating over element");
-            let _span_child_enter = span_child.enter();
-
-            let key = match map.next_key() {
-                Ok(Some(key)) => {
-                    tracing::trace!(?key, "found key");
-
-                    key
-                }
-                Ok(None) => break,
-                Err(why) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
-
-                    tracing::trace!("ran into an unknown key: {why:?}");
-
-                    continue;
-                }
-            };
-
-            match key {
-                Field::ChannelId => {
-                    if channel_id.is_some() {
-                        return Err(DeError::duplicate_field("channel_id"));
-                    }
-
-                    channel_id = Some(map.next_value()?);
-                }
-                Field::Emoji => {
-                    if emoji.is_some() {
-                        return Err(DeError::duplicate_field("emoji"));
-                    }
-
-                    emoji = Some(map.next_value()?);
-                }
-                Field::GuildId => {
-                    if guild_id.is_some() {
-                        return Err(DeError::duplicate_field("guild_id"));
-                    }
-
-                    guild_id = map.next_value()?;
-                }
-                Field::Member => {
-                    if member.is_some() {
-                        return Err(DeError::duplicate_field("member"));
-                    }
-
-                    member = map.next_value()?;
-                }
-                Field::MessageId => {
-                    if message_id.is_some() {
-                        return Err(DeError::duplicate_field("message_id"));
-                    }
-
-                    message_id = Some(map.next_value()?);
-                }
-                Field::UserId => {
-                    if user_id.is_some() {
-                        return Err(DeError::duplicate_field("user_id"));
-                    }
-
-                    user_id = Some(map.next_value()?);
-                }
-            }
-        }
-
-        let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
-        let emoji = emoji.ok_or_else(|| DeError::missing_field("emoji"))?;
-        let message_id = message_id.ok_or_else(|| DeError::missing_field("message_id"))?;
-        let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
-
-        tracing::trace!(?channel_id, ?emoji, ?message_id, ?user_id);
-
-        let member = if let (Some(guild_id), Some(member)) = (guild_id, member) {
-            tracing::trace!(%guild_id, ?member, "setting member guild id");
-
-            Some(member.into_member(guild_id))
-        } else {
-            None
-        };
-
-        Ok(Self::Value {
-            channel_id,
-            emoji,
-            guild_id,
-            member,
-            message_id,
-            user_id,
-        })
-    }
-}
-
-impl<'de> Deserialize<'de> for GatewayReaction {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        const FIELDS: &[&str] = &[
-            "channel_id",
-            "emoji",
-            "guild_id",
-            "member",
-            "message_id",
-            "user_id",
-        ];
-
-        deserializer.deserialize_struct("GatewayReaction", FIELDS, ReactionVisitor)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::GatewayReaction;
     use crate::{
-        channel::message::ReactionType, guild::Member, id::Id, test::image_hash, user::User,
+        channel::message::ReactionType,
+        guild::{Member, MemberFlags},
+        id::Id,
+        test::image_hash,
+        user::User,
         util::Timestamp,
     };
     use serde_test::Token;
@@ -175,6 +36,7 @@ mod tests {
     #[test]
     fn reaction_with_member() {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap();
+        let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = GatewayReaction {
             channel_id: Id::new(2),
@@ -186,7 +48,7 @@ mod tests {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(1),
+                flags,
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),
@@ -247,9 +109,8 @@ mod tests {
                 Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
+                Token::Str("flags"),
+                Token::U64(flags.bits()),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),

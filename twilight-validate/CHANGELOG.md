@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.15.0] - 2023-02-05
+
+### Features
+
+- [**breaking**] channel user limits ([#2077](https://github.com/twilight-rs/twilight/issues/2077))
+- [**breaking**] bulk delete message count ([#2078](https://github.com/twilight-rs/twilight/issues/2078))
+- [**breaking**] flatten `CommandOptionChoice` ([#2081](https://github.com/twilight-rs/twilight/issues/2081))
+
+## [0.14.2] - 2023-01-20
+
+### Bug Fixes
+
+- properly validate context menu commands ([#2069](https://github.com/twilight-rs/twilight/issues/2069))
+- check for option name uniqueness ([#2073](https://github.com/twilight-rs/twilight/issues/2073))
+
+### Features
+
+- add total command char validation ([#1920](https://github.com/twilight-rs/twilight/issues/1920))
+
 ## [0.14.1] - 2023-01-07
 
 ### Features

@@ -1,10 +1,20 @@
 # Changelog
 
-## [unreleased]
+## [0.15.0] - 2023-02-05
+
+### Features
+
+- [**breaking**] flatten `CommandOptionChoice` ([#2081](https://github.com/twilight-rs/twilight/issues/2081))
 
 ### Refactor
 
 - [**breaking**] clean up `AllowedMentions` ([#1869](https://github.com/twilight-rs/twilight/issues/1869))
+
+## [0.14.2] - 2023-01-20
+
+### Features
+
+- add role subscriptions ([#2034](https://github.com/twilight-rs/twilight/issues/2034))
 
 ## [0.14.1] - 2023-01-07
 

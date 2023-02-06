@@ -45,6 +45,9 @@ pub struct PartialGuild {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     pub premium_tier: PremiumTier,
+    /// ID of the where moderators of Community guilds receive notices from
+    /// Discord.
+    pub public_updates_channel_id: Option<Id<ChannelMarker>>,
     pub roles: Vec<Role>,
     pub rules_channel_id: Option<Id<ChannelMarker>>,
     pub splash: Option<ImageHash>,
@@ -101,6 +104,7 @@ mod tests {
             premium_progress_bar_enabled: true,
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::TIER_1,
+            public_updates_channel_id: None,
             roles: Vec::new(),
             rules_channel_id: Some(Id::new(6)),
             splash: Some(image_hash::SPLASH),
@@ -117,7 +121,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialGuild",
-                    len: 34,
+                    len: 35,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -203,6 +207,8 @@ mod tests {
                     name: "PremiumTier",
                 },
                 Token::U8(1),
+                Token::Str("public_updates_channel_id"),
+                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
