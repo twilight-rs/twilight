@@ -34,11 +34,9 @@ impl UpdateCache for PresenceUpdate {
 
         let presence = CachedPresence::from_model(self.0.clone());
 
-        // Presence updates should always contain a guild ID as per the API docs.
-        cache.cache_presence(
-            self.guild_id.expect("Presence update without guild id"),
-            presence,
-        );
+        if let Some(guild_id) = self.guild_id {
+            cache.cache_presence(guild_id, presence);
+        }
     }
 }
 
