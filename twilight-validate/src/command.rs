@@ -1,7 +1,7 @@
 //! Constants, error types, and functions for validating [`Command`]s.
 
 use std::{
-    collections::{hash_map::RandomState, HashMap, HashSet},
+    collections::{HashMap, HashSet},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -31,11 +31,11 @@ pub const NAME_LENGTH_MIN: usize = 1;
 /// Maximum amount of options a command may have.
 pub const OPTIONS_LIMIT: usize = 25;
 
-/// Minimum length of an option choice name.
-pub const OPTION_CHOICE_NAME_LENGTH_MIN: usize = 1;
-
 /// Maximum length of an option choice name.
 pub const OPTION_CHOICE_NAME_LENGTH_MAX: usize = 100;
+
+/// Minimum length of an option choice name.
+pub const OPTION_CHOICE_NAME_LENGTH_MIN: usize = 1;
 
 /// Maximum length of an option choice name.
 pub const OPTION_CHOICE_NAME_LOCALIZATION_MAX: usize = OPTION_CHOICE_NAME_LENGTH_MAX;
@@ -593,18 +593,16 @@ fn name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 ///
 /// [`OptionChoiceNameLocalizationLengthInvalid`]: CommandValidationErrorType::OptionChoiceNameLocalizationLengthInvalid
 pub fn choice_name_localizations(
-    name_localizations: &HashMap<String, String, RandomState>,
+    name_localization: (&String, &String),
 ) -> Result<(), CommandValidationError> {
-    for localized_name in name_localizations.values() {
-        let localized_name_len = localized_name.chars().count();
+    let localized_name_len = name_localization.1.chars().count();
 
-        if !(OPTION_CHOICE_NAME_LOCALIZATION_MIN..=OPTION_CHOICE_NAME_LOCALIZATION_MAX)
-            .contains(&localized_name_len)
-        {
-            return Err(CommandValidationError {
-                kind: CommandValidationErrorType::OptionChoiceNameLengthInvalid,
-            });
-        }
+    if !(OPTION_CHOICE_NAME_LOCALIZATION_MIN..=OPTION_CHOICE_NAME_LOCALIZATION_MAX)
+        .contains(&localized_name_len)
+    {
+        return Err(CommandValidationError {
+            kind: CommandValidationErrorType::OptionChoiceNameLengthInvalid,
+        });
     }
 
     Ok(())
@@ -639,7 +637,9 @@ pub fn choice(choice: &CommandOptionChoice) -> Result<(), CommandValidationError
     }
 
     if let Some(name_localizations) = &choice.name_localizations {
-        self::choice_name_localizations(name_localizations)?;
+        name_localizations
+            .iter()
+            .try_for_each(self::choice_name_localizations)?;
     }
 
     Ok(())
