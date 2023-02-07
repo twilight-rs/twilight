@@ -17,6 +17,7 @@ pub struct MemberChunk {
     pub members: Vec<Member>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nonce: Option<String>,
+    #[serde(default)]
     pub not_found: Vec<Id<UserMarker>>,
     #[serde(default)]
     pub presences: Vec<Presence>,

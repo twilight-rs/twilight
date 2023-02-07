@@ -138,13 +138,13 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "ThreadMemberUpdate",
+                    name: "ThreadMembersUpdate",
                     len: 6,
                 },
                 Token::Str("added_members"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "ThreadMemberIntermediary",
+                    name: "ThreadMember",
                     len: 6,
                 },
                 Token::Str("flags"),
@@ -213,7 +213,7 @@ mod tests {
                 Token::Str("presence"),
                 Token::Some,
                 Token::Struct {
-                    name: "PresenceIntermediary",
+                    name: "Presence",
                     len: 5,
                 },
                 Token::Str("activities"),

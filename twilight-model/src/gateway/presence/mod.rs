@@ -115,6 +115,7 @@ mod tests {
                 Token::Str("1"),
                 Token::StructEnd,
                 Token::Str("guild_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("status"),
