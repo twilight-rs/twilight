@@ -8,6 +8,7 @@
 pub mod audit_log;
 pub mod auto_moderation;
 pub mod invite;
+pub mod onboarding;
 pub mod scheduled_event;
 pub mod template;
 pub mod widget;

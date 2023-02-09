@@ -542,6 +542,11 @@ pub enum Route<'a> {
         /// The maximum number of members to get.
         limit: Option<u16>,
     },
+    /// Route information to get a guild's onboarding information.
+    GetGuildOnboarding {
+        /// The ID of the guild to get onboarding information for.
+        guild_id: u64,
+    },
     /// Route information to get a guild's preview.
     GetGuildPreview {
         /// The ID of the guild.
@@ -1168,6 +1173,7 @@ impl<'a> Route<'a> {
             | Self::GetGuildIntegrations { .. }
             | Self::GetGuildInvites { .. }
             | Self::GetGuildMembers { .. }
+            | Self::GetGuildOnboarding { .. }
             | Self::GetGuildPreview { .. }
             | Self::GetGuildPruneCount { .. }
             | Self::GetGuildRoles { .. }
@@ -1539,6 +1545,7 @@ impl<'a> Route<'a> {
             Self::GetGuildMembers { guild_id, .. } | Self::UpdateCurrentMember { guild_id, .. } => {
                 Path::GuildsIdMembers(guild_id)
             }
+            Self::GetGuildOnboarding { guild_id } => Path::GuildsIdOnboarding(guild_id),
             Self::CreateGuildScheduledEvent { guild_id, .. }
             | Self::GetGuildScheduledEvents { guild_id, .. } => {
                 Path::GuildsIdScheduledEvents(guild_id)
@@ -2397,6 +2404,12 @@ impl Display for Route<'_> {
                 }
 
                 Ok(())
+            }
+            Route::GetGuildOnboarding { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/onboarding")
             }
             Route::GetGuildPreview { guild_id } => {
                 f.write_str("guilds/")?;
@@ -4624,5 +4637,11 @@ mod tests {
             route.to_string(),
             format!("guilds/{GUILD_ID}/auto-moderation/rules/{AUTO_MODERATION_RULE_ID}")
         );
+    }
+
+    #[test]
+    fn get_guild_onboarding() {
+        let route = Route::GetGuildOnboarding { guild_id: GUILD_ID };
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/onboarding"));
     }
 }
