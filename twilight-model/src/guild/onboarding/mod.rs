@@ -1,34 +1,34 @@
-pub mod option;
-pub mod prompt;
-pub mod prompt_type;
+//! Types for guild onboarding.
 
-use serde::{Deserialize, Serialize};
+mod option;
+mod prompt;
+mod prompt_type;
 
 use crate::id::marker::GuildMarker;
 use crate::id::{marker::ChannelMarker, Id};
+use serde::{Deserialize, Serialize};
 
-pub use self::option::OnboardingPromptOption;
-pub use self::prompt::OnboardingPrompt;
-pub use self::prompt_type::OnboardingPromptType;
+pub use self::{
+    option::OnboardingPromptOption, prompt::OnboardingPrompt, prompt_type::OnboardingPromptType,
+};
 
 /// The onboarding data for a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Onboarding {
     /// Channel ids that new members get opted into automatically
-    default_channel_ids: Vec<Id<ChannelMarker>>,
+    pub default_channel_ids: Vec<Id<ChannelMarker>>,
     /// Whether the guild has enabled onboarding
-    enabled: bool,
+    pub enabled: bool,
     /// The id of the guild this onboarding is a part of.
-    guild_id: Id<GuildMarker>,
+    pub guild_id: Id<GuildMarker>,
     /// The array of [`OnboardingPrompt`]s for the guild onboarding flow.
-    prompts: Vec<OnboardingPrompt>,
+    pub prompts: Vec<OnboardingPrompt>,
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::id::{marker::GuildMarker, Id};
-
     use super::Onboarding;
+    use crate::id::{marker::GuildMarker, Id};
     use serde_test::Token;
 
     #[test]

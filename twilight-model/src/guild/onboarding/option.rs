@@ -1,42 +1,36 @@
-use serde::{Deserialize, Serialize};
-
 use crate::id::{
     marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
     Id,
 };
+use serde::{Deserialize, Serialize};
 
 /// A prompt option for a guild onboarding screen.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OnboardingPromptOption {
     /// The channels opted into when this option is selected
-    #[serde(default)]
-    channel_ids: Vec<Id<ChannelMarker>>,
+    pub channel_ids: Vec<Id<ChannelMarker>>,
     /// The description of the option.
-    description: String,
+    pub description: Option<String>,
     /// The emoji id if the emoji is custom.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    emoji_id: Option<Id<EmojiMarker>>,
+    pub emoji_id: Option<Id<EmojiMarker>>,
     /// The emoji name if custom, the unicode character if standard, or [`None`] if no emoji is set
-    #[serde(skip_serializing_if = "Option::is_none")]
-    emoji_name: Option<String>,
+    pub emoji_name: Option<String>,
     /// The id of the option
-    id: Id<OnboardingPromptOptionMarker>,
+    pub id: Id<OnboardingPromptOptionMarker>,
     /// The roles assigned when this option is selected
-    #[serde(default)]
-    role_ids: Vec<Id<RoleMarker>>,
+    pub role_ids: Vec<Id<RoleMarker>>,
     /// The title of the option.
-    title: String,
+    pub title: String,
 }
 
 #[cfg(test)]
 mod tests {
-    use serde_test::Token;
-
     use super::OnboardingPromptOption;
     use crate::id::{
         marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
         Id,
     };
+    use serde_test::Token;
 
     #[test]
     fn prompt_option() {
@@ -46,7 +40,7 @@ mod tests {
                 Id::<ChannelMarker>::new(2),
                 Id::<ChannelMarker>::new(3),
             ]),
-            description: String::from("an option description"),
+            description: Some(String::from("an option description")),
             emoji_id: Some(Id::<EmojiMarker>::new(7)),
             emoji_name: Some(String::from("test")),
             id: Id::<OnboardingPromptOptionMarker>::new(123_456_789),
@@ -75,6 +69,7 @@ mod tests {
                 Token::Str("3"),
                 Token::SeqEnd,
                 Token::Str("description"),
+                Token::Some,
                 Token::Str("an option description"),
                 Token::Str("emoji_id"),
                 Token::Some,

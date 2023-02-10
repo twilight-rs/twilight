@@ -21,16 +21,17 @@ use crate::{
 /// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("token".to_owned());
 ///
 /// let guild_id = Id::new(101);
 /// let onboarding = client.guild_onboarding(guild_id).await?.model().await?;
 ///
 /// for prompt in onboarding.prompts {
-///    println!("Prompt: {}", prompt.title);
+///     println!("Prompt: {}", prompt.title);
 /// }
-///
+/// # Ok(()) }
+/// ```
 pub struct GetGuildOnboarding<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,

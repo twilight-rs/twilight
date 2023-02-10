@@ -14,9 +14,8 @@ pub struct OnboardingPrompt {
     #[serde(rename = "type")]
     pub kind: OnboardingPromptType,
     /// The array of [`OnboardingPromptOption`]s available to the prompt.
-    #[serde(default)]
     pub options: Vec<OnboardingPromptOption>,
-    /// Whether this prompt is required in the obboarding flow.
+    /// Whether this prompt is required in the onboarding flow.
     pub required: bool,
     /// Whether this prompt allows selecting only one option.
     pub single_select: bool,
@@ -26,10 +25,9 @@ pub struct OnboardingPrompt {
 
 #[cfg(test)]
 mod tests {
-    use serde_test::Token;
-
     use super::OnboardingPrompt;
     use crate::{guild::onboarding::OnboardingPromptType, id::Id};
+    use serde_test::Token;
 
     #[test]
     fn onboarding_prompt() {
