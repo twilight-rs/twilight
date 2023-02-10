@@ -6,7 +6,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 ///
 /// Status codes can easily be compared with status code integers due to
 /// implementing `PartialEq<u16>`. This is equivalent to checking against the
-/// value returned by [`StatusCode::raw`].
+/// value returned by [`StatusCode::get`].
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct StatusCode(u16);
 
