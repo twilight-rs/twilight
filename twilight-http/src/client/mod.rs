@@ -5,7 +5,6 @@ mod interaction;
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 use crate::request::GetCurrentAuthorizationInformation;
-#[allow(deprecated)]
 use crate::{
     client::connector::Connector,
     error::{Error, ErrorType},

@@ -24,17 +24,6 @@ impl StatusCode {
         self.0
     }
 
-    /// Raw status code value.
-    ///
-    /// Deprecated alias for [`get`].
-    ///
-    /// [`get`]: Self::get
-    #[deprecated(since = "0.10.2", note = "renamed to `get`")]
-    #[must_use = "status code must be used to be useful"]
-    pub const fn raw(self) -> u16 {
-        self.0
-    }
-
     /// Whether the status code is informational.
     ///
     /// This is defined as being between `[100, 200)`.

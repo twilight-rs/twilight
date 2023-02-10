@@ -34,12 +34,6 @@ impl<'a> GetGuildScheduledEvents<'a> {
 
         self
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<ListBody<GuildScheduledEvent>> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for GetGuildScheduledEvents<'_> {
