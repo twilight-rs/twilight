@@ -54,10 +54,7 @@ mod tests {
                 Token::Str("in_onboarding"),
                 Token::Bool(true),
                 Token::Str("type"),
-                Token::UnitVariant {
-                    name: "OnboardingPromptType",
-                    variant: "MultipleChoice",
-                },
+                Token::U8(1),
                 Token::Str("options"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
