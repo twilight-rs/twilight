@@ -106,6 +106,7 @@ mod tests {
         MessageFlags::FAILED_TO_MENTION_SOME_ROLES_IN_THREAD.bits(),
         1 << 8
     );
+    const_assert_eq!(MessageFlags::SUPPRESS_NOTIFICATIONS.bits(), 1 << 12);
 
     #[test]
     fn serde() {
