@@ -4,7 +4,6 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
-use crate::request::GetCurrentAuthorizationInformation;
 use crate::{
     client::connector::Connector,
     error::{Error, ErrorType},
@@ -77,7 +76,8 @@ use crate::{
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetGateway, GetUserApplicationInfo, GetVoiceRegions, Method, Request,
+        GetCurrentAuthorizationInformation, GetGateway, GetUserApplicationInfo, GetVoiceRegions,
+        Method, Request,
     },
     response::ResponseFuture,
     API_VERSION,
