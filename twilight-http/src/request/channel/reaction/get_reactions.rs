@@ -85,6 +85,7 @@ impl<'a> GetReactions<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.15.1", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ListBody<User>> {
         self.into_future()
     }
