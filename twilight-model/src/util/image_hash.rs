@@ -10,8 +10,6 @@
 //! [`ImageHash::bytes`] and [`ImageHash::is_animated`] may be used to
 //! deconstruct the hash and [`ImageHash::new`] may be used to reconstruct one.
 
-#![allow(dead_code, unused_mut)]
-
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, Visitor},
     ser::{Serialize, Serializer},
@@ -205,30 +203,37 @@ impl ImageHash {
         let animated = Self::starts_with(value, ANIMATED_KEY.as_bytes());
 
         let mut seeking_idx = if animated { ANIMATED_KEY.len() } else { 0 };
-        let mut storage_idx = 0;
+        let mut storage_idx = 15;
 
         if value.len() - seeking_idx != HASH_LEN {
             return Err(ImageHashParseError::FORMAT);
         }
 
-        let mut bits = 0;
+        let mut bytes = [0; 16];
 
-        while seeking_idx < value.len() {
-            let byte = match value[seeking_idx] {
+        loop {
+            let byte_left = match value[seeking_idx] {
+                byte @ b'0'..=b'9' => byte - b'0',
+                byte @ b'a'..=b'f' => byte - b'a' + DIGITS_ALLOCATED,
+                other => return Err(ImageHashParseError::range(seeking_idx, other)),
+            };
+            seeking_idx += 1;
+            let byte_right = match value[seeking_idx] {
                 byte @ b'0'..=b'9' => byte - b'0',
                 byte @ b'a'..=b'f' => byte - b'a' + DIGITS_ALLOCATED,
                 other => return Err(ImageHashParseError::range(seeking_idx, other)),
             };
 
-            bits |= (byte as u128) << 124_usize.saturating_sub(storage_idx * 4);
+            bytes[storage_idx] = (byte_left << 4) | byte_right;
             seeking_idx += 1;
-            storage_idx += 1;
+            storage_idx = if let Some(storage_idx) = storage_idx.checked_sub(1) {
+                storage_idx
+            } else {
+                break;
+            };
         }
 
-        Ok(Self {
-            animated,
-            bytes: bits.to_le_bytes(),
-        })
+        Ok(Self { animated, bytes })
     }
 
     /// Efficient packed bytes of the hash.
