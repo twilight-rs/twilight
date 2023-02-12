@@ -492,7 +492,7 @@ impl Shard {
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
             match self.next_message().await? {
-                Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
+                Message::Close(frame) => return Ok(Event::WebsocketClose(frame)),
                 Message::Text(event) => {
                     if let Some(event) = json::parse(event, self.config.event_types())? {
                         return Ok(event.into());

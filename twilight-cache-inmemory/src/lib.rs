@@ -897,6 +897,8 @@ impl UpdateCache for Event {
             Event::UserUpdate(v) => c.update(v),
             Event::VoiceStateUpdate(v) => c.update(v.deref()),
             // Ignored events.
+            #[allow(deprecated)]
+            Event::GatewayClose(_) => {}
             Event::AutoModerationActionExecution(_)
             | Event::AutoModerationRuleCreate(_)
             | Event::AutoModerationRuleDelete(_)
@@ -904,7 +906,6 @@ impl UpdateCache for Event {
             | Event::BanAdd(_)
             | Event::BanRemove(_)
             | Event::CommandPermissionsUpdate(_)
-            | Event::GatewayClose(_)
             | Event::GatewayHeartbeat(_)
             | Event::GatewayHeartbeatAck
             | Event::GatewayHello(_)
@@ -926,7 +927,8 @@ impl UpdateCache for Event {
             | Event::ThreadMemberUpdate(_)
             | Event::TypingStart(_)
             | Event::VoiceServerUpdate(_)
-            | Event::WebhooksUpdate(_) => {}
+            | Event::WebhooksUpdate(_)
+            | Event::WebsocketClose(_) => {}
         }
     }
 }

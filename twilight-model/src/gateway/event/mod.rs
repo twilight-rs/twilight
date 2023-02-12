@@ -46,6 +46,7 @@ pub enum Event {
     CommandPermissionsUpdate(CommandPermissionsUpdate),
     /// Close message with an optional frame including information about the
     /// reason for the close.
+    #[deprecated(since = "0.15.1", note = "renamed to WebsocketClose")]
     GatewayClose(Option<CloseFrame<'static>>),
     /// A heartbeat was sent to or received from the gateway.
     GatewayHeartbeat(u64),
@@ -169,6 +170,9 @@ pub enum Event {
     VoiceStateUpdate(Box<VoiceStateUpdate>),
     /// A webhook was updated.
     WebhooksUpdate(WebhooksUpdate),
+    /// Close message with an optional frame including information about the
+    /// reason for the close.
+    WebsocketClose(Option<CloseFrame<'static>>),
 }
 
 impl Event {
@@ -235,8 +239,9 @@ impl Event {
             Event::VoiceServerUpdate(e) => Some(e.guild_id),
             Event::VoiceStateUpdate(e) => e.0.guild_id,
             Event::WebhooksUpdate(e) => Some(e.guild_id),
+            #[allow(deprecated)]
+            Event::GatewayClose(_) => None,
             Event::ChannelPinsUpdate(_)
-            | Event::GatewayClose(_)
             | Event::GatewayHeartbeat(_)
             | Event::GatewayHeartbeatAck
             | Event::GatewayHello(_)
@@ -250,7 +255,8 @@ impl Event {
             | Event::Ready(_)
             | Event::Resumed
             | Event::ThreadMemberUpdate(_)
-            | Event::UserUpdate(_) => None,
+            | Event::UserUpdate(_)
+            | Event::WebsocketClose(_) => None,
         }
     }
 
@@ -267,6 +273,7 @@ impl Event {
             Self::ChannelPinsUpdate(_) => EventType::ChannelPinsUpdate,
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
             Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
+            #[allow(deprecated)]
             Self::GatewayClose(_) => EventType::GatewayClose,
             Self::GatewayHeartbeat(_) => EventType::GatewayHeartbeat,
             Self::GatewayHeartbeatAck => EventType::GatewayHeartbeatAck,
@@ -326,6 +333,7 @@ impl Event {
             Self::VoiceServerUpdate(_) => EventType::VoiceServerUpdate,
             Self::VoiceStateUpdate(_) => EventType::VoiceStateUpdate,
             Self::WebhooksUpdate(_) => EventType::WebhooksUpdate,
+            Self::WebsocketClose(_) => EventType::GatewayClose,
         }
     }
 }
