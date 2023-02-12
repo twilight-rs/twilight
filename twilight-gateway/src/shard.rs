@@ -469,6 +469,11 @@ impl Shard {
 
     /// Wait for the next Discord event from the gateway.
     ///
+    /// This is a convenience method that internally calls `next_message` and
+    /// only returns wanted (configured through [`ConfigBuilder::event_types`])
+    /// [`Event`]s. Close messages are always considered wanted and map onto the
+    /// [`Event::GatewayClose`] variant.
+    ///
     /// # Errors
     ///
     /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
@@ -489,12 +494,14 @@ impl Shard {
     ///
     /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
     /// shard failed to send a message to the gateway, such as a heartbeat.
+    ///
+    /// [`ConfigBuilder::event_types`]: crate::ConfigBuilder::event_types
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
             match self.next_message().await? {
                 Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
                 Message::Text(event) => {
-                    if let Some(event) = json::parse(event, self.config.event_types())? {
+                    if let Some(event) = crate::parse(event, self.config.event_types())? {
                         return Ok(event.into());
                     }
                 }
