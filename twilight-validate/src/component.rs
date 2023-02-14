@@ -48,13 +48,14 @@ pub const COMPONENT_BUTTON_LABEL_LENGTH: usize = 80;
 
 /// Maximum length of the title of a [`Modal`] interaction response in codepoints.
 ///
-/// An example of a modal with a title is the [`Modal`][`Modal::title`].
+/// An example of a modal with a title is the [`Modal::title`].
 ///
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Modal][1].
 ///
 /// [1]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-modal
 /// [`Modal`]: twilight_model::http::interaction::InteractionResponseData
+/// [`Modal::title`]: twilight_model::http::interaction::InteractionResponseData::title
 pub const MODAL_MAX_TITLE_LENGTH: usize = 45;
 
 /// Maximum number of [`SelectMenuOption`]s that can be chosen in a
@@ -1076,7 +1077,7 @@ fn component_text_input_value(value: impl AsRef<str>) -> Result<(), ComponentVal
 ///
 /// Returns an error of type [`ModalTitleLength`] if the length is invalid.
 ///
-/// [`Modal::title`]: twilight_model::http::interaction::InteractionResponseData
+/// [`Modal::title`]: twilight_model::http::interaction::InteractionResponseData::title
 /// [`ModalTitleLength`]: ComponentValidationErrorType::ModalTitleLength
 pub fn modal_title_length(title: impl AsRef<str>) -> Result<(), ComponentValidationError> {
     let chars = title.as_ref().chars().count();
