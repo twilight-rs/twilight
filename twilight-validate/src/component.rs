@@ -46,6 +46,17 @@ pub const COMPONENT_CUSTOM_ID_LENGTH: usize = 100;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
 pub const COMPONENT_BUTTON_LABEL_LENGTH: usize = 80;
 
+/// Maximum length of the title of a [`Modal`] interaction response in codepoints.
+///
+/// An example of a modal with a title is the [`Modal`][`Modal::title`].
+///
+/// This is defined in Discord's documentation, per
+/// [Discord Docs/Modal][1].
+///
+/// [1]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-modal
+/// [`Modal`]: twilight_model::http::interaction::InteractionResponseData
+pub const MODAL_MAX_TITLE_LENGTH: usize = 45;
+
 /// Maximum number of [`SelectMenuOption`]s that can be chosen in a
 /// [`SelectMenu`].
 ///
@@ -243,6 +254,13 @@ impl Display for ComponentValidationError {
 
                 f.write_str("' component was provided, but can not be a root component")
             }
+            ComponentValidationErrorType::ModalTitleLength { chars } => {
+                f.write_str("a modal's title is ")?;
+                Display::fmt(&chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&MODAL_MAX_TITLE_LENGTH, f)
+            }
             ComponentValidationErrorType::SelectMaximumValuesCount { count } => {
                 f.write_str("maximum number of values that can be chosen is ")?;
                 Display::fmt(count, f)?;
@@ -385,6 +403,12 @@ pub enum ComponentValidationErrorType {
     InvalidRootComponent {
         /// Type of provided component.
         kind: ComponentType,
+    },
+    /// Value of a select menu option is larger than the
+    /// [the maximum][`MODAL_MAX_TITLE_LENGTH`].
+    ModalTitleLength {
+        /// Number of codepoints that were provided.
+        chars: usize,
     },
     /// Maximum number of items that can be chosen is smaller than
     /// [the minimum][`SELECT_MAXIMUM_VALUES_REQUIREMENT`] or larger than
@@ -1046,6 +1070,26 @@ fn component_text_input_value(value: impl AsRef<str>) -> Result<(), ComponentVal
     }
 }
 
+/// Ensure a [`Modal::title`] length is valid.
+///
+/// # Errors
+///
+/// Returns an error of type [`ModalTitleLength`] if the length is invalid.
+///
+/// [`Modal::title`]: twilight_model::http::interaction::InteractionResponseData
+/// [`ModalTitleLength`]: ComponentValidationErrorType::ModalTitleLength
+pub fn modal_title_length(title: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+    let chars = title.as_ref().chars().count();
+
+    if chars > MODAL_MAX_TITLE_LENGTH {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::ModalTitleLength { chars },
+        });
+    }
+
+    Ok(())
+}
+
 #[allow(clippy::non_ascii_literal)]
 #[cfg(test)]
 mod tests {
@@ -1315,5 +1359,13 @@ mod tests {
         assert!(component_text_input_min(4000).is_ok());
 
         assert!(component_text_input_min(4001).is_err());
+    }
+
+    #[test]
+    fn modal_title_length_value() {
+        assert!(modal_title_length("a".repeat(10)).is_ok());
+
+        assert!(modal_title_length("a".repeat(46)).is_err());
+        assert!(modal_title_length("a".repeat(50)).is_err());
     }
 }

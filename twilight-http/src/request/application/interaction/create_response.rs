@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    error::Error,
+    error::{Error, ErrorType},
     request::{attachment::AttachmentManager, Request, TryIntoRequest},
     response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
@@ -61,6 +61,19 @@ impl IntoFuture for CreateResponse<'_> {
 
 impl TryIntoRequest for CreateResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        // Check if the title for a modal response is valid.
+        if let Some(modal_title) = self
+            .response
+            .data
+            .as_ref()
+            .and_then(|data| data.title.as_ref())
+        {
+            twilight_validate::component::modal_title_length(modal_title).map_err(|e| Error {
+                kind: ErrorType::BuildingRequest,
+                source: Some(Box::new(e)),
+            })?;
+        }
+
         let mut request = Request::builder(&Route::InteractionCallback {
             interaction_id: self.interaction_id.get(),
             interaction_token: self.interaction_token,
@@ -99,7 +112,9 @@ mod tests {
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
     use twilight_model::{
-        http::interaction::{InteractionResponse, InteractionResponseType},
+        http::interaction::{
+            InteractionResponse, InteractionResponseData, InteractionResponseType,
+        },
         id::Id,
     };
 
@@ -126,6 +141,51 @@ mod tests {
             &Path::InteractionCallback(interaction_id.get()),
             req.ratelimit_path()
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn invalid_modal() -> Result<(), Box<dyn Error>> {
+        let application_id = Id::new(1);
+        let interaction_id = Id::new(2);
+        let token = "foo".to_owned().into_boxed_str();
+
+        let client = Client::new(String::new());
+
+        let response = InteractionResponse {
+            kind: InteractionResponseType::Modal,
+            data: Some(InteractionResponseData {
+                title: Some("a".repeat(100)),
+                custom_id: Some(String::from("12345")),
+                components: Some(Vec::new()),
+                ..Default::default()
+            }),
+        };
+
+        let req = client
+            .interaction(application_id)
+            .create_response(interaction_id, &token, &response)
+            .try_into_request();
+
+        assert!(req.is_err());
+
+        let response = InteractionResponse {
+            kind: InteractionResponseType::Modal,
+            data: Some(InteractionResponseData {
+                title: Some("a".repeat(45)),
+                custom_id: Some(String::from("12345")),
+                components: Some(Vec::new()),
+                ..Default::default()
+            }),
+        };
+
+        let req = client
+            .interaction(application_id)
+            .create_response(interaction_id, &token, &response)
+            .try_into_request();
+
+        assert!(req.is_ok());
 
         Ok(())
     }
