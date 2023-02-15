@@ -33,6 +33,7 @@ pub struct CachedGuild {
     pub(crate) large: bool,
     pub(crate) max_members: Option<u64>,
     pub(crate) max_presences: Option<u64>,
+    pub(crate) max_stage_video_channel_users: Option<u64>,
     pub(crate) max_video_channel_users: Option<u64>,
     pub(crate) member_count: Option<u64>,
     pub(crate) mfa_level: MfaLevel,
@@ -147,6 +148,11 @@ impl CachedGuild {
     /// Maximum presences.
     pub const fn max_presences(&self) -> Option<u64> {
         self.max_presences
+    }
+
+    /// Maximum number of users in a stage video channel.
+    pub const fn max_stage_video_channel_users(&self) -> Option<u64> {
+        self.max_stage_video_channel_users
     }
 
     /// Maximum number of users in a video channel.
