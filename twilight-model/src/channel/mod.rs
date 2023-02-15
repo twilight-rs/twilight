@@ -111,6 +111,9 @@ pub struct Channel {
     /// ID of the last message pinned in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
+    /// For group DM channels: whether the channel is managed by an application via the `gdm.join` OAuth2 scope.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub managed: Option<bool>,
     /// Member that created the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<ThreadMember>,
@@ -236,6 +239,7 @@ mod tests {
             kind: ChannelType::GuildText,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
+            managed: None,
             member: None,
             member_count: None,
             message_count: None,
@@ -278,6 +282,7 @@ mod tests {
             kind: ChannelType::GuildCategory,
             last_message_id: None,
             last_pin_timestamp: None,
+            managed: None,
             member: None,
             member_count: None,
             message_count: None,
@@ -332,6 +337,7 @@ mod tests {
             kind: ChannelType::GuildAnnouncement,
             last_message_id: Some(Id::new(4)),
             last_pin_timestamp: None,
+            managed: None,
             member: None,
             member_count: None,
             message_count: None,
@@ -393,6 +399,7 @@ mod tests {
             kind: ChannelType::AnnouncementThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
+            managed: Some(true),
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(Id::new(4)),
@@ -440,6 +447,7 @@ mod tests {
                     "user_id": "5",
                 },
                 "default_auto_archive_duration": 60,
+                "managed": true,
                 "member_count": 50,
                 "message_count": 50,
                 "name": "newsthread",
@@ -481,6 +489,7 @@ mod tests {
             kind: ChannelType::PublicThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
+            managed: Some(true),
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(Id::new(4)),
@@ -528,6 +537,7 @@ mod tests {
                     "user_id": "5",
                 },
                 "default_auto_archive_duration": 60,
+                "managed": true,
                 "member_count": 50,
                 "message_count": 50,
                 "name": "publicthread",
@@ -570,6 +580,7 @@ mod tests {
             kind: ChannelType::PrivateThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
+            managed: Some(true),
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(Id::new(4)),
@@ -625,6 +636,7 @@ mod tests {
                 },
                 "default_auto_archive_duration": 60,
                 "invitable": true,
+                "managed": true,
                 "member_count": -1,
                 "message_count": 50,
                 "name": "privatethread",
