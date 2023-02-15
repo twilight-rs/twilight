@@ -24,6 +24,10 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
+      # Necessary for minimal-versions
+      - name: Install nightly toolchain
+        uses: dtolnay/rust-toolchain@nightly
+
       - name: Retrieve rust-version
         run: echo rust-version=$(awk '/rust-version/{print $NF}' Cargo.toml | tr -d '"') >> $GITHUB_ENV
 
@@ -41,7 +45,13 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - run: cargo check --all-features --all-targets
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
+      - name: Install cargo-minimal-versions
+        uses: taiki-e/install-action@cargo-minimal-versions
+
+      - run: cargo minimal-versions check --all-features --all-targets
 
   # Check documentation
   build-docs:
@@ -119,33 +129,6 @@ jobs:
 
       - name: Check code formatting
         run: cargo fmt --all -- --check --unstable-features --config format_code_in_doc_comments=true
-
-  min-vers:
-    name: Minimal crate versions
-    needs: [MSRV]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v3
-
-      - name: Install nightly toolchain
-        uses: dtolnay/rust-toolchain@nightly
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2
-
-      - name: Add problem matchers
-        run: echo "::add-matcher::.github/rust.json"
-
-      - name: Install cargo-hack
-        uses: taiki-e/install-action@cargo-hack
-
-      - name: Install cargo-minimal-versions
-        uses: taiki-e/install-action@cargo-minimal-versions
-
-      - name: Check minimal versions
-        run: cargo minimal-versions check
 
   # Tests
   test:
