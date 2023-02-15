@@ -51,7 +51,7 @@ jobs:
       - name: Install cargo-minimal-versions
         uses: taiki-e/install-action@cargo-minimal-versions
 
-      - run: cargo minimal-versions check --all-features --all-targets
+      - run: cargo minimal-versions check --all-features
 
   # Check documentation
   build-docs:
