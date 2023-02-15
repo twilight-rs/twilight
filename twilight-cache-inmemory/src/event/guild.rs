@@ -310,6 +310,7 @@ mod tests {
             large: false,
             max_members: Some(50),
             max_presences: Some(100),
+            max_stage_video_channel_users: Some(10),
             max_video_channel_users: None,
             member_count: Some(25),
             members: Vec::new(),
