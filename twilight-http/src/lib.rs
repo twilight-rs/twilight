@@ -3,8 +3,7 @@
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::unnecessary_wraps,
-    clippy::used_underscore_binding
+    clippy::unnecessary_wraps
 )]
 
 pub mod api_error;
