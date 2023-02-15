@@ -1,4 +1,5 @@
-#![deny(
+#![doc = include_str!("../README.md")]
+#![warn(
     clippy::missing_const_for_fn,
     clippy::missing_docs_in_private_items,
     clippy::pedantic,
@@ -11,7 +12,6 @@
     clippy::unnecessary_wraps,
     clippy::used_underscore_binding
 )]
-#![doc = include_str!("../README.md")]
 
 pub mod headers;
 pub mod in_memory;

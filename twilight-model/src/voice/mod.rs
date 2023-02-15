@@ -1,5 +1,5 @@
 //! Voice connection and gateway definitions.
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 mod close_code;
 mod opcode;

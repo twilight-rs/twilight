@@ -1,12 +1,12 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![deny(
+#![doc = include_str!("../README.md")]
+#![warn(
     clippy::missing_const_for_fn,
     clippy::missing_docs_in_private_items,
     clippy::pedantic,
     missing_docs,
     unsafe_code
 )]
-#![doc = include_str!("../README.md")]
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
