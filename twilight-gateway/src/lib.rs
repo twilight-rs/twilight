@@ -1,16 +1,10 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
-    clippy::all,
     clippy::missing_const_for_fn,
     clippy::missing_docs_in_private_items,
     clippy::pedantic,
-    future_incompatible,
     missing_docs,
-    nonstandard_style,
-    rust_2018_idioms,
-    rustdoc::broken_intra_doc_links,
-    unsafe_code,
-    unused
+    unsafe_code
 )]
 #![doc = include_str!("../README.md")]
 #![allow(
