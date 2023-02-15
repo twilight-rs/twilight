@@ -156,7 +156,7 @@ jobs:
         run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --workspace --exclude book
 
       - name: Run doctests
-        run: cargo test --doc
+        run: cargo test --doc --workspace --exclude book
 
   feature-combinations:
     name: Feature combinations
