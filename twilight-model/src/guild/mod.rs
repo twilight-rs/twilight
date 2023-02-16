@@ -102,6 +102,7 @@ pub struct Guild {
     pub max_members: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_presences: Option<u64>,
+    /// Maximum number of users in a stage video channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_stage_video_channel_users: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
