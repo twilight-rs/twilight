@@ -20,6 +20,13 @@ bitflags! {
     /// [`ROLE_CREATE`][Self::ROLE_CREATE] event type flags can be specified in
     /// combination with that intent to only deserialize those events.
     ///
+    /// Selected event types only affect the events returned by [`Shard`]s.
+    /// Events necessary for maintaining the connection to Discord, such as
+    /// [`GATEWAY_HEARTBEAT`][`Self::GATEWAY_HEARTBEAT`] and
+    /// [`GATEWAY_HELLO`][`Self::GATEWAY_HELLO`], can safely be excluded and
+    /// won't cause the operation of shards to fail, because shards will always
+    /// parse portions of necessary events.
+    ///
     /// [`ChannelCreate`]: twilight_model::gateway::event::Event::ChannelCreate
     /// [`ChannelPinsUpdate`]: twilight_model::gateway::event::Event::ChannelPinsUpdate
     /// [`Event`]: twilight_model::gateway::event::Event
