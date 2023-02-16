@@ -111,7 +111,13 @@ pub struct Channel {
     /// ID of the last message pinned in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
-    /// For group DM channels: whether the channel is managed by an application via the `gdm.join` OAuth2 scope.
+    /// Whether the channel is managed by an application via the [`GDM_JOIN`]
+    /// scope.
+    ///
+    /// This is only applicable to [group channels].
+    ///
+    /// [`GDM_JOIN`]: crate::scope::GDM_JOIN
+    /// [group channels]: ChannelType::Group
     #[serde(skip_serializing_if = "Option::is_none")]
     pub managed: Option<bool>,
     /// Member that created the channel.
