@@ -64,7 +64,7 @@ use crate::{
         SendErrorType,
     },
     future::{self, NextMessageFuture, NextMessageFutureOutput},
-    json,
+    json::{self, UnknownEventError},
     latency::Latency,
     ratelimiter::CommandRatelimiter,
     session::Session,
@@ -78,7 +78,7 @@ use serde::{de::DeserializeOwned, Deserialize};
     feature = "rustls-webpki-roots"
 ))]
 use std::io::ErrorKind as IoErrorKind;
-use std::{env::consts::OS, str};
+use std::{env::consts::OS, error::Error, str};
 use tokio::{
     task::JoinHandle,
     time::{self, Duration, Instant, Interval, MissedTickBehavior},
@@ -491,11 +491,25 @@ impl Shard {
     /// shard failed to send a message to the gateway, such as a heartbeat.
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
-            match self.next_message().await? {
+            let text = match self.next_message().await? {
                 Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
-                Message::Text(event) => {
-                    if let Some(event) = json::parse(event, self.config.event_types())? {
-                        return Ok(event.into());
+                Message::Text(text) => text,
+            };
+
+            match json::parse(text, self.config.event_types()) {
+                Ok(Some(event)) => return Ok(event.into()),
+                Ok(None) => {}
+                Err(source) => {
+                    // Discord has many events that aren't documented, so we
+                    // need to skip over errors caused by unknown events or
+                    // opcodes.
+                    #[allow(clippy::redundant_closure_for_method_calls)]
+                    if source
+                        .source()
+                        .and_then(|source| source.downcast_ref::<UnknownEventError>())
+                        .is_some()
+                    {
+                        continue;
                     }
                 }
             }
