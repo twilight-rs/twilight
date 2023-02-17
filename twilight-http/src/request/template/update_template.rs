@@ -83,12 +83,6 @@ impl<'a> UpdateTemplate<'a> {
 
         Ok(self)
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<Template> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for UpdateTemplate<'_> {

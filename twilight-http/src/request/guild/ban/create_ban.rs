@@ -91,12 +91,6 @@ impl<'a> CreateBan<'a> {
 
         Ok(self)
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.into_future()
-    }
 }
 
 impl<'a> AuditLogReason<'a> for CreateBan<'a> {

@@ -73,16 +73,6 @@ bitflags! {
         /// [`GUILD_MEMBER_REMOVE`]: super::event::Event::MemberRemove
         /// [`THREAD_MEMBERS_UPDATE`]: super::event::Event::ThreadMembersUpdate
         const GUILD_MEMBERS = 1 << 1;
-        /// Guild bans intent.
-        ///
-        /// Event(s) received:
-        ///  - [`GUILD_BAN_ADD`]
-        ///  - [`GUILD_BAN_REMOVE`]
-        ///
-        /// [`GUILD_BAN_ADD`]: super::event::Event::BanAdd
-        /// [`GUILD_BAN_REMOVE`]: super::event::Event::BanRemove
-        #[deprecated(since = "0.14.3", note = "use the `GUILD_MODERATION` intent instead")]
-        const GUILD_BANS = 1 << 2;
         /// Guild moderation intent.
         ///
         /// Event(s) received:
@@ -336,7 +326,6 @@ mod tests {
     );
     const_assert_eq!(Intents::GUILDS.bits(), 1);
     const_assert_eq!(Intents::GUILD_MEMBERS.bits(), 1 << 1);
-    const_assert_eq!(Intents::GUILD_BANS.bits(), 1 << 2);
     const_assert_eq!(Intents::GUILD_MODERATION.bits(), 1 << 2);
     const_assert_eq!(Intents::GUILD_EMOJIS_AND_STICKERS.bits(), 1 << 3);
     const_assert_eq!(Intents::GUILD_INTEGRATIONS.bits(), 1 << 4);

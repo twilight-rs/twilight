@@ -34,11 +34,6 @@ impl<'a> DeleteGuildCommand<'a> {
             http,
         }
     }
-
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for DeleteGuildCommand<'_> {
