@@ -143,6 +143,8 @@ pub struct User {
     /// The discriminator field can be deserialized from either a string or an
     /// integer. The field will always serialize into a string due to that being
     /// the type Discord's API uses.
+    ///
+    /// [`discriminator`]: Self::discriminator
     #[serde(with = "discriminator")]
     pub discriminator: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
