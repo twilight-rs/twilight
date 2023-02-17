@@ -10,6 +10,8 @@
 //! [`ImageHash::bytes`] and [`ImageHash::is_animated`] may be used to
 //! deconstruct the hash and [`ImageHash::new`] may be used to reconstruct one.
 
+#![allow(dead_code, unused_mut)]
+
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, Visitor},
     ser::{Serialize, Serializer},
