@@ -116,7 +116,7 @@ pub struct Channel {
     ///
     /// This is only applicable to [group channels].
     ///
-    /// [`gdm.join`]: https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
+    /// [`gdm.join`]: crate::oauth::scope::GDM_JOIN
     /// [group channels]: ChannelType::Group
     #[serde(skip_serializing_if = "Option::is_none")]
     pub managed: Option<bool>,
