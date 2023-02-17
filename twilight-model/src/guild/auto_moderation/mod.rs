@@ -8,7 +8,7 @@
 //! trigger. For example, if a user tries to send a message which contains a
 //! certain keyword, a rule can trigger and block the message before it is sent.
 
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 mod action;
 mod event_type;

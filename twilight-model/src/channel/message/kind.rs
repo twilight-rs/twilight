@@ -60,6 +60,14 @@ pub enum MessageType {
     RoleSubscriptionPurchase,
     /// System message denoting a interaction premium upsell.
     InteractionPremiumUpsell,
+    /// System message denoting a stage instance has started.
+    StageStart,
+    /// System message denoting a stage instance has ended.
+    StageEnd,
+    /// System message for stage instance speakers.
+    StageSpeaker,
+    /// System message denoting the topic for a stage instance.
+    StageTopic,
     /// System message denoting a guild application premium subscription.
     GuildApplicationPremiumSubscription,
     /// Variant value is unknown to the library.
@@ -99,6 +107,10 @@ impl MessageType {
                 | Self::AutoModerationAction
                 | Self::RoleSubscriptionPurchase
                 | Self::InteractionPremiumUpsell
+                | Self::StageStart
+                | Self::StageEnd
+                | Self::StageSpeaker
+                | Self::StageTopic
         )
     }
 
@@ -156,6 +168,10 @@ impl From<u8> for MessageType {
             24 => Self::AutoModerationAction,
             25 => Self::RoleSubscriptionPurchase,
             26 => Self::InteractionPremiumUpsell,
+            27 => Self::StageStart,
+            28 => Self::StageEnd,
+            29 => Self::StageSpeaker,
+            31 => Self::StageTopic,
             32 => Self::GuildApplicationPremiumSubscription,
             unknown => Self::Unknown(unknown),
         }
@@ -191,6 +207,10 @@ impl From<MessageType> for u8 {
             MessageType::AutoModerationAction => 24,
             MessageType::RoleSubscriptionPurchase => 25,
             MessageType::InteractionPremiumUpsell => 26,
+            MessageType::StageStart => 27,
+            MessageType::StageEnd => 28,
+            MessageType::StageSpeaker => 29,
+            MessageType::StageTopic => 31,
             MessageType::GuildApplicationPremiumSubscription => 32,
             MessageType::Unknown(unknown) => unknown,
         }
@@ -256,6 +276,10 @@ mod tests {
             (MessageType::AutoModerationAction, 24, true),
             (MessageType::RoleSubscriptionPurchase, 25, true),
             (MessageType::InteractionPremiumUpsell, 26, true),
+            (MessageType::StageStart, 27, true),
+            (MessageType::StageEnd, 28, true),
+            (MessageType::StageSpeaker, 29, true),
+            (MessageType::StageTopic, 31, true),
             (MessageType::GuildApplicationPremiumSubscription, 32, false),
         ];
 
