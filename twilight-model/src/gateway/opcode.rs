@@ -1,36 +1,6 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Gateway event's payload type.
-///
-/// # Received by the client
-///
-/// * [`Dispatch`]
-/// * [`Heartbeat`]
-/// * [`HeartbeatAck`]
-/// * [`Hello`]
-/// * [`InvalidSession`]
-/// * [`Reconnect`]
-///
-/// # Sent by the client
-///
-/// * [`Heartbeat`]
-/// * [`Identify`]
-/// * [`PresenceUpdate`]
-/// * [`Resume`]
-/// * [`RequestGuildMembers`]
-/// * [`VoiceStateUpdate`]
-///
-/// [`Dispatch`]: Self::Dispatch
-/// [`Heartbeat`]: Self::Heartbeat
-/// [`HeartbeatAck`]: Self::HeartbeatAck
-/// [`Hello`]: Self::Hello
-/// [`Identify`]: Self::Identify
-/// [`InvalidSession`]: Self::InvalidSession
-/// [`PresenceUpdate`]: Self::PresenceUpdate
-/// [`Reconnect`]: Self::Reconnect
-/// [`Resume`]: Self::Resume
-/// [`RequestGuildMembers`]: Self::RequestGuildMembers
-/// [`VoiceStateUpdate`]: Self::VoiceStateUpdate
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
@@ -90,6 +60,22 @@ impl OpCode {
     }
 
     /// Whether the opcode is received by the client.
+    ///
+    /// This includes the following opcodes:
+    ///
+    /// - [`Dispatch`]
+    /// - [`Heartbeat`]
+    /// - [`HeartbeatAck`]
+    /// - [`Hello`]
+    /// - [`InvalidSession`]
+    /// - [`Reconnect`]
+    ///
+    /// [`Dispatch`]: Self::Dispatch
+    /// [`Heartbeat`]: Self::Heartbeat
+    /// [`HeartbeatAck`]: Self::HeartbeatAck
+    /// [`Hello`]: Self::Hello
+    /// [`InvalidSession`]: Self::InvalidSession
+    /// [`Reconnect`]: Self::Reconnect
     pub const fn is_received(self) -> bool {
         matches!(
             self,
@@ -103,6 +89,22 @@ impl OpCode {
     }
 
     /// Whether the opcode is sent by the client.
+    ///
+    /// This includes the following opcodes:
+    ///
+    /// - [`Heartbeat`]
+    /// - [`Identify`]
+    /// - [`PresenceUpdate`]
+    /// - [`Resume`]
+    /// - [`RequestGuildMembers`]
+    /// - [`VoiceStateUpdate`]
+    ///
+    /// [`Heartbeat`]: Self::Heartbeat
+    /// [`Identify`]: Self::Identify
+    /// [`PresenceUpdate`]: Self::PresenceUpdate
+    /// [`Resume`]: Self::Resume
+    /// [`RequestGuildMembers`]: Self::RequestGuildMembers
+    /// [`VoiceStateUpdate`]: Self::VoiceStateUpdate
     pub const fn is_sent(self) -> bool {
         matches!(
             self,
