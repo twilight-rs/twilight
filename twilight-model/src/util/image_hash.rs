@@ -211,7 +211,7 @@ impl ImageHash {
 
         let mut bytes = [0; 16];
 
-        loop {
+        while seeking_idx < value.len() {
             let byte_left = match value[seeking_idx] {
                 byte @ b'0'..=b'9' => byte - b'0',
                 byte @ b'a'..=b'f' => byte - b'a' + DIGITS_ALLOCATED,
@@ -226,11 +226,7 @@ impl ImageHash {
 
             bytes[storage_idx] = (byte_left << 4) | byte_right;
             seeking_idx += 1;
-            storage_idx = if let Some(storage_idx) = storage_idx.checked_sub(1) {
-                storage_idx
-            } else {
-                break;
-            };
+            storage_idx = storage_idx.saturating_sub(1);
         }
 
         Ok(Self { animated, bytes })
