@@ -469,6 +469,10 @@ impl Shard {
 
     /// Wait for the next Discord event from the gateway.
     ///
+    /// Events not registered in Twilight are skipped. If you need to receive
+    /// events Twilight doesn't support, use [`next_message`] to receive raw
+    /// payloads.
+    ///
     /// # Errors
     ///
     /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
@@ -489,6 +493,8 @@ impl Shard {
     ///
     /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
     /// shard failed to send a message to the gateway, such as a heartbeat.
+    ///
+    /// [`next_message`]: Self::next_message
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
             let text = match self.next_message().await? {
