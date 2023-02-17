@@ -385,7 +385,6 @@ pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
         large: false,
         max_members: None,
         max_presences: None,
-        max_stage_video_channel_users: None,
         max_video_channel_users: None,
         member_count,
         members: Vec::new(),

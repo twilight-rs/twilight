@@ -726,7 +726,6 @@ mod tests {
             large: false,
             max_members: None,
             max_presences: None,
-            max_stage_video_channel_users: None,
             member_count: None,
             members: Vec::new(),
             mfa_level: MfaLevel::Elevated,
