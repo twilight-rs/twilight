@@ -1,22 +1,15 @@
-#![deny(
-    clippy::all,
+#![doc = include_str!("../README.md")]
+#![warn(
     clippy::missing_const_for_fn,
     clippy::pedantic,
-    future_incompatible,
     missing_docs,
-    nonstandard_style,
-    rust_2018_idioms,
-    rustdoc::broken_intra_doc_links,
-    unsafe_code,
-    unused
+    unsafe_code
 )]
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::unnecessary_wraps,
-    clippy::used_underscore_binding
+    clippy::unnecessary_wraps
 )]
-#![doc = include_str!("../README.md")]
 
 pub mod fmt;
 pub mod parse;

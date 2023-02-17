@@ -1,20 +1,9 @@
-#![deny(
-    clippy::all,
-    clippy::missing_const_for_fn,
-    clippy::pedantic,
-    future_incompatible,
-    nonstandard_style,
-    rust_2018_idioms,
-    rustdoc::broken_intra_doc_links,
-    unsafe_code,
-    unused
-)]
 #![doc = include_str!("../README.md")]
+#![warn(clippy::missing_const_for_fn, clippy::pedantic, unsafe_code)]
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::semicolon_if_nothing_returned,
-    clippy::used_underscore_binding
+    clippy::semicolon_if_nothing_returned
 )]
 
 pub mod application;
