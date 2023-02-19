@@ -1,3 +1,5 @@
+//! Bucket implementation for a global ratelimit.
+
 use super::bucket::BucketQueue;
 use crate::RatelimitHeaders;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -8,14 +10,14 @@ use tokio::time::Instant;
 /// seconds per period
 const PERIOD: u64 = 1;
 /// requests per period
-const REQUESTS: u64 = 50;
+const REQUESTS: u32 = 50;
 
 /// Global bucket. Keeps track of the global rate limit.
 #[derive(Debug, Clone)]
 pub struct GlobalBucket(Arc<InnerGlobalBucket>);
 
 impl GlobalBucket {
-    /// Queue of global ratelimit requests
+    /// Queue of global ratelimit requests.
     pub fn queue(&self) -> &BucketQueue {
         &self.0.queue
     }
@@ -32,18 +34,21 @@ impl Default for GlobalBucket {
     }
 }
 
+/// Inner struct to allow [`GlobalBucket`] to return an [`Arc`].
 #[derive(Debug)]
 struct InnerGlobalBucket {
+    /// Queue to receive rate limit requests.
     pub queue: BucketQueue,
-    /// currently waiting for capacity
+    /// currently waiting for capacity.
     is_locked: AtomicBool,
 }
 
 impl InnerGlobalBucket {
+    /// Creates a new bucket and starts a task processing incoming requests.
     fn new() -> Arc<Self> {
         let this = Self {
-            queue: Default::default(),
-            is_locked: Default::default(),
+            queue: BucketQueue::default(),
+            is_locked: AtomicBool::default(),
         };
         let this = Arc::new(this);
 
@@ -76,9 +81,10 @@ async fn run_global_queue_task(bucket: Arc<InnerGlobalBucket>) {
     }
 }
 
+/// Checks and sleeps in case a request needs to wait before proceeding.
 async fn wait_if_needed(bucket: &InnerGlobalBucket, time: &mut Instant) {
     let period = Duration::from_secs(PERIOD);
-    let fill_rate = period / REQUESTS as u32;
+    let fill_rate = period / REQUESTS;
 
     let now = Instant::now();
     // base contingent of 1 period worth of requests

@@ -236,7 +236,7 @@ impl BucketQueueTask {
 
             match timeout(Self::WAIT, ticket_headers).await {
                 Ok(Ok(Some(headers))) => {
-                    self.handle_headers(&headers).await;
+                    self.handle_headers(&headers);
                     global_ticket_tx.headers(Some(headers)).ok();
                 }
                 Ok(Ok(None)) => {
@@ -272,7 +272,7 @@ impl BucketQueueTask {
     }
 
     /// Update the bucket's ratelimit state.
-    async fn handle_headers(&self, headers: &RatelimitHeaders) {
+    fn handle_headers(&self, headers: &RatelimitHeaders) {
         let ratelimits = match headers {
             RatelimitHeaders::Present(present) => {
                 Some((present.limit(), present.remaining(), present.reset_after()))
