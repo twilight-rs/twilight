@@ -17,6 +17,16 @@ const REQUESTS: u32 = 50;
 pub struct GlobalBucket(Arc<InnerGlobalBucket>);
 
 impl GlobalBucket {
+    /// Creates a new global bucket using custom ratelimit values.
+    ///
+    /// `period` is given in seconds.
+    ///
+    /// `requests` indicates the amount of requests per period.
+    #[must_use]
+    pub fn with_ratelimit(period: u64, requests: u32) -> Self {
+        Self(InnerGlobalBucket::new(period, requests))
+    }
+
     /// Queue of global ratelimit requests.
     pub fn queue(&self) -> &BucketQueue {
         &self.0.queue
@@ -30,7 +40,7 @@ impl GlobalBucket {
 
 impl Default for GlobalBucket {
     fn default() -> Self {
-        Self(InnerGlobalBucket::new())
+        Self(InnerGlobalBucket::new(PERIOD, REQUESTS))
     }
 }
 
@@ -45,25 +55,25 @@ struct InnerGlobalBucket {
 
 impl InnerGlobalBucket {
     /// Creates a new bucket and starts a task processing incoming requests.
-    fn new() -> Arc<Self> {
+    fn new(period: u64, requests: u32) -> Arc<Self> {
         let this = Self {
             queue: BucketQueue::default(),
             is_locked: AtomicBool::default(),
         };
         let this = Arc::new(this);
 
-        tokio::spawn(run_global_queue_task(this.clone()));
+        tokio::spawn(run_global_queue_task(this.clone(), period, requests));
 
         this
     }
 }
 
 #[tracing::instrument(name = "background global queue task", skip_all)]
-async fn run_global_queue_task(bucket: Arc<InnerGlobalBucket>) {
+async fn run_global_queue_task(bucket: Arc<InnerGlobalBucket>, period: u64, requests: u32) {
     let mut time = Instant::now();
 
     while let Some(queue_tx) = bucket.queue.pop().await {
-        wait_if_needed(bucket.as_ref(), &mut time).await;
+        wait_if_needed(bucket.as_ref(), &mut time, period, requests).await;
 
         let ticket_headers = if let Some(ticket_headers) = queue_tx.available() {
             ticket_headers
@@ -82,9 +92,14 @@ async fn run_global_queue_task(bucket: Arc<InnerGlobalBucket>) {
 }
 
 /// Checks and sleeps in case a request needs to wait before proceeding.
-async fn wait_if_needed(bucket: &InnerGlobalBucket, time: &mut Instant) {
-    let period = Duration::from_secs(PERIOD);
-    let fill_rate = period / REQUESTS;
+async fn wait_if_needed(
+    bucket: &InnerGlobalBucket,
+    time: &mut Instant,
+    period: u64,
+    requests: u32,
+) {
+    let period = Duration::from_secs(period);
+    let fill_rate = period / requests;
 
     let now = Instant::now();
     // base contingent of 1 period worth of requests

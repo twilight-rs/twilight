@@ -46,6 +46,19 @@ impl InMemoryRatelimiter {
         Self::default()
     }
 
+    /// Create a new in-memory ratelimiter using custom ratelimit values.
+    ///
+    /// `period` is given in seconds.
+    ///
+    /// `requests` indicates the amount of requests per period.
+    #[must_use]
+    pub fn with_global_ratelimit(period: u64, requests: u32) -> Self {
+        Self {
+            global: GlobalBucket::with_ratelimit(period, requests),
+            ..Self::default()
+        }
+    }
+
     /// Enqueue the [`TicketNotifier`] to the [`Path`]'s [`Bucket`].
     ///
     /// Returns the new [`Bucket`] if none existed.
