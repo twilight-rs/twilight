@@ -1,8 +1,10 @@
 //! In-memory based default [`Ratelimiter`] implementation used in `twilight-http`.
 
 mod bucket;
+mod global_bucket;
 
 use self::bucket::{Bucket, BucketQueueTask};
+pub use self::global_bucket::GlobalBucket;
 use super::{
     ticket::{self, TicketNotifier},
     Bucket as InfoBucket, Ratelimiter,
@@ -13,37 +15,9 @@ use crate::{
 use futures_util::future;
 use std::{
     collections::hash_map::{Entry, HashMap},
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, Mutex,
-    },
+    sync::{Arc, Mutex},
     time::Duration,
 };
-use tokio::sync::Mutex as AsyncMutex;
-
-/// Global lock. We use a pair to avoid actually locking the mutex every check.
-/// This allows futures to only wait on the global lock when a global ratelimit
-/// is in place by, in turn, waiting for a guard, and then each immediately
-/// dropping it.
-#[derive(Debug, Default)]
-struct GlobalLockPair(AsyncMutex<()>, AtomicBool);
-
-impl GlobalLockPair {
-    /// Set the global ratelimit as exhausted.
-    pub fn lock(&self) {
-        self.1.store(true, Ordering::Release);
-    }
-
-    /// Set the global ratelimit as no longer exhausted.
-    pub fn unlock(&self) {
-        self.1.store(false, Ordering::Release);
-    }
-
-    /// Whether the global ratelimit is exhausted.
-    pub fn is_locked(&self) -> bool {
-        self.1.load(Ordering::Relaxed)
-    }
-}
 
 /// Default ratelimiter implementation used in twilight that
 /// stores ratelimit information in an in-memory mapping.
@@ -59,7 +33,7 @@ pub struct InMemoryRatelimiter {
     /// Mapping of [`Path`]s to their associated [`Bucket`]s.
     buckets: Arc<Mutex<HashMap<Path, Arc<Bucket>>>>,
     /// Global ratelimit data.
-    global: Arc<GlobalLockPair>,
+    global: GlobalBucket,
 }
 
 impl InMemoryRatelimiter {
@@ -146,13 +120,8 @@ impl Ratelimiter for InMemoryRatelimiter {
 
         if let Some(bucket) = self.entry(path.clone(), tx) {
             tokio::spawn(
-                BucketQueueTask::new(
-                    bucket,
-                    Arc::clone(&self.buckets),
-                    Arc::clone(&self.global),
-                    path,
-                )
-                .run(),
+                BucketQueueTask::new(bucket, Arc::clone(&self.buckets), self.global.clone(), path)
+                    .run(),
             );
         }
 
