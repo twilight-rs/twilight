@@ -497,27 +497,26 @@ impl Shard {
     /// [`next_message`]: Self::next_message
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
-            let text = match self.next_message().await? {
+            match self.next_message().await? {
                 Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
-                Message::Text(text) => text,
-            };
+                Message::Text(text) => match json::parse(text, self.config.event_types()) {
+                    Ok(Some(event)) => return Ok(event.into()),
+                    Ok(None) => {}
+                    Err(source) => {
+                        // Discord has many events that aren't documented, so we
+                        // need to skip over errors caused by unknown events or
+                        // opcodes.
+                        #[allow(clippy::redundant_closure_for_method_calls)]
+                        let is_unknown_event = source
+                            .source()
+                            .and_then(|source| source.downcast_ref::<UnknownEventError>())
+                            .is_some();
 
-            match json::parse(text, self.config.event_types()) {
-                Ok(Some(event)) => return Ok(event.into()),
-                Ok(None) => {}
-                Err(source) => {
-                    // Discord has many events that aren't documented, so we
-                    // need to skip over errors caused by unknown events or
-                    // opcodes.
-                    #[allow(clippy::redundant_closure_for_method_calls)]
-                    if source
-                        .source()
-                        .and_then(|source| source.downcast_ref::<UnknownEventError>())
-                        .is_some()
-                    {
-                        continue;
+                        if is_unknown_event {
+                            continue;
+                        }
                     }
-                }
+                },
             }
         }
     }
