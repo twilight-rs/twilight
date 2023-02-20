@@ -37,12 +37,6 @@ pub const OPTION_CHOICE_NAME_LENGTH_MAX: usize = 100;
 /// Minimum length of an option choice name.
 pub const OPTION_CHOICE_NAME_LENGTH_MIN: usize = 1;
 
-/// Maximum length of an option choice name.
-pub const OPTION_CHOICE_NAME_LOCALIZATION_MAX: usize = OPTION_CHOICE_NAME_LENGTH_MAX;
-
-/// Minimum length of an option choice name.
-pub const OPTION_CHOICE_NAME_LOCALIZATION_MIN: usize = OPTION_CHOICE_NAME_LENGTH_MIN;
-
 /// Maximum length of an option choice string value.
 pub const OPTION_CHOICE_STRING_VALUE_LENGTH_MAX: usize = 100;
 
@@ -205,14 +199,6 @@ impl Display for CommandValidationError {
 
                 f.write_str(" characters")
             }
-            CommandValidationErrorType::OptionChoiceNameLocalizationLengthInvalid => {
-                f.write_str("command option choice name localization must be between ")?;
-                Display::fmt(&OPTION_CHOICE_NAME_LOCALIZATION_MIN, f)?;
-                f.write_str(" and ")?;
-                Display::fmt(&OPTION_CHOICE_NAME_LOCALIZATION_MAX, f)?;
-
-                f.write_str(" characters")
-            }
             CommandValidationErrorType::OptionChoiceStringValueLengthInvalid => {
                 f.write_str("command option choice string value must be between ")?;
                 Display::fmt(&OPTION_CHOICE_STRING_VALUE_LENGTH_MIN, f)?;
@@ -288,8 +274,6 @@ pub enum CommandValidationErrorType {
     },
     /// Command option choice name length is invalid.
     OptionChoiceNameLengthInvalid,
-    /// Command option choice name localization length is invalid.
-    OptionChoiceNameLocalizationLengthInvalid,
     /// String command option choice value length is invalid.
     OptionChoiceStringValueLengthInvalid,
     /// Command options count invalid.
@@ -592,20 +576,16 @@ fn name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 /// less than [`OPTION_CHOICE_NAME_LENGTH_MIN`] or more than [`OPTION_CHOICE_NAME_LENGTH_MAX`].
 ///
 /// [`OptionChoiceNameLocalizationLengthInvalid`]: CommandValidationErrorType::OptionChoiceNameLocalizationLengthInvalid
-pub fn choice_name_localizations(
-    name_localization: (&String, &String),
-) -> Result<(), CommandValidationError> {
-    let localized_name_len = name_localization.1.chars().count();
+pub fn choice_name(name: &str) -> Result<(), CommandValidationError> {
+    let len = name.chars().count();
 
-    if !(OPTION_CHOICE_NAME_LOCALIZATION_MIN..=OPTION_CHOICE_NAME_LOCALIZATION_MAX)
-        .contains(&localized_name_len)
-    {
-        return Err(CommandValidationError {
+    if (OPTION_CHOICE_NAME_LENGTH_MIN..=OPTION_CHOICE_NAME_LENGTH_MAX).contains(&len) {
+        Ok(())
+    } else {
+        Err(CommandValidationError {
             kind: CommandValidationErrorType::OptionChoiceNameLengthInvalid,
-        });
+        })
     }
-
-    Ok(())
 }
 
 /// Validate a single [`CommandOptionChoice`].
@@ -617,12 +597,7 @@ pub fn choice_name_localizations(
 ///
 /// [`OptionChoiceNameLengthInvalid`]: CommandValidationErrorType::OptionChoiceNameLengthInvalid
 pub fn choice(choice: &CommandOptionChoice) -> Result<(), CommandValidationError> {
-    let name_len = choice.name.chars().count();
-    if !(OPTION_CHOICE_NAME_LENGTH_MIN..=OPTION_CHOICE_NAME_LENGTH_MAX).contains(&name_len) {
-        return Err(CommandValidationError {
-            kind: CommandValidationErrorType::OptionChoiceNameLengthInvalid,
-        });
-    }
+    self::choice_name(&choice.name)?;
 
     if let CommandOptionChoiceValue::String(value) = &choice.value {
         let value_len = value.chars().count();
@@ -638,8 +613,8 @@ pub fn choice(choice: &CommandOptionChoice) -> Result<(), CommandValidationError
 
     if let Some(name_localizations) = &choice.name_localizations {
         name_localizations
-            .iter()
-            .try_for_each(self::choice_name_localizations)?;
+            .values()
+            .try_for_each(|name| self::choice_name(name))?;
     }
 
     Ok(())
