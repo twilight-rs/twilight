@@ -179,70 +179,57 @@ impl TryFrom<u16> for CloseCode {
 
 #[cfg(test)]
 mod tests {
-    use super::CloseCode;
+    use super::{CloseCode, CloseCodeConversionError};
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        CloseCode: Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
+    );
+    assert_impl_all!(CloseCodeConversionError: Debug, Eq, PartialEq, Send, Sync);
+
+    const MAP: &[(CloseCode, u16, bool)] = &[
+        (CloseCode::UnknownError, 4000, true),
+        (CloseCode::UnknownOpcode, 4001, true),
+        (CloseCode::DecodeError, 4002, true),
+        (CloseCode::NotAuthenticated, 4003, true),
+        (CloseCode::AuthenticationFailed, 4004, false),
+        (CloseCode::AlreadyAuthenticated, 4005, true),
+        (CloseCode::InvalidSequence, 4007, true),
+        (CloseCode::RateLimited, 4008, true),
+        (CloseCode::SessionTimedOut, 4009, true),
+        (CloseCode::InvalidShard, 4010, false),
+        (CloseCode::ShardingRequired, 4011, false),
+        (CloseCode::InvalidApiVersion, 4012, false),
+        (CloseCode::InvalidIntents, 4013, false),
+        (CloseCode::DisallowedIntents, 4014, false),
+    ];
 
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&CloseCode::UnknownError, &[Token::U16(4000)]);
-        serde_test::assert_tokens(&CloseCode::UnknownOpcode, &[Token::U16(4001)]);
-        serde_test::assert_tokens(&CloseCode::DecodeError, &[Token::U16(4002)]);
-        serde_test::assert_tokens(&CloseCode::NotAuthenticated, &[Token::U16(4003)]);
-        serde_test::assert_tokens(&CloseCode::AuthenticationFailed, &[Token::U16(4004)]);
-        serde_test::assert_tokens(&CloseCode::AlreadyAuthenticated, &[Token::U16(4005)]);
-        serde_test::assert_tokens(&CloseCode::InvalidSequence, &[Token::U16(4007)]);
-        serde_test::assert_tokens(&CloseCode::RateLimited, &[Token::U16(4008)]);
-        serde_test::assert_tokens(&CloseCode::SessionTimedOut, &[Token::U16(4009)]);
-        serde_test::assert_tokens(&CloseCode::InvalidShard, &[Token::U16(4010)]);
-        serde_test::assert_tokens(&CloseCode::ShardingRequired, &[Token::U16(4011)]);
-        serde_test::assert_tokens(&CloseCode::InvalidApiVersion, &[Token::U16(4012)]);
-        serde_test::assert_tokens(&CloseCode::InvalidIntents, &[Token::U16(4013)]);
-        serde_test::assert_tokens(&CloseCode::DisallowedIntents, &[Token::U16(4014)]);
+        for (kind, num, can_reconnect) in MAP {
+            serde_test::assert_tokens(kind, &[Token::U16(*num)]);
+            assert_eq!(*kind, CloseCode::try_from(*num).unwrap());
+            assert_eq!(*num, *kind as u16);
+            assert!(kind.can_reconnect() == *can_reconnect)
+        }
     }
 
     #[test]
-    fn conversion() {
-        assert_eq!(CloseCode::try_from(4000).unwrap(), CloseCode::UnknownError);
-        assert_eq!(CloseCode::try_from(4001).unwrap(), CloseCode::UnknownOpcode);
-        assert_eq!(CloseCode::try_from(4002).unwrap(), CloseCode::DecodeError);
-        assert_eq!(
-            CloseCode::try_from(4003).unwrap(),
-            CloseCode::NotAuthenticated
+    fn try_from() {
+        assert!(
+            matches!(CloseCode::try_from(5000), Err(CloseCodeConversionError { code }) if code == 5000)
         );
-        assert_eq!(
-            CloseCode::try_from(4004).unwrap(),
-            CloseCode::AuthenticationFailed
-        );
-        assert_eq!(
-            CloseCode::try_from(4005).unwrap(),
-            CloseCode::AlreadyAuthenticated
-        );
-        assert_eq!(
-            CloseCode::try_from(4007).unwrap(),
-            CloseCode::InvalidSequence
-        );
-        assert_eq!(CloseCode::try_from(4008).unwrap(), CloseCode::RateLimited);
-        assert_eq!(
-            CloseCode::try_from(4009).unwrap(),
-            CloseCode::SessionTimedOut
-        );
-        assert_eq!(CloseCode::try_from(4010).unwrap(), CloseCode::InvalidShard);
-        assert_eq!(
-            CloseCode::try_from(4011).unwrap(),
-            CloseCode::ShardingRequired
-        );
-        assert_eq!(
-            CloseCode::try_from(4012).unwrap(),
-            CloseCode::InvalidApiVersion
-        );
-        assert_eq!(
-            CloseCode::try_from(4013).unwrap(),
-            CloseCode::InvalidIntents
-        );
-        assert_eq!(
-            CloseCode::try_from(4014).unwrap(),
-            CloseCode::DisallowedIntents
-        );
-        assert!(CloseCode::try_from(5000).is_err());
     }
 }
