@@ -49,22 +49,17 @@ impl CloseCode {
     /// Refer to the type-level documentation for Discord's table on close codes
     /// that can be reconnected.
     pub const fn can_reconnect(self) -> bool {
-        match self {
+        matches!(
+            self,
             Self::UnknownError
-            | Self::UnknownOpcode
-            | Self::DecodeError
-            | Self::NotAuthenticated
-            | Self::AlreadyAuthenticated
-            | Self::InvalidSequence
-            | Self::RateLimited
-            | Self::SessionTimedOut => true,
-            Self::AuthenticationFailed
-            | Self::InvalidShard
-            | Self::ShardingRequired
-            | Self::InvalidApiVersion
-            | Self::InvalidIntents
-            | Self::DisallowedIntents => false,
-        }
+                | Self::UnknownOpcode
+                | Self::DecodeError
+                | Self::NotAuthenticated
+                | Self::AlreadyAuthenticated
+                | Self::InvalidSequence
+                | Self::RateLimited
+                | Self::SessionTimedOut
+        )
     }
 }
 
