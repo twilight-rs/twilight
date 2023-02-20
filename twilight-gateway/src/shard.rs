@@ -43,14 +43,7 @@
 //! then the previous steps are taken and the resultant message is deserialized
 //! into a [`GatewayEvent`] if it matches the user's [`EventTypeFlags`].
 //!
-//! # Reconnecting
-//!
-//! If a custom gateway URL is used when reconnecting, the shard will always
-//! prefer it over the [`resume_gateway_url`]. Proper reconnection is left to
-//! the proxy.
-//!
 //! [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
-//! [`resume_gateway_url`]: twilight_model::gateway::payload::incoming::Ready::resume_gateway_url
 //! [command]: crate::Command
 //! [close message]: Message::Close
 //! [`EventTypeFlags`]: crate::EventTypeFlags

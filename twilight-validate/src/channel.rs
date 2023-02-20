@@ -27,6 +27,12 @@ pub const CHANNEL_NAME_LENGTH_MIN: usize = 1;
 /// Maximum length of a channel's rate limit per user.
 pub const CHANNEL_RATE_LIMIT_PER_USER_MAX: u16 = 21_600;
 
+/// Maximum number of members that can be returned in a thread.
+pub const CHANNEL_THREAD_GET_MEMBERS_LIMIT_MAX: u32 = 100;
+
+/// Minimum number of members that can be returned in a thread.
+pub const CHANNEL_THREAD_GET_MEMBERS_LIMIT_MIN: u32 = 1;
+
 /// Maximum length of a channel's topic.
 pub const CHANNEL_TOPIC_LENGTH_MAX: usize = 1024;
 
@@ -89,6 +95,13 @@ impl Display for ChannelValidationError {
             ChannelValidationErrorType::RateLimitPerUserInvalid { .. } => {
                 f.write_str("the rate limit per user is invalid")
             }
+            ChannelValidationErrorType::ThreadMemberLimitInvalid => {
+                f.write_str("number of members to return is less than ")?;
+                Display::fmt(&CHANNEL_THREAD_GET_MEMBERS_LIMIT_MIN, f)?;
+                f.write_str(" or greater than ")?;
+
+                Display::fmt(&CHANNEL_THREAD_GET_MEMBERS_LIMIT_MAX, f)
+            }
             ChannelValidationErrorType::TopicInvalid => f.write_str("the topic is invalid"),
             ChannelValidationErrorType::TypeInvalid { kind } => {
                 Display::fmt(kind.name(), f)?;
@@ -124,6 +137,8 @@ pub enum ChannelValidationErrorType {
         /// Provided ratelimit is invalid.
         rate_limit_per_user: u16,
     },
+    /// The number of members to return is less than 1 or greater than 100.
+    ThreadMemberLimitInvalid,
     /// The length of the topic is more than 1024 UTF-16 characters.
     TopicInvalid,
     /// Provided type was not a thread.
@@ -261,6 +276,29 @@ pub const fn rate_limit_per_user(value: u16) -> Result<(), ChannelValidationErro
     }
 }
 
+/// Ensure the limit set for the number of thread members to return is correct.
+///
+/// The value must be at least [`CHANNEL_THREAD_GET_MEMBERS_LIMIT_MIN`] and at most
+/// [`CHANNEL_THREAD_GET_MEMBERS_LIMIT_MAX`]. This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`ThreadMemberLimitInvalid`] if the limit is invalid.
+///
+/// [`ThreadMemberLimitInvalid`]: ChannelValidationErrorType::ThreadMemberLimitInvalid
+/// [this documentation entry]: https://discord.com/developers/docs/resources/channel#list-thread-members-query-string-params
+pub const fn thread_member_limit(value: u32) -> Result<(), ChannelValidationError> {
+    if value >= CHANNEL_THREAD_GET_MEMBERS_LIMIT_MIN
+        && value <= CHANNEL_THREAD_GET_MEMBERS_LIMIT_MAX
+    {
+        Ok(())
+    } else {
+        Err(ChannelValidationError {
+            kind: ChannelValidationErrorType::ThreadMemberLimitInvalid,
+        })
+    }
+}
+
 /// Ensure a channel's topic's length is correct.
 ///
 /// # Errors
@@ -352,6 +390,16 @@ mod tests {
         assert!(rate_limit_per_user(21_600).is_ok());
 
         assert!(rate_limit_per_user(21_601).is_err());
+    }
+
+    #[test]
+    fn thread_member_limit_value() {
+        assert!(thread_member_limit(1).is_ok());
+        assert!(thread_member_limit(100).is_ok());
+        assert!(thread_member_limit(50).is_ok());
+
+        assert!(thread_member_limit(0).is_err());
+        assert!(thread_member_limit(101).is_err());
     }
 
     #[test]

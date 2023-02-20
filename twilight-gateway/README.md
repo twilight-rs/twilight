@@ -25,7 +25,7 @@ Using the `stream` module, shards can be easily managed in groups.
 * `twilight-http` (*default*): enable the `stream::create_recommended` function
 * Zlib (mutually exclusive)
   * `zlib-stock` (*default*): [`flate2`]'s stock zlib implementation
-  * `zlib-ng`: use [`zlib-ng`] for zlib, may have better performance
+  * `zlib-simd`: use [`zlib-ng`] for zlib, may have better performance
 
 ## Examples
 
@@ -138,7 +138,6 @@ There are a few additional examples located in the
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 [discord link]: https://discord.gg/7jj8n7D
-[docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 [github examples link]: https://github.com/twilight-rs/twilight/tree/main/examples
 [github link]: https://github.com/twilight-rs/twilight

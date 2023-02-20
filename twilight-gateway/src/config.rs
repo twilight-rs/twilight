@@ -285,6 +285,11 @@ impl ConfigBuilder {
 
     /// Set the presence to use automatically when starting a new session.
     ///
+    /// The active presence of a session is maintained across re-connections
+    /// when a session can be [successfully resumed], and when a new session has
+    /// to be made shards will send the configured presence. Manually updating
+    /// the presence after a disconnection isn't necessary.
+    ///
     /// Default is no presence, which defaults to strictly being "online"
     /// with no special qualities.
     ///
@@ -320,6 +325,8 @@ impl ConfigBuilder {
     /// let shard = Shard::with_config(ShardId::ONE, config);
     /// # Ok(()) }
     /// ```
+    ///
+    /// [successfully resumed]: twilight_model::gateway::event::Event::Resumed
     #[allow(clippy::missing_const_for_fn)]
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.inner.presence = Some(presence);

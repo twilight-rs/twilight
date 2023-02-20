@@ -32,7 +32,7 @@
 //! # Ok(()) }
 //! ```
 
-#![deny(clippy::missing_docs_in_private_items)]
+#![warn(clippy::missing_docs_in_private_items)]
 
 mod display;
 mod error;

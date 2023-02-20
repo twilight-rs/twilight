@@ -18,11 +18,20 @@ pub struct UserProfile {
     pub bot: bool,
     /// Discriminator used to differentiate people with the same username.
     ///
+    /// # Formatting
+    ///
+    /// Because discriminators are stored as an integer they're not in the
+    /// format of Discord user tags due to a lack of padding with zeros. The
+    /// [`discriminator`] method can be used to retrieve a formatter to pad the
+    /// discriminator with zeros.
+    ///
     /// # serde
     ///
     /// The discriminator field can be deserialized from either a string or an
     /// integer. The field will always serialize into a string due to that being
     /// the type Discord's API uses.
+    ///
+    /// [`discriminator`]: Self::discriminator
     #[serde(with = "super::discriminator")]
     pub discriminator: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -43,7 +52,8 @@ pub struct UserProfile {
 }
 
 impl UserProfile {
-    /// Create a [`Display`] formatter for a user discriminator.
+    /// Create a [`Display`] formatter for a user discriminator that pads the
+    /// discriminator with zeros up to 4 digits.
     ///
     /// [`Display`]: core::fmt::Display
     pub const fn discriminator(&self) -> DiscriminatorDisplay {
