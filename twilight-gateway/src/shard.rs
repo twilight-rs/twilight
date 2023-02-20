@@ -506,6 +506,9 @@ impl Shard {
                         // Discord has many events that aren't documented, so we
                         // need to skip over errors caused by unknown events or
                         // opcodes.
+                        //
+                        // clippy: the recommendation is to reference the method
+                        // by name with a turbofish, which is invalid syntax
                         #[allow(clippy::redundant_closure_for_method_calls)]
                         let is_unknown_event = source
                             .source()
