@@ -469,6 +469,11 @@ impl Shard {
 
     /// Wait for the next Discord event from the gateway.
     ///
+    /// This is a convenience method that internally calls [`next_message`] and
+    /// only returns wanted [`Event`]s, configured via
+    /// [`ConfigBuilder::event_types`]. Close messages are always considered
+    /// wanted and map onto the [`Event::GatewayClose`] variant.
+    ///
     /// Events not registered in Twilight are skipped. If you need to receive
     /// events Twilight doesn't support, use [`next_message`] to receive raw
     /// payloads.
@@ -494,12 +499,13 @@ impl Shard {
     /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
     /// shard failed to send a message to the gateway, such as a heartbeat.
     ///
+    /// [`ConfigBuilder::event_types`]: crate::ConfigBuilder::event_types
     /// [`next_message`]: Self::next_message
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
             match self.next_message().await? {
                 Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
-                Message::Text(text) => match json::parse(text, self.config.event_types()) {
+                Message::Text(text) => match crate::parse(text, self.config.event_types()) {
                     Ok(Some(event)) => return Ok(event.into()),
                     Ok(None) => {}
                     Err(source) => {
