@@ -512,8 +512,8 @@ impl Shard {
                             .and_then(|source| source.downcast_ref::<UnknownEventError>())
                             .is_some();
 
-                        if is_unknown_event {
-                            continue;
+                        if !is_unknown_event {
+                            return Err(source);
                         }
                     }
                 },
