@@ -46,8 +46,50 @@ pub enum CloseCode {
 impl CloseCode {
     /// Whether the close code is one that allows reconnection of a shard.
     ///
-    /// Refer to the type-level documentation for Discord's table on close codes
-    /// that can be reconnected.
+    /// Some close codes are considered *fatal*, meaning that using the same
+    /// gateway shard configuration would error. For example, the
+    /// [`AuthenticationFailed`] close code occurs when the provided Discord bot
+    /// token is invalid, and so attempting to reconnect with the same token
+    /// would fail. On the other hand, a close code such as [`RateLimited`]
+    /// occurs when too many gateway commands are sent in a short time, and so
+    /// creating a new connection would succeed.
+    ///
+    /// Refer to [Discord Docs/Gateway Close Event Codes][1] for more
+    /// information.
+    ///
+    /// # Reconnectable close codes
+    ///
+    /// - [`UnknownError`]
+    /// - [`DecodeError`]
+    /// - [`NotAuthenticated`]
+    /// - [`AlreadyAuthenticated`]
+    /// - [`InvalidSequence`]
+    /// - [`RateLimited`]
+    /// - [`SessionTimedOut`]
+    ///
+    /// # Fatal close codes
+    ///
+    /// - [`AuthenticationFailed`]
+    /// - [`InvalidShard`]
+    /// - [`ShardingRequired`]
+    /// - [`InvalidApiVersion`]
+    /// - [`InvalidIntents`]
+    /// - [`DisallowedIntents`]
+    ///
+    /// [`AlreadyAuthenticated`]: Self::AlreadyAuthenticated
+    /// [`AuthenticationFailed`]: Self::AuthenticationFailed
+    /// [`DecodeError`]: Self::DecodeError
+    /// [`DisallowedIntents`]: Self::DisallowedIntents
+    /// [`InvalidApiVersion`]: Self::InvalidApiVersion
+    /// [`InvalidIntents`]: Self::InvalidIntents
+    /// [`InvalidSequence`]: Self::InvalidSequence
+    /// [`InvalidShard`]: Self::InvalidShard
+    /// [`NotAuthenticated`]: Self::NotAuthenticated
+    /// [`RateLimited`]: Self::RateLimited
+    /// [`SessionTimedOut`]: Self::SessionTimedOut
+    /// [`ShardingRequired`]: Self::ShardingRequired
+    /// [`UnknownError`]: Self::UnknownError
+    /// [1]: https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-close-event-codes
     pub const fn can_reconnect(self) -> bool {
         matches!(
             self,
