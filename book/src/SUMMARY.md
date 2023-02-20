@@ -18,3 +18,4 @@
 - [Bots Using Twilight](./chapter_3_bots_using_twilight.md)
 - [Versions](./versions/summary.md)
     - [Version 0.15](./versions/0.15/summary.md)
+      - [2023-02-20 Updates](./versions/0.15/2023-02-20.md)
