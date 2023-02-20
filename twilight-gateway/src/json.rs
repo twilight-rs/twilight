@@ -22,11 +22,12 @@ use twilight_model::gateway::{
 
 /// Error occurred due to an unknown event and opcode pair.
 #[derive(Debug)]
+#[non_exhaustive]
 pub(crate) struct UnknownEventError {
     /// Event type in the payload.
-    event_type: Option<String>,
+    pub event_type: Option<String>,
     /// Opcode in the payload.
-    opcode: Option<u8>,
+    pub opcode: Option<u8>,
 }
 
 impl Display for UnknownEventError {

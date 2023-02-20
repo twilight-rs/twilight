@@ -510,14 +510,22 @@ impl Shard {
                         // clippy: the recommendation is to reference the method
                         // by name with a turbofish, which is invalid syntax
                         #[allow(clippy::redundant_closure_for_method_calls)]
-                        let is_unknown_event = source
+                        let maybe_unknown_event = source
                             .source()
-                            .and_then(|source| source.downcast_ref::<UnknownEventError>())
-                            .is_some();
+                            .and_then(|source| source.downcast_ref::<UnknownEventError>());
 
-                        if !is_unknown_event {
-                            return Err(source);
+                        if let Some(unknown_event) = maybe_unknown_event {
+                            tracing::debug!(
+                                id=%self.id,
+                                event_type=?unknown_event.event_type,
+                                opcode=?unknown_event.opcode,
+                                "skipped deserializing unknown event",
+                            );
+
+                            continue;
                         }
+
+                        return Err(source);
                     }
                 },
             }
