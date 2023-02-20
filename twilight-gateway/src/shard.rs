@@ -64,7 +64,7 @@ use crate::{
         SendErrorType,
     },
     future::{self, NextMessageFuture, NextMessageFutureOutput},
-    json,
+    json::{self, UnknownEventError},
     latency::Latency,
     ratelimiter::CommandRatelimiter,
     session::Session,
@@ -78,7 +78,7 @@ use serde::{de::DeserializeOwned, Deserialize};
     feature = "rustls-webpki-roots"
 ))]
 use std::io::ErrorKind as IoErrorKind;
-use std::{env::consts::OS, str};
+use std::{env::consts::OS, error::Error, str};
 use tokio::{
     task::JoinHandle,
     time::{self, Duration, Instant, Interval, MissedTickBehavior},
@@ -469,6 +469,10 @@ impl Shard {
 
     /// Wait for the next Discord event from the gateway.
     ///
+    /// Events not registered in Twilight are skipped. If you need to receive
+    /// events Twilight doesn't support, use [`next_message`] to receive raw
+    /// payloads.
+    ///
     /// # Errors
     ///
     /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
@@ -489,15 +493,41 @@ impl Shard {
     ///
     /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
     /// shard failed to send a message to the gateway, such as a heartbeat.
+    ///
+    /// [`next_message`]: Self::next_message
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
             match self.next_message().await? {
                 Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
-                Message::Text(event) => {
-                    if let Some(event) = json::parse(event, self.config.event_types())? {
-                        return Ok(event.into());
+                Message::Text(text) => match json::parse(text, self.config.event_types()) {
+                    Ok(Some(event)) => return Ok(event.into()),
+                    Ok(None) => {}
+                    Err(source) => {
+                        // Discord has many events that aren't documented, so we
+                        // need to skip over errors caused by unknown events or
+                        // opcodes.
+                        //
+                        // clippy: the recommendation is to reference the method
+                        // by name with a turbofish, which is invalid syntax
+                        #[allow(clippy::redundant_closure_for_method_calls)]
+                        let maybe_unknown_event = source
+                            .source()
+                            .and_then(|source| source.downcast_ref::<UnknownEventError>());
+
+                        if let Some(unknown_event) = maybe_unknown_event {
+                            tracing::debug!(
+                                id=%self.id,
+                                event_type=?unknown_event.event_type,
+                                opcode=?unknown_event.opcode,
+                                "skipped deserializing unknown event",
+                            );
+
+                            continue;
+                        }
+
+                        return Err(source);
                     }
-                }
+                },
             }
         }
     }
