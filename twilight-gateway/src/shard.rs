@@ -470,9 +470,9 @@ impl Shard {
     /// Wait for the next Discord event from the gateway.
     ///
     /// This is a convenience method that internally calls [`next_message`] and
-    /// only returns wanted (configured through [`ConfigBuilder::event_types`])
-    /// [`Event`]s. Close messages are always considered wanted and map onto the
-    /// [`Event::GatewayClose`] variant.
+    /// only returns wanted [`Event`]s, configured via
+    /// [`ConfigBuilder::event_types`]. Close messages are always considered
+    /// wanted and map onto the [`Event::GatewayClose`] variant.
     ///
     /// # Errors
     ///
