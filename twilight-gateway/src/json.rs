@@ -11,10 +11,36 @@ use crate::{
     EventTypeFlags,
 };
 use serde::de::DeserializeSeed;
+use std::{
+    error::Error,
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
+};
 use twilight_model::gateway::{
     event::{GatewayEvent, GatewayEventDeserializer},
     OpCode,
 };
+
+/// Error occurred due to an unknown event and opcode pair.
+#[derive(Debug)]
+#[non_exhaustive]
+pub(crate) struct UnknownEventError {
+    /// Event type in the payload.
+    pub event_type: Option<String>,
+    /// Opcode in the payload.
+    pub opcode: Option<u8>,
+}
+
+impl Display for UnknownEventError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("unknown opcode/dispatch event type: ")?;
+        Debug::fmt(&self.opcode, f)?;
+        f.write_str("/")?;
+
+        Debug::fmt(&self.event_type, f)
+    }
+}
+
+impl Error for UnknownEventError {}
 
 /// Parse a JSON encoded event into a gateway event if its type is in
 /// `wanted_event_types`.
@@ -43,7 +69,10 @@ pub fn parse(
         } else {
             return Err(ReceiveMessageError {
                 kind: ReceiveMessageErrorType::Deserializing { event },
-                source: Some("missing opcode".into()),
+                source: Some(Box::new(UnknownEventError {
+                    event_type: None,
+                    opcode: None,
+                })),
             });
         };
 
@@ -54,7 +83,10 @@ pub fn parse(
 
         return Err(ReceiveMessageError {
             kind: ReceiveMessageErrorType::Deserializing { event },
-            source: Some(format!("unknown opcode: {opcode}").into()),
+            source: Some(Box::new(UnknownEventError {
+                event_type: None,
+                opcode: Some(opcode),
+            })),
         });
     };
 
@@ -64,11 +96,14 @@ pub fn parse(
         event_type
     } else {
         let opcode = opcode as u8;
-        let source = format!("unknown opcode/dispatch event type: {opcode}/{event_type:?}");
+        let owned_event_type = event_type.map(ToOwned::to_owned);
 
         return Err(ReceiveMessageError {
             kind: ReceiveMessageErrorType::Deserializing { event },
-            source: Some(source.into()),
+            source: Some(Box::new(UnknownEventError {
+                event_type: owned_event_type,
+                opcode: Some(opcode),
+            })),
         });
     };
 
