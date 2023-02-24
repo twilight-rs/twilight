@@ -123,6 +123,7 @@ mod tests {
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: Some(ACTION_CHANNEL_ID),
                         duration_seconds: None,
+                        custom_message: None,
                     }),
                 },
                 AutoModerationAction {
@@ -130,6 +131,7 @@ mod tests {
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: None,
                         duration_seconds: Some(120),
+                        custom_message: None,
                     }),
                 },
             ]),

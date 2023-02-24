@@ -25,6 +25,11 @@ pub struct AutoModerationActionMetadata {
     /// Maximum value is 2419200 seconds, or 4 weeks.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration_seconds: Option<u32>,
+    /// Additional explanation that will be shown to members whenever their message is blocked.
+    ///
+    /// Maximum value length is 150 characters.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_message: Option<String>,
 }
 
 /// Type of [`AutoModerationAction`].
