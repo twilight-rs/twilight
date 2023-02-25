@@ -1,10 +1,11 @@
 //! Bucket implementation for a global ratelimit.
 
 use super::bucket::BucketQueue;
+use crate::ticket::TicketNotifier;
 use crate::RatelimitHeaders;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::{Mutex, Semaphore};
 use tokio::time::Instant;
 
 /// seconds per period
@@ -34,7 +35,7 @@ impl GlobalBucket {
 
     /// Whether the global ratelimit is exhausted.
     pub fn is_locked(&self) -> bool {
-        self.0.is_locked.load(Ordering::Relaxed)
+        self.0.is_locked.try_lock().is_err()
     }
 }
 
@@ -50,7 +51,7 @@ struct InnerGlobalBucket {
     /// Queue to receive rate limit requests.
     pub queue: BucketQueue,
     /// currently waiting for capacity.
-    is_locked: AtomicBool,
+    is_locked: Mutex<()>,
 }
 
 impl InnerGlobalBucket {
@@ -58,7 +59,7 @@ impl InnerGlobalBucket {
     fn new(period: u64, requests: u32) -> Arc<Self> {
         let this = Self {
             queue: BucketQueue::default(),
-            is_locked: AtomicBool::default(),
+            is_locked: Mutex::default(),
         };
         let this = Arc::new(this);
 
@@ -71,23 +72,35 @@ impl InnerGlobalBucket {
 #[tracing::instrument(name = "background global queue task", skip_all)]
 async fn run_global_queue_task(bucket: Arc<InnerGlobalBucket>, period: u64, requests: u32) {
     let mut time = Instant::now();
+    let semaphore = Arc::new(Semaphore::new(requests as usize));
 
     while let Some(queue_tx) = bucket.queue.pop().await {
         wait_if_needed(bucket.as_ref(), &mut time, period, requests).await;
 
-        let ticket_headers = if let Some(ticket_headers) = queue_tx.available() {
-            ticket_headers
-        } else {
-            continue;
-        };
+        tokio::spawn(process_request(bucket.clone(), semaphore.clone(), queue_tx));
+    }
+}
 
-        if let Ok(Some(RatelimitHeaders::Global(headers))) = ticket_headers.await {
-            tracing::debug!(seconds = headers.retry_after(), "globally ratelimited");
+#[tracing::instrument(name = "process request", skip_all)]
+async fn process_request(
+    bucket: Arc<InnerGlobalBucket>,
+    semaphore: Arc<Semaphore>,
+    queue_tx: TicketNotifier,
+) {
+    // This error should never occur, but if it does, do not lock up
+    let _permit = semaphore.acquire().await;
 
-            bucket.is_locked.store(true, Ordering::Release);
-            tokio::time::sleep(Duration::from_secs(headers.retry_after())).await;
-            bucket.is_locked.store(false, Ordering::Release);
-        }
+    let ticket_headers = if let Some(ticket_headers) = queue_tx.available() {
+        ticket_headers
+    } else {
+        return;
+    };
+
+    if let Ok(Some(RatelimitHeaders::Global(headers))) = ticket_headers.await {
+        tracing::debug!(seconds = headers.retry_after(), "globally ratelimited");
+
+        let _guard = bucket.is_locked.lock().await;
+        tokio::time::sleep(Duration::from_secs(headers.retry_after())).await;
     }
 }
 
@@ -114,8 +127,7 @@ async fn wait_if_needed(
 
     // if time > now, wait until there is capacity available again
     if *time > now {
-        bucket.is_locked.store(true, Ordering::Release);
+        let _guard = bucket.is_locked.lock().await;
         tokio::time::sleep_until(*time).await;
-        bucket.is_locked.store(false, Ordering::Release);
     }
 }

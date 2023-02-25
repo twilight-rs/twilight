@@ -4,7 +4,7 @@ mod bucket;
 mod global_bucket;
 
 use self::bucket::{Bucket, BucketQueueTask};
-pub use self::global_bucket::GlobalBucket;
+pub(crate) use self::global_bucket::GlobalBucket;
 use super::{
     ticket::{self, TicketNotifier},
     Bucket as InfoBucket, Ratelimiter,

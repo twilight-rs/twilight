@@ -220,11 +220,8 @@ impl BucketQueueTask {
     #[tracing::instrument(name = "background queue task", skip(self), fields(path = ?self.path))]
     pub async fn run(self) {
         while let Some(queue_tx) = self.next().await {
-            let global_ticket_tx = if let Ok(ticket_tx) = self.wait_for_global().await {
-                ticket_tx
-            } else {
-                continue;
-            };
+            // Do not lock up if the global rate limiter crashes for any reason
+            let global_ticket_tx = self.wait_for_global().await.ok();
 
             let ticket_headers = if let Some(ticket_headers) = queue_tx.available() {
                 ticket_headers
@@ -237,7 +234,7 @@ impl BucketQueueTask {
             match timeout(Self::WAIT, ticket_headers).await {
                 Ok(Ok(Some(headers))) => {
                     self.handle_headers(&headers);
-                    global_ticket_tx.headers(Some(headers)).ok();
+                    global_ticket_tx.and_then(|tx| tx.headers(Some(headers)).ok());
                 }
                 Ok(Ok(None)) => {
                     tracing::debug!("request aborted");
