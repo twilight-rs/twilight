@@ -1169,6 +1169,18 @@ mod tests {
     }
 
     #[test]
+    fn auto_moderation_block_action_custom_message() {
+        assert!(auto_moderation_block_action_custom_message_limit("").is_ok());
+        assert!(auto_moderation_block_action_custom_message_limit("a".repeat(150)).is_ok());
+        assert!(matches!(
+            auto_moderation_block_action_custom_message_limit("a".repeat(151))
+                .unwrap_err()
+                .kind,
+            ValidationErrorType::AutoModerationBlockActionCustomMessageLimit { len: 151 }
+        ));
+    }
+
+    #[test]
     fn auto_moderation_metadata_mention_total() {
         assert!(auto_moderation_metadata_mention_total_limit(0).is_ok());
         assert!(auto_moderation_metadata_mention_total_limit(1).is_ok());
