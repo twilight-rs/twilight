@@ -83,7 +83,11 @@ mod tests {
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(AutoModerationAction: kind, metadata);
-    assert_fields!(AutoModerationActionMetadata: channel_id, duration_seconds);
+    assert_fields!(
+        AutoModerationActionMetadata: channel_id,
+        custom_message,
+        duration_seconds
+    );
     assert_impl_all!(
         AutoModerationAction: Clone,
         Debug,
