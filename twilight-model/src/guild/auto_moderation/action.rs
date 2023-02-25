@@ -20,16 +20,16 @@ pub struct AutoModerationActionMetadata {
     /// Channel to which user content should be logged.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_id: Option<Id<ChannelMarker>>,
-    /// Timeout duration in seconds.
-    ///
-    /// Maximum value is 2419200 seconds, or 4 weeks.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration_seconds: Option<u32>,
     /// Additional explanation that will be shown to members whenever their message is blocked.
     ///
     /// Maximum value length is 150 characters.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub custom_message: Option<String>,
+    /// Timeout duration in seconds.
+    ///
+    /// Maximum value is 2419200 seconds, or 4 weeks.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_seconds: Option<u32>,
 }
 
 /// Type of [`AutoModerationAction`].
