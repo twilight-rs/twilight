@@ -38,9 +38,7 @@ pub enum RequestReactionType<'a> {
 /// ```
 /// use twilight_model::{http::RequestReactionType, id::Id};
 ///
-/// let reaction = RequestReactionType::Custom {
-///     id: Id::new(123)
-/// };
+/// let reaction = RequestReactionType::Custom { id: Id::new(123) };
 ///
 /// assert_eq!("e:123", reaction.to_string());
 /// ```
