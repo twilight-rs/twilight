@@ -1,5 +1,22 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- ignore unknown event errors ([#2154](https://github.com/twilight-rs/twilight/issues/2154))
+
+### Documentation
+
+- remove stale resume_gateway_url notice ([#2126](https://github.com/twilight-rs/twilight/issues/2126))
+- resume behavior of presences ([#2150](https://github.com/twilight-rs/twilight/issues/2150))
+- all event types can be excluded ([#2149](https://github.com/twilight-rs/twilight/issues/2149))
+- `next_event` close variant ([#2140](https://github.com/twilight-rs/twilight/issues/2140))
+
+### Refactor
+
+- change deny lints to warn ([#2144](https://github.com/twilight-rs/twilight/issues/2144))
+
 ## [0.15.0] - 2023-02-05
 
 Check out [the migration guide] for a summary of Gateway changes.
