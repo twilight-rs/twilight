@@ -122,6 +122,7 @@ mod tests {
                     kind: AutoModerationActionType::SendAlertMessage,
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: Some(ACTION_CHANNEL_ID),
+                        custom_message: None,
                         duration_seconds: None,
                     }),
                 },
@@ -129,6 +130,7 @@ mod tests {
                     kind: AutoModerationActionType::Timeout,
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: None,
+                        custom_message: None,
                         duration_seconds: Some(120),
                     }),
                 },

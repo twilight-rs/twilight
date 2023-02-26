@@ -18,6 +18,7 @@ use twilight_model::{
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,
+    auto_moderation_block_action_custom_message_limit as validate_auto_moderation_block_action_custom_message_limit,
     auto_moderation_metadata_mention_total_limit as validate_auto_moderation_metadata_mention_total_limit,
     auto_moderation_metadata_keyword_filter as validate_auto_moderation_metadata_keyword_filter,
     auto_moderation_metadata_regex_patterns as validate_auto_moderation_metadata_regex_patterns,
@@ -41,6 +42,10 @@ struct CreateAutoModerationRuleFieldsAction {
 struct CreateAutoModerationRuleFieldsActionMetadata {
     /// Channel to which user content should be logged.
     pub channel_id: Option<Id<ChannelMarker>>,
+    /// Additional explanation that will be shown to members whenever their message is blocked.
+    ///
+    /// Maximum value length is 150 characters.
+    pub custom_message: Option<String>,
     /// Timeout duration in seconds.
     ///
     /// Maximum value is 2419200 seconds, or 4 weeks.
@@ -147,6 +152,34 @@ impl<'a> CreateAutoModerationRule<'a> {
         });
 
         self
+    }
+
+    /// Append an action of type [`BlockMessage`] with an explanation for blocking messages.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`AutoModerationBlockActionCustomMessageLimit`] if the custom message length
+    /// is invalid.
+    ///
+    /// [`AutoModerationBlockActionCustomMessageLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationBlockActionCustomMessageLimit
+    /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
+    pub fn action_block_message_with_explanation(
+        mut self,
+        custom_message: &'a str,
+    ) -> Result<Self, ValidationError> {
+        validate_auto_moderation_block_action_custom_message_limit(custom_message)?;
+
+        self.fields.actions.get_or_insert_with(Vec::new).push(
+            CreateAutoModerationRuleFieldsAction {
+                kind: AutoModerationActionType::BlockMessage,
+                metadata: CreateAutoModerationRuleFieldsActionMetadata {
+                    custom_message: Some(String::from(custom_message)),
+                    ..Default::default()
+                },
+            },
+        );
+
+        Ok(self)
     }
 
     /// Append an action of type [`SendAlertMessage`].
