@@ -476,7 +476,6 @@ impl TryFrom<(Method, &str)> for Path {
 mod tests {
     use super::{Path, PathParseError, PathParseErrorType};
     use crate::request::Method;
-    use http::Method as HttpMethod;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug, hash::Hash, str::FromStr};
 
@@ -519,13 +518,4 @@ mod tests {
     }
 
     assert_impl_all!(Method: Clone, Copy, Debug, Eq, PartialEq);
-
-    #[test]
-    fn method_conversions() {
-        assert_eq!(HttpMethod::DELETE, Method::Delete.to_http());
-        assert_eq!(HttpMethod::GET, Method::Get.to_http());
-        assert_eq!(HttpMethod::PATCH, Method::Patch.to_http());
-        assert_eq!(HttpMethod::POST, Method::Post.to_http());
-        assert_eq!(HttpMethod::PUT, Method::Put.to_http());
-    }
 }
