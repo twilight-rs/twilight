@@ -10,3 +10,6 @@ pub use self::{
     delete_all_reactions::DeleteAllReactions, delete_reaction::DeleteReaction,
     get_reactions::GetReactions,
 };
+
+#[deprecated(since = "0.16.0", note = "moved to twilight_model::http")]
+pub use twilight_model::http::RequestReactionType;
