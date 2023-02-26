@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.15.1] - 2023-02-26
 
 ### Refactor
 
