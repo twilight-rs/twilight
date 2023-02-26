@@ -16,7 +16,7 @@ use crate::{
             },
             reaction::{
                 delete_reaction::TargetUser, CreateReaction, DeleteAllReaction, DeleteAllReactions,
-                DeleteReaction, GetReactions, RequestReactionType,
+                DeleteReaction, GetReactions,
             },
             stage::{
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
@@ -101,7 +101,7 @@ use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::AllowedMentions, ChannelType},
     guild::{auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel},
-    http::permission_overwrite::PermissionOverwrite,
+    http::{permission_overwrite::PermissionOverwrite, RequestReactionType},
     id::{
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker, GuildMarker,

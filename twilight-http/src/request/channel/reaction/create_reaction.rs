@@ -1,4 +1,3 @@
-use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error,
@@ -7,9 +6,12 @@ use crate::{
     routing::Route,
 };
 use std::future::IntoFuture;
-use twilight_model::id::{
-    marker::{ChannelMarker, MessageMarker},
-    Id,
+use twilight_model::{
+    http::RequestReactionType,
+    id::{
+        marker::{ChannelMarker, MessageMarker},
+        Id,
+    },
 };
 
 /// Create a reaction in a [`Id<ChannelMarker>`] on a [`Id<MessageMarker>`].
@@ -89,12 +91,12 @@ mod tests {
 
     use super::CreateReaction;
     use crate::{
-        request::{channel::reaction::RequestReactionType, Request, TryIntoRequest},
+        request::{Request, TryIntoRequest},
         routing::Route,
         Client,
     };
     use std::error::Error;
-    use twilight_model::id::Id;
+    use twilight_model::{http::RequestReactionType, id::Id};
 
     #[test]
     fn request() -> Result<(), Box<dyn Error>> {

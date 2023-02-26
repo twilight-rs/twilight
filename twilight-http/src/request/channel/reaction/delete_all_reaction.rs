@@ -1,4 +1,3 @@
-use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error,
@@ -7,9 +6,12 @@ use crate::{
     routing::Route,
 };
 use std::future::IntoFuture;
-use twilight_model::id::{
-    marker::{ChannelMarker, MessageMarker},
-    Id,
+use twilight_model::{
+    http::RequestReactionType,
+    id::{
+        marker::{ChannelMarker, MessageMarker},
+        Id,
+    },
 };
 
 /// Remove all reactions of a specified emoji from a message.

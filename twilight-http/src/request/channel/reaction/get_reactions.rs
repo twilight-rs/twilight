@@ -1,4 +1,3 @@
-use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error,
@@ -8,6 +7,7 @@ use crate::{
 };
 use std::future::IntoFuture;
 use twilight_model::{
+    http::RequestReactionType,
     id::{
         marker::{ChannelMarker, MessageMarker, UserMarker},
         Id,

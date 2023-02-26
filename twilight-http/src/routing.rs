@@ -1,9 +1,12 @@
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
 
-use crate::request::{channel::reaction::RequestReactionType, Method};
+use crate::request::Method;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::{marker::RoleMarker, Id};
+use twilight_model::{
+    http::RequestReactionType,
+    id::{marker::RoleMarker, Id},
+};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
@@ -2905,8 +2908,8 @@ impl Display for Route<'_> {
 #[cfg(test)]
 mod tests {
     use super::Route;
-    use crate::request::{channel::reaction::RequestReactionType, Method};
-    use twilight_model::id::Id;
+    use crate::request::Method;
+    use twilight_model::{http::RequestReactionType, id::Id};
 
     /// Test a route for each method.
     #[test]
@@ -2967,7 +2970,6 @@ mod tests {
     const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
             id: Id::new(EMOJI_ID),
-            name: None,
         }
     }
 
