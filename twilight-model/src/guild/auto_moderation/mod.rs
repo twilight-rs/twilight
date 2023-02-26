@@ -122,16 +122,16 @@ mod tests {
                     kind: AutoModerationActionType::SendAlertMessage,
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: Some(ACTION_CHANNEL_ID),
-                        duration_seconds: None,
                         custom_message: None,
+                        duration_seconds: None,
                     }),
                 },
                 AutoModerationAction {
                     kind: AutoModerationActionType::Timeout,
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: None,
-                        duration_seconds: Some(120),
                         custom_message: None,
+                        duration_seconds: Some(120),
                     }),
                 },
             ]),
