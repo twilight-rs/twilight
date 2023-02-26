@@ -28,26 +28,27 @@ pub enum RequestReactionType<'a> {
 
 /// Format a [`RequestReactionType`] into a format acceptable for use in URLs.
 ///
+/// Custom reactions' name is set to the constant `e`, as though a name is
+/// required, the value does not matter.
+///
 /// # Examples
 ///
 /// Format a custom reaction for use in a URL:
 ///
 /// ```
-/// use twilight_http::request::channel::reaction::RequestReactionType;
-/// use twilight_model::id::Id;
+/// use twilight_model::{http::RequestReactionType, id::Id};
 ///
 /// let reaction = RequestReactionType::Custom {
-///     id: Id::new(123),
-///     name: Some("rarity"),
+///     id: Id::new(123)
 /// };
 ///
-/// assert_eq!("rarity:123", reaction.to_string());
+/// assert_eq!("e:123", reaction.to_string());
 /// ```
 ///
 /// Format the transgeneder flag for use in a URL:
 ///
 /// ```
-/// use twilight_http::request::channel::reaction::RequestReactionType;
+/// use twilight_model::http::RequestReactionType;
 ///
 /// let reaction = RequestReactionType::Unicode {
 ///     name: "🏳️‍⚧️"

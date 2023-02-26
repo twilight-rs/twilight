@@ -1530,8 +1530,8 @@ impl Client {
     ///
     /// # Examples
     /// ```no_run
-    /// # use twilight_http::{Client, request::channel::reaction::RequestReactionType};
-    /// # use twilight_model::id::Id;
+    /// # use twilight_http::Client;
+    /// # use twilight_model::{http::RequestReactionType, id::Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
