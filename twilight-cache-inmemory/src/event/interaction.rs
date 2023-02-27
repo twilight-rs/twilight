@@ -39,11 +39,9 @@ impl UpdateCache for InteractionCreate {
 
                     // This should always match, because resolved members
                     // are guaranteed to have a matching resolved user
-                    if let Some((&id, member)) =
-                        &resolved.members.iter().find(|(&id, _)| id == u.id)
-                    {
+                    if let Some(member) = &resolved.members.get(&u.id) {
                         if let Some(guild_id) = self.guild_id {
-                            cache.cache_borrowed_interaction_member(guild_id, member, id);
+                            cache.cache_borrowed_interaction_member(guild_id, member, u.id);
                         }
                     }
                 }
