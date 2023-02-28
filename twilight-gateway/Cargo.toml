@@ -43,6 +43,7 @@ webpki-roots = { default-features = false, optional = true, version = "0.22" }
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }
+#criterion = { default-features = false, features = ["async_tokio"], version = "0.4" }
 futures = { default-features = false, version = "0.3" }
 serde_test = { default-features = false, version = "1.0.136" }
 static_assertions = { default-features = false, version = "1" }
@@ -54,8 +55,15 @@ default = ["rustls-native-roots", "twilight-http", "zlib-stock"]
 native = ["dep:native-tls", "tokio-tungstenite/native-tls"]
 rustls-native-roots = ["dep:rustls-tls", "dep:rustls-native-certs", "tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["dep:rustls-tls", "dep:webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
+# Unstable benchmark only feature
+#unstable = []
 zlib-simd = ["dep:flate2", "flate2?/zlib-ng"]
 zlib-stock = ["dep:flate2", "flate2?/zlib"]
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]
+
+# Benchmark requires the unstable flag
+#[[bench]]
+#name = "ratelimiter"
+#harness = false
