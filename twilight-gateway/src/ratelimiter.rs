@@ -22,7 +22,7 @@ const PERIOD: Duration = Duration::from_secs(60);
 pub struct CommandRatelimiter {
     /// Future that completes the next time the ratelimiter allows a permit.
     delay: Pin<Box<Sleep>>,
-    /// Queue of instants started when a permit was acquired.
+    /// Ordered queue of instants when a permit elapses.
     instants: Vec<Instant>,
 }
 
@@ -38,16 +38,13 @@ impl CommandRatelimiter {
     }
 
     /// Number of available permits.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn available(&self) -> u8 {
-        // Filter out elapsed instants.
-        #[allow(clippy::cast_possible_truncation)]
-        let used_permits = self
-            .instants
-            .iter()
-            .filter(|instant| instant.elapsed() < PERIOD)
-            .count() as u8;
+        let now = Instant::now();
+        let elapsed_permits = self.instants.partition_point(|&elapsed| elapsed <= now);
+        let used_permits = self.instants.len() - elapsed_permits;
 
-        self.max() - used_permits
+        self.max() - used_permits as u8
     }
 
     /// Maximum number of available permits.
@@ -58,8 +55,8 @@ impl CommandRatelimiter {
 
     /// Duration until the next permit is available.
     pub fn next_available(&self) -> Duration {
-        self.instants.first().map_or(Duration::ZERO, |instant| {
-            PERIOD.saturating_sub(instant.elapsed())
+        self.instants.first().map_or(Duration::ZERO, |elapsed| {
+            elapsed.saturating_duration_since(Instant::now())
         })
     }
 
@@ -68,14 +65,14 @@ impl CommandRatelimiter {
         poll_fn(|cx| self.poll_available(cx)).await;
         self.clean();
 
-        self.instants.push(Instant::now());
+        self.instants.push(Instant::now() + PERIOD);
     }
 
     /// Polls for the next time a permit is available.
     pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
         if self.available() == 0 {
-            let new_deadline = Instant::now() + self.next_available();
-            // Conditionally reset `Sleep` as it is expensive to do so.
+            // May spuriously be polled, proceed only if necessary.
+            let new_deadline = self.instants[0];
             if self.delay.deadline() != new_deadline {
                 tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
                 self.delay.as_mut().reset(new_deadline);
@@ -88,7 +85,8 @@ impl CommandRatelimiter {
 
     /// Cleans up elapsed instants.
     fn clean(&mut self) {
-        self.instants.retain(|instant| instant.elapsed() < PERIOD);
+        let now = Instant::now();
+        self.instants.retain(|&elapsed| elapsed > now);
     }
 }
 
