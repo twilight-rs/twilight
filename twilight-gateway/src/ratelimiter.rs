@@ -7,7 +7,7 @@
 use std::{
     future::{poll_fn, Future},
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll},
 };
 use tokio::time::{sleep, Duration, Instant, Sleep};
 
@@ -63,30 +63,33 @@ impl CommandRatelimiter {
     /// Returns when a ratelimit permit becomes available.
     pub(crate) async fn acquire(&mut self) {
         poll_fn(|cx| self.poll_available(cx)).await;
-        self.clean();
 
         self.instants.push(Instant::now() + PERIOD);
     }
 
     /// Polls for the next time a permit is available.
     pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
-        if self.available() == 0 {
-            // May spuriously be polled, proceed only if necessary.
-            let new_deadline = self.instants[0];
-            if self.delay.deadline() != new_deadline {
-                tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
-                self.delay.as_mut().reset(new_deadline);
-            }
-            ready!(self.delay.as_mut().poll(cx));
+        if self.instants.len() != self.instants.capacity() {
+            return Poll::Ready(());
         }
 
-        Poll::Ready(())
-    }
+        let new_deadline = self.instants[0];
+        if new_deadline != self.delay.deadline() {
+            tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
+            self.delay.as_mut().reset(new_deadline);
 
-    /// Cleans up elapsed instants.
-    fn clean(&mut self) {
-        let now = Instant::now();
-        self.instants.retain(|&elapsed| elapsed > now);
+            // Register waker.
+            _ = self.delay.as_mut().poll(cx);
+
+            Poll::Pending
+        } else if new_deadline > Instant::now() {
+            // Spuriously polled.
+            Poll::Pending
+        } else {
+            self.instants.remove(0);
+
+            Poll::Ready(())
+        }
     }
 }
 
