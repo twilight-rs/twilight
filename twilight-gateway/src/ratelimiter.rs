@@ -197,4 +197,18 @@ mod tests {
         time::advance(PERIOD / 2).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max());
     }
+
+    #[tokio::test(start_paused = true)]
+    async fn constant_capacity() {
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
+        let max = ratelimiter.max();
+
+        for _ in 0..max {
+            ratelimiter.acquire().await;
+        }
+        assert_eq!(ratelimiter.available(), 0);
+
+        ratelimiter.acquire().await;
+        assert_eq!(max, ratelimiter.max());
+    }
 }
