@@ -90,24 +90,6 @@ impl CommandRatelimiter {
     fn clean(&mut self) {
         self.instants.retain(|instant| instant.elapsed() < PERIOD);
     }
-
-    /// Version of `new` for benchmarking.
-    #[cfg(feature = "unstable")]
-    #[doc(hidden)]
-    pub fn _new(heartbeat_interval: Duration, instants: impl IntoIterator<Item = Instant>) -> Self {
-        let mut this = Self::new(heartbeat_interval);
-        for instant in instants {
-            this.instants.push(instant);
-        }
-        this
-    }
-
-    /// Version of `acquire` for benchmarking.
-    #[cfg(feature = "unstable")]
-    #[doc(hidden)]
-    pub async fn _acquire(&mut self) {
-        poll_fn(|cx| self.poll_available(cx)).await;
-    }
 }
 
 /// Calculates the number of non reserved commands for heartbeating (which
