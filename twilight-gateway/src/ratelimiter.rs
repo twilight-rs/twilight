@@ -2,6 +2,15 @@
 //!
 //! See <https://discord.com/developers/docs/topics/gateway#rate-limiting>
 //!
+//! # Algorithm
+//!
+//! [`CommandRatelimiter`] is implemented as a sliding window log. This is the
+//! only ratelimit algorithm that supports burst requests and guarantees that
+//! the (t - [`PERIOD`], t] window is never exceeded. See
+//! <https://hechao.li/2018/06/25/Rate-Limiter-Part1> for an overview of it and
+//! other alternative ratelimit algorithms.
+//!
+//! [`Instant::now`]: std::time::Instant::now
 //! [send messages]: crate::Shard::send
 
 use std::{
