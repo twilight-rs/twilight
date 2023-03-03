@@ -95,7 +95,9 @@ impl CommandRatelimiter {
             // Spuriously polled.
             Poll::Pending
         } else {
-            self.instants.remove(0);
+            let used_permits = (self.max() - self.available()).into();
+            self.instants.rotate_right(used_permits);
+            self.instants.truncate(used_permits);
 
             Poll::Ready(())
         }
