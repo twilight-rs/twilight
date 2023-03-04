@@ -4,6 +4,12 @@ use super::Id;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self"),
+    archive(bound(archive = "Id<T>: rkyv::Archive<Archived = Id<T>>"))
+)]
 pub enum AnonymizableId<T> {
     Anonymized,
     Id(Id<T>),

@@ -45,6 +45,12 @@ pub mod marker;
 
 mod anonymizable;
 
+#[cfg(feature = "rkyv")]
+mod niche;
+
+#[cfg(feature = "rkyv")]
+pub use niche::IdNiche;
+
 pub use anonymizable::AnonymizableId;
 
 use serde::{
@@ -76,6 +82,14 @@ use std::{
 /// [marker documentation]: marker
 /// [user]: marker::UserMarker
 #[repr(transparent)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self"),
+    archive(bound(
+        archive = "PhantomData<fn(T) -> T>: rkyv::Archive<Archived = PhantomData<fn(T) -> T>>"
+    ))
+)]
 pub struct Id<T> {
     phantom: PhantomData<fn(T) -> T>,
     value: NonZeroU64,
