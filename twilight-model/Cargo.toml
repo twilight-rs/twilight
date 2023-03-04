@@ -20,6 +20,9 @@ serde_repr = { default-features = false, version = "0.1.5" }
 time = { default-features = false, features = ["parsing", "std"], version = "0.3" }
 tracing = { default-features = false, version = "0.1.16" }
 
+# Optional dependencies.
+rkyv = { default-features = false, features = ["size_32", "std"], optional = true, version = "0.7" }
+
 [dev-dependencies]
 criterion = { default-features = false, version = "0.4" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
