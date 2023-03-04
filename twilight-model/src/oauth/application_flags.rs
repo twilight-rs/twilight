@@ -5,6 +5,11 @@ use serde::{
 };
 
 bitflags! {
+    #[cfg_attr(
+        feature = "rkyv",
+        derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+        archive(as = "Self")
+    )]
     pub struct ApplicationFlags: u64 {
         /// Intent required for bots in 100 guilds or more to receive
         /// [`PresenceUpdate`] events.

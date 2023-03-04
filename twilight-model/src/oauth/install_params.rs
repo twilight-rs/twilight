@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [Discord Docs/Install Params Object]: https://discord.com/developers/docs/resources/application#install-params-object
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct InstallParams {
     /// Permissions to request for the bot role.
     pub permissions: Permissions,

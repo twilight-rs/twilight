@@ -10,6 +10,10 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Application {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
@@ -20,6 +24,7 @@ pub struct Application {
     pub custom_install_url: Option<String>,
     /// Description of the application.
     pub description: String,
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
@@ -33,6 +38,7 @@ pub struct Application {
     /// Name of the application.
     pub name: String,
     pub owner: Option<User>,
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub primary_sku_id: Option<Id<OauthSkuMarker>>,
     /// URL of the application's privacy policy.
     #[serde(skip_serializing_if = "Option::is_none")]

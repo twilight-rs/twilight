@@ -12,6 +12,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [1]: https://discord.com/developers/docs/topics/oauth2#get-current-authorization-information
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CurrentAuthorizationInformation {
     /// Current application.
     pub application: Application,
