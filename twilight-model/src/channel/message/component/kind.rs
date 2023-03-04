@@ -7,6 +7,11 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum ComponentType {
     /// Component is an [`ActionRow`].
     ///

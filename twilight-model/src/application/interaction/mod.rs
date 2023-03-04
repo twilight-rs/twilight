@@ -38,6 +38,10 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Interaction {
     /// App's permissions in the channel the interaction was sent from.
     ///
@@ -52,6 +56,7 @@ pub struct Interaction {
     ///
     /// [`Ping`]: InteractionType::Ping
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// Data from the interaction.
     ///
@@ -67,6 +72,7 @@ pub struct Interaction {
     pub data: Option<InteractionData>,
     /// ID of the guild the interaction was invoked in.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     /// Guild’s preferred locale.
     ///
@@ -394,6 +400,10 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(untagged)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum InteractionData {
     /// Data received for the [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
     /// interaction types.

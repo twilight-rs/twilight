@@ -12,6 +12,10 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// List of [`CommandPermission`]s for a command in a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GuildCommandPermissions {
     /// ID of the application the command belongs to.
     pub application_id: Id<ApplicationMarker>,
@@ -27,6 +31,11 @@ pub struct GuildCommandPermissions {
 
 /// Member, channel or role explicit permission to use a command.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub struct CommandPermission {
     /// Affected resource.
     pub id: CommandPermissionType,
@@ -36,6 +45,11 @@ pub struct CommandPermission {
 
 /// Resources commands can allow or disallow from executing them.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum CommandPermissionType {
     /// Affected channel.
     ///

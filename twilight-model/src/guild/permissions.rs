@@ -6,6 +6,11 @@ use serde::{
 use std::fmt::{Formatter, Result as FmtResult};
 
 bitflags! {
+    #[cfg_attr(
+        feature = "rkyv",
+        derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+        archive(as = "Self")
+    )]
     pub struct Permissions: u64 {
         const CREATE_INVITE = 1;
         const KICK_MEMBERS = 1 << 1;

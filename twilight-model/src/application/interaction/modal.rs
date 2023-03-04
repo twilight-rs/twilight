@@ -13,6 +13,10 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 /// [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
 /// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ModalInteractionData {
     /// List of user inputs.
     pub components: Vec<ModalInteractionDataActionRow>,
@@ -31,6 +35,10 @@ pub struct ModalInteractionData {
 /// [`ActionRow`]: crate::application::interaction::modal::ModalInteractionDataActionRow
 /// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ModalInteractionDataActionRow {
     /// List of components.
     pub components: Vec<ModalInteractionDataComponent>,
@@ -53,6 +61,10 @@ impl Serialize for ModalInteractionDataActionRow {
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ModalInteractionDataComponent {
     /// User defined identifier for the component.
     ///

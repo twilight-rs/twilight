@@ -18,6 +18,10 @@ use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 ///
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CommandDataOption {
     /// Name of the option.
     pub name: String,
@@ -326,6 +330,11 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 
 /// Combined value and value type for a [`CommandDataOption`].
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(bound(serialize = "__S: rkyv::ser::ScratchSpace + rkyv::ser::Serializer"))
+)]
 pub enum CommandOptionValue {
     /// Attachment option.
     Attachment(Id<AttachmentMarker>),
@@ -356,9 +365,9 @@ pub enum CommandOptionValue {
     /// String option.
     String(String),
     /// Subcommand option.
-    SubCommand(Vec<CommandDataOption>),
+    SubCommand(#[cfg_attr(feature = "rkyv", omit_bounds)] Vec<CommandDataOption>),
     /// Subcommand group option.
-    SubCommandGroup(Vec<CommandDataOption>),
+    SubCommandGroup(#[cfg_attr(feature = "rkyv", omit_bounds)] Vec<CommandDataOption>),
     /// User option.
     User(Id<UserMarker>),
 }

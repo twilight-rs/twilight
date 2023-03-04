@@ -12,6 +12,10 @@ use serde::{Deserialize, Serialize};
 /// [`MessageComponent`]: crate::application::interaction::InteractionType::MessageComponent
 /// [Discord Docs/Message Component Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-message-component-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct MessageComponentInteractionData {
     /// User defined identifier for the component.
     ///

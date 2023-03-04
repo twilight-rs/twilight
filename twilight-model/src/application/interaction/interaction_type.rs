@@ -9,6 +9,11 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum InteractionType {
     /// Interaction involves a ping (webhook-based interactions).
     ///

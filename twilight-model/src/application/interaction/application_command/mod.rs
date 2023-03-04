@@ -28,9 +28,14 @@ use serde::{Deserialize, Serialize};
 /// [`ApplicationCommandAutocomplete`]: crate::application::interaction::InteractionType::ApplicationCommandAutocomplete
 /// [Discord Docs/Application Command Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-application-command-data-structure
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CommandData {
     /// ID of the guild the command is registered to.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the command.
     pub id: Id<CommandMarker>,
@@ -47,5 +52,6 @@ pub struct CommandData {
     pub resolved: Option<CommandInteractionDataResolved>,
     /// If this is a user or message command, the ID of the targeted user/message.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub target_id: Option<Id<GenericMarker>>,
 }

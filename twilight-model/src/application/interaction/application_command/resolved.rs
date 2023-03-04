@@ -18,6 +18,10 @@ use std::collections::hash_map::HashMap;
 /// [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
 /// [Discord Docs/Resolved Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-resolved-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CommandInteractionDataResolved {
     /// Map of resolved attachments.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
@@ -45,6 +49,10 @@ pub struct CommandInteractionDataResolved {
 ///
 /// [`Interaction`]: crate::application::interaction::Interaction
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct InteractionChannel {
     /// ID of the channel.
     pub id: Id<ChannelMarker>,
@@ -57,6 +65,7 @@ pub struct InteractionChannel {
     pub name: String,
     /// ID of the channel the thread was created in.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub parent_id: Option<Id<ChannelMarker>>,
     /// Computed permissions, including overwrites, for the invoking user in the channel.
     pub permissions: Permissions,
@@ -69,6 +78,10 @@ pub struct InteractionChannel {
 ///
 /// [`Interaction`]: crate::application::interaction::Interaction
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct InteractionMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -92,6 +105,7 @@ pub struct InteractionMember {
     pub premium_since: Option<Timestamp>,
     /// Member roles.
     #[serde(default)]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub roles: Vec<Id<RoleMarker>>,
 }
 

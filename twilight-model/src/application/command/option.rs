@@ -17,6 +17,11 @@ use std::{cmp::Eq, collections::HashMap};
 /// [`Command`]: super::Command
 /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(bound(serialize = "__S: rkyv::ser::ScratchSpace + rkyv::ser::Serializer"))
+)]
 pub struct CommandOption {
     /// Whether the command supports autocomplete.
     ///
@@ -39,6 +44,7 @@ pub struct CommandOption {
     ///
     /// [`Channel`]: CommandOptionType::Channel
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::Map<rkyv::with::CopyOptimize>))]
     pub channel_types: Option<Vec<ChannelType>>,
     /// List of predetermined choices users can select from.
     ///
@@ -137,6 +143,7 @@ pub struct CommandOption {
     /// [`SubCommand`]: CommandOptionType::SubCommand
     /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", omit_bounds)]
     pub options: Option<Vec<CommandOption>>,
     /// Whether the option is required.
     ///
@@ -153,6 +160,10 @@ pub struct CommandOption {
 
 /// A predetermined choice users can select.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CommandOptionChoice {
     /// Name of the choice. Must be 100 characters or less.
     pub name: String,
@@ -177,6 +188,10 @@ pub struct CommandOptionChoice {
 /// [`CommandOption`]'s [`CommandOptionType`].
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(untagged)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum CommandOptionChoiceValue {
     /// String choice. Must be 100 characters or less.
     String(String),
@@ -192,6 +207,11 @@ pub enum CommandOptionChoiceValue {
 /// [`CommandOption`]'s [`CommandOptionType`].
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(untagged)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum CommandOptionValue {
     /// Integer type.
     Integer(i64),
@@ -203,6 +223,11 @@ pub enum CommandOptionValue {
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum CommandOptionType {
     SubCommand = 1,
     SubCommandGroup = 2,
