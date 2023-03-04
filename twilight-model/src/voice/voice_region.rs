@@ -2,6 +2,10 @@ use serde::{Deserialize, Serialize};
 
 /// Geographically based collection of voice servers.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct VoiceRegion {
     /// Whether this is a custom voice region, used for e.g. events.
     pub custom: bool,

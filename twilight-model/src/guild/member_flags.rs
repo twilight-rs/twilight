@@ -8,6 +8,11 @@ bitflags! {
     ///
     /// [`Member`]: crate::guild::Member
     /// [Discord's documentation]: https://discord.com/developers/docs/resources/guild#guild-member-object-guild-member-flags
+    #[cfg_attr(
+        feature = "rkyv",
+        derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+        archive(as = "Self")
+    )]
     pub struct MemberFlags: u64 {
         /// Member has left and rejoined the guild.
         const DID_REJOIN = 1 << 0;

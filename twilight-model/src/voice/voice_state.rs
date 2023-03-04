@@ -11,15 +11,21 @@ use serde::{Deserialize, Serialize};
 /// User's voice connection status.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct VoiceState {
     /// Channel this user is connected to.
     ///
     /// [`None`] corresponds to being disconnected.
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// Whether this user is server deafened.
     pub deaf: bool,
     /// Guild this voice state is for.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     /// Member this voice state is for.
     #[serde(skip_serializing_if = "Option::is_none")]
