@@ -289,6 +289,88 @@ impl TryFrom<&'_ str> for Timestamp {
     }
 }
 
+#[cfg(feature = "rkyv")]
+/// Provides a custom implementation of rkyv traits for [`Timestamp`]
+mod rkyv {
+    use rkyv::{Archive, Deserialize, Fallible, Serialize};
+    use time::{Date, PrimitiveDateTime, Time};
+
+    use super::Timestamp;
+
+    /// An archived [`Timestamp`]
+    #[derive(Archive, Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+    #[archive(as = "Self", resolver = "TimestampResolver")]
+    pub struct ArchivedTimestamp {
+        /// The archived year of a [`Timestamp`]
+        pub year: i32,
+        /// The archived ordinal of a [`Timestamp`]
+        pub ordinal: u16,
+        /// The archived hour of a [`Timestamp`]
+        pub hour: u8,
+        /// The archived minute of a [`Timestamp`]
+        pub minute: u8,
+        /// The archived second of a [`Timestamp`]
+        pub second: u8,
+        /// The archived nanoseconds of a [`Timestamp`]
+        pub nanosecond: u32,
+    }
+
+    impl From<Timestamp> for ArchivedTimestamp {
+        #[inline]
+        fn from(timestamp: Timestamp) -> Self {
+            let (year, ordinal) = timestamp.0.to_ordinal_date();
+            let (hour, minute, second, nanosecond) = timestamp.0.as_hms_nano();
+
+            Self {
+                year,
+                ordinal,
+                hour,
+                minute,
+                second,
+                nanosecond,
+            }
+        }
+    }
+
+    impl Archive for Timestamp {
+        type Archived = ArchivedTimestamp;
+        type Resolver = <ArchivedTimestamp as Archive>::Resolver;
+
+        #[allow(unsafe_code)]
+        #[inline]
+        unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
+            let archived = ArchivedTimestamp::from(*self);
+            Archive::resolve(&archived, pos, resolver, out);
+        }
+    }
+
+    impl<D: Fallible> Deserialize<Timestamp, D> for ArchivedTimestamp {
+        #[inline]
+        fn deserialize(&self, _: &mut D) -> Result<Timestamp, <D as Fallible>::Error> {
+            let date = Date::from_ordinal_date(self.year, self.ordinal).unwrap();
+
+            let time =
+                Time::from_hms_nano(self.hour, self.minute, self.second, self.nanosecond).unwrap();
+
+            Ok(Timestamp(PrimitiveDateTime::new(date, time)))
+        }
+    }
+
+    impl<S: Fallible> Serialize<S> for Timestamp {
+        #[inline]
+        fn serialize(&self, _: &mut S) -> Result<Self::Resolver, <S as Fallible>::Error> {
+            Ok(TimestampResolver {
+                year: (),
+                ordinal: (),
+                hour: (),
+                minute: (),
+                second: (),
+                nanosecond: (),
+            })
+        }
+    }
+}
+
 /// Parse an input ISO 8601 timestamp into a Unix timestamp with microseconds.
 ///
 /// Input in the format of "2021-01-01T01:01:01.010000+00:00" is acceptable.
