@@ -118,8 +118,8 @@ mod tests {
                 Token::Str("shard"),
                 Token::Some,
                 Token::Tuple { len: 2 },
-                Token::U64(4),
-                Token::U64(7),
+                Token::U32(4),
+                Token::U32(7),
                 Token::TupleEnd,
                 Token::Str("user"),
                 Token::Struct {

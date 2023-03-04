@@ -76,7 +76,7 @@ async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
     let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
     let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
-    let shard_count = 1u64;
+    let shard_count = 1u32;
 
     let http = HttpClient::new(token.clone());
     let user_id = http.current_user().await?.model().await?.id;
