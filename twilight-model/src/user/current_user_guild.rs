@@ -12,6 +12,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [Discord Docs/Get Current User Guilds]: https://discord.com/developers/docs/resources/user#get-current-user-guilds-example-partial-guild
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CurrentUserGuild {
     /// Unique ID.
     pub id: Id<GuildMarker>,

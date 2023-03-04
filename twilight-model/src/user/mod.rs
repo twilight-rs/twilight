@@ -119,6 +119,10 @@ impl Display for DiscriminatorDisplay {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct User {
     /// Accent color of the user's banner.
     ///

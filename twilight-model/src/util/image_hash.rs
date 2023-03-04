@@ -117,6 +117,11 @@ pub enum ImageHashParseErrorType {
 ///
 /// Parsing methods only support hashes provided by Discord's APIs.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub struct ImageHash {
     /// Whether the image is animated.
     ///
