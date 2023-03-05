@@ -14,8 +14,8 @@ type ArchivedOptionId = ArchivedOptionNonZeroU64;
 ///
 /// ```
 /// use core::mem::size_of;
-/// use twilight_model::id::{Id, IdNiche, marker::UserMarker};
 /// use rkyv::{Archive, Archived};
+/// use twilight_model::id::{Id, IdNiche, marker::UserMarker};
 ///
 /// #[derive(Archive)]
 /// struct BasicExample {
@@ -25,7 +25,7 @@ type ArchivedOptionId = ArchivedOptionNonZeroU64;
 /// #[derive(Archive)]
 /// struct NichedExample {
 ///     #[with(IdNiche)]
-///     id_opt: Option<Id<UserMarker>>
+///     id_opt: Option<Id<UserMarker>>,
 /// }
 ///
 /// assert!(size_of::<Archived<BasicExample>>() > size_of::<Archived<NichedExample>>);

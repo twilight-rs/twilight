@@ -77,7 +77,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[cfg_attr(
     feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
 )]
 pub struct Guild {
     #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
