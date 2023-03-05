@@ -6,6 +6,11 @@ use serde::{Deserialize, Serialize};
 
 /// Sent when a user has subscribed to a guild scheduled event.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub struct GuildScheduledEventUserAdd {
     /// Guild ID of the scheduled event.
     pub guild_id: Id<GuildMarker>,

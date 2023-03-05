@@ -4,6 +4,10 @@ use serde::{Deserialize, Serialize};
 /// Gateway information containing the recommended shard count and session
 /// availability.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct BotConnectionInfo {
     /// Current session availability and session connection concurrency limits.
     pub session_start_limit: SessionStartLimit,

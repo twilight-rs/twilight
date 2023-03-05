@@ -19,6 +19,10 @@ use std::{
 /// An event from the gateway, which can either be a dispatch event with
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
 #[derive(Clone, Debug)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum GatewayEvent {
     Dispatch(u64, DispatchEvent),
     Heartbeat(u64),

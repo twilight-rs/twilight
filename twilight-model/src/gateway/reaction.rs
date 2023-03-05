@@ -9,9 +9,14 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GatewayReaction {
     pub channel_id: Id<ChannelMarker>,
     pub emoji: ReactionType,
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     pub member: Option<Member>,
     pub message_id: Id<MessageMarker>,

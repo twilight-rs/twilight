@@ -6,6 +6,10 @@ use std::ops::{Deref, DerefMut};
 ///
 /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GuildScheduledEventDelete(pub GuildScheduledEvent);
 
 impl Deref for GuildScheduledEventDelete {

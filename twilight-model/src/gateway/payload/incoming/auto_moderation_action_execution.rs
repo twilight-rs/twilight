@@ -14,6 +14,10 @@ use serde::{Deserialize, Serialize};
 /// [`Permissions::MANAGE_GUILD`]: crate::guild::Permissions::MANAGE_GUILD
 #[allow(clippy::doc_markdown)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AutoModerationActionExecution {
     /// Action which was executed.
     pub action: AutoModerationAction,
@@ -25,9 +29,11 @@ pub struct AutoModerationActionExecution {
     ///
     /// [`SendAlertMessage`]: crate::guild::auto_moderation::AutoModerationActionType::SendAlertMessage
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub alert_system_message_id: Option<Id<MessageMarker>>,
     /// ID of the channel in which user content was posted.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// User generated text content.
     ///
@@ -50,6 +56,7 @@ pub struct AutoModerationActionExecution {
     /// Will not exist if message was blocked by AutoMod or content was not part
     /// of any message.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub message_id: Option<Id<MessageMarker>>,
     /// ID of the rule which action belongs to.
     pub rule_id: Id<AutoModerationRuleMarker>,

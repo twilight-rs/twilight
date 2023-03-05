@@ -13,6 +13,10 @@ use serde::{
 // implementation.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum DispatchEvent {
     AutoModerationActionExecution(AutoModerationActionExecution),
     AutoModerationRuleCreate(Box<AutoModerationRuleCreate>),

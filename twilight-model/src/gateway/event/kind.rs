@@ -3,6 +3,11 @@ use serde::{Deserialize, Serialize};
 /// The type of an event.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum EventType {
     AutoModerationActionExecution,
     AutoModerationRuleCreate,

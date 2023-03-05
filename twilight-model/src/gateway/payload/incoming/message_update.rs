@@ -13,6 +13,10 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct MessageUpdate {
     /// List of attachments.
     ///
@@ -43,6 +47,7 @@ pub struct MessageUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embeds: Option<Vec<Embed>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     pub id: Id<MessageMarker>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
@@ -50,6 +55,7 @@ pub struct MessageUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mention_everyone: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::Map<rkyv::with::CopyOptimize>))]
     pub mention_roles: Option<Vec<Id<RoleMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mentions: Option<Vec<Mention>>,

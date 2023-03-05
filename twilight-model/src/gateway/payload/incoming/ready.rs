@@ -4,8 +4,13 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Ready {
     pub application: PartialApplication,
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub guilds: Vec<UnavailableGuild>,
     pub resume_gateway_url: String,
     pub session_id: String,

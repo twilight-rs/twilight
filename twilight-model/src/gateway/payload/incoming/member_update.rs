@@ -9,6 +9,10 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct MemberUpdate {
     /// Member's guild avatar.
     pub avatar: Option<ImageHash>,
@@ -30,6 +34,7 @@ pub struct MemberUpdate {
     #[serde(default)]
     pub pending: bool,
     pub premium_since: Option<Timestamp>,
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub roles: Vec<Id<RoleMarker>>,
     pub user: User,
 }

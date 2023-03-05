@@ -8,6 +8,10 @@ use std::ops::{Deref, DerefMut};
 ///
 /// [`Permissions::MANAGE_GUILD`]: crate::guild::Permissions::MANAGE_GUILD
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AutoModerationRuleCreate(pub AutoModerationRule);
 
 impl Deref for AutoModerationRuleCreate {

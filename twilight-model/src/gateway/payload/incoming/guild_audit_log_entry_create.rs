@@ -13,6 +13,10 @@ use std::ops::{Deref, DerefMut};
 /// [`Event`]:crate::gateway::event::Event
 /// [`VIEW_AUDIT_LOG`]: crate::guild::Permissions::VIEW_AUDIT_LOG
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GuildAuditLogEntryCreate(pub AuditLogEntry);
 
 impl Deref for GuildAuditLogEntryCreate {

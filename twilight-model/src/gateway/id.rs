@@ -93,6 +93,11 @@ pub enum ShardIdParseErrorType {
 /// [Discord Docs/Sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(try_from = "[u64; 2]", into = "[u64; 2]")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub struct ShardId {
     /// Number of the shard, 0-indexed.
     number: u64,

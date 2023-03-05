@@ -14,6 +14,10 @@ use std::ops::{Deref, DerefMut};
 /// [`Intents::GUILD_PRESENCES`]: crate::gateway::Intents
 /// [Discord Docs/Presence Update]: https://discord.com/developers/docs/topics/gateway#presence-update
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct PresenceUpdate(pub Presence);
 
 impl Deref for PresenceUpdate {

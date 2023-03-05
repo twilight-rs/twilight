@@ -15,6 +15,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Invite`]: crate::guild::invite::Invite
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct InviteCreate {
     /// ID of the channel invited users will first see.
     pub channel_id: Id<ChannelMarker>,
@@ -53,6 +57,10 @@ pub struct InviteCreate {
 /// Information about the user whose stream to display for a voice channel
 /// stream invite.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct PartialUser {
     /// Hash of the user's avatar.
     pub avatar: Option<ImageHash>,

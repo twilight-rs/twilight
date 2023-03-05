@@ -12,6 +12,10 @@ use serde::{
 use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ThreadMembersUpdate {
     /// List of thread members.
     ///
@@ -27,6 +31,7 @@ pub struct ThreadMembersUpdate {
     /// This is an approximation and may not be accurate.
     pub member_count: i32,
     #[serde(default)]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub removed_member_ids: Vec<Id<UserMarker>>,
 }
 

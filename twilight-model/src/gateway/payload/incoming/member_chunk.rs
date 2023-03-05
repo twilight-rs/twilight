@@ -13,6 +13,10 @@ use serde::{
 use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct MemberChunk {
     pub chunk_count: u32,
     pub chunk_index: u32,
@@ -20,6 +24,7 @@ pub struct MemberChunk {
     pub members: Vec<Member>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nonce: Option<String>,
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub not_found: Vec<Id<UserMarker>>,
     #[serde(default)]
     pub presences: Vec<Presence>,

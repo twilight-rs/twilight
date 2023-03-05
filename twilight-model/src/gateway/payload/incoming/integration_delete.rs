@@ -5,9 +5,14 @@ use crate::id::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct IntegrationDelete {
     /// ID of the Bot/OAuth2 application for this integration.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub application_id: Option<Id<ApplicationMarker>>,
     /// ID of the guild.
     pub guild_id: Id<GuildMarker>,

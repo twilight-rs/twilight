@@ -2,6 +2,11 @@ use crate::id::{marker::GuildMarker, Id};
 use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub struct GuildDelete {
     pub id: Id<GuildMarker>,
     // If `unavailable` is `None` the user was removed from the guild.

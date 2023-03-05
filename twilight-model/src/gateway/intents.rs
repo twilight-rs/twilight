@@ -13,6 +13,11 @@ bitflags! {
     /// [Discord Docs/Gateway Intents].
     ///
     /// [Discord Docs/Gateway Intents]: https://discord.com/developers/docs/topics/gateway#gateway-intents
+    #[cfg_attr(
+        feature = "rkyv",
+        derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+        archive(as = "Self")
+    )]
     pub struct Intents: u64 {
         /// Guilds intent.
         ///

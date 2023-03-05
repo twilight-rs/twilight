@@ -17,10 +17,15 @@ use std::borrow::Cow;
 /// [causing a session resume]: CloseFrame::RESUME
 /// [full session disconnect]: CloseFrame::NORMAL
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CloseFrame<'a> {
     /// Reason for the close.
     pub code: u16,
     /// Textual representation of the reason the connection is being closed.
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::AsOwned))]
     pub reason: Cow<'a, str>,
 }
 

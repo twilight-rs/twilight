@@ -2,6 +2,11 @@ use serde::{Deserialize, Serialize};
 
 /// Current gateway session utilization status.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub struct SessionStartLimit {
     /// Maximum number of session that may be started concurrently.
     pub max_concurrency: u64,

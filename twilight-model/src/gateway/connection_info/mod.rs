@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 
 /// Gateway information containing the URL to connect to.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ConnectionInfo {
     /// URL to the gateway.
     pub url: String,
