@@ -24,3 +24,7 @@ include = ["src/**/*.rs", "README.md"]
 license = "ISC"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.64"
+
+# awaiting release of https://github.com/rkyv/rkyv/pull/358
+[patch.crates-io]
+rkyv = { git = "https://github.com/rkyv/rkyv" }
