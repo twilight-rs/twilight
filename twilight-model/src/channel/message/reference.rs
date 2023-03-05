@@ -6,18 +6,25 @@ use serde::{Deserialize, Serialize};
 
 /// Message reference struct.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct MessageReference {
     /// Originating message's channel ID.
     ///
     /// Note: optional when creating a reply, but always present when receiving
     /// an event or response containing this model.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// Originating message's guild ID.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     /// Originating message's ID.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub message_id: Option<Id<MessageMarker>>,
     /// Whether to error if the referenced message doesn't exist instead of
     /// sending a normal message.

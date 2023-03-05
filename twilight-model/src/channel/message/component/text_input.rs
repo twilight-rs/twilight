@@ -4,6 +4,10 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 ///
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct TextInput {
     /// User defined identifier for the input text.
     pub custom_id: String,
@@ -31,6 +35,11 @@ pub struct TextInput {
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum TextInputStyle {
     /// Intended for short single-line text.
     Short = 1,

@@ -2,6 +2,10 @@ use crate::gateway::presence::Status;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ClientStatus {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub desktop: Option<Status>,

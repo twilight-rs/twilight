@@ -36,6 +36,10 @@ use serde::{
 use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Presence {
     #[serde(default)]
     pub activities: Vec<Activity>,
@@ -47,6 +51,10 @@ pub struct Presence {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum UserOrId {
     User(User),
     UserId { id: Id<UserMarker> },

@@ -49,6 +49,11 @@ use serde::{Deserialize, Serialize};
 
 /// Text message sent in a [`Channel`].
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(bound(serialize = "__S: rkyv::ser::Serializer"))
+)]
 pub struct Message {
     /// Present with Rich Presence-related chat embeds.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -62,6 +67,7 @@ pub struct Message {
     ///
     /// [`Interaction`]: crate::application::interaction::Interaction
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub application_id: Option<Id<ApplicationMarker>>,
     /// List of attachments.
     ///
@@ -129,6 +135,7 @@ pub struct Message {
     ///
     /// [`Guild`]: crate::guild::Guild
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     /// Id of the message.
     pub id: Id<MessageMarker>,
@@ -154,6 +161,7 @@ pub struct Message {
     /// [`Role`]s mentioned in the message.
     ///
     /// [`Role`]: crate::guild::Role
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub mention_roles: Vec<Id<RoleMarker>>,
     /// Users mentioned in the message.
     pub mentions: Vec<Mention>,
@@ -169,6 +177,7 @@ pub struct Message {
     ///
     /// [`reference`]: Self::reference
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche), omit_bounds)]
     pub referenced_message: Option<Box<Message>>,
     /// Information about the role subscription purchase or renewal that
     /// prompted this message.
@@ -190,6 +199,7 @@ pub struct Message {
     pub tts: bool,
     /// ID of the webhook that generated the message.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub webhook_id: Option<Id<WebhookMarker>>,
 }
 

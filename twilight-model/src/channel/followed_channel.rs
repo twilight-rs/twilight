@@ -11,6 +11,11 @@ use serde::{Deserialize, Serialize};
 /// and the [`Id<WebhookMarker>`] that was created in the
 /// target channel.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub struct FollowedChannel {
     pub channel_id: Id<ChannelMarker>,
     pub webhook_id: Id<WebhookMarker>,

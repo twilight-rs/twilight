@@ -50,6 +50,10 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// # Ok(()) }
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum ActivityButton {
     /// Activity button is a link.
     Link(ActivityButtonLink),
@@ -201,6 +205,10 @@ impl Serialize for ActivityButton {
 
 /// Button used in an activity with a URL.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ActivityButtonLink {
     /// Text shown on the button.
     pub label: String,
@@ -228,6 +236,10 @@ pub struct ActivityButtonLink {
 /// ```
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(transparent)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ActivityButtonText {
     /// Text shown on the button.
     pub label: String,

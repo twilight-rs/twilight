@@ -20,6 +20,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [Discord Docs/Message Formatting]: https://discord.com/developers/docs/reference#message-formatting
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AllowedMentions {
     /// List of allowed mention types.
     ///
@@ -29,6 +33,7 @@ pub struct AllowedMentions {
     /// [`roles`]: Self::roles
     /// [`users`]: Self::users
     #[serde(default)]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub parse: Vec<MentionType>,
     /// For replies, whether to mention the message author.
     ///
@@ -37,9 +42,11 @@ pub struct AllowedMentions {
     pub replied_user: bool,
     /// List of roles to mention.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub roles: Vec<Id<RoleMarker>>,
     /// List of users to mention.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub users: Vec<Id<UserMarker>>,
 }
 
@@ -47,6 +54,11 @@ pub struct AllowedMentions {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum MentionType {
     /// `@everyone` and `@here` mentions.
     Everyone,

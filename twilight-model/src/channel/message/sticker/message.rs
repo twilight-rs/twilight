@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Sticker`]: super::Sticker
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct MessageSticker {
     /// Format type.
     pub format_type: StickerFormatType,

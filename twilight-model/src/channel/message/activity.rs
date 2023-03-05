@@ -2,6 +2,10 @@ use serde::{Deserialize, Serialize};
 
 /// Activity associated with a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct MessageActivity {
     /// [`MessageActivityType`]
     #[serde(rename = "type")]
@@ -15,6 +19,11 @@ pub struct MessageActivity {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum MessageActivityType {
     /// Join the the party.
     Join,

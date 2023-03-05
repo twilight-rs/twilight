@@ -9,12 +9,17 @@ use crate::id::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct StageInstance {
     pub channel_id: Id<ChannelMarker>,
     pub guild_id: Id<GuildMarker>,
     /// The id of the [`GuildScheduledEvent`].
     ///
     /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_scheduled_event_id: Option<Id<ScheduledEventMarker>>,
     pub id: Id<StageMarker>,
     pub privacy_level: PrivacyLevel,

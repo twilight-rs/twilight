@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 
 /// Reaction below a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Reaction {
     /// Amount of reactions this emoji has.
     pub count: u64,
@@ -15,6 +19,10 @@ pub struct Reaction {
 /// Type of [`Reaction`].
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum ReactionType {
     /// Custom [`Emoji`].
     ///

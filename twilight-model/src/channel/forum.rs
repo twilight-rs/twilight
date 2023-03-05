@@ -8,10 +8,15 @@ use serde::{Deserialize, Serialize};
 ///
 /// Exactly one of `emoji_id` and `emoji_name` must be set.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct DefaultReaction {
     /// ID of custom guild emoji.
     ///
     /// Conflicts with `emoji_name`.
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub emoji_id: Option<Id<EmojiMarker>>,
     /// Unicode emoji character.
     ///
@@ -26,6 +31,11 @@ pub struct DefaultReaction {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum ForumLayout {
     /// Display posts as a collection of tiles.
     GalleryView,
@@ -77,6 +87,11 @@ impl From<ForumLayout> for u8 {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum ForumSortOrder {
     /// Sort forum posts by creation time (from most recent to oldest).
     CreationDate,
@@ -123,6 +138,10 @@ impl From<ForumSortOrder> for u8 {
 /// [`Channel`]: super::Channel
 /// [`GuildForum`]: super::ChannelType::GuildForum
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ForumTag {
     /// ID of custom guild emoji.
     ///
@@ -131,6 +150,7 @@ pub struct ForumTag {
     ///
     /// Conflicts with `emoji_name`.
     #[serde(with = "crate::visitor::zeroable_id")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub emoji_id: Option<Id<EmojiMarker>>,
     /// Unicode emoji character.
     ///

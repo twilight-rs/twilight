@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 
 /// Partial channel object that a webhook is following.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct WebhookChannel {
     pub id: Id<ChannelMarker>,
     pub name: String,

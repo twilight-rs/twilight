@@ -54,11 +54,17 @@ use serde::{Deserialize, Serialize};
 ///
 /// [Discord Docs/Channel]: https://discord.com/developers/docs/resources/channel
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Channel {
     /// ID of the application that created the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::Map<rkyv::with::CopyOptimize>))]
     pub applied_tags: Option<Vec<Id<TagMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub available_tags: Option<Vec<ForumTag>>,
@@ -87,6 +93,7 @@ pub struct Channel {
     pub flags: Option<ChannelFlags>,
     /// ID of the guild the channel is in.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     /// Hash of the channel's icon.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -107,6 +114,7 @@ pub struct Channel {
     /// For forum channels, this is the ID of the last created thread in the
     /// forum.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub last_message_id: Option<Id<GenericMarker>>,
     /// ID of the last message pinned in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -143,6 +151,7 @@ pub struct Channel {
     pub nsfw: Option<bool>,
     /// ID of the creator of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub owner_id: Option<Id<UserMarker>>,
     /// ID of the parent channel.
     ///
@@ -150,6 +159,7 @@ pub struct Channel {
     ///
     /// For threads this is the ID of the channel the thread was created in.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub parent_id: Option<Id<ChannelMarker>>,
     /// Explicit permission overwrites for members and roles.
     #[serde(skip_serializing_if = "Option::is_none")]

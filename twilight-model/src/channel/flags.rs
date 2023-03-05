@@ -5,6 +5,11 @@ use serde::{
 };
 
 bitflags! {
+    #[cfg_attr(
+        feature = "rkyv",
+        derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+        archive(as = "Self")
+    )]
     pub struct ChannelFlags: u64 {
         /// Channel is pinned in a forum.
         const PINNED = 1 << 1;

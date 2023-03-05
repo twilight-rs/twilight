@@ -108,6 +108,10 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// });
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum Component {
     /// Top level, non-interactive container of other (non action row) components.
     ActionRow(ActionRow),

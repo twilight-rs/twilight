@@ -15,12 +15,18 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Webhook {
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub application_id: Option<Id<ApplicationMarker>>,
     pub avatar: Option<ImageHash>,
     pub channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     pub id: Id<WebhookMarker>,
     #[serde(default = "WebhookType::default", rename = "type")]

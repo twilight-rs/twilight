@@ -9,10 +9,16 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Standard`]: super::StickerType::Standard
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct StickerPack {
     /// ID of the sticker pack's banner image.
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub banner_asset_id: Option<Id<StickerBannerAssetMarker>>,
     /// ID of the sticker that is shown as the pack's icon.
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub cover_sticker_id: Option<Id<StickerMarker>>,
     /// Description of the sticker pack.
     pub description: String,

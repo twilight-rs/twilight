@@ -25,6 +25,10 @@ use serde::{Deserialize, Serialize};
 
 /// Message sticker.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Sticker {
     /// Whether the sticker is available.
     #[serde(default, skip_serializing_if = "is_false")]
@@ -35,6 +39,7 @@ pub struct Sticker {
     pub format_type: StickerFormatType,
     /// ID of the guild that owns the sticker.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     /// Unique ID of the sticker.
     pub id: Id<StickerMarker>,
@@ -45,6 +50,7 @@ pub struct Sticker {
     pub name: String,
     /// Unique ID of the pack the sticker is in.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub pack_id: Option<Id<StickerPackMarker>>,
     /// Sticker's sort order within a pack.
     #[serde(skip_serializing_if = "Option::is_none")]

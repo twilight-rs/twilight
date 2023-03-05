@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 
 /// Partial guild object that a webhook is following.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct WebhookGuild {
     pub icon: Option<ImageHash>,
     pub id: Id<GuildMarker>,

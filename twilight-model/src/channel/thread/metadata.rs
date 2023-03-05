@@ -5,6 +5,10 @@ use serde::{Deserialize, Serialize};
 /// The thread metadata object contains a number of thread-specific channel fields
 /// that are not needed by other channel types.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ThreadMetadata {
     pub archived: bool,
     /// Duration without messages before the thread automatically archives.

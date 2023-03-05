@@ -10,10 +10,15 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ThreadMember {
     // Values currently unknown and undocumented.
     pub flags: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub id: Option<Id<ChannelMarker>>,
     pub join_timestamp: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -21,6 +26,7 @@ pub struct ThreadMember {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<Presence>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub user_id: Option<Id<UserMarker>>,
 }
 

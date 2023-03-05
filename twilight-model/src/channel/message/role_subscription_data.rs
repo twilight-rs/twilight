@@ -5,6 +5,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Message`]: super::Message
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct RoleSubscriptionData {
     /// Whether this notification is for a renewal rather than a new purchase.
     pub is_renewal: bool,

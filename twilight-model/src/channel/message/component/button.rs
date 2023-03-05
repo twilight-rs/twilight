@@ -5,6 +5,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Button {
     /// User defined identifier for the button.
     ///
@@ -34,6 +38,11 @@ pub struct Button {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum ButtonStyle {
     /// Button indicates a primary action.
     ///

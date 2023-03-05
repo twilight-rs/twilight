@@ -6,6 +6,11 @@ use serde::{Deserialize, Serialize};
 
 /// Permission overwrite data for a role or member.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub struct PermissionOverwrite {
     pub allow: Permissions,
     pub deny: Permissions,
@@ -19,6 +24,11 @@ pub struct PermissionOverwrite {
 #[derive(Clone, Copy, Debug, Serialize, Eq, Hash, PartialEq, Deserialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8", rename_all = "snake_case")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum PermissionOverwriteType {
     /// Permission overwrite targets an individual member.
     Member,

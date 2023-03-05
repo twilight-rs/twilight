@@ -8,6 +8,10 @@ use serde::{Deserialize, Serialize};
 
 /// Mention of a user in a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Mention {
     /// Hash of the user's avatar, if any.
     pub avatar: Option<ImageHash>,

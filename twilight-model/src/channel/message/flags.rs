@@ -5,6 +5,11 @@ use serde::{
 };
 
 bitflags! {
+    #[cfg_attr(
+        feature = "rkyv",
+        derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+        archive(as = "Self")
+    )]
     /// Flags to signal state and modify the look of a message.
     pub struct MessageFlags: u64 {
         /// Has been published to subscribed channels via Channel Following.

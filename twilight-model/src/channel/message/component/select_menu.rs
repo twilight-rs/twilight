@@ -5,6 +5,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct SelectMenu {
     /// Developer defined identifier.
     pub custom_id: String,
@@ -24,6 +28,10 @@ pub struct SelectMenu {
 
 /// Dropdown options that are part of [`SelectMenu`].
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct SelectMenuOption {
     /// Whether the option will be selected by default.
     #[serde(default)]

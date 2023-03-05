@@ -1,6 +1,10 @@
 use super::{Activity, ActivityType};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct MinimalActivity {
     pub kind: ActivityType,
     pub name: String,

@@ -9,6 +9,10 @@ use serde::{Deserialize, Serialize};
 use super::MemberFlags;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct PartialMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -28,6 +32,7 @@ pub struct PartialMember {
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub roles: Vec<Id<RoleMarker>>,
     pub user: Option<User>,
 }

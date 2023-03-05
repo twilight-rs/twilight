@@ -18,6 +18,10 @@ use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Embed {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub author: Option<EmbedAuthor>,

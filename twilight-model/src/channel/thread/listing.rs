@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 
 /// Response body returned in thread listing methods.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct ThreadsListing {
     /// Whether there are potentially more threads that could be returned.
     #[serde(skip_serializing_if = "Option::is_none")]

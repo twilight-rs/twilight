@@ -5,6 +5,11 @@ use serde::{
 };
 
 bitflags! {
+    #[cfg_attr(
+        feature = "rkyv",
+        derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+        archive(as = "Self")
+    )]
     pub struct ActivityFlags: u64 {
         const INSTANCE = 1;
         const JOIN = 1 << 1;
