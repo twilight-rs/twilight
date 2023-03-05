@@ -11,6 +11,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Role`]: super::Role
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct RoleTags {
     /// Whether this role is available for purchase.
     #[serde(
@@ -21,6 +25,7 @@ pub struct RoleTags {
     pub available_for_purchase: bool,
     /// ID of the bot the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub bot_id: Option<Id<UserMarker>>,
     /// Whether this role is a guild's linked role.
     #[serde(
@@ -31,9 +36,11 @@ pub struct RoleTags {
     pub guild_connections: bool,
     /// ID of the integration the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub integration_id: Option<Id<IntegrationMarker>>,
     /// ID of the role's subscription SKU and listing.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub subscription_listing_id: Option<Id<RoleSubscriptionSkuMarker>>,
     /// Whether this is the guild's premium subscriber role.
     #[serde(

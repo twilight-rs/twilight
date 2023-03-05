@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 
 /// An action which will execute whenever a rule is triggered.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AutoModerationAction {
     /// Type of action.
     #[serde(rename = "type")]
@@ -16,9 +20,14 @@ pub struct AutoModerationAction {
 /// Additional metadata needed during execution for a specific
 /// [`AutoModerationActionType`].
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AutoModerationActionMetadata {
     /// Channel to which user content should be logged.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// Additional explanation that will be shown to members whenever their message is blocked.
     ///
@@ -35,6 +44,11 @@ pub struct AutoModerationActionMetadata {
 /// Type of [`AutoModerationAction`].
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum AutoModerationActionType {
     /// Blocks the content of a message according to the rule.
     BlockMessage,

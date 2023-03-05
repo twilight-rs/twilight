@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`AutoModerationRule::trigger_type`]: super::AutoModerationRule::trigger_type
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AutoModerationTriggerMetadata {
     /// Substrings that will be exempt from triggering the preset type.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -22,6 +26,7 @@ pub struct AutoModerationTriggerMetadata {
     ///
     /// [Discord Docs/Keyword Matching Strategies]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-matching-strategies
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::Map<rkyv::with::CopyOptimize>))]
     pub presets: Option<Vec<AutoModerationKeywordPresetType>>,
 }
 

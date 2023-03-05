@@ -14,6 +14,10 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GuildWidget {
     pub channels: Vec<GuildWidgetChannel>,
     pub id: Id<GuildMarker>,
@@ -24,6 +28,10 @@ pub struct GuildWidget {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GuildWidgetChannel {
     pub id: Id<ChannelMarker>,
     pub name: String,
@@ -31,6 +39,10 @@ pub struct GuildWidgetChannel {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GuildWidgetMember {
     pub avatar: Option<ImageHash>,
     pub avatar_url: Option<String>,

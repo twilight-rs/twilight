@@ -10,6 +10,11 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum AuditLogChangeKey {
     /// AFK voice channel for a guild.
     AfkChannelId,

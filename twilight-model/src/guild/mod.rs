@@ -75,9 +75,15 @@ use serde::{
 use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+)]
 pub struct Guild {
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub afk_channel_id: Option<Id<ChannelMarker>>,
     pub afk_timeout: AfkTimeout,
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_member_count: Option<u64>,
@@ -127,8 +133,10 @@ pub struct Guild {
     pub presences: Vec<Presence>,
     /// ID of the where moderators of Community guilds receive notices from
     /// Discord.
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub public_updates_channel_id: Option<Id<ChannelMarker>>,
     pub roles: Vec<Role>,
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub rules_channel_id: Option<Id<ChannelMarker>>,
     pub splash: Option<ImageHash>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -136,6 +144,7 @@ pub struct Guild {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub stickers: Vec<Sticker>,
     pub system_channel_flags: SystemChannelFlags,
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub system_channel_id: Option<Id<ChannelMarker>>,
     #[serde(default)]
     pub threads: Vec<Channel>,
@@ -146,6 +155,7 @@ pub struct Guild {
     #[serde(default)]
     pub voice_states: Vec<VoiceState>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub widget_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_enabled: Option<bool>,

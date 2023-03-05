@@ -12,6 +12,10 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GuildIntegration {
     pub account: IntegrationAccount,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,6 +31,7 @@ pub struct GuildIntegration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expire_grace_period: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     pub id: Id<IntegrationMarker>,
     #[serde(rename = "type")]
@@ -35,6 +40,7 @@ pub struct GuildIntegration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub revoked: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub role_id: Option<Id<RoleMarker>>,
     /// An array of [OAuth2 scopes] which the application has been authorized for.
     ///

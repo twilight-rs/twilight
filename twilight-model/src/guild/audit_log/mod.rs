@@ -36,6 +36,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [1]: https://discord.com/developers/docs/resources/audit-log#audit-log-object
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AuditLog {
     /// List of referenced application commands.
     pub application_commands: Vec<Command>,

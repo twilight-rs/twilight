@@ -16,6 +16,10 @@ use std::time::Duration;
 /// [`Guild::afk_timeout`]: super::Guild::afk_timeout
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AfkTimeout(u16);
 
 impl AfkTimeout {

@@ -25,12 +25,17 @@ use serde::{Deserialize, Serialize};
 /// [`creator`]: Self::creator
 /// [`creator_id`]: Self::creator_id
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GuildScheduledEvent {
     /// ID of the stage or voice channel if there is one.
     ///
     /// Present on events of [`EntityType::StageInstance`] and
     /// [`EntityType::Voice`].
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// User object of the event's creator.
     ///
@@ -41,12 +46,14 @@ pub struct GuildScheduledEvent {
     ///
     /// Only present on events created after October 25th, 2021.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub creator_id: Option<Id<UserMarker>>,
     /// Description of the event.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// ID of the event's entity.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub entity_id: Option<Id<ScheduledEventEntityMarker>>,
     /// Metadata of an entity, if it exists.
     ///
@@ -83,6 +90,10 @@ pub struct GuildScheduledEvent {
 
 /// Metadata associated with an event.
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct EntityMetadata {
     /// Physical location of an event with type [`EntityType::External`].
     pub location: Option<String>,
@@ -92,6 +103,11 @@ pub struct EntityMetadata {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum EntityType {
     /// Event takes place in a stage instance.
     StageInstance,
@@ -129,6 +145,11 @@ impl From<EntityType> for u8 {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum PrivacyLevel {
     /// Event is only accessible to guild members.
     GuildOnly,
@@ -158,6 +179,11 @@ impl From<PrivacyLevel> for u8 {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum Status {
     /// Event is scheduled.
     ///

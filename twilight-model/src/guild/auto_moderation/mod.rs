@@ -32,6 +32,10 @@ use serde::{Deserialize, Serialize};
 
 /// Configured auto moderation rule.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AutoModerationRule {
     /// Actions which will execute when the rule is triggered.
     pub actions: Vec<AutoModerationAction>,
@@ -44,10 +48,12 @@ pub struct AutoModerationRule {
     /// Channels that should not be affected by the rule.
     ///
     /// Maximum of 50.
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub exempt_channels: Vec<Id<ChannelMarker>>,
     /// Roles that should not be affected by the rule.
     ///
     /// Maximum of 20.
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub exempt_roles: Vec<Id<RoleMarker>>,
     /// ID of the guild the rule belongs to.
     pub guild_id: Id<GuildMarker>,

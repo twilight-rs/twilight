@@ -28,6 +28,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [role]: super::super::Role
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AffectedRole {
     /// ID of the role.
     pub id: Id<RoleMarker>,
@@ -38,6 +42,10 @@ pub struct AffectedRole {
 /// Value of a change which may be one of multiple types.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum AuditLogChangeTypeValue {
     /// Value is an unsigned integer.
     Unsigned(u64),
@@ -51,14 +59,20 @@ pub enum AuditLogChangeTypeValue {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case", tag = "key")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub enum AuditLogChange {
     /// AFK channel ID was changed.
     AfkChannelId {
         /// New ID of the AFK channel.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<ChannelMarker>>,
         /// Old ID of the AFK channel.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<ChannelMarker>>,
     },
     /// Timeout to cause a user to be moved to an AFK voice channel.
@@ -83,8 +97,10 @@ pub enum AuditLogChange {
     ApplicationId {
         /// Application's ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<ApplicationMarker>>,
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<ApplicationMarker>>,
     },
     /// Thread is now archived/unarchived.
@@ -154,9 +170,11 @@ pub enum AuditLogChange {
     ChannelId {
         /// New invite's channel.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<ChannelMarker>>,
         /// Old invite's channel.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<ChannelMarker>>,
     },
     /// Code of an invite.
@@ -307,9 +325,11 @@ pub enum AuditLogChange {
     GuildId {
         /// New guild that a sticker is in.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<GuildMarker>>,
         /// Old guild that a sticker is in.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<GuildMarker>>,
     },
     /// Whether a role is hoisted.
@@ -334,8 +354,10 @@ pub enum AuditLogChange {
     Id {
         /// New entity's ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<GenericMarker>>,
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<GenericMarker>>,
     },
     /// Hash of a guild scheduled event cover.
@@ -360,8 +382,10 @@ pub enum AuditLogChange {
     InviterId {
         /// User ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<UserMarker>>,
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<UserMarker>>,
     },
     /// Location for a scheduled event changed.
@@ -467,9 +491,11 @@ pub enum AuditLogChange {
     OwnerId {
         /// New owner's ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<UserMarker>>,
         /// Old owner's ID.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<UserMarker>>,
     },
     /// Permission overwrites on a channel changed.
@@ -529,9 +555,11 @@ pub enum AuditLogChange {
     PublicUpdatesChannelId {
         /// New public updates channel ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<ChannelMarker>>,
         /// Old public updates channel ID.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<ChannelMarker>>,
     },
     /// Ratelimit per user in a textual channel.
@@ -576,9 +604,11 @@ pub enum AuditLogChange {
     RulesChannelId {
         /// New rules channel.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<ChannelMarker>>,
         /// Old rules channel.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<ChannelMarker>>,
     },
     /// Hash of a guild's splash.
@@ -603,9 +633,11 @@ pub enum AuditLogChange {
     SystemChannelId {
         /// New system channel ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<ChannelMarker>>,
         /// Old system channel ID.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<ChannelMarker>>,
     },
     /// Related emoji of a sticker.
@@ -696,9 +728,11 @@ pub enum AuditLogChange {
     WidgetChannelId {
         /// New channel ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         new: Option<Id<ChannelMarker>>,
         /// Old channel ID.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
         old: Option<Id<ChannelMarker>>,
     },
     /// Whether a widget is enabled.

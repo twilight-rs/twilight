@@ -5,6 +5,11 @@ use serde::{
 };
 
 bitflags! {
+    #[cfg_attr(
+        feature = "rkyv",
+        derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+        archive(as = "Self")
+    )]
     pub struct SystemChannelFlags: u64 {
         /// Suppress member join notifications.
         const SUPPRESS_JOIN_NOTIFICATIONS = 1;

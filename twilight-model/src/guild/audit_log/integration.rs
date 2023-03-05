@@ -11,6 +11,10 @@ use serde::{Deserialize, Serialize};
 /// [audit log]: super::AuditLog
 /// [guild integration]: super::super::GuildIntegration
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AuditLogGuildIntegration {
     /// Account of the integration.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -26,6 +30,7 @@ pub struct AuditLogGuildIntegration {
     pub expire_grace_period: Option<u64>,
     /// ID of the integration.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub id: Option<Id<IntegrationMarker>>,
     /// Type of integration.
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
@@ -35,6 +40,7 @@ pub struct AuditLogGuildIntegration {
     pub name: Option<String>,
     /// ID that the integration uses for subscribers.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub role_id: Option<Id<IntegrationMarker>>,
     /// When the integration was last synced.
     #[serde(skip_serializing_if = "Option::is_none")]

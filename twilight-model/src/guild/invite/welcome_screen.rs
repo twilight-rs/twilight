@@ -5,6 +5,10 @@ use crate::id::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct WelcomeScreen {
     /// Guild description.
     pub description: Option<String>,
@@ -13,12 +17,17 @@ pub struct WelcomeScreen {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct WelcomeScreenChannel {
     /// ID of the channel.
     pub channel_id: Id<ChannelMarker>,
     /// Description of the channel.
     pub description: String,
     /// ID of the emoji if the emoji is custom.
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub emoji_id: Option<Id<EmojiMarker>>,
     /// Emoji's name if it is custom, or the unicode character.
     pub emoji_name: Option<String>,

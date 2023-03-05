@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 
 /// Container for user and member data returned by Discord.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct GuildScheduledEventUser {
     /// ID of the scheduled event.
     pub guild_scheduled_event_id: Id<ScheduledEventMarker>,

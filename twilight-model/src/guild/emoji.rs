@@ -9,6 +9,10 @@ use serde::{Deserialize, Serialize};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Emoji {
     #[serde(default)]
     pub animated: bool,
@@ -24,6 +28,7 @@ pub struct Emoji {
     #[serde(default)]
     pub require_colons: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub roles: Vec<Id<RoleMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,

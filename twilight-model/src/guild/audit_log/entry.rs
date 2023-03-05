@@ -9,6 +9,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`AuditLog`]: super::AuditLog
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AuditLogEntry {
     /// Type of event to cause the entry.
     pub action_type: AuditLogEventType,
@@ -22,6 +26,7 @@ pub struct AuditLogEntry {
     ///
     /// [`GuildAuditLogEntryCreate`]: crate::gateway::payload::incoming::GuildAuditLogEntryCreate
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the entire entry.
     pub id: Id<AuditLogEntryMarker>,
@@ -33,10 +38,12 @@ pub struct AuditLogEntry {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     /// ID of the target entity.
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub target_id: Option<Id<GenericMarker>>,
     /// ID of the [user] that performed the action.
     ///
     /// [user]: crate::user::User
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub user_id: Option<Id<UserMarker>>,
 }
 

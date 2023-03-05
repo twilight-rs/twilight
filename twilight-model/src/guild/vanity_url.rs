@@ -2,6 +2,10 @@ use serde::{Deserialize, Serialize};
 
 /// Information about a guild's vanity URL setting.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct VanityUrl {
     /// Code of the vanity URL.
     ///

@@ -12,9 +12,15 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct PartialGuild {
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub afk_channel_id: Option<Id<ChannelMarker>>,
     pub afk_timeout: AfkTimeout,
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub application_id: Option<Id<ApplicationMarker>>,
     pub banner: Option<ImageHash>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
@@ -47,15 +53,19 @@ pub struct PartialGuild {
     pub premium_tier: PremiumTier,
     /// ID of the where moderators of Community guilds receive notices from
     /// Discord.
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub public_updates_channel_id: Option<Id<ChannelMarker>>,
     pub roles: Vec<Role>,
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub rules_channel_id: Option<Id<ChannelMarker>>,
     pub splash: Option<ImageHash>,
     pub system_channel_flags: SystemChannelFlags,
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub system_channel_id: Option<Id<ChannelMarker>>,
     pub verification_level: VerificationLevel,
     pub vanity_url_code: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub widget_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_enabled: Option<bool>,

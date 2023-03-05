@@ -3,6 +3,11 @@ use serde::{Deserialize, Serialize};
 /// Internally pre-defined wordsets which will be searched for in content.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum AutoModerationKeywordPresetType {
     /// Words that may be considered forms of swearing or cursing.
     Profanity,

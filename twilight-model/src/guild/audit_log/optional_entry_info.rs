@@ -8,6 +8,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`AuditLogEventType`]: super::AuditLogEventType
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct AuditLogOptionalEntryInfo {
     /// Name of the Auto Moderation rule that was triggered.
     ///
@@ -61,6 +65,7 @@ pub struct AuditLogOptionalEntryInfo {
     /// [`AuditLogEventType::StageInstanceDelete`]: super::AuditLogEventType::StageInstanceDelete
     /// [`AuditLogEventType::StageInstanceUpdate`]: super::AuditLogEventType::StageInstanceUpdate
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// Number of entities that were targeted.
     ///
@@ -98,6 +103,7 @@ pub struct AuditLogOptionalEntryInfo {
     /// [`AuditLogEventType::ChannelOverwriteCreate`]: super::AuditLogEventType::ChannelOverwriteCreate
     /// [`AuditLogEventType::ChannelOverwriteDelete`]: super::AuditLogEventType::ChannelOverwriteDelete
     /// [`AuditLogEventType::ChannelOverwriteUpdate`]: super::AuditLogEventType::ChannelOverwriteUpdate
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub id: Option<Id<GenericMarker>>,
     /// Type of overwritten entity.
     ///
@@ -131,6 +137,7 @@ pub struct AuditLogOptionalEntryInfo {
     /// [`AuditLogEventType::MessagePin`]: super::AuditLogEventType::MessagePin
     /// [`AuditLogEventType::MessageUnpin`]: super::AuditLogEventType::MessageUnpin
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(crate::id::IdNiche))]
     pub message_id: Option<Id<MessageMarker>>,
     /// Name of a role.
     ///

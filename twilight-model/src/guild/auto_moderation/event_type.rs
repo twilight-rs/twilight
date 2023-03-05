@@ -3,6 +3,11 @@ use serde::{Deserialize, Serialize};
 /// Indicates in what event context a rule should be checked.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum AutoModerationEventType {
     /// When a member sends or edits a message in a guild.
     MessageSend,

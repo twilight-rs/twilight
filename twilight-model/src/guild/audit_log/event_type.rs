@@ -5,6 +5,11 @@ use serde::{Deserialize, Serialize};
 /// [`AuditLogEntry`]: super::AuditLogEntry
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u16", into = "u16")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum AuditLogEventType {
     /// [Guild] was updated.
     ///

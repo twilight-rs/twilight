@@ -3,6 +3,11 @@ use serde::{Deserialize, Serialize};
 /// Characterizes the type of content which can trigger the rule.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u8", into = "u8")]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
 pub enum AutoModerationTriggerType {
     /// Check if content contains words from a user defined list of keywords.
     ///
