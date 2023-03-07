@@ -71,12 +71,12 @@ impl IntoFuture for GetResponse<'_> {
 
 impl TryIntoRequest for GetResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::builder(&Route::GetInteractionOriginal {
+        Request::builder(&Route::GetInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,
         })
         .use_authorization_token(false)
-        .build())
+        .build()
     }
 }
 

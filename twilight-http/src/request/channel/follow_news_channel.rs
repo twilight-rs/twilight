@@ -56,12 +56,10 @@ impl IntoFuture for FollowNewsChannel<'_> {
 
 impl TryIntoRequest for FollowNewsChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::FollowNewsChannel {
+        Request::builder(&Route::FollowNewsChannel {
             channel_id: self.channel_id.get(),
-        });
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        })
+        .json(&self.fields)
+        .build()
     }
 }

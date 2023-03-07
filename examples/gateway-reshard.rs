@@ -73,7 +73,7 @@ async fn event_handler(client: Arc<Client>, event: Event) -> anyhow::Result<()> 
         Event::MessageCreate(message) if message.content == "!ping" => {
             client
                 .create_message(message.channel_id)
-                .content("Pong!")?
+                .content("Pong!")
                 .await?;
         }
         _ => {}

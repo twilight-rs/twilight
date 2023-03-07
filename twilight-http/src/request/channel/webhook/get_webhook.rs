@@ -71,6 +71,6 @@ impl TryIntoRequest for GetWebhook<'_> {
             request = request.use_authorization_token(false);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }

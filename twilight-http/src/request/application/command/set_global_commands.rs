@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
@@ -63,6 +63,6 @@ impl TryIntoRequest for SetGlobalCommands<'_> {
             application_id: self.application_id.get(),
         })
         .json(&self.commands)
-        .map(RequestBuilder::build)
+        .build()
     }
 }

@@ -44,7 +44,7 @@ struct GetChannelMessagesFields {
 /// let messages = client
 ///     .channel_messages(channel_id)
 ///     .before(message_id)
-///     .limit(6u16)?
+///     .limit(6u16)
 ///     .await?;
 ///
 /// # Ok(()) }
@@ -58,7 +58,7 @@ struct GetChannelMessagesFields {
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessages<'a> {
     channel_id: Id<ChannelMarker>,
-    fields: GetChannelMessagesFields,
+    fields: Result<GetChannelMessagesFields, ValidationError>,
     http: &'a Client,
 }
 
@@ -66,41 +66,41 @@ impl<'a> GetChannelMessages<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
-            fields: GetChannelMessagesFields { limit: None },
+            fields: Ok(GetChannelMessagesFields { limit: None }),
             http,
         }
     }
 
-    pub const fn after(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
+    pub fn after(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
         GetChannelMessagesConfigured::new(
             self.http,
             self.channel_id,
             Some(message_id),
             None,
             None,
-            self.fields.limit,
+            self.fields.map(|fields| fields.limit),
         )
     }
 
-    pub const fn around(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
+    pub fn around(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
         GetChannelMessagesConfigured::new(
             self.http,
             self.channel_id,
             None,
             Some(message_id),
             None,
-            self.fields.limit,
+            self.fields.map(|fields| fields.limit),
         )
     }
 
-    pub const fn before(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
+    pub fn before(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
         GetChannelMessagesConfigured::new(
             self.http,
             self.channel_id,
             None,
             None,
             Some(message_id),
-            self.fields.limit,
+            self.fields.map(|fields| fields.limit),
         )
     }
 
@@ -114,15 +114,15 @@ impl<'a> GetChannelMessages<'a> {
     /// is less than 1 or greater than 100.
     ///
     /// [`GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
-    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_get_channel_messages_limit(limit) {
-            return Err(source);
-        }
+    pub fn limit(mut self, limit: u16) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_get_channel_messages_limit(limit)?;
+            fields.limit = Some(limit);
 
-        self.fields.limit = Some(limit);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 }
 
@@ -143,12 +143,14 @@ impl IntoFuture for GetChannelMessages<'_> {
 
 impl TryIntoRequest for GetChannelMessages<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Ok(Request::from_route(&Route::GetMessages {
             after: None,
             around: None,
             before: None,
             channel_id: self.channel_id.get(),
-            limit: self.fields.limit,
+            limit: fields.limit,
         }))
     }
 }

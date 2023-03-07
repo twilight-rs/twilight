@@ -56,7 +56,7 @@ pub struct CreateRole<'a> {
     fields: CreateRoleFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateRole<'a> {
@@ -73,7 +73,7 @@ impl<'a> CreateRole<'a> {
             },
             guild_id,
             http,
-            reason: None,
+            reason: Ok(None),
         }
     }
 
@@ -142,12 +142,10 @@ impl<'a> CreateRole<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateRole<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -172,14 +170,12 @@ impl TryIntoRequest for CreateRole<'_> {
             guild_id: self.guild_id.get(),
         });
 
-        request = request.json(&self.fields)?;
+        request = request.json(&self.fields);
 
-        if let Some(reason) = &self.reason {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }

@@ -80,10 +80,10 @@ impl TryIntoRequest for CreateResponse<'_> {
 
             request = request.form(form);
         } else {
-            request = request.json(&self.response)?;
+            request = request.json(&self.response);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }
 

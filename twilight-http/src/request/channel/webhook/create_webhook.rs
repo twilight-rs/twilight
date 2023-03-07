@@ -36,31 +36,31 @@ struct CreateWebhookFields<'a> {
 /// let client = Client::new("my token".to_owned());
 /// let channel_id = Id::new(123);
 ///
-/// let webhook = client.create_webhook(channel_id, "Twily Bot")?.await?;
+/// let webhook = client.create_webhook(channel_id, "Twily Bot").await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateWebhook<'a> {
     channel_id: Id<ChannelMarker>,
-    fields: CreateWebhookFields<'a>,
+    fields: Result<CreateWebhookFields<'a>, ValidationError>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateWebhook<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        name: &'a str,
-    ) -> Result<Self, ValidationError> {
-        validate_webhook_username(name)?;
+    pub(crate) fn new(http: &'a Client, channel_id: Id<ChannelMarker>, name: &'a str) -> Self {
+        let fields = Ok(CreateWebhookFields { avatar: None, name }).and_then(|fields| {
+            validate_webhook_username(name)?;
 
-        Ok(Self {
+            Ok(fields)
+        });
+
+        Self {
             channel_id,
-            fields: CreateWebhookFields { avatar: None, name },
+            fields,
             http,
-            reason: None,
-        })
+            reason: Ok(None),
+        }
     }
 
     /// Set the avatar of the webhook.
@@ -70,20 +70,22 @@ impl<'a> CreateWebhook<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: &'a str) -> Self {
-        self.fields.avatar = Some(avatar);
+    pub fn avatar(mut self, avatar: &'a str) -> Self {
+        self.fields = self.fields.map(|mut fields| {
+            fields.avatar = Some(avatar);
+
+            fields
+        });
 
         self
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateWebhook<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -104,19 +106,17 @@ impl IntoFuture for CreateWebhook<'_> {
 
 impl TryIntoRequest for CreateWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateWebhook {
             channel_id: self.channel_id.get(),
-        });
+        })
+        .json(&fields);
 
-        request = request.json(&self.fields)?;
-
-        if let Some(reason) = self.reason.as_ref() {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }
 
@@ -134,14 +134,14 @@ mod tests {
         {
             let expected = r#"{"name":"Spidey Bot"}"#;
             let actual =
-                CreateWebhook::new(&client, CHANNEL_ID, "Spidey Bot")?.try_into_request()?;
+                CreateWebhook::new(&client, CHANNEL_ID, "Spidey Bot").try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
         }
 
         {
             let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI","name":"Spidey Bot"}"#;
-            let actual = CreateWebhook::new(&client, CHANNEL_ID, "Spidey Bot")?
+            let actual = CreateWebhook::new(&client, CHANNEL_ID, "Spidey Bot")
             .avatar(
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI",
             )

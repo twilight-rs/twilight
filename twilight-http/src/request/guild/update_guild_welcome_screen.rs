@@ -86,12 +86,10 @@ impl IntoFuture for UpdateGuildWelcomeScreen<'_> {
 
 impl TryIntoRequest for UpdateGuildWelcomeScreen<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateGuildWelcomeScreen {
+        Request::builder(&Route::UpdateGuildWelcomeScreen {
             guild_id: self.guild_id.get(),
-        });
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        })
+        .json(&self.fields)
+        .build()
     }
 }

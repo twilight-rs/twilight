@@ -73,16 +73,16 @@ struct UpdateChannelFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateChannel<'a> {
     channel_id: Id<ChannelMarker>,
-    fields: UpdateChannelFields<'a>,
+    fields: Result<UpdateChannelFields<'a>, ChannelValidationError>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateChannel<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
-            fields: UpdateChannelFields {
+            fields: Ok(UpdateChannelFields {
                 available_tags: None,
                 bitrate: None,
                 default_forum_layout: None,
@@ -101,15 +101,17 @@ impl<'a> UpdateChannel<'a> {
                 topic: None,
                 user_limit: None,
                 video_quality_mode: None,
-            },
+            }),
             http,
-            reason: None,
+            reason: Ok(None),
         }
     }
 
     /// Set the available tags for the forum.
-    pub const fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
-        self.fields.available_tags = Some(available_tags);
+    pub fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.available_tags = Some(available_tags);
+        }
 
         self
     }
@@ -123,37 +125,43 @@ impl<'a> UpdateChannel<'a> {
     /// Returns an error of type [`BitrateInvalid`] if the bitrate is invalid.
     ///
     /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
-    pub const fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_bitrate(bitrate) {
-            return Err(source);
-        }
+    pub fn bitrate(mut self, bitrate: u32) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_bitrate(bitrate)?;
+            fields.bitrate = Some(bitrate);
 
-        self.fields.bitrate = Some(bitrate);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Set the default layout for forum channels.
-    pub const fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
-        self.fields.default_forum_layout = Some(default_forum_layout);
+    pub fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.default_forum_layout = Some(default_forum_layout);
+        }
 
         self
     }
 
     /// Set the default reaction emoji for new forum threads.
-    pub const fn default_reaction_emoji(
+    pub fn default_reaction_emoji(
         mut self,
         default_reaction_emoji: Option<&'a DefaultReaction>,
     ) -> Self {
-        self.fields.default_reaction_emoji = Some(Nullable(default_reaction_emoji));
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.default_reaction_emoji = Some(Nullable(default_reaction_emoji));
+        }
 
         self
     }
 
     /// Set the default sort order for forum channels.
-    pub const fn default_sort_order(mut self, default_sort_order: Option<ForumSortOrder>) -> Self {
-        self.fields.default_sort_order = Some(Nullable(default_sort_order));
+    pub fn default_sort_order(mut self, default_sort_order: Option<ForumSortOrder>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.default_sort_order = Some(Nullable(default_sort_order));
+        }
 
         self
     }
@@ -171,28 +179,31 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    pub const fn default_thread_rate_limit_per_user(
+    pub fn default_thread_rate_limit_per_user(
         mut self,
         default_thread_rate_limit_per_user: Option<u16>,
-    ) -> Result<Self, ChannelValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Some(default_thread_rate_limit_per_user) = default_thread_rate_limit_per_user {
-            if let Err(source) =
-                twilight_validate::channel::rate_limit_per_user(default_thread_rate_limit_per_user)
-            {
-                return Err(source);
+    ) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            if let Some(default_thread_rate_limit_per_user) = default_thread_rate_limit_per_user {
+                twilight_validate::channel::rate_limit_per_user(
+                    default_thread_rate_limit_per_user,
+                )?;
             }
-        }
 
-        self.fields.default_thread_rate_limit_per_user =
-            Some(Nullable(default_thread_rate_limit_per_user));
+            fields.default_thread_rate_limit_per_user =
+                Some(Nullable(default_thread_rate_limit_per_user));
 
-        Ok(self)
+            Ok(fields)
+        });
+
+        self
     }
 
     /// Set the flags of the channel, if supported.
-    pub const fn flags(mut self, flags: ChannelFlags) -> Self {
-        self.fields.flags = Some(flags);
+    pub fn flags(mut self, flags: ChannelFlags) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.flags = Some(flags);
+        }
 
         self
     }
@@ -210,14 +221,18 @@ impl<'a> UpdateChannel<'a> {
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     /// [`ForumTopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::ForumTopicInvalid
     /// [`GuildForum`]: twilight_model::channel::ChannelType::GuildForum
-    pub fn forum_topic(mut self, topic: Option<&'a str>) -> Result<Self, ChannelValidationError> {
-        if let Some(topic) = topic {
-            validate_forum_topic(topic)?;
-        }
+    pub fn forum_topic(mut self, topic: Option<&'a str>) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            if let Some(topic) = topic {
+                validate_forum_topic(topic)?;
+            }
 
-        self.fields.topic = topic;
+            fields.topic = topic;
 
-        Ok(self)
+            Ok(fields)
+        });
+
+        self
     }
 
     /// Set the name.
@@ -230,36 +245,45 @@ impl<'a> UpdateChannel<'a> {
     /// Returns an error of type [`NameInvalid`] if the name is invalid.
     ///
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
-    pub fn name(mut self, name: &'a str) -> Result<Self, ChannelValidationError> {
-        validate_name(name)?;
+    pub fn name(mut self, name: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_name(name)?;
+            fields.name = Some(name);
 
-        self.fields.name = Some(name);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Set whether the channel is marked as NSFW.
-    pub const fn nsfw(mut self, nsfw: bool) -> Self {
-        self.fields.nsfw = Some(nsfw);
+    pub fn nsfw(mut self, nsfw: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.nsfw = Some(nsfw);
+        }
 
         self
     }
 
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, move this
     /// channel to a child of the category channel.
-    pub const fn parent_id(mut self, parent_id: Option<Id<ChannelMarker>>) -> Self {
-        self.fields.parent_id = Some(Nullable(parent_id));
+    pub fn parent_id(mut self, parent_id: Option<Id<ChannelMarker>>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.parent_id = Some(Nullable(parent_id));
+        }
 
         self
     }
 
     /// Set the permission overwrites of a channel. This will overwrite all permissions that the
     /// channel currently has, so use with caution!
-    pub const fn permission_overwrites(
+    pub fn permission_overwrites(
         mut self,
         permission_overwrites: &'a [PermissionOverwrite],
     ) -> Self {
-        self.fields.permission_overwrites = Some(permission_overwrites);
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.permission_overwrites = Some(permission_overwrites);
+        }
 
         self
     }
@@ -268,8 +292,10 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// Positions are numerical and zero-indexed. If you place a channel at position 2, channels
     /// 2-n will shift down one position and the initial channel will take its place.
-    pub const fn position(mut self, position: u64) -> Self {
-        self.fields.position = Some(position);
+    pub fn position(mut self, position: u64) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.position = Some(position);
+        }
 
         self
     }
@@ -287,25 +313,24 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    pub const fn rate_limit_per_user(
-        mut self,
-        rate_limit_per_user: u16,
-    ) -> Result<Self, ChannelValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = twilight_validate::channel::rate_limit_per_user(rate_limit_per_user) {
-            return Err(source);
-        }
+    pub fn rate_limit_per_user(mut self, rate_limit_per_user: u16) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            twilight_validate::channel::rate_limit_per_user(rate_limit_per_user)?;
+            fields.rate_limit_per_user = Some(rate_limit_per_user);
 
-        self.fields.rate_limit_per_user = Some(rate_limit_per_user);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// For voice and stage channels, set the channel's RTC region.
     ///
     /// Set to `None` to clear.
-    pub const fn rtc_region(mut self, rtc_region: Option<&'a str>) -> Self {
-        self.fields.rtc_region = Some(Nullable(rtc_region));
+    pub fn rtc_region(mut self, rtc_region: Option<&'a str>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.rtc_region = Some(Nullable(rtc_region));
+        }
 
         self
     }
@@ -321,12 +346,15 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     /// [`TopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TopicInvalid
-    pub fn topic(mut self, topic: &'a str) -> Result<Self, ChannelValidationError> {
-        validate_topic(topic)?;
+    pub fn topic(mut self, topic: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_topic(topic)?;
+            fields.topic.replace(topic);
 
-        self.fields.topic.replace(topic);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// For voice channels, set the user limit.
@@ -340,17 +368,22 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
     /// [`UserLimitInvalid`]: twilight_validate::channel::ChannelValidationErrorType::UserLimitInvalid
-    pub fn user_limit(mut self, user_limit: u16) -> Result<Self, ChannelValidationError> {
-        validate_user_limit(user_limit)?;
+    pub fn user_limit(mut self, user_limit: u16) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_user_limit(user_limit)?;
+            fields.user_limit = Some(user_limit);
 
-        self.fields.user_limit = Some(user_limit);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Set the [`VideoQualityMode`] for the voice channel.
-    pub const fn video_quality_mode(mut self, video_quality_mode: VideoQualityMode) -> Self {
-        self.fields.video_quality_mode = Some(video_quality_mode);
+    pub fn video_quality_mode(mut self, video_quality_mode: VideoQualityMode) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.video_quality_mode = Some(video_quality_mode);
+        }
 
         self
     }
@@ -362,20 +395,20 @@ impl<'a> UpdateChannel<'a> {
     /// `NEWS` feature enabled. See [Discord Docs/Modify Channel].
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
-    pub const fn kind(mut self, kind: ChannelType) -> Self {
-        self.fields.kind = Some(kind);
+    pub fn kind(mut self, kind: ChannelType) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.kind = Some(kind);
+        }
 
         self
     }
 }
 
 impl<'a> AuditLogReason<'a> for UpdateChannel<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -396,15 +429,16 @@ impl IntoFuture for UpdateChannel<'_> {
 
 impl TryIntoRequest for UpdateChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.get(),
         })
-        .json(&self.fields)?;
+        .json(&fields);
 
-        if let Some(reason) = &self.reason {
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }

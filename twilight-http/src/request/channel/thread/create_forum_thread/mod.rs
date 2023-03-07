@@ -18,6 +18,7 @@ use twilight_model::{
         Id,
     },
 };
+use twilight_validate::message::MessageValidationError;
 
 #[derive(Deserialize, Serialize)]
 pub struct ForumThread {
@@ -47,7 +48,7 @@ struct CreateForumThreadFields<'a> {
 pub struct CreateForumThread<'a> {
     attachment_manager: AttachmentManager<'a>,
     channel_id: Id<ChannelMarker>,
-    fields: CreateForumThreadFields<'a>,
+    fields: Result<CreateForumThreadFields<'a>, MessageValidationError>,
     http: &'a Client,
 }
 
@@ -60,7 +61,7 @@ impl<'a> CreateForumThread<'a> {
         Self {
             attachment_manager: AttachmentManager::new(),
             channel_id,
-            fields: CreateForumThreadFields {
+            fields: Ok(CreateForumThreadFields {
                 applied_tags: None,
                 auto_archive_duration: None,
                 message: CreateForumThreadMessageFields {
@@ -75,14 +76,16 @@ impl<'a> CreateForumThread<'a> {
                 },
                 name,
                 rate_limit_per_user: None,
-            },
+            }),
             http,
         }
     }
 
     /// Set the forum thread's applied tags.
-    pub const fn applied_tags(mut self, applied_tags: &'a [Id<TagMarker>]) -> Self {
-        self.fields.applied_tags = Some(applied_tags);
+    pub fn applied_tags(mut self, applied_tags: &'a [Id<TagMarker>]) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.applied_tags = Some(applied_tags);
+        }
 
         self
     }
@@ -92,11 +95,10 @@ impl<'a> CreateForumThread<'a> {
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
-    pub const fn auto_archive_duration(
-        mut self,
-        auto_archive_duration: AutoArchiveDuration,
-    ) -> Self {
-        self.fields.auto_archive_duration = Some(auto_archive_duration);
+    pub fn auto_archive_duration(mut self, auto_archive_duration: AutoArchiveDuration) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.auto_archive_duration = Some(auto_archive_duration);
+        }
 
         self
     }
@@ -117,39 +119,40 @@ impl<'a> CreateForumThread<'a> {
         }
     }
 
-    fn try_into_request(mut self) -> Result<Request, Error> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        let mut fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateForumThread {
             channel_id: self.channel_id.get(),
         });
 
         // Set the default allowed mentions if required.
-        if self.fields.message.allowed_mentions.is_none() {
+        if fields.message.allowed_mentions.is_none() {
             if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                self.fields.message.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
+                fields.message.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
             }
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
         if !self.attachment_manager.is_empty() {
-            let form = if let Some(payload_json) = self.fields.message.payload_json {
+            let form = if let Some(payload_json) = fields.message.payload_json {
                 self.attachment_manager.build_form(payload_json)
             } else {
-                self.fields.message.attachments =
+                fields.message.attachments =
                     Some(self.attachment_manager.get_partial_attachments());
 
-                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
+                let fields = crate::json::to_vec(&fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };
 
             request = request.form(form);
-        } else if let Some(payload_json) = self.fields.message.payload_json {
+        } else if let Some(payload_json) = fields.message.payload_json {
             request = request.body(payload_json.to_vec());
         } else {
-            request = request.json(&self.fields)?;
+            request = request.json(&fields);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }

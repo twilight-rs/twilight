@@ -2,7 +2,7 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -20,6 +20,16 @@ use twilight_validate::command::{
     options as validate_options, CommandValidationError,
 };
 
+struct CreateGuildChatInputCommandFields<'a> {
+    default_member_permissions: Option<Permissions>,
+    description: &'a str,
+    description_localizations: Option<&'a HashMap<String, String>>,
+    name: &'a str,
+    name_localizations: Option<&'a HashMap<String, String>>,
+    nsfw: Option<bool>,
+    options: Option<&'a [CommandOption]>,
+}
+
 /// Create a chat input command in a guild.
 ///
 /// The description must be between 1 and 100 characters in length. Creating a
@@ -31,15 +41,9 @@ use twilight_validate::command::{
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChatInputCommand<'a> {
     application_id: Id<ApplicationMarker>,
-    default_member_permissions: Option<Permissions>,
-    description: &'a str,
-    description_localizations: Option<&'a HashMap<String, String>>,
+    fields: Result<CreateGuildChatInputCommandFields<'a>, CommandValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    name: &'a str,
-    nsfw: Option<bool>,
-    name_localizations: Option<&'a HashMap<String, String>>,
-    options: Option<&'a [CommandOption]>,
 }
 
 impl<'a> CreateGuildChatInputCommand<'a> {
@@ -49,23 +53,30 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         guild_id: Id<GuildMarker>,
         name: &'a str,
         description: &'a str,
-    ) -> Result<Self, CommandValidationError> {
-        validate_description(description)?;
-
-        validate_chat_input_name(name)?;
-
-        Ok(Self {
-            application_id,
+    ) -> Self {
+        let fields = Ok(CreateGuildChatInputCommandFields {
             default_member_permissions: None,
             description,
             description_localizations: None,
-            guild_id,
-            http,
             name,
             name_localizations: None,
             nsfw: None,
             options: None,
         })
+        .and_then(|fields| {
+            validate_description(description)?;
+
+            validate_chat_input_name(name)?;
+
+            Ok(fields)
+        });
+
+        Self {
+            application_id,
+            fields,
+            guild_id,
+            http,
+        }
     }
 
     /// Add a list of command options.
@@ -79,22 +90,25 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     /// provided.
     ///
     /// [`OptionsRequiredFirst`]: twilight_validate::command::CommandValidationErrorType::OptionsRequiredFirst
-    pub fn command_options(
-        mut self,
-        options: &'a [CommandOption],
-    ) -> Result<Self, CommandValidationError> {
-        validate_options(options)?;
+    pub fn command_options(mut self, options: &'a [CommandOption]) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_options(options)?;
 
-        self.options = Some(options);
+            fields.options = Some(options);
 
-        Ok(self)
+            Ok(fields)
+        });
+
+        self
     }
 
     /// Default permissions required for a member to run the command.
     ///
     /// Defaults to [`None`].
-    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
-        self.default_member_permissions = Some(default);
+    pub fn default_member_permissions(mut self, default: Permissions) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.default_member_permissions = Some(default);
+        }
 
         self
     }
@@ -109,17 +123,18 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     /// invalid.
     ///
     /// [`DescriptionInvalid`]: twilight_validate::command::CommandValidationErrorType::DescriptionInvalid
-    pub fn description_localizations(
-        mut self,
-        localizations: &'a HashMap<String, String>,
-    ) -> Result<Self, CommandValidationError> {
-        for description in localizations.values() {
-            validate_description(description)?;
-        }
+    pub fn description_localizations(mut self, localizations: &'a HashMap<String, String>) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            for description in localizations.values() {
+                validate_description(description)?;
+            }
 
-        self.description_localizations = Some(localizations);
+            fields.description_localizations = Some(localizations);
 
-        Ok(self)
+            Ok(fields)
+        });
+
+        self
     }
 
     /// Set the localization dictionary for the command name.
@@ -136,24 +151,27 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [`NameCharacterInvalid`]: twilight_validate::command::CommandValidationErrorType::NameCharacterInvalid
-    pub fn name_localizations(
-        mut self,
-        localizations: &'a HashMap<String, String>,
-    ) -> Result<Self, CommandValidationError> {
-        for name in localizations.values() {
-            validate_chat_input_name(name)?;
-        }
+    pub fn name_localizations(mut self, localizations: &'a HashMap<String, String>) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            for name in localizations.values() {
+                validate_chat_input_name(name)?;
+            }
 
-        self.name_localizations = Some(localizations);
+            fields.name_localizations = Some(localizations);
 
-        Ok(self)
+            Ok(fields)
+        });
+
+        self
     }
 
     /// Set whether the command is age-restricted.
     ///
     /// Defaults to not being specified, which uses Discord's default.
-    pub const fn nsfw(mut self, nsfw: bool) -> Self {
-        self.nsfw = Some(nsfw);
+    pub fn nsfw(mut self, nsfw: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.nsfw = Some(nsfw);
+        }
 
         self
     }
@@ -176,22 +194,24 @@ impl IntoFuture for CreateGuildChatInputCommand<'_> {
 
 impl TryIntoRequest for CreateGuildChatInputCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
-            default_member_permissions: self.default_member_permissions,
+            default_member_permissions: fields.default_member_permissions,
             dm_permission: None,
-            description: Some(self.description),
-            description_localizations: self.description_localizations,
+            description: Some(fields.description),
+            description_localizations: fields.description_localizations,
             kind: CommandType::ChatInput,
-            name: self.name,
-            name_localizations: self.name_localizations,
-            nsfw: self.nsfw,
-            options: self.options,
+            name: fields.name,
+            name_localizations: fields.name_localizations,
+            nsfw: fields.nsfw,
+            options: fields.options,
         })
-        .map(RequestBuilder::build)
+        .build()
     }
 }

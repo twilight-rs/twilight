@@ -68,12 +68,12 @@ impl IntoFuture for DeleteResponse<'_> {
 
 impl TryIntoRequest for DeleteResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::builder(&Route::DeleteInteractionOriginal {
+        Request::builder(&Route::DeleteInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,
         })
         .use_authorization_token(false)
-        .build())
+        .build()
     }
 }
 

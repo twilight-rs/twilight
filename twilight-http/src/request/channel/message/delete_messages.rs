@@ -32,9 +32,9 @@ struct DeleteMessagesFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteMessages<'a> {
     channel_id: Id<ChannelMarker>,
-    fields: DeleteMessagesFields<'a>,
+    fields: Result<DeleteMessagesFields<'a>, ChannelValidationError>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> DeleteMessages<'a> {
@@ -42,25 +42,27 @@ impl<'a> DeleteMessages<'a> {
         http: &'a Client,
         channel_id: Id<ChannelMarker>,
         messages: &'a [Id<MessageMarker>],
-    ) -> Result<Self, ChannelValidationError> {
-        validate_bulk_delete_messages(messages.len())?;
+    ) -> Self {
+        let fields = Ok(DeleteMessagesFields { messages }).and_then(|fields| {
+            validate_bulk_delete_messages(messages.len())?;
 
-        Ok(Self {
+            Ok(fields)
+        });
+
+        Self {
             channel_id,
-            fields: DeleteMessagesFields { messages },
+            fields,
             http,
-            reason: None,
-        })
+            reason: Ok(None),
+        }
     }
 }
 
 impl<'a> AuditLogReason<'a> for DeleteMessages<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -81,18 +83,16 @@ impl IntoFuture for DeleteMessages<'_> {
 
 impl TryIntoRequest for DeleteMessages<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::DeleteMessages {
             channel_id: self.channel_id.get(),
-        });
+        })
+        .json(&fields);
 
-        request = request.json(&self.fields)?;
-
-        if let Some(reason) = &self.reason {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }

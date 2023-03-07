@@ -12,7 +12,7 @@ use twilight_model::{
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,
-    scheduled_event_description as validate_scheduled_event_description, ValidationError,
+    scheduled_event_description as validate_scheduled_event_description,
 };
 
 /// Create a voice channel scheduled event in a guild.
@@ -20,22 +20,21 @@ use twilight_validate::request::{
 pub struct CreateGuildVoiceScheduledEvent<'a>(CreateGuildScheduledEvent<'a>);
 
 impl<'a> CreateGuildVoiceScheduledEvent<'a> {
-    pub(crate) const fn new(
-        inner: CreateGuildScheduledEvent<'a>,
+    pub(crate) fn new(
+        mut inner: CreateGuildScheduledEvent<'a>,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
     ) -> Self {
-        Self(CreateGuildScheduledEvent {
-            fields: CreateGuildScheduledEventFields {
-                channel_id: Some(channel_id),
-                entity_type: Some(EntityType::Voice),
-                name: Some(name),
-                scheduled_start_time: Some(scheduled_start_time),
-                ..inner.fields
-            },
-            ..inner
-        })
+        inner.fields = inner.fields.map(|fields| CreateGuildScheduledEventFields {
+            channel_id: Some(channel_id),
+            entity_type: Some(EntityType::Voice),
+            name: Some(name),
+            scheduled_start_time: Some(scheduled_start_time),
+            ..fields
+        });
+
+        Self(inner)
     }
 
     /// Set the description of the event.
@@ -48,12 +47,15 @@ impl<'a> CreateGuildVoiceScheduledEvent<'a> {
     /// description is invalid.
     ///
     /// [`ScheduledEventDescription`]: twilight_validate::request::ValidationErrorType::ScheduledEventDescription
-    pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
-        validate_scheduled_event_description(description)?;
+    pub fn description(mut self, description: &'a str) -> Self {
+        self.0.fields = self.0.fields.and_then(|mut fields| {
+            validate_scheduled_event_description(description)?;
+            fields.description.replace(description);
 
-        self.0.fields.description = Some(description);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Set the cover image of the event.
@@ -63,8 +65,12 @@ impl<'a> CreateGuildVoiceScheduledEvent<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn image(mut self, image: &'a str) -> Self {
-        self.0.fields.image = Some(image);
+    pub fn image(mut self, image: &'a str) -> Self {
+        self.0.fields = self.0.fields.map(|mut fields| {
+            fields.image = Some(image);
+
+            fields
+        });
 
         self
     }
@@ -72,20 +78,22 @@ impl<'a> CreateGuildVoiceScheduledEvent<'a> {
     /// Set the scheduled end time of the event.
     ///
     /// This is not a required field for voice channel events.
-    pub const fn scheduled_end_time(mut self, scheduled_end_time: &'a Timestamp) -> Self {
-        self.0.fields.scheduled_end_time = Some(scheduled_end_time);
+    pub fn scheduled_end_time(mut self, scheduled_end_time: &'a Timestamp) -> Self {
+        self.0.fields = self.0.fields.map(|mut fields| {
+            fields.scheduled_end_time = Some(scheduled_end_time);
+
+            fields
+        });
 
         self
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildVoiceScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.0.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.0.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 

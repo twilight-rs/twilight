@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
@@ -70,6 +70,6 @@ impl TryIntoRequest for SetGuildCommands<'_> {
             guild_id: self.guild_id.get(),
         })
         .json(&self.commands)
-        .map(RequestBuilder::build)
+        .build()
     }
 }

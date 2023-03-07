@@ -18,7 +18,7 @@ pub struct RemoveMember<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     user_id: Id<UserMarker>,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> RemoveMember<'a> {
@@ -31,18 +31,16 @@ impl<'a> RemoveMember<'a> {
             guild_id,
             http,
             user_id,
-            reason: None,
+            reason: Ok(None),
         }
     }
 }
 
 impl<'a> AuditLogReason<'a> for RemoveMember<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -68,12 +66,10 @@ impl TryIntoRequest for RemoveMember<'_> {
             user_id: self.user_id.get(),
         });
 
-        if let Some(reason) = self.reason.as_ref() {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }

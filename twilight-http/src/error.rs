@@ -37,6 +37,13 @@ impl Error {
             source: Some(Box::new(source)),
         }
     }
+
+    pub(super) fn validation(source: impl StdError + Send + Sync + 'static) -> Self {
+        Self {
+            kind: ErrorType::Validation,
+            source: Some(Box::new(source)),
+        }
+    }
 }
 
 impl Display for Error {
@@ -79,6 +86,7 @@ impl Display for Error {
             ErrorType::Unauthorized => {
                 f.write_str("token in use is invalid, expired, or is revoked")
             }
+            ErrorType::Validation => f.write_str("request fields have invalid values"),
         }
     }
 }
@@ -124,6 +132,7 @@ pub enum ErrorType {
     /// This can occur if a bot token is invalidated or an access token expires
     /// or is revoked. Recreate the client to configure a new token.
     Unauthorized,
+    Validation,
 }
 
 impl Debug for ErrorType {
@@ -171,6 +180,7 @@ impl Debug for ErrorType {
                 .field("response", response)
                 .finish(),
             Self::Unauthorized => f.write_str("Unauthorized"),
+            Self::Validation => f.write_str("Validation"),
         }
     }
 }

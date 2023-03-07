@@ -45,7 +45,7 @@ struct CreateGuildStickerFields<'a> {
 ///         &"sticker description",
 ///         &"sticker,tags",
 ///         &[23, 23, 23, 23],
-///     )?
+///     )
 ///     .await?
 ///     .model()
 ///     .await?;
@@ -54,10 +54,10 @@ struct CreateGuildStickerFields<'a> {
 /// # Ok(()) }
 /// ```
 pub struct CreateGuildSticker<'a> {
-    fields: CreateGuildStickerFields<'a>,
+    fields: Result<CreateGuildStickerFields<'a>, StickerValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateGuildSticker<'a> {
@@ -68,34 +68,35 @@ impl<'a> CreateGuildSticker<'a> {
         description: &'a str,
         tags: &'a str,
         file: &'a [u8],
-    ) -> Result<Self, StickerValidationError> {
-        validate_description(description)?;
+    ) -> Self {
+        let fields = Ok(CreateGuildStickerFields {
+            description,
+            file,
+            name,
+            tags,
+        })
+        .and_then(|fields| {
+            validate_description(description)?;
+            validate_name(name)?;
+            validate_tags(tags)?;
 
-        validate_name(name)?;
+            Ok(fields)
+        });
 
-        validate_tags(tags)?;
-
-        Ok(Self {
-            fields: CreateGuildStickerFields {
-                description,
-                file,
-                name,
-                tags,
-            },
+        Self {
+            fields,
             guild_id,
             http,
-            reason: None,
-        })
+            reason: Ok(None),
+        }
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -116,18 +117,19 @@ impl IntoFuture for CreateGuildSticker<'_> {
 
 impl TryIntoRequest for CreateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateGuildSticker {
             guild_id: self.guild_id.get(),
         });
 
         let form = Form::new()
-            .part(b"description", self.fields.description.as_bytes())
-            .part(b"file", self.fields.file)
-            .part(b"name", self.fields.name.as_bytes())
-            .part(b"tags", self.fields.tags.as_bytes());
+            .part(b"description", fields.description.as_bytes())
+            .part(b"file", fields.file)
+            .part(b"name", fields.name.as_bytes())
+            .part(b"tags", fields.tags.as_bytes());
 
         request = request.form(form);
 
-        Ok(request.build())
+        request.build()
     }
 }

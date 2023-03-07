@@ -13,7 +13,7 @@ use twilight_model::{
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,
-    scheduled_event_description as validate_scheduled_event_description, ValidationError,
+    scheduled_event_description as validate_scheduled_event_description,
 };
 
 /// Create an external scheduled event in a guild.
@@ -22,26 +22,25 @@ pub struct CreateGuildExternalScheduledEvent<'a>(CreateGuildScheduledEvent<'a>);
 
 #[allow(clippy::needless_pass_by_value)]
 impl<'a> CreateGuildExternalScheduledEvent<'a> {
-    pub(crate) const fn new(
-        inner: CreateGuildScheduledEvent<'a>,
+    pub(crate) fn new(
+        mut inner: CreateGuildScheduledEvent<'a>,
         name: &'a str,
         location: &'a str,
         scheduled_start_time: &'a Timestamp,
         scheduled_end_time: &'a Timestamp,
     ) -> Self {
-        Self(CreateGuildScheduledEvent {
-            fields: CreateGuildScheduledEventFields {
-                entity_type: Some(EntityType::External),
-                entity_metadata: Some(EntityMetadataFields {
-                    location: Some(location),
-                }),
-                name: Some(name),
-                scheduled_end_time: Some(scheduled_end_time),
-                scheduled_start_time: Some(scheduled_start_time),
-                ..inner.fields
-            },
-            ..inner
-        })
+        inner.fields = inner.fields.map(|fields| CreateGuildScheduledEventFields {
+            entity_type: Some(EntityType::External),
+            entity_metadata: Some(EntityMetadataFields {
+                location: Some(location),
+            }),
+            name: Some(name),
+            scheduled_end_time: Some(scheduled_end_time),
+            scheduled_start_time: Some(scheduled_start_time),
+            ..fields
+        });
+
+        Self(inner)
     }
 
     /// Set the description of the event.
@@ -54,12 +53,15 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     /// description is invalid.
     ///
     /// [`ScheduledEventDescription`]: twilight_validate::request::ValidationErrorType::ScheduledEventDescription
-    pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
-        validate_scheduled_event_description(description)?;
+    pub fn description(mut self, description: &'a str) -> Self {
+        self.0.fields = self.0.fields.and_then(|mut fields| {
+            validate_scheduled_event_description(description)?;
+            fields.description.replace(description);
 
-        self.0.fields.description = Some(description);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Set the cover image of the event.
@@ -69,20 +71,22 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn image(mut self, image: &'a str) -> Self {
-        self.0.fields.image = Some(image);
+    pub fn image(mut self, image: &'a str) -> Self {
+        self.0.fields = self.0.fields.map(|mut fields| {
+            fields.image = Some(image);
+
+            fields
+        });
 
         self
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildExternalScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.0.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.0.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 

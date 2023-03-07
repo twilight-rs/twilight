@@ -27,12 +27,12 @@ use serde::Serialize;
 /// ```
 #[derive(Debug)]
 #[must_use = "request has not been fully built"]
-pub struct RequestBuilder(Request);
+pub struct RequestBuilder(Result<Request, Error>);
 
 impl RequestBuilder {
     /// Create a new request builder.
     pub fn new(route: &Route<'_>) -> Self {
-        Self(Request::from_route(route))
+        Self(Ok(Request::from_route(route)))
     }
 
     /// Create a request with raw information about the method, ratelimiting
@@ -64,7 +64,7 @@ impl RequestBuilder {
     /// # Ok(()) }
     /// ```
     pub const fn raw(method: Method, ratelimit_path: Path, path_and_query: String) -> Self {
-        Self(Request {
+        Self(Ok(Request {
             body: None,
             form: None,
             headers: None,
@@ -72,19 +72,28 @@ impl RequestBuilder {
             path: path_and_query,
             ratelimit_path,
             use_authorization_token: true,
-        })
+        }))
     }
 
     /// Consume the builder, returning the built request.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`ErrorType::Json`] error type JSON input could not be
+    /// serialized.
+    ///
+    /// [`ErrorType::Json`]: crate::error::ErrorType::Json
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "request information is not useful on its own and must be acted on"]
-    pub fn build(self) -> Request {
+    pub fn build(self) -> Result<Request, Error> {
         self.0
     }
 
     /// Set the contents of the body.
     pub fn body(mut self, body: Vec<u8>) -> Self {
-        self.0.body = Some(body);
+        if let Ok(request) = self.0.as_mut() {
+            request.body = Some(body);
+        }
 
         self
     }
@@ -92,38 +101,42 @@ impl RequestBuilder {
     /// Set the multipart form.
     #[allow(clippy::missing_const_for_fn)]
     pub fn form(mut self, form: Form) -> Self {
-        self.0.form = Some(form);
+        if let Ok(request) = self.0.as_mut() {
+            request.form = Some(form);
+        }
 
         self
     }
 
     /// Set the headers to add.
     pub fn headers(mut self, iter: impl Iterator<Item = (HeaderName, HeaderValue)>) -> Self {
-        self.0.headers.replace(iter.collect());
+        if let Ok(request) = self.0.as_mut() {
+            request.headers.replace(iter.collect());
+        }
 
         self
     }
 
     /// Set the body, to be serialized as JSON.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`ErrorType::Json`] error type if the value could not be
-    /// serialized as JSON.
-    ///
-    /// [`ErrorType::Json`]: crate::error::ErrorType::Json
-    pub fn json(self, to: &impl Serialize) -> Result<Self, Error> {
-        let bytes = crate::json::to_vec(to).map_err(Error::json)?;
+    pub fn json(mut self, to: &impl Serialize) -> Self {
+        self.0 = self.0.and_then(|mut request| {
+            let bytes = crate::json::to_vec(to).map_err(Error::json)?;
+            request.body = Some(bytes);
 
-        Ok(self.body(bytes))
+            Ok(request)
+        });
+
+        self
     }
 
     /// Whether to use the client's authorization token in the request, if one
     /// is set.
     ///
     /// This is primarily useful for executing webhooks.
-    pub const fn use_authorization_token(mut self, use_authorization_token: bool) -> Self {
-        self.0.use_authorization_token = use_authorization_token;
+    pub fn use_authorization_token(mut self, use_authorization_token: bool) -> Self {
+        if let Ok(request) = self.0.as_mut() {
+            request.use_authorization_token = use_authorization_token;
+        }
 
         self
     }

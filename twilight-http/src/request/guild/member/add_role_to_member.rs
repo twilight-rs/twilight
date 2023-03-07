@@ -32,7 +32,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 ///
 /// client
 ///     .add_guild_member_role(guild_id, user_id, role_id)
-///     .reason("test")?
+///     .reason("test")
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -42,7 +42,7 @@ pub struct AddRoleToMember<'a> {
     http: &'a Client,
     role_id: Id<RoleMarker>,
     user_id: Id<UserMarker>,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> AddRoleToMember<'a> {
@@ -57,18 +57,16 @@ impl<'a> AddRoleToMember<'a> {
             http,
             role_id,
             user_id,
-            reason: None,
+            reason: Ok(None),
         }
     }
 }
 
 impl<'a> AuditLogReason<'a> for AddRoleToMember<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -95,12 +93,10 @@ impl TryIntoRequest for AddRoleToMember<'_> {
             user_id: self.user_id.get(),
         });
 
-        if let Some(reason) = self.reason.as_ref() {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }
