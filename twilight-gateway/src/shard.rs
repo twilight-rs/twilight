@@ -1089,7 +1089,7 @@ impl Shard {
                             let queue = self.config().queue().clone();
 
                             async move {
-                                queue.request([shard_id.number(), shard_id.total()]).await;
+                                queue.request(shard_id.number()).await;
                             }
                         }));
                     }

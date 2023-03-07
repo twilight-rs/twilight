@@ -1,113 +1,149 @@
-use super::{day_limiter::DayLimiter, Queue};
-use std::{fmt::Debug, future::Future, pin::Pin, sync::Arc, time::Duration};
-use tokio::{
+//! Queue for large bots.
+
+use super::{LocalQueue, Queue, WAIT_BETWEEN_REQUESTS};
+use std::{
+    error::Error,
+    future::Future,
+    pin::Pin,
     sync::{
-        mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
-        oneshot::{self, Sender},
+        atomic::{AtomicU16, Ordering},
+        Arc,
     },
-    time::sleep,
+    time::Duration,
+};
+use tokio::{
+    sync::{Mutex, RwLock},
+    time::{sleep, sleep_until, Instant},
 };
 use twilight_http::Client;
 
-/// Queue built for single-process groups of shards that require identifying via
-/// [Sharding for Large Bots].
+/// An implementation of [`Queue`] for large bots.
 ///
-/// Usage with other processes will cause inconsistencies between each process's
-/// ratelimit buckets. If using multiple processes for shard groups, then refer
-/// to the [module-level] documentation.
+/// Permits an `IDENTIFY` command every 5 seconds per bucket (`max_concurrency`)
+/// and accounts for the daily `IDENTIFY` limit.
 ///
-/// [Sharding for Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
+/// Calculates and recalculates the number of buckets on startup and when
+/// resetting the daily `IDENTIFY` limit.
+///
+/// Does not syncronozie across processes, refer to the [module-level]
+/// documentation for how to work around this.
+///
+/// Use [`LocalQueue`] if your `max_concurrency` is 1.
+///
 /// [module-level]: crate
+/// [`LocalQueue`]: crate::LocalQueue
 #[derive(Debug)]
 pub struct LargeBotQueue {
-    buckets: Vec<UnboundedSender<Sender<()>>>,
-    limiter: DayLimiter,
+    /// List of buckets.
+    buckets: RwLock<Vec<LocalQueue>>,
+    /// HTTP client.
+    client: Arc<Client>,
+    /// When the daily `IDENTIFY` limit will be reset.
+    reset_at: Mutex<Instant>,
+    /// Number of `IDENTIFY` commands remaining in the current day.
+    remaining: AtomicU16,
 }
 
 impl LargeBotQueue {
     /// Create a new large bot queue.
     ///
-    /// You must provide the number of buckets Discord requires your bot to
-    /// connect with.
+    /// Requests the [`GetGatewayAuthed`] endpoint on creation and once a day.
     ///
-    /// The number of buckets is provided via Discord as `max_concurrency`
-    /// which can be fetched with [`Client::gateway`].
-    pub async fn new(buckets: usize, http: Arc<Client>) -> Self {
-        let mut queues = Vec::with_capacity(buckets);
-        for _ in 0..buckets {
-            let (tx, rx) = unbounded_channel();
+    /// # Errors
+    ///
+    /// Errors if requesting the [`GetGatewayAuthed`] endpoint fails. Daily
+    /// request errors are logged, but ignored.
+    ///
+    /// [`GetGatewayAuthed`]: twilight_http::request::GetGatewayAuthed
+    pub async fn new(http: Arc<Client>) -> Result<Self, Box<dyn Error + Send + Sync + 'static>> {
+        let bot_info = http.gateway().authed().await?.model().await?;
+        let max_concurrency = bot_info.session_start_limit.max_concurrency;
+        let buckets = (0..max_concurrency)
+            .map(|_| LocalQueue::new())
+            .collect::<Vec<_>>();
 
-            tokio::spawn(waiter(rx));
+        let reset_after = Duration::from_millis(bot_info.session_start_limit.reset_after);
+        let remaining = AtomicU16::new(bot_info.session_start_limit.remaining);
 
-            queues.push(tx);
-        }
-
-        let limiter = DayLimiter::new(http).await.expect(
-            "Getting the first session limits failed, \
-             Is network connection available?",
-        );
-
-        // The level_enabled macro does not turn off with the dynamic
-        // tracing levels. It is made for the static_max_level_xxx features
-        // And will return false if you do not use those features of if
-        // You use the feature but then dynamically set a lower feature.
-        if tracing::level_enabled!(tracing::Level::INFO) {
-            let lock = limiter.0.lock().await;
-
-            tracing::info!(
-                "{}/{} identifies used before next reset in {:.2?}",
-                lock.current,
-                lock.total,
-                lock.next_reset
-            );
-        }
-
-        Self {
-            buckets: queues,
-            limiter,
-        }
+        Ok(Self {
+            buckets: RwLock::new(buckets),
+            client: http,
+            reset_at: Mutex::new(Instant::now() + reset_after),
+            remaining,
+        })
     }
-}
 
-async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
-    const DUR: Duration = Duration::from_secs(6);
-    while let Some(req) = rx.recv().await {
-        if let Err(source) = req.send(()) {
-            tracing::warn!("skipping, send failed with: {source:?}");
-        } else {
-            sleep(DUR).await;
+    /// Update the daily `IDENTIFY` limit.
+    ///
+    /// Decrements the remaining count and requests [`GetGatewayAuthed`] to
+    /// reset it count and re-creates the buckets if the count reaches zero.
+    async fn day_limit(&self) {
+        // Decrement the remaining count and check if it's zero.
+        let decrement_remaining = || {
+            self.remaining
+                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |x| {
+                    (x > 0).then_some(x - 1)
+                })
+        };
+
+        if let Ok(old) = decrement_remaining() {
+            tracing::debug!(remaining = old);
+            return;
         }
+        // Multiple tasks may queue here, first one to get the lock will reset
+        // the remaining count.
+        let mut reset_at = self.reset_at.lock().await;
+        if let Ok(old) = decrement_remaining() {
+            tracing::debug!(remaining = old);
+            return;
+        }
+        // Critical section, no new request is granted until the remaining count
+        // is reset.
+        sleep_until(*reset_at).await;
+        if let Ok(new) = Self::new(Arc::clone(&self.client)).await {
+            *reset_at = new.reset_at.into_inner();
+            let remaining = new.remaining.into_inner();
+            self.remaining.store(remaining, Ordering::Relaxed);
+
+            let mut buckets_guard = self.buckets.write().await;
+            let new_buckets = new.buckets.into_inner();
+            if buckets_guard.len() != new_buckets.len() {
+                tracing::info!(
+                    new = buckets_guard.len(),
+                    old = new_buckets.len(),
+                    "session start limit changed, re-creating buckets"
+                );
+
+                // Running concurrently offers no speed increase as it's limited
+                // by the slowest bucket.
+                for bucket in buckets_guard.iter() {
+                    bucket.tx.downgrade();
+                    bucket.notify_ready.notified().await;
+                }
+
+                // Wait an extra cycle in case a bucket just approved a request.
+                sleep(WAIT_BETWEEN_REQUESTS).await;
+
+                *buckets_guard = new_buckets;
+            }
+
+            tracing::debug!(limit = remaining, "rest daily identify limit");
+            return;
+        }
+
+        tracing::warn!("unable to get new session limits");
     }
 }
 
 impl Queue for LargeBotQueue {
-    /// Request to be able to identify with the gateway. This will place this
-    /// request behind all other requests, and the returned future will resolve
-    /// once the request has been completed.
-    fn request(&'_ self, shard_id: [u32; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
-        #[allow(clippy::cast_possible_truncation)]
-        let bucket = (shard_id[0] % (self.buckets.len() as u32)) as usize;
-        let (tx, rx) = oneshot::channel();
-
+    fn request(&self, shard_id: u32) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
         Box::pin(async move {
-            self.limiter.get().await;
-            if let Err(source) = self.buckets[bucket].send(tx) {
-                tracing::warn!("skipping, send failed with: {source:?}");
-                return;
-            }
+            self.day_limit().await;
 
-            tracing::info!("waiting for allowance on shard {}", shard_id[0]);
-
-            _ = rx.await;
+            let guard = self.buckets.read().await;
+            #[allow(clippy::cast_possible_truncation)]
+            let bucket = (shard_id % (guard.len() as u32)) as usize;
+            guard[bucket].request(shard_id).await;
         })
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{LargeBotQueue, Queue};
-    use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
-
-    assert_impl_all!(LargeBotQueue: Debug, Queue, Send, Sync);
 }
