@@ -83,23 +83,26 @@ impl CommandRatelimiter {
         }
 
         let new_deadline = self.instants[0];
-        if new_deadline != self.delay.deadline() {
-            tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
-            self.delay.as_mut().reset(new_deadline);
+        let is_deadline_different = new_deadline != self.delay.deadline();
+        let is_deadline_in_future = new_deadline > Instant::now();
+        match (is_deadline_different, is_deadline_in_future) {
+            (true, true) => {
+                tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
+                self.delay.as_mut().reset(new_deadline);
 
-            // Register waker.
-            _ = self.delay.as_mut().poll(cx);
+                // Register waker.
+                _ = self.delay.as_mut().poll(cx);
 
-            Poll::Pending
-        } else if new_deadline > Instant::now() {
-            // Spuriously polled.
-            Poll::Pending
-        } else {
-            let used_permits = (self.max() - self.available()).into();
-            self.instants.rotate_right(used_permits);
-            self.instants.truncate(used_permits);
+                Poll::Pending
+            }
+            (false, true) => Poll::Pending,
+            _ => {
+                let used_permits = (self.max() - self.available()).into();
+                self.instants.rotate_right(used_permits);
+                self.instants.truncate(used_permits);
 
-            Poll::Ready(())
+                Poll::Ready(())
+            }
         }
     }
 }
