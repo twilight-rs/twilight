@@ -89,9 +89,9 @@ pub enum Event {
     GuildUpdate(Box<GuildUpdate>),
     /// A guild integration was created.
     IntegrationCreate(Box<IntegrationCreate>),
-    /// A guild integration was updated.
-    IntegrationDelete(IntegrationDelete),
     /// A guild integration was deleted.
+    IntegrationDelete(IntegrationDelete),
+    /// A guild integration was updated.
     IntegrationUpdate(Box<IntegrationUpdate>),
     /// An interaction was invoked by a user.
     InteractionCreate(Box<InteractionCreate>),
