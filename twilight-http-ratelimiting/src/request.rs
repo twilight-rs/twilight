@@ -518,4 +518,13 @@ mod tests {
     }
 
     assert_impl_all!(Method: Clone, Copy, Debug, Eq, PartialEq);
+
+    #[test]
+    fn method_conversions() {
+        assert_eq!("DELETE", Method::Delete.name());
+        assert_eq!("GET", Method::Get.name());
+        assert_eq!("PATCH", Method::Patch.name());
+        assert_eq!("POST", Method::Post.name());
+        assert_eq!("PUT", Method::Put.name());
+    }
 }
