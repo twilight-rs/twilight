@@ -238,9 +238,11 @@ impl<'a> CreateMessage<'a> {
 
     /// Set the message's flags.
     ///
-    /// The only supported flag is [`SUPPRESS_EMBEDS`].
+    /// The only supported flags are [`SUPPRESS_EMBEDS`] and
+    /// [`SUPPRESS_NOTIFICATIONS`].
     ///
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
+    /// [`SUPPRESS_NOTIFICATIONS`]: MessageFlags::SUPPRESS_NOTIFICATIONS
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
         self.fields.flags = Some(flags);
 

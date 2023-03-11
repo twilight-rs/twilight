@@ -323,6 +323,7 @@ mod tests {
             kind: ChannelType::GuildText,
             last_message_id: None,
             last_pin_timestamp: None,
+            managed: None,
             member: None,
             member_count: None,
             message_count: None,
@@ -360,6 +361,7 @@ mod tests {
             kind: ChannelType::PublicThread,
             last_message_id: None,
             last_pin_timestamp: None,
+            managed: Some(true),
             member: Some(ThreadMember {
                 flags: 0,
                 id: Some(Id::new(1)),

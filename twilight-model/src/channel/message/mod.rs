@@ -1,5 +1,5 @@
 //! Textual user communication method.
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 pub mod component;
 pub mod embed;

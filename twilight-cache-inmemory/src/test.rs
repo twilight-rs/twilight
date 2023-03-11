@@ -246,6 +246,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         kind: ChannelType::GuildText,
         last_message_id: None,
         last_pin_timestamp: None,
+        managed: None,
         member: None,
         member_count: None,
         message_count: None,

@@ -18,8 +18,10 @@ use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 /// Any type of event that a shard emits.
 ///
-/// This brings together all of the types of [`DispatchEvent`] and
-/// [`GatewayEvent`].
+/// Flattened type containing all the variants of [`DispatchEvent`] and
+/// [`GatewayEvent`], along with a [gateway close event].
+///
+/// [gateway close event]: Self::GatewayClose
 #[derive(Clone, Debug, PartialEq)]
 pub enum Event {
     /// Message was blocked by AutoMod according to a rule.

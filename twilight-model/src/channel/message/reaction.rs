@@ -34,7 +34,10 @@ pub enum ReactionType {
         // example if the emoji have been deleted off the guild.
         name: Option<String>,
     },
-    /// Standard [Unicode] emoji.
+    /// Standard [Unicode] emoji value.
+    ///
+    /// Unicode reactions must be specified by their unicode value, and *not*
+    /// their Discord display name. Instead of using ":arrow_right:", use "➡️".
     ///
     /// [Unicode]: https://unicode.org/emoji/
     Unicode {
