@@ -2582,7 +2582,7 @@ impl Client {
         let url = format!("{protocol}://{host}/api/v{API_VERSION}/{path}");
         tracing::debug!(?url);
 
-        let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);
+        let mut builder = hyper::Request::builder().method(method.name()).uri(&url);
 
         if use_authorization_token {
             if let Some(token) = self.token.as_deref() {
