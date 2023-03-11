@@ -91,6 +91,27 @@ impl<T: Debug> Debug for Bystander<T> {
 ///
 /// To use a Standby instance in multiple tasks, consider wrapping it in an
 /// [`std::sync::Arc`] or [`std::rc::Rc`].
+///
+/// # Examples
+///
+/// ## Timeouts
+///
+/// Futures can be timed out by passing the future returned by Standby to
+/// functions such as [`tokio::time::timeout`]:
+///
+/// ```rust,no_run
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::time::Duration;
+/// use twilight_model::gateway::event::{Event, EventType};
+/// use twilight_standby::Standby;
+///
+/// let standby = Standby::new();
+/// let future = standby.wait_for_event(|event: &Event| event.kind() == EventType::Ready);
+/// let event = tokio::time::timeout(Duration::from_secs(1), future).await?;
+/// # Ok(()) }
+/// ```
+///
+/// [`tokio::time::timeout`]: https://docs.rs/tokio/latest/tokio/time/fn.timeout.html
 #[derive(Debug, Default)]
 pub struct Standby {
     /// List of component bystanders where the ID of the message is known
