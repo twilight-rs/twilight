@@ -205,6 +205,7 @@ impl ImageHash {
         let animated = Self::starts_with(value, ANIMATED_KEY.as_bytes());
 
         let mut seeking_idx = if animated { ANIMATED_KEY.len() } else { 0 };
+        // We start at the end because hashes are stored in little endian.
         let mut storage_idx = 15;
 
         if value.len() - seeking_idx != HASH_LEN {
