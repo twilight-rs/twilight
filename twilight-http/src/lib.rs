@@ -13,6 +13,7 @@ pub mod request;
 pub mod response;
 pub mod routing;
 
+mod http;
 mod json;
 
 /// Discord API version used by this crate.

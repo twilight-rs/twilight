@@ -1,11 +1,9 @@
 mod builder;
-mod connector;
 mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 use crate::{
-    client::connector::Connector,
     error::{Error, ErrorType},
     request::{
         channel::{
@@ -79,13 +77,9 @@ use crate::{
         Method, Request,
     },
     response::ResponseFuture,
-    API_VERSION,
+    API_VERSION, http::{RawRequestBuilder, HttpClient},
 };
-use hyper::{
-    client::Client as HyperClient,
-    header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
-    Body,
-};
+use http::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     ops::Deref,
@@ -223,7 +217,7 @@ impl Deref for Token {
 pub struct Client {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
-    http: HyperClient<Connector>,
+    http: HttpClient,
     proxy: Option<Box<str>>,
     ratelimiter: Option<Box<dyn Ratelimiter>>,
     timeout: Duration,
@@ -2578,7 +2572,7 @@ impl Client {
         let url = format!("{protocol}://{host}/api/v{API_VERSION}/{path}");
         tracing::debug!(?url);
 
-        let mut builder = hyper::Request::builder().method(method.name()).uri(&url);
+        let mut builder = RawRequestBuilder::new().method(method.to_http()).uri(&url)?;
 
         if use_authorization_token {
             if let Some(token) = self.token.as_deref() {
@@ -2612,7 +2606,7 @@ impl Client {
 
             #[cfg(feature = "decompression")]
             headers.insert(
-                hyper::header::ACCEPT_ENCODING,
+                http::header::ACCEPT_ENCODING,
                 HeaderValue::from_static("br"),
             );
 
@@ -2634,17 +2628,22 @@ impl Client {
         }
 
         let try_req = if let Some(form) = form {
-            builder.body(Body::from(form.build()))
+            builder.body(form.build())
         } else if let Some(bytes) = body {
-            builder.body(Body::from(bytes))
+            builder.body(bytes)
         } else {
-            builder.body(Body::empty())
+            builder.body(Vec::new())
         };
 
-        let inner = self.http.request(try_req.map_err(|source| Error {
+        let inner = self.http.request(try_req.build().map_err(|source| Error {
             kind: ErrorType::BuildingRequest,
-            source: Some(Box::new(source)),
+            source: None,
         })?);
+
+        // let inner = self.http.request(try_req.build().map_err(|source| Error {
+        //     kind: ErrorType::BuildingRequest,
+        //     source: Some(Box::new(source)),
+        // })?);
 
         // For requests that don't use an authorization token we don't need to
         // remember whether the token is invalid. This may be for requests such

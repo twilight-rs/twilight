@@ -50,14 +50,13 @@ pub(crate) mod future;
 
 mod status_code;
 
+use crate::http::RawResponse;
+
 pub use self::{future::ResponseFuture, status_code::StatusCode};
 
 use self::marker::ListBody;
-use hyper::{
-    body::{self, Bytes},
-    header::{HeaderValue, Iter as HeaderMapIter},
-    Body, Response as HyperResponse,
-};
+use bytes::Bytes;
+use http::header::{HeaderValue, Iter as HeaderMapIter};
 use serde::de::DeserializeOwned;
 use std::{
     error::Error,
@@ -174,12 +173,13 @@ pub enum DeserializeBodyErrorType {
 /// ```
 #[derive(Debug)]
 pub struct Response<T> {
-    inner: HyperResponse<Body>,
+    //inner: HyperResponse<Body>,
+    inner: RawResponse,
     phantom: PhantomData<T>,
 }
 
 impl<T> Response<T> {
-    pub(crate) const fn new(inner: HyperResponse<Body>) -> Self {
+    pub(crate) const fn new(inner: RawResponse) -> Self {
         Self {
             inner,
             phantom: PhantomData,
@@ -195,11 +195,7 @@ impl<T> Response<T> {
     /// Status code of the response.
     #[must_use = "retrieving the status code has no use on its own"]
     pub fn status(&self) -> StatusCode {
-        // Convert the `hyper` status code into its raw form in order to return
-        // our own.
-        let raw = self.inner.status().as_u16();
-
-        StatusCode::new(raw)
+        self.inner.status()
     }
 
     /// Consume the response and accumulate the chunked body into bytes.
@@ -233,6 +229,7 @@ impl<T> Response<T> {
     ///
     /// [`text`]: Self::text
     pub fn bytes(self) -> BytesFuture {
+        // todo(erk): move this to RawResponse::bytes
         #[cfg(feature = "decompression")]
         let compressed = self
             .inner
@@ -240,27 +237,10 @@ impl<T> Response<T> {
             .get(hyper::header::CONTENT_ENCODING)
             .is_some();
 
-        let body = self.inner.into_body();
+        #[cfg(not(feature = "decompression"))]
+        let compressed = false;
 
-        let fut = async move {
-            {
-                #[cfg(feature = "decompression")]
-                if compressed {
-                    return decompress(body).await;
-                }
-
-                body::to_bytes(body)
-                    .await
-                    .map_err(|source| DeserializeBodyError {
-                        kind: DeserializeBodyErrorType::Chunking,
-                        source: Some(Box::new(source)),
-                    })
-            }
-        };
-
-        BytesFuture {
-            inner: Box::pin(fut),
-        }
+        self.inner.bytes(compressed)
     }
 
     /// Consume the response and accumulate the body into a string.
@@ -440,6 +420,48 @@ pub struct BytesFuture {
         Pin<Box<dyn Future<Output = Result<Bytes, DeserializeBodyError>> + Send + Sync + 'static>>,
 }
 
+impl BytesFuture {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn from_hyper(body: hyper::Body, compressed: bool) -> Self {
+        let fut = async move {
+            {
+                #[cfg(feature = "decompression")]
+                if compressed {
+                    return decompress(body).await;
+                }
+
+                hyper::body::to_bytes(body)
+                    .await
+                    .map_err(|source| DeserializeBodyError {
+                        kind: DeserializeBodyErrorType::Chunking,
+                        source: Some(Box::new(source)),
+                    })
+            }
+        };
+
+        BytesFuture {
+            inner: Box::pin(fut),
+        }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn from_reqwest(response: reqwest::Response) -> Self {
+        let fut = async move {
+            response
+                .bytes()
+                .await
+                .map_err(|source| DeserializeBodyError {
+                    kind: DeserializeBodyErrorType::Chunking,
+                    source: Some(Box::new(source)),
+                })
+        };
+
+        BytesFuture {
+            inner: Box::pin(fut),
+        }
+    }
+}
+
 impl Future for BytesFuture {
     type Output = Result<Vec<u8>, DeserializeBodyError>;
 
@@ -574,13 +596,13 @@ impl Future for TextFuture {
     }
 }
 
-#[cfg(feature = "decompression")]
-async fn decompress(body: Body) -> Result<Bytes, DeserializeBodyError> {
+#[cfg(all(feature = "decompression", feature = "hyper"))]
+async fn decompress(body: hyper::Body) -> Result<Bytes, DeserializeBodyError> {
     use brotli::Decompressor;
     use hyper::body::Buf;
     use std::io::Read;
 
-    let aggregate = body::aggregate(body)
+    let aggregate = hyper::body::aggregate(body)
         .await
         .map_err(|source| DeserializeBodyError {
             kind: DeserializeBodyErrorType::Chunking,
