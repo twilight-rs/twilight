@@ -145,11 +145,11 @@ impl<'a> UpdateFollowup<'a> {
         if self.fields.is_ok() {
             if let Err(source) = attachments.iter().try_for_each(validate_attachment) {
                 self.fields = Err(source);
+            } else {
+                self.attachment_manager = self
+                    .attachment_manager
+                    .set_files(attachments.iter().collect());
             }
-
-            self.attachment_manager = self
-                .attachment_manager
-                .set_files(attachments.iter().collect());
         }
 
         self
