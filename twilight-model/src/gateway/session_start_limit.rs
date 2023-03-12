@@ -1,13 +1,19 @@
 use serde::{Deserialize, Serialize};
 
 /// Current gateway session utilization status.
+/// 
+/// Most bots have a `max_concurrency` of 1 and a `total` of 1000, but this is
+/// increased for those with large bot sharding (in more than 150,000 guilds).
+/// See [Discord Docs/Sharding for Large Bots].
+/// 
+/// [Discord Docs/Sharding for Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-large-bots
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct SessionStartLimit {
     /// Maximum number of session that may be started concurrently.
     pub max_concurrency: u8,
     /// Number of remaining sessions for a given time period.
     ///
-    /// Max 1999.
+    /// Max 2000.
     pub remaining: u16,
     /// Milliseconds until `remaining` resets back to `total`.
     pub reset_after: u64,
