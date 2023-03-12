@@ -99,7 +99,7 @@ impl DayLimiter {
             if let Ok(res) = lock.http.gateway().authed().await {
                 if let Ok(info) = res.model().await {
                     let last_check = Instant::now();
-                    let next_reset = Duration::from_millis(info.session_start_limit.remaining);
+                    let next_reset = Duration::from_millis(info.session_start_limit.reset_after);
 
                     tracing::info!("next session start limit reset in: {next_reset:.2?}");
 
