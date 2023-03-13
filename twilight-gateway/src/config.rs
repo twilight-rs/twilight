@@ -255,7 +255,7 @@ impl ConfigBuilder {
     ///
     /// When reusing an existing config to share its TLS context, this allows
     /// for overriding shards' intents.
-    pub fn intents(mut self, intents: Intents) -> Self {
+    pub const fn intents(mut self, intents: Intents) -> Self {
         self.inner.intents = intents;
 
         self
