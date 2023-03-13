@@ -251,6 +251,16 @@ impl ConfigBuilder {
         self
     }
 
+    /// Override the intents to use when identifying with the gateway.
+    ///
+    /// When reusing an existing config to share its TLS context, this allows
+    /// for overriding shards' intents.
+    pub fn intents(mut self, intents: Intents) -> Self {
+        self.inner.intents = intents;
+
+        self
+    }
+
     /// Set the maximum number of members in a guild to load the member list.
     ///
     /// Default value is `50`. The minimum value is `50` and the maximum is
@@ -382,6 +392,20 @@ impl ConfigBuilder {
     #[allow(clippy::missing_const_for_fn)]
     pub fn session(mut self, session: Session) -> Self {
         self.inner.session = Some(session);
+
+        self
+    }
+
+    /// Override the token to use when identifying with the gateway.
+    ///
+    /// When reusing an existing config to share its TLS context, this allows
+    /// for overriding shards' intents.
+    pub fn token(mut self, mut token: String) -> Self {
+        if !token.starts_with("Bot ") {
+            token.insert_str(0, "Bot ");
+        }
+
+        self.inner.token = Token::new(token.into_boxed_str());
 
         self
     }
