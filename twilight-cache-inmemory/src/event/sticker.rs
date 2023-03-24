@@ -1,14 +1,52 @@
-use crate::{
-    config::ResourceType, model::CachedSticker, GuildResource, InMemoryCache, UpdateCache,
-};
 use std::{borrow::Cow, collections::HashSet};
+
+use crate::{
+    config::ResourceType,
+    traits::{
+        CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
+        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
+        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
+        CacheableVoiceState,
+    },
+    GuildResource, InMemoryCache, UpdateCache,
+};
 use twilight_model::{
-    channel::message::sticker::Sticker,
+    channel::message::Sticker,
     gateway::payload::incoming::GuildStickersUpdate,
     id::{marker::GuildMarker, Id},
 };
 
-impl InMemoryCache {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    InMemoryCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    >
+{
     pub(crate) fn cache_stickers(&self, guild_id: Id<GuildMarker>, stickers: Vec<Sticker>) {
         if let Some(mut guild_stickers) = self.guild_stickers.get_mut(&guild_id) {
             let incoming_sticker_ids = stickers
@@ -50,10 +88,10 @@ impl InMemoryCache {
         }
 
         let sticker_id = sticker.id;
-        let cached = CachedSticker::from_model(sticker);
+        let cached = CachedSticker::from(sticker);
 
         self.stickers.insert(
-            cached.id,
+            cached.id(),
             GuildResource {
                 guild_id,
                 value: cached,
@@ -67,8 +105,55 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for GuildStickersUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    UpdateCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > for GuildStickersUpdate
+{
+    fn update(
+        &self,
+        cache: &InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) {
         if !cache.wants(ResourceType::STICKER) {
             return;
         }

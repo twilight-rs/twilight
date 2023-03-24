@@ -1,4 +1,13 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{
+    config::ResourceType,
+    traits::{
+        CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
+        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
+        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
+        CacheableVoiceState,
+    },
+    InMemoryCache, UpdateCache,
+};
 use twilight_model::{
     channel::message::{Reaction, ReactionCountDetails, ReactionType},
     gateway::payload::incoming::{
@@ -6,8 +15,55 @@ use twilight_model::{
     },
 };
 
-impl UpdateCache for ReactionAdd {
-    fn update(&self, cache: &InMemoryCache) {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    UpdateCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > for ReactionAdd
+{
+    fn update(
+        &self,
+        cache: &InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) {
         if !cache.wants(ResourceType::REACTION) {
             return;
         }
@@ -19,13 +75,13 @@ impl UpdateCache for ReactionAdd {
         };
 
         if let Some(reaction) = message
-            .reactions
+            .reactions_mut()
             .iter_mut()
             .find(|r| reactions_eq(&r.emoji, &self.0.emoji))
         {
             if !reaction.me {
                 if let Some(current_user) = cache.current_user() {
-                    if current_user.id == self.0.user_id {
+                    if current_user.id() == self.0.user_id {
                         reaction.me = true;
                     }
                 }
@@ -35,10 +91,10 @@ impl UpdateCache for ReactionAdd {
         } else {
             let me = cache
                 .current_user()
-                .map(|user| user.id == self.0.user_id)
+                .map(|user| user.id() == self.0.user_id)
                 .unwrap_or_default();
 
-            message.reactions.push(Reaction {
+            message.add_reaction(Reaction {
                 burst_colors: Vec::new(),
                 count: 1,
                 count_details: ReactionCountDetails {
@@ -53,8 +109,55 @@ impl UpdateCache for ReactionAdd {
     }
 }
 
-impl UpdateCache for ReactionRemove {
-    fn update(&self, cache: &InMemoryCache) {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    UpdateCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > for ReactionRemove
+{
+    fn update(
+        &self,
+        cache: &InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) {
         if !cache.wants(ResourceType::REACTION) {
             return;
         }
@@ -64,13 +167,13 @@ impl UpdateCache for ReactionRemove {
         };
 
         if let Some(reaction) = message
-            .reactions
+            .reactions_mut()
             .iter_mut()
             .find(|r| reactions_eq(&r.emoji, &self.0.emoji))
         {
             if reaction.me {
                 if let Some(current_user) = cache.current_user() {
-                    if current_user.id == self.0.user_id {
+                    if current_user.id() == self.0.user_id {
                         reaction.me = false;
                     }
                 }
@@ -79,16 +182,61 @@ impl UpdateCache for ReactionRemove {
             if reaction.count > 1 {
                 reaction.count -= 1;
             } else {
-                message
-                    .reactions
-                    .retain(|e| !(reactions_eq(&e.emoji, &self.0.emoji)));
+                message.retain_reactions(|e| !(reactions_eq(&e.emoji, &self.0.emoji)));
             }
         }
     }
 }
 
-impl UpdateCache for ReactionRemoveAll {
-    fn update(&self, cache: &InMemoryCache) {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    UpdateCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > for ReactionRemoveAll
+{
+    fn update(
+        &self,
+        cache: &InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) {
         if !cache.wants(ResourceType::REACTION) {
             return;
         }
@@ -97,12 +245,59 @@ impl UpdateCache for ReactionRemoveAll {
             return;
         };
 
-        message.reactions.clear();
+        message.clear_reactions();
     }
 }
 
-impl UpdateCache for ReactionRemoveEmoji {
-    fn update(&self, cache: &InMemoryCache) {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    UpdateCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > for ReactionRemoveEmoji
+{
+    fn update(
+        &self,
+        cache: &InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) {
         if !cache.wants(ResourceType::REACTION) {
             return;
         }
@@ -112,12 +307,12 @@ impl UpdateCache for ReactionRemoveEmoji {
         };
 
         let maybe_index = message
-            .reactions
+            .reactions()
             .iter()
             .position(|r| reactions_eq(&r.emoji, &self.emoji));
 
         if let Some(index) = maybe_index {
-            message.reactions.remove(index);
+            message.remove_reaction(index);
         }
     }
 }

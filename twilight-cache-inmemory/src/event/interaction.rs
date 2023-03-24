@@ -1,11 +1,67 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{
+    config::ResourceType,
+    traits::{
+        CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
+        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
+        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
+        CacheableVoiceState,
+    },
+    InMemoryCache, UpdateCache,
+};
 use std::borrow::Cow;
 use twilight_model::{
     application::interaction::InteractionData, gateway::payload::incoming::InteractionCreate,
 };
 
-impl UpdateCache for InteractionCreate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    UpdateCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > for InteractionCreate
+{
+    fn update(
+        &self,
+        cache: &InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) {
         // Cache interaction member
         if cache.wants(ResourceType::MEMBER) {
             if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
@@ -59,7 +115,7 @@ impl UpdateCache for InteractionCreate {
 
 #[cfg(test)]
 mod tests {
-    use crate::InMemoryCache;
+    use crate::DefaultInMemoryCache;
     use std::collections::HashMap;
     use twilight_model::{
         application::{
@@ -92,7 +148,7 @@ mod tests {
         let avatar3 = ImageHash::parse(b"5e23c298295ad37936cfe24ad314774f")?;
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         cache.update(&InteractionCreate(Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),

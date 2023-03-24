@@ -10,6 +10,11 @@ mod sticker;
 mod voice_state;
 
 pub use self::{
-    emoji::CachedEmoji, guild::CachedGuild, member::CachedMember, message::CachedMessage,
-    presence::CachedPresence, sticker::CachedSticker, voice_state::CachedVoiceState,
+    emoji::CachedEmoji,
+    guild::CachedGuild,
+    member::{CachedMember, ComputedInteractionMemberFields},
+    message::CachedMessage,
+    presence::CachedPresence,
+    sticker::CachedSticker,
+    voice_state::CachedVoiceState,
 };

@@ -7,6 +7,8 @@ use twilight_model::{
     },
 };
 
+use crate::CacheablePresence;
+
 /// Represents a cached [`Presence`].
 ///
 /// [`Presence`]: twilight_model::gateway::presence::Presence
@@ -44,10 +46,10 @@ impl CachedPresence {
     pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
     }
+}
 
-    /// Construct a cached presence from its [`twilight_model`] form.
-    #[allow(clippy::missing_const_for_fn)]
-    pub(crate) fn from_model(presence: Presence) -> Self {
+impl From<Presence> for CachedPresence {
+    fn from(presence: Presence) -> Self {
         let Presence {
             activities,
             client_status,
@@ -76,11 +78,7 @@ impl PartialEq<Presence> for CachedPresence {
     }
 }
 
-impl From<Presence> for CachedPresence {
-    fn from(presence: Presence) -> Self {
-        Self::from_model(presence)
-    }
-}
+impl CacheablePresence for CachedPresence {}
 
 #[cfg(test)]
 mod tests {

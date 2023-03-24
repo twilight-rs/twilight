@@ -1,4 +1,13 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{
+    config::ResourceType,
+    traits::{
+        CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
+        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
+        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
+        CacheableVoiceState,
+    },
+    InMemoryCache, UpdateCache,
+};
 use twilight_model::{
     gateway::payload::incoming::{IntegrationCreate, IntegrationDelete, IntegrationUpdate},
     guild::GuildIntegration,
@@ -8,7 +17,37 @@ use twilight_model::{
     },
 };
 
-impl InMemoryCache {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    InMemoryCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    >
+{
     fn cache_integration(&self, guild_id: Id<GuildMarker>, integration: GuildIntegration) {
         self.guild_integrations
             .entry(guild_id)
@@ -19,7 +58,7 @@ impl InMemoryCache {
             &self.integrations,
             guild_id,
             (guild_id, integration.id),
-            integration,
+            CachedGuildIntegration::from(integration),
         );
     }
 
@@ -36,8 +75,55 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for IntegrationCreate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    UpdateCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > for IntegrationCreate
+{
+    fn update(
+        &self,
+        cache: &InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) {
         if !cache.wants(ResourceType::INTEGRATION) {
             return;
         }
@@ -47,14 +133,61 @@ impl UpdateCache for IntegrationCreate {
                 &cache.integrations,
                 guild_id,
                 (guild_id, self.id),
-                self.0.clone(),
+                CachedGuildIntegration::from(self.0.clone()),
             );
         }
     }
 }
 
-impl UpdateCache for IntegrationDelete {
-    fn update(&self, cache: &InMemoryCache) {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    UpdateCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > for IntegrationDelete
+{
+    fn update(
+        &self,
+        cache: &InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) {
         if !cache.wants(ResourceType::INTEGRATION) {
             return;
         }
@@ -63,8 +196,55 @@ impl UpdateCache for IntegrationDelete {
     }
 }
 
-impl UpdateCache for IntegrationUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    UpdateCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > for IntegrationUpdate
+{
+    fn update(
+        &self,
+        cache: &InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) {
         if !cache.wants(ResourceType::INTEGRATION) {
             return;
         }

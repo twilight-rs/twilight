@@ -34,7 +34,7 @@ Update a cache with events that come in through the gateway:
 
 ```rust,no_run
 use std::{env, error::Error};
-use twilight_cache_inmemory::InMemoryCache;
+use twilight_cache_inmemory::DefaultInMemoryCache;
 use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 
 #[tokio::main]
@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILD_MESSAGES);
 
     // Create a cache, caching up to 10 messages per channel:
-    let cache = InMemoryCache::builder().message_cache_size(10).build();
+    let cache = DefaultInMemoryCache::builder().message_cache_size(10).build();
 
     while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
         let Ok(event) = item else {

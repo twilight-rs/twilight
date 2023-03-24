@@ -47,9 +47,8 @@ in from a channel:
 
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
-use twilight_cache_inmemory::{InMemoryCache, ResourceType};
+use twilight_cache_inmemory::{DefaultInMemoryCache, ResourceType};
 use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
-
 use twilight_http::Client as HttpClient;
 
 #[tokio::main]
@@ -68,7 +67,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let http = Arc::new(HttpClient::new(token));
 
     // Since we only care about messages, make the cache only process messages.
-    let cache = InMemoryCache::builder()
+    let cache = DefaultInMemoryCache::builder()
         .resource_types(ResourceType::MESSAGE)
         .build();
 

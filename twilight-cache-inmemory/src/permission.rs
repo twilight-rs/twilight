@@ -12,11 +12,11 @@
 //! their required [`ResourceType`]s like so:
 //!
 //! ```
-//! use twilight_cache_inmemory::{InMemoryCache, ResourceType};
+//! use twilight_cache_inmemory::{DefaultInMemoryCache, ResourceType};
 //!
 //! let resource_types = ResourceType::CHANNEL | ResourceType::MEMBER | ResourceType::ROLE;
 //!
-//! let cache = InMemoryCache::builder()
+//! let cache = DefaultInMemoryCache::builder()
 //!     .resource_types(resource_types)
 //!     .build();
 //! ```
@@ -36,19 +36,28 @@
 //! [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
 
 use super::InMemoryCache;
-use crate::model::member::CachedMember;
+use crate::{
+    model,
+    traits::{
+        CacheableChannel, CacheableGuild, CacheableMember, CacheableMessage, CacheableRole,
+        CacheableVoiceState,
+    },
+    CacheableCurrentUser, CacheableEmoji, CacheableGuildIntegration, CacheablePresence,
+    CacheableStageInstance, CacheableSticker, CacheableUser,
+};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     time::{Duration, SystemTime},
 };
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
-    guild::Permissions,
+    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, StageInstance},
+    guild::{GuildIntegration, Permissions, Role},
     id::{
         marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
         Id,
     },
+    user::{CurrentUser, User},
 };
 use twilight_util::permission_calculator::PermissionCalculator;
 
@@ -58,7 +67,7 @@ use twilight_util::permission_calculator::PermissionCalculator;
 /// Refer to the [module level] documentation for more information on how
 /// disabled member communication is calculated.
 ///
-/// [communication has been disabled]: CachedMember::communication_disabled_until
+/// [communication has been disabled]: crate::MemberInterface::communication_disabled_until
 /// [module level]: crate::permission
 pub const MEMBER_COMMUNICATION_DISABLED_ALLOWLIST: Permissions = Permissions::from_bits_truncate(
     Permissions::READ_MESSAGE_HISTORY.bits() | Permissions::VIEW_CHANNEL.bits(),
@@ -295,15 +304,94 @@ struct MemberRoles {
 }
 
 /// Calculate the permissions of a member with information from the cache.
+#[allow(clippy::type_complexity)]
 #[derive(Clone, Debug)]
 #[must_use = "has no effect if unused"]
-pub struct InMemoryCachePermissions<'a> {
-    cache: &'a InMemoryCache,
+pub struct InMemoryCachePermissions<
+    'a,
+    CachedChannel: CacheableChannel = Channel,
+    CachedCurrentUser: CacheableCurrentUser = CurrentUser,
+    CachedEmoji: CacheableEmoji = model::CachedEmoji,
+    CachedGuild: CacheableGuild = model::CachedGuild,
+    CachedGuildIntegration: CacheableGuildIntegration = GuildIntegration,
+    CachedMember: CacheableMember = model::CachedMember,
+    CachedMessage: CacheableMessage = model::CachedMessage,
+    CachedPresence: CacheablePresence = model::CachedPresence,
+    CachedRole: CacheableRole = Role,
+    CachedStageInstance: CacheableStageInstance = StageInstance,
+    CachedSticker: CacheableSticker = model::CachedSticker,
+    CachedUser: CacheableUser = User,
+    CachedVoiceState: CacheableVoiceState = model::CachedVoiceState,
+> {
+    cache: &'a InMemoryCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    >,
     check_member_communication_disabled: bool,
 }
 
-impl<'a> InMemoryCachePermissions<'a> {
-    pub(super) const fn new(cache: &'a InMemoryCache) -> Self {
+impl<
+        'a,
+        CachedChannel: CacheableChannel,
+        CachedCurrentUser: CacheableCurrentUser,
+        CachedEmoji: CacheableEmoji,
+        CachedGuild: CacheableGuild,
+        CachedGuildIntegration: CacheableGuildIntegration,
+        CachedMember: CacheableMember,
+        CachedMessage: CacheableMessage,
+        CachedPresence: CacheablePresence,
+        CachedRole: CacheableRole,
+        CachedStageInstance: CacheableStageInstance,
+        CachedSticker: CacheableSticker,
+        CachedUser: CacheableUser,
+        CachedVoiceState: CacheableVoiceState,
+    >
+    InMemoryCachePermissions<
+        'a,
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    >
+{
+    #[allow(clippy::type_complexity)]
+    pub(super) const fn new(
+        cache: &'a InMemoryCache<
+            CachedChannel,
+            CachedCurrentUser,
+            CachedEmoji,
+            CachedGuild,
+            CachedGuildIntegration,
+            CachedMember,
+            CachedMessage,
+            CachedPresence,
+            CachedRole,
+            CachedStageInstance,
+            CachedSticker,
+            CachedUser,
+            CachedVoiceState,
+        >,
+    ) -> Self {
         Self {
             cache,
             check_member_communication_disabled: true,
@@ -311,13 +399,47 @@ impl<'a> InMemoryCachePermissions<'a> {
     }
 
     /// Immutable reference to the underlying cache.
-    pub const fn cache_ref(&'a self) -> &'a InMemoryCache {
+    #[allow(clippy::type_complexity)]
+    pub const fn cache_ref(
+        &'a self,
+    ) -> &'a InMemoryCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > {
         self.cache
     }
 
     /// Consume the statistics interface, returning the underlying cache
     /// reference.
-    pub const fn into_cache(self) -> &'a InMemoryCache {
+    #[allow(clippy::type_complexity)]
+    pub const fn into_cache(
+        self,
+    ) -> &'a InMemoryCache<
+        CachedChannel,
+        CachedCurrentUser,
+        CachedEmoji,
+        CachedGuild,
+        CachedGuildIntegration,
+        CachedMember,
+        CachedMessage,
+        CachedPresence,
+        CachedRole,
+        CachedStageInstance,
+        CachedSticker,
+        CachedUser,
+        CachedVoiceState,
+    > {
         self.cache
     }
 
@@ -327,7 +449,7 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// Defaults to being enabled.
     ///
-    /// [field]: CachedMember::communication_disabled_until
+    /// [field]: crate::MemberInterface::communication_disabled_until
     /// [module level]: crate::permission
     pub const fn check_member_communication_disabled(
         mut self,
@@ -356,10 +478,10 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use twilight_cache_inmemory::InMemoryCache;
+    /// use twilight_cache_inmemory::DefaultInMemoryCache;
     /// use twilight_model::id::Id;
     ///
-    /// let cache = InMemoryCache::new();
+    /// let cache = DefaultInMemoryCache::new();
     ///
     /// // later on...
     ///
@@ -387,7 +509,7 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
     /// [`ResourceType`]: crate::ResourceType
-    /// [communication has been disabled]: CachedMember::communication_disabled_until
+    /// [communication has been disabled]: crate::MemberInterface::communication_disabled_until
     /// [module level]: crate::permission
     /// [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
     pub fn in_channel(
@@ -400,7 +522,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             source: None,
         })?;
 
-        let guild_id = channel.guild_id.ok_or(ChannelError {
+        let guild_id = channel.guild_id().ok_or(ChannelError {
             kind: ChannelErrorType::ChannelNotInGuild { channel_id },
             source: None,
         })?;
@@ -418,17 +540,17 @@ impl<'a> InMemoryCachePermissions<'a> {
             .member_roles(guild_id, &member)
             .map_err(ChannelError::from_member_roles)?;
 
-        let overwrites = match channel.kind {
+        let overwrites = match channel.kind() {
             ChannelType::AnnouncementThread
             | ChannelType::PrivateThread
             | ChannelType::PublicThread => self.parent_overwrites(&channel)?,
-            _ => channel.permission_overwrites.clone().unwrap_or_default(),
+            _ => channel.permission_overwrites().unwrap_or_default().to_vec(),
         };
 
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
-        let permissions = calculator.in_channel(channel.kind, overwrites.as_slice());
+        let permissions = calculator.in_channel(channel.kind(), overwrites.as_slice());
 
         Ok(self.disable_member_communication(&member, permissions))
     }
@@ -450,10 +572,10 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use twilight_cache_inmemory::InMemoryCache;
+    /// use twilight_cache_inmemory::DefaultInMemoryCache;
     /// use twilight_model::id::Id;
     ///
-    /// let cache = InMemoryCache::new();
+    /// let cache = DefaultInMemoryCache::new();
     ///
     /// // later on...
     ///
@@ -477,7 +599,7 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
     /// [`ResourceType`]: crate::ResourceType
-    /// [communication has been disabled]: CachedMember::communication_disabled_until
+    /// [communication has been disabled]: crate::MemberInterface::communication_disabled_until
     /// [module level]: crate::permission
     /// [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
     pub fn root(
@@ -555,7 +677,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         self.cache
             .guilds
             .get(&guild_id)
-            .map(|r| r.owner_id == user_id)
+            .map(|r| r.owner_id() == user_id)
             .unwrap_or_default()
     }
 
@@ -571,14 +693,14 @@ impl<'a> InMemoryCachePermissions<'a> {
         guild_id: Id<GuildMarker>,
         member: &'a CachedMember,
     ) -> Result<MemberRoles, MemberRolesErrorType> {
-        let mut member_roles = Vec::with_capacity(member.roles.len());
+        let mut member_roles = Vec::with_capacity(member.roles().len());
 
-        for role_id in &member.roles {
+        for role_id in member.roles() {
             let Some(role) = self.cache.roles.get(role_id) else {
                 return Err(MemberRolesErrorType::RoleMissing { role_id: *role_id });
             };
 
-            member_roles.push((*role_id, role.permissions));
+            member_roles.push((*role_id, role.permissions()));
         }
 
         let everyone_role_id = guild_id.cast();
@@ -586,7 +708,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         if let Some(everyone_role) = self.cache.roles.get(&everyone_role_id) {
             Ok(MemberRoles {
                 assigned: member_roles,
-                everyone: everyone_role.permissions,
+                everyone: everyone_role.permissions(),
             })
         } else {
             Err(MemberRolesErrorType::RoleMissing {
@@ -599,11 +721,11 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// parent and child permissions.
     fn parent_overwrites(
         &self,
-        thread: &Channel,
+        thread: &CachedChannel,
     ) -> Result<Vec<PermissionOverwrite>, ChannelError> {
-        let parent_id = thread.parent_id.ok_or(ChannelError {
+        let parent_id = thread.parent_id().ok_or(ChannelError {
             kind: ChannelErrorType::ParentChannelNotPresent {
-                thread_id: thread.id,
+                thread_id: thread.id(),
             },
             source: None,
         })?;
@@ -615,9 +737,9 @@ impl<'a> InMemoryCachePermissions<'a> {
             source: None,
         })?;
 
-        if channel.guild_id.is_some() {
-            let channel_overwrites = channel.permission_overwrites.as_deref().unwrap_or(&[]);
-            let thread_overwrites = thread.permission_overwrites.as_deref().unwrap_or(&[]);
+        if channel.guild_id().is_some() {
+            let channel_overwrites = channel.permission_overwrites().unwrap_or_default();
+            let thread_overwrites = thread.permission_overwrites().unwrap_or_default();
 
             let mut overwrites =
                 Vec::with_capacity(channel_overwrites.len() + thread_overwrites.len());
@@ -629,7 +751,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         } else {
             Err(ChannelError {
                 kind: ChannelErrorType::ChannelNotInGuild {
-                    channel_id: channel.id,
+                    channel_id: channel.id(),
                 },
                 source: None,
             })
@@ -642,7 +764,7 @@ mod tests {
     use super::{
         ChannelError, ChannelErrorType, InMemoryCachePermissions, RootError, RootErrorType,
     };
-    use crate::{test, InMemoryCache};
+    use crate::{test, DefaultInMemoryCache};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
         error::Error,
@@ -882,7 +1004,7 @@ mod tests {
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
     fn root_errors() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         let permissions = cache.permissions();
         assert!(matches!(
             permissions.root(USER_ID, GUILD_ID).unwrap_err().kind(),
@@ -913,7 +1035,7 @@ mod tests {
     fn root() -> Result<(), Box<dyn Error>> {
         let joined_at = Some(Timestamp::from_str("2021-09-19T14:17:32.000000+00:00")?);
 
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         let permissions = cache.permissions();
 
         cache.update(&GuildCreate(base_guild()));
@@ -959,7 +1081,7 @@ mod tests {
     /// [`in_channel`]: super::InMemoryCachePermissions::in_channel
     #[test]
     fn in_channel() -> Result<(), Box<dyn Error>> {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         let permissions = cache.permissions();
 
         cache.update(&GuildCreate(base_guild()));
@@ -1021,7 +1143,7 @@ mod tests {
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
     fn owner() -> Result<(), Box<dyn Error>> {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         let permissions = cache.permissions();
         cache.update(&GuildCreate(base_guild()));
 
@@ -1065,7 +1187,7 @@ mod tests {
             Timestamp::from_micros(micros).map_err(From::from)
         }
 
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         let mut permissions = cache.permissions();
 
         let in_past = acceptable_time(false)?;
