@@ -39,6 +39,8 @@ bitflags! {
         const MANAGE_NICKNAMES = 1 << 27;
         const MANAGE_ROLES = 1 << 28;
         const MANAGE_WEBHOOKS = 1 << 29;
+        #[deprecated(since = "0.15.2", note = "use `MANAGE_GUILD_EXPRESSIONS` instead")]
+        const MANAGE_EMOJIS_AND_STICKERS = 1 << 30;
         /// Allows management and editing of emojis, stickers, and soundboard sounds.
         const MANAGE_GUILD_EXPRESSIONS = 1 << 30;
         const USE_SLASH_COMMANDS = 1 << 31;
