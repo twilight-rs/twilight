@@ -386,19 +386,19 @@ struct NextItemOutput<'a, Item> {
 /// Panics if loading TLS certificates fails.
 #[track_caller]
 pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
-    bucket_id: u64,
-    concurrency: u64,
-    total: u64,
+    bucket_id: u32,
+    concurrency: u8,
+    total: u32,
     config: Config,
     per_shard_config: F,
 ) -> impl Iterator<Item = Shard> {
     assert!(bucket_id < total, "bucket id must be less than the total");
     assert!(
-        concurrency < total,
+        (u32::from(concurrency)) < total,
         "concurrency must be less than the total"
     );
 
-    let concurrency = concurrency.try_into().unwrap();
+    let concurrency = concurrency.into();
 
     (bucket_id..total).step_by(concurrency).map(move |index| {
         let id = ShardId::new(index, total);
@@ -442,8 +442,8 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
 /// Panics if loading TLS certificates fails.
 #[track_caller]
 pub fn create_range<F: Fn(ShardId, ConfigBuilder) -> Config>(
-    range: impl RangeBounds<u64>,
-    total: u64,
+    range: impl RangeBounds<u32>,
+    total: u32,
     config: Config,
     per_shard_config: F,
 ) -> impl Iterator<Item = Shard> {
@@ -505,7 +505,7 @@ pub async fn create_recommended<F: Fn(ShardId, ConfigBuilder) -> Config>(
 ///
 /// Panics if `start >= total` or if `end > total`, where `start` and `end`
 /// refer to `range`'s start and end.
-fn calculate_range(range: impl RangeBounds<u64>, total: u64) -> Range<u64> {
+fn calculate_range(range: impl RangeBounds<u32>, total: u32) -> Range<u32> {
     // 0, or the provided start bound (inclusive).
     let start = match range.start_bound() {
         Bound::Excluded(from) => *from + 1,

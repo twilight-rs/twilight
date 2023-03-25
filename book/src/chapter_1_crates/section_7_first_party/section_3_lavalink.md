@@ -32,6 +32,7 @@ The `native` feature enables [`tokio-tungstenite`]'s `native-tls` feature.
 RusTLS allows specifying from where certificate roots are retrieved from.
 
 ##### Native roots
+
 The `rustls-native-roots` feature enables [`tokio-tungstenite`]'s
 `rustls-tls-native-roots` feature.
 
@@ -63,7 +64,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     let token = env::var("DISCORD_TOKEN")?;
     let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
     let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
-    let shard_count = 1_u64;
+    let shard_count = 1_u32;
 
     let http = HttpClient::new(token.clone());
     let user_id = http.current_user().await?.model().await?.id;
@@ -103,7 +104,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
 *crates.io*: <https://crates.io/crates/twilight-lavalink>
 
-[RusTLS]: https://crates.io/crates/rustls
 [Lavalink]: https://github.com/freyacodes/Lavalink
 [client]: https://twilight-rs.github.io/twilight/twilight_lavalink/client/struct.Lavalink.html
 [gateway]: ../section_3_gateway.html

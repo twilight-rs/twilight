@@ -84,9 +84,9 @@ impl Queue for LargeBotQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    fn request(&'_ self, shard_id: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+    fn request(&'_ self, shard_id: [u32; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
         #[allow(clippy::cast_possible_truncation)]
-        let bucket = (shard_id[0] % (self.buckets.len() as u64)) as usize;
+        let bucket = (shard_id[0] % (self.buckets.len() as u32)) as usize;
         let (tx, rx) = oneshot::channel();
 
         Box::pin(async move {
