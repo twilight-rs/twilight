@@ -132,6 +132,60 @@ pub enum ErrorType {
     /// This can occur if a bot token is invalidated or an access token expires
     /// or is revoked. Recreate the client to configure a new token.
     Unauthorized,
+    /// A field failed validation requirements during request building.
+    ///
+    /// The inputs of request methods for fields are validated for correctness.
+    /// For example, [`CreateMessage::content`] is validated to ensure that the
+    /// message content isn't too long; [`ExecuteWebhook::embeds`] is validated
+    /// to ensure that a correct number of embeds are provided; and so on.
+    ///
+    /// Validation failures aren't immediately returned; rather, validation
+    /// errors are returned when calling the [`IntoFuture`] or
+    /// [`TryIntoRequest`] implementations on requests.
+    ///
+    /// # Examples
+    ///
+    /// Passing a message with valid content succeeds as expected:
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let channel_id = twilight_model::id::Id::new(1);
+    /// use std::env;
+    /// use twilight_http::{client::Client, request::TryIntoRequest};
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let builder = client.create_message(channel_id).content("Ping!");
+    ///
+    /// assert!(builder.try_into_request().is_ok());
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// However, passing an invalid content returns a validation error upon
+    /// finalizing the request building:
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let channel_id = twilight_model::id::Id::new(1);
+    /// use std::env;
+    /// use twilight_http::{
+    ///     client::Client,
+    ///     error::{Error, ErrorType},
+    ///     request::TryIntoRequest,
+    /// };
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    ///
+    /// // this is a very long message
+    /// let content = "pinkie pie is cool ".repeat(1000);
+    ///
+    /// let builder = client.create_message(channel_id).content(&content);
+    ///
+    /// assert!(matches!(
+    ///     builder.try_into_request(),
+    ///     Err(source) if matches!(source.kind(), ErrorType::Validation)
+    /// ));
+    /// # Ok(()) }
+    /// ```
     Validation,
 }
 
