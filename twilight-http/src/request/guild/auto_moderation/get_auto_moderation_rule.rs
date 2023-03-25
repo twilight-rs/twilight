@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -24,7 +24,6 @@ pub struct GetAutoModerationRule<'a> {
     auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Option<&'a str>,
 }
 
 impl<'a> GetAutoModerationRule<'a> {
@@ -37,7 +36,6 @@ impl<'a> GetAutoModerationRule<'a> {
             auto_moderation_rule_id,
             guild_id,
             http,
-            reason: None,
         }
     }
 }
@@ -59,17 +57,10 @@ impl IntoFuture for GetAutoModerationRule<'_> {
 
 impl TryIntoRequest for GetAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::GetAutoModerationRule {
+        Request::builder(&Route::GetAutoModerationRule {
             auto_moderation_rule_id: self.auto_moderation_rule_id.get(),
             guild_id: self.guild_id.get(),
-        });
-
-        if let Some(reason) = self.reason {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
-        }
-
-        Ok(request.build())
+        })
+        .build()
     }
 }

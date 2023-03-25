@@ -2,7 +2,7 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -14,6 +14,14 @@ use twilight_model::{
 };
 use twilight_validate::command::{name as validate_name, CommandValidationError};
 
+struct CreateGlobalMessageCommandFields<'a> {
+    default_member_permissions: Option<Permissions>,
+    dm_permission: Option<bool>,
+    name: &'a str,
+    name_localizations: Option<&'a HashMap<String, String>>,
+    nsfw: Option<bool>,
+}
+
 /// Create a new message global command.
 ///
 /// Creating a command with the same name as an already-existing global command
@@ -24,12 +32,8 @@ use twilight_validate::command::{name as validate_name, CommandValidationError};
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalMessageCommand<'a> {
     application_id: Id<ApplicationMarker>,
-    default_member_permissions: Option<Permissions>,
-    dm_permission: Option<bool>,
+    fields: Result<CreateGlobalMessageCommandFields<'a>, CommandValidationError>,
     http: &'a Client,
-    name: &'a str,
-    name_localizations: Option<&'a HashMap<String, String>>,
-    nsfw: Option<bool>,
 }
 
 impl<'a> CreateGlobalMessageCommand<'a> {
@@ -37,25 +41,34 @@ impl<'a> CreateGlobalMessageCommand<'a> {
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
         name: &'a str,
-    ) -> Result<Self, CommandValidationError> {
-        validate_name(name)?;
-
-        Ok(Self {
-            application_id,
+    ) -> Self {
+        let fields = Ok(CreateGlobalMessageCommandFields {
             default_member_permissions: None,
             dm_permission: None,
-            http,
             name,
             name_localizations: None,
             nsfw: None,
         })
+        .and_then(|fields| {
+            validate_name(name)?;
+
+            Ok(fields)
+        });
+
+        Self {
+            application_id,
+            fields,
+            http,
+        }
     }
 
     /// Default permissions required for a member to run the command.
     ///
     /// Defaults to [`None`].
-    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
-        self.default_member_permissions = Some(default);
+    pub fn default_member_permissions(mut self, default: Permissions) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.default_member_permissions = Some(default);
+        }
 
         self
     }
@@ -63,8 +76,10 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     /// Set whether the command is available in DMs.
     ///
     /// Defaults to [`None`].
-    pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
-        self.dm_permission = Some(dm_permission);
+    pub fn dm_permission(mut self, dm_permission: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.dm_permission = Some(dm_permission);
+        }
 
         self
     }
@@ -78,24 +93,27 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     /// Returns an error of type [`NameLengthInvalid`] if the name is invalid.
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
-    pub fn name_localizations(
-        mut self,
-        localizations: &'a HashMap<String, String>,
-    ) -> Result<Self, CommandValidationError> {
-        for name in localizations.values() {
-            validate_name(name)?;
-        }
+    pub fn name_localizations(mut self, localizations: &'a HashMap<String, String>) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            for name in localizations.values() {
+                validate_name(name)?;
+            }
 
-        self.name_localizations = Some(localizations);
+            fields.name_localizations = Some(localizations);
 
-        Ok(self)
+            Ok(fields)
+        });
+
+        self
     }
 
     /// Set whether the command is age-restricted.
     ///
     /// Defaults to not being specified, which uses Discord's default.
-    pub const fn nsfw(mut self, nsfw: bool) -> Self {
-        self.nsfw = Some(nsfw);
+    pub fn nsfw(mut self, nsfw: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.nsfw = Some(nsfw);
+        }
 
         self
     }
@@ -118,21 +136,23 @@ impl IntoFuture for CreateGlobalMessageCommand<'_> {
 
 impl TryIntoRequest for CreateGlobalMessageCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Request::builder(&Route::CreateGlobalCommand {
             application_id: self.application_id.get(),
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
-            default_member_permissions: self.default_member_permissions,
-            dm_permission: self.dm_permission,
+            default_member_permissions: fields.default_member_permissions,
+            dm_permission: fields.dm_permission,
             description: None,
             description_localizations: None,
             kind: CommandType::Message,
-            name: self.name,
-            name_localizations: self.name_localizations,
-            nsfw: self.nsfw,
+            name: fields.name,
+            name_localizations: fields.name_localizations,
+            nsfw: fields.nsfw,
             options: None,
         })
-        .map(RequestBuilder::build)
+        .build()
     }
 }

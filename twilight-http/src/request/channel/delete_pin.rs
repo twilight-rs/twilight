@@ -18,7 +18,7 @@ pub struct DeletePin<'a> {
     channel_id: Id<ChannelMarker>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> DeletePin<'a> {
@@ -31,18 +31,16 @@ impl<'a> DeletePin<'a> {
             channel_id,
             http,
             message_id,
-            reason: None,
+            reason: Ok(None),
         }
     }
 }
 
 impl<'a> AuditLogReason<'a> for DeletePin<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -68,12 +66,10 @@ impl TryIntoRequest for DeletePin<'_> {
             message_id: self.message_id.get(),
         });
 
-        if let Some(reason) = &self.reason {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }

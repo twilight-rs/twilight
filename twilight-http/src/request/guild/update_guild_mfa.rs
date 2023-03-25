@@ -14,28 +14,26 @@ use twilight_model::{
 use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 #[derive(Serialize)]
-struct UpdateGuildMfaFields<'a> {
+struct UpdateGuildMfaFields {
     level: MfaLevel,
-    reason: Option<&'a str>,
 }
 
 /// Update a guild's MFA level.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMfa<'a> {
-    fields: UpdateGuildMfaFields<'a>,
+    fields: UpdateGuildMfaFields,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateGuildMfa<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, level: MfaLevel) -> Self {
         Self {
-            fields: UpdateGuildMfaFields {
-                level,
-                reason: None,
-            },
+            fields: UpdateGuildMfaFields { level },
             guild_id,
             http,
+            reason: Ok(None),
         }
     }
 }
@@ -56,12 +54,10 @@ impl IntoFuture for UpdateGuildMfa<'_> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuildMfa<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.fields.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -69,16 +65,13 @@ impl TryIntoRequest for UpdateGuildMfa<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateGuildMfa {
             guild_id: self.guild_id.get(),
-        });
+        })
+        .json(&self.fields);
 
-        if let Some(reason) = self.fields.reason.as_ref() {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        request.build()
     }
 }

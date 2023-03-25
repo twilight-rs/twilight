@@ -31,36 +31,40 @@ struct CreateGuildPruneFields<'a> {
 /// [Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildPrune<'a> {
-    fields: CreateGuildPruneFields<'a>,
+    fields: Result<CreateGuildPruneFields<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateGuildPrune<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: CreateGuildPruneFields {
+            fields: Ok(CreateGuildPruneFields {
                 compute_prune_count: None,
                 days: None,
                 include_roles: &[],
-            },
+            }),
             guild_id,
             http,
-            reason: None,
+            reason: Ok(None),
         }
     }
 
     /// List of roles to include when pruning.
-    pub const fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        self.fields.include_roles = roles;
+    pub fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.include_roles = roles;
+        }
 
         self
     }
 
     /// Return the amount of pruned members. Discouraged for large guilds.
-    pub const fn compute_prune_count(mut self, compute_prune_count: bool) -> Self {
-        self.fields.compute_prune_count = Some(compute_prune_count);
+    pub fn compute_prune_count(mut self, compute_prune_count: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.compute_prune_count = Some(compute_prune_count);
+        }
 
         self
     }
@@ -75,25 +79,23 @@ impl<'a> CreateGuildPrune<'a> {
     /// or more than 30.
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
-    pub const fn days(mut self, days: u16) -> Result<Self, ValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_guild_prune_days(days) {
-            return Err(source);
-        }
+    pub fn days(mut self, days: u16) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_guild_prune_days(days)?;
+            fields.days = Some(days);
 
-        self.fields.days = Some(days);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -114,19 +116,18 @@ impl IntoFuture for CreateGuildPrune<'_> {
 
 impl TryIntoRequest for CreateGuildPrune<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateGuildPrune {
-            compute_prune_count: self.fields.compute_prune_count,
-            days: self.fields.days,
+            compute_prune_count: fields.compute_prune_count,
+            days: fields.days,
             guild_id: self.guild_id.get(),
-            include_roles: self.fields.include_roles,
+            include_roles: fields.include_roles,
         });
 
-        if let Some(reason) = self.reason.as_ref() {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }

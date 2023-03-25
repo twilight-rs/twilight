@@ -50,10 +50,8 @@ impl IntoFuture for CreatePrivateChannel<'_> {
 
 impl TryIntoRequest for CreatePrivateChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let request = Request::builder(&Route::CreatePrivateChannel);
-
-        let request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        Request::builder(&Route::CreatePrivateChannel)
+            .json(&self.fields)
+            .build()
     }
 }

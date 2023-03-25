@@ -104,12 +104,10 @@ impl IntoFuture for UpdateCurrentUserVoiceState<'_> {
 
 impl TryIntoRequest for UpdateCurrentUserVoiceState<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateCurrentUserVoiceState {
+        Request::builder(&Route::UpdateCurrentUserVoiceState {
             guild_id: self.guild_id.get(),
-        });
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        })
+        .json(&self.fields)
+        .build()
     }
 }

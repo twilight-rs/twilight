@@ -24,7 +24,7 @@ use twilight_model::channel::Message;
 ///
 /// let message = client
 ///     .execute_webhook(id, "webhook token")
-///     .content("Pinkie...")?
+///     .content("Pinkie...")
 ///     .wait()
 ///     .await?
 ///     .model()

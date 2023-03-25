@@ -111,7 +111,7 @@ async fn join(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content("What's the channel ID you want me to join?")?
+        .content("What's the channel ID you want me to join?")
         .await?;
 
     let author_id = msg.author.id;
@@ -134,7 +134,7 @@ async fn join(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("Joined <#{channel_id}>!"))?
+        .content(&format!("Joined <#{channel_id}>!"))
         .await?;
 
     Ok(())
@@ -157,7 +157,7 @@ async fn leave(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content("Left the channel")?
+        .content("Left the channel")
         .await?;
 
     Ok(())
@@ -172,7 +172,7 @@ async fn play(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content("What's the URL of the audio to play?")?
+        .content("What's the URL of the audio to play?")
         .await?;
 
     let author_id = msg.author.id;
@@ -207,13 +207,13 @@ async fn play(msg: Message, state: State) -> anyhow::Result<()> {
         state
             .http
             .create_message(msg.channel_id)
-            .content(&content)?
+            .content(&content)
             .await?;
     } else {
         state
             .http
             .create_message(msg.channel_id)
-            .content("Didn't find any results")?
+            .content("Didn't find any results")
             .await?;
     }
 
@@ -237,7 +237,7 @@ async fn pause(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("{action} the track"))?
+        .content(&format!("{action} the track"))
         .await?;
 
     Ok(())
@@ -252,7 +252,7 @@ async fn seek(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content("Where in the track do you want to seek to (in seconds)?")?
+        .content("Where in the track do you want to seek to (in seconds)?")
         .await?;
 
     let author_id = msg.author.id;
@@ -271,7 +271,7 @@ async fn seek(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("Seeked to {position}s"))?
+        .content(&format!("Seeked to {position}s"))
         .await?;
 
     Ok(())
@@ -291,7 +291,7 @@ async fn stop(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content("Stopped the track")?
+        .content("Stopped the track")
         .await?;
 
     Ok(())
@@ -306,7 +306,7 @@ async fn volume(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content("What's the volume you want to set (0-1000, 100 being the default)?")?
+        .content("What's the volume you want to set (0-1000, 100 being the default)?")
         .await?;
 
     let author_id = msg.author.id;
@@ -323,7 +323,7 @@ async fn volume(msg: Message, state: State) -> anyhow::Result<()> {
         state
             .http
             .create_message(msg.channel_id)
-            .content("That's more than 1000")?
+            .content("That's more than 1000")
             .await?;
 
         return Ok(());
@@ -335,7 +335,7 @@ async fn volume(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("Set the volume to {volume}"))?
+        .content(&format!("Set the volume to {volume}"))
         .await?;
 
     Ok(())

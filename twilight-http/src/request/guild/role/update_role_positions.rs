@@ -55,12 +55,10 @@ impl IntoFuture for UpdateRolePositions<'_> {
 
 impl TryIntoRequest for UpdateRolePositions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateRolePositions {
+        Request::builder(&Route::UpdateRolePositions {
             guild_id: self.guild_id.get(),
-        });
-
-        request = request.json(&self.roles)?;
-
-        Ok(request.build())
+        })
+        .json(&self.roles)
+        .build()
     }
 }

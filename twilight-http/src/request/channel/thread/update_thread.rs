@@ -47,16 +47,16 @@ struct UpdateThreadFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateThread<'a> {
     channel_id: Id<ChannelMarker>,
-    fields: UpdateThreadFields<'a>,
+    fields: Result<UpdateThreadFields<'a>, ChannelValidationError>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateThread<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
-            fields: UpdateThreadFields {
+            fields: Ok(UpdateThreadFields {
                 applied_tags: None,
                 archived: None,
                 auto_archive_duration: None,
@@ -64,15 +64,17 @@ impl<'a> UpdateThread<'a> {
                 locked: None,
                 name: None,
                 rate_limit_per_user: None,
-            },
+            }),
             http,
-            reason: None,
+            reason: Ok(None),
         }
     }
 
     /// Set the forum thread's applied tags.
-    pub const fn applied_tags(mut self, applied_tags: Option<&'a [Id<TagMarker>]>) -> Self {
-        self.fields.applied_tags = Some(Nullable(applied_tags));
+    pub fn applied_tags(mut self, applied_tags: Option<&'a [Id<TagMarker>]>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.applied_tags = Some(Nullable(applied_tags));
+        }
 
         self
     }
@@ -84,8 +86,10 @@ impl<'a> UpdateThread<'a> {
     ///
     /// [`SEND_MESSAGES`]: twilight_model::guild::Permissions::SEND_MESSAGES
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
-    pub const fn archived(mut self, archived: bool) -> Self {
-        self.fields.archived = Some(archived);
+    pub fn archived(mut self, archived: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.archived = Some(archived);
+        }
 
         self
     }
@@ -94,18 +98,19 @@ impl<'a> UpdateThread<'a> {
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
-    pub const fn auto_archive_duration(
-        mut self,
-        auto_archive_duration: AutoArchiveDuration,
-    ) -> Self {
-        self.fields.auto_archive_duration = Some(auto_archive_duration);
+    pub fn auto_archive_duration(mut self, auto_archive_duration: AutoArchiveDuration) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.auto_archive_duration = Some(auto_archive_duration);
+        }
 
         self
     }
 
     /// Whether non-moderators can add other non-moderators to a thread.
-    pub const fn invitable(mut self, invitable: bool) -> Self {
-        self.fields.invitable = Some(invitable);
+    pub fn invitable(mut self, invitable: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.invitable = Some(invitable);
+        }
 
         self
     }
@@ -116,8 +121,10 @@ impl<'a> UpdateThread<'a> {
     /// unlock it.
     ///
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
-    pub const fn locked(mut self, locked: bool) -> Self {
-        self.fields.locked = Some(locked);
+    pub fn locked(mut self, locked: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.locked = Some(locked);
+        }
 
         self
     }
@@ -131,12 +138,15 @@ impl<'a> UpdateThread<'a> {
     /// Returns an error of type [`NameInvalid`] if the name is invalid.
     ///
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
-    pub fn name(mut self, name: &'a str) -> Result<Self, ChannelValidationError> {
-        validate_name(name)?;
+    pub fn name(mut self, name: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_name(name)?;
+            fields.name = Some(name);
 
-        self.fields.name = Some(name);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Set the number of seconds that a user must wait before before they are
@@ -152,28 +162,23 @@ impl<'a> UpdateThread<'a> {
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    pub const fn rate_limit_per_user(
-        mut self,
-        rate_limit_per_user: u16,
-    ) -> Result<Self, ChannelValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
-            return Err(source);
-        }
+    pub fn rate_limit_per_user(mut self, rate_limit_per_user: u16) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_rate_limit_per_user(rate_limit_per_user)?;
+            fields.rate_limit_per_user = Some(rate_limit_per_user);
 
-        self.fields.rate_limit_per_user = Some(rate_limit_per_user);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 }
 
 impl<'a> AuditLogReason<'a> for UpdateThread<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -194,16 +199,17 @@ impl IntoFuture for UpdateThread<'_> {
 
 impl TryIntoRequest for UpdateThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.get(),
         })
-        .json(&self.fields)?;
+        .json(&fields);
 
-        if let Some(reason) = &self.reason {
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }
 
@@ -224,7 +230,7 @@ mod tests {
         let channel_id = Id::new(123);
 
         let actual = UpdateThread::new(&client, channel_id)
-            .rate_limit_per_user(60)?
+            .rate_limit_per_user(60)
             .try_into_request()?;
 
         let expected = Request::builder(&Route::UpdateChannel {
@@ -238,8 +244,8 @@ mod tests {
             locked: None,
             name: None,
             rate_limit_per_user: Some(60),
-        })?
-        .build();
+        })
+        .build()?;
 
         assert_eq!(expected.body(), actual.body());
         assert_eq!(expected.path(), actual.path());

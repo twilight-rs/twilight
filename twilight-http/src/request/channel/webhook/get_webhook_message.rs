@@ -66,13 +66,13 @@ impl IntoFuture for GetWebhookMessage<'_> {
 
 impl TryIntoRequest for GetWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::builder(&Route::GetWebhookMessage {
+        Request::builder(&Route::GetWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: self.thread_id.map(Id::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false)
-        .build())
+        .build()
     }
 }

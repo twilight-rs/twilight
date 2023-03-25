@@ -26,20 +26,20 @@ struct UpdateCurrentUserFields<'a> {
 /// randomized.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUser<'a> {
-    fields: UpdateCurrentUserFields<'a>,
+    fields: Result<UpdateCurrentUserFields<'a>, ValidationError>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateCurrentUser<'a> {
     pub(crate) const fn new(http: &'a Client) -> Self {
         Self {
-            fields: UpdateCurrentUserFields {
+            fields: Ok(UpdateCurrentUserFields {
                 avatar: None,
                 username: None,
-            },
+            }),
             http,
-            reason: None,
+            reason: Ok(None),
         }
     }
 
@@ -50,8 +50,10 @@ impl<'a> UpdateCurrentUser<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        self.fields.avatar = Some(Nullable(avatar));
+    pub fn avatar(mut self, avatar: Option<&'a str>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.avatar = Some(Nullable(avatar));
+        }
 
         self
     }
@@ -66,22 +68,23 @@ impl<'a> UpdateCurrentUser<'a> {
     /// short or too long.
     ///
     /// [`Username`]: twilight_validate::request::ValidationErrorType::Username
-    pub fn username(mut self, username: &'a str) -> Result<Self, ValidationError> {
-        validate_username(username)?;
+    pub fn username(mut self, username: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_username(username)?;
+            fields.username.replace(username);
 
-        self.fields.username.replace(username);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 }
 
 impl<'a> AuditLogReason<'a> for UpdateCurrentUser<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -102,15 +105,15 @@ impl IntoFuture for UpdateCurrentUser<'_> {
 
 impl TryIntoRequest for UpdateCurrentUser<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateCurrentUser);
+        let fields = self.fields.map_err(Error::validation)?;
 
-        request = request.json(&self.fields)?;
+        let mut request = Request::builder(&Route::UpdateCurrentUser).json(&fields);
 
-        if let Some(reason) = &self.reason {
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }
 
@@ -147,7 +150,7 @@ mod tests {
         {
             let expected = r#"{"username":"other side"}"#;
             let actual = UpdateCurrentUser::new(&client)
-                .username("other side")?
+                .username("other side")
                 .try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
@@ -155,7 +158,7 @@ mod tests {
 
         {
             let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI","username":"other side"}"#;
-            let actual = UpdateCurrentUser::new(&client).avatar(Some("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI")).username("other side")?.try_into_request()?;
+            let actual = UpdateCurrentUser::new(&client).avatar(Some("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI")).username("other side").try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
         }

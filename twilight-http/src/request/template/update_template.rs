@@ -25,7 +25,7 @@ struct UpdateTemplateFields<'a> {
 /// Update the template's metadata, by ID and code.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateTemplate<'a> {
-    fields: UpdateTemplateFields<'a>,
+    fields: Result<UpdateTemplateFields<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     template_code: &'a str,
@@ -38,10 +38,10 @@ impl<'a> UpdateTemplate<'a> {
         template_code: &'a str,
     ) -> Self {
         Self {
-            fields: UpdateTemplateFields {
+            fields: Ok(UpdateTemplateFields {
                 name: None,
                 description: None,
-            },
+            }),
             guild_id,
             http,
             template_code,
@@ -58,12 +58,15 @@ impl<'a> UpdateTemplate<'a> {
     /// too short or too long.
     ///
     /// [`TemplateDescription`]: twilight_validate::request::ValidationErrorType::TemplateDescription
-    pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
-        validate_template_description(description)?;
+    pub fn description(mut self, description: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_template_description(description)?;
+            fields.description.replace(description);
 
-        self.fields.description.replace(description);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Set the name.
@@ -76,12 +79,15 @@ impl<'a> UpdateTemplate<'a> {
     /// short or too long.
     ///
     /// [`TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
-    pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
-        validate_template_name(name)?;
+    pub fn name(mut self, name: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_template_name(name)?;
+            fields.name.replace(name);
 
-        self.fields.name.replace(name);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 }
 
@@ -102,13 +108,13 @@ impl IntoFuture for UpdateTemplate<'_> {
 
 impl TryIntoRequest for UpdateTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateTemplate {
+        let fields = self.fields.map_err(Error::validation)?;
+
+        Request::builder(&Route::UpdateTemplate {
             guild_id: self.guild_id.get(),
             template_code: self.template_code,
-        });
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        })
+        .json(&fields)
+        .build()
     }
 }

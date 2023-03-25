@@ -40,17 +40,17 @@ struct CreateBanFields {
 /// let user_id = Id::new(200);
 /// client
 ///     .create_ban(guild_id, user_id)
-///     .delete_message_seconds(86_400)?
-///     .reason("memes")?
+///     .delete_message_seconds(86_400)
+///     .reason("memes")
 ///     .await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateBan<'a> {
-    fields: CreateBanFields,
+    fields: Result<CreateBanFields, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
     user_id: Id<UserMarker>,
 }
 
@@ -61,12 +61,12 @@ impl<'a> CreateBan<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            fields: CreateBanFields {
+            fields: Ok(CreateBanFields {
                 delete_message_seconds: None,
-            },
+            }),
             guild_id,
             http,
-            reason: None,
+            reason: Ok(None),
             user_id,
         }
     }
@@ -81,25 +81,23 @@ impl<'a> CreateBan<'a> {
     /// number of seconds is greater than `604_800` (this is equivalent to `7` days).
     ///
     /// [`CreateGuildBanDeleteMessageSeconds`]: twilight_validate::request::ValidationErrorType::CreateGuildBanDeleteMessageSeconds
-    pub const fn delete_message_seconds(mut self, seconds: u32) -> Result<Self, ValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_create_guild_ban_delete_message_seconds(seconds) {
-            return Err(source);
-        }
+    pub fn delete_message_seconds(mut self, seconds: u32) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_create_guild_ban_delete_message_seconds(seconds)?;
+            fields.delete_message_seconds = Some(seconds);
 
-        self.fields.delete_message_seconds = Some(seconds);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateBan<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -120,19 +118,18 @@ impl IntoFuture for CreateBan<'_> {
 
 impl TryIntoRequest for CreateBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateBan {
-            delete_message_seconds: self.fields.delete_message_seconds,
+            delete_message_seconds: fields.delete_message_seconds,
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
         });
 
-        if let Some(reason) = self.reason.as_ref() {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }
 
@@ -159,7 +156,7 @@ mod tests {
         let client = Client::new(String::new());
         let request = client
             .create_ban(GUILD_ID, USER_ID)
-            .reason(REASON)?
+            .reason(REASON)
             .try_into_request()?;
 
         assert!(request.body().is_none());

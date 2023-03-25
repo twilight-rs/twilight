@@ -53,7 +53,7 @@ struct GetAuditLogFields {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetAuditLog<'a> {
-    fields: GetAuditLogFields,
+    fields: Result<GetAuditLogFields, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
@@ -61,35 +61,41 @@ pub struct GetAuditLog<'a> {
 impl<'a> GetAuditLog<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: GetAuditLogFields {
+            fields: Ok(GetAuditLogFields {
                 action_type: None,
                 after: None,
                 before: None,
                 limit: None,
                 user_id: None,
-            },
+            }),
             guild_id,
             http,
         }
     }
 
     /// Filter by an action type.
-    pub const fn action_type(mut self, action_type: AuditLogEventType) -> Self {
-        self.fields.action_type = Some(action_type);
+    pub fn action_type(mut self, action_type: AuditLogEventType) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.action_type = Some(action_type);
+        }
 
         self
     }
 
     /// Get audit log entries after the entry specified.
-    pub const fn after(mut self, after: u64) -> Self {
-        self.fields.after = Some(after);
+    pub fn after(mut self, after: u64) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.after = Some(after);
+        }
 
         self
     }
 
     /// Get audit log entries before the entry specified.
-    pub const fn before(mut self, before: u64) -> Self {
-        self.fields.before = Some(before);
+    pub fn before(mut self, before: u64) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.before = Some(before);
+        }
 
         self
     }
@@ -104,22 +110,24 @@ impl<'a> GetAuditLog<'a> {
     /// greater than 100.
     ///
     /// [`GetGuildAuditLog`]: twilight_validate::request::ValidationErrorType::GetGuildAuditLog
-    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_get_guild_audit_log_limit(limit) {
-            return Err(source);
-        }
+    pub fn limit(mut self, limit: u16) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_get_guild_audit_log_limit(limit)?;
+            fields.limit = Some(limit);
 
-        self.fields.limit = Some(limit);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Filter audit log for entries from a user.
     ///
     /// This is the user who did the auditable action, not the target of the auditable action.
-    pub const fn user_id(mut self, user_id: Id<UserMarker>) -> Self {
-        self.fields.user_id = Some(user_id);
+    pub fn user_id(mut self, user_id: Id<UserMarker>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.user_id = Some(user_id);
+        }
 
         self
     }
@@ -142,13 +150,15 @@ impl IntoFuture for GetAuditLog<'_> {
 
 impl TryIntoRequest for GetAuditLog<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Ok(Request::from_route(&Route::GetAuditLogs {
-            action_type: self.fields.action_type.map(|x| u64::from(u16::from(x))),
-            after: self.fields.after,
-            before: self.fields.before,
+            action_type: fields.action_type.map(|x| u64::from(u16::from(x))),
+            after: fields.after,
+            before: fields.before,
             guild_id: self.guild_id.get(),
-            limit: self.fields.limit,
-            user_id: self.fields.user_id.map(Id::get),
+            limit: fields.limit,
+            user_id: fields.user_id.map(Id::get),
         }))
     }
 }
