@@ -166,10 +166,10 @@ pub enum ErrorType {
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let channel_id = twilight_model::id::Id::new(1);
-    /// use std::env;
+    /// use std::{env, error::Error};
     /// use twilight_http::{
     ///     client::Client,
-    ///     error::{Error, ErrorType},
+    ///     error::ErrorType,
     ///     request::TryIntoRequest,
     /// };
     ///
@@ -180,10 +180,11 @@ pub enum ErrorType {
     ///
     /// let builder = client.create_message(channel_id).content(&content);
     ///
-    /// assert!(matches!(
-    ///     builder.try_into_request(),
-    ///     Err(source) if matches!(source.kind(), ErrorType::Validation)
-    /// ));
+    /// let error = builder.try_into_request().unwrap_err();
+    /// assert!(matches!(error.kind(), ErrorType::Validation));
+    ///
+    /// // print the contents of the validation error
+    /// println!("{:?}", error.source());
     /// # Ok(()) }
     /// ```
     Validation,
