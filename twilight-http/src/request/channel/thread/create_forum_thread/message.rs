@@ -1,11 +1,14 @@
 use super::{CreateForumThread, ForumThread};
 use crate::{
-    request::{attachment::PartialAttachment, Nullable, TryIntoRequest},
+    request::{
+        attachment::{AttachmentManager, PartialAttachment},
+        Nullable, TryIntoRequest,
+    },
     response::{Response, ResponseFuture},
     Error,
 };
 use serde::Serialize;
-use std::future::IntoFuture;
+use std::{future::IntoFuture, mem};
 use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::attachment::Attachment,
@@ -14,6 +17,7 @@ use twilight_model::{
 use twilight_validate::message::{
     attachment_filename as validate_attachment_filename, components as validate_components,
     content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
+    MessageValidationError,
 };
 
 /// Contents of the first message in the new forum thread.
@@ -38,11 +42,11 @@ pub(super) struct CreateForumThreadMessageFields<'a> {
 }
 
 #[must_use = "requests must be configured and executed"]
-pub struct CreateForumThreadMessage<'a>(CreateForumThread<'a>);
+pub struct CreateForumThreadMessage<'a>(Result<CreateForumThread<'a>, MessageValidationError>);
 
 impl<'a> CreateForumThreadMessage<'a> {
     pub(super) const fn new(inner: CreateForumThread<'a>) -> Self {
-        Self(inner)
+        Self(Ok(inner))
     }
 
     /// Specify the [`AllowedMentions`] for the message.
@@ -50,8 +54,8 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
     pub fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
-        if let Ok(fields) = self.0.fields.as_mut() {
-            fields.message.allowed_mentions = Some(Nullable(allowed_mentions));
+        if let Ok(inner) = self.0.as_mut() {
+            inner.fields.message.allowed_mentions = Some(Nullable(allowed_mentions));
         }
 
         self
@@ -68,18 +72,19 @@ impl<'a> CreateForumThreadMessage<'a> {
     ///
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
-        if self.0.fields.is_ok() {
+        if self.0.is_ok() {
             let validation = attachments
                 .iter()
                 .try_for_each(|attachment| validate_attachment_filename(&attachment.filename));
 
             if let Err(source) = validation {
-                self.0.fields = Err(source);
-            } else {
-                self.0.attachment_manager = self
-                    .0
-                    .attachment_manager
-                    .set_files(attachments.iter().collect());
+                self.0 = Err(source);
+            } else if let Ok(mut inner) = self.0.as_mut() {
+                let mut manager =
+                    mem::replace(&mut inner.attachment_manager, AttachmentManager::new());
+                manager = manager.set_files(attachments.iter().collect());
+
+                inner.attachment_manager = manager;
             }
         }
 
@@ -98,11 +103,11 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// [`twilight_validate::component::component`] for a list of errors that
     /// may be returned as a result of validating each provided component.
     pub fn components(mut self, components: &'a [Component]) -> Self {
-        self.0.fields = self.0.fields.and_then(|mut fields| {
+        self.0 = self.0.and_then(|mut inner| {
             validate_components(components)?;
-            fields.message.components = Some(components);
+            inner.fields.message.components = Some(components);
 
-            Ok(fields)
+            Ok(inner)
         });
 
         self
@@ -119,11 +124,11 @@ impl<'a> CreateForumThreadMessage<'a> {
     ///
     /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
     pub fn content(mut self, content: &'a str) -> Self {
-        self.0.fields = self.0.fields.and_then(|mut fields| {
+        self.0 = self.0.and_then(|mut inner| {
             validate_content(content)?;
-            fields.message.content = Some(content);
+            inner.fields.message.content = Some(content);
 
-            Ok(fields)
+            Ok(inner)
         });
 
         self
@@ -150,11 +155,11 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Self {
-        self.0.fields = self.0.fields.and_then(|mut fields| {
+        self.0 = self.0.and_then(|mut inner| {
             validate_embeds(embeds)?;
-            fields.message.embeds = Some(embeds);
+            inner.fields.message.embeds = Some(embeds);
 
-            Ok(fields)
+            Ok(inner)
         });
 
         self
@@ -168,8 +173,8 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
     /// [`SUPPRESS_NOTIFICATIONS`]: MessageFlags::SUPPRESS_NOTIFICATIONS
     pub fn flags(mut self, flags: MessageFlags) -> Self {
-        if let Ok(fields) = self.0.fields.as_mut() {
-            fields.message.flags = Some(flags);
+        if let Ok(inner) = self.0.as_mut() {
+            inner.fields.message.flags = Some(flags);
         }
 
         self
@@ -188,8 +193,8 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
     /// [`attachments`]: Self::attachments
     pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
-        if let Ok(fields) = self.0.fields.as_mut() {
-            fields.message.payload_json = Some(payload_json);
+        if let Ok(inner) = self.0.as_mut() {
+            inner.fields.message.payload_json = Some(payload_json);
         }
 
         self
@@ -203,11 +208,11 @@ impl<'a> CreateForumThreadMessage<'a> {
     ///
     /// [`StickersInvalid`]: twilight_validate::message::MessageValidationErrorType::StickersInvalid
     pub fn sticker_ids(mut self, sticker_ids: &'a [Id<StickerMarker>]) -> Self {
-        self.0.fields = self.0.fields.and_then(|mut fields| {
+        self.0 = self.0.and_then(|mut inner| {
             validate_sticker_ids(sticker_ids)?;
-            fields.message.sticker_ids = Some(sticker_ids);
+            inner.fields.message.sticker_ids = Some(sticker_ids);
 
-            Ok(fields)
+            Ok(inner)
         });
 
         self
@@ -220,12 +225,17 @@ impl IntoFuture for CreateForumThreadMessage<'_> {
     type IntoFuture = ResponseFuture<ForumThread>;
 
     fn into_future(self) -> Self::IntoFuture {
-        self.0.exec()
+        match self.0 {
+            Ok(inner) => inner.exec(),
+            Err(source) => ResponseFuture::error(Error::validation(source)),
+        }
     }
 }
 
 impl TryIntoRequest for CreateForumThreadMessage<'_> {
     fn try_into_request(self) -> Result<crate::request::Request, Error> {
-        self.0.try_into_request()
+        self.0
+            .map_err(Error::validation)
+            .and_then(CreateForumThread::try_into_request)
     }
 }
