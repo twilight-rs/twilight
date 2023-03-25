@@ -167,11 +167,7 @@ pub enum ErrorType {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let channel_id = twilight_model::id::Id::new(1);
     /// use std::{env, error::Error};
-    /// use twilight_http::{
-    ///     client::Client,
-    ///     error::ErrorType,
-    ///     request::TryIntoRequest,
-    /// };
+    /// use twilight_http::{client::Client, error::ErrorType, request::TryIntoRequest};
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
     ///
