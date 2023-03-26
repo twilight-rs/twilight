@@ -131,7 +131,7 @@ pub struct ImageHash {
 impl ImageHash {
     /// Avatar hash of Clyde AI, which has a non-standard hash.
     pub const CLYDE: Self = Self {
-        animated: false,
+        animated: true,
         bytes: {
             let mut bytes = [0; 16];
             bytes[0] = b'c';
