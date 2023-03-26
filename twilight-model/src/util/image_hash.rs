@@ -220,16 +220,7 @@ impl ImageHash {
         /// reaching alphabetical representations in the half-byte.
         const DIGITS_ALLOCATED: u8 = 10;
 
-        if value.len() < 5 {
-            return Err(ImageHashParseError::FORMAT);
-        }
-
-        if value[0] == b'c'
-            && value[1] == b'l'
-            && value[2] == b'y'
-            && value[3] == b'd'
-            && value[4] == b'e'
-        {
+        if Self::is_clyde(value) {
             return Ok(Self::CLYDE);
         }
 
@@ -347,6 +338,19 @@ impl ImageHash {
         Nibbles::new(self)
     }
 
+    /// Determine whether a value is the Clyde AI image hash.
+    const fn is_clyde(value: &[u8]) -> bool {
+        if value.len() < 5 {
+            return false;
+        }
+
+        value[0] == b'c'
+            && value[1] == b'l'
+            && value[2] == b'y'
+            && value[3] == b'd'
+            && value[4] == b'e'
+    }
+
     /// Determine whether a haystack starts with a needle.
     const fn starts_with(haystack: &[u8], needle: &[u8]) -> bool {
         if needle.len() > haystack.len() {
@@ -394,10 +398,6 @@ impl<'de> Deserialize<'de> for ImageHash {
             }
 
             fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
-                if v == "clyde" {
-                    return Ok(ImageHash::CLYDE);
-                }
-
                 ImageHash::parse(v.as_bytes()).map_err(DeError::custom)
             }
         }
