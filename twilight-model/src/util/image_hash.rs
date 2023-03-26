@@ -116,6 +116,9 @@ pub enum ImageHashParseErrorType {
 /// heap-allocated [`std::string::String`]s.
 ///
 /// Parsing methods only support hashes provided by Discord's APIs.
+///
+/// Clyde AI has a unique hash that doesn't match the patterns of other hashes,
+/// uniquely processed as [`ImageHash::CLYDE`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct ImageHash {
     /// Whether the image is animated.
@@ -126,6 +129,21 @@ pub struct ImageHash {
 }
 
 impl ImageHash {
+    /// Avatar hash of Clyde AI, which has a non-standard hash.
+    pub const CLYDE: Self = Self {
+        animated: false,
+        bytes: {
+            let mut bytes = [0; 16];
+            bytes[0] = b'c';
+            bytes[1] = b'l';
+            bytes[2] = b'y';
+            bytes[3] = b'd';
+            bytes[4] = b'e';
+
+            bytes
+        },
+    };
+
     /// Instantiate a new hash from its raw parts.
     ///
     /// Parts can be obtained via [`is_animated`] and [`bytes`].
@@ -201,6 +219,19 @@ impl ImageHash {
         /// In other words, the number of numerical representations before
         /// reaching alphabetical representations in the half-byte.
         const DIGITS_ALLOCATED: u8 = 10;
+
+        if value.len() < 5 {
+            return Err(ImageHashParseError::FORMAT);
+        }
+
+        if value[0] == b'c'
+            && value[1] == b'l'
+            && value[2] == b'y'
+            && value[3] == b'd'
+            && value[4] == b'e'
+        {
+            return Ok(Self::CLYDE);
+        }
 
         let animated = Self::starts_with(value, ANIMATED_KEY.as_bytes());
 
@@ -363,6 +394,10 @@ impl<'de> Deserialize<'de> for ImageHash {
             }
 
             fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
+                if v == "clyde" {
+                    return Ok(ImageHash::CLYDE);
+                }
+
                 ImageHash::parse(v.as_bytes()).map_err(DeError::custom)
             }
         }
@@ -389,6 +424,10 @@ impl Display for ImageHash {
     /// # Ok(()) }
     /// ```
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if *self == Self::CLYDE {
+            return f.write_str("clyde");
+        }
+
         if self.is_animated() {
             f.write_str(ANIMATED_KEY)?;
         }
@@ -773,6 +812,16 @@ mod tests {
     fn is_animated() -> Result<(), ImageHashParseError> {
         assert!(ImageHash::parse(b"a_06c16474723fe537c283b8efa61a30c8")?.is_animated());
         assert!(!ImageHash::parse(b"06c16474723fe537c283b8efa61a30c8")?.is_animated());
+
+        Ok(())
+    }
+
+    /// Test that Clyde AI avatar hashes correctly parse as
+    /// [`ImageHash::CLYDE`].
+    #[test]
+    fn clyde() -> Result<(), ImageHashParseError> {
+        assert_eq!(ImageHash::CLYDE, ImageHash::parse(b"clyde")?);
+        serde_test::assert_tokens(&ImageHash::CLYDE, &[serde_test::Token::Str("clyde")]);
 
         Ok(())
     }
