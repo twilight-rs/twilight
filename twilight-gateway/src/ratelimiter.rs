@@ -14,11 +14,11 @@
 //! [send messages]: crate::Shard::send
 
 use std::{
-    future::{poll_fn, ready, Future},
+    future::{poll_fn, Future},
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::time::{sleep_until, Duration, Instant, Sleep};
+use tokio::time::{sleep, Duration, Instant, Sleep};
 
 /// Number of commands allowed in a [`PERIOD`].
 const COMMANDS_PER_PERIOD: u8 = 120;
@@ -40,13 +40,13 @@ impl CommandRatelimiter {
     pub(crate) async fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
 
-        let mut delay = Box::pin(sleep_until(Instant::now()));
+        let mut delay = Box::pin(sleep(Duration::ZERO));
 
         // Hack to register the timer.
         tokio::select! {
             biased;
             _ = &mut delay => {}
-            _ = ready(()) => {}
+            _ = async {} => {}
         }
 
         Self {
@@ -97,8 +97,7 @@ impl CommandRatelimiter {
 
         let new_deadline = self.instants[0];
         if new_deadline > Instant::now() {
-            let old_deadline = self.delay.deadline();
-            tracing::trace!(?new_deadline, ?old_deadline);
+            tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
             self.delay.as_mut().reset(new_deadline);
 
             // Register waker.
