@@ -14,11 +14,11 @@
 //! [send messages]: crate::Shard::send
 
 use std::{
-    future::{poll_fn, Future},
+    future::{poll_fn, ready, Future},
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::time::{sleep, Duration, Instant, Sleep};
+use tokio::time::{sleep_until, Duration, Instant, Sleep};
 
 /// Number of commands allowed in a [`PERIOD`].
 const COMMANDS_PER_PERIOD: u8 = 120;
@@ -37,11 +37,20 @@ pub struct CommandRatelimiter {
 
 impl CommandRatelimiter {
     /// Create a new ratelimiter with some capacity reserved for heartbeating.
-    pub(crate) fn new(heartbeat_interval: Duration) -> Self {
+    pub(crate) async fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
 
+        let mut delay = Box::pin(sleep_until(Instant::now()));
+
+        // Hack to register the timer.
+        tokio::select! {
+            biased;
+            _ = &mut delay => {}
+            _ = ready(()) => {}
+        }
+
         Self {
-            delay: Box::pin(sleep(Duration::ZERO)),
+            delay,
             instants: Vec::with_capacity(allotted.into()),
         }
     }
@@ -82,27 +91,26 @@ impl CommandRatelimiter {
             return Poll::Ready(());
         }
 
+        if !self.delay.is_elapsed() {
+            return Poll::Pending;
+        }
+
         let new_deadline = self.instants[0];
-        let is_deadline_different = new_deadline != self.delay.deadline();
-        let is_deadline_in_future = new_deadline > Instant::now();
-        match (is_deadline_different, is_deadline_in_future) {
-            (true, true) => {
-                tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
-                self.delay.as_mut().reset(new_deadline);
+        if new_deadline > Instant::now() {
+            let old_deadline = self.delay.deadline();
+            tracing::trace!(?new_deadline, ?old_deadline);
+            self.delay.as_mut().reset(new_deadline);
 
-                // Register waker.
-                _ = self.delay.as_mut().poll(cx);
+            // Register waker.
+            _ = self.delay.as_mut().poll(cx);
 
-                Poll::Pending
-            }
-            (false, true) => Poll::Pending,
-            _ => {
-                let used_permits = (self.max() - self.available()).into();
-                self.instants.rotate_right(used_permits);
-                self.instants.truncate(used_permits);
+            Poll::Pending
+        } else {
+            let used_permits = (self.max() - self.available()).into();
+            self.instants.rotate_right(used_permits);
+            self.instants.truncate(used_permits);
 
-                Poll::Ready(())
-            }
+            Poll::Ready(())
         }
     }
 }
@@ -169,7 +177,7 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn full_reset() {
-        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL).await;
 
         assert_eq!(ratelimiter.available(), ratelimiter.max());
         for _ in 0..ratelimiter.max() {
@@ -188,7 +196,7 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn half_reset() {
-        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL).await;
 
         assert_eq!(ratelimiter.available(), ratelimiter.max());
         for _ in 0..ratelimiter.max() / 2 {
@@ -215,7 +223,7 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn constant_capacity() {
-        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL).await;
         let max = ratelimiter.max();
 
         for _ in 0..max {
