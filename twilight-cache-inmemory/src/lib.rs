@@ -918,6 +918,7 @@ impl UpdateCache for Event {
             | Event::ThreadMembersUpdate(_)
             | Event::ThreadMemberUpdate(_)
             | Event::TypingStart(_)
+            | Event::VoiceChannelEffectSend(_)
             | Event::VoiceServerUpdate(_)
             | Event::WebhooksUpdate(_) => {}
         }

@@ -184,12 +184,15 @@ bitflags! {
         const UNAVAILABLE_GUILD = 1 << 40;
         /// Current user's profile has been updated.
         const USER_UPDATE = 1 << 41;
+        /// A user has sent an effect to a voice channel the bot is in.
+        const VOICE_CHANNEL_EFFECT_SEND = 1 << 42;
         /// Voice server has provided an update with voice session details.
-        const VOICE_SERVER_UPDATE = 1 << 42;
+        const VOICE_SERVER_UPDATE = 1 << 43;
         /// User's state in a voice channel has been updated.
-        const VOICE_STATE_UPDATE = 1 << 43;
+        const VOICE_STATE_UPDATE = 1 << 44;
         /// Webhook in a guild has been updated.
-        const WEBHOOKS_UPDATE = 1 << 44;
+        const WEBHOOKS_UPDATE = 1 << 45;
+
 
         /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_CONFIGURATION`].
         ///
@@ -316,7 +319,8 @@ bitflags! {
         /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
         ///
         /// [`Intents::GUILD_VOICE_STATES`]: crate::Intents::GUILD_VOICE_STATES
-        const GUILD_VOICE_STATES = Self::VOICE_STATE_UPDATE.bits();
+        const GUILD_VOICE_STATES = Self::VOICE_STATE_UPDATE.bits()
+            | Self::VOICE_CHANNEL_EFFECT_SEND.bits();
 
         /// All [`EventTypeFlags`] in [`Intents::GUILD_WEBHOOKS`].
         ///
@@ -396,6 +400,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::TypingStart => Self::TYPING_START,
             EventType::UnavailableGuild => Self::UNAVAILABLE_GUILD,
             EventType::UserUpdate => Self::USER_UPDATE,
+            EventType::VoiceChannelEffectSend => Self::VOICE_CHANNEL_EFFECT_SEND,
             EventType::VoiceServerUpdate => Self::VOICE_SERVER_UPDATE,
             EventType::VoiceStateUpdate => Self::VOICE_STATE_UPDATE,
             EventType::WebhooksUpdate => Self::WEBHOOKS_UPDATE,

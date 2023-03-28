@@ -165,6 +165,8 @@ pub enum Event {
     UnavailableGuild(UnavailableGuild),
     /// The current user was updated.
     UserUpdate(UserUpdate),
+    /// A user sent an effect in a voice channel the bot is in.
+    VoiceChannelEffectSend(Box<VoiceChannelEffectSend>),
     /// A voice server update was sent.
     VoiceServerUpdate(VoiceServerUpdate),
     /// A voice state in a voice channel was updated.
@@ -234,6 +236,7 @@ impl Event {
             Event::ThreadUpdate(e) => e.0.guild_id,
             Event::TypingStart(e) => e.guild_id,
             Event::UnavailableGuild(e) => Some(e.id),
+            Event::VoiceChannelEffectSend(e) => Some(e.guild_id),
             Event::VoiceServerUpdate(e) => Some(e.guild_id),
             Event::VoiceStateUpdate(e) => e.0.guild_id,
             Event::WebhooksUpdate(e) => Some(e.guild_id),
@@ -325,6 +328,7 @@ impl Event {
             Self::TypingStart(_) => EventType::TypingStart,
             Self::UnavailableGuild(_) => EventType::UnavailableGuild,
             Self::UserUpdate(_) => EventType::UserUpdate,
+            Self::VoiceChannelEffectSend(_) => EventType::VoiceChannelEffectSend,
             Self::VoiceServerUpdate(_) => EventType::VoiceServerUpdate,
             Self::VoiceStateUpdate(_) => EventType::VoiceStateUpdate,
             Self::WebhooksUpdate(_) => EventType::WebhooksUpdate,
@@ -400,6 +404,7 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::TypingStart(v) => Self::TypingStart(v),
             DispatchEvent::UnavailableGuild(v) => Self::UnavailableGuild(v),
             DispatchEvent::UserUpdate(v) => Self::UserUpdate(v),
+            DispatchEvent::VoiceChannelEffectSend(v) => Self::VoiceChannelEffectSend(v),
             DispatchEvent::VoiceServerUpdate(v) => Self::VoiceServerUpdate(v),
             DispatchEvent::VoiceStateUpdate(v) => Self::VoiceStateUpdate(v),
             DispatchEvent::WebhooksUpdate(v) => Self::WebhooksUpdate(v),
@@ -506,6 +511,7 @@ mod tests {
     const_assert!(mem::size_of::<ThreadMemberUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ThreadUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<TypingStart>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<VoiceChannelEffectSend>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<VoiceStateUpdate>() > EVENT_THRESHOLD);
 
     // Unboxed.
