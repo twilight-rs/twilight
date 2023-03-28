@@ -43,11 +43,7 @@ impl CommandRatelimiter {
         let mut delay = Box::pin(sleep(Duration::ZERO));
 
         // Hack to register the timer.
-        tokio::select! {
-            biased;
-            _ = &mut delay => {}
-            _ = async {} => {}
-        }
+        (&mut delay).await;
 
         Self {
             delay,
