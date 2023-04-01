@@ -1062,7 +1062,7 @@ impl Shard {
                 tracing::debug!(?heartbeat_interval, ?jitter, "received hello");
 
                 if self.config().ratelimit_messages() {
-                    self.ratelimiter = Some(CommandRatelimiter::new(heartbeat_interval));
+                    self.ratelimiter = Some(CommandRatelimiter::new(heartbeat_interval).await);
                 }
 
                 let mut interval = time::interval_at(Instant::now() + jitter, heartbeat_interval);
