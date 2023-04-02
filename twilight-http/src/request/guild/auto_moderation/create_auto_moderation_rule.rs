@@ -158,7 +158,12 @@ impl<'a> CreateAutoModerationRule<'a> {
 
     /// Append an action of type [`BlockMessage`] with an explanation for blocking messages.
     ///
+    /// # Errors
+    /// Returns [`AutoModerationBlockActionCustomMessageLimit`] if the `custom_message`
+    /// field is invalid.
+    ///
     /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
+    /// [`AutoModerationBlockActionCustomMessageLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationBlockActionCustomMessageLimit
     pub fn action_block_message_with_explanation(
         mut self,
         custom_message: &'a str,
@@ -204,7 +209,13 @@ impl<'a> CreateAutoModerationRule<'a> {
 
     /// Append an action of type [`Timeout`].
     ///
+    /// # Errors
+    ///
+    /// Returns [`AutoModerationActionMetadataDurationSeconds`] if the duration
+    /// is invalid.
+    ///
     /// [`Timeout`]: AutoModerationActionType::Timeout
+    /// [`AutoModerationActionMetadataDurationSeconds`]: twilight_validate::request::ValidationErrorType::AutoModerationActionMetadataDurationSeconds
     pub fn action_timeout(mut self, duration_seconds: u32) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
             validate_auto_moderation_action_metadata_duration_seconds(duration_seconds)?;
@@ -236,6 +247,14 @@ impl<'a> CreateAutoModerationRule<'a> {
     }
 
     /// Set the channels where the rule does not apply.
+    /// See [Discord Docs/Trigger Metadata].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AutoModerationExemptChannels`] if the `exempt_roles` field is invalid.
+    ///
+    /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+    /// [`AutoModerationExemptChannels`]: twilight_validate::request::ValidationErrorType::AutoModerationExemptChannels
     pub fn exempt_channels(mut self, exempt_channels: &'a [Id<ChannelMarker>]) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
             validate_auto_moderation_exempt_channels(exempt_channels)?;
@@ -248,6 +267,14 @@ impl<'a> CreateAutoModerationRule<'a> {
     }
 
     /// Set the roles to which the rule does not apply.
+    /// See [Discord Docs/Trigger Metadata].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AutoModerationExemptRoles`] if the `exempt_roles` field is invalid.
+    ///
+    /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+    /// [`AutoModerationExemptRoles`]: twilight_validate::request::ValidationErrorType::AutoModerationExemptRoles
     pub fn exempt_roles(mut self, exempt_roles: &'a [Id<RoleMarker>]) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
             validate_auto_moderation_exempt_roles(exempt_roles)?;
@@ -265,9 +292,35 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// this method ensures this. See [Discord Docs/Keyword Matching Strategies]
     /// and [Discord Docs/Trigger Metadata].
     ///
+    /// # Errors
+    ///
+    /// Returns [`AutoModerationMetadataKeywordFilter`] if the `keyword_filter`
+    /// field is invalid.
+    ///
+    /// Returns [`AutoModerationMetadataKeywordFilterItem`] if a `keyword_filter`
+    /// item is invalid.
+    ///
+    /// Returns [`AutoModerationMetadataAllowList`] if the `allow_list` field is
+    /// invalid.
+    ///
+    /// Returns [`AutoModerationMetadataAllowListItem`] if an `allow_list` item
+    /// is invalid.
+    ///
+    /// Returns [`AutoModerationMetadataRegexPatterns`] if the `regex_patterns`
+    /// field is invalid.
+    ///
+    /// Returns [`AutoModerationMetadataRegexPatternsItem`] if a `regex_patterns`
+    /// item is invalid.
+    ///
     /// [`Keyword`]: AutoModerationTriggerType::Keyword
     /// [Discord Docs/Keyword Matching Strategies]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-matching-strategies
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+    /// [`AutoModerationMetadataKeywordFilter`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataKeywordFilter
+    /// [`AutoModerationMetadataKeywordFilterItem`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataKeywordFilterItem
+    /// [`AutoModerationMetadataAllowList`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataAllowList
+    /// [`AutoModerationMetadataAllowListItem`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataAllowListItem
+    /// [`AutoModerationMetadataRegexPatterns`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataRegexPatterns
+    /// [`AutoModerationMetadataRegexPatternsItem`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataRegexPatternsItem
     pub fn with_keyword(
         mut self,
         keyword_filter: &'a [&'a str],
@@ -314,8 +367,18 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// specified, and this method ensures this. See [Discord Docs/Trigger
     /// Metadata].
     ///
+    /// # Errors
+    ///
+    /// Returns [`AutoModerationMetadataPresetAllowList`] if the `allow_list` is
+    /// invalid.
+    ///
+    /// Returns [`AutoModerationMetadataPresetAllowListItem`] if a `allow_list`
+    /// item is invalid.
+    ///
     /// [`KeywordPreset`]: AutoModerationTriggerType::KeywordPreset
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+    /// [`AutoModerationMetadataPresetAllowList`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataPresetAllowList
+    /// [`AutoModerationMetadataPresetAllowListItem`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataPresetAllowListItem
     pub fn with_keyword_preset(
         mut self,
         presets: &'a [AutoModerationKeywordPresetType],
@@ -345,8 +408,14 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// Rules of this type requires the `mention_total_limit` field specified,
     /// and this method ensures this. See [Discord Docs/Trigger Metadata].
     ///
+    /// # Errors
+    ///
+    /// Returns a [`AutoModerationMetadataMentionTotalLimit`] if `mention_total_limit`
+    /// is invalid.
+    ///
     /// [`MentionSpam`]: AutoModerationTriggerType::MentionSpam
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+    /// [`AutoModerationMetadataMentionTotalLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataMentionTotalLimit
     pub fn with_mention_spam(
         mut self,
         mention_total_limit: u8,
