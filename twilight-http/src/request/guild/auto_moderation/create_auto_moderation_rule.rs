@@ -19,6 +19,11 @@ use twilight_model::{
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,
     auto_moderation_metadata_mention_total_limit as validate_auto_moderation_metadata_mention_total_limit,
+    auto_moderation_metadata_keyword_filter as validate_auto_moderation_metadata_keyword_filter,
+    auto_moderation_metadata_regex_patterns as validate_auto_moderation_metadata_regex_patterns,
+    auto_moderation_metadata_keyword_allow_list as validate_auto_moderation_metadata_allow_list,
+    auto_moderation_action_metadata_duration_seconds as validate_auto_moderation_action_metadata_duration_seconds,
+
     ValidationError,
 };
 
@@ -52,6 +57,8 @@ struct CreateAutoModerationRuleFieldsTriggerMetadata<'a> {
     presets: Option<&'a [AutoModerationKeywordPresetType]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     mention_total_limit: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    regex_patterns: Option<&'a [&'a str]>,
 }
 
 #[derive(Serialize)]
@@ -86,7 +93,7 @@ struct CreateAutoModerationRuleFields<'a> {
 ///     .create_auto_moderation_rule(guild_id, "no darns", AutoModerationEventType::MessageSend)
 ///     .action_block_message()
 ///     .enabled(true)
-///     .with_keyword(&["darn"])
+///     .with_keyword(&["darn"], &[], &[])
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -128,7 +135,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
     pub fn action_block_message(mut self) -> Self {
-        self.fields = self.fields.map(|mut fields| {
+        self.fields = self.fields.and_then(|mut fields| {
             fields.actions.get_or_insert_with(Vec::new).push(
                 CreateAutoModerationRuleFieldsAction {
                     kind: AutoModerationActionType::BlockMessage,
@@ -136,7 +143,7 @@ impl<'a> CreateAutoModerationRule<'a> {
                 },
             );
 
-            fields
+            Ok(fields)
         });
 
         self
@@ -146,7 +153,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`SendAlertMessage`]: AutoModerationActionType::SendAlertMessage
     pub fn action_send_alert_message(mut self, channel_id: Id<ChannelMarker>) -> Self {
-        self.fields = self.fields.map(|mut fields| {
+        self.fields = self.fields.and_then(|mut fields| {
             fields.actions.get_or_insert_with(Vec::new).push(
                 CreateAutoModerationRuleFieldsAction {
                     kind: AutoModerationActionType::SendAlertMessage,
@@ -157,7 +164,7 @@ impl<'a> CreateAutoModerationRule<'a> {
                 },
             );
 
-            fields
+            Ok(fields)
         });
 
         self
@@ -167,7 +174,8 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`Timeout`]: AutoModerationActionType::Timeout
     pub fn action_timeout(mut self, duration_seconds: u32) -> Self {
-        self.fields = self.fields.map(|mut fields| {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_auto_moderation_action_metadata_duration_seconds(duration_seconds)?;
             fields.actions.get_or_insert_with(Vec::new).push(
                 CreateAutoModerationRuleFieldsAction {
                     kind: AutoModerationActionType::Timeout,
@@ -178,7 +186,7 @@ impl<'a> CreateAutoModerationRule<'a> {
                 },
             );
 
-            fields
+            Ok(fields)
         });
 
         self
@@ -229,18 +237,24 @@ impl<'a> CreateAutoModerationRule<'a> {
     pub fn with_keyword(
         mut self,
         keyword_filter: &'a [&'a str],
+        regex_patterns: &'a [&'a str],
+        allow_list: &'a [&'a str],
     ) -> ResponseFuture<AutoModerationRule> {
-        self.fields = self.fields.map(|mut fields| {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_auto_moderation_metadata_allow_list(allow_list)?;
+            validate_auto_moderation_metadata_keyword_filter(keyword_filter)?;
+            validate_auto_moderation_metadata_regex_patterns(regex_patterns)?;
             fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
-                allow_list: None,
+                allow_list: Some(allow_list),
                 keyword_filter: Some(keyword_filter),
                 presets: None,
                 mention_total_limit: None,
+                regex_patterns: Some(regex_patterns),
             });
 
             fields.trigger_type = Some(AutoModerationTriggerType::Keyword);
 
-            fields
+            Ok(fields)
         });
 
         self.exec()
@@ -273,17 +287,19 @@ impl<'a> CreateAutoModerationRule<'a> {
         presets: &'a [AutoModerationKeywordPresetType],
         allow_list: &'a [&'a str],
     ) -> ResponseFuture<AutoModerationRule> {
-        self.fields = self.fields.map(|mut fields| {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_auto_moderation_metadata_allow_list(allow_list)?;
             fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
                 allow_list: Some(allow_list),
                 keyword_filter: None,
                 presets: Some(presets),
                 mention_total_limit: None,
+                regex_patterns: None,
             });
 
             fields.trigger_type = Some(AutoModerationTriggerType::KeywordPreset);
 
-            fields
+            Ok(fields)
         });
 
         self.exec()
@@ -295,12 +311,6 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// Rules of this type requires the `mention_total_limit` field specified,
     /// and this method ensures this. See [Discord Docs/Trigger Metadata].
     ///
-    /// # Errors
-    ///
-    /// Returns an error of type [`AutoModerationMetadataMentionTotalLimit`] if
-    /// the limit is invalid.
-    ///
-    /// [`AutoModerationMetadataMentionTotalLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataMentionTotalLimit
     /// [`MentionSpam`]: AutoModerationTriggerType::MentionSpam
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     pub fn with_mention_spam(
@@ -314,6 +324,7 @@ impl<'a> CreateAutoModerationRule<'a> {
                 keyword_filter: None,
                 presets: None,
                 mention_total_limit: Some(mention_total_limit),
+                regex_patterns: None,
             });
             fields.trigger_type = Some(AutoModerationTriggerType::MentionSpam);
 
