@@ -156,30 +156,27 @@ impl<'a> CreateAutoModerationRule<'a> {
 
     /// Append an action of type [`BlockMessage`] with an explanation for blocking messages.
     ///
-    /// # Errors
-    ///
-    /// Returns a [`AutoModerationBlockActionCustomMessageLimit`] if the custom message length
-    /// is invalid.
-    ///
-    /// [`AutoModerationBlockActionCustomMessageLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationBlockActionCustomMessageLimit
     /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
     pub fn action_block_message_with_explanation(
         mut self,
         custom_message: &'a str,
-    ) -> Result<Self, ValidationError> {
-        validate_auto_moderation_block_action_custom_message_limit(custom_message)?;
-
-        self.fields.actions.get_or_insert_with(Vec::new).push(
-            CreateAutoModerationRuleFieldsAction {
-                kind: AutoModerationActionType::BlockMessage,
-                metadata: CreateAutoModerationRuleFieldsActionMetadata {
-                    custom_message: Some(String::from(custom_message)),
-                    ..Default::default()
+    ) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_auto_moderation_block_action_custom_message_limit(custom_message)?;
+            fields.actions.get_or_insert_with(Vec::new).push(
+                CreateAutoModerationRuleFieldsAction {
+                    kind: AutoModerationActionType::BlockMessage,
+                    metadata: CreateAutoModerationRuleFieldsActionMetadata {
+                        custom_message: Some(String::from(custom_message)),
+                        ..Default::default()
+                    },
                 },
-            },
-        );
+            );
 
-        Ok(self)
+            Ok(fields)
+        });
+
+        self
     }
 
     /// Append an action of type [`SendAlertMessage`].
