@@ -232,7 +232,7 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn spurious_poll() {
-        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL).await;
 
         for _ in 0..ratelimiter.max() {
             ratelimiter.acquire().await;
