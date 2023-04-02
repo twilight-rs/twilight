@@ -288,9 +288,12 @@ impl<'a> CreateAutoModerationRule<'a> {
 
     /// Create the request with the trigger type [`Keyword`], then execute it.
     ///
-    /// Rules of this type require the `keyword_filter` field specified, and
-    /// this method ensures this. See [Discord Docs/Keyword Matching Strategies]
-    /// and [Discord Docs/Trigger Metadata].
+    /// Rules of this type require the `keyword_filter`, `regex_patterns` and
+    /// `allow_list` fields specified, and this method ensures this.
+    /// See [Discord Docs/Keyword Matching Strategies] and
+    /// [Discord Docs/Trigger Metadata] for more information.
+    ///
+    /// Only rust-flavored regex is currently supported by Discord.
     ///
     /// # Errors
     ///
@@ -364,8 +367,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// it.
     ///
     /// Rules of this type require the `presets` and `allow_list` fields
-    /// specified, and this method ensures this. See [Discord Docs/Trigger
-    /// Metadata].
+    /// specified, and this method ensures this. See [Discord Docs/TriggerMetadata].
     ///
     /// # Errors
     ///
