@@ -24,6 +24,8 @@ use twilight_validate::request::{
     auto_moderation_metadata_regex_patterns as validate_auto_moderation_metadata_regex_patterns,
     auto_moderation_metadata_keyword_allow_list as validate_auto_moderation_metadata_allow_list,
     auto_moderation_action_metadata_duration_seconds as validate_auto_moderation_action_metadata_duration_seconds,
+    auto_moderation_exempt_roles as validate_auto_moderation_exempt_roles,
+    auto_moderation_exempt_channels as validate_auto_moderation_exempt_channels,
 
     ValidationError,
 };
@@ -235,10 +237,11 @@ impl<'a> CreateAutoModerationRule<'a> {
 
     /// Set the channels where the rule does not apply.
     pub fn exempt_channels(mut self, exempt_channels: &'a [Id<ChannelMarker>]) -> Self {
-        self.fields = self.fields.map(|mut fields| {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_auto_moderation_exempt_channels(exempt_channels)?;
             fields.exempt_channels = Some(exempt_channels);
 
-            fields
+            Ok(fields)
         });
 
         self
@@ -246,10 +249,11 @@ impl<'a> CreateAutoModerationRule<'a> {
 
     /// Set the roles to which the rule does not apply.
     pub fn exempt_roles(mut self, exempt_roles: &'a [Id<RoleMarker>]) -> Self {
-        self.fields = self.fields.map(|mut fields| {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_auto_moderation_exempt_roles(exempt_roles)?;
             fields.exempt_roles = Some(exempt_roles);
 
-            fields
+            Ok(fields)
         });
 
         self

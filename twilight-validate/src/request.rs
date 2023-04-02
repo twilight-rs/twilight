@@ -7,6 +7,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
+use twilight_model::id::Id;
+use twilight_model::id::marker::{ChannelMarker, RoleMarker};
 use twilight_model::util::Timestamp;
 
 /// The maximum audit log reason length in UTF-16 codepoints.
@@ -44,6 +46,12 @@ pub const AUTO_MODERATION_METADATA_REGEX_PATTERNS_LENGTH_MAX: usize = 260;
 
 /// Maximum amount of seconds (`2_419_200` this is equivalent to `28` days) to disable communication for.
 pub const AUTO_MODERATION_ACTION_METADATA_DURATION_SECONDS_MAX: u32 = 2_419_200;
+
+/// Maximum amount of exempt roles for the auto moderation rule.
+pub const AUTO_MODERATION_EXEMPT_ROLES_MAX: usize = 20;
+
+/// Maximum amount of exempt channels for the auto moderation rule.
+pub const AUTO_MODERATION_EXEMPT_CHANNELS_MAX: usize = 50;
 
 /// Maximum amount of seconds (`604_800` this is equivalent to `7` days) for messages to be deleted upon ban.
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
@@ -297,6 +305,20 @@ impl Display for ValidationError {
                 f.write_str(", but it must be at most ")?;
 
                 Display::fmt(&AUTO_MODERATION_METADATA_REGEX_PATTERNS_LENGTH_MAX, f)
+            }
+            ValidationErrorType::AutoModerationExemptRoles { len } => {
+                f.write_str("provided auto moderation exempt_roles length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_EXEMPT_ROLES_MAX, f)
+            }
+            ValidationErrorType::AutoModerationExemptChannels { len } => {
+                f.write_str("provided auto moderation exempt_channels length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_EXEMPT_CHANNELS_MAX, f)
             }
             ValidationErrorType::CreateGuildBanDeleteMessageSeconds {
                 seconds: delete_message_seconds,
@@ -564,6 +586,16 @@ pub enum ValidationErrorType {
         len: usize,
         /// Invalid substring.
         substring: String,
+    },
+    /// Provided exempt roles was invalid.
+    AutoModerationExemptRoles {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Provided exempt channels was invalid.
+    AutoModerationExemptChannels {
+        /// Invalid length.
+        len: usize,
     },
     /// Provided create guild ban delete message seconds was invalid.
     CreateGuildBanDeleteMessageSeconds {
@@ -1014,7 +1046,7 @@ pub fn auto_moderation_metadata_regex_patterns_item(
     }
 }
 
-/// Ensures that the `duration_seconds` field for an auto moderation action
+/// Ensure that the `duration_seconds` field for an auto moderation action
 /// metadata is correct.
 ///
 /// The duration must be at most [`AUTO_MODERATION_ACTION_METADATA_DURATION_SECONDS_MAX`].
@@ -1035,6 +1067,56 @@ pub const fn auto_moderation_action_metadata_duration_seconds(
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::AutoModerationActionMetadataDurationSeconds { seconds },
+        })
+    }
+}
+
+/// Ensure that the `exempt_roles` field for an auto moderation rule is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_EXEMPT_ROLES_MAX`]. This is based
+/// on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationExemptRoles`] if the length is
+/// invalid.
+///
+/// [`AutoModerationExemptRoles`]: ValidationErrorType::AutoModerationExemptRoles
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-auto-moderation-rule-structure
+pub const fn auto_moderation_exempt_roles(roles: &[Id<RoleMarker>]) -> Result<(), ValidationError> {
+    let len = roles.len();
+
+    if len <= AUTO_MODERATION_EXEMPT_ROLES_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationExemptRoles { len },
+        })
+    }
+}
+
+/// Ensure that the `exempt_channels` field for an auto moderation rule is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_EXEMPT_CHANNELS_MAX`]. This is based
+/// on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationExemptChannels`] if the length is
+/// invalid.
+///
+/// [`AutoModerationExemptChannels`]: ValidationErrorType::AutoModerationExemptChannels
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-auto-moderation-rule-structure
+pub const fn auto_moderation_exempt_channels(
+    channels: &[Id<ChannelMarker>],
+) -> Result<(), ValidationError> {
+    let len = channels.len();
+
+    if len <= AUTO_MODERATION_EXEMPT_CHANNELS_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationExemptChannels { len },
         })
     }
 }
@@ -1683,6 +1765,30 @@ mod tests {
 
         assert!(auto_moderation_metadata_regex_patterns(&["a".repeat(261)]).is_err());
         assert!(auto_moderation_metadata_regex_patterns(&patterns).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_exempt_roles_max() {
+        let mut roles = (1..=20).map(|x| Id::new(x)).collect::<Vec<_>>();
+
+        assert!(auto_moderation_exempt_roles(&[]).is_ok());
+        assert!(auto_moderation_exempt_roles(&roles).is_ok());
+
+        roles.push(Id::new(21));
+
+        assert!(auto_moderation_exempt_roles(&roles).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_exempt_channels_max() {
+        let mut channels = (1..=50).map(|x| Id::new(x)).collect::<Vec<_>>();
+
+        assert!(auto_moderation_exempt_channels(&[]).is_ok());
+        assert!(auto_moderation_exempt_channels(&channels).is_ok());
+
+        channels.push(Id::new(51));
+
+        assert!(auto_moderation_exempt_channels(&channels).is_err());
     }
 
     #[test]
