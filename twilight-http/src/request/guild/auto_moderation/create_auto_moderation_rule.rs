@@ -22,7 +22,7 @@ use twilight_validate::request::{
     auto_moderation_metadata_mention_total_limit as validate_auto_moderation_metadata_mention_total_limit,
     auto_moderation_metadata_keyword_filter as validate_auto_moderation_metadata_keyword_filter,
     auto_moderation_metadata_regex_patterns as validate_auto_moderation_metadata_regex_patterns,
-    auto_moderation_metadata_keyword_allow_list as validate_auto_moderation_metadata_allow_list,
+    auto_moderation_metadata_keyword_allow_list as validate_auto_moderation_metadata_keyword_allow_list,
     auto_moderation_action_metadata_duration_seconds as validate_auto_moderation_action_metadata_duration_seconds,
     auto_moderation_exempt_roles as validate_auto_moderation_exempt_roles,
     auto_moderation_exempt_channels as validate_auto_moderation_exempt_channels,
@@ -142,7 +142,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
     pub fn action_block_message(mut self) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.fields = self.fields.map(|mut fields| {
             fields.actions.get_or_insert_with(Vec::new).push(
                 CreateAutoModerationRuleFieldsAction {
                     kind: AutoModerationActionType::BlockMessage,
@@ -150,7 +150,7 @@ impl<'a> CreateAutoModerationRule<'a> {
                 },
             );
 
-            Ok(fields)
+            fields
         });
 
         self
@@ -190,7 +190,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`SendAlertMessage`]: AutoModerationActionType::SendAlertMessage
     pub fn action_send_alert_message(mut self, channel_id: Id<ChannelMarker>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.fields = self.fields.map(|mut fields| {
             fields.actions.get_or_insert_with(Vec::new).push(
                 CreateAutoModerationRuleFieldsAction {
                     kind: AutoModerationActionType::SendAlertMessage,
@@ -201,7 +201,7 @@ impl<'a> CreateAutoModerationRule<'a> {
                 },
             );
 
-            Ok(fields)
+            fields
         });
 
         self
@@ -387,7 +387,7 @@ impl<'a> CreateAutoModerationRule<'a> {
         allow_list: &'a [&'a str],
     ) -> ResponseFuture<AutoModerationRule> {
         self.fields = self.fields.and_then(|mut fields| {
-            validate_auto_moderation_metadata_allow_list(allow_list)?;
+            validate_auto_moderation_metadata_keyword_allow_list(allow_list)?;
             fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
                 allow_list: Some(allow_list),
                 keyword_filter: None,

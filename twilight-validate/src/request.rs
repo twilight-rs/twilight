@@ -752,6 +752,7 @@ pub fn auto_moderation_block_action_custom_message_limit(
     custom_message: impl AsRef<str>,
 ) -> Result<(), ValidationError> {
     let len = custom_message.as_ref().chars().count();
+
     if len <= AUTO_MODERATION_ACTION_BLOCK_CUSTOM_MESSAGE_LENGTH_MAX {
         Ok(())
     } else {
