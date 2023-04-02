@@ -70,7 +70,7 @@ bitflags! {
         const MODERATE_MEMBERS = 1 << 40;
         /// Allows for viewing role subscription insights.
         const VIEW_CREATOR_MONETIZATION_ANALYTICS = 1 << 41;
-        /// Allows for using the soundboard in a voice channel
+        /// Allows for using soundboard in a voice channel
         const USE_SOUNDBOARD = 1 << 42;
     }
 }
