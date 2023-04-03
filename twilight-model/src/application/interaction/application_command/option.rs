@@ -170,7 +170,18 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                 return Err(DeError::duplicate_field("value"));
                             }
 
-                            value_opt = Some(map.next_value()?);
+                            // This is an edge case to handle string options.
+                            // Because Id's take precedence over strings, we
+                            // need to check if the option type is a string
+                            // prior to deserializing the value. If it is a
+                            // string, then we deserialize it as a string. Otherwise,
+                            // we deserialize it using the default ValueEnvelope behavior.
+                            if let Some(CommandOptionType::String) = kind_opt {
+                                value_opt =
+                                    Some(ValueEnvelope::String(map.next_value::<String>()?));
+                            } else {
+                                value_opt = Some(map.next_value()?);
+                            }
                         }
                         Fields::Options => {
                             if !options.is_empty() {
@@ -286,7 +297,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         }
                         CommandOptionType::String => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
-
                             match val {
                                 ValueEnvelope::String(s) => CommandOptionValue::String(s),
                                 ValueEnvelope::Id(id) => {
