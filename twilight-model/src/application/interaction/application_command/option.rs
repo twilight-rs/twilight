@@ -177,8 +177,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             // string, then we deserialize it as a string. Otherwise,
                             // we deserialize it using the default ValueEnvelope behavior.
                             if let Some(CommandOptionType::String) = kind_opt {
-                                value_opt =
-                                    Some(ValueEnvelope::String(map.next_value::<String>()?));
+                                value_opt = Some(ValueEnvelope::String(map.next_value()?));
                             } else {
                                 value_opt = Some(map.next_value()?);
                             }
