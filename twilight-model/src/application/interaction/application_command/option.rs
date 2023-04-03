@@ -87,10 +87,10 @@ impl<'de> Deserialize<'de> for CommandDataOption {
         }
 
         // An `Id` variant is purposely not included here.
-        // We first deserialize into a `String` to and then
+        // We first deserialize into a `String` and then
         // later parse it into an `Id` variant. This is done
-        // to prevent situations where an option string value
-        // is parsed as an `Id` variant, which omits leading zeros.
+        // to prevent situations where an option's string value
+        // is parsed as an `Id` variant, which omits features leading zeros.
         #[derive(Debug, Deserialize)]
         #[serde(untagged)]
         enum ValueEnvelope {
