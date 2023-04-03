@@ -1755,7 +1755,7 @@ mod tests {
 
     #[test]
     fn auto_moderation_exempt_roles_max() {
-        let mut roles = (1..=20).map(|x| Id::new(x)).collect::<Vec<_>>();
+        let mut roles = (1..=20).map(Id::new).collect::<Vec<_>>();
 
         assert!(auto_moderation_exempt_roles(&[]).is_ok());
         assert!(auto_moderation_exempt_roles(&roles).is_ok());
@@ -1767,7 +1767,7 @@ mod tests {
 
     #[test]
     fn auto_moderation_exempt_channels_max() {
-        let mut channels = (1..=50).map(|x| Id::new(x)).collect::<Vec<_>>();
+        let mut channels = (1..=50).map(Id::new).collect::<Vec<_>>();
 
         assert!(auto_moderation_exempt_channels(&[]).is_ok());
         assert!(auto_moderation_exempt_channels(&channels).is_ok());
