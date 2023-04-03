@@ -18,15 +18,14 @@ use twilight_model::{
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,
-    auto_moderation_block_action_custom_message_limit as validate_auto_moderation_block_action_custom_message_limit,
-    auto_moderation_metadata_mention_total_limit as validate_auto_moderation_metadata_mention_total_limit,
-    auto_moderation_metadata_keyword_filter as validate_auto_moderation_metadata_keyword_filter,
-    auto_moderation_metadata_regex_patterns as validate_auto_moderation_metadata_regex_patterns,
-    auto_moderation_metadata_keyword_allow_list as validate_auto_moderation_metadata_keyword_allow_list,
     auto_moderation_action_metadata_duration_seconds as validate_auto_moderation_action_metadata_duration_seconds,
-    auto_moderation_exempt_roles as validate_auto_moderation_exempt_roles,
+    auto_moderation_block_action_custom_message_limit as validate_auto_moderation_block_action_custom_message_limit,
     auto_moderation_exempt_channels as validate_auto_moderation_exempt_channels,
-
+    auto_moderation_exempt_roles as validate_auto_moderation_exempt_roles,
+    auto_moderation_metadata_keyword_allow_list as validate_auto_moderation_metadata_keyword_allow_list,
+    auto_moderation_metadata_keyword_filter as validate_auto_moderation_metadata_keyword_filter,
+    auto_moderation_metadata_mention_total_limit as validate_auto_moderation_metadata_mention_total_limit,
+    auto_moderation_metadata_regex_patterns as validate_auto_moderation_metadata_regex_patterns,
     ValidationError,
 };
 
@@ -164,10 +163,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
     /// [`AutoModerationBlockActionCustomMessageLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationBlockActionCustomMessageLimit
-    pub fn action_block_message_with_explanation(
-        mut self,
-        custom_message: &'a str,
-    ) -> Self {
+    pub fn action_block_message_with_explanation(mut self, custom_message: &'a str) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
             validate_auto_moderation_block_action_custom_message_limit(custom_message)?;
             fields.actions.get_or_insert_with(Vec::new).push(
@@ -331,7 +327,7 @@ impl<'a> CreateAutoModerationRule<'a> {
         allow_list: &'a [&'a str],
     ) -> ResponseFuture<AutoModerationRule> {
         self.fields = self.fields.and_then(|mut fields| {
-            validate_auto_moderation_metadata_allow_list(allow_list)?;
+            validate_auto_moderation_metadata_keyword_allow_list(allow_list)?;
             validate_auto_moderation_metadata_keyword_filter(keyword_filter)?;
             validate_auto_moderation_metadata_regex_patterns(regex_patterns)?;
             fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {

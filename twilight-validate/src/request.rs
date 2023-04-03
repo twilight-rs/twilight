@@ -7,8 +7,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
-use twilight_model::id::Id;
 use twilight_model::id::marker::{ChannelMarker, RoleMarker};
+use twilight_model::id::Id;
 use twilight_model::util::Timestamp;
 
 /// The maximum audit log reason length in UTF-16 codepoints.
@@ -268,20 +268,14 @@ impl Display for ValidationError {
 
                 Display::fmt(&AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_MAX, f)
             }
-            ValidationErrorType::AutoModerationMetadataPresetAllowListItem {
-                len,
-                substring,
-            } => {
+            ValidationErrorType::AutoModerationMetadataPresetAllowListItem { len, substring } => {
                 f.write_str("provided auto moderation metadata allow_list item ")?;
                 Display::fmt(substring, f)?;
                 f.write_str(" length is ")?;
                 Display::fmt(len, f)?;
                 f.write_str(", but it must be at most ")?;
 
-                Display::fmt(
-                    &AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_LENGTH_MAX,
-                    f,
-                )
+                Display::fmt(&AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_LENGTH_MAX, f)
             }
             ValidationErrorType::AutoModerationActionMetadataDurationSeconds { seconds } => {
                 f.write_str("provided auto moderation action timeout duration is ")?;
@@ -815,9 +809,7 @@ pub fn auto_moderation_metadata_keyword_filter(
         Ok(())
     } else {
         Err(ValidationError {
-            kind: ValidationErrorType::AutoModerationMetadataKeywordFilter {
-                len,
-            },
+            kind: ValidationErrorType::AutoModerationMetadataKeywordFilter { len },
         })
     }
 }
@@ -851,7 +843,6 @@ pub fn auto_moderation_metadata_keyword_filter_item(
     }
 }
 
-
 /// Ensure that an auto moderation rule's `allow_list` is correct.
 ///
 /// The length must be at most [`AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_MAX`].
@@ -881,9 +872,7 @@ pub fn auto_moderation_metadata_keyword_allow_list(
         Ok(())
     } else {
         Err(ValidationError {
-            kind: ValidationErrorType::AutoModerationMetadataAllowList {
-                len,
-            },
+            kind: ValidationErrorType::AutoModerationMetadataAllowList { len },
         })
     }
 }
@@ -946,9 +935,7 @@ pub fn auto_moderation_metadata_preset_allow_list(
         Ok(())
     } else {
         Err(ValidationError {
-            kind: ValidationErrorType::AutoModerationMetadataPresetAllowList {
-                len,
-            },
+            kind: ValidationErrorType::AutoModerationMetadataPresetAllowList { len },
         })
     }
 }
@@ -1011,9 +998,7 @@ pub fn auto_moderation_metadata_regex_patterns(
         Ok(())
     } else {
         Err(ValidationError {
-            kind: ValidationErrorType::AutoModerationMetadataRegexPatterns {
-                len,
-            },
+            kind: ValidationErrorType::AutoModerationMetadataRegexPatterns { len },
         })
     }
 }
