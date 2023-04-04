@@ -720,4 +720,29 @@ mod tests {
             ],
         );
     }
+
+    #[test]
+    fn leading_zeroes_string_option_value() {
+        let value = CommandDataOption {
+            name: "opt".to_string(),
+            value: CommandOptionValue::String("0001".to_owned()),
+        };
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandDataOption",
+                    len: 3,
+                },
+                Token::Str("name"),
+                Token::Str("opt"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::String as u8),
+                Token::Str("value"),
+                Token::String("0001"),
+                Token::StructEnd,
+            ],
+        );
+    }
 }
