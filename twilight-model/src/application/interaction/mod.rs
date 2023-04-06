@@ -17,7 +17,7 @@ use self::{
     modal::ModalInteractionData,
 };
 use crate::{
-    channel::Message,
+    channel::{Channel, Message},
     guild::{PartialMember, Permissions},
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
@@ -46,12 +46,22 @@ pub struct Interaction {
     pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
+    /// The channel the interaction was invoked in.
+    ///
+    /// Present on all interactions types, except [`Ping`].
+    ///
+    /// [`Ping`]: InteractionType::Ping
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
     /// ID of the channel the interaction was invoked in.
     ///
     /// Present on all interactions types, except [`Ping`].
     ///
     /// [`Ping`]: InteractionType::Ping
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[deprecated(
+        note = "channel_id is deprecated in the discord API and will no be sent in the future, users should use the channel field instead."
+    )]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// Data from the interaction.
     ///
@@ -160,6 +170,7 @@ impl<'de> Deserialize<'de> for Interaction {
 enum InteractionField {
     AppPermissions,
     ApplicationId,
+    Channel,
     ChannelId,
     Data,
     GuildId,
@@ -183,10 +194,11 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         f.write_str("enum Interaction")
     }
 
-    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines, deprecated)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
         let mut app_permissions: Option<Permissions> = None;
         let mut application_id: Option<Id<ApplicationMarker>> = None;
+        let mut channel: Option<Channel> = None;
         let mut channel_id: Option<Id<ChannelMarker>> = None;
         let mut data: Option<Value> = None;
         let mut guild_id: Option<Id<GuildMarker>> = None;
@@ -237,6 +249,13 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     }
 
                     application_id = Some(map.next_value()?);
+                }
+                InteractionField::Channel => {
+                    if channel.is_some() {
+                        return Err(DeError::duplicate_field("channel"));
+                    }
+
+                    channel = map.next_value()?;
                 }
                 InteractionField::ChannelId => {
                     if channel_id.is_some() {
@@ -375,6 +394,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         Ok(Self::Value {
             app_permissions,
             application_id,
+            channel,
             channel_id,
             data,
             guild_id,
@@ -422,6 +442,7 @@ mod tests {
     };
     use crate::{
         application::command::{CommandOptionType, CommandType},
+        channel::Channel,
         guild::{MemberFlags, PartialMember, Permissions},
         id::Id,
         test::image_hash,
@@ -432,7 +453,7 @@ mod tests {
     use std::{collections::HashMap, str::FromStr};
 
     #[test]
-    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines, deprecated)]
     fn test_interaction_full() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
@@ -440,6 +461,43 @@ mod tests {
         let value = Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(100),
+            channel: Some(Channel {
+                bitrate: None,
+                guild_id: None,
+                id: Id::new(400),
+                kind: crate::channel::ChannelType::GuildText,
+                last_message_id: None,
+                last_pin_timestamp: None,
+                name: None,
+                nsfw: None,
+                owner_id: None,
+                parent_id: None,
+                permission_overwrites: None,
+                position: None,
+                rate_limit_per_user: None,
+                recipients: None,
+                rtc_region: None,
+                topic: None,
+                user_limit: None,
+                application_id: None,
+                applied_tags: None,
+                available_tags: None,
+                default_auto_archive_duration: None,
+                default_forum_layout: None,
+                default_reaction_emoji: None,
+                default_sort_order: None,
+                default_thread_rate_limit_per_user: None,
+                flags: None,
+                icon: None,
+                invitable: None,
+                managed: None,
+                member: None,
+                member_count: None,
+                message_count: None,
+                newly_created: None,
+                thread_metadata: None,
+                video_quality_mode: None,
+            }),
             channel_id: Some(Id::new(200)),
             data: Some(InteractionData::ApplicationCommand(Box::new(CommandData {
                 guild_id: None,
@@ -538,7 +596,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Interaction",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("app_permissions"),
                 Token::Some,
@@ -546,6 +604,18 @@ mod tests {
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
+                Token::Str("channel"),
+                Token::Some,
+                Token::Struct {
+                    name: "Channel",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("400"),
+                Token::Str("type"),
+                Token::U8(0),
+                Token::StructEnd,
                 Token::Str("channel_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },

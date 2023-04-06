@@ -1071,7 +1071,10 @@ mod tests {
             message_component::MessageComponentInteractionData, Interaction, InteractionData,
             InteractionType,
         },
-        channel::message::{component::ComponentType, Message, MessageType, ReactionType},
+        channel::{
+            message::{component::ComponentType, Message, MessageType, ReactionType},
+            Channel, ChannelType,
+        },
         gateway::{
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
             GatewayReaction, ShardId,
@@ -1149,11 +1152,49 @@ mod tests {
         }
     }
 
+    #[allow(deprecated)]
     fn button() -> Interaction {
         Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
-            channel_id: Some(Id::new(2)),
+            channel: Some(Channel {
+                bitrate: None,
+                guild_id: None,
+                id: Id::new(400),
+                kind: ChannelType::GuildText,
+                last_message_id: None,
+                last_pin_timestamp: None,
+                name: None,
+                nsfw: None,
+                owner_id: None,
+                parent_id: None,
+                permission_overwrites: None,
+                position: None,
+                rate_limit_per_user: None,
+                recipients: None,
+                rtc_region: None,
+                topic: None,
+                user_limit: None,
+                application_id: None,
+                applied_tags: None,
+                available_tags: None,
+                default_auto_archive_duration: None,
+                default_forum_layout: None,
+                default_reaction_emoji: None,
+                default_sort_order: None,
+                default_thread_rate_limit_per_user: None,
+                flags: None,
+                icon: None,
+                invitable: None,
+                managed: None,
+                member: None,
+                member_count: None,
+                message_count: None,
+                newly_created: None,
+                thread_metadata: None,
+                video_quality_mode: None,
+            }),
+            channel_id: None,
             data: Some(InteractionData::MessageComponent(
                 MessageComponentInteractionData {
                     custom_id: String::from("Click"),
