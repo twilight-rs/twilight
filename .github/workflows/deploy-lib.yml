@@ -1,6 +1,7 @@
 name: Deploy documentation
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -9,8 +10,18 @@ on:
       - "twilight*/**"
       - "Cargo.toml"
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency: "pages"
+
 jobs:
   deploy-docs:
+    environment:
+      name: api-documentation
+      url: ${{ steps.deployment.outputs.page_url }}
     name: Deploy docs to gh-pages
     runs-on: ubuntu-latest
 
@@ -37,13 +48,14 @@ jobs:
         run: |
           echo '<meta http-equiv="refresh" content="0;url=twilight/index.html">' > target/doc/index.html
 
-      - name: Deploy docs
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY_BOT }}
-          publish_branch: gh-pages
-          publish_dir: target/doc
-          allow_empty_commit: true
-          cname: api.twilight.rs
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
+          path: target/doc
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
