@@ -794,5 +794,12 @@ mod tests {
                 Token::U64(114_941_315_417_899_012),
             ],
         );
+        serde_test::assert_de_tokens(
+            &Id::<WebhookMarker>::new(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "Id" },
+                Token::I64(114_941_315_417_899_012),
+            ],
+        );
     }
 }
