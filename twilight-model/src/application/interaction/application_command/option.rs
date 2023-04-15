@@ -83,7 +83,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             Focused,
         }
 
-        // An `Id` variant is purposely placed below `String` here.
+        // An `Id` variant is purposely not present here.
         // We first deserialize into a `String` and then
         // later parse it into an `Id` variant. This is done
         // to prevent situations where an option's string value
@@ -96,7 +96,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             Integer(i64),
             Number(f64),
             String(String),
-            Id(Id<GenericMarker>),
         }
 
         impl ValueEnvelope {
@@ -106,7 +105,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     Self::Integer(i) => Unexpected::Signed(*i),
                     Self::Number(f) => Unexpected::Float(*f),
                     Self::String(s) => Unexpected::Str(s),
-                    Self::Id(_) => Unexpected::Other("ID"),
                 }
             }
         }
@@ -118,7 +116,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     Self::Integer(i) => Display::fmt(i, f),
                     Self::Number(n) => Display::fmt(n, f),
                     Self::String(s) => Display::fmt(s, f),
-                    Self::Id(i) => Display::fmt(i, f),
                 }
             }
         }
@@ -211,7 +208,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                         DeError::invalid_type(val.as_unexpected(), &"attachment id")
                                     })?)
                                 }
-                                ValueEnvelope::Id(id) => CommandOptionValue::Attachment(id.cast()),
                                 _ => {
                                     return Err(DeError::invalid_type(
                                         val.as_unexpected(),
@@ -238,7 +234,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                         DeError::invalid_type(val.as_unexpected(), &"channel id")
                                     })?)
                                 }
-                                ValueEnvelope::Id(id) => CommandOptionValue::Channel(id.cast()),
                                 _ => {
                                     return Err(DeError::invalid_type(
                                         val.as_unexpected(),
@@ -268,7 +263,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                         )
                                     })?)
                                 }
-                                ValueEnvelope::Id(id) => CommandOptionValue::Mentionable(id.cast()),
                                 _ => {
                                     return Err(DeError::invalid_type(
                                         val.as_unexpected(),
@@ -308,7 +302,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                         DeError::invalid_type(val.as_unexpected(), &"role id")
                                     })?)
                                 }
-                                ValueEnvelope::Id(id) => CommandOptionValue::Role(id.cast()),
                                 _ => {
                                     return Err(DeError::invalid_type(
                                         val.as_unexpected(),
@@ -339,7 +332,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                         DeError::invalid_type(val.as_unexpected(), &"user id")
                                     })?)
                                 }
-                                ValueEnvelope::Id(id) => CommandOptionValue::User(id.cast()),
                                 _ => {
                                     return Err(DeError::invalid_type(
                                         val.as_unexpected(),

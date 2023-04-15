@@ -533,7 +533,7 @@ mod tests {
             user: None,
         };
 
-        serde_test::assert_tokens(
+        serde_test::assert_ser_tokens(
             &value,
             &[
                 Token::Struct {
