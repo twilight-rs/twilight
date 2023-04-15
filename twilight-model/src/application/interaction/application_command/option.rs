@@ -202,18 +202,15 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         CommandOptionType::Attachment => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                            match &val {
-                                ValueEnvelope::String(id) => {
-                                    CommandOptionValue::Attachment(id.parse().map_err(|_e| {
-                                        DeError::invalid_type(val.as_unexpected(), &"attachment id")
-                                    })?)
-                                }
-                                _ => {
-                                    return Err(DeError::invalid_type(
-                                        val.as_unexpected(),
-                                        &"attachment id",
-                                    ))
-                                }
+                            if let ValueEnvelope::String(id) = &val {
+                                CommandOptionValue::Attachment(id.parse().map_err(|_e| {
+                                    DeError::invalid_type(val.as_unexpected(), &"attachment id")
+                                })?)
+                            } else {
+                                return Err(DeError::invalid_type(
+                                    val.as_unexpected(),
+                                    &"attachment id",
+                                ));
                             }
                         }
                         CommandOptionType::Boolean => {
@@ -228,18 +225,15 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         CommandOptionType::Channel => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                            match &val {
-                                ValueEnvelope::String(id) => {
-                                    CommandOptionValue::Channel(id.parse().map_err(|_e| {
-                                        DeError::invalid_type(val.as_unexpected(), &"channel id")
-                                    })?)
-                                }
-                                _ => {
-                                    return Err(DeError::invalid_type(
-                                        val.as_unexpected(),
-                                        &"channel id",
-                                    ))
-                                }
+                            if let ValueEnvelope::String(id) = &val {
+                                CommandOptionValue::Channel(id.parse().map_err(|_e| {
+                                    DeError::invalid_type(val.as_unexpected(), &"channel id")
+                                })?)
+                            } else {
+                                return Err(DeError::invalid_type(
+                                    val.as_unexpected(),
+                                    &"channel id",
+                                ));
                             }
                         }
                         CommandOptionType::Integer => {
@@ -254,21 +248,15 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         CommandOptionType::Mentionable => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                            match &val {
-                                ValueEnvelope::String(id) => {
-                                    CommandOptionValue::Mentionable(id.parse().map_err(|_e| {
-                                        DeError::invalid_type(
-                                            val.as_unexpected(),
-                                            &"mentionable id",
-                                        )
-                                    })?)
-                                }
-                                _ => {
-                                    return Err(DeError::invalid_type(
-                                        val.as_unexpected(),
-                                        &"mentionable id",
-                                    ))
-                                }
+                            if let ValueEnvelope::String(id) = &val {
+                                CommandOptionValue::Mentionable(id.parse().map_err(|_e| {
+                                    DeError::invalid_type(val.as_unexpected(), &"mentionable id")
+                                })?)
+                            } else {
+                                return Err(DeError::invalid_type(
+                                    val.as_unexpected(),
+                                    &"mentionable id",
+                                ));
                             }
                         }
                         CommandOptionType::Number => {
@@ -296,18 +284,12 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         CommandOptionType::Role => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                            match &val {
-                                ValueEnvelope::String(id) => {
-                                    CommandOptionValue::Role(id.parse().map_err(|_e| {
-                                        DeError::invalid_type(val.as_unexpected(), &"role id")
-                                    })?)
-                                }
-                                _ => {
-                                    return Err(DeError::invalid_type(
-                                        val.as_unexpected(),
-                                        &"role id",
-                                    ))
-                                }
+                            if let ValueEnvelope::String(id) = &val {
+                                CommandOptionValue::Role(id.parse().map_err(|_e| {
+                                    DeError::invalid_type(val.as_unexpected(), &"role id")
+                                })?)
+                            } else {
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"role id"));
                             }
                         }
                         CommandOptionType::String => {
@@ -326,18 +308,12 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         CommandOptionType::User => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                            match &val {
-                                ValueEnvelope::String(id) => {
-                                    CommandOptionValue::User(id.parse().map_err(|_e| {
-                                        DeError::invalid_type(val.as_unexpected(), &"user id")
-                                    })?)
-                                }
-                                _ => {
-                                    return Err(DeError::invalid_type(
-                                        val.as_unexpected(),
-                                        &"user id",
-                                    ))
-                                }
+                            if let ValueEnvelope::String(id) = &val {
+                                CommandOptionValue::User(id.parse().map_err(|_e| {
+                                    DeError::invalid_type(val.as_unexpected(), &"user id")
+                                })?)
+                            } else {
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"user id"));
                             }
                         }
                     }
