@@ -98,8 +98,7 @@ impl Queue for LargeBotQueue {
 
             tracing::info!("waiting for allowance on shard {}", shard_id[0]);
 
-            #[allow(clippy::let_underscore_untyped)]
-            let _ = rx.await;
+            _ = rx.await;
         })
     }
 }
