@@ -499,6 +499,7 @@ mod tests {
     /// Test that creating an ID via [`Id::new`] with a value of zero panics.
     #[should_panic]
     #[test]
+    #[allow(clippy::let_underscore_untyped)]
     const fn test_new_checked_zero() {
         let _ = Id::<GenericMarker>::new(0);
     }

@@ -122,6 +122,7 @@ impl Queue for LocalQueue {
 
             tracing::info!("shard {id}/{total} waiting for allowance");
 
+            #[allow(clippy::let_underscore_untyped)]
             let _ = rx.await;
         })
     }
