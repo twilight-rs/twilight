@@ -122,7 +122,7 @@ impl Queue for LocalQueue {
 
             tracing::info!("shard {id}/{total} waiting for allowance");
 
-            let _ = rx.await;
+            _ = rx.await;
         })
     }
 }

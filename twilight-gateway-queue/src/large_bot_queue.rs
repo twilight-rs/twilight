@@ -98,7 +98,7 @@ impl Queue for LargeBotQueue {
 
             tracing::info!("waiting for allowance on shard {}", shard_id[0]);
 
-            let _ = rx.await;
+            _ = rx.await;
         })
     }
 }
