@@ -8,6 +8,7 @@ on:
       - next
       - 0.*
   pull_request:
+  merge_group:
 
 env:
   # Use `haswell` instead of `native` due to some GitHub Actions runners not
