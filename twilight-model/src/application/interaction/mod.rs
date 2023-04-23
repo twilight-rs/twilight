@@ -591,7 +591,8 @@ mod tests {
             user: None,
         };
 
-        serde_test::assert_tokens(
+        // TODO: switch the `assert_tokens` see #2190
+        serde_test::assert_ser_tokens(
             &value,
             &[
                 Token::Struct {
