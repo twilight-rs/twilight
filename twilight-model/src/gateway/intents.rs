@@ -13,6 +13,7 @@ bitflags! {
     /// [Discord Docs/Gateway Intents].
     ///
     /// [Discord Docs/Gateway Intents]: https://discord.com/developers/docs/topics/gateway#gateway-intents
+    #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Copy)]
     pub struct Intents: u64 {
         /// Guilds intent.
         ///

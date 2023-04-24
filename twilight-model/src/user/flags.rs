@@ -5,6 +5,7 @@ use serde::{
 };
 
 bitflags! {
+    #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Copy)]
     pub struct UserFlags: u64 {
         /// Discord Employee.
         const STAFF = 1;
