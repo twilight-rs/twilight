@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.1] - 2023-02-26
+
+### Features
+
+- get thread members request pagination ([#2119](https://github.com/twilight-rs/twilight/issues/2119))
+- command option choice validation ([#2123](https://github.com/twilight-rs/twilight/issues/2123))
+- support automod custom messages ([#2161](https://github.com/twilight-rs/twilight/issues/2161))
+
+### Refactor
+
+- change deny lints to warn ([#2144](https://github.com/twilight-rs/twilight/issues/2144))
+
 ## [0.15.0] - 2023-02-05
 
 ### Features

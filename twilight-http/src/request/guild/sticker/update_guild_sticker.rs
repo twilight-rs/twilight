@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -167,7 +167,12 @@ impl TryIntoRequest for UpdateGuildSticker<'_> {
             guild_id: self.guild_id.get(),
             sticker_id: self.sticker_id.get(),
         })
-        .json(&fields)
-        .build()
+        .json(&fields);
+
+        if let Some(reason) = self.reason {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        request.build()
     }
 }

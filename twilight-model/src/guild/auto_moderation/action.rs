@@ -20,6 +20,11 @@ pub struct AutoModerationActionMetadata {
     /// Channel to which user content should be logged.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_id: Option<Id<ChannelMarker>>,
+    /// Additional explanation that will be shown to members whenever their message is blocked.
+    ///
+    /// Maximum value length is 150 characters.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_message: Option<String>,
     /// Timeout duration in seconds.
     ///
     /// Maximum value is 2419200 seconds, or 4 weeks.
@@ -78,7 +83,11 @@ mod tests {
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(AutoModerationAction: kind, metadata);
-    assert_fields!(AutoModerationActionMetadata: channel_id, duration_seconds);
+    assert_fields!(
+        AutoModerationActionMetadata: channel_id,
+        custom_message,
+        duration_seconds
+    );
     assert_impl_all!(
         AutoModerationAction: Clone,
         Debug,

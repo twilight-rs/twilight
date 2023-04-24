@@ -98,8 +98,7 @@ mod tests {
             options: Vec::new(),
             version: Id::new(1),
         };
-
-        let _ = CommandBorrowed {
+        _ = CommandBorrowed {
             application_id: command.application_id,
             default_member_permissions: command.default_member_permissions,
             dm_permission: command.dm_permission,

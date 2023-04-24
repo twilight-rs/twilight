@@ -91,6 +91,27 @@ impl<T: Debug> Debug for Bystander<T> {
 ///
 /// To use a Standby instance in multiple tasks, consider wrapping it in an
 /// [`std::sync::Arc`] or [`std::rc::Rc`].
+///
+/// # Examples
+///
+/// ## Timeouts
+///
+/// Futures can be timed out by passing the future returned by Standby to
+/// functions such as [`tokio::time::timeout`]:
+///
+/// ```rust,no_run
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::time::Duration;
+/// use twilight_model::gateway::event::{Event, EventType};
+/// use twilight_standby::Standby;
+///
+/// let standby = Standby::new();
+/// let future = standby.wait_for_event(|event: &Event| event.kind() == EventType::Ready);
+/// let event = tokio::time::timeout(Duration::from_secs(1), future).await?;
+/// # Ok(()) }
+/// ```
+///
+/// [`tokio::time::timeout`]: https://docs.rs/tokio/latest/tokio/time/fn.timeout.html
 #[derive(Debug, Default)]
 pub struct Standby {
     /// List of component bystanders where the ID of the message is known
@@ -1050,7 +1071,10 @@ mod tests {
             message_component::MessageComponentInteractionData, Interaction, InteractionData,
             InteractionType,
         },
-        channel::message::{component::ComponentType, Message, MessageType, ReactionType},
+        channel::{
+            message::{component::ComponentType, Message, MessageType, ReactionType},
+            Channel, ChannelType,
+        },
         gateway::{
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
             GatewayReaction, ShardId,
@@ -1128,11 +1152,49 @@ mod tests {
         }
     }
 
+    #[allow(deprecated)]
     fn button() -> Interaction {
         Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
-            channel_id: Some(Id::new(2)),
+            channel: Some(Channel {
+                bitrate: None,
+                guild_id: None,
+                id: Id::new(400),
+                kind: ChannelType::GuildText,
+                last_message_id: None,
+                last_pin_timestamp: None,
+                name: None,
+                nsfw: None,
+                owner_id: None,
+                parent_id: None,
+                permission_overwrites: None,
+                position: None,
+                rate_limit_per_user: None,
+                recipients: None,
+                rtc_region: None,
+                topic: None,
+                user_limit: None,
+                application_id: None,
+                applied_tags: None,
+                available_tags: None,
+                default_auto_archive_duration: None,
+                default_forum_layout: None,
+                default_reaction_emoji: None,
+                default_sort_order: None,
+                default_thread_rate_limit_per_user: None,
+                flags: None,
+                icon: None,
+                invitable: None,
+                managed: None,
+                member: None,
+                member_count: None,
+                message_count: None,
+                newly_created: None,
+                thread_metadata: None,
+                video_quality_mode: None,
+            }),
+            channel_id: None,
             data: Some(InteractionData::MessageComponent(
                 MessageComponentInteractionData {
                     custom_id: String::from("Click"),

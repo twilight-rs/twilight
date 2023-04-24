@@ -1,4 +1,3 @@
-consolidate-pushes = true
 dependent-version = "upgrade"
 pre-release-commit-message = "release({{crate_name}}): bump to {{version}}"
 pre-release-replacements = [
