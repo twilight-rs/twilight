@@ -17,7 +17,7 @@ pub struct Attachment {
     /// available as long as the message itself exists.
     #[serde(default, skip_serializing_if = "is_false")]
     pub ephemeral: bool,
-    /// The duration of the audio file (currently for voice messages).
+    /// Duration of the audio file (currently for voice messages).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration_secs: Option<f64>,
     pub filename: String,
