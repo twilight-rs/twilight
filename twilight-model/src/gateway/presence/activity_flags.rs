@@ -5,7 +5,7 @@ use serde::{
 };
 
 bitflags! {
-    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct ActivityFlags: u64 {
         const INSTANCE = 1;
         const JOIN = 1 << 1;
@@ -67,9 +67,7 @@ mod tests {
         LowerHex,
         Not,
         Octal,
-        Ord,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sub,

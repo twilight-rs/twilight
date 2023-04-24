@@ -6,7 +6,7 @@ use serde::{
 
 bitflags! {
     /// Flags to signal state and modify the look of a message.
-    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct MessageFlags: u64 {
         /// Has been published to subscribed channels via Channel Following.
         const CROSSPOSTED = 1;
@@ -85,9 +85,7 @@ mod tests {
         LowerHex,
         Not,
         Octal,
-        Ord,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sub,
