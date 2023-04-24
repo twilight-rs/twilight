@@ -163,13 +163,13 @@ impl TryIntoRequest for UpdateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let fields = self.fields.map_err(Error::validation)?;
 
-        Request::builder(&Route::UpdateGuildSticker {
+        let mut request = Request::builder(&Route::UpdateGuildSticker {
             guild_id: self.guild_id.get(),
             sticker_id: self.sticker_id.get(),
         })
         .json(&fields);
 
-        if let Some(reason) = self.reason {
+        if let Ok(Some(reason)) = self.reason {
             request = request.headers(request::audit_header(reason)?);
         }
 

@@ -55,7 +55,7 @@ impl<'a> UpdateCurrentMember<'a> {
                 validate_nickname(nick)?;
             }
 
-            fields.nick = nick;
+            fields.nick = Some(Nullable(nick));
 
             Ok(fields)
         });
