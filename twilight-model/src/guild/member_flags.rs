@@ -8,7 +8,7 @@ bitflags! {
     ///
     /// [`Member`]: crate::guild::Member
     /// [Discord's documentation]: https://discord.com/developers/docs/resources/guild#guild-member-object-guild-member-flags
-    #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Copy)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
     pub struct MemberFlags: u64 {
         /// Member has left and rejoined the guild.
         const DID_REJOIN = 1 << 0;

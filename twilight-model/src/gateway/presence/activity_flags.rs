@@ -5,7 +5,7 @@ use serde::{
 };
 
 bitflags! {
-    #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Copy)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
     pub struct ActivityFlags: u64 {
         const INSTANCE = 1;
         const JOIN = 1 << 1;

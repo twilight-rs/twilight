@@ -5,7 +5,7 @@ use serde::{
 };
 
 bitflags! {
-    #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Copy)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
     pub struct SystemChannelFlags: u64 {
         /// Suppress member join notifications.
         const SUPPRESS_JOIN_NOTIFICATIONS = 1;

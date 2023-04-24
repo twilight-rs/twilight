@@ -5,7 +5,7 @@ use serde::{
 };
 
 bitflags! {
-    #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Copy)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
     pub struct ChannelFlags: u64 {
         /// Channel is pinned in a forum.
         const PINNED = 1 << 1;

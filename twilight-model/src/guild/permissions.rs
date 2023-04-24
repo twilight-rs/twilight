@@ -6,7 +6,7 @@ use serde::{
 use std::fmt::{Formatter, Result as FmtResult};
 
 bitflags! {
-    #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Copy)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
     pub struct Permissions: u64 {
         const CREATE_INVITE = 1;
         const KICK_MEMBERS = 1 << 1;
