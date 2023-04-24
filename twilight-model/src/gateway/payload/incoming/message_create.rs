@@ -2,7 +2,7 @@ use crate::channel::Message;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct MessageCreate(pub Message);
 
 impl Deref for MessageCreate {
