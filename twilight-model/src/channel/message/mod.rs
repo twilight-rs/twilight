@@ -48,7 +48,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 /// Text message sent in a [`Channel`].
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Message {
     /// Present with Rich Presence-related chat embeds.
     #[serde(skip_serializing_if = "Option::is_none")]
