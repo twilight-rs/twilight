@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.1] - 2023-02-26
+
+### Refactor
+
+- change deny lints to warn ([#2144](https://github.com/twilight-rs/twilight/issues/2144))
+
 ## [0.15.0] - 2023-02-05
 
 ### Bug Fixes

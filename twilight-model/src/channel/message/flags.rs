@@ -31,6 +31,10 @@ bitflags! {
         /// This message failed to mention some roles in a thread, which
         /// subsequently failed to add the role's members to the thread.
         const FAILED_TO_MENTION_SOME_ROLES_IN_THREAD  = 1 << 8;
+        /// This message will not trigger push and desktop notifications.
+        const SUPPRESS_NOTIFICATIONS = 1 << 12;
+        /// This message is a voice message.
+        const IS_VOICE_MESSAGE = 1 << 13;
     }
 }
 
@@ -104,6 +108,7 @@ mod tests {
         MessageFlags::FAILED_TO_MENTION_SOME_ROLES_IN_THREAD.bits(),
         1 << 8
     );
+    const_assert_eq!(MessageFlags::SUPPRESS_NOTIFICATIONS.bits(), 1 << 12);
 
     #[test]
     fn serde() {

@@ -23,6 +23,13 @@ pub struct AutoModerationTriggerMetadata {
     /// [Discord Docs/Keyword Matching Strategies]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-matching-strategies
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presets: Option<Vec<AutoModerationKeywordPresetType>>,
+    /// Total number of unique role and user mentions allowed per message (Maximum of 50).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mention_total_limit: Option<u8>,
+    /// Regular expression patterns which will be matched against content (Maximum of 10).
+    /// Only Rust flavored regex is supported. Each regex pattern must be 260 characters or less.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub regex_patterns: Option<Vec<String>>,
 }
 
 #[cfg(test)]
@@ -56,6 +63,8 @@ mod tests {
                 AutoModerationKeywordPresetType::SexualContent,
                 AutoModerationKeywordPresetType::Slurs,
             ])),
+            mention_total_limit: Some(5),
+            regex_patterns: Some(Vec::from(["^\\d+$".into()])),
         };
 
         serde_test::assert_ser_tokens(
@@ -63,7 +72,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "AutoModerationTriggerMetadata",
-                    len: 3,
+                    len: 5,
                 },
                 Token::Str("allow_list"),
                 Token::Some,
@@ -82,6 +91,14 @@ mod tests {
                 Token::U8(u8::from(AutoModerationKeywordPresetType::Profanity)),
                 Token::U8(u8::from(AutoModerationKeywordPresetType::SexualContent)),
                 Token::U8(u8::from(AutoModerationKeywordPresetType::Slurs)),
+                Token::SeqEnd,
+                Token::Str("mention_total_limit"),
+                Token::Some,
+                Token::U8(5),
+                Token::Str("regex_patterns"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::Str("^\\d+$"),
                 Token::SeqEnd,
                 Token::StructEnd,
             ],

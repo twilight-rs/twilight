@@ -8,6 +8,7 @@ on:
       - next
       - 0.*
   pull_request:
+  merge_group:
 
 env:
   # Use `haswell` instead of `native` due to some GitHub Actions runners not
@@ -173,7 +174,7 @@ jobs:
         run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --workspace --exclude book
 
       - name: Run doctests
-        run: cargo test --doc
+        run: cargo test --doc --workspace --exclude book
 
   feature-combinations:
     name: Feature combinations
@@ -205,7 +206,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable

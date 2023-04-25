@@ -2,12 +2,21 @@
 //!
 //! See <https://discord.com/developers/docs/topics/gateway#rate-limiting>
 //!
+//! # Algorithm
+//!
+//! [`CommandRatelimiter`] is implemented as a sliding window log. This is the
+//! only ratelimit algorithm that supports burst requests and guarantees that
+//! the (t - [`PERIOD`], t] window is never exceeded. See
+//! <https://hechao.li/2018/06/25/Rate-Limiter-Part1> for an overview of it and
+//! other alternative ratelimit algorithms.
+//!
+//! [`Instant::now`]: std::time::Instant::now
 //! [send messages]: crate::Shard::send
 
 use std::{
     future::{poll_fn, Future},
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll},
 };
 use tokio::time::{sleep, Duration, Instant, Sleep};
 
@@ -22,32 +31,34 @@ const PERIOD: Duration = Duration::from_secs(60);
 pub struct CommandRatelimiter {
     /// Future that completes the next time the ratelimiter allows a permit.
     delay: Pin<Box<Sleep>>,
-    /// Queue of instants started when a permit was acquired.
+    /// Ordered queue of instants when a permit elapses.
     instants: Vec<Instant>,
 }
 
 impl CommandRatelimiter {
     /// Create a new ratelimiter with some capacity reserved for heartbeating.
-    pub(crate) fn new(heartbeat_interval: Duration) -> Self {
+    pub(crate) async fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
 
+        let mut delay = Box::pin(sleep(Duration::ZERO));
+
+        // Hack to register the timer.
+        (&mut delay).await;
+
         Self {
-            delay: Box::pin(sleep(Duration::ZERO)),
+            delay,
             instants: Vec::with_capacity(allotted.into()),
         }
     }
 
     /// Number of available permits.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn available(&self) -> u8 {
-        // Filter out elapsed instants.
-        #[allow(clippy::cast_possible_truncation)]
-        let used_permits = self
-            .instants
-            .iter()
-            .filter(|instant| instant.elapsed() < PERIOD)
-            .count() as u8;
+        let now = Instant::now();
+        let elapsed_permits = self.instants.partition_point(|&elapsed| elapsed <= now);
+        let used_permits = self.instants.len() - elapsed_permits;
 
-        self.max() - used_permits
+        self.max() - used_permits as u8
     }
 
     /// Maximum number of available permits.
@@ -58,37 +69,44 @@ impl CommandRatelimiter {
 
     /// Duration until the next permit is available.
     pub fn next_available(&self) -> Duration {
-        self.instants.first().map_or(Duration::ZERO, |instant| {
-            PERIOD.saturating_sub(instant.elapsed())
+        self.instants.first().map_or(Duration::ZERO, |elapsed| {
+            elapsed.saturating_duration_since(Instant::now())
         })
     }
 
     /// Returns when a ratelimit permit becomes available.
     pub(crate) async fn acquire(&mut self) {
         poll_fn(|cx| self.poll_available(cx)).await;
-        self.clean();
 
-        self.instants.push(Instant::now());
+        self.instants.push(Instant::now() + PERIOD);
     }
 
     /// Polls for the next time a permit is available.
     pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
-        if self.available() == 0 {
-            let new_deadline = Instant::now() + self.next_available();
-            // Conditionally reset `Sleep` as it is expensive to do so.
-            if self.delay.deadline() != new_deadline {
-                tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
-                self.delay.as_mut().reset(new_deadline);
-            }
-            ready!(self.delay.as_mut().poll(cx));
+        if self.instants.len() != self.instants.capacity() {
+            return Poll::Ready(());
         }
 
-        Poll::Ready(())
-    }
+        if !self.delay.is_elapsed() {
+            return Poll::Pending;
+        }
 
-    /// Cleans up elapsed instants.
-    fn clean(&mut self) {
-        self.instants.retain(|instant| instant.elapsed() < PERIOD);
+        let new_deadline = self.instants[0];
+        if new_deadline > Instant::now() {
+            tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
+            self.delay.as_mut().reset(new_deadline);
+
+            // Register waker.
+            _ = self.delay.as_mut().poll(cx);
+
+            Poll::Pending
+        } else {
+            let used_permits = (self.max() - self.available()).into();
+            self.instants.rotate_right(used_permits);
+            self.instants.truncate(used_permits);
+
+            Poll::Ready(())
+        }
     }
 }
 
@@ -154,7 +172,7 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn full_reset() {
-        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL).await;
 
         assert_eq!(ratelimiter.available(), ratelimiter.max());
         for _ in 0..ratelimiter.max() {
@@ -173,7 +191,7 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn half_reset() {
-        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL).await;
 
         assert_eq!(ratelimiter.available(), ratelimiter.max());
         for _ in 0..ratelimiter.max() / 2 {
@@ -196,5 +214,19 @@ mod tests {
         // All should be refilled.
         time::advance(PERIOD / 2).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn constant_capacity() {
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL).await;
+        let max = ratelimiter.max();
+
+        for _ in 0..max {
+            ratelimiter.acquire().await;
+        }
+        assert_eq!(ratelimiter.available(), 0);
+
+        ratelimiter.acquire().await;
+        assert_eq!(max, ratelimiter.max());
     }
 }

@@ -12,6 +12,9 @@ use twilight_model::util::Timestamp;
 /// The maximum audit log reason length in UTF-16 codepoints.
 pub const AUDIT_REASON_MAX: usize = 512;
 
+/// Maximum length of an auto moderation block action's custom message.
+pub const AUTO_MODERATION_ACTION_BLOCK_CUSTOM_MESSAGE_LENGTH_MAX: usize = 150;
+
 /// Maximum amount of mentions that triggers an auto moderation action.
 pub const AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT: u8 = 50;
 
@@ -176,6 +179,13 @@ impl Display for ValidationError {
                 f.write_str(", but it must be at most ")?;
 
                 Display::fmt(&AUDIT_REASON_MAX, f)
+            }
+            ValidationErrorType::AutoModerationBlockActionCustomMessageLimit { len } => {
+                f.write_str("provided auto moderation block action custom message length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_ACTION_BLOCK_CUSTOM_MESSAGE_LENGTH_MAX, f)
             }
             ValidationErrorType::AutoModerationMetadataMentionTotalLimit { limit } => {
                 f.write_str("provided auto moderation metadata mention_total_limit is ")?;
@@ -388,6 +398,11 @@ pub enum ValidationErrorType {
         /// Invalid length.
         len: usize,
     },
+    /// Provided block action custom message was too long.
+    AutoModerationBlockActionCustomMessageLimit {
+        /// Invalid limit.
+        len: usize,
+    },
     /// Provided limit was too large.
     AutoModerationMetadataMentionTotalLimit {
         /// Invalid limit.
@@ -528,6 +543,31 @@ pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::AuditReason { len },
+        })
+    }
+}
+
+/// Ensure that an auto moderation block action's `custom_message` is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_ACTION_BLOCK_CUSTOM_MESSAGE_LENGTH_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationBlockActionCustomMessageLimit`] if the
+/// length is invalid.
+///
+/// [`AutoModerationBlockActionCustomMessageLimit`]: ValidationErrorType::AutoModerationBlockActionCustomMessageLimit
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-metadata
+pub fn auto_moderation_block_action_custom_message_limit(
+    custom_message: impl AsRef<str>,
+) -> Result<(), ValidationError> {
+    let len = custom_message.as_ref().chars().count();
+    if len <= AUTO_MODERATION_ACTION_BLOCK_CUSTOM_MESSAGE_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationBlockActionCustomMessageLimit { len },
         })
     }
 }
@@ -1126,6 +1166,18 @@ mod tests {
         assert!(audit_reason("a".repeat(512)).is_ok());
 
         assert!(audit_reason("a".repeat(513)).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_block_action_custom_message() {
+        assert!(auto_moderation_block_action_custom_message_limit("").is_ok());
+        assert!(auto_moderation_block_action_custom_message_limit("a".repeat(150)).is_ok());
+        assert!(matches!(
+            auto_moderation_block_action_custom_message_limit("a".repeat(151))
+                .unwrap_err()
+                .kind,
+            ValidationErrorType::AutoModerationBlockActionCustomMessageLimit { len: 151 }
+        ));
     }
 
     #[test]

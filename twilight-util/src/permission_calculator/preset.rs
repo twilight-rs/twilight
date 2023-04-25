@@ -19,7 +19,7 @@ pub const PERMISSIONS_ROOT_ONLY: Permissions = Permissions::from_bits_truncate(
         | Permissions::BAN_MEMBERS.bits()
         | Permissions::CHANGE_NICKNAME.bits()
         | Permissions::KICK_MEMBERS.bits()
-        | Permissions::MANAGE_EMOJIS_AND_STICKERS.bits()
+        | Permissions::MANAGE_GUILD_EXPRESSIONS.bits()
         | Permissions::MANAGE_GUILD.bits()
         | Permissions::MANAGE_NICKNAMES.bits()
         | Permissions::VIEW_AUDIT_LOG.bits()

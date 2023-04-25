@@ -17,7 +17,7 @@ use std::collections::hash_map::HashMap;
 ///
 /// [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
 /// [Discord Docs/Resolved Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-resolved-data-structure
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CommandInteractionDataResolved {
     /// Map of resolved attachments.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
@@ -130,11 +130,13 @@ mod tests {
                     ephemeral: true,
                     filename: "rainbow_dash.png".to_owned(),
                     description: None,
+                    duration_secs: None,
                     height: Some(2674),
                     id: Id::new(400),
                     proxy_url: "https://proxy.example.com/rainbow_dash.png".to_owned(),
                     size: 13370,
                     url: "https://example.com/rainbow_dash.png".to_owned(),
+                    waveform: None,
                     width: Some(1337),
                 },
             )])

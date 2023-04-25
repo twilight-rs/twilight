@@ -8,7 +8,7 @@
 //! trigger. For example, if a user tries to send a message which contains a
 //! certain keyword, a rule can trigger and block the message before it is sent.
 
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 mod action;
 mod event_type;
@@ -122,6 +122,7 @@ mod tests {
                     kind: AutoModerationActionType::SendAlertMessage,
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: Some(ACTION_CHANNEL_ID),
+                        custom_message: None,
                         duration_seconds: None,
                     }),
                 },
@@ -129,6 +130,7 @@ mod tests {
                     kind: AutoModerationActionType::Timeout,
                     metadata: Some(AutoModerationActionMetadata {
                         channel_id: None,
+                        custom_message: None,
                         duration_seconds: Some(120),
                     }),
                 },
@@ -145,6 +147,8 @@ mod tests {
                 allow_list: None,
                 keyword_filter: Some(Vec::from(["shoot".into(), "darn".into()])),
                 presets: None,
+                regex_patterns: Some(Vec::from(["[a-z]+".into(), "[0-9]+".into()])),
+                mention_total_limit: None,
             },
             trigger_type: AutoModerationTriggerType::Keyword,
         };
@@ -229,13 +233,19 @@ mod tests {
                 Token::Str("trigger_metadata"),
                 Token::Struct {
                     name: "AutoModerationTriggerMetadata",
-                    len: 1,
+                    len: 2,
                 },
                 Token::Str("keyword_filter"),
                 Token::Some,
                 Token::Seq { len: Some(2) },
                 Token::Str("shoot"),
                 Token::Str("darn"),
+                Token::SeqEnd,
+                Token::Str("regex_patterns"),
+                Token::Some,
+                Token::Seq { len: Some(2) },
+                Token::Str("[a-z]+"),
+                Token::Str("[0-9]+"),
                 Token::SeqEnd,
                 Token::StructEnd,
                 Token::Str("trigger_type"),
