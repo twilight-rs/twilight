@@ -1,7 +1,8 @@
 use bitflags::bitflags;
 use serde::{
-    de::{Deserialize, Deserializer, Error as DeError, Visitor},
-    ser::{Serialize, Serializer},
+    de::{Deserializer, Error as DeError, Visitor},
+    ser::Serializer,
+    Deserialize, Serialize,
 };
 use std::fmt::{Formatter, Result as FmtResult};
 
@@ -85,7 +86,19 @@ impl<'de> Visitor<'de> for PermissionsVisitor {
     }
 
     fn visit_u64<E: DeError>(self, v: u64) -> Result<Self::Value, E> {
-        Ok(Permissions::from_bits_truncate(v))
+        // Safety:
+        //
+        // `bitflags` requires unsafe code to create bitflags with unknown bits
+        // due to an unorthodox definition of unsafe:
+        //
+        // <https://github.com/bitflags/bitflags/issues/262>
+        //
+        // This is, funnily enough, how bitflags itself implements
+        // deserializers.
+        #[allow(unsafe_code)]
+        let permissions = unsafe { Permissions::from_bits_unchecked(v) };
+
+        Ok(permissions)
     }
 
     fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
@@ -203,7 +216,16 @@ mod tests {
     #[test]
     fn serde() {
         serde_test::assert_tokens(&Permissions::CREATE_INVITE, &[Token::Str("1")]);
-        // Deserialization truncates unknown bits.
-        serde_test::assert_de_tokens(&Permissions::empty(), &[Token::Str("9223372036854775808")]);
+        // Safety:
+        //
+        // Deserialization doesn't truncate unknown bits.
+        //
+        // `bitflags` requires unsafe code to create bitflags with unknown bits
+        // due to an unorthodox definition of unsafe:
+        //
+        // <https://github.com/bitflags/bitflags/issues/262>
+        #[allow(unsafe_code)]
+        let value = unsafe { Permissions::from_bits_unchecked(1 << 63) };
+        serde_test::assert_de_tokens(&value, &[Token::Str("9223372036854775808")]);
     }
 }

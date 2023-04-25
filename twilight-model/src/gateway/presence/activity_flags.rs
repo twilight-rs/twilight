@@ -1,10 +1,10 @@
 use bitflags::bitflags;
-use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer},
-};
+use serde::{Deserialize, Serialize};
 
 bitflags! {
+    #[allow(clippy::unsafe_derive_deserialize)]
+    #[derive(Deserialize, Serialize)]
+    #[serde(transparent)]
     pub struct ActivityFlags: u64 {
         const INSTANCE = 1;
         const JOIN = 1 << 1;
@@ -15,21 +15,6 @@ bitflags! {
         const PARTY_PRIVACY_FRIENDS = 1 << 6;
         const PARTY_PRIVACY_VOICE_CHANNEL = 1 << 7;
         const EMBEDDED = 1 << 8;
-    }
-}
-
-impl<'de> Deserialize<'de> for ActivityFlags {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
-    }
-}
-
-impl Serialize for ActivityFlags {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_u64(self.bits())
     }
 }
 
@@ -92,7 +77,16 @@ mod tests {
             &ActivityFlags::EMBEDDED,
             &[Token::U64(ActivityFlags::EMBEDDED.bits())],
         );
-        // Deserialization truncates unknown bits.
-        serde_test::assert_de_tokens(&ActivityFlags::empty(), &[Token::U64(1 << 63)]);
+        // Safety:
+        //
+        // Deserialization doesn't truncate unknown bits.
+        //
+        // `bitflags` requires unsafe code to create bitflags with unknown bits
+        // due to an unorthodox definition of unsafe:
+        //
+        // <https://github.com/bitflags/bitflags/issues/262>
+        #[allow(unsafe_code)]
+        let value = unsafe { ActivityFlags::from_bits_unchecked(1 << 63) };
+        serde_test::assert_de_tokens(&value, &[Token::U64(1 << 63)]);
     }
 }

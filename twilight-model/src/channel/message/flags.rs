@@ -1,11 +1,11 @@
 use bitflags::bitflags;
-use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer},
-};
+use serde::{Deserialize, Serialize};
 
 bitflags! {
     /// Flags to signal state and modify the look of a message.
+    #[allow(clippy::unsafe_derive_deserialize)]
+    #[derive(Deserialize, Serialize)]
+    #[serde(transparent)]
     pub struct MessageFlags: u64 {
         /// Has been published to subscribed channels via Channel Following.
         const CROSSPOSTED = 1;
@@ -33,21 +33,6 @@ bitflags! {
         const FAILED_TO_MENTION_SOME_ROLES_IN_THREAD  = 1 << 8;
         /// This message will not trigger push and desktop notifications.
         const SUPPRESS_NOTIFICATIONS = 1 << 12;
-    }
-}
-
-impl<'de> Deserialize<'de> for MessageFlags {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
-    }
-}
-
-impl Serialize for MessageFlags {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_u64(self.bits())
     }
 }
 
@@ -114,7 +99,16 @@ mod tests {
             &MessageFlags::CROSSPOSTED,
             &[Token::U64(MessageFlags::CROSSPOSTED.bits())],
         );
-        // Deserialization truncates unknown bits.
-        serde_test::assert_de_tokens(&MessageFlags::empty(), &[Token::U64(1 << 63)]);
+        // Safety:
+        //
+        // Deserialization doesn't truncate unknown bits.
+        //
+        // `bitflags` requires unsafe code to create bitflags with unknown bits
+        // due to an unorthodox definition of unsafe:
+        //
+        // <https://github.com/bitflags/bitflags/issues/262>
+        #[allow(unsafe_code)]
+        let value = unsafe { MessageFlags::from_bits_unchecked(1 << 63) };
+        serde_test::assert_de_tokens(&value, &[Token::U64(1 << 63)]);
     }
 }

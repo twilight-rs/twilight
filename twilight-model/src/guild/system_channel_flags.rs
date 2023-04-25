@@ -1,10 +1,10 @@
 use bitflags::bitflags;
-use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer},
-};
+use serde::{Deserialize, Serialize};
 
 bitflags! {
+    #[allow(clippy::unsafe_derive_deserialize)]
+    #[derive(Deserialize, Serialize)]
+    #[serde(transparent)]
     pub struct SystemChannelFlags: u64 {
         /// Suppress member join notifications.
         const SUPPRESS_JOIN_NOTIFICATIONS = 1;
@@ -18,21 +18,6 @@ bitflags! {
         const SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATIONS = 1 << 4;
         /// Hide role subscription sticker reply buttons.
         const SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATION_REPLIES = 1 << 5;
-    }
-}
-
-impl<'de> Deserialize<'de> for SystemChannelFlags {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
-    }
-}
-
-impl Serialize for SystemChannelFlags {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_u64(self.bits())
     }
 }
 
@@ -109,7 +94,16 @@ mod tests {
                 SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATION_REPLIES.bits(),
             )],
         );
-        // Deserialization truncates unknown bits.
-        serde_test::assert_de_tokens(&SystemChannelFlags::empty(), &[Token::U64(1 << 63)]);
+        // Safety:
+        //
+        // Deserialization doesn't truncate unknown bits.
+        //
+        // `bitflags` requires unsafe code to create bitflags with unknown bits
+        // due to an unorthodox definition of unsafe:
+        //
+        // <https://github.com/bitflags/bitflags/issues/262>
+        #[allow(unsafe_code)]
+        let value = unsafe { SystemChannelFlags::from_bits_unchecked(1 << 63) };
+        serde_test::assert_de_tokens(&value, &[Token::U64(1 << 63)]);
     }
 }

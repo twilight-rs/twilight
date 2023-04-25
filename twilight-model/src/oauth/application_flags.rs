@@ -1,10 +1,10 @@
 use bitflags::bitflags;
-use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer},
-};
+use serde::{Deserialize, Serialize};
 
 bitflags! {
+    #[allow(clippy::unsafe_derive_deserialize)]
+    #[derive(Deserialize, Serialize)]
+    #[serde(transparent)]
     pub struct ApplicationFlags: u64 {
         /// Intent required for bots in 100 guilds or more to receive
         /// [`PresenceUpdate`] events.
@@ -45,21 +45,6 @@ bitflags! {
         ///
         /// [application commands]: https://discord.com/developers/docs/interactions/application-commands
         const APPLICATION_COMMAND_BADGE = 1 << 23;
-    }
-}
-
-impl<'de> Deserialize<'de> for ApplicationFlags {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
-    }
-}
-
-impl Serialize for ApplicationFlags {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_u64(self.bits())
     }
 }
 
@@ -131,7 +116,16 @@ mod tests {
             &ApplicationFlags::GATEWAY_MESSAGE_CONTENT,
             &[Token::U64(ApplicationFlags::GATEWAY_MESSAGE_CONTENT.bits())],
         );
-        // Deserialization truncates unknown bits.
-        serde_test::assert_de_tokens(&ApplicationFlags::empty(), &[Token::U64(1 << 63)]);
+        // Safety:
+        //
+        // Deserialization doesn't truncate unknown bits.
+        //
+        // `bitflags` requires unsafe code to create bitflags with unknown bits
+        // due to an unorthodox definition of unsafe:
+        //
+        // <https://github.com/bitflags/bitflags/issues/262>
+        #[allow(unsafe_code)]
+        let value = unsafe { ApplicationFlags::from_bits_unchecked(1 << 63) };
+        serde_test::assert_de_tokens(&value, &[Token::U64(1 << 63)]);
     }
 }
