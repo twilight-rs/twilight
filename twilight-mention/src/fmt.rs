@@ -142,7 +142,8 @@ impl Mention<Id<EmojiMarker>> for Id<EmojiMarker> {
 /// Mention an emoji. This will format as `<:emoji:ID>`.
 impl Mention<Id<EmojiMarker>> for Emoji {
     fn mention(&self) -> MentionFormat<Id<EmojiMarker>> {
-        MentionFormat(self.id)
+        assert!(self.id.is_some(), "Emoji has no id");
+        MentionFormat(self.id.unwrap())
     }
 }
 

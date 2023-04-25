@@ -13,13 +13,13 @@ use twilight_model::{
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedEmoji {
-    pub(crate) animated: bool,
-    pub(crate) available: bool,
-    pub(crate) id: Id<EmojiMarker>,
-    pub(crate) managed: bool,
-    pub(crate) name: String,
-    pub(crate) require_colons: bool,
-    pub(crate) roles: Vec<Id<RoleMarker>>,
+    pub(crate) animated: Option<bool>,
+    pub(crate) available: Option<bool>,
+    pub(crate) id: Option<Id<EmojiMarker>>,
+    pub(crate) managed: Option<bool>,
+    pub(crate) name: Option<String>,
+    pub(crate) require_colons: Option<bool>,
+    pub(crate) roles: Option<Vec<Id<RoleMarker>>>,
     pub(crate) user_id: Option<Id<UserMarker>>,
 }
 
@@ -27,37 +27,37 @@ impl CachedEmoji {
     /// Whether this emoji can be used.
     ///
     /// May be false due to loss of Server Boosts.
-    pub const fn available(&self) -> bool {
+    pub const fn available(&self) -> Option<bool> {
         self.available
     }
 
     /// Whether the emoji is animated.
-    pub const fn animated(&self) -> bool {
+    pub const fn animated(&self) -> Option<bool> {
         self.animated
     }
 
     /// ID of the Emoji.
-    pub const fn id(&self) -> Id<EmojiMarker> {
+    pub const fn id(&self) -> Option<Id<EmojiMarker>> {
         self.id
     }
 
     /// Whether the emoji is managed.
-    pub const fn managed(&self) -> bool {
+    pub const fn managed(&self) -> Option<bool> {
         self.managed
     }
 
     /// Name of the Emoji.
-    pub fn name(&self) -> &str {
+    pub const fn name(&self) -> &Option<String> {
         &self.name
     }
 
     /// Whether the emoji must be wrapped in colons.
-    pub const fn require_colons(&self) -> bool {
+    pub const fn require_colons(&self) -> Option<bool> {
         self.require_colons
     }
 
     /// List of roles allowed to use this emoji.
-    pub fn roles(&self) -> &[Id<RoleMarker>] {
+    pub const fn roles(&self) -> &Option<Vec<Id<RoleMarker>>> {
         &self.roles
     }
 
@@ -136,24 +136,24 @@ mod tests {
     #[test]
     fn eq_emoji() {
         let emoji = Emoji {
-            id: Id::new(123),
-            animated: true,
-            name: "foo".to_owned(),
-            managed: false,
-            require_colons: true,
-            roles: vec![],
+            id: Some(Id::new(123)),
+            animated: Some(true),
+            name: Some("foo".to_owned()),
+            managed: Some(false),
+            require_colons: Some(true),
+            roles: Some(vec![]),
             user: None,
-            available: true,
+            available: Some(true),
         };
         let cached = CachedEmoji {
-            id: Id::new(123),
-            animated: true,
-            name: "foo".to_owned(),
-            managed: false,
-            require_colons: true,
-            roles: vec![],
+            id: Some(Id::new(123)),
+            animated: Some(true),
+            name: Some("foo".to_owned()),
+            managed: Some(false),
+            require_colons: Some(true),
+            roles: Some(vec![]),
             user_id: None,
-            available: true,
+            available: Some(true),
         };
 
         assert_eq!(cached, emoji);
