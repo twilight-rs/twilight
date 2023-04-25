@@ -10,18 +10,21 @@ use serde::{Deserialize, Serialize};
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Emoji {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub animated: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub available: Option<bool>,
-    pub id: Option<Id<EmojiMarker>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub managed: Option<bool>,
-    pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub require_colons: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub roles: Option<Vec<Id<RoleMarker>>>,
+    #[serde(default)]
+    pub animated: bool,
+    #[serde(default)]
+    pub available: bool,
+    // This does not need to be optional here as it can only be optional
+    // in a unicode emoji. Which can only happen in reactions, and we use
+    // another struct for emojis in that case.
+    pub id: Id<EmojiMarker>,
+    #[serde(default)]
+    pub managed: bool,
+    pub name: String,
+    #[serde(default)]
+    pub require_colons: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub roles: Vec<Id<RoleMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
 }
@@ -35,13 +38,13 @@ mod tests {
     #[test]
     fn emoji() {
         let emoji = Emoji {
-            animated: Some(false),
-            available: Some(true),
-            id: Some(Id::new(100_000_000_000_000_000)),
-            managed: Some(false),
-            name: Some("test".to_owned()),
-            require_colons: Some(true),
-            roles: None,
+            animated: false,
+            available: true,
+            id: Id::new(100_000_000_000_000_000),
+            managed: false,
+            name: "test".to_owned(),
+            require_colons: true,
+            roles: Vec::new(),
             user: Some(User {
                 accent_color: None,
                 avatar: None,
@@ -69,23 +72,17 @@ mod tests {
                     len: 7,
                 },
                 Token::Str("animated"),
-                Token::Some,
                 Token::Bool(false),
                 Token::Str("available"),
-                Token::Some,
                 Token::Bool(true),
                 Token::Str("id"),
-                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100000000000000000"),
                 Token::Str("managed"),
-                Token::Some,
                 Token::Bool(false),
                 Token::Str("name"),
-                Token::Some,
                 Token::Str("test"),
                 Token::Str("require_colons"),
-                Token::Some,
                 Token::Bool(true),
                 Token::Str("user"),
                 Token::Some,
@@ -117,13 +114,13 @@ mod tests {
     #[test]
     fn emoji_complete() {
         let emoji = Emoji {
-            animated: Some(false),
-            available: Some(true),
-            id: Some(Id::new(100_000_000_000_000_000)),
-            managed: Some(false),
-            name: Some("test".to_owned()),
-            require_colons: Some(true),
-            roles: Some(vec![Id::new(1)]),
+            animated: false,
+            available: true,
+            id: Id::new(100_000_000_000_000_000),
+            managed: false,
+            name: "test".to_owned(),
+            require_colons: true,
+            roles: vec![Id::new(1)],
             user: Some(User {
                 accent_color: None,
                 avatar: None,
@@ -151,26 +148,19 @@ mod tests {
                     len: 8,
                 },
                 Token::Str("animated"),
-                Token::Some,
                 Token::Bool(false),
                 Token::Str("available"),
-                Token::Some,
                 Token::Bool(true),
                 Token::Str("id"),
-                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100000000000000000"),
                 Token::Str("managed"),
-                Token::Some,
                 Token::Bool(false),
                 Token::Str("name"),
-                Token::Some,
                 Token::Str("test"),
                 Token::Str("require_colons"),
-                Token::Some,
                 Token::Bool(true),
                 Token::Str("roles"),
-                Token::Some,
                 Token::Seq { len: Some(1) },
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),

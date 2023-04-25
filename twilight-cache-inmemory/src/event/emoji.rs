@@ -9,7 +9,7 @@ use twilight_model::{
 impl InMemoryCache {
     pub(crate) fn cache_emojis(&self, guild_id: Id<GuildMarker>, emojis: Vec<Emoji>) {
         if let Some(mut guild_emojis) = self.guild_emojis.get_mut(&guild_id) {
-            let incoming: Vec<_> = emojis.iter().map(|e| e.id.unwrap()).collect();
+            let incoming: Vec<_> = emojis.iter().map(|e| e.id).collect();
 
             let removal_filter: Vec<_> = guild_emojis
                 .iter()
@@ -32,10 +32,7 @@ impl InMemoryCache {
     }
 
     pub(crate) fn cache_emoji(&self, guild_id: Id<GuildMarker>, emoji: Emoji) {
-        assert!(emoji.id.is_some());
-        let emoji_id = emoji.id.unwrap();
-
-        if let Some(cached_emoji) = self.emojis.get(&emoji_id) {
+        if let Some(cached_emoji) = self.emojis.get(&emoji.id) {
             if cached_emoji.value == emoji {
                 return;
             }
@@ -45,6 +42,7 @@ impl InMemoryCache {
             self.cache_user(Cow::Borrowed(user), Some(guild_id));
         }
 
+        let emoji_id = emoji.id;
         let cached = CachedEmoji::from_model(emoji);
 
         self.emojis.insert(
@@ -168,9 +166,9 @@ mod tests {
 
         assert_eq!(cache.emojis.len(), 2);
         assert_eq!(cache.guild_emojis.get(&guild_id).unwrap().len(), 2);
-        assert!(cache.emoji(emote.id.unwrap()).is_some());
-        assert!(cache.emoji(emote_2.id.unwrap()).is_none());
-        assert!(cache.emoji(emote_3.id.unwrap()).is_some());
+        assert!(cache.emoji(emote.id).is_some());
+        assert!(cache.emoji(emote_2.id).is_none());
+        assert!(cache.emoji(emote_3.id).is_some());
 
         cache.update(&GuildEmojisUpdate {
             emojis: vec![emote.clone()],
@@ -179,8 +177,8 @@ mod tests {
 
         assert_eq!(cache.emojis.len(), 1);
         assert_eq!(cache.guild_emojis.get(&guild_id).unwrap().len(), 1);
-        assert!(cache.emoji(emote.id.unwrap()).is_some());
-        assert!(cache.emoji(emote_2.id.unwrap()).is_none());
+        assert!(cache.emoji(emote.id).is_some());
+        assert!(cache.emoji(emote_2.id).is_none());
 
         let emote_4 = test::emoji(Id::new(4), None);
 
@@ -191,8 +189,8 @@ mod tests {
 
         assert_eq!(cache.emojis.len(), 1);
         assert_eq!(cache.guild_emojis.get(&guild_id).unwrap().len(), 1);
-        assert!(cache.emoji(emote_4.id.unwrap()).is_some());
-        assert!(cache.emoji(emote.id.unwrap()).is_none());
+        assert!(cache.emoji(emote_4.id).is_some());
+        assert!(cache.emoji(emote.id).is_none());
 
         cache.update(&GuildEmojisUpdate {
             emojis: vec![],

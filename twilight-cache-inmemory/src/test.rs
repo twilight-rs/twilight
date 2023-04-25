@@ -214,13 +214,13 @@ pub fn current_user(id: u64) -> CurrentUser {
 
 pub fn emoji(id: Id<EmojiMarker>, user: Option<User>) -> Emoji {
     Emoji {
-        animated: Some(false),
-        available: Some(true),
-        id: id.into(),
-        managed: Some(false),
-        name: Some("test".to_owned()),
-        require_colons: Some(true),
-        roles: Some(Vec::new()),
+        animated: false,
+        available: true,
+        id,
+        managed: false,
+        name: "test".to_owned(),
+        require_colons: true,
+        roles: Vec::new(),
         user,
     }
 }
