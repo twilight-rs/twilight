@@ -38,7 +38,7 @@ struct SearchGuildMembersFields<'a> {
 /// let guild_id = Id::new(100);
 /// let members = client
 ///     .search_guild_members(guild_id, "Wumpus")
-///     .limit(10)
+///     .limit(10)?
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -51,7 +51,7 @@ struct SearchGuildMembersFields<'a> {
 /// [`SearchGuildMembers`]: twilight_validate::request::ValidationErrorType::SearchGuildMembers
 #[must_use = "requests must be configured and executed"]
 pub struct SearchGuildMembers<'a> {
-    fields: Result<SearchGuildMembersFields<'a>, ValidationError>,
+    fields: SearchGuildMembersFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
@@ -59,7 +59,7 @@ pub struct SearchGuildMembers<'a> {
 impl<'a> SearchGuildMembers<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, query: &'a str) -> Self {
         Self {
-            fields: Ok(SearchGuildMembersFields { query, limit: None }),
+            fields: SearchGuildMembersFields { query, limit: None },
             guild_id,
             http,
         }
@@ -75,15 +75,21 @@ impl<'a> SearchGuildMembers<'a> {
     /// greater than 1000.
     ///
     /// [`SearchGuildMembers`]: twilight_validate::request::ValidationErrorType::SearchGuildMembers
-    pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_search_guild_members_limit(limit)?;
-            fields.limit = Some(limit);
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
+        if let Err(source) = validate_search_guild_members_limit(limit) {
+            return Err(source);
+        }
 
-            Ok(fields)
-        });
+        self.fields.limit = Some(limit);
 
-        self
+        Ok(self)
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<ListBody<Member>> {
+        self.into_future()
     }
 }
 
@@ -104,12 +110,10 @@ impl IntoFuture for SearchGuildMembers<'_> {
 
 impl TryIntoRequest for SearchGuildMembers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
-
         Ok(Request::from_route(&Route::SearchGuildMembers {
             guild_id: self.guild_id.get(),
-            limit: fields.limit,
-            query: fields.query,
+            limit: self.fields.limit,
+            query: self.fields.query,
         }))
     }
 }

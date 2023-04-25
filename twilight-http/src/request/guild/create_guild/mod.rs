@@ -223,51 +223,44 @@ pub struct VoiceFields {
 /// This endpoint can only be used by bots in less than 10 guilds.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuild<'a> {
-    fields: Result<CreateGuildFields<'a>, CreateGuildError>,
+    fields: CreateGuildFields<'a>,
     http: &'a Client,
 }
 
 impl<'a> CreateGuild<'a> {
-    pub(crate) fn new(http: &'a Client, name: String) -> Self {
-        let fields = Ok(CreateGuildFields {
-            afk_channel_id: None,
-            afk_timeout: None,
-            channels: None,
-            default_message_notifications: None,
-            explicit_content_filter: None,
-            icon: None,
-            name: String::new(),
-            roles: None,
-            system_channel_id: None,
-            system_channel_flags: None,
-            verification_level: None,
+    pub(crate) fn new(http: &'a Client, name: String) -> Result<Self, CreateGuildError> {
+        validate_guild_name(&name).map_err(|source| CreateGuildError {
+            kind: CreateGuildErrorType::NameInvalid { name: name.clone() },
+            source: Some(Box::new(source)),
+        })?;
+
+        Ok(Self {
+            fields: CreateGuildFields {
+                afk_channel_id: None,
+                afk_timeout: None,
+                channels: None,
+                default_message_notifications: None,
+                explicit_content_filter: None,
+                icon: None,
+                name,
+                roles: None,
+                system_channel_id: None,
+                system_channel_flags: None,
+                verification_level: None,
+            },
+            http,
         })
-        .and_then(|mut fields| {
-            validate_guild_name(&name).map_err(|source| CreateGuildError {
-                kind: CreateGuildErrorType::NameInvalid { name: name.clone() },
-                source: Some(Box::new(source)),
-            })?;
-
-            fields.name = name;
-
-            Ok(fields)
-        });
-
-        Self { fields, http }
     }
 
     /// Add a role to the list of roles.
-    #[allow(clippy::missing_panics_doc)]
     pub fn add_role(mut self, role: RoleFields) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            if fields.roles.is_none() {
-                let builder = RoleFieldsBuilder::new("@everyone".to_owned());
-                fields.roles.replace(vec![builder.build().unwrap()]);
-            }
+        if self.fields.roles.is_none() {
+            let builder = RoleFieldsBuilder::new("@everyone".to_owned());
+            self.fields.roles.replace(vec![builder.build()]);
+        }
 
-            if let Some(roles) = fields.roles.as_mut() {
-                roles.push(role);
-            }
+        if let Some(roles) = self.fields.roles.as_mut() {
+            roles.push(role);
         }
 
         self
@@ -278,19 +271,15 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub fn afk_channel_id(mut self, afk_channel_id: Id<ChannelMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.afk_channel_id = Some(afk_channel_id);
-        }
+    pub const fn afk_channel_id(mut self, afk_channel_id: Id<ChannelMarker>) -> Self {
+        self.fields.afk_channel_id = Some(afk_channel_id);
 
         self
     }
 
     /// Set the AFK timeout, in seconds.
-    pub fn afk_timeout(mut self, afk_timeout: AfkTimeout) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.afk_timeout = Some(afk_timeout);
-        }
+    pub const fn afk_timeout(mut self, afk_timeout: AfkTimeout) -> Self {
+        self.fields.afk_timeout = Some(afk_timeout);
 
         self
     }
@@ -311,24 +300,24 @@ impl<'a> CreateGuild<'a> {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     ///
-    /// let text = TextFieldsBuilder::new("text channel".to_owned()).build()?;
-    /// let voice = VoiceFieldsBuilder::new("voice channel".to_owned()).build()?;
-    /// let text2 = TextFieldsBuilder::new("other text channel".to_owned())
-    ///     .topic("posting".to_owned())
-    ///     .build()?;
+    /// let text = TextFieldsBuilder::new("text channel".to_owned())?.build();
+    /// let voice = VoiceFieldsBuilder::new("voice channel".to_owned())?.build();
+    /// let text2 = TextFieldsBuilder::new("other text channel".to_owned())?
+    ///     .topic("posting".to_owned())?
+    ///     .build();
     ///
-    /// let category = CategoryFieldsBuilder::new("category channel".to_owned())
+    /// let category = CategoryFieldsBuilder::new("category channel".to_owned())?
     ///     .add_text(text2)
     ///     .add_voice(voice);
     ///
     /// let channels = GuildChannelFieldsBuilder::new()
     ///     .add_text(text)
     ///     .add_category_builder(category)
-    ///     .build()?;
+    ///     .build();
     ///
     /// let guild = client
-    ///     .create_guild("guild name".to_owned())
-    ///     .channels(channels)
+    ///     .create_guild("guild name".to_owned())?
+    ///     .channels(channels)?
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -337,48 +326,40 @@ impl<'a> CreateGuild<'a> {
     ///
     /// Returns a [`CreateGuildErrorType::TooManyChannels`] error type if the
     /// number of channels is over 500.
-    pub fn channels(mut self, channels: Vec<GuildChannelFields>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            // Error 30013
-            // <https://discordapp.com/developers/docs/topics/opcodes-and-status-codes#json>
-            if channels.len() > 500 {
-                return Err(CreateGuildError {
-                    kind: CreateGuildErrorType::TooManyChannels { channels },
-                    source: None,
-                });
-            }
+    pub fn channels(mut self, channels: Vec<GuildChannelFields>) -> Result<Self, CreateGuildError> {
+        // Error 30013
+        // <https://discordapp.com/developers/docs/topics/opcodes-and-status-codes#json>
+        if channels.len() > 500 {
+            return Err(CreateGuildError {
+                kind: CreateGuildErrorType::TooManyChannels { channels },
+                source: None,
+            });
+        }
 
-            fields.channels.replace(channels);
+        self.fields.channels.replace(channels);
 
-            Ok(fields)
-        });
-
-        self
+        Ok(self)
     }
 
     /// Set the default message notification level. See
     /// [Discord Docs/Create Guild].
     ///
     /// [Discord Docs/Create Guild]: https://discord.com/developers/docs/resources/guild#create-guild
-    pub fn default_message_notifications(
+    pub const fn default_message_notifications(
         mut self,
         default_message_notifications: DefaultMessageNotificationLevel,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.default_message_notifications = Some(default_message_notifications);
-        }
+        self.fields.default_message_notifications = Some(default_message_notifications);
 
         self
     }
 
     /// Set the explicit content filter level.
-    pub fn explicit_content_filter(
+    pub const fn explicit_content_filter(
         mut self,
         explicit_content_filter: ExplicitContentFilter,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.explicit_content_filter = Some(explicit_content_filter);
-        }
+        self.fields.explicit_content_filter = Some(explicit_content_filter);
 
         self
     }
@@ -391,9 +372,7 @@ impl<'a> CreateGuild<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub fn icon(mut self, icon: &'a str) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.icon.replace(icon);
-        }
+        self.fields.icon.replace(icon);
 
         self
     }
@@ -406,13 +385,11 @@ impl<'a> CreateGuild<'a> {
     ///
     /// [`roles`]: Self::roles
     pub fn override_everyone(mut self, everyone: RoleFields) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            if let Some(roles) = fields.roles.as_mut() {
-                roles.remove(0);
-                roles.insert(0, everyone);
-            } else {
-                fields.roles.replace(vec![everyone]);
-            }
+        if let Some(roles) = self.fields.roles.as_mut() {
+            roles.remove(0);
+            roles.insert(0, everyone);
+        } else {
+            self.fields.roles.replace(vec![everyone]);
         }
 
         self
@@ -423,19 +400,15 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub fn system_channel_id(mut self, system_channel_id: Id<ChannelMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.system_channel_id = Some(system_channel_id);
-        }
+    pub const fn system_channel_id(mut self, system_channel_id: Id<ChannelMarker>) -> Self {
+        self.fields.system_channel_id = Some(system_channel_id);
 
         self
     }
 
     /// Set the guild's [`SystemChannelFlags`].
-    pub fn system_channel_flags(mut self, system_channel_flags: SystemChannelFlags) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.system_channel_flags = Some(system_channel_flags);
-        }
+    pub const fn system_channel_flags(mut self, system_channel_flags: SystemChannelFlags) -> Self {
+        self.fields.system_channel_flags = Some(system_channel_flags);
 
         self
     }
@@ -452,11 +425,11 @@ impl<'a> CreateGuild<'a> {
     /// # let client = Client::new("my token".to_owned());
     ///
     /// let roles = vec![RoleFieldsBuilder::new("role 1".to_owned())
-    ///     .color(0x543923)
-    ///     .build()?];
+    ///     .color(0x543923)?
+    ///     .build()];
     /// client
-    ///     .create_guild("guild name".to_owned())
-    ///     .roles(roles)
+    ///     .create_guild("guild name".to_owned())?
+    ///     .roles(roles)?
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -465,29 +438,30 @@ impl<'a> CreateGuild<'a> {
     ///
     /// Returns a [`CreateGuildErrorType::TooManyRoles`] error type if the
     /// number of roles is over 250.
-    #[allow(clippy::missing_panics_doc)]
-    pub fn roles(mut self, mut roles: Vec<RoleFields>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            if roles.len() > 250 {
-                return Err(CreateGuildError {
-                    kind: CreateGuildErrorType::TooManyRoles { roles },
-                    source: None,
-                });
-            }
+    pub fn roles(mut self, mut roles: Vec<RoleFields>) -> Result<Self, CreateGuildError> {
+        if roles.len() > 250 {
+            return Err(CreateGuildError {
+                kind: CreateGuildErrorType::TooManyRoles { roles },
+                source: None,
+            });
+        }
 
-            if let Some(prev_roles) = fields.roles.as_mut() {
-                roles.insert(0, prev_roles.remove(0));
-            } else {
-                let builder = RoleFieldsBuilder::new("@everyone".to_owned());
-                roles.insert(0, builder.build().unwrap());
-            }
+        if let Some(prev_roles) = self.fields.roles.as_mut() {
+            roles.insert(0, prev_roles.remove(0));
+        } else {
+            let builder = RoleFieldsBuilder::new("@everyone".to_owned());
+            roles.insert(0, builder.build());
+        }
 
-            fields.roles.replace(roles);
+        self.fields.roles.replace(roles);
 
-            Ok(fields)
-        });
+        Ok(self)
+    }
 
-        self
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<PartialGuild> {
+        self.into_future()
     }
 }
 
@@ -508,8 +482,10 @@ impl IntoFuture for CreateGuild<'_> {
 
 impl TryIntoRequest for CreateGuild<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
-        let fields = self.fields.map_err(HttpError::validation)?;
+        let mut request = Request::builder(&Route::CreateGuild);
 
-        Request::builder(&Route::CreateGuild).json(&fields).build()
+        request = request.json(&self.fields)?;
+
+        Ok(request.build())
     }
 }

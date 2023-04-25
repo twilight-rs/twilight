@@ -36,6 +36,12 @@ impl<'a> UpdateRolePositions<'a> {
             roles,
         }
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<ListBody<Role>> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for UpdateRolePositions<'_> {
@@ -55,10 +61,12 @@ impl IntoFuture for UpdateRolePositions<'_> {
 
 impl TryIntoRequest for UpdateRolePositions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateRolePositions {
+        let mut request = Request::builder(&Route::UpdateRolePositions {
             guild_id: self.guild_id.get(),
-        })
-        .json(&self.roles)
-        .build()
+        });
+
+        request = request.json(&self.roles)?;
+
+        Ok(request.build())
     }
 }

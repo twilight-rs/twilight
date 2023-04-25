@@ -68,16 +68,16 @@ struct UpdateGuildFields<'a> {
 /// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuild<'a> {
-    fields: Result<UpdateGuildFields<'a>, ValidationError>,
+    fields: UpdateGuildFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> UpdateGuild<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(UpdateGuildFields {
+            fields: UpdateGuildFields {
                 afk_channel_id: None,
                 afk_timeout: None,
                 banner: None,
@@ -96,27 +96,23 @@ impl<'a> UpdateGuild<'a> {
                 public_updates_channel_id: None,
                 preferred_locale: None,
                 premium_progress_bar_enabled: None,
-            }),
+            },
             guild_id,
             http,
-            reason: Ok(None),
+            reason: None,
         }
     }
 
     /// Set the voice channel where AFK voice users are sent.
-    pub fn afk_channel_id(mut self, afk_channel_id: Option<Id<ChannelMarker>>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.afk_channel_id = Some(Nullable(afk_channel_id));
-        }
+    pub const fn afk_channel_id(mut self, afk_channel_id: Option<Id<ChannelMarker>>) -> Self {
+        self.fields.afk_channel_id = Some(Nullable(afk_channel_id));
 
         self
     }
 
     /// Set how much time it takes for a voice user to be considered AFK.
-    pub fn afk_timeout(mut self, afk_timeout: u64) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.afk_timeout = Some(afk_timeout);
-        }
+    pub const fn afk_timeout(mut self, afk_timeout: u64) -> Self {
+        self.fields.afk_timeout = Some(afk_timeout);
 
         self
     }
@@ -127,10 +123,8 @@ impl<'a> UpdateGuild<'a> {
     /// the banner.
     ///
     /// The server must have the `BANNER` feature.
-    pub fn banner(mut self, banner: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.banner = Some(Nullable(banner));
-        }
+    pub const fn banner(mut self, banner: Option<&'a str>) -> Self {
+        self.fields.banner = Some(Nullable(banner));
 
         self
     }
@@ -139,13 +133,11 @@ impl<'a> UpdateGuild<'a> {
     /// [Discord Docs/Create Guild] for more information.
     ///
     /// [Discord Docs/Create Guild]: https://discord.com/developers/docs/resources/guild#create-guild
-    pub fn default_message_notifications(
+    pub const fn default_message_notifications(
         mut self,
         default_message_notifications: Option<DefaultMessageNotificationLevel>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.default_message_notifications = Some(Nullable(default_message_notifications));
-        }
+        self.fields.default_message_notifications = Some(Nullable(default_message_notifications));
 
         self
     }
@@ -153,22 +145,18 @@ impl<'a> UpdateGuild<'a> {
     /// Set the guild's discovery splash image.
     ///
     /// Requires the guild to have the `DISCOVERABLE` feature enabled.
-    pub fn discovery_splash(mut self, discovery_splash: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.discovery_splash = Some(Nullable(discovery_splash));
-        }
+    pub const fn discovery_splash(mut self, discovery_splash: Option<&'a str>) -> Self {
+        self.fields.discovery_splash = Some(Nullable(discovery_splash));
 
         self
     }
 
     /// Set the explicit content filter level.
-    pub fn explicit_content_filter(
+    pub const fn explicit_content_filter(
         mut self,
         explicit_content_filter: Option<ExplicitContentFilter>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.explicit_content_filter = Some(Nullable(explicit_content_filter));
-        }
+        self.fields.explicit_content_filter = Some(Nullable(explicit_content_filter));
 
         self
     }
@@ -190,10 +178,8 @@ impl<'a> UpdateGuild<'a> {
     /// [`GuildFeature::InvitesDisabled`]: twilight_model::guild::GuildFeature::InvitesDisabled
     /// [`Permissions::ADMINISTRATOR`]: twilight_model::guild::Permissions::ADMINISTRATOR
     /// [`Permissions::MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
-    pub fn features(mut self, features: &'a [&'a str]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.features = Some(features);
-        }
+    pub const fn features(mut self, features: &'a [&'a str]) -> Self {
+        self.fields.features = Some(features);
 
         self
     }
@@ -205,10 +191,8 @@ impl<'a> UpdateGuild<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.icon = Some(Nullable(icon));
-        }
+    pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
+        self.fields.icon = Some(Nullable(icon));
 
         self
     }
@@ -224,24 +208,19 @@ impl<'a> UpdateGuild<'a> {
     /// or too long.
     ///
     /// [`GuildName`]: twilight_validate::request::ValidationErrorType::GuildName
-    pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_guild_name(name)?;
-            fields.name.replace(name);
+    pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
+        validate_guild_name(name)?;
 
-            Ok(fields)
-        });
+        self.fields.name.replace(name);
 
-        self
+        Ok(self)
     }
 
     /// Transfer ownership to another user.
     ///
     /// Only works if the current user is the owner.
-    pub fn owner_id(mut self, owner_id: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.owner_id = Some(owner_id);
-        }
+    pub const fn owner_id(mut self, owner_id: Id<UserMarker>) -> Self {
+        self.fields.owner_id = Some(owner_id);
 
         self
     }
@@ -249,31 +228,25 @@ impl<'a> UpdateGuild<'a> {
     /// Set the guild's splash image.
     ///
     /// Requires the guild to have the `INVITE_SPLASH` feature enabled.
-    pub fn splash(mut self, splash: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.splash = Some(Nullable(splash));
-        }
+    pub const fn splash(mut self, splash: Option<&'a str>) -> Self {
+        self.fields.splash = Some(Nullable(splash));
 
         self
     }
 
     /// Set the channel where events such as welcome messages are posted.
-    pub fn system_channel(mut self, system_channel_id: Option<Id<ChannelMarker>>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.system_channel_id = Some(Nullable(system_channel_id));
-        }
+    pub const fn system_channel(mut self, system_channel_id: Option<Id<ChannelMarker>>) -> Self {
+        self.fields.system_channel_id = Some(Nullable(system_channel_id));
 
         self
     }
 
     /// Set the guild's [`SystemChannelFlags`].
-    pub fn system_channel_flags(
+    pub const fn system_channel_flags(
         mut self,
         system_channel_flags: Option<SystemChannelFlags>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.system_channel_flags = Some(Nullable(system_channel_flags));
-        }
+        self.fields.system_channel_flags = Some(Nullable(system_channel_flags));
 
         self
     }
@@ -283,10 +256,8 @@ impl<'a> UpdateGuild<'a> {
     /// Requires the guild to be `PUBLIC`. See [Discord Docs/Modify Guild].
     ///
     /// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
-    pub fn rules_channel(mut self, rules_channel_id: Option<Id<ChannelMarker>>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.rules_channel_id = Some(Nullable(rules_channel_id));
-        }
+    pub const fn rules_channel(mut self, rules_channel_id: Option<Id<ChannelMarker>>) -> Self {
+        self.fields.rules_channel_id = Some(Nullable(rules_channel_id));
 
         self
     }
@@ -294,13 +265,11 @@ impl<'a> UpdateGuild<'a> {
     /// Set the public updates channel.
     ///
     /// Requires the guild to be `PUBLIC`.
-    pub fn public_updates_channel(
+    pub const fn public_updates_channel(
         mut self,
         public_updates_channel_id: Option<Id<ChannelMarker>>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.public_updates_channel_id = Some(Nullable(public_updates_channel_id));
-        }
+        self.fields.public_updates_channel_id = Some(Nullable(public_updates_channel_id));
 
         self
     }
@@ -308,10 +277,8 @@ impl<'a> UpdateGuild<'a> {
     /// Set the preferred locale for the guild.
     ///
     /// Defaults to `en-US`. Requires the guild to be `PUBLIC`.
-    pub fn preferred_locale(mut self, preferred_locale: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.preferred_locale = Some(Nullable(preferred_locale));
-        }
+    pub const fn preferred_locale(mut self, preferred_locale: Option<&'a str>) -> Self {
+        self.fields.preferred_locale = Some(Nullable(preferred_locale));
 
         self
     }
@@ -321,29 +288,39 @@ impl<'a> UpdateGuild<'a> {
     /// See [Discord Docs/Guild Object].
     ///
     /// [Discord Docs/Guild Object]: https://discord.com/developers/docs/resources/guild#guild-object-verification-level
-    pub fn verification_level(mut self, verification_level: Option<VerificationLevel>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.verification_level = Some(Nullable(verification_level));
-        }
+    pub const fn verification_level(
+        mut self,
+        verification_level: Option<VerificationLevel>,
+    ) -> Self {
+        self.fields.verification_level = Some(Nullable(verification_level));
 
         self
     }
 
     /// Set whether the premium progress bar is enabled.
-    pub fn premium_progress_bar_enabled(mut self, premium_progress_bar_enabled: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.premium_progress_bar_enabled = Some(premium_progress_bar_enabled);
-        }
+    pub const fn premium_progress_bar_enabled(
+        mut self,
+        premium_progress_bar_enabled: bool,
+    ) -> Self {
+        self.fields.premium_progress_bar_enabled = Some(premium_progress_bar_enabled);
 
         self
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<PartialGuild> {
+        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuild<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -364,16 +341,18 @@ impl IntoFuture for UpdateGuild<'_> {
 
 impl TryIntoRequest for UpdateGuild<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateGuild {
             guild_id: self.guild_id.get(),
-        })
-        .json(&fields);
+        });
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
-            request = request.headers(request::audit_header(reason)?);
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

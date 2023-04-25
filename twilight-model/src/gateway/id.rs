@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    num::NonZeroU32,
+    num::NonZeroU64,
 };
 
 pub struct ShardIdParseError {
@@ -51,9 +51,9 @@ pub enum ShardIdParseErrorType {
     /// ShardId's number was greater or equal to its total.
     NumberGreaterOrEqualTotal {
         /// Value of number.
-        number: u32,
+        number: u64,
         /// Value of total.
-        total: u32,
+        total: u64,
     },
 }
 
@@ -92,12 +92,12 @@ pub enum ShardIdParseErrorType {
 ///
 /// [Discord Docs/Sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(try_from = "[u32; 2]", into = "[u32; 2]")]
+#[serde(try_from = "[u64; 2]", into = "[u64; 2]")]
 pub struct ShardId {
     /// Number of the shard, 0-indexed.
-    number: u32,
+    number: u64,
     /// Total number of shards used by the bot, 1-indexed.
-    total: NonZeroU32,
+    total: NonZeroU64,
 }
 
 impl ShardId {
@@ -127,9 +127,9 @@ impl ShardId {
     ///
     /// Panics if the shard number is greater than or equal to the total number
     /// of shards.
-    pub const fn new(number: u32, total: u32) -> Self {
+    pub const fn new(number: u64, total: u64) -> Self {
         assert!(number < total, "number must be less than total");
-        if let Some(total) = NonZeroU32::new(total) {
+        if let Some(total) = NonZeroU64::new(total) {
             Self { number, total }
         } else {
             panic!("unreachable: total is at least 1")
@@ -138,12 +138,12 @@ impl ShardId {
 
     /// Create a new shard identifier if the shard indexes are valid.
     #[allow(clippy::missing_panics_doc)]
-    pub const fn new_checked(number: u32, total: u32) -> Option<Self> {
+    pub const fn new_checked(number: u64, total: u64) -> Option<Self> {
         if number >= total {
             return None;
         }
 
-        if let Some(total) = NonZeroU32::new(total) {
+        if let Some(total) = NonZeroU64::new(total) {
             Some(Self { number, total })
         } else {
             panic!("unreachable: total is at least 1")
@@ -151,12 +151,12 @@ impl ShardId {
     }
 
     /// Identifying number of the shard, 0-indexed.
-    pub const fn number(self) -> u32 {
+    pub const fn number(self) -> u64 {
         self.number
     }
 
     /// Total number of shards, 1-indexed.
-    pub const fn total(self) -> u32 {
+    pub const fn total(self) -> u64 {
         self.total.get()
     }
 }
@@ -167,22 +167,22 @@ impl ShardId {
 impl Display for ShardId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_list()
-            .entries(Into::<[u32; 2]>::into(*self))
+            .entries(Into::<[u64; 2]>::into(*self))
             .finish()
     }
 }
 
-impl TryFrom<[u32; 2]> for ShardId {
+impl TryFrom<[u64; 2]> for ShardId {
     type Error = ShardIdParseError;
 
-    fn try_from([number, total]: [u32; 2]) -> Result<Self, Self::Error> {
+    fn try_from([number, total]: [u64; 2]) -> Result<Self, Self::Error> {
         Self::new_checked(number, total).ok_or(ShardIdParseError {
             kind: ShardIdParseErrorType::NumberGreaterOrEqualTotal { number, total },
         })
     }
 }
 
-impl From<ShardId> for [u32; 2] {
+impl From<ShardId> for [u64; 2] {
     fn from(id: ShardId) -> Self {
         [id.number(), id.total()]
     }
@@ -235,8 +235,8 @@ mod tests {
             &value,
             &[
                 Token::Tuple { len: 2 },
-                Token::U32(0),
-                Token::U32(1),
+                Token::U64(0),
+                Token::U64(1),
                 Token::TupleEnd,
             ],
         )

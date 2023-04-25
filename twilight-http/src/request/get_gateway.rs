@@ -59,6 +59,12 @@ impl<'a> GetGateway<'a> {
     pub const fn authed(self) -> GetGatewayAuthed<'a> {
         GetGatewayAuthed::new(self.http)
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<ConnectionInfo> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for GetGateway<'_> {

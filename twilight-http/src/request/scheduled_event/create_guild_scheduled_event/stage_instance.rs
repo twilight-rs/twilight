@@ -12,7 +12,7 @@ use twilight_model::{
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,
-    scheduled_event_description as validate_scheduled_event_description,
+    scheduled_event_description as validate_scheduled_event_description, ValidationError,
 };
 
 /// Create a stage instance scheduled event in a guild.
@@ -20,21 +20,22 @@ use twilight_validate::request::{
 pub struct CreateGuildStageInstanceScheduledEvent<'a>(CreateGuildScheduledEvent<'a>);
 
 impl<'a> CreateGuildStageInstanceScheduledEvent<'a> {
-    pub(crate) fn new(
-        mut inner: CreateGuildScheduledEvent<'a>,
+    pub(crate) const fn new(
+        inner: CreateGuildScheduledEvent<'a>,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
     ) -> Self {
-        inner.fields = inner.fields.map(|fields| CreateGuildScheduledEventFields {
-            channel_id: Some(channel_id),
-            entity_type: Some(EntityType::StageInstance),
-            name: Some(name),
-            scheduled_start_time: Some(scheduled_start_time),
-            ..fields
-        });
-
-        Self(inner)
+        Self(CreateGuildScheduledEvent {
+            fields: CreateGuildScheduledEventFields {
+                channel_id: Some(channel_id),
+                entity_type: Some(EntityType::StageInstance),
+                name: Some(name),
+                scheduled_start_time: Some(scheduled_start_time),
+                ..inner.fields
+            },
+            ..inner
+        })
     }
 
     /// Set the description of the event.
@@ -47,15 +48,12 @@ impl<'a> CreateGuildStageInstanceScheduledEvent<'a> {
     /// description is invalid.
     ///
     /// [`ScheduledEventDescription`]: twilight_validate::request::ValidationErrorType::ScheduledEventDescription
-    pub fn description(mut self, description: &'a str) -> Self {
-        self.0.fields = self.0.fields.and_then(|mut fields| {
-            validate_scheduled_event_description(description)?;
-            fields.description.replace(description);
+    pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
+        validate_scheduled_event_description(description)?;
 
-            Ok(fields)
-        });
+        self.0.fields.description = Some(description);
 
-        self
+        Ok(self)
     }
 
     /// Set the cover image of the event.
@@ -65,12 +63,8 @@ impl<'a> CreateGuildStageInstanceScheduledEvent<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn image(mut self, image: &'a str) -> Self {
-        self.0.fields = self.0.fields.map(|mut fields| {
-            fields.image = Some(image);
-
-            fields
-        });
+    pub const fn image(mut self, image: &'a str) -> Self {
+        self.0.fields.image = Some(image);
 
         self
     }
@@ -78,22 +72,26 @@ impl<'a> CreateGuildStageInstanceScheduledEvent<'a> {
     /// Set the scheduled end time of the event.
     ///
     /// This is not a required field for stage instance events.
-    pub fn scheduled_end_time(mut self, scheduled_end_time: &'a Timestamp) -> Self {
-        self.0.fields = self.0.fields.map(|mut fields| {
-            fields.scheduled_end_time = Some(scheduled_end_time);
-
-            fields
-        });
+    pub const fn scheduled_end_time(mut self, scheduled_end_time: &'a Timestamp) -> Self {
+        self.0.fields.scheduled_end_time = Some(scheduled_end_time);
 
         self
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<GuildScheduledEvent> {
+        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildStageInstanceScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.0.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.0.reason.replace(reason);
+
+        Ok(self)
     }
 }
 

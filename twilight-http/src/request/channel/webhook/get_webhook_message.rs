@@ -47,6 +47,12 @@ impl<'a> GetWebhookMessage<'a> {
 
         self
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Message> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for GetWebhookMessage<'_> {
@@ -66,13 +72,13 @@ impl IntoFuture for GetWebhookMessage<'_> {
 
 impl TryIntoRequest for GetWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::GetWebhookMessage {
+        Ok(Request::builder(&Route::GetWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: self.thread_id.map(Id::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false)
-        .build()
+        .build())
     }
 }

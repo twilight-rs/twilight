@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -87,6 +87,12 @@ impl<'a> UpdateGlobalCommand<'a> {
 
         self
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Command> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for UpdateGlobalCommand<'_> {
@@ -111,6 +117,6 @@ impl TryIntoRequest for UpdateGlobalCommand<'_> {
             command_id: self.command_id.get(),
         })
         .json(&self.fields)
-        .build()
+        .map(RequestBuilder::build)
     }
 }

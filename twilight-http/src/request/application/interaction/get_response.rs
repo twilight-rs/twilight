@@ -52,6 +52,12 @@ impl<'a> GetResponse<'a> {
             token: interaction_token,
         }
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Message> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for GetResponse<'_> {
@@ -71,12 +77,12 @@ impl IntoFuture for GetResponse<'_> {
 
 impl TryIntoRequest for GetResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::GetInteractionOriginal {
+        Ok(Request::builder(&Route::GetInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,
         })
         .use_authorization_token(false)
-        .build()
+        .build())
     }
 }
 

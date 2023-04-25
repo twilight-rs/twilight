@@ -85,6 +85,12 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
 
         self
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for UpdateCurrentUserVoiceState<'_> {
@@ -104,10 +110,12 @@ impl IntoFuture for UpdateCurrentUserVoiceState<'_> {
 
 impl TryIntoRequest for UpdateCurrentUserVoiceState<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateCurrentUserVoiceState {
+        let mut request = Request::builder(&Route::UpdateCurrentUserVoiceState {
             guild_id: self.guild_id.get(),
-        })
-        .json(&self.fields)
-        .build()
+        });
+
+        request = request.json(&self.fields)?;
+
+        Ok(request.build())
     }
 }

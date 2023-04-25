@@ -41,7 +41,7 @@ pub struct UpdateAutoModerationRule<'a> {
     fields: UpdateAutoModerationRuleFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> UpdateAutoModerationRule<'a> {
@@ -63,7 +63,7 @@ impl<'a> UpdateAutoModerationRule<'a> {
             },
             guild_id,
             http,
-            reason: Ok(None),
+            reason: None,
         }
     }
 
@@ -120,13 +120,21 @@ impl<'a> UpdateAutoModerationRule<'a> {
 
         self
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<AutoModerationRule> {
+        self.into_future()
+    }
 }
 
 impl<'a> AuditLogReason<'a> for UpdateAutoModerationRule<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -151,12 +159,14 @@ impl TryIntoRequest for UpdateAutoModerationRule<'_> {
             auto_moderation_rule_id: self.auto_moderation_rule_id.get(),
             guild_id: self.guild_id.get(),
         })
-        .json(&self.fields);
+        .json(&self.fields)?;
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
-            request = request.headers(request::audit_header(reason)?);
+        if let Some(reason) = self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

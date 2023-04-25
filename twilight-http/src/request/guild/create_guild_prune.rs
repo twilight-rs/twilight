@@ -31,40 +31,36 @@ struct CreateGuildPruneFields<'a> {
 /// [Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildPrune<'a> {
-    fields: Result<CreateGuildPruneFields<'a>, ValidationError>,
+    fields: CreateGuildPruneFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> CreateGuildPrune<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(CreateGuildPruneFields {
+            fields: CreateGuildPruneFields {
                 compute_prune_count: None,
                 days: None,
                 include_roles: &[],
-            }),
+            },
             guild_id,
             http,
-            reason: Ok(None),
+            reason: None,
         }
     }
 
     /// List of roles to include when pruning.
-    pub fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.include_roles = roles;
-        }
+    pub const fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
+        self.fields.include_roles = roles;
 
         self
     }
 
     /// Return the amount of pruned members. Discouraged for large guilds.
-    pub fn compute_prune_count(mut self, compute_prune_count: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.compute_prune_count = Some(compute_prune_count);
-        }
+    pub const fn compute_prune_count(mut self, compute_prune_count: bool) -> Self {
+        self.fields.compute_prune_count = Some(compute_prune_count);
 
         self
     }
@@ -79,23 +75,31 @@ impl<'a> CreateGuildPrune<'a> {
     /// or more than 30.
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
-    pub fn days(mut self, days: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_guild_prune_days(days)?;
-            fields.days = Some(days);
+    pub const fn days(mut self, days: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
+        if let Err(source) = validate_guild_prune_days(days) {
+            return Err(source);
+        }
 
-            Ok(fields)
-        });
+        self.fields.days = Some(days);
 
-        self
+        Ok(self)
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<GuildPrune> {
+        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -116,18 +120,19 @@ impl IntoFuture for CreateGuildPrune<'_> {
 
 impl TryIntoRequest for CreateGuildPrune<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateGuildPrune {
-            compute_prune_count: fields.compute_prune_count,
-            days: fields.days,
+            compute_prune_count: self.fields.compute_prune_count,
+            days: self.fields.days,
             guild_id: self.guild_id.get(),
-            include_roles: fields.include_roles,
+            include_roles: self.fields.include_roles,
         });
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
-            request = request.headers(request::audit_header(reason)?);
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

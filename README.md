@@ -179,7 +179,7 @@ async fn handle_event(
     match event {
         Event::MessageCreate(msg) if msg.content == "!ping" => {
             http.create_message(msg.channel_id)
-                .content("Pong!")
+                .content("Pong!")?
                 .await?;
         }
         // Other events here...

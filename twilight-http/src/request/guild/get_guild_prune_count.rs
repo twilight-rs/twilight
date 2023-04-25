@@ -23,7 +23,7 @@ struct GetGuildPruneCountFields<'a> {
 /// Get the counts of guild members to be pruned.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildPruneCount<'a> {
-    fields: Result<GetGuildPruneCountFields<'a>, ValidationError>,
+    fields: GetGuildPruneCountFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
@@ -31,10 +31,10 @@ pub struct GetGuildPruneCount<'a> {
 impl<'a> GetGuildPruneCount<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(GetGuildPruneCountFields {
+            fields: GetGuildPruneCountFields {
                 days: None,
                 include_roles: &[],
-            }),
+            },
             guild_id,
             http,
         }
@@ -51,24 +51,28 @@ impl<'a> GetGuildPruneCount<'a> {
     /// or more than 30.
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
-    pub fn days(mut self, days: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_guild_prune_days(days)?;
-            fields.days = Some(days);
+    pub const fn days(mut self, days: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
+        if let Err(source) = validate_guild_prune_days(days) {
+            return Err(source);
+        }
 
-            Ok(fields)
-        });
+        self.fields.days = Some(days);
+
+        Ok(self)
+    }
+
+    /// List of roles to include when calculating prune count
+    pub const fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
+        self.fields.include_roles = roles;
 
         self
     }
 
-    /// List of roles to include when calculating prune count
-    pub fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.include_roles = roles;
-        }
-
-        self
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<GuildPrune> {
+        self.into_future()
     }
 }
 
@@ -89,12 +93,10 @@ impl IntoFuture for GetGuildPruneCount<'_> {
 
 impl TryIntoRequest for GetGuildPruneCount<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
-
         Ok(Request::from_route(&Route::GetGuildPruneCount {
-            days: fields.days,
+            days: self.fields.days,
             guild_id: self.guild_id.get(),
-            include_roles: fields.include_roles,
+            include_roles: self.fields.include_roles,
         }))
     }
 }
@@ -102,18 +104,16 @@ impl TryIntoRequest for GetGuildPruneCount<'_> {
 #[cfg(test)]
 mod tests {
     use super::GetGuildPruneCount;
-    use crate::{request::TryIntoRequest, Client};
+    use crate::Client;
     use twilight_model::id::Id;
 
     #[test]
     fn days() {
         fn days_valid(days: u16) -> bool {
             let client = Client::new(String::new());
-
-            GetGuildPruneCount::new(&client, Id::new(1))
-                .days(days)
-                .try_into_request()
-                .is_ok()
+            let count = GetGuildPruneCount::new(&client, Id::new(1));
+            let days_result = count.days(days);
+            days_result.is_ok()
         }
 
         assert!(!days_valid(0));

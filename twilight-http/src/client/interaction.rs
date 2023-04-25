@@ -21,6 +21,7 @@ use twilight_model::{
         Id,
     },
 };
+use twilight_validate::command::CommandValidationError;
 
 /// Client interface for using interactions.
 ///
@@ -130,7 +131,7 @@ impl<'a> InteractionClient<'a> {
     /// client
     ///     .interaction(application_id)
     ///     .create_followup("webhook token")
-    ///     .content("Pinkie...")
+    ///     .content("Pinkie...")?
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -345,7 +346,7 @@ impl<'a> InteractionClient<'a> {
         guild_id: Id<GuildMarker>,
         command_id: Id<CommandMarker>,
         permissions: &'a [CommandPermission],
-    ) -> UpdateCommandPermissions<'a> {
+    ) -> Result<UpdateCommandPermissions<'a>, CommandValidationError> {
         UpdateCommandPermissions::new(
             self.client,
             self.application_id,

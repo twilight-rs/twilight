@@ -147,9 +147,9 @@ impl<'a> CreateForumThread<'a> {
         } else if let Some(payload_json) = self.fields.message.payload_json {
             request = request.body(payload_json.to_vec());
         } else {
-            request = request.json(&self.fields);
+            request = request.json(&self.fields)?;
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

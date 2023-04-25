@@ -100,7 +100,7 @@ pub struct Lavalink {
     nodes: DashMap<SocketAddr, Arc<Node>>,
     players: PlayerManager,
     resume: Option<Resume>,
-    shard_count: u32,
+    shard_count: u64,
     user_id: Id<UserMarker>,
     server_updates: DashMap<Id<GuildMarker>, VoiceServerUpdate>,
     sessions: DashMap<Id<GuildMarker>, Box<str>>,
@@ -118,7 +118,7 @@ impl Lavalink {
     ///
     /// [`add`]: Self::add
     /// [`new_with_resume`]: Self::new_with_resume
-    pub fn new(user_id: Id<UserMarker>, shard_count: u32) -> Self {
+    pub fn new(user_id: Id<UserMarker>, shard_count: u64) -> Self {
         Self::_new_with_resume(user_id, shard_count, None)
     }
 
@@ -131,13 +131,13 @@ impl Lavalink {
     /// [`new`]: Self::new
     pub fn new_with_resume(
         user_id: Id<UserMarker>,
-        shard_count: u32,
+        shard_count: u64,
         resume: impl Into<Option<Resume>>,
     ) -> Self {
         Self::_new_with_resume(user_id, shard_count, resume.into())
     }
 
-    fn _new_with_resume(user_id: Id<UserMarker>, shard_count: u32, resume: Option<Resume>) -> Self {
+    fn _new_with_resume(user_id: Id<UserMarker>, shard_count: u64, resume: Option<Resume>) -> Self {
         Self {
             nodes: DashMap::new(),
             players: PlayerManager::new(),
@@ -381,13 +381,13 @@ impl Lavalink {
     ///
     /// This map should be small or empty, and if it isn't, then it needs to be
     /// cleared out anyway.
-    fn clear_shard_states(&self, shard_id: u32) {
-        let shard_count = u64::from(self.shard_count);
+    fn clear_shard_states(&self, shard_id: u64) {
+        let shard_count = self.shard_count;
 
         self.server_updates
-            .retain(|k, _| (k.get() >> 22) % shard_count != u64::from(shard_id));
+            .retain(|k, _| (k.get() >> 22) % shard_count != shard_id);
         self.sessions
-            .retain(|k, _| (k.get() >> 22) % shard_count != u64::from(shard_id));
+            .retain(|k, _| (k.get() >> 22) % shard_count != shard_id);
     }
 }
 

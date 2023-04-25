@@ -36,7 +36,7 @@ pub struct CreateEmoji<'a> {
     fields: CreateEmojiFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> CreateEmoji<'a> {
@@ -54,7 +54,7 @@ impl<'a> CreateEmoji<'a> {
             },
             guild_id,
             http,
-            reason: Ok(None),
+            reason: None,
         }
     }
 
@@ -68,13 +68,21 @@ impl<'a> CreateEmoji<'a> {
 
         self
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Emoji> {
+        self.into_future()
+    }
 }
 
 impl<'a> AuditLogReason<'a> for CreateEmoji<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -99,13 +107,15 @@ impl TryIntoRequest for CreateEmoji<'_> {
             guild_id: self.guild_id.get(),
         });
 
-        request = request.json(&self.fields);
+        request = request.json(&self.fields)?;
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
-            request = request.headers(request::audit_header(reason)?);
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }
 

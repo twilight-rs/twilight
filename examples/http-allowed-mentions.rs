@@ -28,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
         .create_message(channel_id)
         .content(&format!(
             "<@{user_id}> you are not allowed to ping @everyone!"
-        ))
+        ))?
         .allowed_mentions(Some(&allowed_mentions))
         .await?;
 

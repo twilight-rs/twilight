@@ -31,6 +31,9 @@ bitflags! {
         /// Early verified bot developer.
         const VERIFIED_DEVELOPER = 1 << 17;
         /// Moderator Programs Alumni
+        #[deprecated(since = "0.14.0", note = "use `MODERATOR_PROGRAMS_ALUMNI`")]
+        const CERTIFIED_MODERATOR = 1 << 18;
+        /// Moderator Programs Alumni
         const MODERATOR_PROGRAMS_ALUMNI = 1 << 18;
         /// Bot uses only HTTP interactions and is shown in the online member
         /// list.
@@ -115,6 +118,7 @@ mod tests {
     const_assert_eq!(UserFlags::BUG_HUNTER_LEVEL_2.bits(), 1 << 14);
     const_assert_eq!(UserFlags::VERIFIED_BOT.bits(), 1 << 16);
     const_assert_eq!(UserFlags::VERIFIED_DEVELOPER.bits(), 1 << 17);
+    const_assert_eq!(UserFlags::CERTIFIED_MODERATOR.bits(), 1 << 18);
     const_assert_eq!(UserFlags::MODERATOR_PROGRAMS_ALUMNI.bits(), 1 << 18);
     const_assert_eq!(UserFlags::BOT_HTTP_INTERACTIONS.bits(), 1 << 19);
     const_assert_eq!(UserFlags::ACTIVE_DEVELOPER.bits(), 1 << 22);

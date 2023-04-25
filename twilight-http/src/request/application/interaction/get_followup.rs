@@ -58,6 +58,12 @@ impl<'a> GetFollowup<'a> {
             interaction_token,
         }
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Message> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for GetFollowup<'_> {
@@ -77,14 +83,14 @@ impl IntoFuture for GetFollowup<'_> {
 
 impl TryIntoRequest for GetFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::GetFollowupMessage {
+        Ok(Request::builder(&Route::GetFollowupMessage {
             application_id: self.application_id.get(),
             interaction_token: self.interaction_token,
             thread_id: None,
             message_id: self.message_id.get(),
         })
         .use_authorization_token(false)
-        .build()
+        .build())
     }
 }
 
@@ -124,7 +130,7 @@ mod tests {
             message_id: MESSAGE_ID.get(),
         })
         .use_authorization_token(false)
-        .build()?;
+        .build();
 
         assert!(expected.body().is_none());
         assert_eq!(expected.path(), actual.path());

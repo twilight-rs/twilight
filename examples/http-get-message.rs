@@ -15,6 +15,7 @@ async fn main() -> anyhow::Result<()> {
         client
             .create_message(channel_id)
             .content(&format!("Ping #{x}"))
+            .expect("content not a valid length")
             .into_future()
     }))
     .await;

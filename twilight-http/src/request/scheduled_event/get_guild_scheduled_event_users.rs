@@ -17,14 +17,6 @@ use twilight_validate::request::{
     scheduled_event_get_users as validate_scheduled_event_get_users, ValidationError,
 };
 
-struct GetGuildScheduledEventUsersFields {
-    after: Option<Id<UserMarker>>,
-    before: Option<Id<UserMarker>>,
-    limit: Option<u16>,
-    scheduled_event_id: Id<ScheduledEventMarker>,
-    with_member: Option<bool>,
-}
-
 /// Get a list of users subscribed to a scheduled event.
 ///
 /// Users are returned in ascending order by `user_id`. [`before`] and [`after`]
@@ -38,9 +30,13 @@ struct GetGuildScheduledEventUsersFields {
 /// [Discord Docs/Get Guild Scheduled Event Users]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildScheduledEventUsers<'a> {
-    fields: Result<GetGuildScheduledEventUsersFields, ValidationError>,
+    after: Option<Id<UserMarker>>,
+    before: Option<Id<UserMarker>>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
+    limit: Option<u16>,
+    scheduled_event_id: Id<ScheduledEventMarker>,
+    with_member: Option<bool>,
 }
 
 impl<'a> GetGuildScheduledEventUsers<'a> {
@@ -50,15 +46,13 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
         scheduled_event_id: Id<ScheduledEventMarker>,
     ) -> Self {
         Self {
-            fields: Ok(GetGuildScheduledEventUsersFields {
-                after: None,
-                before: None,
-                limit: None,
-                scheduled_event_id,
-                with_member: None,
-            }),
+            after: None,
+            before: None,
             guild_id,
             http,
+            limit: None,
+            scheduled_event_id,
+            with_member: None,
         }
     }
 
@@ -68,10 +62,8 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     /// also set.
     ///
     /// [`before`]: Self::before
-    pub fn after(mut self, after: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(after);
-        }
+    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
+        self.after = Some(after);
 
         self
     }
@@ -81,10 +73,8 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     /// This is incompatible with [`after`].
     ///
     /// [`after`]: Self::after
-    pub fn before(mut self, before: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.before = Some(before);
-        }
+    pub const fn before(mut self, before: Id<UserMarker>) -> Self {
+        self.before = Some(before);
 
         self
     }
@@ -99,24 +89,28 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     /// invalid.
     ///
     /// [`ScheduledEventGetUsers`]: twilight_validate::request::ValidationErrorType::ScheduledEventGetUsers
-    pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_scheduled_event_get_users(limit)?;
-            fields.limit = Some(limit);
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
+        if let Err(source) = validate_scheduled_event_get_users(limit) {
+            return Err(source);
+        }
 
-            Ok(fields)
-        });
+        self.limit = Some(limit);
+
+        Ok(self)
+    }
+
+    /// Set whether to return member objects with each user.
+    pub const fn with_member(mut self, with_member: bool) -> Self {
+        self.with_member = Some(with_member);
 
         self
     }
 
-    /// Set whether to return member objects with each user.
-    pub fn with_member(mut self, with_member: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.with_member = Some(with_member);
-        }
-
-        self
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<ListBody<GuildScheduledEventUser>> {
+        self.into_future()
     }
 }
 
@@ -137,15 +131,13 @@ impl IntoFuture for GetGuildScheduledEventUsers<'_> {
 
 impl TryIntoRequest for GetGuildScheduledEventUsers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
-
         Ok(Request::from_route(&Route::GetGuildScheduledEventUsers {
-            after: fields.after.map(Id::get),
-            before: fields.before.map(Id::get),
+            after: self.after.map(Id::get),
+            before: self.before.map(Id::get),
             guild_id: self.guild_id.get(),
-            limit: fields.limit,
-            scheduled_event_id: fields.scheduled_event_id.get(),
-            with_member: fields.with_member.unwrap_or_default(),
+            limit: self.limit,
+            scheduled_event_id: self.scheduled_event_id.get(),
+            with_member: self.with_member.unwrap_or_default(),
         }))
     }
 }

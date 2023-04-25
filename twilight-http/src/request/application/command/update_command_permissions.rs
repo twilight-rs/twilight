@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
@@ -35,7 +35,7 @@ pub struct UpdateCommandPermissions<'a> {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,
-    fields: Result<UpdateCommandPermissionsFields<'a>, CommandValidationError>,
+    fields: UpdateCommandPermissionsFields<'a>,
     http: &'a Client,
 }
 
@@ -46,20 +46,22 @@ impl<'a> UpdateCommandPermissions<'a> {
         guild_id: Id<GuildMarker>,
         command_id: Id<CommandMarker>,
         permissions: &'a [CommandPermission],
-    ) -> Self {
-        let fields = Ok(UpdateCommandPermissionsFields { permissions }).and_then(|fields| {
-            validate_guild_permissions(permissions.len())?;
+    ) -> Result<Self, CommandValidationError> {
+        validate_guild_permissions(permissions.len())?;
 
-            Ok(fields)
-        });
-
-        Self {
+        Ok(Self {
             application_id,
             command_id,
             guild_id,
-            fields,
+            fields: UpdateCommandPermissionsFields { permissions },
             http,
-        }
+        })
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<ListBody<CommandPermission>> {
+        self.into_future()
     }
 }
 
@@ -80,14 +82,12 @@ impl IntoFuture for UpdateCommandPermissions<'_> {
 
 impl TryIntoRequest for UpdateCommandPermissions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
-
         Request::builder(&Route::UpdateCommandPermissions {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),
             guild_id: self.guild_id.get(),
         })
-        .json(&fields)
-        .build()
+        .json(&self.fields)
+        .map(RequestBuilder::build)
     }
 }

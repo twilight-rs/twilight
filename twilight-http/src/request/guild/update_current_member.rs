@@ -21,19 +21,19 @@ struct UpdateCurrentMemberFields<'a> {
 /// Update the user's member in a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentMember<'a> {
-    fields: Result<UpdateCurrentMemberFields<'a>, ValidationError>,
+    fields: UpdateCurrentMemberFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> UpdateCurrentMember<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(UpdateCurrentMemberFields { nick: None }),
+            fields: UpdateCurrentMemberFields { nick: None },
             guild_id,
             http,
-            reason: Ok(None),
+            reason: None,
         }
     }
 
@@ -49,26 +49,30 @@ impl<'a> UpdateCurrentMember<'a> {
     /// short or too long.
     ///
     /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
-    pub fn nick(mut self, nick: Option<&'a str>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            if let Some(nick) = nick {
-                validate_nickname(nick)?;
-            }
+    pub fn nick(mut self, nick: Option<&'a str>) -> Result<Self, ValidationError> {
+        if let Some(nick) = nick {
+            validate_nickname(nick)?;
+        }
 
-            fields.nick = Some(Nullable(nick));
+        self.fields.nick = Some(Nullable(nick));
 
-            Ok(fields)
-        });
+        Ok(self)
+    }
 
-        self
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for UpdateCurrentMember<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -89,16 +93,18 @@ impl IntoFuture for UpdateCurrentMember<'_> {
 
 impl TryIntoRequest for UpdateCurrentMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateCurrentMember {
             guild_id: self.guild_id.get(),
-        })
-        .json(&fields);
+        });
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
-            request = request.headers(request::audit_header(reason)?);
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

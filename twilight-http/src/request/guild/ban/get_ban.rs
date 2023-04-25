@@ -36,6 +36,12 @@ impl<'a> GetBan<'a> {
             user_id,
         }
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Ban> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for GetBan<'_> {

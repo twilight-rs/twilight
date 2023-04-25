@@ -14,27 +14,35 @@ use twilight_model::{
 use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 #[derive(Serialize)]
-struct UpdateGuildMfaFields {
+struct UpdateGuildMfaFields<'a> {
     level: MfaLevel,
+    reason: Option<&'a str>,
 }
 
 /// Update a guild's MFA level.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMfa<'a> {
-    fields: UpdateGuildMfaFields,
+    fields: UpdateGuildMfaFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateGuildMfa<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, level: MfaLevel) -> Self {
         Self {
-            fields: UpdateGuildMfaFields { level },
+            fields: UpdateGuildMfaFields {
+                level,
+                reason: None,
+            },
             guild_id,
             http,
-            reason: Ok(None),
         }
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<MfaLevel> {
+        self.into_future()
     }
 }
 
@@ -54,10 +62,12 @@ impl IntoFuture for UpdateGuildMfa<'_> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuildMfa<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.fields.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -65,13 +75,16 @@ impl TryIntoRequest for UpdateGuildMfa<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateGuildMfa {
             guild_id: self.guild_id.get(),
-        })
-        .json(&self.fields);
+        });
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
-            request = request.headers(request::audit_header(reason)?);
+        if let Some(reason) = self.fields.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
         }
 
-        request.build()
+        request = request.json(&self.fields)?;
+
+        Ok(request.build())
     }
 }

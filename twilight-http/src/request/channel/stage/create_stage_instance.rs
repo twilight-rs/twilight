@@ -28,32 +28,32 @@ struct CreateStageInstanceFields<'a> {
 /// Requires the user to be a moderator of the stage channel.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateStageInstance<'a> {
-    fields: Result<CreateStageInstanceFields<'a>, ValidationError>,
+    fields: CreateStageInstanceFields<'a>,
     http: &'a Client,
 }
 
 impl<'a> CreateStageInstance<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: Id<ChannelMarker>, topic: &'a str) -> Self {
-        let fields = Ok(CreateStageInstanceFields {
-            channel_id,
-            privacy_level: None,
-            send_start_notification: None,
-            topic,
+    pub(crate) fn new(
+        http: &'a Client,
+        channel_id: Id<ChannelMarker>,
+        topic: &'a str,
+    ) -> Result<Self, ValidationError> {
+        validate_stage_topic(topic)?;
+
+        Ok(Self {
+            fields: CreateStageInstanceFields {
+                channel_id,
+                privacy_level: None,
+                send_start_notification: None,
+                topic,
+            },
+            http,
         })
-        .and_then(|fields| {
-            validate_stage_topic(topic)?;
-
-            Ok(fields)
-        });
-
-        Self { fields, http }
     }
 
     /// Set the [`PrivacyLevel`] of the instance.
-    pub fn privacy_level(mut self, privacy_level: PrivacyLevel) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.privacy_level = Some(privacy_level);
-        }
+    pub const fn privacy_level(mut self, privacy_level: PrivacyLevel) -> Self {
+        self.fields.privacy_level = Some(privacy_level);
 
         self
     }
@@ -64,12 +64,16 @@ impl<'a> CreateStageInstance<'a> {
     /// notification to be sent.
     ///
     /// [`Permissions::MENTION_EVERYONE`]: twilight_model::guild::Permissions::MENTION_EVERYONE
-    pub fn send_start_notification(mut self, send_start_notification: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.send_start_notification = Some(send_start_notification);
-        }
+    pub const fn send_start_notification(mut self, send_start_notification: bool) -> Self {
+        self.fields.send_start_notification = Some(send_start_notification);
 
         self
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<StageInstance> {
+        self.into_future()
     }
 }
 
@@ -90,10 +94,10 @@ impl IntoFuture for CreateStageInstance<'_> {
 
 impl TryIntoRequest for CreateStageInstance<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let mut request = Request::builder(&Route::CreateStageInstance);
 
-        Request::builder(&Route::CreateStageInstance)
-            .json(&fields)
-            .build()
+        request = request.json(&self.fields)?;
+
+        Ok(request.build())
     }
 }

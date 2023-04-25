@@ -32,24 +32,24 @@ struct UpdateWebhookFields<'a> {
 /// Update a webhook by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhook<'a> {
-    fields: Result<UpdateWebhookFields<'a>, ValidationError>,
+    fields: UpdateWebhookFields<'a>,
     http: &'a Client,
     webhook_id: Id<WebhookMarker>,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
 }
 
 /// Update a webhook by its ID.
 impl<'a> UpdateWebhook<'a> {
     pub(crate) const fn new(http: &'a Client, webhook_id: Id<WebhookMarker>) -> Self {
         Self {
-            fields: Ok(UpdateWebhookFields {
+            fields: UpdateWebhookFields {
                 avatar: None,
                 channel_id: None,
                 name: None,
-            }),
+            },
             http,
             webhook_id,
-            reason: Ok(None),
+            reason: None,
         }
     }
 
@@ -60,19 +60,15 @@ impl<'a> UpdateWebhook<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.avatar = Some(Nullable(avatar));
-        }
+    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
+        self.fields.avatar = Some(Nullable(avatar));
 
         self
     }
 
     /// Move this webhook to a new channel.
-    pub fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.channel_id = Some(channel_id);
-        }
+    pub const fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
+        self.fields.channel_id = Some(channel_id);
 
         self
     }
@@ -85,23 +81,28 @@ impl<'a> UpdateWebhook<'a> {
     /// invalid.
     ///
     /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
-    pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_webhook_username(name)?;
-            fields.name = Some(name);
+    pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
+        validate_webhook_username(name)?;
 
-            Ok(fields)
-        });
+        self.fields.name = Some(name);
 
-        self
+        Ok(self)
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Webhook> {
+        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for UpdateWebhook<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -122,18 +123,20 @@ impl IntoFuture for UpdateWebhook<'_> {
 
 impl TryIntoRequest for UpdateWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateWebhook {
             token: None,
             webhook_id: self.webhook_id.get(),
-        })
-        .json(&fields);
+        });
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
-            request = request.headers(request::audit_header(reason)?);
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }
 
@@ -184,7 +187,7 @@ mod tests {
         {
             let expected = r#"{"name":"Captain Hook"}"#;
             let actual = UpdateWebhook::new(&client, WEBHOOK_ID)
-                .name("Captain Hook")
+                .name("Captain Hook")?
                 .try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
@@ -195,7 +198,7 @@ mod tests {
             let actual = UpdateWebhook::new(&client, WEBHOOK_ID)
                 .avatar(None)
                 .channel_id(CHANNEL_ID)
-                .name("Captain Hook")
+                .name("Captain Hook")?
                 .try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());

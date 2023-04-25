@@ -69,7 +69,7 @@ pub(crate) struct CreateMessageFields<'a> {
 /// let channel_id = Id::new(123);
 /// let message = client
 ///     .create_message(channel_id)
-///     .content("Twilight is best pony")
+///     .content("Twilight is best pony")?
 ///     .tts(true)
 ///     .await?;
 /// # Ok(()) }
@@ -84,7 +84,7 @@ pub(crate) struct CreateMessageFields<'a> {
 pub struct CreateMessage<'a> {
     attachment_manager: AttachmentManager<'a>,
     channel_id: Id<ChannelMarker>,
-    fields: Result<CreateMessageFields<'a>, MessageValidationError>,
+    fields: CreateMessageFields<'a>,
     http: &'a Client,
 }
 
@@ -93,7 +93,7 @@ impl<'a> CreateMessage<'a> {
         Self {
             attachment_manager: AttachmentManager::new(),
             channel_id,
-            fields: Ok(CreateMessageFields {
+            fields: CreateMessageFields {
                 attachments: None,
                 components: None,
                 content: None,
@@ -105,7 +105,7 @@ impl<'a> CreateMessage<'a> {
                 allowed_mentions: None,
                 sticker_ids: None,
                 tts: None,
-            }),
+            },
             http,
         }
     }
@@ -114,10 +114,8 @@ impl<'a> CreateMessage<'a> {
     ///
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
-    pub fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.allowed_mentions = Some(Nullable(allowed_mentions));
-        }
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+        self.fields.allowed_mentions = Some(Nullable(allowed_mentions));
 
         self
     }
@@ -136,18 +134,17 @@ impl<'a> CreateMessage<'a> {
     ///
     /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
-    pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
-        if self.fields.is_ok() {
-            if let Err(source) = attachments.iter().try_for_each(validate_attachment) {
-                self.fields = Err(source);
-            } else {
-                self.attachment_manager = self
-                    .attachment_manager
-                    .set_files(attachments.iter().collect());
-            }
-        }
+    pub fn attachments(
+        mut self,
+        attachments: &'a [Attachment],
+    ) -> Result<Self, MessageValidationError> {
+        attachments.iter().try_for_each(validate_attachment)?;
 
-        self
+        self.attachment_manager = self
+            .attachment_manager
+            .set_files(attachments.iter().collect());
+
+        Ok(self)
     }
 
     /// Set the message's list of [`Component`]s.
@@ -159,15 +156,15 @@ impl<'a> CreateMessage<'a> {
     /// Refer to the errors section of
     /// [`twilight_validate::component::component`] for a list of errors that
     /// may be returned as a result of validating each provided component.
-    pub fn components(mut self, components: &'a [Component]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_components(components)?;
-            fields.components = Some(components);
+    pub fn components(
+        mut self,
+        components: &'a [Component],
+    ) -> Result<Self, MessageValidationError> {
+        validate_components(components)?;
 
-            Ok(fields)
-        });
+        self.fields.components = Some(components);
 
-        self
+        Ok(self)
     }
 
     /// Set the message's content.
@@ -180,15 +177,12 @@ impl<'a> CreateMessage<'a> {
     /// long.
     ///
     /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
-    pub fn content(mut self, content: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_content(content)?;
-            fields.content.replace(content);
+    pub fn content(mut self, content: &'a str) -> Result<Self, MessageValidationError> {
+        validate_content(content)?;
 
-            Ok(fields)
-        });
+        self.fields.content.replace(content);
 
-        self
+        Ok(self)
     }
 
     /// Set the message's list of embeds.
@@ -211,33 +205,33 @@ impl<'a> CreateMessage<'a> {
     /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
-    pub fn embeds(mut self, embeds: &'a [Embed]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_embeds(embeds)?;
-            fields.embeds = Some(embeds);
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
+        validate_embeds(embeds)?;
 
-            Ok(fields)
-        });
+        self.fields.embeds = Some(embeds);
 
-        self
+        Ok(self)
     }
 
     /// Whether to fail sending if the reply no longer exists.
     ///
     /// Defaults to [`true`].
-    pub fn fail_if_not_exists(mut self, fail_if_not_exists: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            if let Some(reference) = fields.message_reference.as_mut() {
-                reference.fail_if_not_exists = Some(fail_if_not_exists);
-            } else {
-                fields.message_reference = Some(MessageReference {
-                    channel_id: None,
-                    guild_id: None,
-                    message_id: None,
-                    fail_if_not_exists: Some(fail_if_not_exists),
-                });
+    pub const fn fail_if_not_exists(mut self, fail_if_not_exists: bool) -> Self {
+        let reference = if let Some(reference) = self.fields.message_reference {
+            MessageReference {
+                fail_if_not_exists: Some(fail_if_not_exists),
+                ..reference
             }
-        }
+        } else {
+            MessageReference {
+                channel_id: None,
+                guild_id: None,
+                message_id: None,
+                fail_if_not_exists: Some(fail_if_not_exists),
+            }
+        };
+
+        self.fields.message_reference = Some(reference);
 
         self
     }
@@ -249,19 +243,15 @@ impl<'a> CreateMessage<'a> {
     ///
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
     /// [`SUPPRESS_NOTIFICATIONS`]: MessageFlags::SUPPRESS_NOTIFICATIONS
-    pub fn flags(mut self, flags: MessageFlags) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.flags = Some(flags);
-        }
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
+        self.fields.flags = Some(flags);
 
         self
     }
 
     /// Attach a nonce to the message, for optimistic message sending.
-    pub fn nonce(mut self, nonce: u64) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.nonce = Some(nonce);
-        }
+    pub const fn nonce(mut self, nonce: u64) -> Self {
+        self.fields.nonce = Some(nonce);
 
         self
     }
@@ -278,38 +268,32 @@ impl<'a> CreateMessage<'a> {
     /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
     /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
     /// [`attachments`]: Self::attachments
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.payload_json = Some(payload_json);
-        }
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+        self.fields.payload_json = Some(payload_json);
 
         self
     }
 
     /// Specify the ID of another message to create a reply to.
-    pub fn reply(mut self, other: Id<MessageMarker>) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            let channel_id = self.channel_id;
+    pub const fn reply(mut self, other: Id<MessageMarker>) -> Self {
+        let channel_id = self.channel_id;
 
-            let reference = if let Some(reference) = fields.message_reference {
-                MessageReference {
-                    channel_id: Some(channel_id),
-                    message_id: Some(other),
-                    ..reference
-                }
-            } else {
-                MessageReference {
-                    channel_id: Some(channel_id),
-                    guild_id: None,
-                    message_id: Some(other),
-                    fail_if_not_exists: None,
-                }
-            };
+        let reference = if let Some(reference) = self.fields.message_reference {
+            MessageReference {
+                channel_id: Some(channel_id),
+                message_id: Some(other),
+                ..reference
+            }
+        } else {
+            MessageReference {
+                channel_id: Some(channel_id),
+                guild_id: None,
+                message_id: Some(other),
+                fail_if_not_exists: None,
+            }
+        };
 
-            fields.message_reference = Some(reference);
-
-            fields
-        });
+        self.fields.message_reference = Some(reference);
 
         self
     }
@@ -321,24 +305,28 @@ impl<'a> CreateMessage<'a> {
     /// Returns an error of type [`StickersInvalid`] if the length is invalid.
     ///
     /// [`StickersInvalid`]: twilight_validate::message::MessageValidationErrorType::StickersInvalid
-    pub fn sticker_ids(mut self, sticker_ids: &'a [Id<StickerMarker>]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_sticker_ids(sticker_ids)?;
-            fields.sticker_ids = Some(sticker_ids);
+    pub fn sticker_ids(
+        mut self,
+        sticker_ids: &'a [Id<StickerMarker>],
+    ) -> Result<Self, MessageValidationError> {
+        validate_sticker_ids(sticker_ids)?;
 
-            Ok(fields)
-        });
+        self.fields.sticker_ids = Some(sticker_ids);
+
+        Ok(self)
+    }
+
+    /// Specify true if the message is TTS.
+    pub const fn tts(mut self, tts: bool) -> Self {
+        self.fields.tts = Some(tts);
 
         self
     }
 
-    /// Specify true if the message is TTS.
-    pub fn tts(mut self, tts: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.tts = Some(tts);
-        }
-
-        self
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Message> {
+        self.into_future()
     }
 }
 
@@ -358,39 +346,38 @@ impl IntoFuture for CreateMessage<'_> {
 }
 
 impl TryIntoRequest for CreateMessage<'_> {
-    fn try_into_request(self) -> Result<Request, Error> {
-        let mut fields = self.fields.map_err(Error::validation)?;
+    fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateMessage {
             channel_id: self.channel_id.get(),
         });
 
         // Set the default allowed mentions if required.
-        if fields.allowed_mentions.is_none() {
+        if self.fields.allowed_mentions.is_none() {
             if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
+                self.fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
             }
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
         if !self.attachment_manager.is_empty() {
-            let form = if let Some(payload_json) = fields.payload_json {
+            let form = if let Some(payload_json) = self.fields.payload_json {
                 self.attachment_manager.build_form(payload_json)
             } else {
-                fields.attachments = Some(self.attachment_manager.get_partial_attachments());
+                self.fields.attachments = Some(self.attachment_manager.get_partial_attachments());
 
-                let fields = crate::json::to_vec(&fields).map_err(Error::json)?;
+                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };
 
             request = request.form(form);
-        } else if let Some(payload_json) = fields.payload_json {
+        } else if let Some(payload_json) = self.fields.payload_json {
             request = request.body(payload_json.to_vec());
         } else {
-            request = request.json(&fields);
+            request = request.json(&self.fields)?;
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

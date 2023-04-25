@@ -16,7 +16,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 pub struct DeleteChannelPermissionConfigured<'a> {
     channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
     target_id: u64,
 }
 
@@ -29,17 +29,25 @@ impl<'a> DeleteChannelPermissionConfigured<'a> {
         Self {
             channel_id,
             http,
-            reason: Ok(None),
+            reason: None,
             target_id,
         }
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for DeleteChannelPermissionConfigured<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -65,10 +73,12 @@ impl TryIntoRequest for DeleteChannelPermissionConfigured<'_> {
             target_id: self.target_id,
         });
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
-            request = request.headers(request::audit_header(reason)?);
+        if let Some(reason) = self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

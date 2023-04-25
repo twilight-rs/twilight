@@ -45,7 +45,7 @@ struct UpdateGuildStickerFields<'a> {
 /// let sticker_id = Id::new(2);
 /// let sticker = client
 ///     .update_guild_sticker(guild_id, sticker_id)
-///     .description("new description")
+///     .description("new description")?
 ///     .await?
 ///     .model()
 ///     .await?;
@@ -53,12 +53,11 @@ struct UpdateGuildStickerFields<'a> {
 /// println!("{sticker:#?}");
 /// # Ok(()) }
 /// ```
-#[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildSticker<'a> {
-    fields: Result<UpdateGuildStickerFields<'a>, StickerValidationError>,
+    fields: UpdateGuildStickerFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
     sticker_id: Id<StickerMarker>,
 }
 
@@ -70,13 +69,13 @@ impl<'a> UpdateGuildSticker<'a> {
     ) -> Self {
         Self {
             guild_id,
-            fields: Ok(UpdateGuildStickerFields {
+            fields: UpdateGuildStickerFields {
                 description: None,
                 name: None,
                 tags: None,
-            }),
+            },
             http,
-            reason: Ok(None),
+            reason: None,
             sticker_id,
         }
     }
@@ -88,15 +87,12 @@ impl<'a> UpdateGuildSticker<'a> {
     /// Returns an error of type [`DescriptionInvalid`] if the length is invalid.
     ///
     /// [`DescriptionInvalid`]: twilight_validate::sticker::StickerValidationErrorType::DescriptionInvalid
-    pub fn description(mut self, description: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_description(description)?;
-            fields.description = Some(description);
+    pub fn description(mut self, description: &'a str) -> Result<Self, StickerValidationError> {
+        validate_description(description)?;
 
-            Ok(fields)
-        });
+        self.fields.description = Some(description);
 
-        self
+        Ok(self)
     }
 
     /// Set the sticker's name.
@@ -106,15 +102,12 @@ impl<'a> UpdateGuildSticker<'a> {
     /// Returns an error of type [`NameInvalid`] if the length is invalid.
     ///
     /// [`NameInvalid`]: twilight_validate::sticker::StickerValidationErrorType::NameInvalid
-    pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_name(name)?;
-            fields.name = Some(name);
+    pub fn name(mut self, name: &'a str) -> Result<Self, StickerValidationError> {
+        validate_name(name)?;
 
-            Ok(fields)
-        });
+        self.fields.name = Some(name);
 
-        self
+        Ok(self)
     }
 
     /// Set the sticker's tags.
@@ -124,23 +117,28 @@ impl<'a> UpdateGuildSticker<'a> {
     /// Returns an error of type [`TagsInvalid`] if the length is invalid.
     ///
     /// [`TagsInvalid`]: twilight_validate::sticker::StickerValidationErrorType::TagsInvalid
-    pub fn tags(mut self, tags: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_tags(tags)?;
-            fields.tags = Some(tags);
+    pub fn tags(mut self, tags: &'a str) -> Result<Self, StickerValidationError> {
+        validate_tags(tags)?;
 
-            Ok(fields)
-        });
+        self.fields.tags = Some(tags);
 
-        self
+        Ok(self)
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Sticker> {
+        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuildSticker<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -161,18 +159,16 @@ impl IntoFuture for UpdateGuildSticker<'_> {
 
 impl TryIntoRequest for UpdateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
-
         let mut request = Request::builder(&Route::UpdateGuildSticker {
             guild_id: self.guild_id.get(),
             sticker_id: self.sticker_id.get(),
         })
-        .json(&fields);
+        .json(&self.fields)?;
 
-        if let Ok(Some(reason)) = self.reason {
+        if let Some(reason) = self.reason {
             request = request.headers(request::audit_header(reason)?);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

@@ -15,40 +15,32 @@ use twilight_model::{
 };
 use twilight_validate::channel::{thread_member_limit, ChannelValidationError};
 
-struct GetThreadMembersFields {
-    after: Option<Id<UserMarker>>,
-    limit: Option<u32>,
-    with_member: Option<bool>,
-}
-
 /// Returns the [`ThreadMember`]s of the thread.
 ///
 /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
 #[must_use = "requests must be configured and executed"]
 pub struct GetThreadMembers<'a> {
+    after: Option<Id<UserMarker>>,
     channel_id: Id<ChannelMarker>,
-    fields: Result<GetThreadMembersFields, ChannelValidationError>,
     http: &'a Client,
+    limit: Option<u32>,
+    with_member: Option<bool>,
 }
 
 impl<'a> GetThreadMembers<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
+            after: None,
             channel_id,
-            fields: Ok(GetThreadMembersFields {
-                after: None,
-                limit: None,
-                with_member: None,
-            }),
             http,
+            limit: None,
+            with_member: None,
         }
     }
 
     /// Fetch the thread members after the user ID.
-    pub fn after(mut self, after: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(after);
-        }
+    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
+        self.after = Some(after);
 
         self
     }
@@ -63,24 +55,24 @@ impl<'a> GetThreadMembers<'a> {
     /// limit is not between 1 and 100.
     ///
     /// [`ChannelValidationErrorType::ThreadMemberLimitInvalid`]: twilight_validate::channel::ChannelValidationErrorType::ThreadMemberLimitInvalid
-    pub fn limit(mut self, limit: u32) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            thread_member_limit(limit)?;
-            fields.limit = Some(limit);
+    pub fn limit(mut self, limit: u32) -> Result<Self, ChannelValidationError> {
+        thread_member_limit(limit)?;
+        self.limit = Some(limit);
 
-            Ok(fields)
-        });
+        Ok(self)
+    }
+
+    /// Include the associated guild members for each thread member.
+    pub const fn with_member(mut self, with_member: bool) -> Self {
+        self.with_member = Some(with_member);
 
         self
     }
 
-    /// Include the associated guild members for each thread member.
-    pub fn with_member(mut self, with_member: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.with_member = Some(with_member);
-        }
-
-        self
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<ListBody<ThreadMember>> {
+        self.into_future()
     }
 }
 
@@ -101,13 +93,11 @@ impl IntoFuture for GetThreadMembers<'_> {
 
 impl TryIntoRequest for GetThreadMembers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
-
         Ok(Request::from_route(&Route::GetThreadMembers {
-            after: fields.after.map(Id::get),
+            after: self.after.map(Id::get),
             channel_id: self.channel_id.get(),
-            limit: fields.limit,
-            with_member: fields.with_member,
+            limit: self.limit,
+            with_member: self.with_member,
         }))
     }
 }

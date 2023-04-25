@@ -1,3 +1,5 @@
+use twilight_validate::request::ValidationError;
+
 /// Attach a reason for a request.
 ///
 /// Reasons are associated with the audit log entries that are automatically
@@ -10,8 +12,7 @@ pub trait AuditLogReason<'a>: private::Sealed {
     /// Returns an error of type [`AuditReason`] if the length is invalid.
     ///
     /// [`AuditReason`]: twilight_validate::request::ValidationErrorType::AuditReason
-    #[must_use]
-    fn reason(self, reason: &'a str) -> Self
+    fn reason(self, reason: &'a str) -> Result<Self, ValidationError>
     where
         Self: Sized;
 }

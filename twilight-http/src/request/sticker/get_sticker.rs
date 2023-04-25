@@ -37,6 +37,12 @@ impl<'a> GetSticker<'a> {
     pub(crate) const fn new(http: &'a Client, sticker_id: Id<StickerMarker>) -> Self {
         Self { http, sticker_id }
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Sticker> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for GetSticker<'_> {

@@ -26,6 +26,12 @@ impl<'a> GetGuildWidgetSettings<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self { guild_id, http }
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<GuildWidgetSettings> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for GetGuildWidgetSettings<'_> {

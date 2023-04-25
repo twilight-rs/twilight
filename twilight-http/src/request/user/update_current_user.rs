@@ -26,20 +26,20 @@ struct UpdateCurrentUserFields<'a> {
 /// randomized.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUser<'a> {
-    fields: Result<UpdateCurrentUserFields<'a>, ValidationError>,
+    fields: UpdateCurrentUserFields<'a>,
     http: &'a Client,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> UpdateCurrentUser<'a> {
     pub(crate) const fn new(http: &'a Client) -> Self {
         Self {
-            fields: Ok(UpdateCurrentUserFields {
+            fields: UpdateCurrentUserFields {
                 avatar: None,
                 username: None,
-            }),
+            },
             http,
-            reason: Ok(None),
+            reason: None,
         }
     }
 
@@ -50,10 +50,8 @@ impl<'a> UpdateCurrentUser<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.avatar = Some(Nullable(avatar));
-        }
+    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
+        self.fields.avatar = Some(Nullable(avatar));
 
         self
     }
@@ -68,23 +66,28 @@ impl<'a> UpdateCurrentUser<'a> {
     /// short or too long.
     ///
     /// [`Username`]: twilight_validate::request::ValidationErrorType::Username
-    pub fn username(mut self, username: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_username(username)?;
-            fields.username.replace(username);
+    pub fn username(mut self, username: &'a str) -> Result<Self, ValidationError> {
+        validate_username(username)?;
 
-            Ok(fields)
-        });
+        self.fields.username.replace(username);
 
-        self
+        Ok(self)
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<User> {
+        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for UpdateCurrentUser<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -105,15 +108,15 @@ impl IntoFuture for UpdateCurrentUser<'_> {
 
 impl TryIntoRequest for UpdateCurrentUser<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let mut request = Request::builder(&Route::UpdateCurrentUser);
 
-        let mut request = Request::builder(&Route::UpdateCurrentUser).json(&fields);
+        request = request.json(&self.fields)?;
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
+        if let Some(reason) = &self.reason {
             request = request.headers(request::audit_header(reason)?);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }
 
@@ -150,7 +153,7 @@ mod tests {
         {
             let expected = r#"{"username":"other side"}"#;
             let actual = UpdateCurrentUser::new(&client)
-                .username("other side")
+                .username("other side")?
                 .try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
@@ -158,7 +161,7 @@ mod tests {
 
         {
             let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI","username":"other side"}"#;
-            let actual = UpdateCurrentUser::new(&client).avatar(Some("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI")).username("other side").try_into_request()?;
+            let actual = UpdateCurrentUser::new(&client).avatar(Some("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI")).username("other side")?.try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
         }

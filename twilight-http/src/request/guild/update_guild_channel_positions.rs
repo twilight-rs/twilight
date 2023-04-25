@@ -59,6 +59,12 @@ impl<'a> UpdateGuildChannelPositions<'a> {
             positions: channel_positions,
         }
     }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
+    }
 }
 
 impl IntoFuture for UpdateGuildChannelPositions<'_> {
@@ -78,10 +84,12 @@ impl IntoFuture for UpdateGuildChannelPositions<'_> {
 
 impl TryIntoRequest for UpdateGuildChannelPositions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateGuildChannels {
+        let mut request = Request::builder(&Route::UpdateGuildChannels {
             guild_id: self.guild_id.get(),
-        })
-        .json(&self.positions)
-        .build()
+        });
+
+        request = request.json(&self.positions)?;
+
+        Ok(request.build())
     }
 }

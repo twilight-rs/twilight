@@ -18,7 +18,7 @@ pub struct DeletePin<'a> {
     channel_id: Id<ChannelMarker>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
-    reason: Result<Option<&'a str>, ValidationError>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> DeletePin<'a> {
@@ -31,16 +31,24 @@ impl<'a> DeletePin<'a> {
             channel_id,
             http,
             message_id,
-            reason: Ok(None),
+            reason: None,
         }
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for DeletePin<'a> {
-    fn reason(mut self, reason: &'a str) -> Self {
-        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
 
-        self
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 
@@ -66,10 +74,12 @@ impl TryIntoRequest for DeletePin<'_> {
             message_id: self.message_id.get(),
         });
 
-        if let Some(reason) = self.reason.map_err(Error::validation)? {
-            request = request.headers(request::audit_header(reason)?);
+        if let Some(reason) = &self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

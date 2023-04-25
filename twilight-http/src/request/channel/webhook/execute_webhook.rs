@@ -71,7 +71,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 ///
 /// client
 ///     .execute_webhook(id, "webhook token")
-///     .content("Pinkie...")
+///     .content("Pinkie...")?
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -83,7 +83,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhook<'a> {
     attachment_manager: AttachmentManager<'a>,
-    fields: Result<ExecuteWebhookFields<'a>, MessageValidationError>,
+    fields: ExecuteWebhookFields<'a>,
     http: &'a Client,
     thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
@@ -99,7 +99,7 @@ impl<'a> ExecuteWebhook<'a> {
     ) -> Self {
         Self {
             attachment_manager: AttachmentManager::new(),
-            fields: Ok(ExecuteWebhookFields {
+            fields: ExecuteWebhookFields {
                 attachments: None,
                 avatar_url: None,
                 components: None,
@@ -111,7 +111,7 @@ impl<'a> ExecuteWebhook<'a> {
                 tts: None,
                 username: None,
                 allowed_mentions: None,
-            }),
+            },
             http,
             thread_id: None,
             token,
@@ -124,10 +124,8 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
-    pub fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.allowed_mentions = Some(Nullable(allowed_mentions));
-        }
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+        self.fields.allowed_mentions = Some(Nullable(allowed_mentions));
 
         self
     }
@@ -146,25 +144,22 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
-    pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
-        if self.fields.is_ok() {
-            if let Err(source) = attachments.iter().try_for_each(validate_attachment) {
-                self.fields = Err(source);
-            } else {
-                self.attachment_manager = self
-                    .attachment_manager
-                    .set_files(attachments.iter().collect());
-            }
-        }
+    pub fn attachments(
+        mut self,
+        attachments: &'a [Attachment],
+    ) -> Result<Self, MessageValidationError> {
+        attachments.iter().try_for_each(validate_attachment)?;
 
-        self
+        self.attachment_manager = self
+            .attachment_manager
+            .set_files(attachments.iter().collect());
+
+        Ok(self)
     }
 
     /// The URL of the avatar of the webhook.
-    pub fn avatar_url(mut self, avatar_url: &'a str) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.avatar_url = Some(avatar_url);
-        }
+    pub const fn avatar_url(mut self, avatar_url: &'a str) -> Self {
+        self.fields.avatar_url = Some(avatar_url);
 
         self
     }
@@ -180,15 +175,15 @@ impl<'a> ExecuteWebhook<'a> {
     /// Refer to the errors section of
     /// [`twilight_validate::component::component`] for a list of errors that
     /// may be returned as a result of validating each provided component.
-    pub fn components(mut self, components: &'a [Component]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_components(components)?;
-            fields.components = Some(components);
+    pub fn components(
+        mut self,
+        components: &'a [Component],
+    ) -> Result<Self, MessageValidationError> {
+        validate_components(components)?;
 
-            Ok(fields)
-        });
+        self.fields.components = Some(components);
 
-        self
+        Ok(self)
     }
 
     /// Set the message's content.
@@ -201,15 +196,12 @@ impl<'a> ExecuteWebhook<'a> {
     /// long.
     ///
     /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
-    pub fn content(mut self, content: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_content(content)?;
-            fields.content = Some(content);
+    pub fn content(mut self, content: &'a str) -> Result<Self, MessageValidationError> {
+        validate_content(content)?;
 
-            Ok(fields)
-        });
+        self.fields.content = Some(content);
 
-        self
+        Ok(self)
     }
 
     /// Set the message's list of embeds.
@@ -232,15 +224,12 @@ impl<'a> ExecuteWebhook<'a> {
     /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
     /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
-    pub fn embeds(mut self, embeds: &'a [Embed]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_embeds(embeds)?;
-            fields.embeds = Some(embeds);
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
+        validate_embeds(embeds)?;
 
-            Ok(fields)
-        });
+        self.fields.embeds = Some(embeds);
 
-        self
+        Ok(self)
     }
 
     /// Set the message's flags.
@@ -248,10 +237,8 @@ impl<'a> ExecuteWebhook<'a> {
     /// The only supported flag is [`SUPPRESS_EMBEDS`].
     ///
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
-    pub fn flags(mut self, flags: MessageFlags) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.flags = Some(flags);
-        }
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
+        self.fields.flags = Some(flags);
 
         self
     }
@@ -273,8 +260,8 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// let message = client
     ///     .execute_webhook(Id::new(1), "token here")
-    ///     .content("some content")
-    ///     .embeds(&[EmbedBuilder::new().title("title").validate()?.build()])
+    ///     .content("some content")?
+    ///     .embeds(&[EmbedBuilder::new().title("title").validate()?.build()])?
     ///     .wait()
     ///     .await?
     ///     .model()
@@ -296,7 +283,7 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// let message = client
     ///     .execute_webhook(Id::new(1), "token here")
-    ///     .content("some content")
+    ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()
     ///     .await?
@@ -310,10 +297,8 @@ impl<'a> ExecuteWebhook<'a> {
     /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
     /// [`attachments`]: Self::attachments
     /// [`payload_json`]: Self::payload_json
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.payload_json = Some(payload_json);
-        }
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+        self.fields.payload_json = Some(payload_json);
 
         self
     }
@@ -326,21 +311,15 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Set the name of the created thread when used in a forum channel.
-    pub fn thread_name(mut self, thread_name: &'a str) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.thread_name = Some(thread_name);
-
-            fields
-        });
+    pub const fn thread_name(mut self, thread_name: &'a str) -> Self {
+        self.fields.thread_name = Some(thread_name);
 
         self
     }
 
     /// Specify true if the message is TTS.
-    pub fn tts(mut self, tts: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.tts = Some(tts);
-        }
+    pub const fn tts(mut self, tts: bool) -> Self {
+        self.fields.tts = Some(tts);
 
         self
     }
@@ -353,20 +332,17 @@ impl<'a> ExecuteWebhook<'a> {
     /// invalid.
     ///
     /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
-    pub fn username(mut self, username: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_webhook_username(username).map_err(|source| {
-                MessageValidationError::from_validation_error(
-                    MessageValidationErrorType::WebhookUsername,
-                    source,
-                )
-            })?;
-            fields.username = Some(username);
+    pub fn username(mut self, username: &'a str) -> Result<Self, MessageValidationError> {
+        validate_webhook_username(username).map_err(|source| {
+            MessageValidationError::from_validation_error(
+                MessageValidationErrorType::WebhookUsername,
+                source,
+            )
+        })?;
 
-            Ok(fields)
-        });
+        self.fields.username = Some(username);
 
-        self
+        Ok(self)
     }
 
     /// Wait for the message to send before sending a response. See
@@ -379,6 +355,12 @@ impl<'a> ExecuteWebhook<'a> {
         self.wait = true;
 
         ExecuteWebhookAndWait::new(self.http, self)
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
     }
 }
 
@@ -398,8 +380,7 @@ impl IntoFuture for ExecuteWebhook<'_> {
 }
 
 impl TryIntoRequest for ExecuteWebhook<'_> {
-    fn try_into_request(self) -> Result<Request, Error> {
-        let mut fields = self.fields.map_err(Error::validation)?;
+    fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: self.thread_id.map(Id::get),
             token: self.token,
@@ -412,32 +393,32 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
         request = request.use_authorization_token(false);
 
         // Set the default allowed mentions if required.
-        if fields.allowed_mentions.is_none() {
+        if self.fields.allowed_mentions.is_none() {
             if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
+                self.fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
             }
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
         if !self.attachment_manager.is_empty() {
-            let form = if let Some(payload_json) = fields.payload_json {
+            let form = if let Some(payload_json) = self.fields.payload_json {
                 self.attachment_manager.build_form(payload_json)
             } else {
-                fields.attachments = Some(self.attachment_manager.get_partial_attachments());
+                self.fields.attachments = Some(self.attachment_manager.get_partial_attachments());
 
-                let fields = crate::json::to_vec(&fields).map_err(Error::json)?;
+                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };
 
             request = request.form(form);
-        } else if let Some(payload_json) = fields.payload_json {
+        } else if let Some(payload_json) = self.fields.payload_json {
             request = request.body(payload_json.to_vec());
         } else {
-            request = request.json(&fields);
+            request = request.json(&self.fields)?;
         }
 
-        request.build()
+        Ok(request.build())
     }
 }

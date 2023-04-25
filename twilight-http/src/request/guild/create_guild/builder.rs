@@ -72,9 +72,9 @@ pub enum RoleFieldsErrorType {
 }
 
 /// A builder for role fields.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into a role"]
-pub struct RoleFieldsBuilder(Result<RoleFields, RoleFieldsError>);
+pub struct RoleFieldsBuilder(RoleFields);
 
 impl RoleFieldsBuilder {
     /// The maximum accepted color value.
@@ -88,7 +88,7 @@ impl RoleFieldsBuilder {
 
     /// Create a new default role field builder.
     pub const fn new(name: String) -> Self {
-        Self(Ok(RoleFields {
+        Self(RoleFields {
             color: None,
             hoist: None,
             id: Self::ROLE_ID,
@@ -96,17 +96,12 @@ impl RoleFieldsBuilder {
             name,
             permissions: None,
             position: None,
-        }))
+        })
     }
 
     /// Build the role fields.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`RoleFieldsErrorType::ColorNotRgb`] error type if the color
-    /// is not valid RGB.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn build(self) -> Result<RoleFields, RoleFieldsError> {
+    pub fn build(self) -> RoleFields {
         self.0
     }
 
@@ -116,27 +111,26 @@ impl RoleFieldsBuilder {
     /// and doesn't count towards the final computed color in the user list.
     /// Refer to [`Self::COLOR_MAXIMUM`] for the maximum
     /// acceptable value.
-    pub fn color(mut self, color: u32) -> Self {
-        self.0 = self.0.and_then(|mut fields| {
-            if color > Self::COLOR_MAXIMUM {
-                return Err(RoleFieldsError {
-                    kind: RoleFieldsErrorType::ColorNotRgb { color },
-                });
-            }
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`RoleFieldsErrorType::ColorNotRgb`] error type if the color
+    /// is not valid RGB.
+    pub fn color(mut self, color: u32) -> Result<Self, RoleFieldsError> {
+        if color > Self::COLOR_MAXIMUM {
+            return Err(RoleFieldsError {
+                kind: RoleFieldsErrorType::ColorNotRgb { color },
+            });
+        }
 
-            fields.color.replace(color);
+        self.0.color.replace(color);
 
-            Ok(fields)
-        });
-
-        self
+        Ok(self)
     }
 
     /// Show the role above other roles in the user list.
-    pub fn hoist(mut self) -> Self {
-        if let Ok(fields) = self.0.as_mut() {
-            fields.hoist = Some(true);
-        }
+    pub const fn hoist(mut self) -> Self {
+        self.0.hoist = Some(true);
 
         self
     }
@@ -147,45 +141,35 @@ impl RoleFieldsBuilder {
     ///
     /// Returns a [`RoleFieldsErrorType::IdInvalid`] error type if the ID is set
     /// to 1.
-    pub fn id(mut self, id: Id<RoleMarker>) -> Self {
-        self.0 = self.0.and_then(|mut fields| {
-            if id == Self::ROLE_ID {
-                return Err(RoleFieldsError {
-                    kind: RoleFieldsErrorType::IdInvalid,
-                });
-            }
+    pub fn id(mut self, id: Id<RoleMarker>) -> Result<Self, RoleFieldsError> {
+        if id == Self::ROLE_ID {
+            return Err(RoleFieldsError {
+                kind: RoleFieldsErrorType::IdInvalid,
+            });
+        }
 
-            fields.id = id;
+        self.0.id = id;
 
-            Ok(fields)
-        });
-
-        self
+        Ok(self)
     }
 
     /// Allow the role to be @mentioned.
-    pub fn mentionable(mut self) -> Self {
-        if let Ok(fields) = self.0.as_mut() {
-            fields.mentionable = Some(true);
-        }
+    pub const fn mentionable(mut self) -> Self {
+        self.0.mentionable = Some(true);
 
         self
     }
 
     /// Set the permissions of the role.
-    pub fn permissions(mut self, permissions: Permissions) -> Self {
-        if let Ok(fields) = self.0.as_mut() {
-            fields.permissions = Some(permissions);
-        }
+    pub const fn permissions(mut self, permissions: Permissions) -> Self {
+        self.0.permissions = Some(permissions);
 
         self
     }
 
     /// Set the position of the role.
-    pub fn position(mut self, position: i64) -> Self {
-        if let Ok(fields) = self.0.as_mut() {
-            fields.position = Some(position);
-        }
+    pub const fn position(mut self, position: i64) -> Self {
+        self.0.position = Some(position);
 
         self
     }
@@ -275,9 +259,9 @@ pub enum TextFieldsErrorType {
 }
 
 /// A builder for text fields.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into a text channel"]
-pub struct TextFieldsBuilder(Result<TextFields, TextFieldsError>);
+pub struct TextFieldsBuilder(TextFields);
 
 impl TextFieldsBuilder {
     /// The minimum number of UTF-16 code points that can be in a channel name.
@@ -309,39 +293,6 @@ impl TextFieldsBuilder {
     pub const MAX_TOPIC_LENGTH: usize = 1024;
 
     /// Create a new text fields builder.
-    pub fn new(name: String) -> Self {
-        let fields = Ok(TextFields {
-            id: Id::new(1),
-            kind: ChannelType::GuildText,
-            name: String::new(),
-            nsfw: None,
-            permission_overwrites: None,
-            parent_id: None,
-            rate_limit_per_user: None,
-            topic: None,
-        })
-        .and_then(|mut fields| {
-            if name.len() < Self::MIN_NAME_LENGTH {
-                return Err(TextFieldsError {
-                    kind: TextFieldsErrorType::NameTooShort { name },
-                });
-            }
-
-            if name.len() > Self::MAX_NAME_LENGTH {
-                return Err(TextFieldsError {
-                    kind: TextFieldsErrorType::NameTooLong { name },
-                });
-            }
-
-            fields.name = name;
-
-            Ok(fields)
-        });
-
-        Self(fields)
-    }
-
-    /// Build the text fields.
     ///
     /// # Errors
     ///
@@ -350,25 +301,47 @@ impl TextFieldsBuilder {
     ///
     /// Returns a [`TextFieldsErrorType::NameTooLong`] error type if the name is
     /// too long.
+    pub fn new(name: String) -> Result<Self, TextFieldsError> {
+        if name.len() < Self::MIN_NAME_LENGTH {
+            return Err(TextFieldsError {
+                kind: TextFieldsErrorType::NameTooShort { name },
+            });
+        }
+
+        if name.len() > Self::MAX_NAME_LENGTH {
+            return Err(TextFieldsError {
+                kind: TextFieldsErrorType::NameTooLong { name },
+            });
+        }
+
+        Ok(Self(TextFields {
+            id: Id::new(1),
+            kind: ChannelType::GuildText,
+            name,
+            nsfw: None,
+            permission_overwrites: None,
+            parent_id: None,
+            rate_limit_per_user: None,
+            topic: None,
+        }))
+    }
+
+    /// Build the text fields.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn build(self) -> Result<TextFields, TextFieldsError> {
+    pub fn build(self) -> TextFields {
         self.0
     }
 
     /// Make the channel NSFW.
-    pub fn nsfw(mut self) -> Self {
-        if let Ok(fields) = self.0.as_mut() {
-            fields.nsfw = Some(true);
-        }
+    pub const fn nsfw(mut self) -> Self {
+        self.0.nsfw = Some(true);
 
         self
     }
 
     /// Set the channel's permission overwrites.
     pub fn permission_overwrites(mut self, overwrites: Vec<PermissionOverwrite>) -> Self {
-        if let Ok(fields) = self.0.as_mut() {
-            fields.permission_overwrites.replace(overwrites);
-        }
+        self.0.permission_overwrites.replace(overwrites);
 
         self
     }
@@ -379,20 +352,16 @@ impl TextFieldsBuilder {
     ///
     /// Returns a [`TextFieldsErrorType::RateLimitInvalid`] error type if the
     /// rate limit is invalid.
-    pub fn rate_limit_per_user(mut self, limit: u16) -> Self {
-        self.0 = self.0.and_then(|mut fields| {
-            if limit > Self::MAX_RATE_LIMIT {
-                return Err(TextFieldsError {
-                    kind: TextFieldsErrorType::RateLimitInvalid { limit },
-                });
-            }
+    pub fn rate_limit_per_user(mut self, limit: u16) -> Result<Self, TextFieldsError> {
+        if limit > Self::MAX_RATE_LIMIT {
+            return Err(TextFieldsError {
+                kind: TextFieldsErrorType::RateLimitInvalid { limit },
+            });
+        }
 
-            fields.rate_limit_per_user.replace(limit);
+        self.0.rate_limit_per_user.replace(limit);
 
-            Ok(fields)
-        });
-
-        self
+        Ok(self)
     }
 
     /// Set the channel's topic.
@@ -401,20 +370,16 @@ impl TextFieldsBuilder {
     ///
     /// Returns a [`TextFieldsErrorType::TopicTooLong`] error type if the topic
     /// is too long.
-    pub fn topic(mut self, topic: String) -> Self {
-        self.0 = self.0.and_then(|mut fields| {
-            if topic.len() > Self::MAX_TOPIC_LENGTH {
-                return Err(TextFieldsError {
-                    kind: TextFieldsErrorType::TopicTooLong { topic },
-                });
-            }
+    pub fn topic(mut self, topic: String) -> Result<Self, TextFieldsError> {
+        if topic.len() > Self::MAX_TOPIC_LENGTH {
+            return Err(TextFieldsError {
+                kind: TextFieldsErrorType::TopicTooLong { topic },
+            });
+        }
 
-            fields.topic.replace(topic);
+        self.0.topic.replace(topic);
 
-            Ok(fields)
-        });
-
-        self
+        Ok(self)
     }
 }
 
@@ -481,9 +446,9 @@ pub enum VoiceFieldsErrorType {
 }
 
 /// A builder for voice fields.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into a voice channel"]
-pub struct VoiceFieldsBuilder(Result<VoiceFields, VoiceFieldsError>);
+pub struct VoiceFieldsBuilder(VoiceFields);
 
 impl VoiceFieldsBuilder {
     /// The minimum number of UTF-16 code points that can be in a channel name.
@@ -501,38 +466,6 @@ impl VoiceFieldsBuilder {
     pub const MAX_NAME_LENGTH: usize = 100;
 
     /// Create a new voice fields builder.
-    pub fn new(name: String) -> Self {
-        let fields = Ok(VoiceFields {
-            bitrate: None,
-            id: Id::new(1),
-            kind: ChannelType::GuildVoice,
-            name: String::new(),
-            permission_overwrites: None,
-            parent_id: None,
-            user_limit: None,
-        })
-        .and_then(|mut fields| {
-            if name.len() < Self::MIN_NAME_LENGTH {
-                return Err(VoiceFieldsError {
-                    kind: VoiceFieldsErrorType::NameTooShort { name },
-                });
-            }
-
-            if name.len() > Self::MAX_NAME_LENGTH {
-                return Err(VoiceFieldsError {
-                    kind: VoiceFieldsErrorType::NameTooLong { name },
-                });
-            }
-
-            fields.name = name;
-
-            Ok(fields)
-        });
-
-        Self(fields)
-    }
-
-    /// Build the voice fields.
     ///
     /// # Errors
     ///
@@ -541,34 +474,53 @@ impl VoiceFieldsBuilder {
     ///
     /// Returns a [`VoiceFieldsErrorType::NameTooLong`] error type if the name
     /// is too long.
+    pub fn new(name: String) -> Result<Self, VoiceFieldsError> {
+        if name.len() < Self::MIN_NAME_LENGTH {
+            return Err(VoiceFieldsError {
+                kind: VoiceFieldsErrorType::NameTooShort { name },
+            });
+        }
+
+        if name.len() > Self::MAX_NAME_LENGTH {
+            return Err(VoiceFieldsError {
+                kind: VoiceFieldsErrorType::NameTooLong { name },
+            });
+        }
+
+        Ok(Self(VoiceFields {
+            bitrate: None,
+            id: Id::new(1),
+            kind: ChannelType::GuildVoice,
+            name,
+            permission_overwrites: None,
+            parent_id: None,
+            user_limit: None,
+        }))
+    }
+
+    /// Build the voice fields.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn build(self) -> Result<VoiceFields, VoiceFieldsError> {
+    pub fn build(self) -> VoiceFields {
         self.0
     }
 
     /// Set the voice channel's bitrate.
-    pub fn bitrate(mut self, bitrate: u32) -> Self {
-        if let Ok(fields) = self.0.as_mut() {
-            fields.bitrate = Some(bitrate);
-        }
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
+        self.0.bitrate = Some(bitrate);
 
         self
     }
 
     /// Set the channel's permission overwrites.
     pub fn permission_overwrites(mut self, overwrites: Vec<PermissionOverwrite>) -> Self {
-        if let Ok(fields) = self.0.as_mut() {
-            fields.permission_overwrites.replace(overwrites);
-        }
+        self.0.permission_overwrites.replace(overwrites);
 
         self
     }
 
     /// Set the voice channel's user limit.
-    pub fn user_limit(mut self, limit: u16) -> Self {
-        if let Ok(fields) = self.0.as_mut() {
-            fields.user_limit = Some(limit);
-        }
+    pub const fn user_limit(mut self, limit: u16) -> Self {
+        self.0.user_limit = Some(limit);
 
         self
     }
@@ -642,10 +594,10 @@ pub enum CategoryFieldsErrorType {
 }
 
 /// A builder for a category channel, and its children.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into a category channel"]
 pub struct CategoryFieldsBuilder {
-    fields: Result<CategoryFields, CategoryFieldsError>,
+    fields: CategoryFields,
     channels: Vec<GuildChannelFields>,
 }
 
@@ -665,38 +617,6 @@ impl CategoryFieldsBuilder {
     pub const MAX_NAME_LENGTH: usize = 100;
 
     /// Create a new category fields builder.
-    pub fn new(name: String) -> Self {
-        let fields = Ok(CategoryFields {
-            id: Id::new(1),
-            name: String::new(),
-            kind: ChannelType::GuildCategory,
-            permission_overwrites: None,
-        })
-        .and_then(|mut fields| {
-            if name.len() < Self::MIN_NAME_LENGTH {
-                return Err(CategoryFieldsError {
-                    kind: CategoryFieldsErrorType::NameTooShort { name },
-                });
-            }
-
-            if name.len() > Self::MAX_NAME_LENGTH {
-                return Err(CategoryFieldsError {
-                    kind: CategoryFieldsErrorType::NameTooLong { name },
-                });
-            }
-
-            fields.name = name;
-
-            Ok(fields)
-        });
-
-        Self {
-            fields,
-            channels: Vec::new(),
-        }
-    }
-
-    /// Build the category fields.
     ///
     /// # Errors
     ///
@@ -705,12 +625,31 @@ impl CategoryFieldsBuilder {
     ///
     /// Returns a [`CategoryFieldsErrorType::NameTooLong`] error type if the
     /// name is too long.
-    pub(super) fn build(
-        mut self,
-        id: Id<ChannelMarker>,
-    ) -> Result<Vec<GuildChannelFields>, CategoryFieldsError> {
-        let fields = self.fields?;
+    pub fn new(name: String) -> Result<Self, CategoryFieldsError> {
+        if name.len() < Self::MIN_NAME_LENGTH {
+            return Err(CategoryFieldsError {
+                kind: CategoryFieldsErrorType::NameTooShort { name },
+            });
+        }
 
+        if name.len() > Self::MAX_NAME_LENGTH {
+            return Err(CategoryFieldsError {
+                kind: CategoryFieldsErrorType::NameTooLong { name },
+            });
+        }
+
+        Ok(Self {
+            fields: CategoryFields {
+                id: Id::new(1),
+                name,
+                kind: ChannelType::GuildCategory,
+                permission_overwrites: None,
+            },
+            channels: Vec::new(),
+        })
+    }
+
+    pub(super) fn build(mut self, id: Id<ChannelMarker>) -> Vec<GuildChannelFields> {
         for channel in &mut self.channels {
             match channel {
                 GuildChannelFields::Text(t) => t.parent_id.replace(id),
@@ -721,10 +660,10 @@ impl CategoryFieldsBuilder {
 
         self.channels.insert(
             0,
-            GuildChannelFields::Category(CategoryFields { id, ..fields }),
+            GuildChannelFields::Category(CategoryFields { id, ..self.fields }),
         );
 
-        Ok(self.channels)
+        self.channels
     }
 
     /// Add a child text channel.
@@ -743,63 +682,48 @@ impl CategoryFieldsBuilder {
 }
 
 /// A builder for a list of channels.
-#[derive(Debug)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 #[must_use = "must be built into a list of channels"]
-pub struct GuildChannelFieldsBuilder(Result<Vec<GuildChannelFields>, CategoryFieldsError>);
+pub struct GuildChannelFieldsBuilder(Vec<GuildChannelFields>);
 
 impl GuildChannelFieldsBuilder {
     /// Create a new channels builder.
     pub const fn new() -> Self {
-        Self(Ok(Vec::new()))
+        Self(Vec::new())
     }
 
     /// Build the list of channels.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`CategoryFieldsErrorType::NameTooShort`] error type if the
-    /// name of a category is too short.
-    ///
-    /// Returns a [`CategoryFieldsErrorType::NameTooLong`] error type if the
-    /// name of a category is too long.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn build(self) -> Result<Vec<GuildChannelFields>, CategoryFieldsError> {
+    pub fn build(self) -> Vec<GuildChannelFields> {
         self.0
     }
 
     /// Add a text channel to the builder.
     pub fn add_text(mut self, channel: TextFields) -> Self {
-        if let Ok(list) = self.0.as_mut() {
-            list.push(GuildChannelFields::Text(channel));
-        }
+        self.0.push(GuildChannelFields::Text(channel));
 
         self
     }
 
     /// Add a voice channel to the builder.
     pub fn add_voice(mut self, channel: VoiceFields) -> Self {
-        if let Ok(list) = self.0.as_mut() {
-            list.push(GuildChannelFields::Voice(channel));
-        }
+        self.0.push(GuildChannelFields::Voice(channel));
 
         self
     }
 
     /// Add a category channel builder, and all its children to the builder.
     pub fn add_category_builder(mut self, channel: CategoryFieldsBuilder) -> Self {
-        self.0 = self.0.and_then(|mut list| {
-            let last_id = list
-                .iter()
-                .rev()
-                .find(|c| matches!(c, GuildChannelFields::Category(_)))
-                .map_or(Id::new(1), GuildChannelFields::id);
+        let last_id = self
+            .0
+            .iter()
+            .rev()
+            .find(|c| matches!(c, GuildChannelFields::Category(_)))
+            .map_or(Id::new(1), GuildChannelFields::id);
 
-            let mut channels = channel.build(Id::new(last_id.get() + 1))?;
+        let mut channels = channel.build(Id::new(last_id.get() + 1));
 
-            list.append(&mut channels);
-
-            Ok(list)
-        });
+        self.0.append(&mut channels);
 
         self
     }
@@ -822,11 +746,26 @@ mod tests {
         id::Id,
     };
 
-    assert_impl_all!(RoleFieldsBuilder: Debug, Send, Sync);
-    assert_impl_all!(TextFieldsBuilder: Debug, Send, Sync);
-    assert_impl_all!(VoiceFieldsBuilder: Debug, Send, Sync);
-    assert_impl_all!(CategoryFieldsBuilder: Debug, Send, Sync);
-    assert_impl_all!(GuildChannelFieldsBuilder: Debug, Send, Sync);
+    assert_impl_all!(RoleFieldsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(TextFieldsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(VoiceFieldsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(
+        CategoryFieldsBuilder: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_impl_all!(
+        GuildChannelFieldsBuilder: Clone,
+        Debug,
+        Default,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
 
     fn perms() -> Permissions {
         Permissions::CONNECT | Permissions::SPEAK | Permissions::SEND_TTS_MESSAGES
@@ -843,11 +782,11 @@ mod tests {
 
     fn voice() -> VoiceFields {
         VoiceFieldsBuilder::new("voicename".to_owned())
+            .unwrap()
             .bitrate(96_000)
             .permission_overwrites(vec![overwrite()])
             .user_limit(40)
             .build()
-            .unwrap()
     }
 
     #[test]
@@ -855,7 +794,6 @@ mod tests {
         assert!(matches!(
             RoleFieldsBuilder::new("role".to_owned())
                 .color(123_123_123)
-                .build()
                 .unwrap_err()
                 .kind(),
             RoleFieldsErrorType::ColorNotRgb { color: 123_123_123 },
@@ -863,16 +801,16 @@ mod tests {
 
         let fields = RoleFieldsBuilder::new("rolename".to_owned())
             .color(0x12_34_56)
+            .unwrap()
             .hoist()
             .id(Id::new(2))
+            .unwrap()
             .mentionable()
             .permissions(Permissions::empty())
-            .position(1)
-            .build()
-            .unwrap();
+            .position(1);
 
         assert_eq!(
-            fields,
+            fields.build(),
             RoleFields {
                 color: Some(0x12_34_56),
                 hoist: Some(true),
@@ -888,7 +826,7 @@ mod tests {
     #[test]
     fn voice_fields() {
         assert!(matches!(
-            VoiceFieldsBuilder::new(String::new()).build().unwrap_err().kind(),
+            VoiceFieldsBuilder::new(String::new()).unwrap_err().kind(),
             VoiceFieldsErrorType::NameTooShort { name }
             if name.is_empty()
         ));
@@ -914,18 +852,20 @@ mod tests {
 
     fn text() -> TextFields {
         TextFieldsBuilder::new("textname".to_owned())
+            .unwrap()
             .nsfw()
             .permission_overwrites(vec![overwrite()])
             .rate_limit_per_user(4_000)
-            .topic("a topic".to_owned())
-            .build()
             .unwrap()
+            .topic("a topic".to_owned())
+            .unwrap()
+            .build()
     }
 
     #[test]
     fn text_fields() {
         assert!(matches!(
-            TextFieldsBuilder::new(String::new()).build().unwrap_err().kind(),
+            TextFieldsBuilder::new(String::new()).unwrap_err().kind(),
             TextFieldsErrorType::NameTooShort { name }
             if name.is_empty()
         ));
@@ -952,6 +892,7 @@ mod tests {
 
     fn category() -> CategoryFieldsBuilder {
         CategoryFieldsBuilder::new("category".to_owned())
+            .unwrap()
             .add_text(text())
             .add_voice(voice())
     }
@@ -959,7 +900,7 @@ mod tests {
     #[test]
     fn category_fields() {
         assert!(matches!(
-            CategoryFieldsBuilder::new(String::new()).build(Id::new(4)).unwrap_err().kind(),
+            CategoryFieldsBuilder::new(String::new()).unwrap_err().kind(),
             CategoryFieldsErrorType::NameTooShort { name }
             if name.is_empty()
         ));
@@ -968,7 +909,7 @@ mod tests {
         let channels = GuildChannelFieldsBuilder::new().add_category_builder(fields);
 
         assert_eq!(
-            channels.build().unwrap(),
+            channels.build(),
             vec![
                 GuildChannelFields::Category(CategoryFields {
                     id: Id::new(2),
@@ -1024,7 +965,7 @@ mod tests {
             .add_voice(voice());
 
         assert_eq!(
-            channels.build().unwrap(),
+            channels.build(),
             vec![
                 GuildChannelFields::Text(TextFields {
                     id: Id::new(1),

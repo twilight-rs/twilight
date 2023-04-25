@@ -2,7 +2,7 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -17,13 +17,6 @@ use twilight_model::{
 };
 use twilight_validate::command::{name as validate_name, CommandValidationError};
 
-struct CreateGuildMessageCommandFields<'a> {
-    default_member_permissions: Option<Permissions>,
-    name: &'a str,
-    name_localizations: Option<&'a HashMap<String, String>>,
-    nsfw: Option<bool>,
-}
-
 /// Create a message command in a guild.
 ///
 /// Creating a guild command with the same name as an already-existing guild
@@ -34,9 +27,12 @@ struct CreateGuildMessageCommandFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildMessageCommand<'a> {
     application_id: Id<ApplicationMarker>,
-    fields: Result<CreateGuildMessageCommandFields<'a>, CommandValidationError>,
+    default_member_permissions: Option<Permissions>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
+    name: &'a str,
+    name_localizations: Option<&'a HashMap<String, String>>,
+    nsfw: Option<bool>,
 }
 
 impl<'a> CreateGuildMessageCommand<'a> {
@@ -45,34 +41,25 @@ impl<'a> CreateGuildMessageCommand<'a> {
         application_id: Id<ApplicationMarker>,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-    ) -> Self {
-        let fields = Ok(CreateGuildMessageCommandFields {
+    ) -> Result<Self, CommandValidationError> {
+        validate_name(name)?;
+
+        Ok(Self {
+            application_id,
             default_member_permissions: None,
+            guild_id,
+            http,
             name,
             name_localizations: None,
             nsfw: None,
         })
-        .and_then(|fields| {
-            validate_name(name)?;
-
-            Ok(fields)
-        });
-
-        Self {
-            application_id,
-            fields,
-            guild_id,
-            http,
-        }
     }
 
     /// Default permissions required for a member to run the command.
     ///
     /// Defaults to [`None`].
-    pub fn default_member_permissions(mut self, default: Permissions) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.default_member_permissions = Some(default);
-        }
+    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
+        self.default_member_permissions = Some(default);
 
         self
     }
@@ -86,29 +73,32 @@ impl<'a> CreateGuildMessageCommand<'a> {
     /// Returns an error of type [`NameLengthInvalid`] if the name is invalid.
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
-    pub fn name_localizations(mut self, localizations: &'a HashMap<String, String>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            for name in localizations.values() {
-                validate_name(name)?;
-            }
+    pub fn name_localizations(
+        mut self,
+        localizations: &'a HashMap<String, String>,
+    ) -> Result<Self, CommandValidationError> {
+        for name in localizations.values() {
+            validate_name(name)?;
+        }
 
-            fields.name_localizations = Some(localizations);
+        self.name_localizations = Some(localizations);
 
-            Ok(fields)
-        });
-
-        self
+        Ok(self)
     }
 
     /// Set whether the command is age-restricted.
     ///
     /// Defaults to not being specified, which uses Discord's default.
-    pub fn nsfw(mut self, nsfw: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.nsfw = Some(nsfw);
-        }
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
+        self.nsfw = Some(nsfw);
 
         self
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<Command> {
+        self.into_future()
     }
 }
 
@@ -129,24 +119,22 @@ impl IntoFuture for CreateGuildMessageCommand<'_> {
 
 impl TryIntoRequest for CreateGuildMessageCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
-
         Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
-            default_member_permissions: fields.default_member_permissions,
+            default_member_permissions: self.default_member_permissions,
             dm_permission: None,
             description: None,
             description_localizations: None,
             kind: CommandType::Message,
-            name: fields.name,
-            name_localizations: fields.name_localizations,
-            nsfw: fields.nsfw,
+            name: self.name,
+            name_localizations: self.name_localizations,
+            nsfw: self.nsfw,
             options: None,
         })
-        .build()
+        .map(RequestBuilder::build)
     }
 }

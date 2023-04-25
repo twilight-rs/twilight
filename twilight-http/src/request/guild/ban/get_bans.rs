@@ -41,7 +41,7 @@ struct GetBansFields {
 /// let guild_id = Id::new(1);
 /// let user_id = Id::new(2);
 ///
-/// let response = client.bans(guild_id).after(user_id).limit(25).await?;
+/// let response = client.bans(guild_id).after(user_id).limit(25)?.await?;
 /// let bans = response.models().await?;
 ///
 /// for ban in bans {
@@ -51,7 +51,7 @@ struct GetBansFields {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetBans<'a> {
-    fields: Result<GetBansFields, ValidationError>,
+    fields: GetBansFields,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
@@ -59,11 +59,11 @@ pub struct GetBans<'a> {
 impl<'a> GetBans<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(GetBansFields {
+            fields: GetBansFields {
                 after: None,
                 before: None,
                 limit: None,
-            }),
+            },
             guild_id,
             http,
         }
@@ -75,10 +75,8 @@ impl<'a> GetBans<'a> {
     /// is respected.
     ///
     /// [`before`]: Self::before
-    pub fn after(mut self, user_id: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(user_id);
-        }
+    pub const fn after(mut self, user_id: Id<UserMarker>) -> Self {
+        self.fields.after = Some(user_id);
 
         self
     }
@@ -90,10 +88,8 @@ impl<'a> GetBans<'a> {
     ///
     /// [`after`]: Self::after
     /// [`before`]: Self::before
-    pub fn before(mut self, user_id: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.before = Some(user_id);
-        }
+    pub const fn before(mut self, user_id: Id<UserMarker>) -> Self {
+        self.fields.before = Some(user_id);
 
         self
     }
@@ -109,15 +105,21 @@ impl<'a> GetBans<'a> {
     /// Returns an error of type [`GetGuildBans`] if the limit is invalid.
     ///
     /// [`GetGuildBans`]: twilight_validate::request::ValidationErrorType::GetGuildBans
-    pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_get_guild_bans_limit(limit)?;
-            fields.limit.replace(limit);
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
+        if let Err(source) = validate_get_guild_bans_limit(limit) {
+            return Err(source);
+        }
 
-            Ok(fields)
-        });
+        self.fields.limit = Some(limit);
 
-        self
+        Ok(self)
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<ListBody<Ban>> {
+        self.into_future()
     }
 }
 
@@ -138,12 +140,10 @@ impl IntoFuture for GetBans<'_> {
 
 impl TryIntoRequest for GetBans<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
-
         Ok(Request::from_route(&Route::GetBansWithParameters {
-            after: fields.after.map(Id::get),
-            before: fields.before.map(Id::get),
-            limit: fields.limit,
+            after: self.fields.after.map(Id::get),
+            before: self.fields.before.map(Id::get),
+            limit: self.fields.limit,
             guild_id: self.guild_id.get(),
         }))
     }
