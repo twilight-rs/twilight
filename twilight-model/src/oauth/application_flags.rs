@@ -5,6 +5,7 @@ use serde::{
 };
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct ApplicationFlags: u64 {
         /// Intent required for bots in 100 guilds or more to receive
         /// [`PresenceUpdate`] events.
@@ -96,9 +97,7 @@ mod tests {
         LowerHex,
         Not,
         Octal,
-        Ord,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sub,
