@@ -4,6 +4,18 @@ use crate::id::{
 };
 use serde::{Deserialize, Serialize};
 
+/// An emoji for a guild onboarding prompt.
+/// This is used instead [`Emoji`] as both it's id and name can be `null` in prompt options.
+///
+/// [`Emoji`]: crate::guild::Emoji
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct OnboardingPromptEmoji {
+    name: Option<String>,
+    id: Option<Id<EmojiMarker>>,
+    #[serde(default)]
+    animated: bool,
+}
+
 /// A prompt option for a guild onboarding screen.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OnboardingPromptOption {
@@ -11,10 +23,8 @@ pub struct OnboardingPromptOption {
     pub channel_ids: Vec<Id<ChannelMarker>>,
     /// The description of the option.
     pub description: Option<String>,
-    /// The emoji id if the emoji is custom.
-    pub emoji_id: Option<Id<EmojiMarker>>,
-    /// The emoji name if custom, the unicode character if standard, or [`None`] if no emoji is set
-    pub emoji_name: Option<String>,
+    /// The emoji of the option.
+    pub emoji: OnboardingPromptEmoji,
     /// The id of the option
     pub id: Id<OnboardingPromptOptionMarker>,
     /// The roles assigned when this option is selected
@@ -25,7 +35,7 @@ pub struct OnboardingPromptOption {
 
 #[cfg(test)]
 mod tests {
-    use super::OnboardingPromptOption;
+    use super::{OnboardingPromptEmoji, OnboardingPromptOption};
     use crate::id::{
         marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
         Id,
@@ -41,8 +51,11 @@ mod tests {
                 Id::<ChannelMarker>::new(3),
             ]),
             description: Some(String::from("an option description")),
-            emoji_id: Some(Id::<EmojiMarker>::new(7)),
-            emoji_name: Some(String::from("test")),
+            emoji: OnboardingPromptEmoji {
+                animated: false,
+                id: Some(Id::<EmojiMarker>::new(7)),
+                name: Some(String::from("test")),
+            },
             id: Id::<OnboardingPromptOptionMarker>::new(123_456_789),
             role_ids: Vec::from([
                 Id::<RoleMarker>::new(4),
@@ -57,7 +70,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "OnboardingPromptOption",
-                    len: 7,
+                    len: 6,
                 },
                 Token::Str("channel_ids"),
                 Token::Seq { len: Some(3) },
@@ -71,13 +84,21 @@ mod tests {
                 Token::Str("description"),
                 Token::Some,
                 Token::Str("an option description"),
-                Token::Str("emoji_id"),
+                Token::Str("emoji"),
+                Token::Struct {
+                    name: "OnboardingPromptEmoji",
+                    len: 3,
+                },
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("test"),
+                Token::Str("id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("7"),
-                Token::Str("emoji_name"),
-                Token::Some,
-                Token::Str("test"),
+                Token::Str("animated"),
+                Token::Bool(false),
+                Token::StructEnd,
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("123456789"),
