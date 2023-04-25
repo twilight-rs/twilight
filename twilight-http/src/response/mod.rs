@@ -471,7 +471,7 @@ impl Future for BytesFuture {
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// let emoji = client.emoji(guild_id, emoji_id).await?.model().await?;
 ///
-/// println!("emoji name: {}", emoji.name);
+/// println!("emoji name: {:?}", emoji.name);
 /// # Ok(()) }
 /// ```
 ///
