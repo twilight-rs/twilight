@@ -49,12 +49,6 @@ impl<'a> DeleteResponse<'a> {
             token,
         }
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for DeleteResponse<'_> {
@@ -74,12 +68,12 @@ impl IntoFuture for DeleteResponse<'_> {
 
 impl TryIntoRequest for DeleteResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::builder(&Route::DeleteInteractionOriginal {
+        Request::builder(&Route::DeleteInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,
         })
         .use_authorization_token(false)
-        .build())
+        .build()
     }
 }
 

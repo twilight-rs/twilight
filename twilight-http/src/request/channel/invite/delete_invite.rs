@@ -19,7 +19,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 pub struct DeleteInvite<'a> {
     code: &'a str,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> DeleteInvite<'a> {
@@ -27,24 +27,16 @@ impl<'a> DeleteInvite<'a> {
         Self {
             code,
             http,
-            reason: None,
+            reason: Ok(None),
         }
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for DeleteInvite<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -67,12 +59,10 @@ impl TryIntoRequest for DeleteInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteInvite { code: self.code });
 
-        if let Some(reason) = self.reason {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }

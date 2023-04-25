@@ -54,12 +54,6 @@ impl<'a> DeleteFollowup<'a> {
             application_id,
         }
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for DeleteFollowup<'_> {
@@ -79,14 +73,14 @@ impl IntoFuture for DeleteFollowup<'_> {
 
 impl TryIntoRequest for DeleteFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::builder(&Route::DeleteWebhookMessage {
+        Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
         })
         .use_authorization_token(false)
-        .build())
+        .build()
     }
 }
 

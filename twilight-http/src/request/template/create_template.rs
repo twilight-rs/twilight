@@ -35,27 +35,28 @@ struct CreateTemplateFields<'a> {
 /// [`TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
-    fields: CreateTemplateFields<'a>,
+    fields: Result<CreateTemplateFields<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> CreateTemplate<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        name: &'a str,
-    ) -> Result<Self, ValidationError> {
-        validate_template_name(name)?;
+    pub(crate) fn new(http: &'a Client, guild_id: Id<GuildMarker>, name: &'a str) -> Self {
+        let fields = Ok(CreateTemplateFields {
+            name,
+            description: None,
+        })
+        .and_then(|fields| {
+            validate_template_name(name)?;
 
-        Ok(Self {
-            fields: CreateTemplateFields {
-                name,
-                description: None,
-            },
+            Ok(fields)
+        });
+
+        Self {
+            fields,
             guild_id,
             http,
-        })
+        }
     }
 
     /// Set the template's description.
@@ -68,18 +69,16 @@ impl<'a> CreateTemplate<'a> {
     /// too short or too long.
     ///
     /// [`TemplateDescription`]: twilight_validate::request::ValidationErrorType::TemplateDescription
-    pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
-        validate_template_description(description)?;
+    pub fn description(mut self, description: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_template_description(description)?;
 
-        self.fields.description.replace(description);
+            fields.description.replace(description);
 
-        Ok(self)
-    }
+            Ok(fields)
+        });
 
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<Template> {
-        self.into_future()
+        self
     }
 }
 
@@ -100,12 +99,12 @@ impl IntoFuture for CreateTemplate<'_> {
 
 impl TryIntoRequest for CreateTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::CreateTemplate {
+        let fields = self.fields.map_err(Error::validation)?;
+
+        Request::builder(&Route::CreateTemplate {
             guild_id: self.guild_id.get(),
-        });
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        })
+        .json(&fields)
+        .build()
     }
 }

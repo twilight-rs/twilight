@@ -52,7 +52,7 @@ struct CreateInviteFields {
 /// let client = Client::new("my token".to_owned());
 ///
 /// let channel_id = Id::new(123);
-/// let invite = client.create_invite(channel_id).max_uses(3)?.await?;
+/// let invite = client.create_invite(channel_id).max_uses(3).await?;
 /// # Ok(()) }
 /// ```
 ///
@@ -60,16 +60,16 @@ struct CreateInviteFields {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateInvite<'a> {
     channel_id: Id<ChannelMarker>,
-    fields: CreateInviteFields,
+    fields: Result<CreateInviteFields, ValidationError>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateInvite<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
-            fields: CreateInviteFields {
+            fields: Ok(CreateInviteFields {
                 max_age: None,
                 max_uses: None,
                 temporary: None,
@@ -77,9 +77,9 @@ impl<'a> CreateInvite<'a> {
                 target_user_id: None,
                 target_type: None,
                 unique: None,
-            },
+            }),
             http,
-            reason: None,
+            reason: Ok(None),
         }
     }
 
@@ -103,7 +103,7 @@ impl<'a> CreateInvite<'a> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
     /// let invite = client
     ///     .create_invite(Id::new(1))
-    ///     .max_age(60 * 60)?
+    ///     .max_age(60 * 60)
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -117,15 +117,15 @@ impl<'a> CreateInvite<'a> {
     /// Returns an error of type [`InviteMaxAge`] if the age is invalid.
     ///
     /// [`InviteMaxAge`]: twilight_validate::request::ValidationErrorType::InviteMaxAge
-    pub const fn max_age(mut self, max_age: u32) -> Result<Self, ValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_invite_max_age(max_age) {
-            return Err(source);
-        }
+    pub fn max_age(mut self, max_age: u32) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_invite_max_age(max_age)?;
+            fields.max_age = Some(max_age);
 
-        self.fields.max_age = Some(max_age);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Set the maximum uses for an invite, or 0 for infinite.
@@ -146,7 +146,7 @@ impl<'a> CreateInvite<'a> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
     /// let invite = client
     ///     .create_invite(Id::new(1))
-    ///     .max_uses(5)?
+    ///     .max_uses(5)
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -160,15 +160,15 @@ impl<'a> CreateInvite<'a> {
     /// Returns an error of type [`InviteMaxUses`] if the uses is invalid.
     ///
     /// [`InviteMaxUses`]: twilight_validate::request::ValidationErrorType::InviteMaxUses
-    pub const fn max_uses(mut self, max_uses: u16) -> Result<Self, ValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_invite_max_uses(max_uses) {
-            return Err(source);
-        }
+    pub fn max_uses(mut self, max_uses: u16) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_invite_max_uses(max_uses)?;
+            fields.max_uses = Some(max_uses);
 
-        self.fields.max_uses = Some(max_uses);
+            Ok(fields)
+        });
 
-        Ok(self)
+        self
     }
 
     /// Set the target application ID for this invite.
@@ -176,25 +176,28 @@ impl<'a> CreateInvite<'a> {
     /// This only works if [`target_type`] is set to [`TargetType::EmbeddedApplication`].
     ///
     /// [`target_type`]: Self::target_type
-    pub const fn target_application_id(
-        mut self,
-        target_application_id: Id<ApplicationMarker>,
-    ) -> Self {
-        self.fields.target_application_id = Some(target_application_id);
+    pub fn target_application_id(mut self, target_application_id: Id<ApplicationMarker>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.target_application_id = Some(target_application_id);
+        }
 
         self
     }
 
     /// Set the target user id for this invite.
-    pub const fn target_user_id(mut self, target_user_id: Id<UserMarker>) -> Self {
-        self.fields.target_user_id = Some(target_user_id);
+    pub fn target_user_id(mut self, target_user_id: Id<UserMarker>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.target_user_id = Some(target_user_id);
+        }
 
         self
     }
 
     /// Set the target type for this invite.
-    pub const fn target_type(mut self, target_type: TargetType) -> Self {
-        self.fields.target_type = Some(target_type);
+    pub fn target_type(mut self, target_type: TargetType) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.target_type = Some(target_type);
+        }
 
         self
     }
@@ -202,8 +205,10 @@ impl<'a> CreateInvite<'a> {
     /// Specify true if the invite should grant temporary membership.
     ///
     /// Defaults to false.
-    pub const fn temporary(mut self, temporary: bool) -> Self {
-        self.fields.temporary = Some(temporary);
+    pub fn temporary(mut self, temporary: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.temporary = Some(temporary);
+        }
 
         self
     }
@@ -214,26 +219,20 @@ impl<'a> CreateInvite<'a> {
     /// unique one time use invites). See [Discord Docs/Create Channel Invite].
     ///
     /// [Discord Docs/Create Channel Invite]: https://discord.com/developers/docs/resources/channel#create-channel-invite
-    pub const fn unique(mut self, unique: bool) -> Self {
-        self.fields.unique = Some(unique);
+    pub fn unique(mut self, unique: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.unique = Some(unique);
+        }
 
         self
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<Invite> {
-        self.into_future()
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateInvite<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -254,19 +253,17 @@ impl IntoFuture for CreateInvite<'_> {
 
 impl TryIntoRequest for CreateInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateInvite {
             channel_id: self.channel_id.get(),
-        });
+        })
+        .json(&fields);
 
-        request = request.json(&self.fields)?;
-
-        if let Some(reason) = self.reason {
-            let header = request::audit_header(reason)?;
-
-            request = request.headers(header);
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }
 
@@ -280,11 +277,12 @@ mod tests {
     #[test]
     fn max_age() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder = CreateInvite::new(&client, Id::new(1)).max_age(0)?;
-        assert_eq!(Some(0), builder.fields.max_age);
-        builder = builder.max_age(604_800)?;
-        assert_eq!(Some(604_800), builder.fields.max_age);
-        assert!(builder.max_age(604_801).is_err());
+        let mut builder = CreateInvite::new(&client, Id::new(1)).max_age(0);
+        assert_eq!(Some(0), builder.fields.as_ref().unwrap().max_age);
+        builder = builder.max_age(604_800);
+        assert_eq!(Some(604_800), builder.fields.as_ref().unwrap().max_age);
+        builder = builder.max_age(604_801);
+        assert!(builder.fields.is_err());
 
         Ok(())
     }
@@ -292,11 +290,12 @@ mod tests {
     #[test]
     fn max_uses() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder = CreateInvite::new(&client, Id::new(1)).max_uses(0)?;
-        assert_eq!(Some(0), builder.fields.max_uses);
-        builder = builder.max_uses(100)?;
-        assert_eq!(Some(100), builder.fields.max_uses);
-        assert!(builder.max_uses(101).is_err());
+        let mut builder = CreateInvite::new(&client, Id::new(1)).max_uses(0);
+        assert_eq!(Some(0), builder.fields.as_ref().unwrap().max_uses);
+        builder = builder.max_uses(100);
+        assert_eq!(Some(100), builder.fields.as_ref().unwrap().max_uses);
+        builder = builder.max_uses(101);
+        assert!(builder.fields.is_err());
 
         Ok(())
     }

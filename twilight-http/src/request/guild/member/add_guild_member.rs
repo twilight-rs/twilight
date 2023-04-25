@@ -31,7 +31,7 @@ struct AddGuildMemberFields<'a> {
 
 #[must_use = "requests must be configured and executed"]
 pub struct AddGuildMember<'a> {
-    fields: AddGuildMemberFields<'a>,
+    fields: Result<AddGuildMemberFields<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     user_id: Id<UserMarker>,
@@ -51,13 +51,13 @@ impl<'a> AddGuildMember<'a> {
         access_token: &'a str,
     ) -> Self {
         Self {
-            fields: AddGuildMemberFields {
+            fields: Ok(AddGuildMemberFields {
                 access_token,
                 deaf: None,
                 mute: None,
                 nick: None,
                 roles: None,
-            },
+            }),
             guild_id,
             http,
             user_id,
@@ -66,15 +66,19 @@ impl<'a> AddGuildMember<'a> {
 
     /// Whether the new member will be unable to hear audio when connected to a
     /// voice channel.
-    pub const fn deaf(mut self, deaf: bool) -> Self {
-        self.fields.deaf = Some(deaf);
+    pub fn deaf(mut self, deaf: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.deaf = Some(deaf);
+        }
 
         self
     }
 
     /// Whether the new member will be unable to speak in voice channels.
-    pub const fn mute(mut self, mute: bool) -> Self {
-        self.fields.mute = Some(mute);
+    pub fn mute(mut self, mute: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.mute = Some(mute);
+        }
 
         self
     }
@@ -90,25 +94,25 @@ impl<'a> AddGuildMember<'a> {
     /// short or too long.
     ///
     /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
-    pub fn nick(mut self, nick: &'a str) -> Result<Self, ValidationError> {
-        validate_nickname(nick)?;
+    pub fn nick(mut self, nick: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_nickname(nick)?;
 
-        self.fields.nick.replace(nick);
+            fields.nick.replace(nick);
 
-        Ok(self)
-    }
-
-    /// List of roles to assign the new member.
-    pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        self.fields.roles = Some(roles);
+            Ok(fields)
+        });
 
         self
     }
 
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<PartialMember> {
-        self.into_future()
+    /// List of roles to assign the new member.
+    pub fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.roles = Some(roles);
+        }
+
+        self
     }
 }
 
@@ -129,13 +133,13 @@ impl IntoFuture for AddGuildMember<'_> {
 
 impl TryIntoRequest for AddGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::AddGuildMember {
+        let fields = self.fields.map_err(Error::validation)?;
+
+        Request::builder(&Route::AddGuildMember {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
-        });
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        })
+        .json(&fields)
+        .build()
     }
 }

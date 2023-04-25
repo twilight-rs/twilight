@@ -48,7 +48,7 @@ pub trait Queue: Debug + Send + Sync {
     ///
     /// The returned future must resolve only when the shard can initiate the
     /// session.
-    fn request<'a>(&'a self, shard_id: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>>;
+    fn request<'a>(&'a self, shard_id: [u32; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>>;
 }
 
 /// A local, in-process implementation of a [`Queue`] which manages the
@@ -111,7 +111,7 @@ impl Queue for LocalQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    fn request(&'_ self, [id, total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+    fn request(&'_ self, [id, total]: [u32; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
         Box::pin(async move {
             let (tx, rx) = oneshot::channel();
 
@@ -135,7 +135,7 @@ impl Queue for LocalQueue {
 pub struct NoOpQueue;
 
 impl Queue for NoOpQueue {
-    fn request(&'_ self, [_id, _total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+    fn request(&'_ self, [_id, _total]: [u32; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
         Box::pin(future::ready(()))
     }
 }

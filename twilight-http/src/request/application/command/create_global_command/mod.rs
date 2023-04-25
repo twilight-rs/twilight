@@ -9,7 +9,6 @@ pub use self::{
 
 use crate::Client;
 use twilight_model::id::{marker::ApplicationMarker, Id};
-use twilight_validate::command::CommandValidationError;
 
 /// Create a new global command.
 #[must_use = "the command must have a type"]
@@ -52,7 +51,7 @@ impl<'a> CreateGlobalCommand<'a> {
         self,
         name: &'a str,
         description: &'a str,
-    ) -> Result<CreateGlobalChatInputCommand<'a>, CommandValidationError> {
+    ) -> CreateGlobalChatInputCommand<'a> {
         CreateGlobalChatInputCommand::new(self.http, self.application_id, name, description)
     }
 
@@ -69,10 +68,7 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub fn message(
-        self,
-        name: &'a str,
-    ) -> Result<CreateGlobalMessageCommand<'a>, CommandValidationError> {
+    pub fn message(self, name: &'a str) -> CreateGlobalMessageCommand<'a> {
         CreateGlobalMessageCommand::new(self.http, self.application_id, name)
     }
 
@@ -89,10 +85,7 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub fn user(
-        self,
-        name: &'a str,
-    ) -> Result<CreateGlobalUserCommand<'a>, CommandValidationError> {
+    pub fn user(self, name: &'a str) -> CreateGlobalUserCommand<'a> {
         CreateGlobalUserCommand::new(self.http, self.application_id, name)
     }
 }

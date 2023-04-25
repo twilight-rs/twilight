@@ -371,7 +371,7 @@ impl<T: DeserializeOwned> Response<ListBody<T>> {
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// let response = client.create_message(channel_id)
-//      .content("test")?
+//      .content("test")
 ///     .await?;
 /// let mut headers = response.headers();
 ///

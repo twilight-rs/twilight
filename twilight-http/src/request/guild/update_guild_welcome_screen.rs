@@ -67,12 +67,6 @@ impl<'a> UpdateGuildWelcomeScreen<'a> {
 
         self
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<WelcomeScreen> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for UpdateGuildWelcomeScreen<'_> {
@@ -92,12 +86,10 @@ impl IntoFuture for UpdateGuildWelcomeScreen<'_> {
 
 impl TryIntoRequest for UpdateGuildWelcomeScreen<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateGuildWelcomeScreen {
+        Request::builder(&Route::UpdateGuildWelcomeScreen {
             guild_id: self.guild_id.get(),
-        });
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        })
+        .json(&self.fields)
+        .build()
     }
 }

@@ -24,7 +24,7 @@ use twilight_model::channel::Message;
 ///
 /// let message = client
 ///     .execute_webhook(id, "webhook token")
-///     .content("Pinkie...")?
+///     .content("Pinkie...")
 ///     .wait()
 ///     .await?
 ///     .model()
@@ -42,12 +42,6 @@ pub struct ExecuteWebhookAndWait<'a> {
 impl<'a> ExecuteWebhookAndWait<'a> {
     pub(crate) const fn new(http: &'a Client, inner: ExecuteWebhook<'a>) -> Self {
         Self { http, inner }
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<Message> {
-        self.into_future()
     }
 }
 

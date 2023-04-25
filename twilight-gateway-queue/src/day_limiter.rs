@@ -52,8 +52,8 @@ pub(crate) struct DayLimiterInner {
     pub http: Arc<Client>,
     pub last_check: Instant,
     pub next_reset: Duration,
-    pub total: u64,
-    pub current: u64,
+    pub total: u16,
+    pub current: u16,
 }
 
 impl DayLimiter {
