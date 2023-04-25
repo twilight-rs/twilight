@@ -47,8 +47,8 @@ impl CachedEmoji {
     }
 
     /// Name of the Emoji.
-    pub const fn name(&self) -> &Option<String> {
-        &self.name
+    pub fn name(&self) -> Option<&str> {
+        self.name.as_deref()
     }
 
     /// Whether the emoji must be wrapped in colons.
@@ -57,8 +57,8 @@ impl CachedEmoji {
     }
 
     /// List of roles allowed to use this emoji.
-    pub const fn roles(&self) -> &Option<Vec<Id<RoleMarker>>> {
-        &self.roles
+    pub fn roles(&self) -> Option<&[Id<RoleMarker>]> {
+        self.roles.as_deref()
     }
 
     /// ID of the user who created the emoji.
