@@ -79,7 +79,7 @@ impl CachedMessageInteraction {
 /// Represents a cached [`Message`].
 ///
 /// [`Message`]: twilight_model::channel::Message
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMessage {
     activity: Option<MessageActivity>,
     application: Option<MessageApplication>,
@@ -399,6 +399,7 @@ mod tests {
     assert_impl_all!(
         CachedMessage: Clone,
         Debug,
+        Eq,
         From<Message>,
         PartialEq,
         Send,
