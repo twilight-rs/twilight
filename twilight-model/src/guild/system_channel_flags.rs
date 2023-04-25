@@ -5,7 +5,6 @@ use serde::{
 };
 
 bitflags! {
-    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct SystemChannelFlags: u64 {
         /// Suppress member join notifications.
         const SUPPRESS_JOIN_NOTIFICATIONS = 1;
@@ -70,7 +69,9 @@ mod tests {
         LowerHex,
         Not,
         Octal,
+        Ord,
         PartialEq,
+        PartialOrd,
         Send,
         Serialize,
         Sub,

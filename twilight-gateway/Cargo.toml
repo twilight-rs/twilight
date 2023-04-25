@@ -14,7 +14,7 @@ rust-version.workspace = true
 version = "0.15.1"
 
 [dependencies]
-bitflags = { default-features = false, version = "2" }
+bitflags = { default-features = false, version = "1" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 rand = { default-features = false, features = ["std", "std_rng"], version = "0.8" }
 serde = { default-features = false, features = ["derive"], version = "1" }

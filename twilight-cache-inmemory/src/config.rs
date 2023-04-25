@@ -7,7 +7,6 @@ bitflags! {
     /// For example, specifying [`CHANNEL`] but not [`MESSAGE`] will cache
     /// created channels, channel updates, and channel deletes, but not their
     /// messages.
-    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct ResourceType: u64 {
         /// Information relating to channels.
         const CHANNEL = 1;
