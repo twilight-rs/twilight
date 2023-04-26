@@ -1,8 +1,12 @@
-use crate::id::{
-    marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
-    Id,
+use crate::{
+    guild::Emoji,
+    id::{
+        marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
+        Id,
+    },
 };
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 /// An emoji for a guild onboarding prompt.
 /// This is used instead [`Emoji`] as both it's id and name can be `null` in prompt options.
@@ -14,6 +18,53 @@ pub struct OnboardingPromptEmoji {
     id: Option<Id<EmojiMarker>>,
     #[serde(default)]
     animated: bool,
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum FromOnboardingPromptEmojiError {
+    MissingId,
+    MissingName,
+}
+
+impl Display for FromOnboardingPromptEmojiError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::MissingId => f.write_str("missing emoji id"),
+            Self::MissingName => f.write_str("missing emoji name"),
+        }
+    }
+}
+
+impl TryFrom<OnboardingPromptEmoji> for Emoji {
+    type Error = FromOnboardingPromptEmojiError;
+
+    fn try_from(value: OnboardingPromptEmoji) -> Result<Self, Self::Error> {
+        let OnboardingPromptEmoji { name, id, animated } = value;
+
+        let name = name.ok_or(FromOnboardingPromptEmojiError::MissingName)?;
+        let id = id.ok_or(FromOnboardingPromptEmojiError::MissingId)?;
+
+        Ok(Self {
+            animated,
+            available: bool::default(),
+            id,
+            name,
+            managed: bool::default(),
+            require_colons: bool::default(),
+            roles: Vec::default(),
+            user: Option::default(),
+        })
+    }
+}
+
+impl From<Emoji> for OnboardingPromptEmoji {
+    fn from(value: Emoji) -> Self {
+        Self {
+            animated: value.animated,
+            id: Some(value.id),
+            name: Some(value.name),
+        }
+    }
 }
 
 /// A prompt option for a guild onboarding screen.
@@ -36,9 +87,12 @@ pub struct OnboardingPromptOption {
 #[cfg(test)]
 mod tests {
     use super::{OnboardingPromptEmoji, OnboardingPromptOption};
-    use crate::id::{
-        marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
-        Id,
+    use crate::{
+        guild::Emoji,
+        id::{
+            marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
+            Id,
+        },
     };
     use serde_test::Token;
 
@@ -116,5 +170,40 @@ mod tests {
                 Token::StructEnd,
             ],
         )
+    }
+
+    #[test]
+    fn conversion() {
+        let emoji = OnboardingPromptEmoji {
+            animated: false,
+            id: Some(Id::<EmojiMarker>::new(7)),
+            name: Some(String::from("test")),
+        };
+
+        let emoji: Result<Emoji, _> = emoji.try_into();
+
+        assert!(emoji.is_ok());
+        let emoji = emoji.unwrap();
+
+        assert!(!emoji.animated);
+        assert_eq!(emoji.id, Id::<EmojiMarker>::new(7));
+        assert_eq!(emoji.name, String::from("test"));
+
+        let emoji = Emoji {
+            animated: false,
+            available: false,
+            id: Id::<EmojiMarker>::new(7),
+            managed: false,
+            name: String::from("test"),
+            require_colons: false,
+            roles: Vec::new(),
+            user: None,
+        };
+
+        let emoji: OnboardingPromptEmoji = emoji.into();
+
+        assert!(!emoji.animated);
+        assert_eq!(emoji.id, Some(Id::<EmojiMarker>::new(7)));
+        assert_eq!(emoji.name, Some(String::from("test")));
     }
 }
