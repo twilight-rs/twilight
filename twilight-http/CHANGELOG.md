@@ -1,5 +1,21 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- use reason in update guild sticker ([#2181](https://github.com/twilight-rs/twilight/issues/2181))
+- nullable current member nick ([#2188](https://github.com/twilight-rs/twilight/issues/2188))
+- Fix clippy up to 1.69.0 ([#2198](https://github.com/twilight-rs/twilight/issues/2198))
+
+### Build
+
+- allow simd-json 0.8 and 0.9 ([#2202](https://github.com/twilight-rs/twilight/issues/2202))
+
+### Refactor
+
+- remove get automod rule reasons ([#2165](https://github.com/twilight-rs/twilight/issues/2165))
+
 ## [0.15.1] - 2023-02-26
 
 ### Features

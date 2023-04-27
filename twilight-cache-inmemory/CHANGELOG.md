@@ -1,5 +1,16 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- add `channel` field to `Interaction` ([#2191](https://github.com/twilight-rs/twilight/issues/2191))
+- add support for voice messages ([#2196](https://github.com/twilight-rs/twilight/issues/2196))
+
+### Performance
+
+- replace hashmap iter with get ([#2164](https://github.com/twilight-rs/twilight/issues/2164))
+
 ## [0.15.1] - 2023-02-26
 
 ### Features

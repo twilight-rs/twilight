@@ -1,5 +1,16 @@
 # Changelog
 
+## [unreleased]
+
+### Build
+
+- allow simd-json 0.8 and 0.9 ([#2202](https://github.com/twilight-rs/twilight/issues/2202))
+
+### Performance
+
+- ratelimiter algorithm improvements ([#2143](https://github.com/twilight-rs/twilight/issues/2143))
+- speed up spurious ratelimiter poll ([#2186](https://github.com/twilight-rs/twilight/issues/2186))
+
 ## [0.15.1] - 2023-02-26
 
 ### Bug Fixes

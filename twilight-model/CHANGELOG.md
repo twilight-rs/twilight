@@ -1,5 +1,28 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- handle clyde ai hash ([#2182](https://github.com/twilight-rs/twilight/issues/2182))
+- Fix clippy up to 1.69.0 ([#2198](https://github.com/twilight-rs/twilight/issues/2198))
+- Don't deserialize option values as `Id`'s if option type is `String` ([#2190](https://github.com/twilight-rs/twilight/issues/2190))
+
+### Documentation
+
+- fix event integration variant docs ([#2173](https://github.com/twilight-rs/twilight/issues/2173))
+
+### Features
+
+- add mention_total_limit, regex_patterns to automod ([#2184](https://github.com/twilight-rs/twilight/issues/2184))
+- add 2 new guild permissions, rename 1 ([#2180](https://github.com/twilight-rs/twilight/issues/2180))
+- add `channel` field to `Interaction` ([#2191](https://github.com/twilight-rs/twilight/issues/2191))
+- add support for voice messages ([#2196](https://github.com/twilight-rs/twilight/issues/2196))
+
+### Performance
+
+- improve image hash parsing ([#2139](https://github.com/twilight-rs/twilight/issues/2139))
+
 ## [0.15.1] - 2023-02-26
 
 ### Documentation
