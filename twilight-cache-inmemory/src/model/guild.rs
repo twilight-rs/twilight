@@ -47,6 +47,7 @@ pub struct CachedGuild {
     pub(crate) premium_tier: PremiumTier,
     pub(crate) public_updates_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) rules_channel_id: Option<Id<ChannelMarker>>,
+    pub(crate) safety_alerts_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) splash: Option<ImageHash>,
     pub(crate) system_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) system_channel_flags: SystemChannelFlags,
@@ -220,6 +221,11 @@ impl CachedGuild {
     /// For Community guilds, the ID of the rules channel.
     pub const fn rules_channel_id(&self) -> Option<Id<ChannelMarker>> {
         self.rules_channel_id
+    }
+
+    /// For Community guilds, The ID of the channel where admins and moderators of Community guilds receive safety alerts from Discord.
+    pub const fn safety_alerts_channel_id(&self) -> Option<Id<ChannelMarker>> {
+        self.safety_alerts_channel_id
     }
 
     /// Splash hash.
