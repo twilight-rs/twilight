@@ -11,16 +11,16 @@ name = "twilight-cache-inmemory"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.15.1"
+version = "0.15.2"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
 dashmap = { default-features = false, version = "5.3" }
 serde = { default-features = false, features = ["derive"], version = "1" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.1" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.2" }
 
 # Optional dependencies.
-twilight-util = { default-features = false, features = ["permission-calculator"], optional = true, path = "../twilight-util", version = "0.15.1" }
+twilight-util = { default-features = false, features = ["permission-calculator"], optional = true, path = "../twilight-util", version = "0.15.2" }
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }

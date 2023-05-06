@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.2] - 2023-04-27
+
+### Features
+
+- add 2 new guild permissions, rename 1 ([#2180](https://github.com/twilight-rs/twilight/issues/2180))
+
 ## [0.15.1] - 2023-02-26
 
 ### Refactor
