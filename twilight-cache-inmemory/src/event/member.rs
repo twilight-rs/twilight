@@ -168,9 +168,7 @@ impl UpdateCache for MemberUpdate {
 
         let key = (self.guild_id, self.user.id);
 
-        let mut member = if let Some(member) = cache.members.get_mut(&key) {
-            member
-        } else {
+        let Some(mut member) = cache.members.get_mut(&key) else {
             return;
         };
 

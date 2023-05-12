@@ -63,10 +63,7 @@ impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
         // chars here and not just individual bytes. We also want to not use
         // consuming methods of the iterator, so this will get a little weird.
         loop {
-            let start = match self.chars.next()? {
-                (idx, '<') => idx,
-                _ => continue,
-            };
+            let (start, '<') = self.chars.next()? else { continue };
 
             let mut found = false;
 
@@ -84,9 +81,7 @@ impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
                 continue;
             }
 
-            let end = if let Some((idx, _)) = self.chars.find(|c| c.1 == '>') {
-                idx
-            } else {
+            let Some((end, _)) = self.chars.find(|c| c.1 == '>') else {
                 continue;
             };
 

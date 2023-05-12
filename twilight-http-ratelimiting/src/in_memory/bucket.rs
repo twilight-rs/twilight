@@ -86,9 +86,7 @@ impl Bucket {
         let reset_after = self.reset_after();
         let maybe_started_at = *self.started_at.lock().expect("bucket poisoned");
 
-        let started_at = if let Some(started_at) = maybe_started_at {
-            started_at
-        } else {
+        let Some(started_at) = maybe_started_at else {
             return TimeRemaining::NotStarted;
         };
 
@@ -222,9 +220,7 @@ impl BucketQueueTask {
                 drop(self.global.0.lock().await);
             }
 
-            let ticket_headers = if let Some(ticket_headers) = queue_tx.available() {
-                ticket_headers
-            } else {
+            let Some(ticket_headers) = queue_tx.available() else {
                 continue;
             };
 
