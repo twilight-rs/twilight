@@ -14,9 +14,7 @@ impl UpdateCache for ReactionAdd {
 
         let key = self.0.message_id;
 
-        let mut message = if let Some(message) = cache.messages.get_mut(&key) {
-            message
-        } else {
+        let Some(mut message) = cache.messages.get_mut(&key) else {
             return;
         };
 
@@ -55,9 +53,7 @@ impl UpdateCache for ReactionRemove {
             return;
         }
 
-        let mut message = if let Some(message) = cache.messages.get_mut(&self.0.message_id) {
-            message
-        } else {
+        let Some(mut message) = cache.messages.get_mut(&self.0.message_id) else {
             return;
         };
 
@@ -91,9 +87,7 @@ impl UpdateCache for ReactionRemoveAll {
             return;
         }
 
-        let mut message = if let Some(message) = cache.messages.get_mut(&self.message_id) {
-            message
-        } else {
+        let Some(mut message) = cache.messages.get_mut(&self.message_id) else {
             return;
         };
 
@@ -107,9 +101,7 @@ impl UpdateCache for ReactionRemoveEmoji {
             return;
         }
 
-        let mut message = if let Some(message) = cache.messages.get_mut(&self.message_id) {
-            message
-        } else {
+        let Some(mut message) = cache.messages.get_mut(&self.message_id) else {
             return;
         };
 
