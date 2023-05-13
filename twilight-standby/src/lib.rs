@@ -882,9 +882,7 @@ impl Standby {
     ) -> ProcessStatus {
         // We need to take the sender out because `OneshotSender`s consume
         // themselves when calling `OneshotSender::send`.
-        let sender = if let Some(sender) = bystander.sender.take() {
-            sender
-        } else {
+        let Some(sender) = bystander.sender.take() else {
             tracing::trace!("bystander has no sender, indicating for removal");
 
             return ProcessStatus::AlreadyComplete;

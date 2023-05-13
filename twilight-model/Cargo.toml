@@ -10,7 +10,7 @@ name = "twilight-model"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.15.1"
+version = "0.15.2"
 
 [dependencies]
 bitflags = { default-features = false, version = "2" }

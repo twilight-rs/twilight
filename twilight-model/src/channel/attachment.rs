@@ -4,7 +4,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Attachment {
     /// Attachment's [media type].
     ///
@@ -17,6 +17,9 @@ pub struct Attachment {
     /// available as long as the message itself exists.
     #[serde(default, skip_serializing_if = "is_false")]
     pub ephemeral: bool,
+    /// Duration of the audio file (currently for voice messages).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_secs: Option<f64>,
     pub filename: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -26,6 +29,9 @@ pub struct Attachment {
     pub proxy_url: String,
     pub size: u64,
     pub url: String,
+    /// Base64 encoded bytearray representing a sampled waveform (currently for voice messages).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub waveform: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub width: Option<u64>,
 }
@@ -37,7 +43,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{fmt::Debug, hash::Hash};
+    use std::fmt::Debug;
 
     assert_fields!(
         Attachment: content_type,
@@ -55,8 +61,6 @@ mod tests {
         Attachment: Clone,
         Debug,
         Deserialize<'static>,
-        Eq,
-        Hash,
         PartialEq,
         Serialize
     );
@@ -68,11 +72,13 @@ mod tests {
             ephemeral: false,
             filename: "a.png".to_owned(),
             description: Some("a image".to_owned()),
+            duration_secs: Some(3.2),
             height: Some(184),
             id: Id::new(700_000_000_000_000_000),
             proxy_url: "https://cdn.example.com/1.png".to_owned(),
             size: 13_593,
             url: "https://example.com/1.png".to_owned(),
+            waveform: Some(String::from("waveform")),
             width: Some(184),
         };
 
@@ -81,11 +87,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Attachment",
-                    len: 9,
+                    len: 11,
                 },
                 Token::Str("content_type"),
                 Token::Some,
                 Token::Str("image/png"),
+                Token::Str("duration_secs"),
+                Token::Some,
+                Token::F64(3.2),
                 Token::Str("filename"),
                 Token::Str("a.png"),
                 Token::Str("description"),
@@ -103,6 +112,9 @@ mod tests {
                 Token::U64(13_593),
                 Token::Str("url"),
                 Token::Str("https://example.com/1.png"),
+                Token::Str("waveform"),
+                Token::Some,
+                Token::Str("waveform"),
                 Token::Str("width"),
                 Token::Some,
                 Token::U64(184),

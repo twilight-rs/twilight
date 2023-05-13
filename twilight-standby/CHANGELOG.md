@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.15.2] - 2023-04-27
+
+### Documentation
+
+- timeout example ([#2174](https://github.com/twilight-rs/twilight/issues/2174))
+
+### Features
+
+- add `channel` field to `Interaction` ([#2191](https://github.com/twilight-rs/twilight/issues/2191))
+
 ## [0.15.1] - 2023-02-26
 
 ### Refactor

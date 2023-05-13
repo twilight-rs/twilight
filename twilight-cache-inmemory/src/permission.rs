@@ -533,9 +533,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             return permissions;
         };
 
-        let absolute = if let Ok(absolute) = micros.try_into() {
-            absolute
-        } else {
+        let Ok(absolute) = micros.try_into() else {
             return permissions;
         };
 
@@ -576,9 +574,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         let mut member_roles = Vec::with_capacity(member.roles.len());
 
         for role_id in &member.roles {
-            let role = if let Some(role) = self.cache.roles.get(role_id) {
-                role
-            } else {
+            let Some(role) = self.cache.roles.get(role_id) else {
                 return Err(MemberRolesErrorType::RoleMissing { role_id: *role_id });
             };
 
