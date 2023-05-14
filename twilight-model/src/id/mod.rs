@@ -270,6 +270,14 @@ impl<'de, T> Deserialize<'de> for Id<T> {
                 Ok(Id::from(value))
             }
 
+            fn visit_i64<E: DeError>(self, value: i64) -> Result<Self::Value, E> {
+                let unsigned = u64::try_from(value).map_err(|_| {
+                    DeError::invalid_value(Unexpected::Signed(value), &"non zero u64")
+                })?;
+
+                self.visit_u64(unsigned)
+            }
+
             fn visit_newtype_struct<D: Deserializer<'de>>(
                 self,
                 deserializer: D,
@@ -784,6 +792,13 @@ mod tests {
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &Id::<WebhookMarker>::new(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "Id" },
+                Token::I64(114_941_315_417_899_012),
             ],
         );
     }
