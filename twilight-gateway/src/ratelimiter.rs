@@ -101,10 +101,8 @@ impl CommandRatelimiter {
         let new_deadline = self.instants[0];
         let now = Instant::now();
         if new_deadline > now {
-            tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
+            tracing::debug!(duration = ?(new_deadline - now), "ratelimited");
             self.delay.as_mut().reset(new_deadline);
-
-            // Register waker.
             _ = self.delay.as_mut().poll(cx);
 
             Poll::Pending
