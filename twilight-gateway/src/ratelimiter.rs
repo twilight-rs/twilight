@@ -74,17 +74,24 @@ impl CommandRatelimiter {
         })
     }
 
-    /// Returns when a ratelimit permit becomes available.
+    /// Waits for a permit to become available.
     pub(crate) async fn acquire(&mut self) {
-        poll_fn(|cx| self.poll_available(cx)).await;
+        let now = poll_fn(|cx| self.poll_ready(cx)).await;
 
-        self.instants.push(Instant::now() + PERIOD);
+        self.instants.push(now + PERIOD);
     }
 
-    /// Polls for the next time a permit is available.
-    pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
+    /// Polls for readiness.
+    ///
+    /// # Return value
+    ///
+    /// The function returns:
+    ///
+    /// * `Poll::Pending` if the ratelimiter is full
+    /// * `Poll::Ready(now)` if the ratelimiter is ready for a new permit.
+    pub(crate) fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Instant> {
         if self.instants.len() != self.instants.capacity() {
-            return Poll::Ready(());
+            return Poll::Ready(Instant::now());
         }
 
         if !self.delay.is_elapsed() {
@@ -92,7 +99,8 @@ impl CommandRatelimiter {
         }
 
         let new_deadline = self.instants[0];
-        if new_deadline > Instant::now() {
+        let now = Instant::now();
+        if new_deadline > now {
             tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
             self.delay.as_mut().reset(new_deadline);
 
@@ -101,11 +109,13 @@ impl CommandRatelimiter {
 
             Poll::Pending
         } else {
-            let used_permits = (self.max() - self.available()).into();
+            let elapsed_permits = self.instants.partition_point(|&elapsed| elapsed <= now);
+            let used_permits = self.instants.len() - elapsed_permits;
+
             self.instants.rotate_right(used_permits);
             self.instants.truncate(used_permits);
 
-            Poll::Ready(())
+            Poll::Ready(now)
         }
     }
 }
