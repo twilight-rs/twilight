@@ -23,4 +23,4 @@ edition = "2021"
 include = ["src/**/*.rs", "README.md"]
 license = "ISC"
 repository = "https://github.com/twilight-rs/twilight.git"
-rust-version = "1.64"
+rust-version = "1.67"
