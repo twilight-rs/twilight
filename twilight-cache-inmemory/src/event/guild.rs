@@ -434,7 +434,7 @@ mod tests {
             public_updates_channel_id: None,
             roles: Vec::new(),
             rules_channel_id: None,
-            safety_alerts_channel_id: None,
+            safety_alerts_channel_id: Some(Id::new(789)),
             splash: None,
             stage_instances: Vec::new(),
             stickers: Vec::new(),
