@@ -4,8 +4,10 @@ mod option;
 mod prompt;
 mod prompt_type;
 
-use crate::id::marker::GuildMarker;
-use crate::id::{marker::ChannelMarker, Id};
+use crate::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 use serde::{Deserialize, Serialize};
 
 pub use self::{
@@ -15,20 +17,20 @@ pub use self::{
 /// The onboarding data for a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Onboarding {
-    /// Channel ids that new members get opted into automatically
+    /// Channel IDs that new members get opted into automatically
     pub default_channel_ids: Vec<Id<ChannelMarker>>,
-    /// Whether the guild has enabled onboarding
+    /// Whether the guild has enabled onboarding.
     pub enabled: bool,
-    /// The id of the guild this onboarding is a part of.
+    /// ID of the guild this onboarding is a part of.
     pub guild_id: Id<GuildMarker>,
-    /// The array of [`OnboardingPrompt`]s for the guild onboarding flow.
+    /// Array of [`OnboardingPrompt`]s for the guild onboarding flow.
     pub prompts: Vec<OnboardingPrompt>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::Onboarding;
-    use crate::id::{marker::GuildMarker, Id};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
@@ -36,7 +38,7 @@ mod tests {
         let onboarding = Onboarding {
             default_channel_ids: Vec::new(),
             enabled: true,
-            guild_id: Id::<GuildMarker>::new(123_456_789),
+            guild_id: Id::new(123_456_789),
             prompts: Vec::new(),
         };
 

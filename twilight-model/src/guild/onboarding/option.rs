@@ -70,17 +70,17 @@ impl From<Emoji> for OnboardingPromptEmoji {
 /// A prompt option for a guild onboarding screen.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OnboardingPromptOption {
-    /// The channels opted into when this option is selected
+    /// Channels opted into when this option is selected.
     pub channel_ids: Vec<Id<ChannelMarker>>,
-    /// The description of the option.
+    /// Description of the option.
     pub description: Option<String>,
-    /// The emoji of the option.
+    /// Emoji of the option.
     pub emoji: OnboardingPromptEmoji,
-    /// The id of the option
+    /// ID of the option.
     pub id: Id<OnboardingPromptOptionMarker>,
-    /// The roles assigned when this option is selected
+    /// Roles assigned when this option is selected.
     pub role_ids: Vec<Id<RoleMarker>>,
-    /// The title of the option.
+    /// Title of the option.
     pub title: String,
 }
 

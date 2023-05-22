@@ -6,20 +6,20 @@ use super::{OnboardingPromptOption, OnboardingPromptType};
 /// A prompt in the onboarding flow.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OnboardingPrompt {
-    /// The id of the prompt.
+    /// ID of the prompt.
     pub id: Id<OnboardingPromptMarker>,
     /// Whether this prompt is in the onboarding flow.
     pub in_onboarding: bool,
-    /// The [`OnboardingPromptType`] of the prompt.
+    /// [`OnboardingPromptType`] of the prompt.
     #[serde(rename = "type")]
     pub kind: OnboardingPromptType,
-    /// The array of [`OnboardingPromptOption`]s available to the prompt.
+    /// Array of [`OnboardingPromptOption`]s available to the prompt.
     pub options: Vec<OnboardingPromptOption>,
     /// Whether this prompt is required in the onboarding flow.
     pub required: bool,
     /// Whether this prompt allows selecting only one option.
     pub single_select: bool,
-    /// The title of the prompt.
+    /// Title of the prompt.
     pub title: String,
 }
 
