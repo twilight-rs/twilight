@@ -570,9 +570,7 @@ impl Connection {
             }
         };
 
-        let event = if let Ok(event) = serde_json::from_str(&text) {
-            event
-        } else {
+        let Ok(event) = serde_json::from_str(&text) else {
             tracing::warn!("unknown message from lavalink node: {text}");
 
             return Ok(true);
@@ -594,9 +592,7 @@ impl Connection {
     }
 
     fn player_update(&self, update: &PlayerUpdate) -> Result<(), NodeError> {
-        let player = if let Some(player) = self.players.get(&update.guild_id) {
-            player
-        } else {
+        let Some(player) = self.players.get(&update.guild_id) else {
             tracing::warn!(
                 "invalid player update for guild {}: {update:?}",
                 update.guild_id,
