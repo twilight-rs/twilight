@@ -12,9 +12,8 @@ use crate::{
 };
 use serde::Serialize;
 use std::future::IntoFuture;
-use twilight_model::channel::Message;
 use twilight_model::{
-    channel::message::{AllowedMentions, Component, Embed},
+    channel::message::{AllowedMentions, Component, Embed, Message},
     http::attachment::Attachment,
     id::{
         marker::{ApplicationMarker, AttachmentMarker, MessageMarker},
