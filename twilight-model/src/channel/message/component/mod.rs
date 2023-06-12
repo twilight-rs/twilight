@@ -15,11 +15,14 @@ pub use self::{
     action_row::ActionRow,
     button::{Button, ButtonStyle},
     kind::ComponentType,
-    select_menu::{SelectMenu, SelectMenuOption},
+    select_menu::{
+        ChannelSelectMenuData, SelectMenu, SelectMenuData, SelectMenuOption, TextSelectMenuData,
+    },
     text_input::{TextInput, TextInputStyle},
 };
 
 use super::ReactionType;
+use crate::channel::ChannelType;
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::SerializeStruct,
@@ -56,7 +59,10 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// ```
 /// use twilight_model::{
 ///     channel::message::{
-///         component::{ActionRow, Component, SelectMenu, SelectMenuOption},
+///         component::{
+///             ActionRow, Component, SelectMenu, SelectMenuData, SelectMenuOption,
+///             TextSelectMenuData,
+///         },
 ///         ReactionType,
 ///     },
 ///     id::Id,
@@ -68,41 +74,45 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///         disabled: false,
 ///         max_values: Some(3),
 ///         min_values: Some(1),
-///         options: Vec::from([
-///             SelectMenuOption {
-///                 default: false,
-///                 emoji: Some(ReactionType::Custom {
-///                     animated: false,
-///                     id: Id::new(625891304148303894),
-///                     name: Some("rogue".to_owned()),
-///                 }),
-///                 description: Some("Sneak n stab".to_owned()),
-///                 label: "Rogue".to_owned(),
-///                 value: "rogue".to_owned(),
-///             },
-///             SelectMenuOption {
-///                 default: false,
-///                 emoji: Some(ReactionType::Custom {
-///                     animated: false,
-///                     id: Id::new(625891304081063986),
-///                     name: Some("mage".to_owned()),
-///                 }),
-///                 description: Some("Turn 'em into a sheep".to_owned()),
-///                 label: "Mage".to_owned(),
-///                 value: "mage".to_owned(),
-///             },
-///             SelectMenuOption {
-///                 default: false,
-///                 emoji: Some(ReactionType::Custom {
-///                     animated: false,
-///                     id: Id::new(625891303795982337),
-///                     name: Some("priest".to_owned()),
-///                 }),
-///                 description: Some("You get heals when I'm done doing damage".to_owned()),
-///                 label: "Priest".to_owned(),
-///                 value: "priest".to_owned(),
-///             },
-///         ]),
+///         data: SelectMenuData::Text(Box::new(TextSelectMenuData {
+///             options: Vec::from([
+///                 SelectMenuOption {
+///                     default: false,
+///                     emoji: Some(ReactionType::Custom {
+///                         animated: false,
+///                         id: Id::new(625891304148303894),
+///                         name: Some("rogue".to_owned()),
+///                     }),
+///                     description: Some("Sneak n stab".to_owned()),
+///                     label: "Rogue".to_owned(),
+///                     value: "rogue".to_owned(),
+///                 },
+///                 SelectMenuOption {
+///                     default: false,
+///                     emoji: Some(ReactionType::Custom {
+///                         animated: false,
+///                         id: Id::new(625891304081063986),
+///                         name: Some("mage".to_owned()),
+///                     }),
+///                     description: Some("Turn 'em into a sheep".to_owned()),
+///                     label: "Mage".to_owned(),
+///                     value: "mage".to_owned(),
+///                 },
+///                 SelectMenuOption {
+///                     default: false,
+///                     emoji: Some(ReactionType::Custom {
+///                         animated: false,
+///                         id: Id::new(625891303795982337),
+///                         name: Some("priest".to_owned()),
+///                     }),
+///                     description: Some(
+///                         "You get heals when I'm done doing damage".to_owned(),
+///                     ),
+///                     label: "Priest".to_owned(),
+///                     value: "priest".to_owned(),
+///                 },
+///             ]),
+///         })),
 ///         placeholder: Some("Choose a class".to_owned()),
 ///     })],
 /// });
@@ -144,7 +154,26 @@ impl Component {
         match self {
             Self::ActionRow(_) => ComponentType::ActionRow,
             Self::Button(_) => ComponentType::Button,
-            Self::SelectMenu(_) => ComponentType::SelectMenu,
+            Self::SelectMenu(SelectMenu {
+                data: SelectMenuData::Text(_),
+                ..
+            }) => ComponentType::TextSelectMenu,
+            Self::SelectMenu(SelectMenu {
+                data: SelectMenuData::User,
+                ..
+            }) => ComponentType::UserSelectMenu,
+            Self::SelectMenu(SelectMenu {
+                data: SelectMenuData::Role,
+                ..
+            }) => ComponentType::RoleSelectMenu,
+            Self::SelectMenu(SelectMenu {
+                data: SelectMenuData::Mentionable,
+                ..
+            }) => ComponentType::MentionableSelectMenu,
+            Self::SelectMenu(SelectMenu {
+                data: SelectMenuData::Channel(_),
+                ..
+            }) => ComponentType::ChannelSelectMenu,
             Self::TextInput(_) => ComponentType::TextInput,
             Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
         }
@@ -184,6 +213,7 @@ impl<'de> Deserialize<'de> for Component {
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum Field {
+    ChannelTypes,
     Components,
     CustomId,
     Disabled,
@@ -217,6 +247,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut components: Option<Vec<Component>> = None;
         let mut kind: Option<ComponentType> = None;
         let mut options: Option<Vec<SelectMenuOption>> = None;
+        let mut channel_types: Option<Vec<ChannelType>> = None;
         let mut style: Option<Value> = None;
 
         // Liminal fields.
@@ -260,6 +291,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             };
 
             match key {
+                Field::ChannelTypes => {
+                    if channel_types.is_some() {
+                        return Err(DeError::duplicate_field("channel_types"));
+                    }
+
+                    channel_types = Some(map.next_value()?);
+                }
                 Field::Components => {
                     if components.is_some() {
                         return Err(DeError::duplicate_field("components"));
@@ -436,28 +474,47 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             }
             // Required fields:
             // - custom_id
-            // - options
+            // - options (if this is a text select menu)
             //
             // Optional fields:
             // - disabled
             // - max_values
             // - min_values
             // - placeholder
-            ComponentType::SelectMenu => {
+            // - channel_types (if this is a channel select menu)
+            kind @ (ComponentType::TextSelectMenu
+            | ComponentType::UserSelectMenu
+            | ComponentType::RoleSelectMenu
+            | ComponentType::MentionableSelectMenu
+            | ComponentType::ChannelSelectMenu) => {
                 let custom_id = custom_id
                     .flatten()
                     .ok_or_else(|| DeError::missing_field("custom_id"))?
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
 
-                let options = options.ok_or_else(|| DeError::missing_field("options"))?;
+                let data = match kind {
+                    ComponentType::TextSelectMenu => {
+                        let options = options.ok_or_else(|| DeError::missing_field("options"))?;
+                        SelectMenuData::Text(Box::new(TextSelectMenuData { options }))
+                    }
+                    ComponentType::UserSelectMenu => SelectMenuData::User,
+                    ComponentType::RoleSelectMenu => SelectMenuData::Role,
+                    ComponentType::MentionableSelectMenu => SelectMenuData::Mentionable,
+                    ComponentType::ChannelSelectMenu => {
+                        SelectMenuData::Channel(Box::new(ChannelSelectMenuData { channel_types }))
+                    }
+                    // We'll only take the branch below if we added a type above and forgot to implement it here. I.e.,
+                    // we should never end up here.
+                    _ => panic!("missing select menu implementation"),
+                };
 
                 Self::Value::SelectMenu(SelectMenu {
                     custom_id,
+                    data,
                     disabled: disabled.unwrap_or_default(),
                     max_values: max_values.unwrap_or_default(),
                     min_values: min_values.unwrap_or_default(),
-                    options,
                     placeholder: placeholder.unwrap_or_default(),
                 })
             }
@@ -505,6 +562,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 }
 
 impl Serialize for Component {
+    #[allow(clippy::too_many_lines)]
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let len = match self {
             // Required fields:
@@ -602,7 +660,27 @@ impl Serialize for Component {
                 }
             }
             Component::SelectMenu(select_menu) => {
-                state.serialize_field("type", &ComponentType::SelectMenu)?;
+                match &select_menu.data {
+                    SelectMenuData::Text(data) => {
+                        state.serialize_field("type", &ComponentType::TextSelectMenu)?;
+                        state.serialize_field("options", &data.options)?;
+                    }
+                    SelectMenuData::User => {
+                        state.serialize_field("type", &ComponentType::UserSelectMenu)?;
+                    }
+                    SelectMenuData::Role => {
+                        state.serialize_field("type", &ComponentType::RoleSelectMenu)?;
+                    }
+                    SelectMenuData::Mentionable => {
+                        state.serialize_field("type", &ComponentType::MentionableSelectMenu)?;
+                    }
+                    SelectMenuData::Channel(data) => {
+                        state.serialize_field("type", &ComponentType::ChannelSelectMenu)?;
+                        if data.channel_types.is_some() {
+                            state.serialize_field("channel_types", &data.channel_types)?;
+                        }
+                    }
+                }
 
                 // Due to `custom_id` being required in some variants and
                 // optional in others, serialize as an Option.
@@ -617,8 +695,6 @@ impl Serialize for Component {
                 if select_menu.min_values.is_some() {
                     state.serialize_field("min_values", &select_menu.min_values)?;
                 }
-
-                state.serialize_field("options", &select_menu.options)?;
 
                 if select_menu.placeholder.is_some() {
                     state.serialize_field("placeholder", &select_menu.placeholder)?;
@@ -700,13 +776,15 @@ mod tests {
                     disabled: false,
                     max_values: Some(25),
                     min_values: Some(5),
-                    options: Vec::from([SelectMenuOption {
-                        label: "test option label".into(),
-                        value: "test option value".into(),
-                        description: Some("test description".into()),
-                        emoji: None,
-                        default: false,
-                    }]),
+                    data: SelectMenuData::Text(Box::new(TextSelectMenuData {
+                        options: Vec::from([SelectMenuOption {
+                            label: "test option label".into(),
+                            value: "test option value".into(),
+                            description: Some("test description".into()),
+                            emoji: None,
+                            default: false,
+                        }]),
+                    })),
                     placeholder: Some("test placeholder".into()),
                 }),
             ]),
@@ -745,18 +823,7 @@ mod tests {
                     len: 6,
                 },
                 Token::Str("type"),
-                Token::U8(ComponentType::SelectMenu.into()),
-                Token::Str("custom_id"),
-                Token::Some,
-                Token::Str("test custom id 2"),
-                Token::Str("disabled"),
-                Token::Bool(false),
-                Token::Str("max_values"),
-                Token::Some,
-                Token::U8(25),
-                Token::Str("min_values"),
-                Token::Some,
-                Token::U8(5),
+                Token::U8(ComponentType::TextSelectMenu.into()),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -774,6 +841,17 @@ mod tests {
                 Token::Str("test option value"),
                 Token::StructEnd,
                 Token::SeqEnd,
+                Token::Str("custom_id"),
+                Token::Some,
+                Token::Str("test custom id 2"),
+                Token::Str("disabled"),
+                Token::Bool(false),
+                Token::Str("max_values"),
+                Token::Some,
+                Token::U8(25),
+                Token::Str("min_values"),
+                Token::Some,
+                Token::U8(5),
                 Token::Str("placeholder"),
                 Token::Some,
                 Token::Str("test placeholder"),

@@ -5,7 +5,7 @@
 use crate::channel::message::component::ComponentType;
 use serde::{Deserialize, Serialize};
 
-/// Data received when an [`MessageComponent`] interaction is executed.
+/// Data received when a [`MessageComponent`] interaction is executed.
 ///
 /// See [Discord Docs/Message Component Data Structure].
 ///
@@ -25,7 +25,7 @@ pub struct MessageComponentInteractionData {
     ///
     /// Only used for [`SelectMenu`] components.
     ///
-    /// [`SelectMenu`]: ComponentType::SelectMenu
+    /// [`SelectMenu`]: crate::channel::message::component::SelectMenu
     #[serde(default)]
     pub values: Vec<String>,
 }

@@ -5,8 +5,8 @@ use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 use twilight_model::channel::message::component::{
-    ActionRow, Button, ButtonStyle, Component, ComponentType, SelectMenu, SelectMenuOption,
-    TextInput,
+    ActionRow, Button, ButtonStyle, Component, ComponentType, SelectMenu, SelectMenuData,
+    SelectMenuOption, TextInput,
 };
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -635,7 +635,20 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 /// [`SelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
 pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&select_menu.custom_id)?;
-    self::component_select_options(&select_menu.options)?;
+
+    // There aren't any requirements for channel_types that we could validate here
+    if let SelectMenuData::Text(data) = &select_menu.data {
+        let options = &data.options;
+        for option in options {
+            component_select_option_label(&option.label)?;
+            component_select_option_value(&option.value)?;
+
+            if let Some(description) = option.description.as_ref() {
+                component_option_description(description)?;
+            }
+        }
+        component_select_options(options)?;
+    }
 
     if let Some(placeholder) = select_menu.placeholder.as_ref() {
         self::component_select_placeholder(placeholder)?;
@@ -647,15 +660,6 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 
     if let Some(min_values) = select_menu.min_values {
         self::component_select_min_values(usize::from(min_values))?;
-    }
-
-    for option in &select_menu.options {
-        self::component_select_option_label(&option.label)?;
-        self::component_select_option_value(&option.value)?;
-
-        if let Some(description) = option.description.as_ref() {
-            self::component_option_description(description)?;
-        }
     }
 
     Ok(())
@@ -1052,6 +1056,7 @@ mod tests {
     use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
+    use twilight_model::channel::message::component::TextSelectMenuData;
     use twilight_model::channel::message::ReactionType;
 
     assert_fields!(ComponentValidationErrorType::ActionRowComponentCount: count);
@@ -1096,13 +1101,15 @@ mod tests {
             disabled: false,
             max_values: Some(2),
             min_values: Some(1),
-            options: Vec::from([SelectMenuOption {
-                default: true,
-                description: Some("Book 1 of the Expanse".into()),
-                emoji: None,
-                label: "Leviathan Wakes".into(),
-                value: "9780316129084".into(),
-            }]),
+            data: SelectMenuData::Text(Box::new(TextSelectMenuData {
+                options: Vec::from([SelectMenuOption {
+                    default: true,
+                    description: Some("Book 1 of the Expanse".into()),
+                    emoji: None,
+                    label: "Leviathan Wakes".into(),
+                    value: "9780316129084".into(),
+                }]),
+            })),
             placeholder: Some("Choose a book".into()),
         };
 

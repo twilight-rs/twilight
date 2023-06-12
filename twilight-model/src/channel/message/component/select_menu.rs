@@ -1,13 +1,18 @@
-use crate::channel::message::ReactionType;
+use crate::channel::{message::ReactionType, ChannelType};
 use serde::{Deserialize, Serialize};
 
-/// Dropdown-style [`Component`] that renders belew messages.
+/// Dropdown-style [`Component`] that renders below messages.
+///
+/// Use the `data` field to determine which kind of select menu you want. The kinds available at the moment are listed
+/// as [`SelectMenuData`]'s variants.
 ///
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SelectMenu {
     /// Developer defined identifier.
     pub custom_id: String,
+    /// Data specific to this select menu's kind.
+    pub data: SelectMenuData,
     /// Whether the select menu is disabled.
     ///
     /// Defaults to `false`.
@@ -16,10 +21,61 @@ pub struct SelectMenu {
     pub max_values: Option<u8>,
     /// Minimum number of options that must be chosen.
     pub min_values: Option<u8>,
-    /// List of available choices.
-    pub options: Vec<SelectMenuOption>,
     /// Custom placeholder text if no option is selected.
     pub placeholder: Option<String>,
+}
+
+/// Data specific to a kind of [`SelectMenu`].
+///
+/// Choosing a variant of this enum implicitly sets the select menu's kind.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum SelectMenuData {
+    /// Data specific to text select menus.
+    ///
+    /// Choosing this variant for your select menu makes the menu a [`ComponentType::TextSelectMenu`].
+    ///
+    /// [`ComponentType::TextSelectMenu`]: super::ComponentType::TextSelectMenu
+    Text(Box<TextSelectMenuData>),
+    /// Data specific to user select menus.
+    ///
+    /// Choosing this variant for your select menu makes the menu a [`ComponentType::UserSelectMenu`].
+    ///
+    /// [`ComponentType::UserSelectMenu`]: super::ComponentType::UserSelectMenu
+    User,
+    /// Data specific to role select menus.
+    ///
+    /// Choosing this variant for your select menu makes the menu a [`ComponentType::RoleSelectMenu`].
+    ///
+    /// [`ComponentType::RoleSelectMenu`]: super::ComponentType::RoleSelectMenu
+    Role,
+    /// Data specific to mentionable select menus.
+    ///
+    /// Choosing this variant for your select menu makes the menu a [`ComponentType::MentionableSelectMenu`].
+    ///
+    /// [`ComponentType::MentionableSelectMenu`]: super::ComponentType::MentionableSelectMenu
+    Mentionable,
+    /// Data specific to channel select menus.
+    ///
+    /// Choosing this variant for your select menu makes the menu a [`ComponentType::ChannelSelectMenu`].
+    ///
+    /// [`ComponentType::ChannelSelectMenu`]: super::ComponentType::ChannelSelectMenu
+    Channel(Box<ChannelSelectMenuData>),
+}
+
+/// Data specific to text select menus.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct TextSelectMenuData {
+    /// A list of available choices for this select menu.
+    pub options: Vec<SelectMenuOption>,
+}
+
+/// Data specific to channel select menus.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct ChannelSelectMenuData {
+    /// An optional list of channel types to include in this select menu.
+    ///
+    /// If `None`, the select menu will display all channel types.
+    pub channel_types: Option<Vec<ChannelType>>,
 }
 
 /// Dropdown options that are part of [`SelectMenu`].
@@ -49,13 +105,41 @@ mod tests {
 
     assert_fields!(
         SelectMenu: custom_id,
+        data,
         disabled,
         max_values,
         min_values,
-        options,
         placeholder
     );
     assert_impl_all!(SelectMenu: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
+
+    assert_impl_all!(
+        SelectMenuData: Clone,
+        Debug,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_impl_all!(
+        TextSelectMenuData: Clone,
+        Debug,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_impl_all!(
+        ChannelSelectMenuData: Clone,
+        Debug,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Sync
+    );
 
     assert_impl_all!(
         SelectMenuOption: Clone,
