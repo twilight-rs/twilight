@@ -572,10 +572,10 @@ fn name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 ///
 /// # Errors
 ///
-/// Returns an error of type [`OptionChoiceNameLocalizationLengthInvalid`] if the name is
+/// Returns an error of type [`OptionChoiceNameLengthInvalid`] if the name is
 /// less than [`OPTION_CHOICE_NAME_LENGTH_MIN`] or more than [`OPTION_CHOICE_NAME_LENGTH_MAX`].
 ///
-/// [`OptionChoiceNameLocalizationLengthInvalid`]: CommandValidationErrorType::OptionChoiceNameLocalizationLengthInvalid
+/// [`OptionChoiceNameLengthInvalid`]: CommandValidationErrorType::OptionChoiceNameLengthInvalid
 pub fn choice_name(name: &str) -> Result<(), CommandValidationError> {
     let len = name.chars().count();
 
