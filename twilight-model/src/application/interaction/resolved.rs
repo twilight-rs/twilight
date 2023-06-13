@@ -282,7 +282,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "CommandInteractionDataResolved",
+                    name: "InteractionDataResolved",
                     len: 6,
                 },
                 Token::Str("attachments"),

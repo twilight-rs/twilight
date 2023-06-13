@@ -75,12 +75,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MessageComponentInteractionData",
-                    len: 3,
+                    len: 4,
                 },
                 Token::String("custom_id"),
                 Token::String("test"),
                 Token::String("component_type"),
                 Token::U8(ComponentType::Button.into()),
+                Token::String("resolved"),
+                Token::None,
                 Token::String("values"),
                 Token::Seq { len: Some(2) },
                 Token::String("1"),

@@ -653,7 +653,7 @@ mod tests {
                 Token::Str("resolved"),
                 Token::Some,
                 Token::Struct {
-                    name: "CommandInteractionDataResolved",
+                    name: "InteractionDataResolved",
                     len: 2,
                 },
                 Token::Str("members"),
