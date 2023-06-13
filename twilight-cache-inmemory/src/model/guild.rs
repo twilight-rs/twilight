@@ -223,7 +223,7 @@ impl CachedGuild {
         self.rules_channel_id
     }
 
-    /// For Community guilds, The ID of the channel where admins and moderators of Community guilds receive safety alerts from Discord.
+    /// The ID of the channel where admins and moderators of Community guilds receive safety alerts from Discord.
     pub const fn safety_alerts_channel_id(&self) -> Option<Id<ChannelMarker>> {
         self.safety_alerts_channel_id
     }
