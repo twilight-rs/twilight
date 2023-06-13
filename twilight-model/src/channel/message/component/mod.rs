@@ -105,9 +105,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///                         id: Id::new(625891303795982337),
 ///                         name: Some("priest".to_owned()),
 ///                     }),
-///                     description: Some(
-///                         "You get heals when I'm done doing damage".to_owned(),
-///                     ),
+///                     description: Some("You get heals when I'm done doing damage".to_owned()),
 ///                     label: "Priest".to_owned(),
 ///                     value: "priest".to_owned(),
 ///                 },
@@ -506,7 +504,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     }
                     // We'll only take the branch below if we added a type above and forgot to implement it here. I.e.,
                     // we should never end up here.
-                    _ => panic!("missing select menu implementation"),
+                    _ => unreachable!("missing select menu implementation"),
                 };
 
                 Self::Value::SelectMenu(SelectMenu {
