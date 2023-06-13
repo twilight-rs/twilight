@@ -1193,13 +1193,14 @@ mod tests {
                 video_quality_mode: None,
             }),
             channel_id: None,
-            data: Some(InteractionData::MessageComponent(
+            data: Some(InteractionData::MessageComponent(Box::new(
                 MessageComponentInteractionData {
                     custom_id: String::from("Click"),
                     component_type: ComponentType::Button,
+                    resolved: None,
                     values: Vec::new(),
                 },
-            )),
+            ))),
             guild_id: Some(Id::new(3)),
             guild_locale: None,
             id: Id::new(4),
