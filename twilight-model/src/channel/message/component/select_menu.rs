@@ -35,7 +35,7 @@ pub enum SelectMenuData {
     /// Choosing this variant for your select menu makes the menu a [`ComponentType::TextSelectMenu`].
     ///
     /// [`ComponentType::TextSelectMenu`]: super::ComponentType::TextSelectMenu
-    Text(Box<TextSelectMenuData>),
+    Text(TextSelectMenuData),
     /// Data specific to user select menus.
     ///
     /// Choosing this variant for your select menu makes the menu a [`ComponentType::UserSelectMenu`].
@@ -59,7 +59,7 @@ pub enum SelectMenuData {
     /// Choosing this variant for your select menu makes the menu a [`ComponentType::ChannelSelectMenu`].
     ///
     /// [`ComponentType::ChannelSelectMenu`]: super::ComponentType::ChannelSelectMenu
-    Channel(Box<ChannelSelectMenuData>),
+    Channel(ChannelSelectMenuData),
 }
 
 /// Data specific to text select menus.

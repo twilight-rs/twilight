@@ -74,7 +74,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///         disabled: false,
 ///         max_values: Some(3),
 ///         min_values: Some(1),
-///         data: SelectMenuData::Text(Box::new(TextSelectMenuData {
+///         data: SelectMenuData::Text(TextSelectMenuData {
 ///             options: Vec::from([
 ///                 SelectMenuOption {
 ///                     default: false,
@@ -110,7 +110,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///                     value: "priest".to_owned(),
 ///                 },
 ///             ]),
-///         })),
+///         }),
 ///         placeholder: Some("Choose a class".to_owned()),
 ///     })],
 /// });
@@ -494,13 +494,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                 let data = match kind {
                     ComponentType::TextSelectMenu => {
                         let options = options.ok_or_else(|| DeError::missing_field("options"))?;
-                        SelectMenuData::Text(Box::new(TextSelectMenuData { options }))
+                        SelectMenuData::Text(TextSelectMenuData { options })
                     }
                     ComponentType::UserSelectMenu => SelectMenuData::User,
                     ComponentType::RoleSelectMenu => SelectMenuData::Role,
                     ComponentType::MentionableSelectMenu => SelectMenuData::Mentionable,
                     ComponentType::ChannelSelectMenu => {
-                        SelectMenuData::Channel(Box::new(ChannelSelectMenuData { channel_types }))
+                        SelectMenuData::Channel(ChannelSelectMenuData { channel_types })
                     }
                     // We'll only take the branch below if we added a type above and forgot to implement it here. I.e.,
                     // we should never end up here.
@@ -774,7 +774,7 @@ mod tests {
                     disabled: false,
                     max_values: Some(25),
                     min_values: Some(5),
-                    data: SelectMenuData::Text(Box::new(TextSelectMenuData {
+                    data: SelectMenuData::Text(TextSelectMenuData {
                         options: Vec::from([SelectMenuOption {
                             label: "test option label".into(),
                             value: "test option value".into(),
@@ -782,7 +782,7 @@ mod tests {
                             emoji: None,
                             default: false,
                         }]),
-                    })),
+                    }),
                     placeholder: Some("test placeholder".into()),
                 }),
             ]),

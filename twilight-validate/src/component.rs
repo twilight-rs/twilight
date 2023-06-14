@@ -1101,7 +1101,7 @@ mod tests {
             disabled: false,
             max_values: Some(2),
             min_values: Some(1),
-            data: SelectMenuData::Text(Box::new(TextSelectMenuData {
+            data: SelectMenuData::Text(TextSelectMenuData {
                 options: Vec::from([SelectMenuOption {
                     default: true,
                     description: Some("Book 1 of the Expanse".into()),
@@ -1109,7 +1109,7 @@ mod tests {
                     label: "Leviathan Wakes".into(),
                     value: "9780316129084".into(),
                 }]),
-            })),
+            }),
             placeholder: Some("Choose a book".into()),
         };
 
