@@ -34,6 +34,12 @@ The difference is that if you use the futures variant in a loop then you may
 miss some events while processing a received event. By using a stream, you
 won't miss any events.
 
+## Timeouts
+
+Timeouts on futures isn't directly provided by Standby. Futures can be timed out
+with support from crates such as [`tokio::time::timeout`]. An example of this is
+detailed on the [`Standby`] type.
+
 ## Examples
 
 ### At a glance
@@ -132,6 +138,7 @@ async fn react(msg: Message, standby: Arc<Standby>) -> anyhow::Result<()> {
 
 For more examples, check out each of the methods on [`Standby`].
 
+[`tokio::time::timeout`]: https://docs.rs/tokio/latest/tokio/time/fn.timeout.html
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
@@ -140,4 +147,4 @@ For more examples, check out each of the methods on [`Standby`].
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.64+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.67+-93450a.svg?style=for-the-badge&logo=rust

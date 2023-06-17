@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.15.2] - 2023-04-27
+
+### Bug Fixes
+
+- fix update of DayLimiter's next_reset field ([#2175](https://github.com/twilight-rs/twilight/issues/2175))
+- Fix clippy up to 1.69.0 ([#2198](https://github.com/twilight-rs/twilight/issues/2198))
+
+## [0.15.1] - 2023-02-26
+
+### Refactor
+
+- change deny lints to warn ([#2144](https://github.com/twilight-rs/twilight/issues/2144))
+
 ## [0.15.0] - 2023-02-05
 
 This major version bump of the Gateway Queue is done to match all of the other

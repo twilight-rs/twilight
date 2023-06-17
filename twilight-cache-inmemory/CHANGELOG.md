@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.15.2] - 2023-04-27
+
+### Features
+
+- add `channel` field to `Interaction` ([#2191](https://github.com/twilight-rs/twilight/issues/2191))
+- add support for voice messages ([#2196](https://github.com/twilight-rs/twilight/issues/2196))
+
+### Performance
+
+- replace hashmap iter with get ([#2164](https://github.com/twilight-rs/twilight/issues/2164))
+
+## [0.15.1] - 2023-02-26
+
+### Features
+
+- add `managed` field to `Channel` ([#2148](https://github.com/twilight-rs/twilight/issues/2148))
+
+### Refactor
+
+- change deny lints to warn ([#2144](https://github.com/twilight-rs/twilight/issues/2144))
+
 ## [0.15.0] - 2023-02-05
 
 ### Features

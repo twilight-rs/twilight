@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.15.2] - 2023-04-27
+
+### Build
+
+- allow simd-json 0.8 and 0.9 ([#2202](https://github.com/twilight-rs/twilight/issues/2202))
+
+### Performance
+
+- ratelimiter algorithm improvements ([#2143](https://github.com/twilight-rs/twilight/issues/2143))
+- speed up spurious ratelimiter poll ([#2186](https://github.com/twilight-rs/twilight/issues/2186))
+
+## [0.15.1] - 2023-02-26
+
+### Bug Fixes
+
+- ignore unknown event errors ([#2154](https://github.com/twilight-rs/twilight/issues/2154))
+
+### Documentation
+
+- remove stale resume_gateway_url notice ([#2126](https://github.com/twilight-rs/twilight/issues/2126))
+- resume behavior of presences ([#2150](https://github.com/twilight-rs/twilight/issues/2150))
+- all event types can be excluded ([#2149](https://github.com/twilight-rs/twilight/issues/2149))
+- `next_event` close variant ([#2140](https://github.com/twilight-rs/twilight/issues/2140))
+
+### Refactor
+
+- change deny lints to warn ([#2144](https://github.com/twilight-rs/twilight/issues/2144))
+
 ## [0.15.0] - 2023-02-05
 
 Check out [the migration guide] for a summary of Gateway changes.

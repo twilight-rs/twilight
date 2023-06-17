@@ -10,9 +10,7 @@ impl InMemoryCache {
 
     fn cache_voice_state(&self, voice_state: VoiceState) {
         // This should always exist, but let's check just in case.
-        let guild_id = if let Some(id) = voice_state.guild_id {
-            id
-        } else {
+        let Some(guild_id) = voice_state.guild_id else {
             return;
         };
 

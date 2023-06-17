@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
@@ -15,7 +15,7 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct UpdateCurrentMemberFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    nick: Option<&'a str>,
+    nick: Option<Nullable<&'a str>>,
 }
 
 /// Update the user's member in a guild.
@@ -55,7 +55,7 @@ impl<'a> UpdateCurrentMember<'a> {
                 validate_nickname(nick)?;
             }
 
-            fields.nick = nick;
+            fields.nick = Some(Nullable(nick));
 
             Ok(fields)
         });

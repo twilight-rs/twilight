@@ -6,6 +6,7 @@ use serde::{
 use std::fmt::{Formatter, Result as FmtResult};
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct Permissions: u64 {
         const CREATE_INVITE = 1;
         const KICK_MEMBERS = 1 << 1;
@@ -39,7 +40,10 @@ bitflags! {
         const MANAGE_NICKNAMES = 1 << 27;
         const MANAGE_ROLES = 1 << 28;
         const MANAGE_WEBHOOKS = 1 << 29;
+        #[deprecated(since = "0.15.2", note = "use `MANAGE_GUILD_EXPRESSIONS` instead")]
         const MANAGE_EMOJIS_AND_STICKERS = 1 << 30;
+        /// Allows management and editing of emojis, stickers, and soundboard sounds.
+        const MANAGE_GUILD_EXPRESSIONS = 1 << 30;
         const USE_SLASH_COMMANDS = 1 << 31;
         const REQUEST_TO_SPEAK = 1 << 32;
         /// Allows for creating, editing, and deleting scheduled events.
@@ -65,6 +69,12 @@ bitflags! {
         ///
         /// [Guild Timeouts]: https://support.discord.com/hc/en-us/articles/4413305239191-Time-Out-FAQ
         const MODERATE_MEMBERS = 1 << 40;
+        /// Allows for viewing role subscription insights.
+        const VIEW_CREATOR_MONETIZATION_ANALYTICS = 1 << 41;
+        /// Allows for using soundboard in a voice channel
+        const USE_SOUNDBOARD = 1 << 42;
+        /// Allows sending voice messages
+        const SEND_VOICE_MESSAGES = 1 << 46;
     }
 }
 
@@ -136,9 +146,7 @@ mod tests {
         LowerHex,
         Not,
         Octal,
-        Ord,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sub,
@@ -176,7 +184,7 @@ mod tests {
     const_assert_eq!(Permissions::MANAGE_NICKNAMES.bits(), 1 << 27);
     const_assert_eq!(Permissions::MANAGE_ROLES.bits(), 1 << 28);
     const_assert_eq!(Permissions::MANAGE_WEBHOOKS.bits(), 1 << 29);
-    const_assert_eq!(Permissions::MANAGE_EMOJIS_AND_STICKERS.bits(), 1 << 30);
+    const_assert_eq!(Permissions::MANAGE_GUILD_EXPRESSIONS.bits(), 1 << 30);
     const_assert_eq!(Permissions::USE_SLASH_COMMANDS.bits(), 1 << 31);
     const_assert_eq!(Permissions::REQUEST_TO_SPEAK.bits(), 1 << 32);
     const_assert_eq!(Permissions::MANAGE_EVENTS.bits(), 1 << 33);
@@ -187,6 +195,11 @@ mod tests {
     const_assert_eq!(Permissions::SEND_MESSAGES_IN_THREADS.bits(), 1 << 38);
     const_assert_eq!(Permissions::USE_EMBEDDED_ACTIVITIES.bits(), 1 << 39);
     const_assert_eq!(Permissions::MODERATE_MEMBERS.bits(), 1 << 40);
+    const_assert_eq!(
+        Permissions::VIEW_CREATOR_MONETIZATION_ANALYTICS.bits(),
+        1 << 41
+    );
+    const_assert_eq!(Permissions::USE_SOUNDBOARD.bits(), 1 << 42);
 
     #[test]
     fn serde() {

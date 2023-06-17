@@ -79,7 +79,7 @@ impl<'a> CreateForumThreadMessage<'a> {
 
             if let Err(source) = validation {
                 self.0 = Err(source);
-            } else if let Ok(mut inner) = self.0.as_mut() {
+            } else if let Ok(inner) = self.0.as_mut() {
                 let mut manager =
                     mem::replace(&mut inner.attachment_manager, AttachmentManager::new());
                 manager = manager.set_files(attachments.iter().collect());

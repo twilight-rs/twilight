@@ -10,10 +10,10 @@ name = "twilight-model"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.15.0"
+version = "0.15.2"
 
 [dependencies]
-bitflags = { default-features = false, version = "1" }
+bitflags = { default-features = false, version = "2" }
 serde = { default-features = false, features = ["derive", "std"], version = "1.0.103" }
 serde-value = { default-features = false, version = "0.7" }
 serde_repr = { default-features = false, version = "0.1.5" }

@@ -158,11 +158,12 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// Append an action of type [`BlockMessage`] with an explanation for blocking messages.
     ///
     /// # Errors
-    /// Returns [`AutoModerationBlockActionCustomMessageLimit`] if the `custom_message`
-    /// field is invalid.
     ///
-    /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
+    /// Returns a [`AutoModerationBlockActionCustomMessageLimit`] if the custom message length
+    /// is invalid.
+    ///
     /// [`AutoModerationBlockActionCustomMessageLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationBlockActionCustomMessageLimit
+    /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
     pub fn action_block_message_with_explanation(mut self, custom_message: &'a str) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
             validate_auto_moderation_block_action_custom_message_limit(custom_message)?;

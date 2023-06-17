@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.15.2] - 2023-04-27
+
+### Bug Fixes
+
+- use reason in update guild sticker ([#2181](https://github.com/twilight-rs/twilight/issues/2181))
+- nullable current member nick ([#2188](https://github.com/twilight-rs/twilight/issues/2188))
+- Fix clippy up to 1.69.0 ([#2198](https://github.com/twilight-rs/twilight/issues/2198))
+
+### Build
+
+- allow simd-json 0.8 and 0.9 ([#2202](https://github.com/twilight-rs/twilight/issues/2202))
+
+### Refactor
+
+- remove get automod rule reasons ([#2165](https://github.com/twilight-rs/twilight/issues/2165))
+
+## [0.15.1] - 2023-02-26
+
+### Features
+
+- get thread members request pagination ([#2119](https://github.com/twilight-rs/twilight/issues/2119))
+- add `MessageFlags::SUPPRESS_NOTIFICATIONS` ([#2129](https://github.com/twilight-rs/twilight/issues/2129))
+- support automod custom messages ([#2161](https://github.com/twilight-rs/twilight/issues/2161))
+
+### Refactor
+
+- deprecate getreactions::exec ([#2135](https://github.com/twilight-rs/twilight/issues/2135))
+- change deny lints to warn ([#2144](https://github.com/twilight-rs/twilight/issues/2144))
+
 ## [0.15.0] - 2023-02-05
 
 ### Bug Fixes

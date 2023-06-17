@@ -39,11 +39,9 @@ impl UpdateCache for InteractionCreate {
 
                     // This should always match, because resolved members
                     // are guaranteed to have a matching resolved user
-                    if let Some((&id, member)) =
-                        &resolved.members.iter().find(|(&id, _)| id == u.id)
-                    {
+                    if let Some(member) = &resolved.members.get(&u.id) {
                         if let Some(guild_id) = self.guild_id {
-                            cache.cache_borrowed_interaction_member(guild_id, member, id);
+                            cache.cache_borrowed_interaction_member(guild_id, member, u.id);
                         }
                     }
                 }
@@ -78,7 +76,7 @@ mod tests {
                 sticker::{MessageSticker, StickerFormatType},
                 MessageFlags, MessageType,
             },
-            Message,
+            Channel, ChannelType, Message,
         },
         gateway::payload::incoming::InteractionCreate,
         guild::{MemberFlags, PartialMember, Permissions, Role},
@@ -87,7 +85,7 @@ mod tests {
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
-    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines, deprecated)]
     #[test]
     fn interaction_create() -> Result<(), ImageHashParseError> {
         let timestamp = Timestamp::from_secs(1_632_072_645).expect("non zero");
@@ -101,6 +99,43 @@ mod tests {
         cache.update(&InteractionCreate(Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
+            channel: Some(Channel {
+                bitrate: None,
+                guild_id: None,
+                id: Id::new(400),
+                kind: ChannelType::GuildText,
+                last_message_id: None,
+                last_pin_timestamp: None,
+                name: None,
+                nsfw: None,
+                owner_id: None,
+                parent_id: None,
+                permission_overwrites: None,
+                position: None,
+                rate_limit_per_user: None,
+                recipients: None,
+                rtc_region: None,
+                topic: None,
+                user_limit: None,
+                application_id: None,
+                applied_tags: None,
+                available_tags: None,
+                default_auto_archive_duration: None,
+                default_forum_layout: None,
+                default_reaction_emoji: None,
+                default_sort_order: None,
+                default_thread_rate_limit_per_user: None,
+                flags: None,
+                icon: None,
+                invitable: None,
+                managed: None,
+                member: None,
+                member_count: None,
+                message_count: None,
+                newly_created: None,
+                thread_metadata: None,
+                video_quality_mode: None,
+            }),
             channel_id: Some(Id::new(2)),
             data: Some(InteractionData::ApplicationCommand(Box::new(CommandData {
                 guild_id: None,

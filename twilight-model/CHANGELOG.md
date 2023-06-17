@@ -1,5 +1,54 @@
 # Changelog
 
+## [0.15.2] - 2023-04-27
+
+### Bug Fixes
+
+- handle clyde ai hash ([#2182](https://github.com/twilight-rs/twilight/issues/2182))
+- Fix clippy up to 1.69.0 ([#2198](https://github.com/twilight-rs/twilight/issues/2198))
+- Don't deserialize option values as `Id`'s if option type is `String` ([#2190](https://github.com/twilight-rs/twilight/issues/2190))
+
+### Documentation
+
+- fix event integration variant docs ([#2173](https://github.com/twilight-rs/twilight/issues/2173))
+
+### Features
+
+- add mention_total_limit, regex_patterns to automod ([#2184](https://github.com/twilight-rs/twilight/issues/2184))
+- add 2 new guild permissions, rename 1 ([#2180](https://github.com/twilight-rs/twilight/issues/2180))
+- add `channel` field to `Interaction` ([#2191](https://github.com/twilight-rs/twilight/issues/2191))
+- add support for voice messages ([#2196](https://github.com/twilight-rs/twilight/issues/2196))
+
+### Performance
+
+- improve image hash parsing ([#2139](https://github.com/twilight-rs/twilight/issues/2139))
+
+## [0.15.1] - 2023-02-26
+
+### Documentation
+
+- formatting of discriminator field ([#2153](https://github.com/twilight-rs/twilight/issues/2153))
+- clarify reaction type unicode values ([#2155](https://github.com/twilight-rs/twilight/issues/2155))
+- gateway close code reconnect info ([#2156](https://github.com/twilight-rs/twilight/issues/2156))
+- `next_event` close variant ([#2140](https://github.com/twilight-rs/twilight/issues/2140))
+
+### Features
+
+- add `MessageFlags::SUPPRESS_NOTIFICATIONS` ([#2129](https://github.com/twilight-rs/twilight/issues/2129))
+- stage channel message types ([#2147](https://github.com/twilight-rs/twilight/issues/2147))
+- add `managed` field to `Channel` ([#2148](https://github.com/twilight-rs/twilight/issues/2148))
+- gateway opcode sent/received categorization ([#2124](https://github.com/twilight-rs/twilight/issues/2124))
+- support automod custom messages ([#2161](https://github.com/twilight-rs/twilight/issues/2161))
+
+### Refactor
+
+- change deny lints to warn ([#2144](https://github.com/twilight-rs/twilight/issues/2144))
+- simplify closecode::can_reconnect ([#2158](https://github.com/twilight-rs/twilight/issues/2158))
+
+### Testing
+
+- tests for gateway clode codes ([#2157](https://github.com/twilight-rs/twilight/issues/2157))
+
 ## [0.15.0] - 2023-02-05
 
 ### Bug Fixes
