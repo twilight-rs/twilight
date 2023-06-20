@@ -7,13 +7,13 @@ use crate::{
         attachment::{AttachmentManager, PartialAttachment},
         Nullable, Request, TryIntoRequest,
     },
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::message::{AllowedMentions, Component, Embed},
+    channel::message::{AllowedMentions, Component, Embed, Message},
     http::attachment::Attachment,
     id::{
         marker::{ApplicationMarker, AttachmentMarker, MessageMarker},
@@ -132,7 +132,7 @@ impl<'a> UpdateFollowup<'a> {
     /// # Errors
     ///
     /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
-    /// the attachments's description is too large.
+    /// the attachments' description is too large.
     ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
@@ -313,15 +313,15 @@ impl<'a> UpdateFollowup<'a> {
     }
 
     #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(self) -> ResponseFuture<Message> {
         self.into_future()
     }
 }
 
 impl IntoFuture for UpdateFollowup<'_> {
-    type Output = Result<Response<EmptyBody>, Error>;
+    type Output = Result<Response<Message>, Error>;
 
-    type IntoFuture = ResponseFuture<EmptyBody>;
+    type IntoFuture = ResponseFuture<Message>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
