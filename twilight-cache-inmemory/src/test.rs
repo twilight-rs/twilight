@@ -403,6 +403,7 @@ pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
         public_updates_channel_id: None,
         roles: Vec::new(),
         rules_channel_id: None,
+        safety_alerts_channel_id: Some(Id::new(2)),
         splash: None,
         stage_instances: Vec::new(),
         stickers: Vec::new(),
