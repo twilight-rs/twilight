@@ -76,9 +76,9 @@ impl CommandRatelimiter {
 
     /// Waits for a permit to become available.
     pub(crate) async fn acquire(&mut self) {
-        let now = poll_fn(|cx| self.poll_ready(cx)).await;
+        poll_fn(|cx| self.poll_ready(cx)).await;
 
-        self.instants.push(now + PERIOD);
+        self.instants.push(Instant::now() + PERIOD);
     }
 
     /// Polls for readiness.
@@ -88,10 +88,10 @@ impl CommandRatelimiter {
     /// The function returns:
     ///
     /// * `Poll::Pending` if the ratelimiter is full
-    /// * `Poll::Ready(now)` if the ratelimiter is ready for a new permit.
-    pub(crate) fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Instant> {
+    /// * `Poll::Ready` if the ratelimiter is ready for a new permit.
+    pub(crate) fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<()> {
         if self.instants.len() != self.instants.capacity() {
-            return Poll::Ready(Instant::now());
+            return Poll::Ready(());
         }
 
         if !self.delay.is_elapsed() {
@@ -113,7 +113,7 @@ impl CommandRatelimiter {
             self.instants.rotate_right(used_permits);
             self.instants.truncate(used_permits);
 
-            Poll::Ready(now)
+            Poll::Ready(())
         }
     }
 }
