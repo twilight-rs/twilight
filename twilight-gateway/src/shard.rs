@@ -558,6 +558,20 @@ impl Shard {
     /// shard failed to send a message to the gateway, such as a heartbeat.
     #[tracing::instrument(fields(id = %self.id()), name = "shard", skip(self))]
     pub async fn next_message(&mut self) -> Result<Message, ReceiveMessageError> {
+        /// Actions the shard might take.
+        enum Action {
+            /// Close the gateway connection with this close frame.
+            Close(CloseFrame<'static>),
+            /// Send this command to the gateway.
+            Command(String),
+            /// Send a heartbeat command to the gateway.
+            Heartbeat,
+            /// Identify with the gateway.
+            Identify,
+            /// Handle this incoming gateway message.
+            Message(Option<Result<TungsteniteMessage, TungsteniteError>>),
+        }
+
         match self.status {
             ConnectionStatus::Disconnected {
                 close_code,
@@ -575,20 +589,6 @@ impl Shard {
                 return Err(ReceiveMessageError::from_fatally_closed(close_code));
             }
             _ => {}
-        }
-
-        /// Actions the shard might take.
-        enum Action {
-            /// Close the gateway connection with this close frame.
-            Close(CloseFrame<'static>),
-            /// Send this command to the gateway.
-            Command(String),
-            /// Send a heartbeat command to the gateway.
-            Heartbeat,
-            /// Identify with the gateway.
-            Identify,
-            /// Handle this incoming gateway message.
-            Message(Option<Result<TungsteniteMessage, TungsteniteError>>),
         }
 
         let message = loop {
