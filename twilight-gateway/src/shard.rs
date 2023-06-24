@@ -1182,8 +1182,10 @@ impl Shard {
         close_code: Option<u16>,
         reconnect_attempts: u8,
     ) -> Result<(), ReceiveMessageError> {
-        let secs = 2u8.saturating_pow(reconnect_attempts.into());
-        time::sleep(Duration::from_secs(secs.into())).await;
+        if reconnect_attempts != 0 {
+            let secs = 2u8.saturating_pow(reconnect_attempts.into());
+            time::sleep(Duration::from_secs(secs.into())).await;
+        }
 
         let maybe_gateway_url = self
             .resume_gateway_url
