@@ -577,20 +577,21 @@ impl Shard {
             _ => {}
         }
 
+        /// Actions the shard might take.
+        enum Action {
+            /// Close the gateway connection with this close frame.
+            Close(CloseFrame<'static>),
+            /// Send this command to the gateway.
+            Command(String),
+            /// Send a heartbeat command to the gateway.
+            Heartbeat,
+            /// Identify with the gateway.
+            Identify,
+            /// Handle this incoming gateway message.
+            Message(Option<Result<TungsteniteMessage, TungsteniteError>>),
+        }
+
         let message = loop {
-            /// Actions the shard might take.
-            enum Action {
-                /// Close the gateway connection with this close frame.
-                Close(CloseFrame<'static>),
-                /// Send this command to the gateway.
-                Command(String),
-                /// Send a heartbeat command to the gateway.
-                Heartbeat,
-                /// Identify with the gateway.
-                Identify,
-                /// Handle this incoming gateway message.
-                Message(Option<Result<TungsteniteMessage, TungsteniteError>>),
-            }
             let next_action = |cx: &mut Context<'_>| {
                 if !(self.status.is_disconnected() || self.status.is_fatally_closed()) {
                     if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
