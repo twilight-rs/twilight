@@ -361,7 +361,7 @@ impl Client {
     ///     .create_auto_moderation_rule(guild_id, "no darns", AutoModerationEventType::MessageSend)
     ///     .action_block_message()
     ///     .enabled(true)
-    ///     .with_keyword(&["darn"], &[], &[])
+    ///     .with_keyword(&["darn"], &["d(?:4|a)rn"], &["darn it"])
     ///     .await?;
     /// # Ok(()) }
     /// ```
