@@ -102,12 +102,6 @@ easier;
 - A calculator to calculate the permissions of a member in a guild or
 channel.
 
-### [`twilight-gateway-queue`]
-
-A trait and some implementations that are used by the gateway to ratelimit
-identify calls. Developers should prefer to use the re-exports of these
-crates through the gateway.
-
 ## Examples
 
 The following example is a template for bootstrapping a new bot using
@@ -212,7 +206,6 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
 [rust badge]: https://img.shields.io/badge/rust-1.67+-93450a.svg?style=for-the-badge&logo=rust
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
-[`twilight-gateway-queue`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_5_gateway_queue.html
 [`twilight-gateway`]: https://twilight.rs/chapter_1_crates/section_3_gateway.html
 [`twilight-http`]: https://twilight.rs/chapter_1_crates/section_2_http.html
 [`twilight-lavalink`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_3_lavalink.html

@@ -1,11 +1,7 @@
 //! User configuration for shards.
 
-use crate::{tls::TlsContainer, EventTypeFlags, Session};
-use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    sync::Arc,
-};
-use twilight_gateway_queue::{LocalQueue, Queue};
+use crate::{tls::TlsContainer, EventTypeFlags, Queue, Session};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
@@ -57,7 +53,7 @@ pub struct Config {
     /// Gateway proxy URL.
     proxy_url: Option<Box<str>>,
     /// Queue in use by the shard.
-    queue: Arc<dyn Queue>,
+    queue: Queue,
     /// Whether [outgoing message] ratelimiting is enabled.
     ///
     /// [outgoing message]: crate::Shard::send
@@ -133,7 +129,7 @@ impl Config {
     }
 
     /// Immutable reference to the queue in use by the shard.
-    pub fn queue(&self) -> &Arc<dyn Queue> {
+    pub const fn queue(&self) -> &Queue {
         &self.queue
     }
 
@@ -190,7 +186,7 @@ impl ConfigBuilder {
                 large_threshold: 50,
                 presence: None,
                 proxy_url: None,
-                queue: Arc::new(LocalQueue::new()),
+                queue: Queue::default(),
                 ratelimit_messages: true,
                 session: None,
                 tls: TlsContainer::new().unwrap(),
@@ -347,13 +343,8 @@ impl ConfigBuilder {
     }
 
     /// Set the queue to use for queueing shard sessions.
-    ///
-    /// Defaults to a [`LocalQueue`].
-    ///
-    /// Refer to the [`queue`] module for more information.
-    ///
-    /// [`queue`]: crate::queue
-    pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn queue(mut self, queue: Queue) -> Self {
         self.inner.queue = queue;
 
         self

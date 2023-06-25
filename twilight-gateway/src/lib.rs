@@ -26,6 +26,7 @@ mod inflater;
 mod json;
 mod latency;
 mod message;
+mod queue;
 mod ratelimiter;
 mod session;
 mod shard;
@@ -41,14 +42,13 @@ pub use self::{
     json::parse,
     latency::Latency,
     message::Message,
+    queue::Queue,
     ratelimiter::CommandRatelimiter,
     session::Session,
     shard::{ConnectionStatus, Shard},
 };
 pub use twilight_model::gateway::{CloseFrame, Intents, ShardId};
 
-#[doc(no_inline)]
-pub use twilight_gateway_queue as queue;
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
 

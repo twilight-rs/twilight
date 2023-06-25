@@ -3,7 +3,7 @@
 //! Multiple shards may easily be created at once, with a per shard config
 //! created from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help
 //! of the `create_` set of functions. These functions will reuse shards'
-//! TLS context and [session queue], something otherwise achieved by cloning an
+//! TLS context and [`Queue`], something otherwise achieved by cloning an
 //! existing [`Config`].
 //!
 //! # Concurrency
@@ -27,9 +27,8 @@
 //!
 //! See the [gateway-parallel] example for how to implement this.
 //!
-//! [`ConfigBuilder::queue`]: crate::ConfigBuilder::queue
 //! [gateway-parallel]: https://github.com/twilight-rs/twilight/blob/main/examples/gateway-parallel.rs
-//! [session queue]: crate::queue
+//! [`Queue`]: crate::Queue
 
 use crate::{error::ReceiveMessageError, message::Message, Config, ConfigBuilder, Shard, ShardId};
 use futures_util::{
@@ -419,7 +418,7 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
 ///
 /// ```no_run
 /// use std::{collections::HashMap, env, sync::Arc};
-/// use twilight_gateway::{queue::LocalQueue, stream, Config, Intents};
+/// use twilight_gateway::{stream, Config, Intents};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {

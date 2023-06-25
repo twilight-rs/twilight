@@ -5,7 +5,6 @@ members = [
     "twilight",
     "twilight-cache-inmemory",
     "twilight-gateway",
-    "twilight-gateway-queue",
     "twilight-http",
     "twilight-http-ratelimiting",
     "twilight-lavalink",

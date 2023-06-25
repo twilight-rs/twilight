@@ -20,7 +20,6 @@ tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 twilight-cache-inmemory = { default-features = false, path = "../twilight-cache-inmemory", version = "0.15.2" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.15.2" }
-twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.15.2" }
 twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.15.2" }
 twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.15.1" }
 twilight-lavalink = { default-features = false, path = "../twilight-lavalink", version = "0.15.1" }

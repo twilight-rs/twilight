@@ -20,11 +20,6 @@ labels:
     matcher:
       files: "twilight-gateway/**/*"
 
-  - label: "c-gateway-queue"
-    sync: true
-    matcher:
-      files: "twilight-gateway-queue/**/*"
-
   - label: "c-http"
     sync: true
     matcher:
