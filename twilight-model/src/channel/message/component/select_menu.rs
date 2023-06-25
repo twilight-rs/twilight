@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct SelectMenu {
     /// An optional list of channel types.
     ///
-    /// This option is only used for [channel select menus](SelectMenuType::Channel).
+    /// This is only applicable to [channel select menus](SelectMenuType::Channel).
     pub channel_types: Option<Vec<ChannelType>>,
     /// Developer defined identifier.
     pub custom_id: String,
@@ -17,8 +17,6 @@ pub struct SelectMenu {
     /// Defaults to `false`.
     pub disabled: bool,
     /// This select menu's type.
-    ///
-    /// [Text select menus](SelectMenuType::Text) *must* also set the `options` field.
     pub kind: SelectMenuType,
     /// Maximum number of options that may be chosen.
     pub max_values: Option<u8>,
@@ -26,7 +24,7 @@ pub struct SelectMenu {
     pub min_values: Option<u8>,
     /// A list of available options.
     ///
-    /// This value is only used and required by [text select menus](SelectMenuType::Text).
+    /// This is required by [text select menus](SelectMenuType::Text).
     pub options: Option<Vec<SelectMenuOption>>,
     /// Custom placeholder text if no option is selected.
     pub placeholder: Option<String>,
@@ -48,9 +46,6 @@ pub enum SelectMenuType {
     /// Mentionable select menus.
     Mentionable,
     /// Channel select menus.
-    ///
-    /// Select menus of this `kind` *can* use the `channel_types` field to specify which types of
-    /// channels are selectable.
     Channel,
 }
 
