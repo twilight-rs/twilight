@@ -74,15 +74,22 @@ impl CommandRatelimiter {
         })
     }
 
-    /// Returns when a ratelimit permit becomes available.
+    /// Waits for a permit to become available.
     pub(crate) async fn acquire(&mut self) {
-        poll_fn(|cx| self.poll_available(cx)).await;
+        poll_fn(|cx| self.poll_ready(cx)).await;
 
         self.instants.push(Instant::now() + PERIOD);
     }
 
-    /// Polls for the next time a permit is available.
-    pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
+    /// Polls for readiness.
+    ///
+    /// # Return value
+    ///
+    /// The function returns:
+    ///
+    /// * `Poll::Pending` if the ratelimiter is full
+    /// * `Poll::Ready` if the ratelimiter is ready for a new permit.
+    pub(crate) fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<()> {
         if self.instants.len() != self.instants.capacity() {
             return Poll::Ready(());
         }
@@ -92,16 +99,17 @@ impl CommandRatelimiter {
         }
 
         let new_deadline = self.instants[0];
-        if new_deadline > Instant::now() {
-            tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
+        let now = Instant::now();
+        if new_deadline > now {
+            tracing::debug!(duration = ?(new_deadline - now), "ratelimited");
             self.delay.as_mut().reset(new_deadline);
-
-            // Register waker.
             _ = self.delay.as_mut().poll(cx);
 
             Poll::Pending
         } else {
-            let used_permits = (self.max() - self.available()).into();
+            let elapsed_permits = self.instants.partition_point(|&elapsed| elapsed <= now);
+            let used_permits = self.instants.len() - elapsed_permits;
+
             self.instants.rotate_right(used_permits);
             self.instants.truncate(used_permits);
 
@@ -242,11 +250,11 @@ mod tests {
         // Spuriously poll after registering the waker but before the timer has
         // fired.
         poll_fn(|cx| {
-            if ratelimiter.poll_available(cx).is_ready() {
+            if ratelimiter.poll_ready(cx).is_ready() {
                 return Poll::Ready(());
             };
             let deadline = ratelimiter.delay.deadline();
-            assert!(ratelimiter.poll_available(cx).is_pending());
+            assert!(ratelimiter.poll_ready(cx).is_pending());
             assert_eq!(deadline, ratelimiter.delay.deadline(), "deadline was reset");
             Poll::Pending
         })
