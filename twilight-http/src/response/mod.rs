@@ -234,7 +234,7 @@ impl<T> Response<T> {
         let compressed = self
             .inner
             .headers()
-            .get(hyper::header::CONTENT_ENCODING)
+            .get(http::header::CONTENT_ENCODING)
             .is_some();
 
         #[cfg(not(feature = "decompression"))]
@@ -417,7 +417,7 @@ impl<'a> Iterator for HeaderIter<'a> {
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct BytesFuture {
     inner:
-        Pin<Box<dyn Future<Output = Result<Bytes, DeserializeBodyError>> + Send + Sync + 'static>>,
+        Pin<Box<dyn Future<Output = Result<Bytes, DeserializeBodyError>> + 'static>>,
 }
 
 impl BytesFuture {

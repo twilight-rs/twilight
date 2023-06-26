@@ -28,7 +28,7 @@ enum InnerPoll<T> {
 }
 
 struct Chunking {
-    future: Pin<Box<dyn Future<Output = Result<Vec<u8>, Error>> + Send + Sync + 'static>>,
+    future: Pin<Box<dyn Future<Output = Result<Vec<u8>, Error>> + 'static>>,
     status: StatusCode,
 }
 
@@ -179,7 +179,7 @@ struct RatelimitQueue {
     invalid_token: Option<Arc<AtomicBool>>,
     response_future: RawResponseFuture,
     timeout: Duration,
-    pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
+    pre_flight_check: Option<Box<dyn FnOnce() -> bool + 'static>>,
     wait_for_sender: WaitForTicketFuture,
 }
 
@@ -338,7 +338,7 @@ impl<T> ResponseFuture<T> {
     /// ```
     pub fn set_pre_flight(
         &mut self,
-        pre_flight: Box<dyn FnOnce() -> bool + Send + 'static>,
+        pre_flight: Box<dyn FnOnce() -> bool + 'static>,
     ) -> bool {
         if let ResponseFutureStage::RatelimitQueue(queue) = &mut self.stage {
             queue.pre_flight_check = Some(pre_flight);

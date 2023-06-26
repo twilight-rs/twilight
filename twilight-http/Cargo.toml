@@ -44,7 +44,8 @@ getrandom = { version = "0.2", features = ["js"] }
 #worker-sys = "0.0.7"
 
 [features]
-default = ["decompression", "rustls-native-roots"]
+default = ["rustls-native-roots"]
+# default = ["decompression", "rustls-native-roots"]
 decompression = ["dep:brotli"]
 native = ["dep:hyper-tls"]
 rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]

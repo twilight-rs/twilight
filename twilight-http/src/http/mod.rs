@@ -3,7 +3,7 @@ use crate::{Error, error::ErrorType};
 #[cfg(not(target_arch = "wasm32"))]
 mod hyper;
 #[cfg(not(target_arch = "wasm32"))]
-pub use super::hyper::{HttpClient, RawRequest, RawResponse, RawResponseFuture};
+pub use self::hyper::{HttpClient, RawRequest, RawResponse, RawResponseFuture};
 
 #[cfg(target_arch = "wasm32")]
 mod reqwest;
@@ -63,7 +63,7 @@ impl RawRequestBuilder {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub(super) fn build(self) -> Result<tmp::RawRequest, Error> {
+    pub(super) fn build(self) -> Result<RawRequest, Error> {
         let mut builder = ::hyper::Request::builder().method(self.method).uri(self.uri);
         if let Some(headers) = builder.headers_mut() {
             *headers = self.headers;
@@ -74,7 +74,7 @@ impl RawRequestBuilder {
                 source: Some(Box::new(source)),
             }
         })?;
-        Ok(tmp::RawRequest { hyper })
+        Ok(RawRequest { hyper })
     }
 
     #[cfg(target_arch = "wasm32")]
