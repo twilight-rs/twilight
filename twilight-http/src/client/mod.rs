@@ -2657,7 +2657,7 @@ impl Client {
 
             ResponseFuture::ratelimit(invalid_token, inner, self.timeout, tx_future)
         } else {
-            ResponseFuture::new(Box::pin(time::timeout(self.timeout, inner)), invalid_token)
+            ResponseFuture::new(Box::pin(inner), invalid_token)
         })
     }
 }

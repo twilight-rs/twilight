@@ -72,7 +72,7 @@ impl Failed {
 }
 
 struct InFlight {
-    future: Pin<Box<Timeout<RawResponseFuture>>>,
+    future: Pin<Box<RawResponseFuture>>,
     invalid_token: Option<Arc<AtomicBool>>,
     tx: Option<TicketSender>,
 }
@@ -80,8 +80,8 @@ struct InFlight {
 impl InFlight {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
         let resp = match Future::poll(Pin::new(&mut self.future), cx) {
-            Poll::Ready(Ok(Ok(resp))) => resp,
-            Poll::Ready(Ok(Err(_source))) => {
+            Poll::Ready(Ok(resp)) => resp,
+            Poll::Ready(Err(_source)) => {
                 return InnerPoll::Ready(Err(Error {
                     kind: ErrorType::RequestError,
                     source: None,
@@ -93,12 +93,12 @@ impl InFlight {
             //         source: Some(Box::new(source)),
             //     }))
             // }
-            Poll::Ready(Err(source)) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RequestTimedOut,
-                    source: Some(Box::new(source)),
-                }))
-            }
+            // Poll::Ready(Err(source)) => {
+            //     return InnerPoll::Ready(Err(Error {
+            //         kind: ErrorType::RequestTimedOut,
+            //         source: Some(Box::new(source)),
+            //     }))
+            // }
             Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::InFlight(self)),
         };
 
@@ -206,7 +206,7 @@ impl RatelimitQueue {
         }
 
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
-            future: Box::pin(time::timeout(self.timeout, self.response_future)),
+            future: Box::pin(self.response_future),
             invalid_token: self.invalid_token,
             tx: Some(tx),
         }))
@@ -270,7 +270,7 @@ pub struct ResponseFuture<T> {
 
 impl<T> ResponseFuture<T> {
     pub(crate) const fn new(
-        future: Pin<Box<Timeout<RawResponseFuture>>>,
+        future: Pin<Box<RawResponseFuture>>,
         invalid_token: Option<Arc<AtomicBool>>,
     ) -> Self {
         Self {
