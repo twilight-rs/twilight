@@ -10,11 +10,6 @@ mod reqwest;
 #[cfg(target_arch = "wasm32")]
 pub use self::reqwest::{HttpClient, RawRequest, RawResponseFuture, RawResponse};
 
-// #[cfg(target_arch = "wasm32")]
-// mod worker;
-// #[cfg(target_arch = "wasm32")]
-// pub use self::worker::{HttpClient, RawRequest, RawResponseFuture, RawResponse};
-
 use http::{Method, HeaderMap, HeaderValue, Uri};
 
 pub struct RawRequestBuilder {
