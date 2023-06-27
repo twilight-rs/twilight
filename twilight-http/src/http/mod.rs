@@ -10,9 +10,10 @@ mod reqwest;
 #[cfg(target_arch = "wasm32")]
 pub use self::reqwest::{HttpClient, RawRequest, RawResponseFuture, RawResponse};
 
+// #[cfg(target_arch = "wasm32")]
 // mod worker;
-
-// pub use self::worker::{HttpClient, RawRequestBuilder, RawRequest, RawResponseFuture, RawResponse};
+// #[cfg(target_arch = "wasm32")]
+// pub use self::worker::{HttpClient, RawRequest, RawResponseFuture, RawResponse};
 
 use http::{Method, HeaderMap, HeaderValue, Uri};
 
@@ -86,4 +87,36 @@ impl RawRequestBuilder {
 
         Ok(reqwest::RawRequest { req })
     }
+
+    // #[cfg(target_arch = "wasm32")]
+    // pub fn build(self) -> Result<RawRequest, Error> {
+    //     use ::worker::{
+    //         js_sys,
+    //         wasm_bindgen::{JsCast, JsValue},
+    //         wasm_bindgen_futures::JsFuture,
+    //         Headers, Request, RequestInit, Response,
+    //     };
+
+    //     let mut init = RequestInit::new();
+    //     let body = std::str::from_utf8(&self.body).map_err(|source| Error {
+    //         kind: ErrorType::BuildingRequest,
+    //         source: Some(Box::new(source)),
+    //     })?;
+    //     init.body = Some(JsValue::from_str(body));
+
+    //     let headers = Headers::from(&self.headers);
+    //     init.headers = headers;
+
+    //     let method = ::worker::Method::from(self.method.to_string());
+    //     init.method = method;
+
+    //     let request =
+    //         Request::new_with_init(&self.uri.to_string(), &init).map_err(|_source| Error {
+    //             kind: ErrorType::BuildingRequest,
+    //             source: None,
+    //         })?;
+
+    //     Ok(RawRequest { request })
+    // }
+
 }

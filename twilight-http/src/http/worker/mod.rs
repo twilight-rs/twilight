@@ -11,77 +11,9 @@ use worker::{
     wasm_bindgen_futures::JsFuture,
     Headers, Request, RequestInit, Response,
 };
+use worker_sys::web_sys::WorkerGlobalScope;
 
 use crate::{error::ErrorType, Error, response::{BytesFuture, StatusCode}};
-
-#[derive(Debug)]
-pub struct RawRequestBuilder {
-    method: Method,
-    uri: Uri,
-    headers: HeaderMap<HeaderValue>,
-    body: Vec<u8>,
-}
-
-impl RawRequestBuilder {
-    pub fn new() -> Self {
-        RawRequestBuilder {
-            method: Method::GET,
-            uri: Uri::default(),
-            headers: HeaderMap::default(),
-            body: Vec::new(),
-        }
-    }
-
-    pub fn method(mut self, method: Method) -> Self {
-        self.method = method;
-
-        self
-    }
-
-    pub fn uri(mut self, uri: &str) -> Result<Self, Error> {
-        let parsed = Uri::try_from(uri).map_err(|source| Error {
-            kind: ErrorType::BuildingRequest,
-            source: Some(Box::new(source)),
-        })?;
-
-        self.uri = parsed;
-
-        Ok(self)
-    }
-
-    pub fn headers_mut(&mut self) -> Option<&mut HeaderMap<HeaderValue>> {
-        Some(&mut self.headers)
-    }
-
-    pub fn body(mut self, body: Vec<u8>) -> Self {
-        self.body = body;
-
-        self
-    }
-
-    pub fn build(self) -> Result<RawRequest, Error> {
-        let mut init = RequestInit::new();
-        let body = std::str::from_utf8(&self.body).map_err(|source| Error {
-            kind: ErrorType::BuildingRequest,
-            source: Some(Box::new(source)),
-        })?;
-        init.body = Some(JsValue::from_str(body));
-
-        let headers = Headers::from(&self.headers);
-        init.headers = headers;
-
-        let method = worker::Method::from(self.method.to_string());
-        init.method = method;
-
-        let request =
-            Request::new_with_init(&self.uri.to_string(), &init).map_err(|_source| Error {
-                kind: ErrorType::BuildingRequest,
-                source: None,
-            })?;
-
-        Ok(RawRequest { request })
-    }
-}
 
 #[derive(Debug)]
 pub struct RawRequest {
@@ -97,8 +29,8 @@ impl HttpClient {
     }
 
     pub fn request(&self, req: RawRequest) -> RawResponseFuture {
-        let inner = fetch_with_request(&req.request);
-        RawResponseFuture { inner }
+        let inner = fetch_with_request(req.request);
+        RawResponseFuture { inner: Box::new(inner) }
     }
 }
 
@@ -108,7 +40,14 @@ impl HttpClient {
 
 #[derive(Debug)]
 pub struct RawResponseFuture {
-    inner: JsFuture,
+    inner: Box<dyn Future<Output = Result<Response, ::worker::Error>>>,
+}
+
+impl RawResponseFuture {
+    fn inner(&mut self)
+             -> &mut impl Future<Output = Result<Response, ::worker::Error>> {
+        self.inner
+    }
 }
 
 impl Future for RawResponseFuture {
@@ -140,23 +79,17 @@ impl RawResponse {
     }
 
     pub fn bytes(self, compressed: bool) -> BytesFuture {
-        todo!()
+        BytesFuture::from_worker(self.resp)
     }
 
     pub fn status(&self) -> StatusCode {
-        todo!()
+        StatusCode::new(self.resp.status_code())
     }
 
 }
 
-use worker_sys::{RequestInit as EdgeRequestInit, Response as EdgeResponse, WorkerGlobalScope};
-fn fetch_with_request(request: &Request) -> JsFuture {
-    let mut init = EdgeRequestInit::new();
-
-    let worker: WorkerGlobalScope = js_sys::global().unchecked_into();
-    let req = request.inner();
-    let promise = worker.fetch_with_request_and_init(req, &init);
-    JsFuture::from(promise)
+async fn fetch_with_request(request: Request) -> Result<Response, Error> {
+    worker::Fetch::Request(request).send().await
 }
 
 fn from_result(res: Result<JsValue, JsValue>) -> Result<RawResponse, Error> {
@@ -169,10 +102,10 @@ fn from_result(res: Result<JsValue, JsValue>) -> Result<RawResponse, Error> {
     }
 }
 
-fn to_response(resp: JsValue) -> Result<Response, Error> {
-    let edge_response: EdgeResponse = resp.dyn_into().map_err(|_source| Error {
-        kind: ErrorType::RequestError,
-        source: None,
-    })?;
-    Ok(edge_response.into())
-}
+// fn to_response(resp: JsValue) -> Result<Response, Error> {
+//     let edge_response: Response = resp.dyn_into().map_err(|_source| Error {
+//         kind: ErrorType::RequestError,
+//         source: None,
+//     })?;
+//     Ok(edge_response.into())
+// }

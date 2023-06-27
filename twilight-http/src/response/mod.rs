@@ -444,6 +444,21 @@ impl BytesFuture {
         }
     }
 
+    // #[cfg(target_arch = "wasm32")]
+    // pub(crate) fn from_worker(response: ::worker::Response) -> Self {
+    //     let fut = async move {
+    //         response.bytes().await
+    //             .map_err(|source| DeserializeBodyError {
+    //                 kind: DeserializeBodyErrorType::Chunking,
+    //                 source: None,
+    //             })
+    //     };
+
+    //     BytesFuture {
+    //         inner: Box::pin(fut),
+    //     }
+    // }
+
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn from_reqwest(response: reqwest::Response) -> Self {
         let fut = async move {
