@@ -30,8 +30,8 @@
 //!   which is then forwarded via [`Shard::close`]; or
 //!   b. the interval for the shard to send the next heartbeat occurs, in which
 //!   case [`Shard::heartbeat`] is called; or
-//!   c. the background identify queue task finishes, in which case
-//!   [`Shard::send`] is called with the identify payload; or
+//!   c. the identify receiver is ready, in which case [`Shard::send`] is called
+//!   with the identify payload; or
 //!   d. the shard receives a command from the user over the [user channel],
 //!   which is then forwarded via [`Shard::send`]; or
 //!   e. the shard receives a message from Discord via the websocket connection.
@@ -86,7 +86,7 @@ use std::{
     task::{Context, Poll},
 };
 use tokio::{
-    task::JoinHandle,
+    sync::oneshot,
     time::{self, Duration, Instant, Interval, MissedTickBehavior},
 };
 use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
@@ -367,8 +367,8 @@ pub struct Shard {
     heartbeat_interval_event: bool,
     /// ID of the shard.
     id: ShardId,
-    /// Identify queue background task handle.
-    identify_handle: Option<JoinHandle<()>>,
+    /// Identify queue receiver.
+    identify_rx: Option<oneshot::Receiver<()>>,
     /// Zlib decompressor.
     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
     inflater: Inflater,
@@ -416,7 +416,7 @@ impl Shard {
             heartbeat_interval: None,
             heartbeat_interval_event: false,
             id: shard_id,
-            identify_handle: None,
+            identify_rx: None,
             #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
             inflater: Inflater::new(),
             next_action: None,
@@ -555,7 +555,7 @@ impl Shard {
     ///
     /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
     /// shard failed to send a message to the gateway, such as a heartbeat.
-    #[tracing::instrument(fields(id = %self.id()), name = "shard", skip(self))]
+    #[tracing::instrument(fields(id = %self.id), name = "shard", skip(self))]
     pub async fn next_message(&mut self) -> Result<Message, ReceiveMessageError> {
         /// Actions the shard might take.
         enum Action {
@@ -640,13 +640,18 @@ impl Shard {
                     .as_mut()
                     .map_or(false, |ratelimiter| ratelimiter.poll_ready(cx).is_pending());
 
-                if !ratelimited
-                    && self
-                        .identify_handle
+                if !ratelimited {
+                    if let Some(Poll::Ready(canceled)) = self
+                        .identify_rx
                         .as_mut()
-                        .map_or(false, |handle| Pin::new(handle).poll(cx).is_ready())
-                {
-                    return Poll::Ready(Action::Identify);
+                        .map(|rx| Pin::new(rx).poll(cx).map(|r| r.is_err()))
+                    {
+                        if !canceled {
+                            self.identify_rx = None;
+                            return Poll::Ready(Action::Identify);
+                        }
+                        self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
+                    }
                 }
 
                 if !ratelimited && self.status.is_identified() {
@@ -755,8 +760,6 @@ impl Shard {
                     continue;
                 }
                 Action::Identify => {
-                    self.identify_handle = None;
-
                     tracing::debug!("sending identify");
                     let identify = Identify::new(IdentifyInfo {
                         compress: false,
@@ -768,7 +771,7 @@ impl Shard {
                             .identify_properties()
                             .cloned()
                             .unwrap_or_else(default_identify_properties),
-                        shard: Some(self.id()),
+                        shard: Some(self.id),
                         token: self.config.token().to_owned(),
                     });
                     let json =
@@ -1002,13 +1005,14 @@ impl Shard {
         // May not send any additional WebSocket messages.
         self.heartbeat_interval = None;
         self.ratelimiter = None;
+        // Abort identify.
+        self.identify_rx = None;
         // Not resuming, drop session and resume URL.
         // https://discord.com/developers/docs/topics/gateway#initiating-a-disconnect
         if matches!(initiator, CloseInitiator::Shard(1000 | 1001)) {
             self.resume_gateway_url = None;
             self.session = None;
         }
-        // Avoid setting the status to FatallyClosed should it match for Shard initiated disconnect.
         self.status = match initiator {
             CloseInitiator::Gateway(close_code) => ConnectionStatus::from_close_code(close_code),
             _ => ConnectionStatus::Disconnected {
@@ -1130,24 +1134,7 @@ impl Shard {
                 if self.session.is_some() {
                     self.next_action = Some(NextAction::Resume);
                 } else {
-                    // Can not use `MessageSender` since it is only polled after
-                    // the shard is identified.
-
-                    // If the JoinHandle is finished, or there is none (def: true), we create a new one
-                    if self
-                        .identify_handle
-                        .as_ref()
-                        .map_or(true, JoinHandle::is_finished)
-                    {
-                        self.identify_handle = Some(tokio::spawn({
-                            let shard_id = self.id();
-                            let queue = self.config().queue().clone();
-
-                            async move {
-                                queue.request([shard_id.number(), shard_id.total()]).await;
-                            }
-                        }));
-                    }
+                    self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
                 }
             }
             Some(OpCode::InvalidSession) => {

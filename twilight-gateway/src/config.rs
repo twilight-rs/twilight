@@ -1,11 +1,14 @@
 //! User configuration for shards.
 
-use crate::{tls::TlsContainer, EventTypeFlags, Session};
+use crate::{
+    queue::{InMemoryQueue, Queue},
+    tls::TlsContainer,
+    EventTypeFlags, Session,
+};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::Arc,
 };
-use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
@@ -56,7 +59,7 @@ pub struct Config {
     /// Gateway proxy URL.
     proxy_url: Option<Box<str>>,
     /// Queue in use by the shard.
-    queue: Arc<dyn Queue>,
+    queue: Arc<dyn Queue + Send + Sync>,
     /// Whether [outgoing message] ratelimiting is enabled.
     ///
     /// [outgoing message]: crate::Shard::send
@@ -132,7 +135,7 @@ impl Config {
     }
 
     /// Immutable reference to the queue in use by the shard.
-    pub fn queue(&self) -> &Arc<dyn Queue> {
+    pub fn queue(&self) -> &Arc<dyn Queue + Send + Sync> {
         &self.queue
     }
 
@@ -189,7 +192,7 @@ impl ConfigBuilder {
                 large_threshold: 50,
                 presence: None,
                 proxy_url: None,
-                queue: Arc::new(LocalQueue::new()),
+                queue: Arc::new(InMemoryQueue::default()),
                 ratelimit_messages: true,
                 session: None,
                 tls: TlsContainer::new().unwrap(),
@@ -348,12 +351,11 @@ impl ConfigBuilder {
 
     /// Set the queue to use for queueing shard sessions.
     ///
-    /// Defaults to a [`LocalQueue`].
+    /// Defaults to [`InMemoryQueue`] with its default settings.
     ///
-    /// Refer to the [`queue`] module for more information.
-    ///
-    /// [`queue`]: crate::queue
-    pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
+    /// Note that [`InMemoryQueue`] with a `max_concurrency` of `0` effectively
+    /// turns itself into a no-op.
+    pub fn queue(mut self, queue: Arc<dyn Queue + Send + Sync>) -> Self {
         self.inner.queue = queue;
 
         self
