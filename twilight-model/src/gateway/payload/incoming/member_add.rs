@@ -62,6 +62,7 @@ mod tests {
                     banner: None,
                     bot: false,
                     discriminator: 987,
+                    global_name: None,
                     name: "ab".to_string(),
                     mfa_enabled: None,
                     locale: None,

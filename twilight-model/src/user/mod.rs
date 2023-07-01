@@ -131,6 +131,9 @@ pub struct User {
     pub bot: bool,
     /// Discriminator used to differentiate people with the same username.
     ///
+    /// Note: Users that have migrated to the new username system will have a
+    /// discriminator of `'0'`.
+    ///
     /// # Formatting
     ///
     /// Because discriminators are stored as an integer they're not in the
@@ -151,6 +154,9 @@ pub struct User {
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
+    /// The user's display name, if it is set. For bots, this is the application name
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub global_name: Option<String>,
     pub id: Id<UserMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
@@ -201,7 +207,7 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 14,
+                len: 15,
             },
             Token::Str("accent_color"),
             Token::None,
@@ -221,6 +227,9 @@ mod tests {
             Token::Str("flags"),
             Token::Some,
             Token::U64(131_584),
+            Token::Str("global_name"),
+            Token::Some,
+            Token::Str("test"),
             Token::Str("id"),
             Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
@@ -249,7 +258,7 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 15,
+                len: 16,
             },
             Token::Str("accent_color"),
             Token::None,
@@ -269,6 +278,9 @@ mod tests {
             Token::Str("flags"),
             Token::Some,
             Token::U64(131_584),
+            Token::Str("global_name"),
+            Token::Some,
+            Token::Str("test"),
             Token::Str("id"),
             Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
@@ -315,6 +327,7 @@ mod tests {
             discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
+            global_name: Some("test".to_owned()),
             id: Id::new(1),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
@@ -345,6 +358,7 @@ mod tests {
             discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
+            global_name: Some("test".to_owned()),
             id: Id::new(1),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
