@@ -72,6 +72,8 @@ bitflags! {
         const VIEW_CREATOR_MONETIZATION_ANALYTICS = 1 << 41;
         /// Allows for using soundboard in a voice channel
         const USE_SOUNDBOARD = 1 << 42;
+        /// Allows the usage of custom soundboard sounds from other servers
+        const USE_EXTERNAL_SOUNDS = 1 << 45;
         /// Allows sending voice messages
         const SEND_VOICE_MESSAGES = 1 << 46;
     }
@@ -201,6 +203,7 @@ mod tests {
         1 << 41
     );
     const_assert_eq!(Permissions::USE_SOUNDBOARD.bits(), 1 << 42);
+    const_assert_eq!(Permissions::USE_EXTERNAL_SOUNDS.bits(), 1 << 45);
 
     #[test]
     fn serde() {

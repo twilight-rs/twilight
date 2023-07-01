@@ -124,9 +124,10 @@ impl Future for NextMessageFuture<'_> {
             return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
         }
 
-        let ratelimited = this.ratelimiter.as_mut().map_or(false, |ratelimiter| {
-            ratelimiter.poll_available(cx).is_pending()
-        });
+        let ratelimited = this
+            .ratelimiter
+            .as_mut()
+            .map_or(false, |ratelimiter| ratelimiter.poll_ready(cx).is_pending());
 
         // Must poll to register waker.
         if !ratelimited
