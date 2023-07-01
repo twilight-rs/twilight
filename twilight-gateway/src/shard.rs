@@ -607,9 +607,10 @@ impl Shard {
                     return Poll::Ready(Action::Heartbeat);
                 }
 
-                let ratelimited = self.ratelimiter.as_mut().map_or(false, |ratelimiter| {
-                    ratelimiter.poll_ready(cx).is_pending()
-                });
+                let ratelimited = self
+                    .ratelimiter
+                    .as_mut()
+                    .map_or(false, |ratelimiter| ratelimiter.poll_ready(cx).is_pending());
 
                 if !ratelimited
                     && self
