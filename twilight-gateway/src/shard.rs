@@ -608,7 +608,7 @@ impl Shard {
                 }
 
                 let ratelimited = self.ratelimiter.as_mut().map_or(false, |ratelimiter| {
-                    ratelimiter.poll_available(cx).is_pending()
+                    ratelimiter.poll_ready(cx).is_pending()
                 });
 
                 if !ratelimited
