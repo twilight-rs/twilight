@@ -20,12 +20,6 @@ pub enum ChannelType {
     GuildDirectory,
     /// Channel that can only contain threads.
     GuildForum,
-    /// Channel the can only contain threads with media content.
-    ///
-    /// See the [help center article] for more information.
-    ///
-    /// [help center article]: https://creator-support.discord.com/hc/en-us/articles/14346342766743
-    GuildMedia,
     Unknown(u8),
 }
 
@@ -44,7 +38,6 @@ impl From<u8> for ChannelType {
             13 => ChannelType::GuildStageVoice,
             14 => ChannelType::GuildDirectory,
             15 => ChannelType::GuildForum,
-            16 => ChannelType::GuildMedia,
             unknown => ChannelType::Unknown(unknown),
         }
     }
@@ -65,7 +58,6 @@ impl From<ChannelType> for u8 {
             ChannelType::GuildStageVoice => 13,
             ChannelType::GuildDirectory => 14,
             ChannelType::GuildForum => 15,
-            ChannelType::GuildMedia => 16,
             ChannelType::Unknown(unknown) => unknown,
         }
     }
@@ -85,7 +77,6 @@ impl ChannelType {
     /// - [`GuildVoice`][`Self::GuildVoice`]
     /// - [`PublicThread`][`Self::PublicThread`]
     /// - [`PrivateThread`][`Self::PrivateThread`]
-    /// - [`GuildMedia`][`Self::GuildMedia`]
     pub const fn is_guild(self) -> bool {
         matches!(
             self,
@@ -98,7 +89,6 @@ impl ChannelType {
                 | Self::GuildStageVoice
                 | Self::GuildText
                 | Self::GuildVoice
-                | Self::GuildMedia
         )
     }
 
@@ -131,7 +121,6 @@ impl ChannelType {
             Self::Private => "Private",
             Self::PrivateThread => "PrivateThread",
             Self::PublicThread => "PublicThread",
-            Self::GuildMedia => "GuildMedia",
             Self::Unknown(_) => "Unknown",
         }
     }
@@ -152,7 +141,6 @@ mod tests {
     const_assert!(ChannelType::GuildStageVoice.is_guild());
     const_assert!(ChannelType::GuildText.is_guild());
     const_assert!(ChannelType::GuildVoice.is_guild());
-    const_assert!(ChannelType::GuildMedia.is_guild());
 
     const_assert!(ChannelType::AnnouncementThread.is_thread());
     const_assert!(ChannelType::PublicThread.is_thread());
@@ -171,8 +159,6 @@ mod tests {
         serde_test::assert_tokens(&ChannelType::PrivateThread, &[Token::U8(12)]);
         serde_test::assert_tokens(&ChannelType::GuildStageVoice, &[Token::U8(13)]);
         serde_test::assert_tokens(&ChannelType::GuildDirectory, &[Token::U8(14)]);
-        serde_test::assert_tokens(&ChannelType::GuildForum, &[Token::U8(15)]);
-        serde_test::assert_tokens(&ChannelType::GuildMedia, &[Token::U8(16)]);
         serde_test::assert_tokens(&ChannelType::Unknown(99), &[Token::U8(99)]);
     }
 
@@ -189,7 +175,6 @@ mod tests {
         assert_eq!("Private", ChannelType::Private.name());
         assert_eq!("PrivateThread", ChannelType::PrivateThread.name());
         assert_eq!("PublicThread", ChannelType::PublicThread.name());
-        assert_eq!("GuildMedia", ChannelType::GuildMedia.name());
         assert_eq!("Unknown", ChannelType::Unknown(99).name());
     }
 }
