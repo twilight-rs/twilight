@@ -6,7 +6,7 @@ use std::{
 };
 use twilight_model::channel::message::component::{
     ActionRow, Button, ButtonStyle, Component, ComponentType, SelectMenu, SelectMenuOption,
-    TextInput,
+    SelectMenuType, TextInput,
 };
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -259,6 +259,9 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&SELECT_MAXIMUM_VALUES_LIMIT, f)
             }
+            ComponentValidationErrorType::SelectOptionsMissing => {
+                f.write_str("a text select menu doesn't specify the required options field")
+            }
             ComponentValidationErrorType::SelectOptionDescriptionLength { chars } => {
                 f.write_str("a select menu option's description is ")?;
                 Display::fmt(&chars, f)?;
@@ -399,6 +402,10 @@ pub enum ComponentValidationErrorType {
         /// Number of options that were provided.
         count: usize,
     },
+    /// The `options` field is `None` for a [text select menu][text-select].
+    ///
+    /// [text-select]: SelectMenuType::Text
+    SelectOptionsMissing,
     /// Number of select menu options provided is larger than
     /// [the maximum][`SELECT_OPTION_COUNT`].
     SelectOptionCount {
@@ -635,7 +642,25 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 /// [`SelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
 pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&select_menu.custom_id)?;
-    self::component_select_options(&select_menu.options)?;
+
+    // There aren't any requirements for channel_types that we could validate here
+    if let SelectMenuType::Text = &select_menu.kind {
+        let options = select_menu
+            .options
+            .as_ref()
+            .ok_or(ComponentValidationError {
+                kind: ComponentValidationErrorType::SelectOptionsMissing,
+            })?;
+        for option in options {
+            component_select_option_label(&option.label)?;
+            component_select_option_value(&option.value)?;
+
+            if let Some(description) = option.description.as_ref() {
+                component_option_description(description)?;
+            }
+        }
+        component_select_options(options)?;
+    }
 
     if let Some(placeholder) = select_menu.placeholder.as_ref() {
         self::component_select_placeholder(placeholder)?;
@@ -647,15 +672,6 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 
     if let Some(min_values) = select_menu.min_values {
         self::component_select_min_values(usize::from(min_values))?;
-    }
-
-    for option in &select_menu.options {
-        self::component_select_option_label(&option.label)?;
-        self::component_select_option_value(&option.value)?;
-
-        if let Some(description) = option.description.as_ref() {
-            self::component_option_description(description)?;
-        }
     }
 
     Ok(())
@@ -1052,7 +1068,7 @@ mod tests {
     use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
-    use twilight_model::channel::message::ReactionType;
+    use twilight_model::channel::message::{component::SelectMenuType, ReactionType};
 
     assert_fields!(ComponentValidationErrorType::ActionRowComponentCount: count);
     assert_fields!(ComponentValidationErrorType::ComponentCount: count);
@@ -1092,17 +1108,19 @@ mod tests {
         };
 
         let select_menu = SelectMenu {
+            channel_types: None,
             custom_id: "custom id 2".into(),
             disabled: false,
+            kind: SelectMenuType::Text,
             max_values: Some(2),
             min_values: Some(1),
-            options: Vec::from([SelectMenuOption {
+            options: Some(Vec::from([SelectMenuOption {
                 default: true,
                 description: Some("Book 1 of the Expanse".into()),
                 emoji: None,
                 label: "Leviathan Wakes".into(),
                 value: "9780316129084".into(),
-            }]),
+            }])),
             placeholder: Some("Choose a book".into()),
         };
 
