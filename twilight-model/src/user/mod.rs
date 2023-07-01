@@ -108,7 +108,7 @@ impl Display for DiscriminatorDisplay {
         //
         // If the value is [1000, u16::MAX] then we don't need to pad.
         match self.0 {
-            0..=9 => f.write_str("000")?,
+            1..=9 => f.write_str("000")?,
             10..=99 => f.write_str("00")?,
             100..=999 => f.write_str("0")?,
             _ => {}
@@ -154,7 +154,7 @@ pub struct User {
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
-    /// The user's display name, if it is set. For bots, this is the application name
+    /// The user's global display name, if it is set. For bots, this is the application name
     #[serde(skip_serializing_if = "Option::is_none")]
     pub global_name: Option<String>,
     pub id: Id<UserMarker>,
@@ -315,6 +315,7 @@ mod tests {
         assert_eq!("0033", DiscriminatorDisplay::new(33).to_string());
         assert_eq!("0333", DiscriminatorDisplay::new(333).to_string());
         assert_eq!("3333", DiscriminatorDisplay::new(3333).to_string());
+        assert_eq!("0", DiscriminatorDisplay::new(0).to_string());
     }
 
     #[test]
@@ -346,6 +347,37 @@ mod tests {
         // may have this due to being a more compact memory representation of a
         // discriminator.
         serde_test::assert_de_tokens(&value, &user_tokens(Token::U64(1)));
+    }
+
+    #[test]
+    fn user_no_discriminator() {
+        let value = User {
+            accent_color: None,
+            avatar: Some(image_hash::AVATAR),
+            banner: Some(image_hash::BANNER),
+            bot: false,
+            discriminator: 0,
+            email: Some("address@example.com".to_owned()),
+            flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
+            global_name: Some("test".to_owned()),
+            id: Id::new(1),
+            locale: Some("en-us".to_owned()),
+            mfa_enabled: Some(true),
+            name: "test".to_owned(),
+            premium_type: Some(PremiumType::Nitro),
+            public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
+            system: None,
+            verified: Some(true),
+        };
+
+        // Deserializing a user with a string discriminator (which Discord
+        // provides)
+        serde_test::assert_tokens(&value, &user_tokens(Token::Str("0")));
+
+        // Deserializing a user with an integer discriminator. Userland code
+        // may have this due to being a more compact memory representation of a
+        // discriminator.
+        serde_test::assert_de_tokens(&value, &user_tokens(Token::U64(0)));
     }
 
     #[test]
