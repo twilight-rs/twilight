@@ -132,7 +132,7 @@ pub struct User {
     /// Discriminator used to differentiate people with the same username.
     ///
     /// Note: Users that have migrated to the new username system will have a
-    /// discriminator of `'0'`.
+    /// discriminator of `0`.
     ///
     /// # Formatting
     ///
@@ -154,7 +154,7 @@ pub struct User {
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
-    /// The user's global display name, if it is set. For bots, this is the application name
+    /// User's global display name, if set. For bots, this is the application name
     #[serde(skip_serializing_if = "Option::is_none")]
     pub global_name: Option<String>,
     pub id: Id<UserMarker>,
@@ -370,13 +370,10 @@ mod tests {
             verified: Some(true),
         };
 
-        // Deserializing a user with a string discriminator (which Discord
-        // provides)
+        // Users migrated to the new username system will have a placeholder discriminator of 0,
+        // You can check if a user has migrated by seeing if their discriminator is 0.
+        // Read more here: https://discord.com/developers/docs/change-log#identifying-migrated-users
         serde_test::assert_tokens(&value, &user_tokens(Token::Str("0")));
-
-        // Deserializing a user with an integer discriminator. Userland code
-        // may have this due to being a more compact memory representation of a
-        // discriminator.
         serde_test::assert_de_tokens(&value, &user_tokens(Token::U64(0)));
     }
 
