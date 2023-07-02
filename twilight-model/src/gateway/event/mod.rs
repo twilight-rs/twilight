@@ -174,13 +174,7 @@ pub enum Event {
 }
 
 impl Event {
-    /// Retrieve the guild ID of an event if it took place in a guild.
-    ///
-    /// While events such as [`MessageDelete`] will never include a guild ID, events
-    /// such as [`BanAdd`] and only some [`Channel`] related events will include
-    /// one. Guild variants will include a guild ID while DM Channels don't.
-    ///
-    /// [`Channel`]: crate::channel::Channel
+    /// Guild ID of the event, if available.
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Event::AutoModerationActionExecution(e) => Some(e.guild_id),
@@ -191,6 +185,7 @@ impl Event {
             Event::BanRemove(e) => Some(e.guild_id),
             Event::ChannelCreate(e) => e.0.guild_id,
             Event::ChannelDelete(e) => e.0.guild_id,
+            Event::ChannelPinsUpdate(e) => e.guild_id,
             Event::ChannelUpdate(e) => e.0.guild_id,
             Event::CommandPermissionsUpdate(e) => Some(e.0.guild_id),
             Event::GuildAuditLogEntryCreate(e) => e.0.guild_id,
@@ -216,6 +211,9 @@ impl Event {
             Event::MemberRemove(e) => Some(e.guild_id),
             Event::MemberUpdate(e) => Some(e.guild_id),
             Event::MessageCreate(e) => e.0.guild_id,
+            Event::MessageDelete(e) => e.guild_id,
+            Event::MessageDeleteBulk(e) => e.guild_id,
+            Event::MessageUpdate(e) => e.guild_id,
             Event::PresenceUpdate(e) => Some(e.0.guild_id),
             Event::ReactionAdd(e) => e.0.guild_id,
             Event::ReactionRemove(e) => e.0.guild_id,
@@ -237,17 +235,13 @@ impl Event {
             Event::VoiceServerUpdate(e) => Some(e.guild_id),
             Event::VoiceStateUpdate(e) => e.0.guild_id,
             Event::WebhooksUpdate(e) => Some(e.guild_id),
-            Event::ChannelPinsUpdate(_)
-            | Event::GatewayClose(_)
+            Event::GatewayClose(_)
             | Event::GatewayHeartbeat(_)
             | Event::GatewayHeartbeatAck
             | Event::GatewayHello(_)
             | Event::GatewayInvalidateSession(_)
             | Event::GatewayReconnect
             | Event::GiftCodeUpdate
-            | Event::MessageDelete(_)
-            | Event::MessageDeleteBulk(_)
-            | Event::MessageUpdate(_)
             | Event::PresencesReplace
             | Event::Ready(_)
             | Event::Resumed
