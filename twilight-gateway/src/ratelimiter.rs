@@ -18,7 +18,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::time::{sleep, Duration, Instant, Sleep};
+use tokio::time::{sleep_until, Duration, Instant, Sleep};
 
 /// Number of commands allowed in a [`PERIOD`].
 const COMMANDS_PER_PERIOD: u8 = 120;
@@ -40,10 +40,11 @@ impl CommandRatelimiter {
     pub(crate) fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
 
-        let mut delay = Box::pin(sleep(Duration::ZERO));
+        let now = Instant::now();
+        let mut delay = Box::pin(sleep_until(now));
 
         // Hack to register the timer.
-        delay.as_mut().reset(Instant::now());
+        delay.as_mut().reset(now);
 
         Self {
             delay,
