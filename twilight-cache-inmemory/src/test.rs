@@ -390,6 +390,7 @@ pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
         emojis: Vec::new(),
         explicit_content_filter: ExplicitContentFilter::None,
         features: Vec::new(),
+        guild_scheduled_events: Vec::new(),
         icon: None,
         id,
         joined_at: None,
