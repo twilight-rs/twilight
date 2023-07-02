@@ -63,7 +63,9 @@ impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
         // chars here and not just individual bytes. We also want to not use
         // consuming methods of the iterator, so this will get a little weird.
         loop {
-            let (start, '<') = self.chars.next()? else { continue };
+            let (start, '<') = self.chars.next()? else {
+                continue;
+            };
 
             let mut found = false;
 

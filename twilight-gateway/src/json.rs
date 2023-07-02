@@ -64,14 +64,14 @@ pub fn parse(
     wanted_event_types: EventTypeFlags,
 ) -> Result<Option<GatewayEvent>, ReceiveMessageError> {
     let Some(gateway_deserializer) = GatewayEventDeserializer::from_json(&event) else {
-            return Err(ReceiveMessageError {
-                kind: ReceiveMessageErrorType::Deserializing { event },
-                source: Some(Box::new(UnknownEventError {
-                    event_type: None,
-                    opcode: None,
-                })),
-            });
-        };
+        return Err(ReceiveMessageError {
+            kind: ReceiveMessageErrorType::Deserializing { event },
+            source: Some(Box::new(UnknownEventError {
+                event_type: None,
+                opcode: None,
+            })),
+        });
+    };
 
     let Some(opcode) = OpCode::from(gateway_deserializer.op()) else {
         let opcode = gateway_deserializer.op();
