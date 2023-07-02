@@ -295,6 +295,7 @@ mod tests {
             emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::AllMembers,
             features: vec![],
+            guild_scheduled_events: Vec::new(),
             icon: None,
             id: Id::new(123),
             joined_at: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),

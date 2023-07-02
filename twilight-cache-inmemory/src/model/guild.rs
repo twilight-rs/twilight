@@ -4,8 +4,9 @@ use serde::Serialize;
 use twilight_model::{
     gateway::payload::incoming::GuildUpdate,
     guild::{
-        AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, GuildFeature,
-        MfaLevel, NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
+        scheduled_event::GuildScheduledEvent, AfkTimeout, DefaultMessageNotificationLevel,
+        ExplicitContentFilter, GuildFeature, MfaLevel, NSFWLevel, Permissions, PremiumTier,
+        SystemChannelFlags, VerificationLevel, Guild,
     },
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
@@ -30,6 +31,7 @@ pub struct CachedGuild {
     pub(crate) discovery_splash: Option<ImageHash>,
     pub(crate) explicit_content_filter: ExplicitContentFilter,
     pub(crate) features: Vec<GuildFeature>,
+    pub(crate) guild_scheduled_events: Vec<GuildScheduledEvent>,
     pub(crate) icon: Option<ImageHash>,
     pub(crate) id: Id<GuildMarker>,
     pub(crate) joined_at: Option<Timestamp>,
@@ -117,6 +119,11 @@ impl CachedGuild {
         Features {
             inner: self.features.iter(),
         }
+    }
+
+    /// Scheduled guild events.
+    pub fn guild_scheduled_events(&self) -> &[GuildScheduledEvent] {
+        &self.guild_scheduled_events
     }
 
     /// Icon hash.
@@ -292,6 +299,7 @@ impl From<Guild> for CachedGuild {
             discovery_splash,
             explicit_content_filter,
             features,
+            guild_scheduled_events,
             icon,
             id,
             joined_at,
@@ -303,8 +311,8 @@ impl From<Guild> for CachedGuild {
             mfa_level,
             name,
             nsfw_level,
-            owner_id,
             owner,
+            owner_id,
             permissions,
             preferred_locale,
             premium_progress_bar_enabled,
@@ -334,6 +342,7 @@ impl From<Guild> for CachedGuild {
             discovery_splash,
             explicit_content_filter,
             features,
+            guild_scheduled_events,
             icon,
             id,
             joined_at,
@@ -345,8 +354,8 @@ impl From<Guild> for CachedGuild {
             mfa_level,
             name,
             nsfw_level,
-            owner_id,
             owner,
+            owner_id,
             permissions,
             preferred_locale,
             premium_progress_bar_enabled,
@@ -356,8 +365,8 @@ impl From<Guild> for CachedGuild {
             rules_channel_id,
             safety_alerts_channel_id,
             splash,
-            system_channel_id,
             system_channel_flags,
+            system_channel_id,
             unavailable,
             vanity_url_code,
             verification_level,
