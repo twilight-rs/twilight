@@ -5,8 +5,8 @@ use twilight_model::{
     gateway::payload::incoming::GuildUpdate,
     guild::{
         scheduled_event::GuildScheduledEvent, AfkTimeout, DefaultMessageNotificationLevel,
-        ExplicitContentFilter, GuildFeature, MfaLevel, NSFWLevel, Permissions, PremiumTier,
-        SystemChannelFlags, VerificationLevel, Guild,
+        ExplicitContentFilter, Guild, GuildFeature, MfaLevel, NSFWLevel, Permissions, PremiumTier,
+        SystemChannelFlags, VerificationLevel,
     },
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},

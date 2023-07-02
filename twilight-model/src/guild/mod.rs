@@ -98,7 +98,7 @@ pub struct Guild {
     /// Enabled guild features
     pub features: Vec<GuildFeature>,
     /// Scheduled guild events.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub guild_scheduled_events: Vec<scheduled_event::GuildScheduledEvent>,
     pub icon: Option<ImageHash>,
     pub id: Id<GuildMarker>,
