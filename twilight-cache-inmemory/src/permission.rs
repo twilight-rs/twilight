@@ -703,6 +703,9 @@ mod tests {
     /// ID of a thread created in the general channel.
     const THREAD_ID: Id<ChannelMarker> = Id::new(5);
 
+    /// ID of the safety alerts channel.
+    const SAFETY_ALERTS_CHANNEL_ID: Id<ChannelMarker> = Id::new(6);
+
     fn base_guild() -> Guild {
         Guild {
             id: GUILD_ID,
@@ -744,6 +747,7 @@ mod tests {
                     Permissions::CREATE_INVITE | Permissions::VIEW_AUDIT_LOG,
                 ),
             ]),
+            safety_alerts_channel_id: Some(SAFETY_ALERTS_CHANNEL_ID),
             splash: None,
             stage_instances: Vec::new(),
             stickers: Vec::new(),
