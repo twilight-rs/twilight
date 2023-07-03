@@ -230,6 +230,7 @@ impl Event {
             Event::ThreadCreate(e) => e.0.guild_id,
             Event::ThreadDelete(e) => Some(e.guild_id),
             Event::ThreadListSync(e) => Some(e.guild_id),
+            Event::ThreadMemberUpdate(e) => Some(e.guild_id),
             Event::ThreadMembersUpdate(e) => Some(e.guild_id),
             Event::ThreadUpdate(e) => e.0.guild_id,
             Event::TypingStart(e) => e.guild_id,
@@ -251,7 +252,6 @@ impl Event {
             | Event::PresencesReplace
             | Event::Ready(_)
             | Event::Resumed
-            | Event::ThreadMemberUpdate(_)
             | Event::UserUpdate(_) => None,
         }
     }
