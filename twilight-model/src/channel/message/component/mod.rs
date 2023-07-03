@@ -235,25 +235,12 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut url: Option<Option<String>> = None;
         let mut value: Option<Option<String>> = None;
 
-        let span = tracing::trace_span!("deserializing component");
-        let _span_enter = span.enter();
-
         loop {
-            let span_child = tracing::trace_span!("iterating over element");
-            let _span_child_enter = span_child.enter();
-
             let key = match map.next_key() {
-                Ok(Some(key)) => {
-                    tracing::trace!(?key, "found key");
-
-                    key
-                }
+                Ok(Some(key)) => key,
                 Ok(None) => break,
-                Err(why) => {
-                    // Encountered when we run into an unknown key.
+                Err(_) => {
                     map.next_value::<IgnoredAny>()?;
-
-                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -374,25 +361,6 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                 }
             };
         }
-
-        tracing::trace!(
-            ?components,
-            ?custom_id,
-            ?disabled,
-            ?emoji,
-            ?label,
-            ?max_length,
-            ?max_values,
-            ?min_length,
-            ?min_values,
-            ?options,
-            ?placeholder,
-            ?required,
-            ?style,
-            ?kind,
-            ?url,
-            ?value
-        );
 
         let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
 

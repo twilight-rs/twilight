@@ -211,25 +211,12 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut token: Option<String> = None;
         let mut user: Option<User> = None;
 
-        let span = tracing::trace_span!("deserializing interaction");
-        let _span_enter = span.enter();
-
         loop {
-            let span_child = tracing::trace_span!("iterating over interaction");
-            let _span_child_enter = span_child.enter();
-
             let key = match map.next_key() {
-                Ok(Some(key)) => {
-                    tracing::trace!(?key, "found key");
-
-                    key
-                }
+                Ok(Some(key)) => key,
                 Ok(None) => break,
-                Err(why) => {
-                    // Encountered when we run into an unknown key.
+                Err(_) => {
                     map.next_value::<IgnoredAny>()?;
-
-                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -346,14 +333,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let id = id.ok_or_else(|| DeError::missing_field("id"))?;
         let token = token.ok_or_else(|| DeError::missing_field("token"))?;
         let kind = kind.ok_or_else(|| DeError::missing_field("kind"))?;
-
-        tracing::trace!(
-            %application_id,
-            %id,
-            %token,
-            ?kind,
-            "common fields of all variants exist"
-        );
 
         let data = match kind {
             InteractionType::Ping => None,
