@@ -4,7 +4,7 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
-use crate::request::GetCurrentAuthorizationInformation;
+use crate::request::{guild::GetGuildOnboarding, GetCurrentAuthorizationInformation};
 #[allow(deprecated)]
 use crate::{
     client::connector::Connector,
@@ -1229,6 +1229,11 @@ impl Client {
         role_id: Id<RoleMarker>,
     ) -> RemoveRoleFromMember<'_> {
         RemoveRoleFromMember::new(self, guild_id, user_id, role_id)
+    }
+
+    /// Retrieves the onboarding data for a guild.
+    pub const fn guild_onboarding(&self, guild_id: Id<GuildMarker>) -> GetGuildOnboarding<'_> {
+        GetGuildOnboarding::new(self, guild_id)
     }
 
     /// For public guilds, get the guild preview.

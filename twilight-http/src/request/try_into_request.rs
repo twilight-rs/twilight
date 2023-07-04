@@ -65,11 +65,11 @@ mod private {
             },
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
-            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
-            GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember,
-            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
-            UpdateGuildWidgetSettings,
+            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
+            GetGuildPreview, GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions,
+            GetGuildWebhooks, GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings,
+            UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
+            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
         },
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildStageInstanceScheduledEvent,
@@ -191,6 +191,7 @@ mod private {
     impl Sealed for GetGuildIntegrations<'_> {}
     impl Sealed for GetGuildInvites<'_> {}
     impl Sealed for GetGuildMembers<'_> {}
+    impl Sealed for GetGuildOnboarding<'_> {}
     impl Sealed for GetGuildPreview<'_> {}
     impl Sealed for GetGuildPruneCount<'_> {}
     impl Sealed for GetGuildRoles<'_> {}

@@ -156,6 +156,24 @@ pub struct OauthSkuMarker;
 #[non_exhaustive]
 pub struct OauthTeamMarker;
 
+/// Marker for onboarding prompt IDs.
+///
+/// Types such as [`OnboardingPrompt`] use this ID marker.
+///
+/// [`OnboardingPrompt`]: crate::guild::onboarding::OnboardingPrompt
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct OnboardingPromptMarker;
+
+/// Marker for onboarding prompt option IDs.
+///
+/// Types such as [`OnboardingPromptOption`] use this ID marker.
+///
+/// [`OnboardingPromptOption`]: crate::guild::onboarding::OnboardingPromptOption
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct OnboardingPromptOptionMarker;
+
 /// Marker for role IDs.
 ///
 /// Types such as [`Member`] or [`Role`] use this ID marker.
