@@ -65,10 +65,8 @@ mod tests {
         application::{
             command::CommandType,
             interaction::{
-                application_command::{
-                    CommandData, CommandInteractionDataResolved, InteractionMember,
-                },
-                Interaction, InteractionData, InteractionType,
+                application_command::CommandData, Interaction, InteractionData,
+                InteractionDataResolved, InteractionMember, InteractionType,
             },
         },
         channel::{
@@ -143,7 +141,7 @@ mod tests {
                 name: "command name".into(),
                 kind: CommandType::ChatInput, // This isn't actually a valid command, so just mark it as a slash command.
                 options: Vec::new(),
-                resolved: Some(CommandInteractionDataResolved {
+                resolved: Some(InteractionDataResolved {
                     attachments: HashMap::new(),
                     channels: HashMap::new(),
                     members: HashMap::from([(

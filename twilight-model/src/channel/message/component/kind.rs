@@ -16,14 +16,30 @@ pub enum ComponentType {
     ///
     /// [`Button`]: super::Button
     Button,
-    /// Component is an [`SelectMenu`].
+    /// Component is a [`SelectMenu`] with custom string options.
     ///
     /// [`SelectMenu`]: super::SelectMenu
-    SelectMenu,
+    TextSelectMenu,
     /// Component is an [`TextInput`].
     ///
     /// [`TextInput`]: super::TextInput
     TextInput,
+    /// Component is a [`SelectMenu`] for users.
+    ///
+    /// [`SelectMenu`]: super::SelectMenu
+    UserSelectMenu,
+    /// Component is a [`SelectMenu`] for roles.
+    ///
+    /// [`SelectMenu`]: super::SelectMenu
+    RoleSelectMenu,
+    /// Component is a [`SelectMenu`] for mentionables.
+    ///
+    /// [`SelectMenu`]: super::SelectMenu
+    MentionableSelectMenu,
+    /// Component is a [`SelectMenu`] for channels.
+    ///
+    /// [`SelectMenu`]: super::SelectMenu
+    ChannelSelectMenu,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -33,8 +49,12 @@ impl From<u8> for ComponentType {
         match value {
             1 => ComponentType::ActionRow,
             2 => ComponentType::Button,
-            3 => ComponentType::SelectMenu,
+            3 => ComponentType::TextSelectMenu,
             4 => ComponentType::TextInput,
+            5 => ComponentType::UserSelectMenu,
+            6 => ComponentType::RoleSelectMenu,
+            7 => ComponentType::MentionableSelectMenu,
+            8 => ComponentType::ChannelSelectMenu,
             unknown => ComponentType::Unknown(unknown),
         }
     }
@@ -45,8 +65,12 @@ impl From<ComponentType> for u8 {
         match value {
             ComponentType::ActionRow => 1,
             ComponentType::Button => 2,
-            ComponentType::SelectMenu => 3,
+            ComponentType::TextSelectMenu => 3,
             ComponentType::TextInput => 4,
+            ComponentType::UserSelectMenu => 5,
+            ComponentType::RoleSelectMenu => 6,
+            ComponentType::MentionableSelectMenu => 7,
+            ComponentType::ChannelSelectMenu => 8,
             ComponentType::Unknown(unknown) => unknown,
         }
     }
@@ -72,7 +96,11 @@ impl ComponentType {
         match self {
             Self::ActionRow => "ActionRow",
             Self::Button => "Button",
-            Self::SelectMenu => "SelectMenu",
+            Self::TextSelectMenu
+            | Self::UserSelectMenu
+            | Self::RoleSelectMenu
+            | Self::MentionableSelectMenu
+            | Self::ChannelSelectMenu => "SelectMenu",
             Self::TextInput => "TextInput",
             Self::Unknown(_) => "Unknown",
         }
@@ -110,8 +138,12 @@ mod tests {
     fn variants() {
         serde_test::assert_tokens(&ComponentType::ActionRow, &[Token::U8(1)]);
         serde_test::assert_tokens(&ComponentType::Button, &[Token::U8(2)]);
-        serde_test::assert_tokens(&ComponentType::SelectMenu, &[Token::U8(3)]);
+        serde_test::assert_tokens(&ComponentType::TextSelectMenu, &[Token::U8(3)]);
         serde_test::assert_tokens(&ComponentType::TextInput, &[Token::U8(4)]);
+        serde_test::assert_tokens(&ComponentType::UserSelectMenu, &[Token::U8(5)]);
+        serde_test::assert_tokens(&ComponentType::RoleSelectMenu, &[Token::U8(6)]);
+        serde_test::assert_tokens(&ComponentType::MentionableSelectMenu, &[Token::U8(7)]);
+        serde_test::assert_tokens(&ComponentType::ChannelSelectMenu, &[Token::U8(8)]);
         serde_test::assert_tokens(&ComponentType::Unknown(99), &[Token::U8(99)]);
     }
 
@@ -119,7 +151,11 @@ mod tests {
     fn names() {
         assert_eq!("ActionRow", ComponentType::ActionRow.name());
         assert_eq!("Button", ComponentType::Button.name());
-        assert_eq!("SelectMenu", ComponentType::SelectMenu.name());
+        assert_eq!("SelectMenu", ComponentType::TextSelectMenu.name());
+        assert_eq!("SelectMenu", ComponentType::UserSelectMenu.name());
+        assert_eq!("SelectMenu", ComponentType::RoleSelectMenu.name());
+        assert_eq!("SelectMenu", ComponentType::MentionableSelectMenu.name());
+        assert_eq!("SelectMenu", ComponentType::ChannelSelectMenu.name());
         assert_eq!("TextInput", ComponentType::TextInput.name());
         assert_eq!("Unknown", ComponentType::Unknown(99).name());
     }

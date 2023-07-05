@@ -28,7 +28,7 @@ twilight-validate = { default-features = false, path = "../twilight-validate", v
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.10" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.11" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }

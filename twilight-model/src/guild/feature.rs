@@ -49,6 +49,8 @@ pub enum GuildFeature {
     PreviewEnabled,
     /// Has access to create private threads.
     PrivateThreads,
+    /// Guild has disabled alerts for join raids in the configured safety alerts channel.
+    RaidAlertsDisabled,
     /// Is able to set role icons.
     RoleIcons,
     /// Guild has role subscriptions that can be purchased.
@@ -92,6 +94,7 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::Partnered => "PARTNERED".into(),
             GuildFeature::PreviewEnabled => "PREVIEW_ENABLED".into(),
             GuildFeature::PrivateThreads => "PRIVATE_THREADS".into(),
+            GuildFeature::RaidAlertsDisabled => "RAID_ALERTS_DISABLED".into(),
             GuildFeature::RoleIcons => "ROLE_ICONS".into(),
             GuildFeature::RoleSubscriptionsAvailableForPurchase => {
                 "ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE".into()
@@ -128,6 +131,7 @@ impl From<String> for GuildFeature {
             "PARTNERED" => Self::Partnered,
             "PREVIEW_ENABLED" => Self::PreviewEnabled,
             "PRIVATE_THREADS" => Self::PrivateThreads,
+            "RAID_ALERTS_DISABLED" => Self::RaidAlertsDisabled,
             "ROLE_ICONS" => Self::RoleIcons,
             "ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE" => {
                 GuildFeature::RoleSubscriptionsAvailableForPurchase
