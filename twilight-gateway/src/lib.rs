@@ -29,7 +29,6 @@ mod message;
 mod ratelimiter;
 mod session;
 mod shard;
-mod tls;
 
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 pub use self::inflater::Inflater;

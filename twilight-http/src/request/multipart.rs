@@ -1,5 +1,3 @@
-use rand::{distributions::Alphanumeric, Rng};
-
 #[derive(Clone, Debug)]
 #[must_use = "has no effect if not built into a Form"]
 pub struct Form {
@@ -128,10 +126,9 @@ impl Default for Form {
 /// Generate a random boundary that is 15 characters long.
 pub fn random_boundary() -> [u8; 15] {
     let mut boundary = [0; 15];
-    let mut rng = rand::thread_rng();
 
     for value in &mut boundary {
-        *value = rng.sample(Alphanumeric);
+        *value = fastrand::alphanumeric() as u8;
     }
 
     boundary

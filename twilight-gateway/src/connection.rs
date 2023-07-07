@@ -1,9 +1,12 @@
 //! Utilities for creating Websocket connections.
 
-use crate::{error::ReceiveMessageError, tls::TlsContainer, API_VERSION};
+use crate::{
+    error::{ReceiveMessageError, ReceiveMessageErrorType},
+    API_VERSION,
+};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use tokio::net::TcpStream;
-use tokio_tungstenite::{tungstenite::protocol::WebSocketConfig, MaybeTlsStream, WebSocketStream};
+use tokio_websockets::{ClientBuilder, Connector, Limits, MaybeTlsStream, WebsocketStream};
 
 /// Query argument with zlib-stream enabled.
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
@@ -16,29 +19,12 @@ const COMPRESSION_FEATURES: &str = "";
 /// URL of the Discord gateway.
 const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 
-/// Configuration used for Websocket connections.
-///
-/// `max_frame_size` and `max_message_queue` limits are disabled because
-/// Discord is not a malicious actor and having a limit has caused problems on
-/// large [`GuildCreate`] payloads.
-///
-/// `accept_unmasked_frames` and `max_send_queue` are set to their
-/// defaults.
-///
-/// [`GuildCreate`]: twilight_model::gateway::payload::incoming::GuildCreate
-const WEBSOCKET_CONFIG: WebSocketConfig = WebSocketConfig {
-    accept_unmasked_frames: false,
-    max_frame_size: None,
-    max_message_size: None,
-    max_send_queue: None,
-};
-
-/// [`tokio_tungstenite`] library Websocket connection.
+/// [`tokio_websockets`] library Websocket connection.
 ///
 /// Connections are used by [`Shard`]s when reconnecting.
 ///
 /// [`Shard`]: crate::Shard
-pub type Connection = WebSocketStream<MaybeTlsStream<TcpStream>>;
+pub type Connection = WebsocketStream<MaybeTlsStream<TcpStream>>;
 
 /// Formatter for a gateway URL, with the API version and compression features
 /// specified.
@@ -93,12 +79,30 @@ impl Display for ConnectionUrl<'_> {
 #[tracing::instrument(skip_all)]
 pub async fn connect(
     maybe_gateway_url: Option<&str>,
-    tls: &TlsContainer,
+    tls: &Connector,
 ) -> Result<Connection, ReceiveMessageError> {
     let url = ConnectionUrl::new(maybe_gateway_url).to_string();
 
+    // Limits to impose on Websocket connections.
+    //
+    // `max_payload_len` limit is disabled because Discord is not a malicious
+    // actor and having a limit has caused problems on large `GuildCreate`
+    // payloads.
+    let limits = Limits::default().max_payload_len(None);
+
     tracing::debug!(?url, "shaking hands with gateway");
-    let stream = tls.connect(&url, WEBSOCKET_CONFIG).await?;
+
+    let (stream, _) = ClientBuilder::new()
+        .uri(&url)
+        .expect("Gateway URL must be valid")
+        .limits(limits)
+        .connector(tls)
+        .connect()
+        .await
+        .map_err(|source| ReceiveMessageError {
+            kind: ReceiveMessageErrorType::Reconnect,
+            source: Some(Box::new(source)),
+        })?;
 
     Ok(stream)
 }

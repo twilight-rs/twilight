@@ -22,13 +22,13 @@ request types from the [`http`] crate. This is enabled by default.
 
 ### TLS
 
-`twilight-lavalink` has features to enable [`tokio-tungstenite`]'s TLS
+`twilight-lavalink` has features to enable [`tokio-websockets`]'s TLS
 features. These features are mutually exclusive. `rustls-native-roots` is enabled by
 default.
 
 #### `native`
 
-The `native` feature enables [`tokio-tungstenite`]'s `native-tls` feature.
+The `native` feature enables [`tokio-websockets`]'s `native-tls` feature.
 
 To enable `native`, do something like this in your `Cargo.toml`:
 
@@ -39,14 +39,14 @@ twilight-lavalink = { default-features = false, features = ["native"], version =
 
 #### `rustls-native-roots`
 
-The `rustls-native-roots` feature enables [`tokio-tungstenite`]'s `rustls-tls-native-roots` feature,
+The `rustls-native-roots` feature enables [`tokio-websockets`]'s `rustls-native-roots` feature,
 which uses [`rustls`] as the TLS backend and [`rustls-native-certs`] for root certificates.
 
 This is enabled by default.
 
 #### `rustls-webpki-roots`
 
-The `rustls-webpki-roots` feature enables [`tokio-tungstenite`]'s `rustls-tls-webpki-roots` feature,
+The `rustls-webpki-roots` feature enables [`tokio-websockets`]'s `rustls-webpki-roots` feature,
 which uses [`rustls`] as the TLS backend and [`webpki-roots`] for root certificates.
 
 This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
@@ -115,7 +115,7 @@ There is also an example of a basic bot located in the [root of the
 [`http`]: https://crates.io/crates/http
 [`rustls`]: https://crates.io/crates/rustls
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
-[`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
+[`tokio-websockets`]: https://crates.io/crates/tokio-websockets
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [client]: Lavalink
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
