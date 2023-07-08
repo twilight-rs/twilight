@@ -1,20 +1,27 @@
-use crate::channel::thread::ThreadMember;
+use crate::{
+    channel::thread::ThreadMember,
+    id::{marker::GuildMarker, Id},
+};
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct ThreadMemberUpdate(pub ThreadMember);
+pub struct ThreadMemberUpdate {
+    pub guild_id: Id<GuildMarker>,
+    #[serde(flatten)]
+    pub member: ThreadMember,
+}
 
 impl Deref for ThreadMemberUpdate {
     type Target = ThreadMember;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.member
     }
 }
 
 impl DerefMut for ThreadMemberUpdate {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        &mut self.member
     }
 }

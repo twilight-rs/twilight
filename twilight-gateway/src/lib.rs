@@ -21,7 +21,6 @@ mod command;
 mod config;
 mod connection;
 mod event;
-mod future;
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 mod inflater;
 mod json;

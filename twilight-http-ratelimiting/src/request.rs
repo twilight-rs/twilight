@@ -210,6 +210,8 @@ pub enum Path {
     GuildsIdMembersSearch(u64),
     /// Operating on one of the user's guilds' MFA level.
     GuildsIdMfa(u64),
+    /// Operating on one of the user's guilds' onboarding.
+    GuildsIdOnboarding(u64),
     /// Operating on one of the user's guilds' by previewing it.
     GuildsIdPreview(u64),
     /// Operating on one of the user's guilds' by pruning members.
@@ -402,6 +404,7 @@ impl FromStr for Path {
             ["guilds", id, "members", _] => GuildsIdMembersId(parse_id(id)?),
             ["guilds", id, "members", _, "roles", _] => GuildsIdMembersIdRolesId(parse_id(id)?),
             ["guilds", id, "members", "@me", "nick"] => GuildsIdMembersMeNick(parse_id(id)?),
+            ["guilds", id, "onboarding"] => GuildsIdOnboarding(parse_id(id)?),
             ["guilds", id, "preview"] => GuildsIdPreview(parse_id(id)?),
             ["guilds", id, "prune"] => GuildsIdPrune(parse_id(id)?),
             ["guilds", id, "regions"] => GuildsIdRegions(parse_id(id)?),

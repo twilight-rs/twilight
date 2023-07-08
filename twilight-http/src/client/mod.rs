@@ -55,11 +55,11 @@ use crate::{
             update_guild_channel_positions::Position,
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
-            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
-            GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember,
-            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
-            UpdateGuildWidgetSettings,
+            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
+            GetGuildPreview, GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions,
+            GetGuildWebhooks, GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings,
+            UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
+            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
         },
         scheduled_event::{
             CreateGuildScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
@@ -1224,6 +1224,11 @@ impl Client {
         role_id: Id<RoleMarker>,
     ) -> RemoveRoleFromMember<'_> {
         RemoveRoleFromMember::new(self, guild_id, user_id, role_id)
+    }
+
+    /// Retrieves the onboarding data for a guild.
+    pub const fn guild_onboarding(&self, guild_id: Id<GuildMarker>) -> GetGuildOnboarding<'_> {
+        GetGuildOnboarding::new(self, guild_id)
     }
 
     /// For public guilds, get the guild preview.
