@@ -63,7 +63,6 @@ use crate::{
         ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
         SendErrorType,
     },
-    future::{self, NextMessageFuture, NextMessageFutureOutput},
     json::{self, UnknownEventError},
     latency::Latency,
     ratelimiter::CommandRatelimiter,
@@ -78,19 +77,19 @@ use serde::{de::DeserializeOwned, Deserialize};
     feature = "rustls-webpki-roots"
 ))]
 use std::io::ErrorKind as IoErrorKind;
-use std::{env::consts::OS, error::Error, str};
+use std::{
+    env::consts::OS,
+    error::Error,
+    future::{poll_fn, Future},
+    pin::Pin,
+    str,
+    task::{Context, Poll},
+};
 use tokio::{
     task::JoinHandle,
     time::{self, Duration, Instant, Interval, MissedTickBehavior},
 };
-#[cfg(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-))]
-use tokio_tungstenite::tungstenite::Error as TungsteniteError;
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 use twilight_model::gateway::{
     event::{Event, GatewayEventDeserializer},
     payload::{
@@ -559,6 +558,20 @@ impl Shard {
     /// shard failed to send a message to the gateway, such as a heartbeat.
     #[tracing::instrument(fields(id = %self.id()), name = "shard", skip(self))]
     pub async fn next_message(&mut self) -> Result<Message, ReceiveMessageError> {
+        /// Actions the shard might take.
+        enum Action {
+            /// Close the gateway connection with this close frame.
+            Close(CloseFrame<'static>),
+            /// Send this command to the gateway.
+            Command(String),
+            /// Send a heartbeat command to the gateway.
+            Heartbeat,
+            /// Identify with the gateway.
+            Identify,
+            /// Handle this incoming gateway message.
+            Message(Option<Result<TungsteniteMessage, TungsteniteError>>),
+        }
+
         match self.status {
             ConnectionStatus::Disconnected {
                 close_code,
@@ -579,18 +592,67 @@ impl Shard {
         }
 
         let message = loop {
-            let future = NextMessageFuture::new(
-                &mut self.user_channel.close_rx,
-                &mut self.user_channel.command_rx,
-                &self.status,
-                self.identify_handle.as_mut(),
-                self.connection.as_mut().expect("connected").next(),
-                self.heartbeat_interval.as_mut(),
-                self.ratelimiter.as_mut(),
-            );
+            let next_action = |cx: &mut Context<'_>| {
+                if !(self.status.is_disconnected() || self.status.is_fatally_closed()) {
+                    if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
+                        return Poll::Ready(Action::Close(frame.expect("shard owns channel")));
+                    }
+                }
 
-            let tungstenite_message = match future.await {
-                NextMessageFutureOutput::Message(Some(Ok(message))) => message,
+                if self
+                    .heartbeat_interval
+                    .as_mut()
+                    .map_or(false, |heartbeater| heartbeater.poll_tick(cx).is_ready())
+                {
+                    return Poll::Ready(Action::Heartbeat);
+                }
+
+                let ratelimited = self
+                    .ratelimiter
+                    .as_mut()
+                    .map_or(false, |ratelimiter| ratelimiter.poll_ready(cx).is_pending());
+
+                if !ratelimited
+                    && self
+                        .identify_handle
+                        .as_mut()
+                        .map_or(false, |handle| Pin::new(handle).poll(cx).is_ready())
+                {
+                    return Poll::Ready(Action::Identify);
+                }
+
+                if !ratelimited && self.status.is_identified() {
+                    if let Poll::Ready(command) = self.user_channel.command_rx.poll_recv(cx) {
+                        return Poll::Ready(Action::Command(command.expect("shard owns channel")));
+                    }
+                }
+
+                if let Poll::Ready(message) =
+                    Pin::new(&mut self.connection.as_mut().expect("connected").next()).poll(cx)
+                {
+                    return Poll::Ready(Action::Message(message));
+                }
+
+                Poll::Pending
+            };
+
+            match poll_fn(next_action).await {
+                Action::Message(Some(Ok(message))) => {
+                    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+                    if let TungsteniteMessage::Binary(bytes) = &message {
+                        if let Some(decompressed) = self
+                            .inflater
+                            .inflate(bytes)
+                            .map_err(ReceiveMessageError::from_compression)?
+                        {
+                            tracing::trace!(%decompressed);
+                            break Message::Text(decompressed);
+                        };
+                    }
+                    if let Some(message) = Message::from_tungstenite(message) {
+                        break message;
+                    }
+                }
                 // Discord, against recommendations from the WebSocket spec,
                 // does not send a close_notify prior to shutting down the TCP
                 // stream. This arm tries to gracefully handle this. The
@@ -601,7 +663,7 @@ impl Shard {
                     feature = "rustls-native-roots",
                     feature = "rustls-webpki-roots"
                 ))]
-                NextMessageFutureOutput::Message(Some(Err(TungsteniteError::Io(e))))
+                Action::Message(Some(Err(TungsteniteError::Io(e))))
                     if e.kind() == IoErrorKind::UnexpectedEof
                         // Assert we're directly connected to Discord's gateway.
                         && self.config.proxy_url().is_none()
@@ -609,7 +671,7 @@ impl Shard {
                 {
                     continue
                 }
-                NextMessageFutureOutput::Message(Some(Err(source))) => {
+                Action::Message(Some(Err(source))) => {
                     self.disconnect(CloseInitiator::None);
 
                     return Err(ReceiveMessageError {
@@ -617,7 +679,7 @@ impl Shard {
                         source: Some(Box::new(source)),
                     });
                 }
-                NextMessageFutureOutput::Message(None) => {
+                Action::Message(None) => {
                     tracing::debug!("gateway connection closed");
                     self.connection = None;
 
@@ -640,7 +702,7 @@ impl Shard {
 
                     continue;
                 }
-                NextMessageFutureOutput::SendHeartbeat => {
+                Action::Heartbeat => {
                     let is_first_heartbeat =
                         self.heartbeat_interval.is_some() && self.latency.sent().is_none();
 
@@ -664,7 +726,7 @@ impl Shard {
 
                     continue;
                 }
-                NextMessageFutureOutput::SendIdentify => {
+                Action::Identify => {
                     self.identify_handle = None;
 
                     tracing::debug!("sending identify");
@@ -689,7 +751,7 @@ impl Shard {
 
                     continue;
                 }
-                NextMessageFutureOutput::UserClose(frame) => {
+                Action::Close(frame) => {
                     tracing::debug!("sending close frame from user channel");
                     self.session = self
                         .close(frame)
@@ -698,29 +760,14 @@ impl Shard {
 
                     continue;
                 }
-                NextMessageFutureOutput::UserCommand(message) => {
+                Action::Command(json) => {
                     tracing::debug!("sending command from user channel");
-                    self.send(message)
+                    self.send(json)
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
 
                     continue;
                 }
-            };
-
-            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-            if let TungsteniteMessage::Binary(bytes) = &tungstenite_message {
-                if let Some(decompressed) = self
-                    .inflater
-                    .inflate(bytes)
-                    .map_err(ReceiveMessageError::from_compression)?
-                {
-                    tracing::trace!(%decompressed);
-                    break Message::Text(decompressed);
-                };
-            }
-            if let Some(message) = Message::from_tungstenite(tungstenite_message) {
-                break message;
             }
         };
 
@@ -1137,7 +1184,10 @@ impl Shard {
         close_code: Option<u16>,
         reconnect_attempts: u8,
     ) -> Result<(), ReceiveMessageError> {
-        future::reconnect_delay(reconnect_attempts).await;
+        if reconnect_attempts != 0 {
+            let secs = 2u8.saturating_pow(reconnect_attempts.into());
+            time::sleep(Duration::from_secs(secs.into())).await;
+        }
 
         let maybe_gateway_url = self
             .resume_gateway_url
