@@ -108,7 +108,7 @@ impl Display for DiscriminatorDisplay {
         //
         // If the value is [1000, u16::MAX] then we don't need to pad.
         match self.0 {
-            0..=9 => f.write_str("000")?,
+            1..=9 => f.write_str("000")?,
             10..=99 => f.write_str("00")?,
             100..=999 => f.write_str("0")?,
             _ => {}
@@ -131,6 +131,9 @@ pub struct User {
     pub bot: bool,
     /// Discriminator used to differentiate people with the same username.
     ///
+    /// Note: Users that have migrated to the new username system will have a
+    /// discriminator of `0`.
+    ///
     /// # Formatting
     ///
     /// Because discriminators are stored as an integer they're not in the
@@ -151,6 +154,9 @@ pub struct User {
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
+    /// User's global display name, if set. For bots, this is the application name
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub global_name: Option<String>,
     pub id: Id<UserMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
@@ -201,7 +207,7 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 14,
+                len: 15,
             },
             Token::Str("accent_color"),
             Token::None,
@@ -221,6 +227,9 @@ mod tests {
             Token::Str("flags"),
             Token::Some,
             Token::U64(131_584),
+            Token::Str("global_name"),
+            Token::Some,
+            Token::Str("test"),
             Token::Str("id"),
             Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
@@ -249,7 +258,7 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 15,
+                len: 16,
             },
             Token::Str("accent_color"),
             Token::None,
@@ -269,6 +278,9 @@ mod tests {
             Token::Str("flags"),
             Token::Some,
             Token::U64(131_584),
+            Token::Str("global_name"),
+            Token::Some,
+            Token::Str("test"),
             Token::Str("id"),
             Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
@@ -303,6 +315,7 @@ mod tests {
         assert_eq!("0033", DiscriminatorDisplay::new(33).to_string());
         assert_eq!("0333", DiscriminatorDisplay::new(333).to_string());
         assert_eq!("3333", DiscriminatorDisplay::new(3333).to_string());
+        assert_eq!("0", DiscriminatorDisplay::new(0).to_string());
     }
 
     #[test]
@@ -315,6 +328,7 @@ mod tests {
             discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
+            global_name: Some("test".to_owned()),
             id: Id::new(1),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
@@ -336,6 +350,34 @@ mod tests {
     }
 
     #[test]
+    fn user_no_discriminator() {
+        let value = User {
+            accent_color: None,
+            avatar: Some(image_hash::AVATAR),
+            banner: Some(image_hash::BANNER),
+            bot: false,
+            discriminator: 0,
+            email: Some("address@example.com".to_owned()),
+            flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
+            global_name: Some("test".to_owned()),
+            id: Id::new(1),
+            locale: Some("en-us".to_owned()),
+            mfa_enabled: Some(true),
+            name: "test".to_owned(),
+            premium_type: Some(PremiumType::Nitro),
+            public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
+            system: None,
+            verified: Some(true),
+        };
+
+        // Users migrated to the new username system will have a placeholder discriminator of 0,
+        // You can check if a user has migrated by seeing if their discriminator is 0.
+        // Read more here: https://discord.com/developers/docs/change-log#identifying-migrated-users
+        serde_test::assert_tokens(&value, &user_tokens(Token::Str("0")));
+        serde_test::assert_de_tokens(&value, &user_tokens(Token::U64(0)));
+    }
+
+    #[test]
     fn user_complete() {
         let value = User {
             accent_color: None,
@@ -345,6 +387,7 @@ mod tests {
             discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
+            global_name: Some("test".to_owned()),
             id: Id::new(1),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
