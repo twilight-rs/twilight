@@ -163,6 +163,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
+                global_name: Some("test".to_owned()),
                 id: Id::new(3),
                 locale: None,
                 mfa_enabled: None,
