@@ -6,6 +6,7 @@ pub mod thread;
 pub mod webhook;
 
 mod attachment;
+mod attachment_flags;
 mod channel_mention;
 mod channel_type;
 mod flags;
@@ -14,6 +15,7 @@ mod video_quality_mode;
 
 pub use self::{
     attachment::Attachment,
+    attachment_flags::AttachmentFlags,
     channel_mention::ChannelMention,
     channel_type::ChannelType,
     flags::ChannelFlags,
