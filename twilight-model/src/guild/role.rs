@@ -57,7 +57,7 @@ impl Ord for Role {
     /// Compare the position of two roles:
     ///
     /// ```
-    /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
+    /// # use twilight_model::{guild::{Permissions, Role, RoleFlags}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
     ///     id: Id::new(123),
@@ -69,6 +69,7 @@ impl Ord for Role {
     /// #   mentionable: true,
     /// #   name: "test".to_owned(),
     /// #   permissions: Permissions::ADMINISTRATOR,
+    /// #   flags: RoleFlags::empty(),
     /// #   tags: None,
     /// #   unicode_emoji: None,
     ///     // ...
@@ -83,6 +84,7 @@ impl Ord for Role {
     /// #   mentionable: true,
     /// #   name: "test".to_owned(),
     /// #   permissions: Permissions::ADMINISTRATOR,
+    /// #   flags: RoleFlags::empty(),
     /// #   tags: None,
     /// #   unicode_emoji: None,
     ///     // ...
@@ -96,7 +98,7 @@ impl Ord for Role {
     /// Compare the position of two roles with the same position:
     ///
     /// ```
-    /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
+    /// # use twilight_model::{guild::{Permissions, Role, RoleFlags}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
     ///     id: Id::new(123),
@@ -108,6 +110,7 @@ impl Ord for Role {
     /// #   mentionable: true,
     /// #   name: "test".to_owned(),
     /// #   permissions: Permissions::ADMINISTRATOR,
+    /// #   flags: RoleFlags::empty(),
     /// #   tags: None,
     /// #   unicode_emoji: None,
     /// };
@@ -121,6 +124,7 @@ impl Ord for Role {
     /// #   mentionable: true,
     /// #   name: "test".to_owned(),
     /// #   permissions: Permissions::ADMINISTRATOR,
+    /// #   flags: RoleFlags::empty(),
     /// #   tags: None,
     /// #   unicode_emoji: None,
     /// };
