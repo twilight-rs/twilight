@@ -13,7 +13,10 @@ pub struct RoleUpdate {
 #[cfg(test)]
 mod tests {
     use super::{Role, RoleUpdate};
-    use crate::{guild::Permissions, id::Id};
+    use crate::{
+        guild::{Permissions, RoleFlags},
+        id::Id,
+    };
     use serde_test::Token;
 
     #[test]
@@ -30,6 +33,7 @@ mod tests {
                 name: "a role".to_owned(),
                 permissions: Permissions::SEND_MESSAGES,
                 position: 12,
+                flags: RoleFlags::empty(),
                 tags: None,
                 unicode_emoji: None,
             },
@@ -48,7 +52,7 @@ mod tests {
                 Token::Str("role"),
                 Token::Struct {
                     name: "Role",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("color"),
                 Token::U32(0),
@@ -67,6 +71,8 @@ mod tests {
                 Token::Str("2048"),
                 Token::Str("position"),
                 Token::I64(12),
+                Token::Str("flags"),
+                Token::U64(0),
                 Token::StructEnd,
                 Token::StructEnd,
             ],
