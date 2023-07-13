@@ -73,7 +73,7 @@ mod tests {
     const_assert_eq!(1 << 0, RoleFlags::IN_PROMPT.bits());
 
     #[test]
-    fn test_deserialize() {
+    fn deserialize() {
         serde_test::assert_tokens(
             &RoleFlags::IN_PROMPT,
             &[Token::U64(RoleFlags::IN_PROMPT.bits())],
@@ -81,7 +81,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize() {
+    fn serialize() {
         serde_test::assert_tokens(
             &RoleFlags::IN_PROMPT,
             &[Token::U64(RoleFlags::IN_PROMPT.bits())],
