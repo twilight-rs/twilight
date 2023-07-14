@@ -5,10 +5,10 @@ use serde::{
 };
 
 bitflags! {
-  pub struct AttachmentFlags: u64 {
-    /// This attachment has been edited using the remix feature on mobile
-    const IS_REMIX = 1 << 2;
-  }
+    pub struct AttachmentFlags: u64 {
+        /// This attachment has been edited using the remix feature on mobile
+        const IS_REMIX = 1 << 2;
+    }
 }
 
 impl<'de> Deserialize<'de> for AttachmentFlags {
