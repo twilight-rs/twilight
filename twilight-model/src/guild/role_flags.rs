@@ -5,11 +5,11 @@ use serde::{
 };
 
 bitflags! {
-  // The flags for a role represented as a bitfield.
-  pub struct RoleFlags: u64 {
-      // A role that is available to select within guild onboarding.
-      const IN_PROMPT = 1 << 0;
-  }
+    /// The flags for a role represented as a bitfield.
+    pub struct RoleFlags: u64 {
+        /// A role that is available to select within guild onboarding.
+        const IN_PROMPT = 1 << 0;
+    }
 }
 
 impl<'de> Deserialize<'de> for RoleFlags {
