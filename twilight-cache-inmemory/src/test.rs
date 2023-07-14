@@ -136,6 +136,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
                 verified: None,
             },
         }),
+        message_author_id: Some(Id::new(7)),
         message_id: Id::new(4),
         user_id: Id::new(3),
     });

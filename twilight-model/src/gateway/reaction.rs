@@ -14,6 +14,11 @@ pub struct GatewayReaction {
     pub emoji: ReactionType,
     pub guild_id: Option<Id<GuildMarker>>,
     pub member: Option<Member>,
+    /// ID of the user who authored the message which was reacted to.
+    ///
+    /// This field is only present on reaction add events.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message_author_id: Option<Id<UserMarker>>,
     pub message_id: Id<MessageMarker>,
     pub user_id: Id<UserMarker>,
 }
@@ -74,6 +79,7 @@ mod tests {
                     verified: None,
                 },
             }),
+            message_author_id: Some(Id::new(7)),
             message_id: Id::new(3),
             user_id: Id::new(4),
         };
@@ -83,7 +89,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GatewayReaction",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -152,6 +158,10 @@ mod tests {
                 Token::Str("test"),
                 Token::StructEnd,
                 Token::StructEnd,
+                Token::Str("message_author_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("7"),
                 Token::Str("message_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
@@ -173,6 +183,7 @@ mod tests {
             guild_id: None,
             member: None,
             message_id: Id::new(3),
+            message_author_id: Some(Id::new(7)),
             user_id: Id::new(4),
         };
 
@@ -181,7 +192,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GatewayReaction",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -198,6 +209,10 @@ mod tests {
                 Token::None,
                 Token::Str("member"),
                 Token::None,
+                Token::Str("message_author_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("7"),
                 Token::Str("message_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
