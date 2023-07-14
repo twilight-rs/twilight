@@ -55,6 +55,7 @@ mod tests {
                     id: Id::new(3),
                     accent_color: None,
                     avatar: Some(image_hash::AVATAR),
+                    avatar_decoration: None,
                     banner: None,
                     bot: false,
                     discriminator: 1,

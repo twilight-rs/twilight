@@ -59,6 +59,7 @@ mod tests {
             roles: vec![],
             user: User {
                 accent_color: None,
+                avatar_decoration: None,
                 banner: None,
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,

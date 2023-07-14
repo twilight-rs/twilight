@@ -533,6 +533,7 @@ mod tests {
                         User {
                             accent_color: None,
                             avatar: Some(image_hash::AVATAR),
+                            avatar_decoration: None,
                             banner: None,
                             bot: false,
                             discriminator: 1111,
@@ -572,6 +573,7 @@ mod tests {
                 user: Some(User {
                     accent_color: None,
                     avatar: Some(image_hash::AVATAR),
+                    avatar_decoration: None,
                     banner: None,
                     bot: false,
                     discriminator: 1111,

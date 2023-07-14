@@ -182,6 +182,7 @@ mod tests {
             creator: User {
                 accent_color: None,
                 avatar: Some(image_hash::AVATAR),
+                avatar_decoration: None,
                 banner: Some(image_hash::BANNER),
                 bot: false,
                 email: None,

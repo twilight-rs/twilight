@@ -196,6 +196,7 @@ mod tests {
             inviter: Some(User {
                 accent_color: None,
                 avatar: None,
+                avatar_decoration: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,
@@ -217,6 +218,7 @@ mod tests {
             target_user: Some(User {
                 accent_color: None,
                 avatar: None,
+                avatar_decoration: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,

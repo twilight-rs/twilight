@@ -125,6 +125,8 @@ pub struct User {
     /// This is an integer representation of a hexadecimal color code.
     pub accent_color: Option<u32>,
     pub avatar: Option<ImageHash>,
+    /// Hash of the user's avatar decoration.
+    pub avatar_decoration: Option<ImageHash>,
     /// Hash of the user's banner image.
     pub banner: Option<ImageHash>,
     #[serde(default)]
@@ -207,13 +209,16 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 15,
+                len: 16,
             },
             Token::Str("accent_color"),
             Token::None,
             Token::Str("avatar"),
             Token::Some,
             Token::Str(image_hash::AVATAR_INPUT),
+            Token::Str("avatar_decoration"),
+            Token::Some,
+            Token::Str(image_hash::AVATAR_DECORATION_INPUT),
             Token::Str("banner"),
             Token::Some,
             Token::Str(image_hash::BANNER_INPUT),
@@ -258,13 +263,16 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 16,
+                len: 17,
             },
             Token::Str("accent_color"),
             Token::None,
             Token::Str("avatar"),
             Token::Some,
             Token::Str(image_hash::AVATAR_INPUT),
+            Token::Str("avatar_decoration"),
+            Token::Some,
+            Token::Str(image_hash::AVATAR_DECORATION_INPUT),
             Token::Str("banner"),
             Token::Some,
             Token::Str(image_hash::BANNER_INPUT),
@@ -323,6 +331,7 @@ mod tests {
         let value = User {
             accent_color: None,
             avatar: Some(image_hash::AVATAR),
+            avatar_decoration: Some(image_hash::AVATAR_DECORATION),
             banner: Some(image_hash::BANNER),
             bot: false,
             discriminator: 1,
@@ -354,6 +363,7 @@ mod tests {
         let value = User {
             accent_color: None,
             avatar: Some(image_hash::AVATAR),
+            avatar_decoration: Some(image_hash::AVATAR_DECORATION),
             banner: Some(image_hash::BANNER),
             bot: false,
             discriminator: 0,
@@ -382,6 +392,7 @@ mod tests {
         let value = User {
             accent_color: None,
             avatar: Some(image_hash::AVATAR),
+            avatar_decoration: Some(image_hash::AVATAR_DECORATION),
             banner: Some(image_hash::BANNER),
             bot: false,
             discriminator: 1,

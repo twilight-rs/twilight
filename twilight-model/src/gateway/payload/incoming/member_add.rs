@@ -59,6 +59,7 @@ mod tests {
                     id: Id::new(2),
                     accent_color: None,
                     avatar: None,
+                    avatar_decoration: None,
                     banner: None,
                     bot: false,
                     discriminator: 987,

@@ -226,6 +226,7 @@ mod tests {
             author: User {
                 accent_color: None,
                 avatar: Some(image_hash::AVATAR),
+                avatar_decoration: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,
@@ -425,6 +426,7 @@ mod tests {
             author: User {
                 accent_color: None,
                 avatar: Some(image_hash::AVATAR),
+                avatar_decoration: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,

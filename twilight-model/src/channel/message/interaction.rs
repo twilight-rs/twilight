@@ -63,6 +63,7 @@ mod tests {
             user: User {
                 accent_color: None,
                 avatar: Some(image_hash::AVATAR),
+                avatar_decoration: None,
                 banner: Some(image_hash::BANNER),
                 bot: false,
                 discriminator: 1,
