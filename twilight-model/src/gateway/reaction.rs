@@ -15,8 +15,6 @@ pub struct GatewayReaction {
     pub guild_id: Option<Id<GuildMarker>>,
     pub member: Option<Member>,
     /// ID of the user who authored the message which was reacted to.
-    ///
-    /// This field is only present on reaction add events.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_author_id: Option<Id<UserMarker>>,
     pub message_id: Id<MessageMarker>,
