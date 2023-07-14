@@ -1095,6 +1095,7 @@ mod tests {
             author: User {
                 accent_color: None,
                 avatar: None,
+                avatar_decoration: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,
@@ -1212,6 +1213,7 @@ mod tests {
             user: Some(User {
                 accent_color: None,
                 avatar: None,
+                avatar_decoration: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,
