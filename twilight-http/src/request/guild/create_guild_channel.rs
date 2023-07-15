@@ -152,9 +152,7 @@ impl<'a> CreateGuildChannel<'a> {
         self
     }
 
-    /// Set the default forum layout for newly created forum channels.
-    ///
-    /// This is only valid for forum channels.
+    /// Set the default forum layout for new forum channels.
     pub const fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
         self.fields.default_forum_layout = Some(default_forum_layout);
 
