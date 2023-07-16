@@ -129,6 +129,7 @@ mod tests {
                     content_type: Some("image/png".to_owned()),
                     ephemeral: true,
                     filename: "rainbow_dash.png".to_owned(),
+                    flags: None,
                     description: None,
                     duration_secs: None,
                     height: Some(2674),
