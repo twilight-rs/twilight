@@ -189,6 +189,7 @@ mod tests {
             },
             guild_id: Some(Id::new(1)),
             member: None,
+            message_author_id: None,
             message_id: Id::new(4),
             user_id: Id::new(5),
         }));
@@ -201,6 +202,7 @@ mod tests {
             },
             guild_id: Some(Id::new(1)),
             member: None,
+            message_author_id: None,
             message_id: Id::new(4),
             user_id: Id::new(5),
         }));

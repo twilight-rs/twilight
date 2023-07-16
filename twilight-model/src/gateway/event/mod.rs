@@ -475,7 +475,7 @@ mod tests {
     // requires a variable to be used in a function, so this is a false
     // positive.
     #[allow(dead_code)]
-    const EVENT_THRESHOLD: usize = 208;
+    const EVENT_THRESHOLD: usize = 224;
 
     const_assert!(mem::size_of::<Event>() == EVENT_THRESHOLD);
 

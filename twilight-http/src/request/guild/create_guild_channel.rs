@@ -9,7 +9,7 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{
-        forum::{DefaultReaction, ForumSortOrder, ForumTag},
+        forum::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag},
         permission_overwrite::PermissionOverwrite,
         thread::AutoArchiveDuration,
         Channel, ChannelType, VideoQualityMode,
@@ -36,6 +36,8 @@ struct CreateGuildChannelFields<'a> {
     bitrate: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_auto_archive_duration: Option<AutoArchiveDuration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_forum_layout: Option<ForumLayout>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_reaction_emoji: Option<&'a DefaultReaction>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -81,6 +83,7 @@ impl<'a> CreateGuildChannel<'a> {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_sort_order: None,
             kind: None,
@@ -150,6 +153,15 @@ impl<'a> CreateGuildChannel<'a> {
     ) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.default_auto_archive_duration = Some(auto_archive_duration);
+        }
+
+        self
+    }
+
+    /// Set the default forum layout for new forum channels.
+    pub fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.default_forum_layout = Some(default_forum_layout);
         }
 
         self

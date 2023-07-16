@@ -7,6 +7,8 @@ pub mod image_hash {
 
     pub const AVATAR_INPUT: &str = "5f95e03c3523a2de6f3136f636fba136";
     pub const AVATAR: ImageHash = new(AVATAR_INPUT);
+    pub const AVATAR_DECORATION_INPUT: &str = "8ea5bedc34bc7b5d494a34b9e974c6e9";
+    pub const AVATAR_DECORATION: ImageHash = new(AVATAR_DECORATION_INPUT);
     pub const BANNER_INPUT: &str = "341680f28074624d4fc9836416c2d519";
     pub const BANNER: ImageHash = new(BANNER_INPUT);
     pub const COVER_INPUT: &str = "ad38c1dce9f7250202b7d8b8c6bcc3c4";

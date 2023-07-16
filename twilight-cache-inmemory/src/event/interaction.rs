@@ -168,6 +168,7 @@ mod tests {
                             author: User {
                                 accent_color: None,
                                 avatar: Some(avatar3),
+                                avatar_decoration: None,
                                 banner: None,
                                 bot: false,
                                 discriminator: 1,
@@ -247,6 +248,7 @@ mod tests {
                         User {
                             accent_color: None,
                             avatar: Some(avatar2),
+                            avatar_decoration: None,
                             banner: None,
                             bot: false,
                             discriminator: 5678,
@@ -285,6 +287,7 @@ mod tests {
                 user: Some(User {
                     accent_color: None,
                     avatar: Some(avatar3),
+                    avatar_decoration: None,
                     banner: None,
                     bot: false,
                     discriminator: 1234,
