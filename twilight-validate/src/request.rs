@@ -7,6 +7,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
+use twilight_model::id::marker::{ChannelMarker, RoleMarker};
+use twilight_model::id::Id;
 use twilight_model::util::Timestamp;
 
 /// The maximum audit log reason length in UTF-16 codepoints.
@@ -17,6 +19,39 @@ pub const AUTO_MODERATION_ACTION_BLOCK_CUSTOM_MESSAGE_LENGTH_MAX: usize = 150;
 
 /// Maximum amount of mentions that triggers an auto moderation action.
 pub const AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT: u8 = 50;
+
+/// Maximum amount of keywords allowed in the keyword filter.
+pub const AUTO_MODERATION_METADATA_KEYWORD_FILTER_MAX: usize = 1000;
+
+/// Maximum length of a keyword in the keyword filter.
+pub const AUTO_MODERATION_METADATA_KEYWORD_FILTER_LENGTH_MAX: usize = 60;
+
+/// Maximum amount of allowed keywords when using the custom keywords.
+pub const AUTO_MODERATION_METADATA_KEYWORD_ALLOW_LIST_MAX: usize = 100;
+
+/// Maximum amount of allowed keywords when using a keyword preset.
+pub const AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_MAX: usize = 1000;
+
+/// Maximum length of a keyword preset keyword.
+pub const AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_LENGTH_MAX: usize = 60;
+
+/// Maximum length of a allowed keyword.
+pub const AUTO_MODERATION_METADATA_KEYWORD_ALLOW_LIST_LENGTH_MAX: usize = 60;
+
+/// Maximum amount of regex patterns that trigger the auto moderation.
+pub const AUTO_MODERATION_METADATA_REGEX_PATTERNS_MAX: usize = 10;
+
+/// Maximum length of a regex pattern.
+pub const AUTO_MODERATION_METADATA_REGEX_PATTERNS_LENGTH_MAX: usize = 260;
+
+/// Maximum amount of seconds (`2_419_200` this is equivalent to `28` days) to disable communication for.
+pub const AUTO_MODERATION_ACTION_METADATA_DURATION_SECONDS_MAX: u32 = 2_419_200;
+
+/// Maximum amount of exempt roles for the auto moderation rule.
+pub const AUTO_MODERATION_EXEMPT_ROLES_MAX: usize = 20;
+
+/// Maximum amount of exempt channels for the auto moderation rule.
+pub const AUTO_MODERATION_EXEMPT_CHANNELS_MAX: usize = 50;
 
 /// Maximum amount of seconds (`604_800` this is equivalent to `7` days) for messages to be deleted upon ban.
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
@@ -193,6 +228,91 @@ impl Display for ValidationError {
                 f.write_str(", but it must be at most ")?;
 
                 Display::fmt(&AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT, f)
+            }
+            ValidationErrorType::AutoModerationMetadataAllowList { len } => {
+                f.write_str("provided auto moderation metadata allow_list length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_METADATA_KEYWORD_ALLOW_LIST_MAX, f)
+            }
+            ValidationErrorType::AutoModerationMetadataAllowListItem { len, substring } => {
+                f.write_str("provided auto moderation metadata allow_list item ")?;
+                Display::fmt(substring, f)?;
+                f.write_str(" length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_METADATA_KEYWORD_ALLOW_LIST_LENGTH_MAX, f)
+            }
+            ValidationErrorType::AutoModerationMetadataKeywordFilter { len } => {
+                f.write_str("provided auto moderation metadata keyword_filter length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_METADATA_KEYWORD_FILTER_MAX, f)
+            }
+            ValidationErrorType::AutoModerationMetadataKeywordFilterItem { len, substring } => {
+                f.write_str("provided auto moderation metadata keyword_filter item ")?;
+                Display::fmt(substring, f)?;
+                f.write_str(" length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_METADATA_KEYWORD_FILTER_LENGTH_MAX, f)
+            }
+            ValidationErrorType::AutoModerationMetadataPresetAllowList { len } => {
+                f.write_str("provided auto moderation metadata allow_list length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_MAX, f)
+            }
+            ValidationErrorType::AutoModerationMetadataPresetAllowListItem { len, substring } => {
+                f.write_str("provided auto moderation metadata allow_list item ")?;
+                Display::fmt(substring, f)?;
+                f.write_str(" length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_LENGTH_MAX, f)
+            }
+            ValidationErrorType::AutoModerationActionMetadataDurationSeconds { seconds } => {
+                f.write_str("provided auto moderation action timeout duration is ")?;
+                Display::fmt(seconds, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_ACTION_METADATA_DURATION_SECONDS_MAX, f)
+            }
+            ValidationErrorType::AutoModerationMetadataRegexPatterns { len } => {
+                f.write_str("provided auto moderation metadata regex_patterns length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_METADATA_REGEX_PATTERNS_MAX, f)
+            }
+            ValidationErrorType::AutoModerationMetadataRegexPatternsItem { len, substring } => {
+                f.write_str("provided auto moderation metadata regex_patterns item ")?;
+                Display::fmt(substring, f)?;
+                f.write_str(" length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_METADATA_REGEX_PATTERNS_LENGTH_MAX, f)
+            }
+            ValidationErrorType::AutoModerationExemptRoles { len } => {
+                f.write_str("provided auto moderation exempt_roles length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_EXEMPT_ROLES_MAX, f)
+            }
+            ValidationErrorType::AutoModerationExemptChannels { len } => {
+                f.write_str("provided auto moderation exempt_channels length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_EXEMPT_CHANNELS_MAX, f)
             }
             ValidationErrorType::CreateGuildBanDeleteMessageSeconds {
                 seconds: delete_message_seconds,
@@ -408,6 +528,69 @@ pub enum ValidationErrorType {
         /// Invalid limit.
         limit: u8,
     },
+    /// Provided keyword filter was invalid.
+    AutoModerationMetadataKeywordFilter {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Provided keyword was invalid.
+    AutoModerationMetadataKeywordFilterItem {
+        /// Invalid length.
+        len: usize,
+        /// Invalid substring.
+        substring: String,
+    },
+    /// Provided keyword allow list was invalid.
+    AutoModerationMetadataAllowList {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Provided allow list item was invalid.
+    AutoModerationMetadataAllowListItem {
+        /// Invalid length.
+        len: usize,
+        /// Invalid substring.
+        substring: String,
+    },
+    /// Provided keyword preset allow list was invalid.
+    AutoModerationMetadataPresetAllowList {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Provided keyword preset allow list item was invalid.
+    AutoModerationMetadataPresetAllowListItem {
+        /// Invalid length.
+        len: usize,
+        /// Invalid substring.
+        substring: String,
+    },
+    /// Provided seconds to disable communication was invalid.
+    AutoModerationActionMetadataDurationSeconds {
+        /// Invalid seconds.
+        seconds: u32,
+    },
+    /// Provided regex patterns was invalid.
+    AutoModerationMetadataRegexPatterns {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Provided regex patterns item was invalid.
+    AutoModerationMetadataRegexPatternsItem {
+        /// Invalid length.
+        len: usize,
+        /// Invalid substring.
+        substring: String,
+    },
+    /// Provided exempt roles was invalid.
+    AutoModerationExemptRoles {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Provided exempt channels was invalid.
+    AutoModerationExemptChannels {
+        /// Invalid length.
+        len: usize,
+    },
     /// Provided create guild ban delete message seconds was invalid.
     CreateGuildBanDeleteMessageSeconds {
         /// Invalid seconds.
@@ -563,6 +746,7 @@ pub fn auto_moderation_block_action_custom_message_limit(
     custom_message: impl AsRef<str>,
 ) -> Result<(), ValidationError> {
     let len = custom_message.as_ref().chars().count();
+
     if len <= AUTO_MODERATION_ACTION_BLOCK_CUSTOM_MESSAGE_LENGTH_MAX {
         Ok(())
     } else {
@@ -592,6 +776,333 @@ pub const fn auto_moderation_metadata_mention_total_limit(
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::AutoModerationMetadataMentionTotalLimit { limit },
+        })
+    }
+}
+
+/// Ensure that an auto moderation rule's `keyword_filter` is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_KEYWORD_FILTER_LENGTH_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataKeywordFilter`] if the
+/// length is invalid.
+///
+/// Returns an error of type [`AutoModerationMetadataKeywordFilterItem`] if any
+/// of the keywords are invalid.
+///
+/// [`AutoModerationMetadataKeywordFilter`]: ValidationErrorType::AutoModerationMetadataKeywordFilter
+/// [`AutoModerationMetadataKeywordFilterItem`]: ValidationErrorType::AutoModerationMetadataKeywordFilterItem
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata-field-limits
+pub fn auto_moderation_metadata_keyword_filter(
+    keywords: &[impl AsRef<str>],
+) -> Result<(), ValidationError> {
+    let len = keywords.len();
+
+    if len <= AUTO_MODERATION_METADATA_KEYWORD_FILTER_MAX {
+        for keyword in keywords {
+            auto_moderation_metadata_keyword_filter_item(keyword)?;
+        }
+
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataKeywordFilter { len },
+        })
+    }
+}
+
+/// Ensure that an auto moderation rule's `keyword_filter` item is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_KEYWORD_FILTER_LENGTH_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataKeywordFilterItem`] if the
+/// length is invalid.
+///
+/// [`AutoModerationMetadataKeywordFilterItem`]: ValidationErrorType::AutoModerationMetadataKeywordFilterItem
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata-field-limits
+pub fn auto_moderation_metadata_keyword_filter_item(
+    keyword: impl AsRef<str>,
+) -> Result<(), ValidationError> {
+    let len = keyword.as_ref().chars().count();
+
+    if len <= AUTO_MODERATION_METADATA_KEYWORD_FILTER_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataKeywordFilterItem {
+                len,
+                substring: keyword.as_ref().to_string(),
+            },
+        })
+    }
+}
+
+/// Ensure that an auto moderation rule's `allow_list` is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataAllowList`] if the
+/// length is invalid.
+///
+/// Returns an error of type [`AutoModerationMetadataAllowListItem`] if any of
+/// the items are invalid.
+///
+/// [`AutoModerationMetadataAllowList`]: ValidationErrorType::AutoModerationMetadataAllowList
+/// [`AutoModerationMetadataAllowListItem`]: ValidationErrorType::AutoModerationMetadataAllowListItem
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata-field-limits
+pub fn auto_moderation_metadata_keyword_allow_list(
+    keywords: &[impl AsRef<str>],
+) -> Result<(), ValidationError> {
+    let len = keywords.len();
+
+    if len <= AUTO_MODERATION_METADATA_KEYWORD_ALLOW_LIST_MAX {
+        for keyword in keywords {
+            auto_moderation_metadata_keyword_allow_list_item(keyword)?;
+        }
+
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataAllowList { len },
+        })
+    }
+}
+
+/// Ensure that an auto moderation rule's `allow_list` item is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataAllowListItem`] if the
+/// length is invalid.
+///
+/// [`AutoModerationMetadataAllowListItem`]: ValidationErrorType::AutoModerationMetadataAllowListItem
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata-field-limits
+pub fn auto_moderation_metadata_keyword_allow_list_item(
+    keyword: impl AsRef<str>,
+) -> Result<(), ValidationError> {
+    let len = keyword.as_ref().chars().count();
+
+    if len <= AUTO_MODERATION_METADATA_KEYWORD_FILTER_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataAllowListItem {
+                len,
+                substring: keyword.as_ref().to_string(),
+            },
+        })
+    }
+}
+
+/// Ensure that an auto moderation rule's `allow_list` is correct when using presets.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataPresetAllowList`] if the
+/// length is invalid.
+///
+/// Returns an error of type [`AutoModerationMetadataPresetAllowListItem`] if any of
+/// the items are invalid.
+///
+/// [`AutoModerationMetadataPresetAllowList`]: ValidationErrorType::AutoModerationMetadataPresetAllowList
+/// [`AutoModerationMetadataPresetAllowListItem`]: ValidationErrorType::AutoModerationMetadataPresetAllowListItem
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata-field-limits
+pub fn auto_moderation_metadata_preset_allow_list(
+    keywords: &[impl AsRef<str>],
+) -> Result<(), ValidationError> {
+    let len = keywords.len();
+
+    if len <= AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_MAX {
+        for keyword in keywords {
+            auto_moderation_metadata_preset_allow_list_item(keyword)?;
+        }
+
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataPresetAllowList { len },
+        })
+    }
+}
+
+/// Ensure that an auto moderation rule's `allow_list` item is correct when using presets.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_LENGTH_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataPresetAllowListItem`] if the
+/// length is invalid.
+///
+/// [`AutoModerationMetadataPresetAllowListItem`]: ValidationErrorType::AutoModerationMetadataPresetAllowListItem
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata-field-limits
+pub fn auto_moderation_metadata_preset_allow_list_item(
+    keyword: impl AsRef<str>,
+) -> Result<(), ValidationError> {
+    let len = keyword.as_ref().chars().count();
+
+    if len <= AUTO_MODERATION_METADATA_PRESET_ALLOW_LIST_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataPresetAllowListItem {
+                len,
+                substring: keyword.as_ref().to_string(),
+            },
+        })
+    }
+}
+
+/// Ensure that an auto moderation rule's `regex_patterns` is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_REGEX_PATTERNS_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataRegexPatterns`] if the
+/// length is invalid.
+///
+/// Returns an error of type [`AutoModerationMetadataRegexPatternsItem`] if any of
+/// the items are invalid.
+///
+/// [`AutoModerationMetadataRegexPatterns`]: ValidationErrorType::AutoModerationMetadataRegexPatterns
+/// [`AutoModerationMetadataRegexPatternsItem`]: ValidationErrorType::AutoModerationMetadataRegexPatternsItem
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata-field-limits
+pub fn auto_moderation_metadata_regex_patterns(
+    patterns: &[impl AsRef<str>],
+) -> Result<(), ValidationError> {
+    let len = patterns.len();
+
+    if len <= AUTO_MODERATION_METADATA_REGEX_PATTERNS_MAX {
+        for pattern in patterns {
+            auto_moderation_metadata_regex_patterns_item(pattern)?;
+        }
+
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataRegexPatterns { len },
+        })
+    }
+}
+
+/// Ensure that an auto moderation rule's `regex_patterns` item is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_REGEX_PATTERNS_LENGTH_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataRegexPatternsItem`] if the
+/// length is invalid.
+///
+/// [`AutoModerationMetadataRegexPatternsItem`]: ValidationErrorType::AutoModerationMetadataRegexPatternsItem
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata-field-limits
+pub fn auto_moderation_metadata_regex_patterns_item(
+    pattern: impl AsRef<str>,
+) -> Result<(), ValidationError> {
+    let len = pattern.as_ref().chars().count();
+
+    if len <= AUTO_MODERATION_METADATA_REGEX_PATTERNS_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataRegexPatternsItem {
+                len,
+                substring: pattern.as_ref().to_string(),
+            },
+        })
+    }
+}
+
+/// Ensure that the `duration_seconds` field for an auto moderation action
+/// metadata is correct.
+///
+/// The duration must be at most [`AUTO_MODERATION_ACTION_METADATA_DURATION_SECONDS_MAX`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationActionMetadataDurationSeconds`] if the
+/// duration is invalid.
+///
+/// [`AutoModerationActionMetadataDurationSeconds`]: ValidationErrorType::AutoModerationActionMetadataDurationSeconds
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-metadata
+pub const fn auto_moderation_action_metadata_duration_seconds(
+    seconds: u32,
+) -> Result<(), ValidationError> {
+    if seconds <= AUTO_MODERATION_ACTION_METADATA_DURATION_SECONDS_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationActionMetadataDurationSeconds { seconds },
+        })
+    }
+}
+
+/// Ensure that the `exempt_roles` field for an auto moderation rule is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_EXEMPT_ROLES_MAX`]. This is based
+/// on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationExemptRoles`] if the length is
+/// invalid.
+///
+/// [`AutoModerationExemptRoles`]: ValidationErrorType::AutoModerationExemptRoles
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-auto-moderation-rule-structure
+pub const fn auto_moderation_exempt_roles(roles: &[Id<RoleMarker>]) -> Result<(), ValidationError> {
+    let len = roles.len();
+
+    if len <= AUTO_MODERATION_EXEMPT_ROLES_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationExemptRoles { len },
+        })
+    }
+}
+
+/// Ensure that the `exempt_channels` field for an auto moderation rule is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_EXEMPT_CHANNELS_MAX`]. This is based
+/// on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationExemptChannels`] if the length is
+/// invalid.
+///
+/// [`AutoModerationExemptChannels`]: ValidationErrorType::AutoModerationExemptChannels
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-auto-moderation-rule-structure
+pub const fn auto_moderation_exempt_channels(
+    channels: &[Id<ChannelMarker>],
+) -> Result<(), ValidationError> {
+    let len = channels.len();
+
+    if len <= AUTO_MODERATION_EXEMPT_CHANNELS_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationExemptChannels { len },
         })
     }
 }
@@ -1187,6 +1698,92 @@ mod tests {
         assert!(auto_moderation_metadata_mention_total_limit(50).is_ok());
 
         assert!(auto_moderation_metadata_mention_total_limit(51).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_metadata_keyword_filter_max() {
+        let mut keywords = (0..1000).map(|_| "a").collect::<Vec<_>>();
+
+        assert!(auto_moderation_metadata_keyword_filter(&[] as &[&str]).is_ok());
+        assert!(auto_moderation_metadata_keyword_filter(&["a".repeat(60)]).is_ok());
+        assert!(auto_moderation_metadata_keyword_filter(&keywords).is_ok());
+
+        keywords.push("a");
+
+        assert!(auto_moderation_metadata_keyword_filter(&["a".repeat(61)]).is_err());
+        assert!(auto_moderation_metadata_keyword_filter(&keywords).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_metadata_keyword_allow_list_max() {
+        let mut allow_list = (0..100).map(|_| "a").collect::<Vec<_>>();
+
+        assert!(auto_moderation_metadata_keyword_allow_list(&[] as &[&str]).is_ok());
+        assert!(auto_moderation_metadata_keyword_allow_list(&["a".repeat(60)]).is_ok());
+
+        allow_list.push("a");
+
+        assert!(auto_moderation_metadata_keyword_allow_list(&["a".repeat(61)]).is_err());
+        assert!(auto_moderation_metadata_keyword_allow_list(&allow_list).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_metadata_preset_allow_list_max() {
+        let mut allow_list = (0..1000).map(|_| "a").collect::<Vec<_>>();
+
+        assert!(auto_moderation_metadata_preset_allow_list(&[] as &[&str]).is_ok());
+        assert!(auto_moderation_metadata_preset_allow_list(&["a".repeat(60)]).is_ok());
+
+        allow_list.push("a");
+
+        assert!(auto_moderation_metadata_preset_allow_list(&["a".repeat(61)]).is_err());
+        assert!(auto_moderation_metadata_preset_allow_list(&allow_list).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_metadata_regex_patterns_max() {
+        let mut patterns = (0..10).map(|_| "a").collect::<Vec<_>>();
+
+        assert!(auto_moderation_metadata_regex_patterns(&[] as &[&str]).is_ok());
+        assert!(auto_moderation_metadata_regex_patterns(&["a".repeat(260)]).is_ok());
+
+        patterns.push("a");
+
+        assert!(auto_moderation_metadata_regex_patterns(&["a".repeat(261)]).is_err());
+        assert!(auto_moderation_metadata_regex_patterns(&patterns).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_exempt_roles_max() {
+        let mut roles = (1..=20).map(Id::new).collect::<Vec<_>>();
+
+        assert!(auto_moderation_exempt_roles(&[]).is_ok());
+        assert!(auto_moderation_exempt_roles(&roles).is_ok());
+
+        roles.push(Id::new(21));
+
+        assert!(auto_moderation_exempt_roles(&roles).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_exempt_channels_max() {
+        let mut channels = (1..=50).map(Id::new).collect::<Vec<_>>();
+
+        assert!(auto_moderation_exempt_channels(&[]).is_ok());
+        assert!(auto_moderation_exempt_channels(&channels).is_ok());
+
+        channels.push(Id::new(51));
+
+        assert!(auto_moderation_exempt_channels(&channels).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_action_metadata_duration_seconds_max() {
+        assert!(auto_moderation_action_metadata_duration_seconds(0).is_ok());
+        assert!(auto_moderation_action_metadata_duration_seconds(1).is_ok());
+        assert!(auto_moderation_action_metadata_duration_seconds(2_419_200).is_ok());
+
+        assert!(auto_moderation_action_metadata_duration_seconds(2_419_201).is_err());
     }
 
     #[test]
