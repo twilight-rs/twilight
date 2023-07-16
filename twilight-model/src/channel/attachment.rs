@@ -1,10 +1,9 @@
+use super::AttachmentFlags;
 use crate::{
     id::{marker::AttachmentMarker, Id},
     util::is_false,
 };
 use serde::{Deserialize, Serialize};
-
-use super::AttachmentFlags;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Attachment {
