@@ -520,7 +520,8 @@ mod tests {
         "mentionable": false,
         "name": "@everyone",
         "permissions": "104193601",
-        "position": 0
+        "position": 0,
+        "flags": 0
       }}
     ],
     "rules_channel_id": null,
@@ -595,7 +596,8 @@ mod tests {
         "mentionable": false,
         "name": "@everyone",
         "permissions": "104324673",
-        "position": 0
+        "position": 0,
+        "flags": 0
       }}
     ],
     "rules_channel_id": null,

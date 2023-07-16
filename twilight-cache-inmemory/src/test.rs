@@ -13,7 +13,7 @@ use twilight_model::{
     },
     guild::{
         AfkTimeout, DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member,
-        MemberFlags, MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role,
+        MemberFlags, MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role, RoleFlags,
         SystemChannelFlags, VerificationLevel,
     },
     id::{
@@ -306,6 +306,7 @@ pub fn role(id: Id<RoleMarker>) -> Role {
         name: "test".to_owned(),
         permissions: Permissions::empty(),
         position: 0,
+        flags: RoleFlags::empty(),
         tags: None,
         unicode_emoji: None,
     }

@@ -929,7 +929,7 @@ mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
         gateway::payload::incoming::RoleDelete,
-        guild::{Member, MemberFlags, Permissions, Role},
+        guild::{Member, MemberFlags, Permissions, Role, RoleFlags},
         id::Id,
         util::Timestamp,
     };
@@ -990,6 +990,7 @@ mod tests {
                     name: "test".to_owned(),
                     permissions: Permissions::empty(),
                     position: 0,
+                    flags: RoleFlags::empty(),
                     tags: None,
                     unicode_emoji: None,
                 },
@@ -1003,6 +1004,7 @@ mod tests {
                     name: "test".to_owned(),
                     permissions: Permissions::empty(),
                     position: 1,
+                    flags: RoleFlags::empty(),
                     tags: None,
                     unicode_emoji: None,
                 },

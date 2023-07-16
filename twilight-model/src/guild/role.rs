@@ -1,4 +1,4 @@
-use super::RoleTags;
+use super::{RoleFlags, RoleTags};
 use crate::{
     guild::Permissions,
     id::{marker::RoleMarker, Id},
@@ -27,6 +27,8 @@ pub struct Role {
     pub name: String,
     pub permissions: Permissions,
     pub position: i64,
+    /// Flags for this role.
+    pub flags: RoleFlags,
     /// Tags about the role.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<RoleTags>,
@@ -55,7 +57,7 @@ impl Ord for Role {
     /// Compare the position of two roles:
     ///
     /// ```
-    /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
+    /// # use twilight_model::{guild::{Permissions, Role, RoleFlags}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
     ///     id: Id::new(123),
@@ -67,6 +69,7 @@ impl Ord for Role {
     /// #   mentionable: true,
     /// #   name: "test".to_owned(),
     /// #   permissions: Permissions::ADMINISTRATOR,
+    /// #   flags: RoleFlags::empty(),
     /// #   tags: None,
     /// #   unicode_emoji: None,
     ///     // ...
@@ -81,6 +84,7 @@ impl Ord for Role {
     /// #   mentionable: true,
     /// #   name: "test".to_owned(),
     /// #   permissions: Permissions::ADMINISTRATOR,
+    /// #   flags: RoleFlags::empty(),
     /// #   tags: None,
     /// #   unicode_emoji: None,
     ///     // ...
@@ -94,7 +98,7 @@ impl Ord for Role {
     /// Compare the position of two roles with the same position:
     ///
     /// ```
-    /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
+    /// # use twilight_model::{guild::{Permissions, Role, RoleFlags}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
     ///     id: Id::new(123),
@@ -106,6 +110,7 @@ impl Ord for Role {
     /// #   mentionable: true,
     /// #   name: "test".to_owned(),
     /// #   permissions: Permissions::ADMINISTRATOR,
+    /// #   flags: RoleFlags::empty(),
     /// #   tags: None,
     /// #   unicode_emoji: None,
     /// };
@@ -119,6 +124,7 @@ impl Ord for Role {
     /// #   mentionable: true,
     /// #   name: "test".to_owned(),
     /// #   permissions: Permissions::ADMINISTRATOR,
+    /// #   flags: RoleFlags::empty(),
     /// #   tags: None,
     /// #   unicode_emoji: None,
     /// };
@@ -143,7 +149,7 @@ impl PartialOrd for Role {
 #[cfg(test)]
 mod tests {
     use super::{Permissions, Role};
-    use crate::id::Id;
+    use crate::{guild::RoleFlags, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -185,6 +191,7 @@ mod tests {
             name: "test".to_owned(),
             permissions: Permissions::ADMINISTRATOR,
             position: 12,
+            flags: RoleFlags::IN_PROMPT,
             tags: None,
             unicode_emoji: None,
         };
@@ -194,7 +201,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Role",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("color"),
                 Token::U32(0),
@@ -213,6 +220,8 @@ mod tests {
                 Token::Str("8"),
                 Token::Str("position"),
                 Token::I64(12),
+                Token::Str("flags"),
+                Token::U64(1),
                 Token::StructEnd,
             ],
         );
