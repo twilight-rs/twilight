@@ -226,6 +226,10 @@ pub enum AuditLogEventType {
     AutoModerationFlagToChannel,
     /// A member has been timed out by AutoMod.
     AutoModerationUserCommunicationDisabled,
+    /// Creator monetization request was created.
+    CreatorMonetizationRequestCreated,
+    /// Creator monetization terms were accepted.
+    CreatorMonetizationTermsAccepted,
     /// Variant value is unknown to the library.
     Unknown(u16),
 }
@@ -287,6 +291,8 @@ impl From<u16> for AuditLogEventType {
             143 => AuditLogEventType::AutoModerationBlockMessage,
             144 => AuditLogEventType::AutoModerationFlagToChannel,
             145 => AuditLogEventType::AutoModerationUserCommunicationDisabled,
+            150 => AuditLogEventType::CreatorMonetizationRequestCreated,
+            151 => AuditLogEventType::CreatorMonetizationTermsAccepted,
             unknown => AuditLogEventType::Unknown(unknown),
         }
     }
@@ -349,6 +355,8 @@ impl From<AuditLogEventType> for u16 {
             AuditLogEventType::AutoModerationBlockMessage => 143,
             AuditLogEventType::AutoModerationFlagToChannel => 144,
             AuditLogEventType::AutoModerationUserCommunicationDisabled => 145,
+            AuditLogEventType::CreatorMonetizationRequestCreated => 150,
+            AuditLogEventType::CreatorMonetizationTermsAccepted => 151,
             AuditLogEventType::Unknown(unknown) => unknown,
         }
     }
@@ -440,6 +448,14 @@ mod tests {
         assert_eq!(
             145,
             u16::from(AuditLogEventType::AutoModerationUserCommunicationDisabled)
+        );
+        assert_eq!(
+            150,
+            u16::from(AuditLogEventType::CreatorMonetizationRequestCreated)
+        );
+        assert_eq!(
+            151,
+            u16::from(AuditLogEventType::CreatorMonetizationTermsAccepted)
         );
         assert_eq!(250, u16::from(AuditLogEventType::Unknown(250)));
     }
