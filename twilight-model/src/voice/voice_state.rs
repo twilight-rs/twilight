@@ -151,6 +151,7 @@ mod tests {
                 user: User {
                     accent_color: None,
                     avatar: None,
+                    avatar_decoration: None,
                     banner: None,
                     bot: false,
                     discriminator: 1,
@@ -225,11 +226,13 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("accent_color"),
                 Token::None,
                 Token::Str("avatar"),
+                Token::None,
+                Token::Str("avatar_decoration"),
                 Token::None,
                 Token::Str("banner"),
                 Token::None,
