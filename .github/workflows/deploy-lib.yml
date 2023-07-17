@@ -30,7 +30,7 @@ jobs:
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs
-          RUSTFLAGS: -C target-cpu=native
+          RUSTFLAGS: -C target-cpu=haswell
         run: cargo doc --no-deps --all-features --workspace --exclude book
 
       - name: Prepare docs
