@@ -14,8 +14,7 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::new(token, Intents::GUILDS);
 
     let shards = stream::create_recommended(&client, config, |_, builder| builder.build())
-        .await?
-        .collect::<Vec<_>>();
+        .await?;
 
     let (tx, rx) = watch::channel(false);
 
