@@ -13,8 +13,7 @@ async fn main() -> anyhow::Result<()> {
     let client = Client::new(token.clone());
     let config = Config::new(token, Intents::GUILDS);
 
-    let shards = stream::create_recommended(&client, config, |_, builder| builder.build())
-        .await?;
+    let shards = stream::create_recommended(&client, config, |_, builder| builder.build()).await?;
 
     let (tx, rx) = watch::channel(false);
 
