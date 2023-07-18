@@ -1,17 +1,13 @@
 use crate::{
-    channel::thread::member::{ThreadMember, ThreadMemberIntermediary},
+    channel::thread::member::ThreadMember,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
 };
-use serde::{
-    de::{value::MapAccessDeserializer, MapAccess, Visitor},
-    Deserialize, Deserializer, Serialize,
-};
-use std::fmt::{Formatter, Result as FmtResult};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ThreadMembersUpdate {
     /// List of thread members.
     ///
@@ -28,60 +24,6 @@ pub struct ThreadMembersUpdate {
     pub member_count: i32,
     #[serde(default)]
     pub removed_member_ids: Vec<Id<UserMarker>>,
-}
-
-impl<'de> Deserialize<'de> for ThreadMembersUpdate {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer.deserialize_map(ThreadMembersUpdateVisitor)
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
-struct ThreadMembersUpdateIntermediary {
-    /// ThreadMembers without the guild ID.
-    #[serde(default)]
-    pub added_members: Vec<ThreadMemberIntermediary>,
-    pub guild_id: Id<GuildMarker>,
-    pub id: Id<ChannelMarker>,
-    pub member_count: i32,
-    #[serde(default)]
-    pub removed_member_ids: Vec<Id<UserMarker>>,
-}
-
-impl ThreadMembersUpdateIntermediary {
-    fn into_thread_members_update(self) -> ThreadMembersUpdate {
-        let guild_id = self.guild_id;
-        let added_members = self
-            .added_members
-            .into_iter()
-            .map(|tm| tm.into_thread_member(guild_id))
-            .collect();
-
-        ThreadMembersUpdate {
-            added_members,
-            guild_id,
-            id: self.id,
-            member_count: self.member_count,
-            removed_member_ids: self.removed_member_ids,
-        }
-    }
-}
-
-struct ThreadMembersUpdateVisitor;
-
-impl<'de> Visitor<'de> for ThreadMembersUpdateVisitor {
-    type Value = ThreadMembersUpdate;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("struct ThreadMembersUpdate")
-    }
-
-    fn visit_map<A: MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
-        let deser = MapAccessDeserializer::new(map);
-        let update = ThreadMembersUpdateIntermediary::deserialize(deser)?;
-
-        Ok(update.into_thread_members_update())
-    }
 }
 
 #[cfg(test)]
@@ -172,7 +114,7 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: Id::new(2),
+            guild_id: Some(Id::new(2)),
             status: Status::Online,
             user: UserOrId::UserId { id: Id::new(3) },
         };
@@ -198,13 +140,13 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "ThreadMemberUpdate",
+                    name: "ThreadMembersUpdate",
                     len: 6,
                 },
                 Token::Str("added_members"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "ThreadMemberIntermediary",
+                    name: "ThreadMember",
                     len: 6,
                 },
                 Token::Str("flags"),
@@ -278,7 +220,7 @@ mod tests {
                 Token::Str("presence"),
                 Token::Some,
                 Token::Struct {
-                    name: "PresenceIntermediary",
+                    name: "Presence",
                     len: 5,
                 },
                 Token::Str("activities"),

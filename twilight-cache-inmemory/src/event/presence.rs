@@ -34,7 +34,9 @@ impl UpdateCache for PresenceUpdate {
 
         let presence = CachedPresence::from_model(self.0.clone());
 
-        cache.cache_presence(self.guild_id, presence);
+        if let Some(guild_id) = self.guild_id {
+            cache.cache_presence(guild_id, presence);
+        }
     }
 }
 
@@ -54,7 +56,7 @@ mod tests {
     fn presence_update() {
         let cache = InMemoryCache::new();
 
-        let guild_id = Id::new(1);
+        let guild_id = Some(Id::new(1));
         let user_id = Id::new(1);
 
         let payload = PresenceUpdate(Presence {
@@ -74,7 +76,7 @@ mod tests {
         assert_eq!(1, cache.guild_presences.len());
         assert!(cache
             .guild_presences
-            .get(&guild_id)
+            .get(&guild_id.unwrap())
             .unwrap()
             .contains(&user_id));
     }

@@ -58,7 +58,6 @@ pub use self::{
     verification_level::VerificationLevel, widget::GuildWidget,
 };
 
-use super::gateway::presence::PresenceListDeserializer;
 use crate::{
     channel::{message::sticker::Sticker, Channel, StageInstance},
     gateway::presence::Presence,
@@ -255,7 +254,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut premium_progress_bar_enabled = None;
                 let mut premium_subscription_count = None::<Option<_>>;
                 let mut premium_tier = None;
-                let mut presences = None;
+                let mut presences = None::<Vec<Presence>>;
                 let mut public_updates_channel_id = None::<Option<_>>;
                 let mut roles = None;
                 let mut safety_alerts_channel_id = None::<Option<_>>;
@@ -531,9 +530,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("presences"));
                             }
 
-                            let deserializer = PresenceListDeserializer::new(Id::new(1));
-
-                            presences = Some(map.next_value_seed(deserializer)?);
+                            presences = Some(map.next_value()?);
                         }
                         Field::PublicUpdatesChannelId => {
                             if public_updates_channel_id.is_some() {
@@ -768,7 +765,7 @@ impl<'de> Deserialize<'de> for Guild {
                 }
 
                 for presence in &mut presences {
-                    presence.guild_id = id;
+                    presence.guild_id = Some(id);
                 }
 
                 for thread in &mut threads {
