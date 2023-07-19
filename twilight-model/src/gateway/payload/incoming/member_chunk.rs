@@ -56,25 +56,12 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         let mut not_found = None;
         let mut presences = None;
 
-        let span = tracing::trace_span!("deserializing member chunk");
-        let _span_enter = span.enter();
-
         loop {
-            let span_child = tracing::trace_span!("iterating over element");
-            let _span_child_enter = span_child.enter();
-
             let key = match map.next_key() {
-                Ok(Some(key)) => {
-                    tracing::trace!(?key, "found key");
-
-                    key
-                }
+                Ok(Some(key)) => key,
                 Ok(None) => break,
-                Err(why) => {
-                    // Encountered when we run into an unknown key.
+                Err(_) => {
                     map.next_value::<IgnoredAny>()?;
-
-                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -141,15 +128,6 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         let members = members.ok_or_else(|| DeError::missing_field("members"))?;
         let not_found = not_found.unwrap_or_default();
         let mut presences = presences.unwrap_or_default();
-
-        tracing::trace!(
-            %chunk_count,
-            %chunk_index,
-            ?guild_id,
-            ?members,
-            ?not_found,
-            ?presences,
-        );
 
         for presence in &mut presences {
             presence.guild_id = guild_id;

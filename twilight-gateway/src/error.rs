@@ -36,14 +36,6 @@ impl ProcessError {
     pub fn into_parts(self) -> (ProcessErrorType, Option<Box<dyn Error + Send + Sync>>) {
         (self.kind, None)
     }
-
-    /// Shortcut to create a new error from a message sending error.
-    pub(crate) fn from_send(source: SendError) -> Self {
-        Self {
-            kind: ProcessErrorType::SendingMessage,
-            source: Some(Box::new(source)),
-        }
-    }
 }
 
 impl Display for ProcessError {
@@ -53,6 +45,7 @@ impl Display for ProcessError {
                 f.write_str("gateway event could not be deserialized: event=")?;
                 f.write_str(event)
             }
+            #[allow(deprecated)]
             ProcessErrorType::SendingMessage => {
                 f.write_str("failed to send a message over the websocket")
             }
@@ -83,6 +76,7 @@ pub enum ProcessErrorType {
     ///
     /// This may happen when the shard sends heartbeats or attempts to identify
     /// a new gateway session.
+    #[deprecated(since = "0.15.3", note = "not actively constructed")]
     SendingMessage,
 }
 
@@ -311,6 +305,7 @@ mod tests {
                 r#"gateway event could not be deserialized: event={"t":null,"s":null,"op":10,"d":{"heartbeat_interval":41250,"_trace":["[\"gateway-prd-us-east1-b-0568\",{\"micros\":0.0}]"]}}"#,
             ),
             (
+                #[allow(deprecated)]
                 ProcessErrorType::SendingMessage,
                 "failed to send a message over the websocket",
             ),

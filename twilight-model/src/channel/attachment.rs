@@ -1,3 +1,4 @@
+use super::AttachmentFlags;
 use crate::{
     id::{marker::AttachmentMarker, Id},
     util::is_false,
@@ -21,6 +22,9 @@ pub struct Attachment {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration_secs: Option<f64>,
     pub filename: String,
+    // Flags for this attachment.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flags: Option<AttachmentFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,7 +43,7 @@ pub struct Attachment {
 #[cfg(test)]
 mod tests {
     use super::Attachment;
-    use crate::id::Id;
+    use crate::{channel::AttachmentFlags, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -71,6 +75,7 @@ mod tests {
             content_type: Some("image/png".to_owned()),
             ephemeral: false,
             filename: "a.png".to_owned(),
+            flags: Some(AttachmentFlags::IS_REMIX),
             description: Some("a image".to_owned()),
             duration_secs: Some(3.2),
             height: Some(184),
@@ -87,7 +92,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Attachment",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("content_type"),
                 Token::Some,
@@ -97,6 +102,9 @@ mod tests {
                 Token::F64(3.2),
                 Token::Str("filename"),
                 Token::Str("a.png"),
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(4),
                 Token::Str("description"),
                 Token::Some,
                 Token::Str("a image"),

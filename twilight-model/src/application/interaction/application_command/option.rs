@@ -137,10 +137,8 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     let key = match map.next_key() {
                         Ok(Some(key)) => key,
                         Ok(None) => break,
-                        Err(why) => {
+                        Err(_) => {
                             map.next_value::<IgnoredAny>()?;
-
-                            tracing::trace!("ran into an unknown key: {why:?}");
 
                             continue;
                         }

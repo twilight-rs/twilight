@@ -120,25 +120,12 @@ impl<'de> Visitor<'de> for ActivityButtonVisitor {
         let mut label = None;
         let mut url = None;
 
-        let span = tracing::trace_span!("deserializing activity button");
-        let _span_enter = span.enter();
-
         loop {
-            let span_child = tracing::trace_span!("iterating over element");
-            let _span_child_enter = span_child.enter();
-
             let key = match map.next_key() {
-                Ok(Some(key)) => {
-                    tracing::trace!(?key, "found key");
-
-                    key
-                }
+                Ok(Some(key)) => key,
                 Ok(None) => break,
-                Err(why) => {
-                    // Encountered when we run into an unknown key.
+                Err(_) => {
                     map.next_value::<IgnoredAny>()?;
-
-                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -164,11 +151,6 @@ impl<'de> Visitor<'de> for ActivityButtonVisitor {
 
         let label = label.ok_or_else(|| DeError::missing_field("label"))?;
         let url = url.ok_or_else(|| DeError::missing_field("url"))?;
-
-        tracing::trace!(
-            %label,
-            ?url,
-        );
 
         Ok(ActivityButton::Link(ActivityButtonLink { label, url }))
     }

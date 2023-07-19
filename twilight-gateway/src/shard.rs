@@ -237,6 +237,19 @@ struct MinimalReady {
     session_id: String,
 }
 
+/// Possible actions the shard should take.
+#[derive(Debug)]
+enum NextAction {
+    /// Close the websocket connection with a [`CloseFrame::RESUME`].
+    CloseResume,
+    /// Close the websocket connection with a [`CloseFrame::NORMAL`].
+    CloseNormal,
+    /// Send a heartbeat.
+    Heartbeat,
+    /// Send a resume.
+    Resume,
+}
+
 /// Gateway API client responsible for up to 2500 guilds.
 ///
 /// Shards are responsible for maintaining the gateway connection by processing
@@ -359,6 +372,8 @@ pub struct Shard {
     /// Zlib decompressor.
     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
     inflater: Inflater,
+    /// Next action to take in response to certain gateway events.
+    next_action: Option<NextAction>,
     /// Recent heartbeat latency statistics.
     ///
     /// The latency is reset on receiving [`GatewayEvent::Hello`] as the host
@@ -404,6 +419,7 @@ impl Shard {
             identify_handle: None,
             #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
             inflater: Inflater::new(),
+            next_action: None,
             latency: Latency::new(),
             ratelimiter: None,
             resume_gateway_url: None,
@@ -589,6 +605,34 @@ impl Shard {
                 return Err(ReceiveMessageError::from_fatally_closed(close_code));
             }
             _ => {}
+        }
+
+        match self.next_action.take() {
+            Some(NextAction::CloseNormal) => {
+                self.close(CloseFrame::NORMAL)
+                    .await
+                    .map_err(ReceiveMessageError::from_send)?;
+            }
+            Some(NextAction::CloseResume) => {
+                self.session = self
+                    .close(CloseFrame::RESUME)
+                    .await
+                    .map_err(ReceiveMessageError::from_send)?;
+            }
+            Some(NextAction::Resume) => {
+                let session = self.session().expect("variant only set if some");
+                let resume = Resume::new(session.sequence(), session.id(), self.config().token());
+                let json = command::prepare(&resume).map_err(ReceiveMessageError::from_send)?;
+                self.send(json)
+                    .await
+                    .map_err(ReceiveMessageError::from_send)?;
+            }
+            Some(NextAction::Heartbeat) => {
+                self.heartbeat()
+                    .await
+                    .map_err(ReceiveMessageError::from_send)?;
+            }
+            None => {}
         }
 
         let message = loop {
@@ -783,12 +827,10 @@ impl Shard {
                 }
             }
             Message::Text(event) => {
-                self.process(event)
-                    .await
-                    .map_err(|source| ReceiveMessageError {
-                        kind: ReceiveMessageErrorType::Process,
-                        source: Some(Box::new(source)),
-                    })?;
+                self.process(event).map_err(|source| ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Process,
+                    source: Some(Box::new(source)),
+                })?;
             }
         }
 
@@ -1021,7 +1063,7 @@ impl Shard {
     ///
     /// [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
     #[allow(clippy::too_many_lines)]
-    async fn process(&mut self, event: &str) -> Result<(), ProcessError> {
+    fn process(&mut self, event: &str) -> Result<(), ProcessError> {
         let (raw_opcode, maybe_sequence, maybe_event_type) =
             GatewayEventDeserializer::from_json(event)
                 .ok_or(ProcessError {
@@ -1078,10 +1120,7 @@ impl Shard {
                             missed_events = sequence - (last_sequence + 1),
                             "dispatch events have been missed",
                         );
-                        self.session = self
-                            .close(CloseFrame::RESUME)
-                            .await
-                            .map_err(ProcessError::from_send)?;
+                        self.next_action = Some(NextAction::CloseResume);
                     }
                 } else {
                     tracing::info!("unable to store sequence");
@@ -1089,7 +1128,7 @@ impl Shard {
             }
             Some(OpCode::Heartbeat) => {
                 tracing::debug!("received heartbeat");
-                self.heartbeat().await.map_err(ProcessError::from_send)?;
+                self.next_action = Some(NextAction::Heartbeat);
             }
             Some(OpCode::HeartbeatAck) => {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
@@ -1120,48 +1159,33 @@ impl Shard {
                 // remote which invalidates the recorded latencies.
                 self.latency = Latency::new();
 
-                match self.session() {
-                    Some(session) => {
-                        tracing::debug!(sequence = session.sequence(), "sending resume");
-                        let resume =
-                            Resume::new(session.sequence(), session.id(), self.config().token());
-                        let json = command::prepare(&resume).map_err(ProcessError::from_send)?;
-                        self.send(json).await.map_err(ProcessError::from_send)?;
-                    }
-                    None => {
-                        // Can not use `MessageSender` since it is only polled
-                        // after the shard is identified.
-                        self.identify_handle = Some(tokio::spawn({
-                            let shard_id = self.id();
-                            let queue = self.config().queue().clone();
+                if self.session.is_some() {
+                    self.next_action = Some(NextAction::Resume);
+                } else {
+                    // Can not use `MessageSender` since it is only polled after
+                    // the shard is identified.
+                    self.identify_handle = Some(tokio::spawn({
+                        let shard_id = self.id();
+                        let queue = self.config().queue().clone();
 
-                            async move {
-                                queue.request([shard_id.number(), shard_id.total()]).await;
-                            }
-                        }));
-                    }
+                        async move {
+                            queue.request([shard_id.number(), shard_id.total()]).await;
+                        }
+                    }));
                 }
             }
             Some(OpCode::InvalidSession) => {
                 let resumable = Self::parse_event(event)?.data;
                 tracing::debug!(resumable, "received invalid session");
                 if resumable {
-                    self.session = self
-                        .close(CloseFrame::RESUME)
-                        .await
-                        .map_err(ProcessError::from_send)?;
+                    self.next_action = Some(NextAction::CloseResume);
                 } else {
-                    self.close(CloseFrame::NORMAL)
-                        .await
-                        .map_err(ProcessError::from_send)?;
+                    self.next_action = Some(NextAction::CloseNormal);
                 }
             }
             Some(OpCode::Reconnect) => {
                 tracing::debug!("received reconnect");
-                self.session = self
-                    .close(CloseFrame::RESUME)
-                    .await
-                    .map_err(ProcessError::from_send)?;
+                self.next_action = Some(NextAction::CloseResume);
             }
             _ => tracing::info!("received an unknown opcode: {raw_opcode}"),
         }
