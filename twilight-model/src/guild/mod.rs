@@ -274,25 +274,12 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut widget_channel_id = None::<Option<_>>;
                 let mut widget_enabled = None::<Option<_>>;
 
-                let span = tracing::trace_span!("deserializing guild");
-                let _span_enter = span.enter();
-
                 loop {
-                    let span_child = tracing::trace_span!("iterating over element");
-                    let _span_child_enter = span_child.enter();
-
                     let key = match map.next_key() {
-                        Ok(Some(key)) => {
-                            tracing::trace!(?key, "found key");
-
-                            key
-                        }
+                        Ok(Some(key)) => key,
                         Ok(None) => break,
-                        Err(why) => {
-                            // Encountered when we run into an unknown key.
+                        Err(_) => {
                             map.next_value::<IgnoredAny>()?;
-
-                            tracing::trace!("ran into an unknown key: {why:?}");
 
                             continue;
                         }
@@ -708,61 +695,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut voice_states = voice_states.unwrap_or_default();
                 let widget_channel_id = widget_channel_id.unwrap_or_default();
                 let widget_enabled = widget_enabled.unwrap_or_default();
-
-                tracing::trace!(
-                    ?afk_channel_id,
-                    ?afk_timeout,
-                    ?application_id,
-                    ?approximate_member_count,
-                    ?approximate_presence_count,
-                    ?banner,
-                    ?channels,
-                    ?default_message_notifications,
-                    ?description,
-                    ?discovery_splash,
-                    ?emojis,
-                    ?explicit_content_filter,
-                    ?features,
-                    ?icon,
-                    %id,
-                    ?large,
-                    ?joined_at,
-                    ?max_members,
-                    ?max_presences,
-                    ?max_video_channel_users,
-                    ?member_count,
-                    ?members,
-                    ?mfa_level,
-                    %name,
-                    %owner_id,
-                    ?owner,
-                    ?permissions,
-                    ?preferred_locale,
-                    ?premium_progress_bar_enabled,
-                );
-
-                // Split in two due to generic impl only going up to 32.
-                tracing::trace!(
-                    ?premium_subscription_count,
-                    ?premium_tier,
-                    ?presences,
-                    ?public_updates_channel_id,
-                    ?rules_channel_id,
-                    ?roles,
-                    ?safety_alerts_channel_id,
-                    ?splash,
-                    ?stage_instances,
-                    ?stickers,
-                    ?system_channel_flags,
-                    ?system_channel_id,
-                    ?threads,
-                    ?unavailable,
-                    ?vanity_url_code,
-                    ?voice_states,
-                    ?widget_channel_id,
-                    ?widget_enabled,
-                    ?verification_level,
-                );
 
                 for channel in &mut channels {
                     channel.guild_id = Some(id);
