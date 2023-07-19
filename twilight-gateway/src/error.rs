@@ -76,7 +76,7 @@ pub enum ProcessErrorType {
     ///
     /// This may happen when the shard sends heartbeats or attempts to identify
     /// a new gateway session.
-    #[deprecated]
+    #[deprecated(since = "0.15.3", note = "not actively constructed")]
     SendingMessage,
 }
 
