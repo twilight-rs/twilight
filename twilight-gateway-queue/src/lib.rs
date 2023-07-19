@@ -12,7 +12,6 @@ mod in_memory;
 
 pub use in_memory::InMemoryQueue;
 
-use std::fmt::Debug;
 use tokio::{sync::oneshot, time::Duration};
 
 /// Period between buckets.
@@ -23,10 +22,7 @@ pub const IDENTIFY_DELAY: Duration = Duration::from_secs(5);
 pub const LIMIT_PERIOD: Duration = Duration::from_secs(60 * 60 * 24);
 
 /// Abstraction for types processing gateway identify requests.
-///
-/// For convenience in twilight-gateway, implementers must also implement
-/// [`Debug`].
-pub trait Queue: Debug {
+pub trait Queue {
     /// Enqueue a shard with this ID.
     ///
     /// Send `()` to signal the shard to proceed. Note that shards may have
@@ -48,9 +44,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::Queue;
-    use static_assertions::{assert_impl_all, assert_obj_safe};
-    use std::fmt::Debug;
+    use static_assertions::assert_obj_safe;
 
-    assert_impl_all!(dyn Queue: Debug);
     assert_obj_safe!(Queue);
 }

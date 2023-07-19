@@ -30,7 +30,10 @@
 //! [gateway-parallel]: https://github.com/twilight-rs/twilight/blob/main/examples/gateway-parallel.rs
 //! [session queue]: crate::queue
 
-use crate::{error::ReceiveMessageError, message::Message, Config, ConfigBuilder, Shard, ShardId};
+use crate::{
+    error::ReceiveMessageError, message::Message, queue::Queue, Config, ConfigBuilder, Shard,
+    ShardId,
+};
 use futures_util::{
     future::BoxFuture,
     stream::{FuturesUnordered, Stream, StreamExt},
@@ -51,7 +54,7 @@ use twilight_http::Client;
 use twilight_model::gateway::event::Event;
 
 /// Generic list of unordered futures producing an item for each shard.
-type FutureList<'a, Item> = FuturesUnordered<BoxFuture<'a, NextItemOutput<'a, Item>>>;
+type FutureList<'a, Item, Q> = FuturesUnordered<BoxFuture<'a, NextItemOutput<'a, Item, Q>>>;
 
 /// Failure when fetching the recommended number of shards to use from Discord's
 /// REST API.
@@ -145,18 +148,18 @@ pub enum StartRecommendedErrorType {
 /// }
 /// # Ok(()) }
 /// ```
-pub struct ShardEventStream<'a> {
+pub struct ShardEventStream<'a, Q> {
     /// Set of futures resolving to the next event of each shard.
-    futures: FutureList<'a, Event>,
+    futures: FutureList<'a, Event, Q>,
     /// Sender to include in [`ShardRef`].
-    sender: mpsc::Sender<&'a mut Shard>,
+    sender: mpsc::Sender<&'a mut Shard<Q>>,
     /// Receiver to re-insert shards into to the stream.
-    receiver: mpsc::Receiver<&'a mut Shard>,
+    receiver: mpsc::Receiver<&'a mut Shard<Q>>,
 }
 
-impl<'a> ShardEventStream<'a> {
+impl<'a, Q: Queue + Send + Sync> ShardEventStream<'a, Q> {
     /// Create a new stream producing events from a set of shards.
-    pub fn new(shards: impl Iterator<Item = &'a mut Shard>) -> Self {
+    pub fn new(shards: impl Iterator<Item = &'a mut Shard<Q>>) -> Self {
         let (sender, receiver) = mpsc::channel();
         let mut this = Self {
             futures: FuturesUnordered::new(),
@@ -172,7 +175,7 @@ impl<'a> ShardEventStream<'a> {
     }
 
     /// Add a shard to the stream to produce a gateway event.
-    fn add_shard(&mut self, shard: &'a mut Shard) {
+    fn add_shard(&mut self, shard: &'a mut Shard<Q>) {
         self.futures.push(Box::pin(async {
             let result = shard.next_event().await;
 
@@ -181,8 +184,8 @@ impl<'a> ShardEventStream<'a> {
     }
 }
 
-impl<'a> Stream for ShardEventStream<'a> {
-    type Item = (ShardRef<'a>, Result<Event, ReceiveMessageError>);
+impl<'a, Q: Queue + Send + Sync> Stream for ShardEventStream<'a, Q> {
+    type Item = (ShardRef<'a, Q>, Result<Event, ReceiveMessageError>);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         while let Some(shard) = self.receiver.try_iter().next() {
@@ -248,18 +251,18 @@ impl<'a> Stream for ShardEventStream<'a> {
 /// }
 /// # Ok(()) }
 /// ```
-pub struct ShardMessageStream<'a> {
+pub struct ShardMessageStream<'a, Q> {
     /// Set of futures resolving to the next message of each shard.
-    futures: FutureList<'a, Message>,
+    futures: FutureList<'a, Message, Q>,
     /// Sender to include in [`ShardRef`].
-    sender: mpsc::Sender<&'a mut Shard>,
+    sender: mpsc::Sender<&'a mut Shard<Q>>,
     /// Receiver to re-insert shards into the stream.
-    receiver: mpsc::Receiver<&'a mut Shard>,
+    receiver: mpsc::Receiver<&'a mut Shard<Q>>,
 }
 
-impl<'a> ShardMessageStream<'a> {
+impl<'a, Q: Queue + Send + Sync> ShardMessageStream<'a, Q> {
     /// Create a new stream producing websocket messages from a set of shards.
-    pub fn new(shards: impl Iterator<Item = &'a mut Shard>) -> Self {
+    pub fn new(shards: impl Iterator<Item = &'a mut Shard<Q>>) -> Self {
         let (sender, receiver) = mpsc::channel();
         let mut this = Self {
             futures: FuturesUnordered::new(),
@@ -275,7 +278,7 @@ impl<'a> ShardMessageStream<'a> {
     }
 
     /// Add a shard to the stream to produce a websocket message.
-    fn add_shard(&mut self, shard: &'a mut Shard) {
+    fn add_shard(&mut self, shard: &'a mut Shard<Q>) {
         self.futures.push(Box::pin(async {
             let result = shard.next_message().await;
 
@@ -284,8 +287,8 @@ impl<'a> ShardMessageStream<'a> {
     }
 }
 
-impl<'a> Stream for ShardMessageStream<'a> {
-    type Item = (ShardRef<'a>, Result<Message, ReceiveMessageError>);
+impl<'a, Q: Queue + Send + Sync> Stream for ShardMessageStream<'a, Q> {
+    type Item = (ShardRef<'a, Q>, Result<Message, ReceiveMessageError>);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         while let Some(shard) = self.receiver.try_iter().next() {
@@ -312,28 +315,28 @@ impl<'a> Stream for ShardMessageStream<'a> {
 /// shard to not be re-inserted into the stream.
 ///
 /// [not be called]: std::mem::forget
-pub struct ShardRef<'a> {
+pub struct ShardRef<'a, Q> {
     /// Sender pointing back to the parent stream.
-    channel: mpsc::Sender<&'a mut Shard>,
+    channel: mpsc::Sender<&'a mut Shard<Q>>,
     /// Mutable reference to the shard that produced an event or message.
-    shard: Option<&'a mut Shard>,
+    shard: Option<&'a mut Shard<Q>>,
 }
 
-impl Deref for ShardRef<'_> {
-    type Target = Shard;
+impl<Q> Deref for ShardRef<'_, Q> {
+    type Target = Shard<Q>;
 
     fn deref(&self) -> &Self::Target {
         self.shard.as_ref().unwrap()
     }
 }
 
-impl DerefMut for ShardRef<'_> {
+impl<Q> DerefMut for ShardRef<'_, Q> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.shard.as_mut().unwrap()
     }
 }
 
-impl Drop for ShardRef<'_> {
+impl<Q> Drop for ShardRef<'_, Q> {
     fn drop(&mut self) {
         if let Some(shard) = self.shard.take() {
             _ = self.channel.send(shard);
@@ -342,11 +345,11 @@ impl Drop for ShardRef<'_> {
 }
 
 /// Output of a stream, such as [`ShardMessageStream`].
-struct NextItemOutput<'a, Item> {
+struct NextItemOutput<'a, Item, Q> {
     /// Result of the future.
     result: Result<Item, ReceiveMessageError>,
     /// Shard that produced the result.
-    shard: &'a mut Shard,
+    shard: &'a mut Shard<Q>,
 }
 
 /// Create a single bucket's worth of shards.
@@ -384,13 +387,13 @@ struct NextItemOutput<'a, Item> {
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
-pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
+pub fn create_bucket<F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>, Q: Clone>(
     bucket_id: u32,
     concurrency: u8,
     total: u32,
-    config: Config,
+    config: Config<Q>,
     per_shard_config: F,
-) -> impl Iterator<Item = Shard> {
+) -> impl Iterator<Item = Shard<Q>> {
     assert!(bucket_id < total, "bucket id must be less than the total");
     assert!(
         (u32::from(concurrency)) < total,
@@ -401,7 +404,7 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
 
     (bucket_id..total).step_by(concurrency).map(move |index| {
         let id = ShardId::new(index, total);
-        let config = per_shard_config(id, config.clone().into());
+        let config = per_shard_config(id, ConfigBuilder::from(config.clone()));
 
         Shard::with_config(id, config)
     })
@@ -440,17 +443,17 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
-pub fn create_range<F: Fn(ShardId, ConfigBuilder) -> Config>(
+pub fn create_range<F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>, Q: Clone>(
     range: impl RangeBounds<u32>,
     total: u32,
-    config: Config,
+    config: Config<Q>,
     per_shard_config: F,
-) -> impl Iterator<Item = Shard> {
+) -> impl Iterator<Item = Shard<Q>> {
     let range = calculate_range(range, total);
 
     range.map(move |index| {
         let id = ShardId::new(index, total);
-        let config = per_shard_config(id, config.clone().into());
+        let config = per_shard_config(id, ConfigBuilder::from(config.clone()));
 
         Shard::with_config(id, config)
     })
@@ -477,11 +480,11 @@ pub fn create_range<F: Fn(ShardId, ConfigBuilder) -> Config>(
 ///
 /// [`GetGatewayAuthed`]: twilight_http::request::GetGatewayAuthed
 #[cfg(feature = "twilight-http")]
-pub async fn create_recommended<F: Fn(ShardId, ConfigBuilder) -> Config>(
+pub async fn create_recommended<F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>, Q: Clone>(
     client: &Client,
-    config: Config,
+    config: Config<Q>,
     per_shard_config: F,
-) -> Result<impl Iterator<Item = Shard>, StartRecommendedError> {
+) -> Result<impl Iterator<Item = Shard<Q>>, StartRecommendedError> {
     let request = client.gateway().authed();
     let response = request.await.map_err(|source| StartRecommendedError {
         kind: StartRecommendedErrorType::Request,
@@ -531,8 +534,9 @@ mod tests {
     use futures_util::Stream;
     use static_assertions::assert_impl_all;
     use std::ops::{Deref, DerefMut};
+    use twilight_gateway_queue::InMemoryQueue;
 
-    assert_impl_all!(ShardEventStream<'_>: Send, Stream, Unpin);
-    assert_impl_all!(ShardMessageStream<'_>: Send, Stream, Unpin);
-    assert_impl_all!(ShardRef<'_>: Deref, DerefMut, Send);
+    assert_impl_all!(ShardEventStream<'_, InMemoryQueue>: Send, Stream, Unpin);
+    assert_impl_all!(ShardMessageStream<'_, InMemoryQueue>: Send, Stream, Unpin);
+    assert_impl_all!(ShardRef<'_, InMemoryQueue>: Deref, DerefMut, Send);
 }

@@ -1,7 +1,7 @@
 use hyper::client::{Client, HttpConnector};
-use std::{env, sync::Arc};
+use std::env;
 use tokio::sync::oneshot;
-use twilight_gateway::{queue::Queue, Config, Intents, Shard, ShardId};
+use twilight_gateway::{queue::Queue, ConfigBuilder, Intents, Shard, ShardId};
 
 #[derive(Debug)]
 struct HttpQueue(Client<HttpConnector>);
@@ -35,8 +35,8 @@ async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
     let intents = Intents::GUILDS | Intents::GUILD_VOICE_STATES;
 
-    let config = Config::builder(token, intents)
-        .queue(Arc::new(HttpQueue(Client::new())))
+    let config = ConfigBuilder::new(token, intents)
+        .queue(HttpQueue(Client::new()))
         .build();
 
     let mut shard = Shard::with_config(ShardId::ONE, config);

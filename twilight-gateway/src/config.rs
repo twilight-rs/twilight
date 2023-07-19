@@ -1,9 +1,6 @@
 //! User configuration for shards.
 
-use crate::{
-    queue::{InMemoryQueue, Queue},
-    EventTypeFlags, Session,
-};
+use crate::{queue::InMemoryQueue, EventTypeFlags, Session};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::Arc,
@@ -44,7 +41,7 @@ impl Debug for Token {
 /// different config by turning it into to a [`ConfigBuilder`] through the
 /// [`From<Config>`] implementation and then rebuilding it into a rew config.
 #[derive(Clone, Debug)]
-pub struct Config {
+pub struct Config<Q = InMemoryQueue> {
     /// Event type flags.
     event_types: EventTypeFlags,
     /// Identification properties the shard will use.
@@ -59,7 +56,7 @@ pub struct Config {
     /// Gateway proxy URL.
     proxy_url: Option<Box<str>>,
     /// Queue in use by the shard.
-    queue: Arc<dyn Queue + Send + Sync>,
+    queue: Q,
     /// Whether [outgoing message] ratelimiting is enabled.
     ///
     /// [outgoing message]: crate::Shard::send
@@ -87,18 +84,11 @@ impl Config {
     ///
     /// Panics if loading TLS certificates fails.
     pub fn new(token: String, intents: Intents) -> Self {
-        Self::builder(token, intents).build()
+        ConfigBuilder::new(token, intents).build()
     }
+}
 
-    /// Create a builder to customize a shard's configuration.
-    ///
-    /// # Panics
-    ///
-    /// Panics if loading TLS certificates fails.
-    pub fn builder(token: String, intents: Intents) -> ConfigBuilder {
-        ConfigBuilder::new(token, intents)
-    }
-
+impl<Q> Config<Q> {
     /// Event type flags.
     pub const fn event_types(&self) -> EventTypeFlags {
         self.event_types
@@ -135,7 +125,7 @@ impl Config {
     }
 
     /// Immutable reference to the queue in use by the shard.
-    pub fn queue(&self) -> &Arc<dyn Queue + Send + Sync> {
+    pub fn queue(&self) -> &Q {
         &self.queue
     }
 
@@ -166,9 +156,9 @@ impl Config {
 /// Builder to customize the operation of a shard.
 #[derive(Debug)]
 #[must_use = "builder must be completed to be used"]
-pub struct ConfigBuilder {
+pub struct ConfigBuilder<Q = InMemoryQueue> {
     /// Inner configuration being modified.
-    inner: Config,
+    inner: Config<Q>,
 }
 
 impl ConfigBuilder {
@@ -192,7 +182,7 @@ impl ConfigBuilder {
                 large_threshold: 50,
                 presence: None,
                 proxy_url: None,
-                queue: Arc::new(InMemoryQueue::default()),
+                queue: InMemoryQueue::default(),
                 ratelimit_messages: true,
                 session: None,
                 tls: Arc::new(Connector::new().unwrap()),
@@ -200,16 +190,12 @@ impl ConfigBuilder {
             },
         }
     }
+}
 
-    /// Create a new builder from an existing configuration.
-    #[deprecated(since = "0.15.3", note = "use From<Config> instead")]
-    pub const fn with_config(config: Config) -> Self {
-        Self { inner: config }
-    }
-
+impl<Q> ConfigBuilder<Q> {
     /// Consume the builder, constructing a shard.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn build(self) -> Config {
+    pub fn build(self) -> Config<Q> {
         self.inner
     }
 
@@ -355,10 +341,36 @@ impl ConfigBuilder {
     ///
     /// Note that [`InMemoryQueue`] with a `max_concurrency` of `0` effectively
     /// turns itself into a no-op.
-    pub fn queue(mut self, queue: Arc<dyn Queue + Send + Sync>) -> Self {
-        self.inner.queue = queue;
+    pub fn queue<NewQ>(self, queue: NewQ) -> ConfigBuilder<NewQ> {
+        let Config {
+            event_types,
+            identify_properties,
+            intents,
+            large_threshold,
+            presence,
+            proxy_url,
+            queue: _,
+            ratelimit_messages,
+            session,
+            tls,
+            token,
+        } = self.inner;
 
-        self
+        ConfigBuilder {
+            inner: Config {
+                event_types,
+                identify_properties,
+                intents,
+                large_threshold,
+                presence,
+                proxy_url,
+                queue,
+                ratelimit_messages,
+                session,
+                tls,
+                token,
+            },
+        }
     }
 
     /// Set whether or not outgoing messages will be ratelimited.
@@ -389,8 +401,8 @@ impl ConfigBuilder {
     }
 }
 
-impl From<Config> for ConfigBuilder {
-    fn from(value: Config) -> Self {
+impl<Q> From<Config<Q>> for ConfigBuilder<Q> {
+    fn from(value: Config<Q>) -> Self {
         Self { inner: value }
     }
 }
