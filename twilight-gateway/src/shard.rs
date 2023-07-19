@@ -493,6 +493,12 @@ impl Shard {
     /// events Twilight doesn't support, use [`next_message`] to receive raw
     /// payloads.
     ///
+    /// # Cancel safety
+    ///
+    /// This method is partially cancel safe. If `next_event` is used as the
+    /// event in a [`tokio::select!`] statement and some other branch completes
+    /// first, it is guaranteed that no gateway event were received.
+    ///
     /// # Errors
     ///
     /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
@@ -554,6 +560,12 @@ impl Shard {
     }
 
     /// Wait for the next raw message from the websocket connection.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method is partially cancel safe. If `next_message` is used as the
+    /// event in a [`tokio::select!`] statement and some other branch completes
+    /// first, it is guaranteed that no gateway message were received.
     ///
     /// # Errors
     ///
