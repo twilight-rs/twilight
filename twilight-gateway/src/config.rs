@@ -39,8 +39,7 @@ impl Debug for Token {
 /// May be reused by cloning, also reusing the hidden TLS context---reducing
 /// memory usage. The TLS context may still be reused with an otherwise
 /// different config by turning it into to a [`ConfigBuilder`] through the
-/// [`ConfigBuilder::with_config`] function and then rebuilding it into a new
-/// config.
+/// [`From<Config>`] implementation and then rebuilding it into a rew config.
 #[derive(Clone, Debug)]
 pub struct Config {
     /// Event type flags.
@@ -200,6 +199,7 @@ impl ConfigBuilder {
     }
 
     /// Create a new builder from an existing configuration.
+    #[deprecated(since = "0.15.3", note = "use From<Config> instead")]
     pub const fn with_config(config: Config) -> Self {
         Self { inner: config }
     }
@@ -384,6 +384,12 @@ impl ConfigBuilder {
         self.inner.session = Some(session);
 
         self
+    }
+}
+
+impl From<Config> for ConfigBuilder {
+    fn from(value: Config) -> Self {
+        Self { inner: value }
     }
 }
 

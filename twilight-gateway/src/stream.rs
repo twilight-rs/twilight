@@ -402,7 +402,7 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
 
     (bucket_id..total).step_by(concurrency).map(move |index| {
         let id = ShardId::new(index, total);
-        let config = per_shard_config(id, ConfigBuilder::with_config(config.clone()));
+        let config = per_shard_config(id, config.clone().into());
 
         Shard::with_config(id, config)
     })
@@ -451,7 +451,7 @@ pub fn create_range<F: Fn(ShardId, ConfigBuilder) -> Config>(
 
     range.map(move |index| {
         let id = ShardId::new(index, total);
-        let config = per_shard_config(id, ConfigBuilder::with_config(config.clone()));
+        let config = per_shard_config(id, config.clone().into());
 
         Shard::with_config(id, config)
     })
