@@ -46,7 +46,10 @@ impl MessageChannel {
     }
 
     /// Clone of the senders.
-    #[deprecated(since = "0.15.3", note = "renamed to `message_queue()`, use that instead")]
+    #[deprecated(
+        since = "0.15.3",
+        note = "renamed to `message_queue()`, use that instead"
+    )]
     pub fn sender(&self) -> MessageQueue {
         MessageQueue {
             close: self.close_tx.clone(),
