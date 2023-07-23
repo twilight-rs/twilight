@@ -34,7 +34,7 @@ mod tls;
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 pub use self::inflater::Inflater;
 pub use self::{
-    channel::MessageQueue,
+    channel::{MessageQueue, MessageSender},
     command::Command,
     config::{Config, ConfigBuilder},
     event::EventTypeFlags,

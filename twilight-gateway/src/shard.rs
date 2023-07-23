@@ -939,7 +939,7 @@ impl Shard {
     ///
     /// This is primarily useful for sending to other tasks and threads where
     /// the shard won't be available.
-    pub fn queue(&self) -> MessageQueue {
+    pub fn message_queue(&self) -> MessageQueue {
         self.user_channel.queue()
     }
 
@@ -948,7 +948,7 @@ impl Shard {
     ///
     /// This is primarily useful for sending to other tasks and threads where
     /// the shard won't be available.
-    #[deprecated(since = "0.15.3", note = "renamed to `queue()`, use that instead")]
+    #[deprecated(since = "0.15.3", note = "renamed to `message_queue()`, use that instead")]
     pub fn sender(&self) -> MessageQueue {
         self.user_channel.queue()
     }
