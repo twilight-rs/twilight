@@ -37,9 +37,21 @@ impl MessageChannel {
         }
     }
 
+    /// Clone of the queues.
+    pub fn queue(&self) -> MessageQueue {
+        MessageQueue {
+            close: self.close_tx.clone(),
+            command: self.command_tx.clone(),
+        }
+    }
+    
     /// Clone of the senders.
-    pub fn sender(&self) -> MessageSender {
-        MessageSender {
+    #[deprecated(
+        since = "0.15.3",
+        note = "renamed to `queue()`, use that instead"
+    )]
+    pub fn sender(&self) -> MessageQueue {
+        MessageQueue {
             close: self.close_tx.clone(),
             command: self.command_tx.clone(),
         }
@@ -54,14 +66,14 @@ impl MessageChannel {
 ///
 /// [`Shard`]: crate::Shard
 #[derive(Clone, Debug)]
-pub struct MessageSender {
+pub struct MessageQueue {
     /// Sending half of the close channel.
     close: mpsc::Sender<CloseFrame<'static>>,
     /// Sending half of the command channel.
     command: mpsc::UnboundedSender<String>,
 }
 
-impl MessageSender {
+impl MessageQueue {
     /// Whether the channel is closed.
     ///
     /// The channel will only be closed if the associated shard has been
@@ -123,9 +135,22 @@ impl MessageSender {
     }
 }
 
+/// Channel to send messages over a [`Shard`] to the Discord gateway.
+///
+/// Unlike the methods on [`Shard`], messages queued up through this are
+/// conditionally sent when not ratelimited and identified (except for close
+/// frames which are sent as long as the shard is connected to the Websocket).
+///
+/// [`Shard`]: crate::Shard
+#[deprecated(
+    since = "0.15.3",
+    note = "renamed to `MessageQueue`, use that instead"
+)]
+pub type MessageSender = MessageQueue;
+
 #[cfg(test)]
 mod tests {
-    use super::{MessageChannel, MessageSender};
+    use super::{MessageChannel, MessageQueue};
     use crate::json;
     use static_assertions::assert_impl_all;
     use std::{error::Error, fmt::Debug};
@@ -138,7 +163,7 @@ mod tests {
     };
 
     assert_impl_all!(MessageChannel: Debug, Send, Sync);
-    assert_impl_all!(MessageSender: Clone, Debug, Send, Sync);
+    assert_impl_all!(MessageQueue: Clone, Debug, Send, Sync);
 
     #[test]
     fn channel_sending() -> Result<(), Box<dyn Error>> {

@@ -49,14 +49,14 @@
 //! [`EventTypeFlags`]: crate::EventTypeFlags
 //! [is enabled]: Config::ratelimit_messages
 //! [processed]: Shard::process
-//! [user channel]: crate::MessageSender
+//! [user channel]: crate::MessageQueue
 //! [websocket connection]: Shard::connection
 //! [websocket message]: Message
 
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 use crate::inflater::Inflater;
 use crate::{
-    channel::{MessageChannel, MessageSender},
+    channel::{MessageChannel, MessageQueue},
     command::{self, Command},
     connection::{self, Connection},
     error::{
@@ -281,7 +281,7 @@ enum NextAction {
 ///
 /// Because shards should not be used across multiple tasks it's not always easy
 /// to directly send [gateway commands] over a shard. As a convenience method,
-/// [`Shard::sender`] can be used to receive an MPSC channel sender which, in
+/// [`Shard::queue`] can be used to receive an MPSC channel sender which, in
 /// addition to being cheaply cloned, also only sends queued up commands when
 /// the shard is identified and not ratelimited. Multiple shards' senders can,
 /// for example, be collected into an `Arc<Vec<MessageSender>>` and be shared
@@ -939,8 +939,21 @@ impl Shard {
     ///
     /// This is primarily useful for sending to other tasks and threads where
     /// the shard won't be available.
-    pub fn sender(&self) -> MessageSender {
-        self.user_channel.sender()
+    pub fn queue(&self) -> MessageQueue {
+        self.user_channel.queue()
+    }
+
+    /// Retrieve a channel to send outgoing gateway events over the shard to the
+    /// gateway.
+    ///
+    /// This is primarily useful for sending to other tasks and threads where
+    /// the shard won't be available.
+    #[deprecated(
+        since = "0.15.3",
+        note = "renamed to `queue()`, use that instead"
+    )]
+    pub fn sender(&self) -> MessageQueue {
+        self.user_channel.queue()
     }
 
     /// Send a Websocket close frame indicating whether to also invalidate the

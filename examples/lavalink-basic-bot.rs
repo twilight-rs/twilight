@@ -3,7 +3,7 @@ use hyper::{
     Body, Request,
 };
 use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
-use twilight_gateway::{Event, Intents, MessageSender, Shard, ShardId};
+use twilight_gateway::{Event, Intents, MessageQueue, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
     http::LoadedTracks,
@@ -23,7 +23,7 @@ struct StateRef {
     http: HttpClient,
     lavalink: Lavalink,
     hyper: HyperClient<HttpConnector>,
-    sender: MessageSender,
+    sender: MessageQueue,
     standby: Standby,
 }
 
