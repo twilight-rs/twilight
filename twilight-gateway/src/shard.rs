@@ -940,7 +940,7 @@ impl Shard {
     /// This is primarily useful for sending to other tasks and threads where
     /// the shard won't be available.
     pub fn message_queue(&self) -> MessageQueue {
-        self.user_channel.queue()
+        self.user_channel.message_queue()
     }
 
     /// Retrieve a channel to send outgoing gateway events over the shard to the
@@ -950,7 +950,7 @@ impl Shard {
     /// the shard won't be available.
     #[deprecated(since = "0.15.3", note = "renamed to `message_queue()`, use that instead")]
     pub fn sender(&self) -> MessageQueue {
-        self.user_channel.queue()
+        self.user_channel.message_queue()
     }
 
     /// Send a Websocket close frame indicating whether to also invalidate the
