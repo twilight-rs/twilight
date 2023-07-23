@@ -44,12 +44,9 @@ impl MessageChannel {
             command: self.command_tx.clone(),
         }
     }
-    
+
     /// Clone of the senders.
-    #[deprecated(
-        since = "0.15.3",
-        note = "renamed to `queue()`, use that instead"
-    )]
+    #[deprecated(since = "0.15.3", note = "renamed to `queue()`, use that instead")]
     pub fn sender(&self) -> MessageQueue {
         MessageQueue {
             close: self.close_tx.clone(),
@@ -142,10 +139,7 @@ impl MessageQueue {
 /// frames which are sent as long as the shard is connected to the Websocket).
 ///
 /// [`Shard`]: crate::Shard
-#[deprecated(
-    since = "0.15.3",
-    note = "renamed to `MessageQueue`, use that instead"
-)]
+#[deprecated(since = "0.15.3", note = "renamed to `MessageQueue`, use that instead")]
 pub type MessageSender = MessageQueue;
 
 #[cfg(test)]
