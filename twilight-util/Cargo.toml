@@ -15,6 +15,7 @@ version = "0.16.0-rc.1"
 [dependencies]
 twilight-model = { default-features = false, optional = true, path = "../twilight-model", version = "0.16.0-rc.1" }
 twilight-validate = { default-features = false, optional = true, path = "../twilight-validate", version = "0.16.0-rc.1" }
+serde_json = { default-features = false, optional = true, version = "1.0.96" }
 
 # Signature validation
 ed25519-dalek = { version = "2.0.0-rc.2", optional = true, default-features = false}
@@ -30,7 +31,7 @@ builder = ["dep:twilight-model", "dep:twilight-validate"]
 link = ["dep:twilight-model"]
 permission-calculator = ["dep:twilight-model"]
 snowflake = ["dep:twilight-model"]
-signature-validation = ["dep:ed25519-dalek", "dep:hex"]
+signature-validation = ["dep:ed25519-dalek", "dep:hex", "dep:serde_json"]
 full = ["builder", "link", "permission-calculator", "snowflake", "signature-validation"]
 
 [package.metadata.docs.rs]
