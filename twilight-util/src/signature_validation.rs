@@ -32,7 +32,6 @@ impl std::fmt::Display for KeyError {
 }
 impl std::error::Error for KeyError {}
 
-
 pub struct Key(VerifyingKey);
 impl Key {
     fn from_hex(pub_key: &[u8]) -> Result<Self, KeyError> {
@@ -48,11 +47,16 @@ pub const SIGNATURE_HEADER: &str = "x-signature-ed25519";
 pub const TIMESTAMP_HEADER: &str = "x-signature-timestamp";
 
 /// Validates that a signature is valid for a given message body, timestamp, and signing key.
-pub fn check_signature(sig: &[u8], timestamp: &[u8], body: &[u8], key: &Key) -> Result<(), SignatureValidationFailure> {
+pub fn check_signature(
+    sig: &[u8],
+    timestamp: &[u8],
+    body: &[u8],
+    key: &Key,
+) -> Result<(), SignatureValidationFailure> {
     let mut sig_buf = [0; 64];
-    hex::decode_to_slice(sig, &mut sig_buf).map_err(|e| SignatureValidationFailure::Hex(FromHexError(e)))?;
+    hex::decode_to_slice(sig, &mut sig_buf)
+        .map_err(|e| SignatureValidationFailure::Hex(FromHexError(e)))?;
     let sig = Signature::from_bytes(&sig_buf);
-
 
     let mut buf = Vec::with_capacity(timestamp.len() + body.len());
     buf.extend_from_slice(timestamp);
