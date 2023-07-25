@@ -2,6 +2,7 @@
 //! an HTTPS endpoint to send Interactions to.
 
 use ed25519_dalek::{Signature, SignatureError, VerifyingKey};
+use twilight_model::application::interaction::Interaction;
 
 #[derive(Debug)]
 pub struct FromHexError(hex::FromHexError);
@@ -65,4 +66,29 @@ pub fn check_signature(
         Ok(()) => Ok(()),
         Err(e) => Err(SignatureValidationFailure::InvalidSignature(SigError(e))),
     }
+}
+
+pub enum ExtractFailure {
+    Signature(SignatureValidationFailure),
+    Deserialize(serde_json::Error),
+}
+impl From<SignatureValidationFailure> for ExtractFailure {
+    fn from(value: SignatureValidationFailure) -> Self {
+        Self::Signature(value)
+    }
+}
+impl From<serde_json::Error> for ExtractFailure {
+    fn from(value: serde_json::Error) -> Self {
+        Self::Deserialize(value)
+    }
+}
+
+pub fn extract_interaction(
+    sig: &[u8],
+    timestamp: &[u8],
+    body: &[u8],
+    key: &Key,
+) -> Result<Interaction, ExtractFailure> {
+    check_signature(sig, timestamp, body, key)?;
+    Ok(serde_json::from_slice(body)?)
 }
