@@ -22,7 +22,7 @@ jobs:
       - run: mdbook build book --dest-dir render
 
       - name: Publish book
-        uses: cloudflare/wrangler-action@2.0.0
+        uses: cloudflare/wrangler-action@3.0.0
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
