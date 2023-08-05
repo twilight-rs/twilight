@@ -1627,7 +1627,7 @@ impl<'a> Route<'a> {
 ///     with_counts: true,
 /// };
 ///
-/// assert_eq!("invites/twilight-rs?with-counts=true", route.to_string());
+/// assert_eq!("invites/twilight-rs?with_counts=true", route.to_string());
 /// ```
 ///
 /// [`GetInvite`]: Self::GetInvite
@@ -2608,7 +2608,7 @@ impl Display for Route<'_> {
                 f.write_str(code)?;
 
                 if *with_counts {
-                    f.write_str("?with-counts=true")?;
+                    f.write_str("?with_counts=true")?;
                 }
 
                 Ok(())
@@ -2623,11 +2623,11 @@ impl Display for Route<'_> {
                 f.write_str("?")?;
 
                 if *with_counts {
-                    f.write_str("with-counts=true")?;
+                    f.write_str("with_counts=true")?;
                 }
 
                 if *with_expiration {
-                    f.write_str("with-expiration=true")?;
+                    f.write_str("with_expiration=true")?;
                 }
 
                 Ok(())
