@@ -662,7 +662,6 @@ impl Shard {
                         .as_mut()
                         .map_or(false, |handle| Pin::new(handle).poll(cx).is_ready())
                 {
-                    self.identify_handle = None;
                     return Poll::Ready(Action::Identify);
                 }
 
@@ -1165,13 +1164,17 @@ impl Shard {
                 } else {
                     // Can not use `MessageSender` since it is only polled after
                     // the shard is identified.
-                    if let Some(handle) = &self.identify_handle {
-                        // if the "old handle" is ready, we must assume it's no longer valid
-                        if handle.is_finished() {
-                            self.identify_handle = Some(self.create_identify_handle());
-                        }
-                    } else {
-                        self.identify_handle = Some(self.create_identify_handle());
+
+                    // If the JoinHandle is finished, or there is none (def: true), we create a new one
+                    if self.identify_handle.as_ref().map_or(true, JoinHandle::is_finished) {
+                        self.identify_handle = Some(tokio::spawn({
+                            let shard_id = self.id();
+                            let queue = self.config().queue().clone();
+
+                            async move {
+                                queue.request([shard_id.number(), shard_id.total()]).await;
+                            }
+                        }));
                     }
                 }
             }
@@ -1192,18 +1195,6 @@ impl Shard {
         }
 
         Ok(())
-    }
-
-    /// Create a new identify handle for the current shard
-    fn create_identify_handle(&self) -> JoinHandle<()> {
-        tokio::spawn({
-            let shard_id = self.id();
-            let queue = self.config().queue().clone();
-
-            async move {
-                queue.request([shard_id.number(), shard_id.total()]).await;
-            }
-        })
     }
 
     /// Establishes a Websocket connection, sets the [status] to [`Resuming`] or
