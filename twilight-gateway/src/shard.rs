@@ -69,7 +69,7 @@ use crate::{
     session::Session,
     Config, Message, ShardId,
 };
-use futures_util::{SinkExt, StreamExt};
+use futures_util::{stream::Stream, SinkExt};
 use serde::{de::DeserializeOwned, Deserialize};
 #[cfg(any(
     feature = "native",
@@ -672,7 +672,7 @@ impl Shard {
                 }
 
                 if let Poll::Ready(message) =
-                    Pin::new(&mut self.connection.as_mut().expect("connected").next()).poll(cx)
+                    Pin::new(self.connection.as_mut().expect("connected")).poll_next(cx)
                 {
                     return Poll::Ready(Action::Message(message));
                 }
