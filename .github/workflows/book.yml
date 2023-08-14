@@ -22,9 +22,9 @@ jobs:
       - run: mdbook build book --dest-dir render
 
       - name: Publish book
-        uses: cloudflare/wrangler-action@2.0.0
+        uses: cloudflare/wrangler-action@3
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages publish render --project-name twilight-book --commit-dirty=true --branch main
+          command: pages deploy render --project-name twilight-book --commit-dirty=true --branch main
           workingDirectory: "book"
