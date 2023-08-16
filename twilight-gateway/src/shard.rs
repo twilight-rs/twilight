@@ -1166,7 +1166,11 @@ impl Shard {
                     // the shard is identified.
 
                     // If the JoinHandle is finished, or there is none (def: true), we create a new one
-                    if self.identify_handle.as_ref().map_or(true, JoinHandle::is_finished) {
+                    if self
+                        .identify_handle
+                        .as_ref()
+                        .map_or(true, JoinHandle::is_finished)
+                    {
                         self.identify_handle = Some(tokio::spawn({
                             let shard_id = self.id();
                             let queue = self.config().queue().clone();
