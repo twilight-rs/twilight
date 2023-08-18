@@ -154,7 +154,7 @@ pub enum ConnectionStatus {
         /// Close code of the close message.
         close_code: CloseCode,
     },
-    /// Shard is waiting to establish an active session.
+    /// Shard is waiting to establish or resume a session.
     Identifying,
     /// Shard is replaying missed dispatch events.
     ///
@@ -626,6 +626,7 @@ impl Shard {
                 self.send(json)
                     .await
                     .map_err(ReceiveMessageError::from_send)?;
+                self.status = ConnectionStatus::Resuming;
             }
             Some(NextAction::Heartbeat) => {
                 self.heartbeat()
@@ -1231,19 +1232,7 @@ impl Shard {
                     source
                 })?,
         );
-
-        if self.session().is_some() {
-            // Defer sending a Resume event until Hello has been received to
-            // guard against the first message being a websocket close message
-            // (causing us to miss replayed dispatch events).
-            // We also set/reset the ratelimiter upon receiving Hello, which
-            // means sending anything before then will not be recorded by the
-            // ratelimiter.
-            self.status = ConnectionStatus::Resuming;
-        } else {
-            self.status = ConnectionStatus::Identifying;
-        }
-
+        self.status = ConnectionStatus::Identifying;
         #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         self.inflater.reset();
 
