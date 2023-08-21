@@ -522,32 +522,15 @@ impl Shard {
                 Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
                 Message::Text(text) => match crate::parse(text, self.config.event_types()) {
                     Ok(Some(event)) => return Ok(event.into()),
-                    Ok(None) => {}
-                    Err(source) => {
-                        // Discord has many events that aren't documented, so we
-                        // need to skip over errors caused by unknown events or
-                        // opcodes.
-                        //
-                        // clippy: the recommendation is to reference the method
-                        // by name with a turbofish, which is invalid syntax
-                        #[allow(clippy::redundant_closure_for_method_calls)]
-                        let maybe_unknown_event = source
-                            .source()
-                            .and_then(|source| source.downcast_ref::<UnknownEventError>());
-
-                        if let Some(unknown_event) = maybe_unknown_event {
-                            tracing::debug!(
-                                id=%self.id,
-                                event_type=?unknown_event.event_type,
-                                opcode=?unknown_event.opcode,
-                                "skipped deserializing unknown event",
-                            );
-
-                            continue;
-                        }
-
-                        return Err(source);
+                    #[allow(clippy::redundant_closure_for_method_calls)]
+                    Err(e)
+                        if e.source()
+                            .and_then(|source| source.downcast_ref::<UnknownEventError>())
+                            .is_none() =>
+                    {
+                        return Err(e)
                     }
+                    _ => {}
                 },
             }
         }
