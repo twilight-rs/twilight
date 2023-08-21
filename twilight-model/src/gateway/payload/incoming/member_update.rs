@@ -4,7 +4,8 @@ use crate::{
         Id,
     },
     user::User,
-    util::{ImageHash, Timestamp}, guild::MemberFlags,
+    util::{ImageHash, Timestamp},
+    guild::MemberFlags,
 };
 use serde::{Deserialize, Serialize};
 
