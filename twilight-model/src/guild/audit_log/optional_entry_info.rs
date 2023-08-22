@@ -111,6 +111,7 @@ pub struct AuditLogOptionalEntryInfo {
     ///
     /// [`AuditLogEventType::MemberKick`]: super::AuditLogEventType::MemberKick
     /// [`AuditLogEventType::MemberRoleUpdate`]: super::AuditLogEventType::MemberRoleUpdate
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub integration_type: Option<GuildIntegrationType>,
     /// Type of overwritten entity.
     ///
