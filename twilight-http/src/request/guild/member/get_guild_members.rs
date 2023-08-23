@@ -41,7 +41,11 @@ struct GetGuildMembersFields {
 ///
 /// let guild_id = Id::new(100);
 /// let user_id = Id::new(3000);
-/// let members = client.guild_members(guild_id).after(user_id).limit(500)?.await?;
+/// let members = client
+///     .guild_members(guild_id)
+///     .after(user_id)
+///     .limit(500)?
+///     .await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
