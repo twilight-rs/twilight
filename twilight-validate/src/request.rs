@@ -920,13 +920,12 @@ pub fn scheduled_event_description(description: impl AsRef<str>) -> Result<(), V
 /// [`ScheduledEventGetUsers`]: ValidationErrorType::ScheduledEventGetUsers
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users-query-string-params
 pub const fn scheduled_event_get_users(limit: u16) -> Result<(), ValidationError> {
-    if limit <= SCHEDULED_EVENT_GET_USERS_MIN && limit >= SCHEDULED_EVENT_GET_USERS_MAX {
-        Ok(())
-    } else {
+    if !(SCHEDULED_EVENT_GET_USERS_MIN..=SCHEDULED_EVENT_GET_USERS_MAX).contains(&limit) {
         Err(ValidationError {
             kind: ValidationErrorType::ScheduledEventGetUsers { limit },
         })
     }
+    Ok(())
 }
 
 /// Ensure that a scheduled event's name is correct.

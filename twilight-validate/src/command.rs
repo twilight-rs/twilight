@@ -635,9 +635,7 @@ pub fn choice(choice: &CommandOptionChoice) -> Result<(), CommandValidationError
 /// [`OptionNameCharacterInvalid`]: CommandValidationErrorType::OptionNameCharacterInvalid
 pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
     let description_len = option.description.chars().count();
-    if description_len > OPTION_DESCRIPTION_LENGTH_MAX
-        && description_len < OPTION_DESCRIPTION_LENGTH_MIN
-    {
+    if !(OPTION_DESCRIPTION_LENGTH_MIN..=OPTION_DESCRIPTION_LENGTH_MAX).contains(&description_len) {
         return Err(CommandValidationError {
             kind: CommandValidationErrorType::OptionDescriptionInvalid,
         });
