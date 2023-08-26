@@ -15,7 +15,7 @@ version = "0.15.2"
 
 [dependencies]
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
-hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.23" }
+hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.24" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
 hyper-trust-dns = { default-features = false, optional = true, version = "0.5" }
 percent-encoding = { default-features = false, version = "2" }
