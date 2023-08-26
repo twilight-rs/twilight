@@ -864,7 +864,7 @@ impl UpdateCache for Event {
             Event::GuildStickersUpdate(v) => c.update(v),
             Event::GuildUpdate(v) => c.update(v.deref()),
             Event::IntegrationCreate(v) => c.update(v.deref()),
-            Event::IntegrationDelete(v) => c.update(v.deref()),
+            Event::IntegrationDelete(v) => c.update(v),
             Event::IntegrationUpdate(v) => c.update(v.deref()),
             Event::InteractionCreate(v) => c.update(v.deref()),
             Event::MemberAdd(v) => c.update(v.deref()),
