@@ -34,7 +34,7 @@ mod r#impl {
         config: WebSocketConfig,
         _tls: &TlsContainer,
     ) -> Result<Connection, ReceiveMessageError> {
-        let (stream, _) = tokio_tungstenite::connect_async_with_config(url, Some(config))
+        let (stream, _) = tokio_tungstenite::connect_async_with_config(url, Some(config), false)
             .await
             .map_err(|source| ReceiveMessageError {
                 kind: ReceiveMessageErrorType::Reconnect,
@@ -90,7 +90,7 @@ mod r#impl {
         tls: &TlsContainer,
     ) -> Result<Connection, ReceiveMessageError> {
         let (stream, _) =
-            tokio_tungstenite::connect_async_tls_with_config(url, Some(config), tls.connector())
+            tokio_tungstenite::connect_async_tls_with_config(url, Some(config), false, tls.connector())
                 .await
                 .map_err(|source| ReceiveMessageError {
                     kind: ReceiveMessageErrorType::Reconnect,
