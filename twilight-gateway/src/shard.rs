@@ -1148,14 +1148,22 @@ impl Shard {
                 } else {
                     // Can not use `MessageSender` since it is only polled after
                     // the shard is identified.
-                    self.identify_handle = Some(tokio::spawn({
-                        let shard_id = self.id();
-                        let queue = self.config().queue().clone();
 
-                        async move {
-                            queue.request([shard_id.number(), shard_id.total()]).await;
-                        }
-                    }));
+                    // If the JoinHandle is finished, or there is none (def: true), we create a new one
+                    if self
+                        .identify_handle
+                        .as_ref()
+                        .map_or(true, JoinHandle::is_finished)
+                    {
+                        self.identify_handle = Some(tokio::spawn({
+                            let shard_id = self.id();
+                            let queue = self.config().queue().clone();
+
+                            async move {
+                                queue.request([shard_id.number(), shard_id.total()]).await;
+                            }
+                        }));
+                    }
                 }
             }
             Some(OpCode::InvalidSession) => {
