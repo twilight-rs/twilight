@@ -78,8 +78,6 @@ bitflags! {
         const GATEWAY_INVALIDATE_SESSION = 1 << 69;
         /// Gateway is indicating that a shard should perform a reconnect.
         const GATEWAY_RECONNECT = 1 << 9;
-        /// Gift code sent in a channel has been updated.
-        const GIFT_CODE_UPDATE = 1 << 49;
         /// An audit log entry has been created.
         const GUILD_AUDIT_LOG_ENTRY_CREATE = 1 << 75;
         /// A guild has been created.
@@ -137,11 +135,6 @@ bitflags! {
         const MESSAGE_UPDATE = 1 << 22;
         /// User's presence details are updated.
         const PRESENCE_UPDATE = 1 << 23;
-        /// Group of presences are replaced.
-        ///
-        /// This is a placeholder as it *can* happen for bots but has no real
-        /// meaning.
-        const PRESENCES_REPLACE = 1 << 24;
         /// Reaction has been added to a message.
         const REACTION_ADD = 1 << 25;
         /// Reaction has been removed from a message.
@@ -342,7 +335,6 @@ impl From<EventType> for EventTypeFlags {
             EventType::GatewayHello => Self::GATEWAY_HELLO,
             EventType::GatewayInvalidateSession => Self::GATEWAY_INVALIDATE_SESSION,
             EventType::GatewayReconnect => Self::GATEWAY_RECONNECT,
-            EventType::GiftCodeUpdate => Self::GIFT_CODE_UPDATE,
             EventType::GuildAuditLogEntryCreate => Self::GUILD_AUDIT_LOG_ENTRY_CREATE,
             EventType::GuildCreate => Self::GUILD_CREATE,
             EventType::GuildDelete => Self::GUILD_DELETE,
@@ -370,7 +362,6 @@ impl From<EventType> for EventTypeFlags {
             EventType::MessageDeleteBulk => Self::MESSAGE_DELETE_BULK,
             EventType::MessageUpdate => Self::MESSAGE_UPDATE,
             EventType::PresenceUpdate => Self::PRESENCE_UPDATE,
-            EventType::PresencesReplace => Self::PRESENCES_REPLACE,
             EventType::ReactionAdd => Self::REACTION_ADD,
             EventType::ReactionRemove => Self::REACTION_REMOVE,
             EventType::ReactionRemoveAll => Self::REACTION_REMOVE_ALL,

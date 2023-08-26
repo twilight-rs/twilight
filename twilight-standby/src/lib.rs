@@ -1542,8 +1542,8 @@ mod tests {
         let standby = Standby::new();
         let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::Resumed);
 
-        standby.process(&Event::PresencesReplace);
-        standby.process(&Event::PresencesReplace);
+        standby.process(&Event::GatewayHeartbeatAck);
+        standby.process(&Event::GatewayHeartbeatAck);
         standby.process(&Event::Resumed);
 
         assert_eq!(Event::Resumed, wait.await.unwrap());
