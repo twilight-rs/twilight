@@ -34,7 +34,7 @@ mod r#impl {
         config: WebSocketConfig,
         _tls: &TlsContainer,
     ) -> Result<Connection, ReceiveMessageError> {
-        let (stream, _) = tokio_tungstenite::connect_async_with_config(url, Some(config))
+        let (stream, _) = tokio_tungstenite::connect_async_with_config(url, Some(config), false)
             .await
             .map_err(|source| ReceiveMessageError {
                 kind: ReceiveMessageErrorType::Reconnect,
@@ -89,13 +89,17 @@ mod r#impl {
         config: WebSocketConfig,
         tls: &TlsContainer,
     ) -> Result<Connection, ReceiveMessageError> {
-        let (stream, _) =
-            tokio_tungstenite::connect_async_tls_with_config(url, Some(config), tls.connector())
-                .await
-                .map_err(|source| ReceiveMessageError {
-                    kind: ReceiveMessageErrorType::Reconnect,
-                    source: Some(Box::new(source)),
-                })?;
+        let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(
+            url,
+            Some(config),
+            false,
+            tls.connector(),
+        )
+        .await
+        .map_err(|source| ReceiveMessageError {
+            kind: ReceiveMessageErrorType::Reconnect,
+            source: Some(Box::new(source)),
+        })?;
 
         Ok(stream)
     }
@@ -154,7 +158,7 @@ mod r#impl {
 
         #[cfg(feature = "rustls-webpki-roots")]
         {
-            roots.add_server_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
+            roots.add_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
                 rustls_tls::OwnedTrustAnchor::from_subject_spki_name_constraints(
                     ta.subject,
                     ta.spki,
@@ -179,13 +183,17 @@ mod r#impl {
         config: WebSocketConfig,
         tls: &TlsContainer,
     ) -> Result<Connection, ReceiveMessageError> {
-        let (stream, _) =
-            tokio_tungstenite::connect_async_tls_with_config(url, Some(config), tls.connector())
-                .await
-                .map_err(|source| ReceiveMessageError {
-                    kind: ReceiveMessageErrorType::Reconnect,
-                    source: Some(Box::new(source)),
-                })?;
+        let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(
+            url,
+            Some(config),
+            false,
+            tls.connector(),
+        )
+        .await
+        .map_err(|source| ReceiveMessageError {
+            kind: ReceiveMessageErrorType::Reconnect,
+            source: Some(Box::new(source)),
+        })?;
 
         Ok(stream)
     }

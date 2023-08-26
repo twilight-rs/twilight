@@ -25,12 +25,17 @@ const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 /// `accept_unmasked_frames` and `max_send_queue` are set to their
 /// defaults.
 ///
+/// `write_buffer_size` is set to 8KiB, `max_write_buffer_size` is set to 1MiB
+///
 /// [`GuildCreate`]: twilight_model::gateway::payload::incoming::GuildCreate
+#[allow(deprecated)] // max_send_queue is deprecated.
 const WEBSOCKET_CONFIG: WebSocketConfig = WebSocketConfig {
     accept_unmasked_frames: false,
     max_frame_size: None,
     max_message_size: None,
     max_send_queue: None,
+    write_buffer_size: 1024 * 1024,
+    max_write_buffer_size: 1024 * 8,
 };
 
 /// [`tokio_tungstenite`] library Websocket connection.
