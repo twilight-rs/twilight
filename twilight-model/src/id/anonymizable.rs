@@ -11,10 +11,7 @@ pub enum AnonymizableId<T> {
 
 impl<T> Clone for AnonymizableId<T> {
     fn clone(&self) -> Self {
-        match self {
-            Self::Anonymized => Self::Anonymized,
-            Self::Id(id) => Self::Id(*id),
-        }
+        *self
     }
 }
 

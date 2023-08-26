@@ -250,6 +250,9 @@ impl InMemoryCache {
     /// Clear the state of the Cache.
     ///
     /// This is equal to creating a new empty cache.
+    ///
+    /// # Panics
+    /// Can panic if the "current user" lock is poisoned
     pub fn clear(&self) {
         self.channels.clear();
         self.channel_messages.clear();
@@ -369,6 +372,8 @@ impl InMemoryCache {
     }
 
     /// Gets the current user.
+    /// # Panics
+    /// Can panic if the lock on the current user is poisoned
     pub fn current_user(&self) -> Option<CurrentUser> {
         self.current_user
             .lock()
