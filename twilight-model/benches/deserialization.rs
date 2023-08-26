@@ -9,7 +9,7 @@ use twilight_model::gateway::{
 };
 
 fn gateway_event_role_delete() {
-    let input = r##"{
+    let input = r#"{
         "op": 0,
         "s": 2,
         "d": {
@@ -17,7 +17,7 @@ fn gateway_event_role_delete() {
             "role_id": "2"
         },
         "t": "GUILD_ROLE_DELETE"
-    }"##;
+    }"#;
 
     let mut json_deserializer = Deserializer::from_str(input);
     let gateway_deserializer = GatewayEventDeserializer::from_json(input).unwrap();
