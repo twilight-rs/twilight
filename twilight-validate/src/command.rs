@@ -1033,4 +1033,45 @@ mod tests {
         assert!(matches!(super::options(&options).unwrap_err().kind(),
             CommandValidationErrorType::OptionNameNotUnique { option_index } if *option_index == 1));
     }
+
+    /// o
+    #[test]
+    fn option_description_length() {
+        let base = CommandOption {
+            autocomplete: None,
+            channel_types: None,
+            choices: None,
+            description: String::new(),
+            description_localizations: None,
+            kind: CommandOptionType::Boolean,
+            max_length: None,
+            max_value: None,
+            min_length: None,
+            min_value: None,
+            name: "testcommand".to_string(),
+            name_localizations: None,
+            options: None,
+            required: None,
+        };
+        let toolong = CommandOption {
+            description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MAX + 1),
+            ..base.clone()
+        };
+        let tooshort = CommandOption {
+            description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MIN - 1),
+            ..base.clone()
+        };
+        let maxlen = CommandOption {
+            description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MAX),
+            ..base.clone()
+        };
+        let minlen = CommandOption {
+            description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MIN),
+            ..base
+        };
+        assert!(option(&toolong).is_err());
+        assert!(option(&tooshort).is_err());
+        assert!(option(&maxlen).is_ok());
+        assert!(option(&minlen).is_ok());
+    }
 }
