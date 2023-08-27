@@ -1034,7 +1034,7 @@ mod tests {
             CommandValidationErrorType::OptionNameNotUnique { option_index } if *option_index == 1));
     }
 
-    /// o
+    /// Test if option description length is checked properly
     #[test]
     fn option_description_length() {
         let base = CommandOption {
@@ -1065,6 +1065,8 @@ mod tests {
             description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MAX),
             ..base.clone()
         };
+        // clippy yells at us if this value is 1, but just using to_string would be incorrect
+        #[allow(clippy::repeat_once)]
         let minlen = CommandOption {
             description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MIN),
             ..base
