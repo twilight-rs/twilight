@@ -2627,11 +2627,7 @@ impl Display for Route<'_> {
                 }
 
                 if *with_expiration {
-                    if *with_counts {
-                        f.write_str("&")?;
-                    }
-
-                    f.write_str("with_expiration=true")?;
+                    f.write_str("&with_expiration=true")?;
                 }
 
                 Ok(())
