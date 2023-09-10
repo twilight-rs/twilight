@@ -1,5 +1,31 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- clippy 1.72 lints ([#2268](https://github.com/twilight-rs/twilight/issues/2268))
+- add VanityUrl uses ([#2257](https://github.com/twilight-rs/twilight/issues/2257))
+
+### Features
+
+- Add `USE_EXTERNAL_SOUNDS` permission ([#2213](https://github.com/twilight-rs/twilight/issues/2213))
+- add support for join raid and mention raid protection ([#2204](https://github.com/twilight-rs/twilight/issues/2204))
+- include `guild_id` in ThreadMemberUpdate ([#2236](https://github.com/twilight-rs/twilight/issues/2236))
+- Add support for guild onboarding ([#2130](https://github.com/twilight-rs/twilight/issues/2130))
+- Support new username system ([#2231](https://github.com/twilight-rs/twilight/issues/2231))
+- add `message_author_id` for reaction add events ([#2244](https://github.com/twilight-rs/twilight/issues/2244))
+- add audit log monetization event types ([#2243](https://github.com/twilight-rs/twilight/issues/2243))
+- add support for attachment flags ([#2241](https://github.com/twilight-rs/twilight/issues/2241))
+- add support for role flags ([#2240](https://github.com/twilight-rs/twilight/issues/2240))
+- extend `Event::guild_id` ([#2234](https://github.com/twilight-rs/twilight/issues/2234))
+- remove `tracing` ([#2238](https://github.com/twilight-rs/twilight/issues/2238))
+- add `integration_type` to audit log entries ([#2266](https://github.com/twilight-rs/twilight/issues/2266))
+
+### Model
+
+- Implement `visit_i64` for IdVisitor ([#2193](https://github.com/twilight-rs/twilight/issues/2193))
+
 ## [0.15.2] - 2023-04-27
 
 ### Bug Fixes
@@ -192,12 +218,12 @@ redirection.
 - Add a note in the `command` module recommending users to use the
   `CommandBuilder`.
 - `CommandBuilder` retains its API, but is internally more complicated.
- 
+
 Through the following series of PRs, modules and types have been moved around
 and renamed in order to be more concise. `MessageReaction` has been renamed to
 `Reaction`, and thus the previous `Reaction` has been renamed to
 `GatewayReaction`. Besides that, the changes are too extensive to list here;
-proper tooling is recommended in order to sort out the new imports. 
+proper tooling is recommended in order to sort out the new imports.
 - [**breaking**] move related modules under `guild` ([#1814](https://github.com/twilight-rs/twilight/issues/1814))
 - [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- clippy 1.72 lints ([#2268](https://github.com/twilight-rs/twilight/issues/2268))
+
+### Build
+
+- bump MSRV to 1.67 ([#2208](https://github.com/twilight-rs/twilight/issues/2208))
+
 ## [0.15.1] - 2023-02-26
 
 ### Refactor

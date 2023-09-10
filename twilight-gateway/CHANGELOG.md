@@ -1,5 +1,37 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- don't swallow events on send error ([#2247](https://github.com/twilight-rs/twilight/issues/2247))
+- defer queued commands until sent `Resume` ([#2264](https://github.com/twilight-rs/twilight/issues/2264))
+- resume pending identify requests ([#2260](https://github.com/twilight-rs/twilight/issues/2260))
+
+### Build
+
+- bump MSRV to 1.67 ([#2208](https://github.com/twilight-rs/twilight/issues/2208))
+
+### Features
+
+- impl `From<Config>` for ConfigBuilder ([#2248](https://github.com/twilight-rs/twilight/issues/2248))
+
+### Performance
+
+- reuse ratelimiter's cleanup instant ([#2212](https://github.com/twilight-rs/twilight/issues/2212))
+
+### Refactor
+
+- reformat code with rustfmt 1.6.0 ([#2233](https://github.com/twilight-rs/twilight/issues/2233))
+- remove ratelimiter sleep from new ([#2232](https://github.com/twilight-rs/twilight/issues/2232))
+- inline `future` into `shard` ([#2226](https://github.com/twilight-rs/twilight/issues/2226))
+- replace `StreamExt::next` with `Stream::poll_next` ([#2251](https://github.com/twilight-rs/twilight/issues/2251))
+- cleanup dispatch sequence handling ([#2225](https://github.com/twilight-rs/twilight/issues/2225))
+
+### Testing
+
+- assert spurious ratelimiter poll doesn't reset deadline ([#2185](https://github.com/twilight-rs/twilight/issues/2185))
+
 ## [0.15.2] - 2023-04-27
 
 ### Build

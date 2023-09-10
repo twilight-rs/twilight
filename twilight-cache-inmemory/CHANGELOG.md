@@ -1,5 +1,22 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- clippy 1.72 lints ([#2268](https://github.com/twilight-rs/twilight/issues/2268))
+
+### Build
+
+- bump MSRV to 1.67 ([#2208](https://github.com/twilight-rs/twilight/issues/2208))
+
+### Features
+
+- add support for join raid and mention raid protection ([#2204](https://github.com/twilight-rs/twilight/issues/2204))
+- Support new username system ([#2231](https://github.com/twilight-rs/twilight/issues/2231))
+- add `message_author_id` for reaction add events ([#2244](https://github.com/twilight-rs/twilight/issues/2244))
+- add support for role flags ([#2240](https://github.com/twilight-rs/twilight/issues/2240))
+
 ## [0.15.2] - 2023-04-27
 
 ### Features

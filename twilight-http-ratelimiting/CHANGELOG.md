@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Build
+
+- bump MSRV to 1.67 ([#2208](https://github.com/twilight-rs/twilight/issues/2208))
+
+### Features
+
+- Add support for guild onboarding ([#2130](https://github.com/twilight-rs/twilight/issues/2130))
+
 ## [0.15.1] - 2023-02-26
 
 ### Refactor

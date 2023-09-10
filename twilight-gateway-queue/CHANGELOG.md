@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- clippy 1.72 lints ([#2268](https://github.com/twilight-rs/twilight/issues/2268))
+
 ## [0.15.2] - 2023-04-27
 
 ### Bug Fixes

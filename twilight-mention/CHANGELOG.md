@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Build
+
+- bump MSRV to 1.67 ([#2208](https://github.com/twilight-rs/twilight/issues/2208))
+
+### Refactor
+
+- reformat code with rustfmt 1.6.0 ([#2233](https://github.com/twilight-rs/twilight/issues/2233))
+
 ## [0.15.1] - 2023-02-26
 
 ### Refactor
