@@ -1322,6 +1322,7 @@ mod tests {
         assert!(scheduled_event_description("").is_err());
         assert!(scheduled_event_description("a".repeat(1001)).is_err());
     }
+
     #[test]
     fn scheduled_event_get_users_length() {
         assert!(scheduled_event_get_users(0).is_err());
