@@ -8,7 +8,8 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 /// An emoji for a guild onboarding prompt.
-/// This is used instead [`Emoji`] as both it's id and name can be `null` in prompt options.
+/// This is used instead of [`Emoji`] as both it's id and name can be `null` in
+/// prompt options.
 ///
 /// [`Emoji`]: crate::guild::Emoji
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

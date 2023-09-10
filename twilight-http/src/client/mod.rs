@@ -1038,7 +1038,11 @@ impl Client {
     /// #
     /// let guild_id = Id::new(100);
     /// let user_id = Id::new(3000);
-    /// let members = client.guild_members(guild_id).after(user_id).await?;
+    /// let members = client
+    ///     .guild_members(guild_id)
+    ///     .after(user_id)
+    ///     .limit(500)?
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -1416,7 +1420,6 @@ impl Client {
     /// Returns an error of type
     /// [`ChannelValidationErrorType::BulkDeleteMessagesInvalid`] when the number of
     /// messages to delete in bulk is invalid.
-    /// is not between 1 and 120 characters in length.
     ///
     /// [Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     /// [`ChannelValidationErrorType::BulkDeleteMessagesInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BulkDeleteMessagesInvalid

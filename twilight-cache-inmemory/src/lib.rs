@@ -250,6 +250,7 @@ impl InMemoryCache {
     /// Clear the state of the Cache.
     ///
     /// This is equal to creating a new empty cache.
+    #[allow(clippy::missing_panics_doc)]
     pub fn clear(&self) {
         self.channels.clear();
         self.channel_messages.clear();
@@ -369,6 +370,7 @@ impl InMemoryCache {
     }
 
     /// Gets the current user.
+    #[allow(clippy::missing_panics_doc)]
     pub fn current_user(&self) -> Option<CurrentUser> {
         self.current_user
             .lock()

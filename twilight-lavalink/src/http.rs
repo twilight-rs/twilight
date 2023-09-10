@@ -295,6 +295,7 @@ pub fn get_route_planner(
 /// # Errors
 ///
 /// See the documentation for [`http::Error`].
+#[allow(clippy::missing_panics_doc)]
 pub fn unmark_failed_address(
     node_address: impl Into<SocketAddr>,
     authorization: impl AsRef<str>,

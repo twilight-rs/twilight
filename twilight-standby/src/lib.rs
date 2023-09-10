@@ -77,6 +77,7 @@ struct Bystander<T> {
 impl<T: Debug> Debug for Bystander<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("Bystander")
+            .field("func", &"<dyn Fn(&T) -> bool>")
             .field("sender", &self.sender)
             .finish()
     }

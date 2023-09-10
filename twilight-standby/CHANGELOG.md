@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.15.3] - 2023-09-10
+
+### Bug Fixes
+
+- clippy 1.72 lints ([#2268](https://github.com/twilight-rs/twilight/issues/2268))
+
+### Build
+
+- bump MSRV to 1.67 ([#2208](https://github.com/twilight-rs/twilight/issues/2208))
+
+### Features
+
+- Support new username system ([#2231](https://github.com/twilight-rs/twilight/issues/2231))
+- add `message_author_id` for reaction add events ([#2244](https://github.com/twilight-rs/twilight/issues/2244))
+
 ## [0.15.2] - 2023-04-27
 
 ### Documentation

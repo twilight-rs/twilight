@@ -635,9 +635,7 @@ pub fn choice(choice: &CommandOptionChoice) -> Result<(), CommandValidationError
 /// [`OptionNameCharacterInvalid`]: CommandValidationErrorType::OptionNameCharacterInvalid
 pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
     let description_len = option.description.chars().count();
-    if description_len > OPTION_DESCRIPTION_LENGTH_MAX
-        && description_len < OPTION_DESCRIPTION_LENGTH_MIN
-    {
+    if !(OPTION_DESCRIPTION_LENGTH_MIN..=OPTION_DESCRIPTION_LENGTH_MAX).contains(&description_len) {
         return Err(CommandValidationError {
             kind: CommandValidationErrorType::OptionDescriptionInvalid,
         });
@@ -1034,5 +1032,48 @@ mod tests {
         options.push(option);
         assert!(matches!(super::options(&options).unwrap_err().kind(),
             CommandValidationErrorType::OptionNameNotUnique { option_index } if *option_index == 1));
+    }
+
+    /// Test if option description length is checked properly
+    #[test]
+    fn option_description_length() {
+        let base = CommandOption {
+            autocomplete: None,
+            channel_types: None,
+            choices: None,
+            description: String::new(),
+            description_localizations: None,
+            kind: CommandOptionType::Boolean,
+            max_length: None,
+            max_value: None,
+            min_length: None,
+            min_value: None,
+            name: "testcommand".to_string(),
+            name_localizations: None,
+            options: None,
+            required: None,
+        };
+        let toolong = CommandOption {
+            description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MAX + 1),
+            ..base.clone()
+        };
+        let tooshort = CommandOption {
+            description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MIN - 1),
+            ..base.clone()
+        };
+        let maxlen = CommandOption {
+            description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MAX),
+            ..base.clone()
+        };
+        // clippy yells at us if this value is 1, but just using to_string would be incorrect
+        #[allow(clippy::repeat_once)]
+        let minlen = CommandOption {
+            description: "e".repeat(OPTION_DESCRIPTION_LENGTH_MIN),
+            ..base
+        };
+        assert!(option(&toolong).is_err());
+        assert!(option(&tooshort).is_err());
+        assert!(option(&maxlen).is_ok());
+        assert!(option(&minlen).is_ok());
     }
 }

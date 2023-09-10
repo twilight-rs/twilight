@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.2] - 2023-09-10
+
+### Bug Fixes
+
+- clippy 1.72 lints ([#2268](https://github.com/twilight-rs/twilight/issues/2268))
+- improve validation of command option descriptions ([#2269](https://github.com/twilight-rs/twilight/issues/2269))
+
+### Documentation
+
+- Fix broken intra-doc links ([#2220](https://github.com/twilight-rs/twilight/issues/2220))
+
 ## [0.15.1] - 2023-02-26
 
 ### Features
@@ -54,7 +65,7 @@ of `command::option` and `command::options` have been simplified.
 ### Features
 
 Validate attachment descriptions ([#1890] - [@itohatweb]). Adds
-`message::{attachment, attachment_description}`. 
+`message::{attachment, attachment_description}`.
 
 Due to [**breaking**] add create guild ban delete message seconds ([#1884] -
 [@itohatweb]), `request::create_guild_ban_delete_message_days` has been replaced

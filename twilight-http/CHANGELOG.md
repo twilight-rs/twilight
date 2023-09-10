@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.15.3] - 2023-09-10
+
+### Bug Fixes
+
+- [**breaking**] fix `UpdateFollowup` falsely returning an `EmptyBody` ([#2203](https://github.com/twilight-rs/twilight/issues/2203)) ([#2214](https://github.com/twilight-rs/twilight/issues/2214))
+- fix get invite query params ([#2256](https://github.com/twilight-rs/twilight/issues/2256))
+
+### Documentation
+
+- add limit to guild members request ([#2254](https://github.com/twilight-rs/twilight/issues/2254))
+- fix `Client::delete_messages` ([#2252](https://github.com/twilight-rs/twilight/issues/2252))
+
+### Features
+
+- Add support for guild onboarding ([#2130](https://github.com/twilight-rs/twilight/issues/2130))
+- add `default_forum_layout` option for channel creation ([#2245](https://github.com/twilight-rs/twilight/issues/2245))
+
 ## [0.15.2] - 2023-04-27
 
 ### Bug Fixes

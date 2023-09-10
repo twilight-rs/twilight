@@ -32,6 +32,10 @@ impl LargeBotQueue {
     ///
     /// The number of buckets is provided via Discord as `max_concurrency`
     /// which can be fetched with [`Client::gateway`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if retrieving the session start limints fails.
     pub async fn new(buckets: usize, http: Arc<Client>) -> Self {
         let mut queues = Vec::with_capacity(buckets);
         for _ in 0..buckets {

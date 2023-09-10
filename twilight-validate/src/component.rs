@@ -1176,7 +1176,7 @@ mod tests {
     // [`ComponentValidationErrorType::ButtonStyle`] error type.
     #[test]
     fn button_style() {
-        for style in ALL_BUTTON_STYLES.iter() {
+        for style in ALL_BUTTON_STYLES {
             let button = Button {
                 custom_id: None,
                 disabled: false,

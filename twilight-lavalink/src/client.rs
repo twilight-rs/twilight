@@ -326,7 +326,7 @@ impl Lavalink {
         let mut lowest = i32::MAX;
         let mut best = None;
 
-        for node in self.nodes.iter() {
+        for node in &self.nodes {
             if node.sender().is_closed() {
                 continue;
             }

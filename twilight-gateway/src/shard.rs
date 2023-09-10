@@ -154,7 +154,7 @@ pub enum ConnectionStatus {
         /// Close code of the close message.
         close_code: CloseCode,
     },
-    /// Shard is waiting to establish an active session.
+    /// Shard is waiting to establish or resume a session.
     Identifying,
     /// Shard is replaying missed dispatch events.
     ///
@@ -609,6 +609,7 @@ impl Shard {
                 self.send(json)
                     .await
                     .map_err(ReceiveMessageError::from_send)?;
+                self.status = ConnectionStatus::Resuming;
             }
             Some(NextAction::Heartbeat) => {
                 self.heartbeat()
@@ -1089,24 +1090,8 @@ impl Shard {
                     _ => {}
                 }
 
-                // READY *should* be the first received dispatch event (which
-                // initializes `self.session`), but it shouldn't matter that
-                // much if it's not.
                 if let Some(session) = self.session.as_mut() {
-                    let last_sequence = session.set_sequence(sequence);
-
-                    // If a sequence has been skipped then we may have missed a
-                    // message and should cause a reconnect so we can attempt to get
-                    // that message again.
-                    if sequence > last_sequence + 1 {
-                        tracing::info!(
-                            missed_events = sequence - (last_sequence + 1),
-                            "dispatch events have been missed",
-                        );
-                        self.next_action = Some(NextAction::CloseResume);
-                    }
-                } else {
-                    tracing::info!("unable to store sequence");
+                    session.set_sequence(sequence);
                 }
             }
             Some(OpCode::Heartbeat) => {
@@ -1147,14 +1132,22 @@ impl Shard {
                 } else {
                     // Can not use `MessageSender` since it is only polled after
                     // the shard is identified.
-                    self.identify_handle = Some(tokio::spawn({
-                        let shard_id = self.id();
-                        let queue = self.config().queue().clone();
 
-                        async move {
-                            queue.request([shard_id.number(), shard_id.total()]).await;
-                        }
-                    }));
+                    // If the JoinHandle is finished, or there is none (def: true), we create a new one
+                    if self
+                        .identify_handle
+                        .as_ref()
+                        .map_or(true, JoinHandle::is_finished)
+                    {
+                        self.identify_handle = Some(tokio::spawn({
+                            let shard_id = self.id();
+                            let queue = self.config().queue().clone();
+
+                            async move {
+                                queue.request([shard_id.number(), shard_id.total()]).await;
+                            }
+                        }));
+                    }
                 }
             }
             Some(OpCode::InvalidSession) => {
@@ -1214,19 +1207,7 @@ impl Shard {
                     source
                 })?,
         );
-
-        if self.session().is_some() {
-            // Defer sending a Resume event until Hello has been received to
-            // guard against the first message being a websocket close message
-            // (causing us to miss replayed dispatch events).
-            // We also set/reset the ratelimiter upon receiving Hello, which
-            // means sending anything before then will not be recorded by the
-            // ratelimiter.
-            self.status = ConnectionStatus::Resuming;
-        } else {
-            self.status = ConnectionStatus::Identifying;
-        }
-
+        self.status = ConnectionStatus::Identifying;
         #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         self.inflater.reset();
 
