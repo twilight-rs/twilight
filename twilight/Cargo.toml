@@ -10,7 +10,7 @@ name = "twilight"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.15.0"
+version = "0.15.1"
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }
@@ -18,14 +18,14 @@ futures = { default-features = false, version = "0.3" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
-twilight-cache-inmemory = { default-features = false, path = "../twilight-cache-inmemory", version = "0.15.3" }
-twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.15.3" }
-twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.15.3" }
-twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.15.3" }
-twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.15.2" }
-twilight-lavalink = { default-features = false, path = "../twilight-lavalink", version = "0.15.2" }
-twilight-mention = { default-features = false, path = "../twilight-mention", version = "0.15.2" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.3" }
-twilight-standby = { default-features = false, path = "../twilight-standby", version = "0.15.3" }
-twilight-util = { default-features = false, path = "../twilight-util", version = "0.15.3" }
-twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.15.2" }
+twilight-cache-inmemory = { default-features = false, path = "../twilight-cache-inmemory", version = "0.15.4" }
+twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.15.4" }
+twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.15.4" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.15.4" }
+twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.15.3" }
+twilight-lavalink = { default-features = false, path = "../twilight-lavalink", version = "0.15.3" }
+twilight-mention = { default-features = false, path = "../twilight-mention", version = "0.15.3" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.4" }
+twilight-standby = { default-features = false, path = "../twilight-standby", version = "0.15.4" }
+twilight-util = { default-features = false, path = "../twilight-util", version = "0.15.4" }
+twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.15.3" }
