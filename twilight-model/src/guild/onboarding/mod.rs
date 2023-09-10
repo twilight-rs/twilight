@@ -11,7 +11,9 @@ use crate::id::{
 use serde::{Deserialize, Serialize};
 
 pub use self::{
-    option::OnboardingPromptOption, prompt::OnboardingPrompt, prompt_type::OnboardingPromptType,
+    option::{OnboardingPromptEmoji, OnboardingPromptOption},
+    prompt::OnboardingPrompt,
+    prompt_type::OnboardingPromptType,
 };
 
 /// The onboarding data for a guild.
