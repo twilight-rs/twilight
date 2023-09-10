@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- Re-export OnboardingPromptEmoji
+
 ## [0.15.3] - 2023-09-10
 
 ### Bug Fixes
