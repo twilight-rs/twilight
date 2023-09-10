@@ -11,7 +11,7 @@ name = "twilight-gateway"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.15.2"
+version = "0.15.3"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
@@ -22,8 +22,8 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.19" }
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.18" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.15.2" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.2" }
+twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.15.3" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.3" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently
@@ -31,7 +31,7 @@ twilight-model = { default-features = false, path = "../twilight-model", version
 # it does not seem to update the total_in of the function to have an offset
 # https://github.com/alexcrichton/flate2-rs/issues/217
 flate2 = { default-features = false, optional = true, version = "1.0.24" }
-twilight-http = { default-features = false, optional = true, path = "../twilight-http", version = "0.15.2" }
+twilight-http = { default-features = false, optional = true, path = "../twilight-http", version = "0.15.3" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.11" }
 
 # TLS libraries
