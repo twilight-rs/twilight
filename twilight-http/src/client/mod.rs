@@ -1041,7 +1041,7 @@ impl Client {
     /// let members = client
     ///     .guild_members(guild_id)
     ///     .after(user_id)
-    ///     .limit(500)?
+    ///     .limit(500)
     ///     .await?;
     /// # Ok(()) }
     /// ```
