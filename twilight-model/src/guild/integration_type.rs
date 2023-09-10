@@ -18,6 +18,8 @@ pub enum GuildIntegrationType {
     Twitch,
     /// Integration is a YouTube connection.
     YouTube,
+    /// Integration is a Guild Subscription.
+    GuildSubscription,
     /// Variant value is unknown to the library.
     Unknown(String),
 }
@@ -28,6 +30,7 @@ impl From<GuildIntegrationType> for Cow<'static, str> {
             GuildIntegrationType::Discord => "discord".into(),
             GuildIntegrationType::Twitch => "twitch".into(),
             GuildIntegrationType::YouTube => "youtube".into(),
+            GuildIntegrationType::GuildSubscription => "guild_subscription".into(),
             GuildIntegrationType::Unknown(unknown) => unknown.into(),
         }
     }
@@ -39,6 +42,7 @@ impl From<String> for GuildIntegrationType {
             "discord" => Self::Discord,
             "twitch" => Self::Twitch,
             "youtube" => Self::YouTube,
+            "guild_subscription" => Self::GuildSubscription,
             _ => Self::Unknown(value),
         }
     }
@@ -55,6 +59,10 @@ mod tests {
             (GuildIntegrationType::Discord, "discord"),
             (GuildIntegrationType::Twitch, "twitch"),
             (GuildIntegrationType::YouTube, "youtube"),
+            (
+                GuildIntegrationType::GuildSubscription,
+                "guild_subscription",
+            ),
         ];
 
         for (integration_type, value) in MAP {

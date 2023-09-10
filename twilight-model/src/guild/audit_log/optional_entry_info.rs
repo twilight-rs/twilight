@@ -1,6 +1,9 @@
-use crate::id::{
-    marker::{ChannelMarker, GenericMarker, MessageMarker},
-    Id,
+use crate::{
+    guild::GuildIntegrationType,
+    id::{
+        marker::{ChannelMarker, GenericMarker, MessageMarker},
+        Id,
+    },
 };
 use serde::{Deserialize, Serialize};
 
@@ -99,6 +102,17 @@ pub struct AuditLogOptionalEntryInfo {
     /// [`AuditLogEventType::ChannelOverwriteDelete`]: super::AuditLogEventType::ChannelOverwriteDelete
     /// [`AuditLogEventType::ChannelOverwriteUpdate`]: super::AuditLogEventType::ChannelOverwriteUpdate
     pub id: Option<Id<GenericMarker>>,
+    /// Type of integration which performed the action.
+    ///
+    /// The following events have this option:
+    ///
+    /// - [`AuditLogEventType::MemberKick`]
+    /// - [`AuditLogEventType::MemberRoleUpdate`]
+    ///
+    /// [`AuditLogEventType::MemberKick`]: super::AuditLogEventType::MemberKick
+    /// [`AuditLogEventType::MemberRoleUpdate`]: super::AuditLogEventType::MemberRoleUpdate
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub integration_type: Option<GuildIntegrationType>,
     /// Type of overwritten entity.
     ///
     /// The following events have this option:
