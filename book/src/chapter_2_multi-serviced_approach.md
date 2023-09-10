@@ -14,19 +14,18 @@ One of the popular design choices when creating a multi-serviced application is
 to have a service that only connects shards to the gateway and sends the events
 to a broker to be processed. As bots grow into hundreds or thousands of shards,
 multiple instances of the application can be created and groups of shards can be
-managed by each. Twilight is an excellent choice for this use case: you can
-receive either events that come in in a loop and send the payloads to the
-appropriate broker stream, or you can loop over received payloads' bytes to send
-off.
+managed by each. Twilight is an excellent choice for this use case: just receive
+and send the payloads to the appropriate broker stream. Twilight shards need
+only partially deserialize payloads to function.
 
 ## Gateway session ratelimiting
 
 If multiple shard groups are used, then they need to be queued and their session
-initialization ratelimited. The Gateway includes a Queue trait which can be
+initialization ratelimited. The gateway includes a Queue trait which can be
 implemented; the gateway will submit a request to the queue before starting a
-session. Twilight comes with a queue that supports sharding and Large Bot
-sharding, but when multiple shard groups are in use then a custom queue will
-need to be implemented. Refer to [gateway-queue] for an example of this.
+session. Twilight comes with a queue that supports Large Bot sharding, but when
+multiple shard groups are in use then a custom queue will need to be implemented.
+Refer to [gateway-queue] for an example of this.
 
 ## HTTP proxy ratelimiting
 

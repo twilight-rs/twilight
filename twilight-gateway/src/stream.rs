@@ -27,7 +27,6 @@
 //!
 //! See the [gateway-parallel] example for how to implement this.
 //!
-//! [`ConfigBuilder::queue`]: crate::ConfigBuilder::queue
 //! [gateway-parallel]: https://github.com/twilight-rs/twilight/blob/main/examples/gateway-parallel.rs
 //! [session queue]: crate::queue
 
@@ -419,7 +418,7 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder) -> Config>(
 ///
 /// ```no_run
 /// use std::{collections::HashMap, env, sync::Arc};
-/// use twilight_gateway::{queue::LocalQueue, stream, Config, Intents};
+/// use twilight_gateway::{stream, Config, Intents};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -29,6 +29,10 @@ name = "gateway-parallel"
 path = "gateway-parallel.rs"
 
 [[example]]
+name = "gateway-queue-http"
+path = "gateway-queue-http.rs"
+
+[[example]]
 name = "gateway-reshard"
 path = "gateway-reshard.rs"
 

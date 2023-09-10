@@ -13,18 +13,10 @@ rust-version.workspace = true
 version = "0.15.4"
 
 [dependencies]
-tokio = { default-features = false, features = ["rt", "sync", "time"], version = "1.0" }
-tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-
-# Optional dependencies.
-twilight-http = { default-features = false, optional = true, path = "../twilight-http", version = "0.15.4" }
+tokio = { default-features = false, features = ["macros", "rt", "sync", "time"], version = "1.15" }
+tracing = { default-features = false, features = ["std"], version = "0.1" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
-
-[features]
-default = ["twilight-http"]
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
+tokio = { default-features = false, features = ["test-util"], version = "1.0" }
+twilight-http = { default-features = false, path = "../twilight-http", version = "0.15.2" }
