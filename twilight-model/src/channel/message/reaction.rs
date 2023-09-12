@@ -4,12 +4,18 @@ use serde::{Deserialize, Serialize};
 /// Reaction below a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Reaction {
+    /// HEX colors used for super reaction.
+    pub burst_colors: Vec<String>,
     /// Amount of reactions this emoji has.
     pub count: u64,
+    /// Reaction count details for each type of reaction.
+    pub count_details: ReactionCountDetails,
     /// Emoji of this reaction.
     pub emoji: ReactionType,
     /// Whether the current user has reacted with this emoji.
     pub me: bool,
+    /// Whether the current user super-reacted using this emoji
+    pub me_burst: bool,
 }
 
 /// Type of [`Reaction`].
@@ -46,20 +52,35 @@ pub enum ReactionType {
     },
 }
 
+/// Breakdown of normal and super reaction counts for the associated emoji.
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
+pub struct ReactionCountDetails {
+    /// Count of super reactions.
+    pub burst: u64,
+    /// Count of normal reactions.
+    pub normal: u64,
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{Reaction, ReactionType};
+    use super::{Reaction, ReactionCountDetails, ReactionType};
     use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn message_reaction_unicode() {
         let value = Reaction {
+            burst_colors: Vec::new(),
             count: 7,
+            count_details: ReactionCountDetails {
+                burst: 0,
+                normal: 7,
+            },
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),
             },
             me: true,
+            me_burst: false,
         };
 
         serde_test::assert_tokens(
@@ -67,10 +88,23 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Reaction",
-                    len: 3,
+                    len: 6,
                 },
+                Token::Str("burst_colors"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::Str("count"),
                 Token::U64(7),
+                Token::Str("count_details"),
+                Token::Struct {
+                    name: "ReactionCountDetails",
+                    len: 2,
+                },
+                Token::Str("burst"),
+                Token::U64(0),
+                Token::Str("normal"),
+                Token::U64(7),
+                Token::StructEnd,
                 Token::Str("emoji"),
                 Token::Struct {
                     name: "ReactionType",
@@ -81,6 +115,8 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("me"),
                 Token::Bool(true),
+                Token::Str("me_burst"),
+                Token::Bool(false),
                 Token::StructEnd,
             ],
         );
