@@ -42,6 +42,12 @@ struct CreateGuildChannelFields<'a> {
     default_reaction_emoji: Option<&'a DefaultReaction>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_sort_order: Option<ForumSortOrder>,
+    /// Initial `rate_limit_per_user` to set on newly created threads in a channel.
+    /// This field is copied to the thread at creation time and does not live update.
+    ///
+    /// This field is only applicable for text, announcement, media, and forum channels.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_thread_rate_limit_per_user: Option<u16>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
     name: &'a str,
@@ -93,6 +99,7 @@ impl<'a> CreateGuildChannel<'a> {
                 default_forum_layout: None,
                 default_reaction_emoji: None,
                 default_sort_order: None,
+                default_thread_rate_limit_per_user: None,
                 kind: None,
                 name,
                 nsfw: None,
@@ -174,6 +181,35 @@ impl<'a> CreateGuildChannel<'a> {
         self.fields.default_sort_order = Some(default_sort_order);
 
         self
+    }
+
+    /// Sets the default number of seconds that a user must wait before before they are able to send another
+    /// message in any newly-created thread in the channel.
+    ///
+    /// This field is only applicable for text, announcement, media, and forum channels.
+    ///
+    /// The minimum is 0 and the maximum is 21600. This is also known as "Slow
+    /// Mode". See [Discord Docs/Channel Object].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the time is
+    /// invalid.
+    ///
+    /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
+    /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
+    pub const fn default_thread_rate_limit_per_user(
+        mut self,
+        default_thread_rate_limit_per_user: u16,
+    ) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
+        if let Err(source) = validate_rate_limit_per_user(default_thread_rate_limit_per_user) {
+            return Err(source);
+        }
+
+        self.fields.default_thread_rate_limit_per_user = Some(default_thread_rate_limit_per_user);
+
+        Ok(self)
     }
 
     /// Set the kind of channel.
