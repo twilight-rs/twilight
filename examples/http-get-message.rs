@@ -9,15 +9,13 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let client = Client::new(env::var("DISCORD_TOKEN")?);
-    let channel_id = Id::new(381_926_291_785_383_946);
+    let channel_id = Id::new(745811002771374151);
 
-    future::join_all((1u8..=10).map(|x| {
-        client
-            .create_message(channel_id)
-            .content(&format!("Ping #{x}"))
-            .into_future()
-    }))
-    .await;
+    client
+        .create_message(channel_id)
+        .content(&format!("Ping #{{x}}"))
+        .expect("content not a valid length")
+        .await.unwrap();
 
     let me = client.current_user().await?.model().await?;
     println!("Current user: {}#{}", me.name, me.discriminator);

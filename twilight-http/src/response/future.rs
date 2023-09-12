@@ -1,9 +1,9 @@
 use super::{Response, StatusCode};
 use crate::{
     api_error::ApiError,
-    error::{Error, ErrorType},
+    error::{Error, ErrorType}, http::RawResponseFuture,
 };
-use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
+//use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
 use std::{
     future::Future,
     marker::PhantomData,
@@ -28,8 +28,8 @@ enum InnerPoll<T> {
 }
 
 struct Chunking {
-    future: Pin<Box<dyn Future<Output = Result<Vec<u8>, Error>> + Send + Sync + 'static>>,
-    status: HyperStatusCode,
+    future: Pin<Box<dyn Future<Output = Result<Vec<u8>, Error>> + 'static>>,
+    status: StatusCode,
 }
 
 impl Chunking {
@@ -54,7 +54,7 @@ impl Chunking {
             kind: ErrorType::Response {
                 body: bytes,
                 error,
-                status: StatusCode::new(self.status.as_u16()),
+                status: StatusCode::new(self.status.get()),
             },
             source: None,
         }))
@@ -72,34 +72,40 @@ impl Failed {
 }
 
 struct InFlight {
-    future: Pin<Box<Timeout<HyperResponseFuture>>>,
+    future: Pin<Box<RawResponseFuture>>,
     invalid_token: Option<Arc<AtomicBool>>,
     tx: Option<TicketSender>,
 }
 
 impl InFlight {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let resp = match Pin::new(&mut self.future).poll(cx) {
-            Poll::Ready(Ok(Ok(resp))) => resp,
-            Poll::Ready(Ok(Err(source))) => {
+        let resp = match Future::poll(Pin::new(&mut self.future), cx) {
+            Poll::Ready(Ok(resp)) => resp,
+            Poll::Ready(Err(_source)) => {
                 return InnerPoll::Ready(Err(Error {
                     kind: ErrorType::RequestError,
-                    source: Some(Box::new(source)),
+                    source: None,
                 }))
             }
-            Poll::Ready(Err(source)) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RequestTimedOut,
-                    source: Some(Box::new(source)),
-                }))
-            }
+            // Poll::Ready(Ok(Err(source))) => {
+            //     return InnerPoll::Ready(Err(Error {
+            //         kind: ErrorType::RequestError,
+            //         source: Some(Box::new(source)),
+            //     }))
+            // }
+            // Poll::Ready(Err(source)) => {
+            //     return InnerPoll::Ready(Err(Error {
+            //         kind: ErrorType::RequestTimedOut,
+            //         source: Some(Box::new(source)),
+            //     }))
+            // }
             Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::InFlight(self)),
         };
 
         // If the API sent back an Unauthorized response, then the client's
         // configured token is permanently invalid and future requests must be
         // ignored to avoid API bans.
-        if resp.status() == HyperStatusCode::UNAUTHORIZED {
+        if resp.status().get() == 401 /*UNAUTHORIZED*/ {
             if let Some(invalid_token) = self.invalid_token {
                 invalid_token.store(true, Ordering::Relaxed);
             }
@@ -130,16 +136,16 @@ impl InFlight {
             let mut resp = resp;
             // Inaccurate since end-users can only access the decompressed body.
             #[cfg(feature = "decompression")]
-            resp.headers_mut().remove(hyper::header::CONTENT_LENGTH);
+            resp.headers_mut().remove(http::header::CONTENT_LENGTH);
 
             return InnerPoll::Ready(Ok(Response::new(resp)));
         }
 
-        match status {
-            HyperStatusCode::TOO_MANY_REQUESTS => {
+        match status.get() {
+            429 => {
                 tracing::warn!("429 response: {resp:?}");
             }
-            HyperStatusCode::SERVICE_UNAVAILABLE => {
+            503 => {
                 return InnerPoll::Ready(Err(Error {
                     kind: ErrorType::ServiceUnavailable { response: resp },
                     source: None,
@@ -154,8 +160,12 @@ impl InFlight {
                 .await
                 .map_err(|source| Error {
                     kind: ErrorType::ChunkingResponse,
-                    source: Some(Box::new(source)),
+                    source: None,
                 })
+                // .map_err(|source| Error {
+                //     kind: ErrorType::ChunkingResponse,
+                //     source: Some(Box::new(source)),
+                // })
         };
 
         InnerPoll::Advance(ResponseFutureStage::Chunking(Chunking {
@@ -167,9 +177,9 @@ impl InFlight {
 
 struct RatelimitQueue {
     invalid_token: Option<Arc<AtomicBool>>,
-    response_future: HyperResponseFuture,
+    response_future: RawResponseFuture,
     timeout: Duration,
-    pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
+    pre_flight_check: Option<Box<dyn FnOnce() -> bool + 'static>>,
     wait_for_sender: WaitForTicketFuture,
 }
 
@@ -196,7 +206,7 @@ impl RatelimitQueue {
         }
 
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
-            future: Box::pin(time::timeout(self.timeout, self.response_future)),
+            future: Box::pin(self.response_future),
             invalid_token: self.invalid_token,
             tx: Some(tx),
         }))
@@ -260,7 +270,7 @@ pub struct ResponseFuture<T> {
 
 impl<T> ResponseFuture<T> {
     pub(crate) const fn new(
-        future: Pin<Box<Timeout<HyperResponseFuture>>>,
+        future: Pin<Box<RawResponseFuture>>,
         invalid_token: Option<Arc<AtomicBool>>,
     ) -> Self {
         Self {
@@ -328,7 +338,7 @@ impl<T> ResponseFuture<T> {
     /// ```
     pub fn set_pre_flight(
         &mut self,
-        pre_flight: Box<dyn FnOnce() -> bool + Send + 'static>,
+        pre_flight: Box<dyn FnOnce() -> bool + 'static>,
     ) -> bool {
         if let ResponseFutureStage::RatelimitQueue(queue) = &mut self.stage {
             queue.pre_flight_check = Some(pre_flight);
@@ -348,7 +358,7 @@ impl<T> ResponseFuture<T> {
 
     pub(crate) fn ratelimit(
         invalid_token: Option<Arc<AtomicBool>>,
-        response_future: HyperResponseFuture,
+        response_future: RawResponseFuture,
         timeout: Duration,
         wait_for_sender: WaitForTicketFuture,
     ) -> Self {

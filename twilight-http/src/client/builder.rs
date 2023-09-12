@@ -1,6 +1,6 @@
 use super::Token;
-use crate::{client::connector, Client};
-use hyper::header::HeaderMap;
+use crate::{Client, http::HttpClient};
+use http::header::HeaderMap;
 use std::{
     sync::{atomic::AtomicBool, Arc},
     time::Duration,
@@ -30,9 +30,7 @@ impl ClientBuilder {
 
     /// Build the [`Client`].
     pub fn build(self) -> Client {
-        let connector = connector::create();
-
-        let http = hyper::Client::builder().build(connector);
+        let http = HttpClient::new();
 
         let token_invalidated = if self.remember_invalid_token {
             Some(Arc::new(AtomicBool::new(false)))
@@ -155,7 +153,8 @@ impl Default for ClientBuilder {
             default_allowed_mentions: None,
             default_headers: None,
             proxy: None,
-            ratelimiter: Some(Box::new(InMemoryRatelimiter::default())),
+            ratelimiter: None,
+            //ratelimiter: Some(Box::new(InMemoryRatelimiter::default())),
             remember_invalid_token: true,
             timeout: Duration::from_secs(10),
             token: None,

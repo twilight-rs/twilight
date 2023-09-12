@@ -14,10 +14,8 @@ rust-version.workspace = true
 version = "0.15.4"
 
 [dependencies]
-hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
-hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.24" }
-hyper-tls = { default-features = false, optional = true, version = "0.5" }
-hyper-trust-dns = { default-features = false, optional = true, version = "0.5" }
+bytes = "1.4.0"
+http = { version = "0.2.9", default-features = false }
 percent-encoding = { default-features = false, version = "2" }
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
 serde = { default-features = false, features = ["derive"], version = "1" }
@@ -32,15 +30,27 @@ twilight-validate = { default-features = false, path = "../twilight-validate", v
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.11" }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
+hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.24" }
+hyper-tls = { default-features = false, optional = true, version = "0.5" }
+hyper-trust-dns = { default-features = false, optional = true, version = "0.5" }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+reqwest = { default-features = false, features = [] }
+#reqwest = { git = "https://github.com/flisky/reqwest", default-features = false, features = [] }
+getrandom = { version = "0.2", features = ["js"] }
+
 [features]
-default = ["decompression", "rustls-native-roots"]
+default = ["rustls-native-roots"]
+# default = ["decompression", "rustls-native-roots"]
 decompression = ["dep:brotli"]
 native = ["dep:hyper-tls"]
 rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]
 rustls-webpki-roots = ["dep:hyper-rustls", "hyper-rustls?/webpki-tokio"]
 trust-dns = ["dep:hyper-trust-dns"]
 
-[dev-dependencies]
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
 twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.15.4" }

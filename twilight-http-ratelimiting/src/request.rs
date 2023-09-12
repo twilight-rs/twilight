@@ -43,6 +43,16 @@ impl Method {
             Method::Put => "PUT",
         }
     }
+
+    pub const fn to_http(self) -> ::http::Method {
+        match self {
+            Method::Delete => ::http::Method::DELETE,
+            Method::Get => ::http::Method::GET,
+            Method::Patch => ::http::Method::PATCH,
+            Method::Post => ::http::Method::POST,
+            Method::Put => ::http::Method::PUT,
+        }
+    }
 }
 
 /// Error returned when a [`Path`] could not be parsed from a string.
