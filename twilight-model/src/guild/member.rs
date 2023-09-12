@@ -23,7 +23,7 @@ pub struct Member {
     ///
     /// Defaults to an empty bitfield.
     pub flags: MemberFlags,
-    pub joined_at: Timestamp,
+    pub joined_at: Option<Timestamp>,
     pub mute: bool,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
