@@ -726,11 +726,11 @@ impl Shard {
                         ConnectionStatus::FatallyClosed { close_code } => {
                             return Err(ReceiveMessageError::from_fatally_closed(close_code))
                         }
-                        _ => unreachable!(
-                            "stream ended because websocket is closed (received close frame sets \
-                            status to disconnected or fatally closed) or because it errored (which \
-                            also sets status to disconnected)"
-                        ),
+                        _ => {
+                            // tokio-websockets will return None on EOF without incomplete frames instead of an error
+                            self.disconnect(CloseInitiator::None);
+                            self.reconnect(None, 0).await?;
+                        }
                     };
 
                     continue;
