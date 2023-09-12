@@ -26,7 +26,7 @@ pub use self::{
     interaction::MessageInteraction,
     kind::MessageType,
     mention::Mention,
-    reaction::{Reaction, ReactionType},
+    reaction::{Reaction, ReactionCountDetails, ReactionType},
     reference::MessageReference,
     role_subscription_data::RoleSubscriptionData,
     sticker::Sticker,
