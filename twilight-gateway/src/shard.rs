@@ -576,10 +576,8 @@ impl Shard {
                 close_code,
                 reconnect_attempts,
             } => {
-                // The shard is considered disconnected after having received a
-                // close frame or encountering a websocket error, but it should
-                // only reconnect after the underlying TCP connection is closed
-                // by the server (having returned `Ok(None)`).
+                // The shard should should only reconnect after the gateway
+                // closes the underlying TCP connection.
                 if self.connection.is_none() {
                     self.reconnect(close_code, reconnect_attempts).await?;
                 }
@@ -727,7 +725,7 @@ impl Shard {
                             return Err(ReceiveMessageError::from_fatally_closed(close_code))
                         }
                         _ => {
-                            // tokio-websockets will return None on EOF without incomplete frames instead of an error
+                            // Abnormal closure without close frame exchange.
                             self.disconnect(CloseInitiator::None);
                             self.reconnect(None, 0).await?;
                         }
