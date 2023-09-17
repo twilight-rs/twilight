@@ -683,8 +683,10 @@ async fn backoff(
             Err(source) => {
                 tracing::warn!("failed to connect to node {source}: {:?}", config.address);
 
-                if matches!(&source, WebsocketError::Upgrade(upgrade::Error::DidNotSwitchProtocols(status)) if status == &403)
-                {
+                if matches!(
+                    &source,
+                    WebsocketError::Upgrade(upgrade::Error::DidNotSwitchProtocols(401))
+                ) {
                     return Err(NodeError {
                         kind: NodeErrorType::Unauthorized {
                             address: config.address,
