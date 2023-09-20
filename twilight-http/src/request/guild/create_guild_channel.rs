@@ -183,18 +183,16 @@ impl<'a> CreateGuildChannel<'a> {
         self
     }
 
-    /// Sets the default number of seconds that a user must wait before before they are able to send another
-    /// message in any newly-created thread in the channel.
+    /// Sets the default number of seconds that a user must wait before before they are
+    /// able to send another message in any newly-created thread in the channel.
     ///
     /// This field is only applicable for text, announcement, media, and forum channels.
-    ///
-    /// The minimum is 0 and the maximum is 21600. This is also known as "Slow
-    /// Mode". See [Discord Docs/Channel Object].
+    /// The minimum is 0 and the maximum is 21600. This is also known as "Slow Mode". See
+    /// [Discord Docs/Channel Object].
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`RateLimitPerUserInvalid`] if the time is
-    /// invalid.
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the time is invalid.
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
