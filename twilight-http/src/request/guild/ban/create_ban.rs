@@ -169,10 +169,11 @@ mod tests {
         let client = Client::new(String::new());
         let request = client
             .create_ban(GUILD_ID, USER_ID)
+            .delete_message_seconds(100)?
             .reason(REASON)?
             .try_into_request()?;
 
-        assert!(request.body().is_none());
+        assert!(request.body().is_some());
         assert!(request.form().is_none());
         assert_eq!(Method::Put, request.method());
 
