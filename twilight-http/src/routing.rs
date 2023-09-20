@@ -33,9 +33,6 @@ pub enum Route<'a> {
     },
     /// Route information to create a ban on a user in a guild.
     CreateBan {
-        /// The number of seconds' worth of the user's messages to delete in the
-        /// guild's channels.
-        delete_message_seconds: Option<u32>,
         /// The ID of the guild.
         guild_id: u64,
         /// The ID of the user.
@@ -1695,23 +1692,11 @@ impl Display for Route<'_> {
 
                 f.write_str("/auto-moderation/rules")
             }
-            Route::CreateBan {
-                guild_id,
-                delete_message_seconds,
-                user_id,
-            } => {
+            Route::CreateBan { guild_id, user_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
                 f.write_str("/bans/")?;
-                Display::fmt(user_id, f)?;
-                f.write_str("?")?;
-
-                if let Some(delete_message_seconds) = delete_message_seconds {
-                    f.write_str("delete_message_seconds=")?;
-                    Display::fmt(delete_message_seconds, f)?;
-                }
-
-                Ok(())
+                Display::fmt(user_id, f)
             }
             Route::CreateChannel { guild_id }
             | Route::GetChannels { guild_id }
@@ -4346,7 +4331,6 @@ mod tests {
     fn create_ban() {
         let mut route = Route::CreateBan {
             guild_id: GUILD_ID,
-            delete_message_seconds: None,
             user_id: USER_ID,
         };
         assert_eq!(
@@ -4356,12 +4340,11 @@ mod tests {
 
         route = Route::CreateBan {
             guild_id: GUILD_ID,
-            delete_message_seconds: Some(259_200),
             user_id: USER_ID,
         };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{GUILD_ID}/bans/{USER_ID}?delete_message_seconds=259200")
+            format!("guilds/{GUILD_ID}/bans/{USER_ID}")
         );
     }
 
