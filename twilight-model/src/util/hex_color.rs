@@ -6,8 +6,16 @@ use std::str::FromStr;
 use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+/// Represents a color in the RGB format using hexadecimal notation.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct HexColor(pub u8, pub u8, pub u8);
+pub struct HexColor(
+    /// Red component of the color.
+    pub u8,
+    /// Green component of the color.
+    pub u8,
+    /// Blue component of the color.
+    pub u8,
+);
 
 impl Display for HexColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
