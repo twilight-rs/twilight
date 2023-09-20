@@ -4331,7 +4331,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{GUILD_ID}/bans/{USER_ID}?")
+            format!("guilds/{GUILD_ID}/bans/{USER_ID}")
         );
 
         route = Route::CreateBan {
