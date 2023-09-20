@@ -1,11 +1,14 @@
-use crate::id::{marker::EmojiMarker, Id};
+use crate::{
+    id::{marker::EmojiMarker, Id},
+    util::HexColor,
+};
 use serde::{Deserialize, Serialize};
 
 /// Reaction below a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Reaction {
     /// HEX colors used for super reaction.
-    pub burst_colors: Vec<String>,
+    pub burst_colors: Vec<HexColor>,
     /// Amount of reactions this emoji has.
     pub count: u64,
     /// Reaction count details for each type of reaction.
@@ -64,13 +67,13 @@ pub struct ReactionCountDetails {
 #[cfg(test)]
 mod tests {
     use super::{Reaction, ReactionCountDetails, ReactionType};
-    use crate::id::Id;
+    use crate::{id::Id, util::HexColor};
     use serde_test::Token;
 
     #[test]
     fn message_reaction_unicode() {
         let value = Reaction {
-            burst_colors: Vec::new(),
+            burst_colors: Vec::from([HexColor(255, 255, 255)]),
             count: 7,
             count_details: ReactionCountDetails {
                 burst: 0,
@@ -91,7 +94,8 @@ mod tests {
                     len: 6,
                 },
                 Token::Str("burst_colors"),
-                Token::Seq { len: Some(0) },
+                Token::Seq { len: Some(1) },
+                Token::Str("#FFFFFF"),
                 Token::SeqEnd,
                 Token::Str("count"),
                 Token::U64(7),
