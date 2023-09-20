@@ -15,12 +15,12 @@ version = "0.15.4"
 
 [dependencies]
 bitflags = { default-features = false, version = "2" }
-futures-util = { default-features = false, features = ["std"], version = "0.3" }
-rand = { default-features = false, features = ["std", "std_rng"], version = "0.8" }
+fastrand = { default-features = false, features = ["std"], version = "2" }
+futures-util = { default-features = false, features = ["sink", "std"], version = "0.3" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.19" }
-tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.19" }
+tokio-websockets = { default-features = false, features = ["client", "fastrand", "sha1_smol", "simd"], version = "0.4" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.15.4" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.4" }
@@ -34,13 +34,6 @@ flate2 = { default-features = false, optional = true, version = "1.0.24" }
 twilight-http = { default-features = false, optional = true, path = "../twilight-http", version = "0.15.4" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.11" }
 
-# TLS libraries
-# They are needed to track what is used in tokio-tungstenite
-native-tls = { default-features = false, optional = true, version = "0.2.8" }
-rustls-native-certs = { default-features = false, optional = true, version = "0.6" }
-rustls-tls = { default-features = false, optional = true, package = "rustls", version = "0.21" }
-webpki-roots = { default-features = false, optional = true, version = "0.23" }
-
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }
 futures = { default-features = false, version = "0.3" }
@@ -51,9 +44,9 @@ tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log
 
 [features]
 default = ["rustls-native-roots", "twilight-http", "zlib-stock"]
-native = ["dep:native-tls", "tokio-tungstenite/native-tls"]
-rustls-native-roots = ["dep:rustls-tls", "dep:rustls-native-certs", "tokio-tungstenite/rustls-tls-native-roots"]
-rustls-webpki-roots = ["dep:rustls-tls", "dep:webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
+native = ["tokio-websockets/native-tls", "tokio-websockets/openssl"]
+rustls-native-roots = ["tokio-websockets/rustls-native-roots"]
+rustls-webpki-roots = ["tokio-websockets/rustls-webpki-roots"]
 zlib-simd = ["dep:flate2", "flate2?/zlib-ng"]
 zlib-stock = ["dep:flate2", "flate2?/zlib"]
 

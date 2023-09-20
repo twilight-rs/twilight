@@ -6,10 +6,9 @@
 //! input will not be checked and will be passed directly to the underlying
 //! websocket library.
 
-use tokio_tungstenite::tungstenite::{
-    protocol::{frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame},
-    Message as TungsteniteMessage,
-};
+use std::borrow::Cow;
+
+use tokio_websockets::{CloseCode, Message as WebsocketMessage};
 use twilight_model::gateway::CloseFrame;
 
 /// Message to send over the connection to the remote.
@@ -25,33 +24,36 @@ pub enum Message {
 }
 
 impl Message {
-    /// Convert a `tungstenite` websocket message into a `twilight` websocket
+    /// Convert a `tokio-websockets` websocket message into a `twilight` websocket
     /// message.
-    pub(crate) fn from_tungstenite(tungstenite: TungsteniteMessage) -> Option<Self> {
-        match tungstenite {
-            TungsteniteMessage::Close(frame) => Some(Self::Close(frame.map(|frame| CloseFrame {
-                code: frame.code.into(),
-                reason: frame.reason,
-            }))),
-            TungsteniteMessage::Text(string) => Some(Self::Text(string)),
-            TungsteniteMessage::Binary(_)
-            | TungsteniteMessage::Frame(_)
-            | TungsteniteMessage::Ping(_)
-            | TungsteniteMessage::Pong(_) => None,
+    pub(crate) fn from_websocket_msg(msg: &WebsocketMessage) -> Option<Self> {
+        if msg.is_close() {
+            let (code, reason) = msg.as_close().unwrap();
+
+            let frame = (code == CloseCode::NO_STATUS_RECEIVED).then(|| CloseFrame {
+                code: code.into(),
+                reason: Cow::Owned(reason.to_string()),
+            });
+
+            Some(Self::Close(frame))
+        } else if msg.is_text() {
+            Some(Self::Text(msg.as_text().unwrap().to_owned()))
+        } else {
+            None
         }
     }
 
-    /// Convert a `twilight` websocket message into a `tungstenite` websocket
+    /// Convert a `twilight` websocket message into a `tokio-websockets` websocket
     /// message.
-    pub(crate) fn into_tungstenite(self) -> TungsteniteMessage {
+    pub(crate) fn into_websocket_msg(self) -> WebsocketMessage {
         match self {
-            Self::Close(frame) => {
-                TungsteniteMessage::Close(frame.map(|frame| TungsteniteCloseFrame {
-                    code: CloseCode::from(frame.code),
-                    reason: frame.reason,
-                }))
-            }
-            Self::Text(string) => TungsteniteMessage::Text(string),
+            Self::Close(frame) => WebsocketMessage::close(
+                frame
+                    .as_ref()
+                    .and_then(|f| CloseCode::try_from(f.code).ok()),
+                frame.map(|f| f.reason).as_deref().unwrap_or_default(),
+            ),
+            Self::Text(string) => WebsocketMessage::text(string),
         }
     }
 }

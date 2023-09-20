@@ -14,12 +14,12 @@ rust-version.workspace = true
 version = "0.15.4"
 
 [dependencies]
+fastrand = { default-features = false, features = ["std"], version = "2" }
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
 hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.24" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
 hyper-trust-dns = { default-features = false, optional = true, version = "0.5" }
 percent-encoding = { default-features = false, version = "2" }
-rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }

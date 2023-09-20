@@ -2,13 +2,13 @@
 
 use crate::{
     queue::{InMemoryQueue, Queue},
-    tls::TlsContainer,
     EventTypeFlags, Session,
 };
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::Arc,
 };
+use tokio_websockets::Connector;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
@@ -69,7 +69,7 @@ pub struct Config {
     /// TLS connector for Websocket connections.
     // We need this to be public so [`stream`] can re-use TLS on multiple shards
     // if unconfigured.
-    tls: TlsContainer,
+    tls: Arc<Connector>,
     /// Token used to authenticate when identifying with the gateway.
     ///
     /// The token is prefixed with "Bot ", which is required by Discord for
@@ -147,7 +147,7 @@ impl Config {
     }
 
     /// Immutable reference to the TLS connector in use by the shard.
-    pub(crate) const fn tls(&self) -> &TlsContainer {
+    pub(crate) fn tls(&self) -> &Connector {
         &self.tls
     }
 
@@ -195,7 +195,7 @@ impl ConfigBuilder {
                 queue: Arc::new(InMemoryQueue::default()),
                 ratelimit_messages: true,
                 session: None,
-                tls: TlsContainer::new().unwrap(),
+                tls: Arc::new(Connector::new().unwrap()),
                 token: Token::new(token.into_boxed_str()),
             },
         }

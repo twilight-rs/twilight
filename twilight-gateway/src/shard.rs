@@ -89,7 +89,7 @@ use tokio::{
     sync::oneshot,
     time::{self, Duration, Instant, Interval, MissedTickBehavior},
 };
-use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
+use tokio_websockets::{Error as WebsocketError, Message as WebsocketMessage};
 use twilight_model::gateway::{
     event::{Event, GatewayEventDeserializer},
     payload::{
@@ -568,7 +568,7 @@ impl Shard {
             /// Identify with the gateway.
             Identify,
             /// Handle this incoming gateway message.
-            Message(Option<Result<TungsteniteMessage, TungsteniteError>>),
+            Message(Option<Result<WebsocketMessage, WebsocketError>>),
         }
 
         match self.status {
@@ -576,10 +576,8 @@ impl Shard {
                 close_code,
                 reconnect_attempts,
             } => {
-                // The shard is considered disconnected after having received a
-                // close frame or encountering a websocket error, but it should
-                // only reconnect after the underlying TCP connection is closed
-                // by the server (having returned `Ok(None)`).
+                // The shard should should only reconnect after the gateway
+                // closes the underlying TCP connection.
                 if self.connection.is_none() {
                     self.reconnect(close_code, reconnect_attempts).await?;
                 }
@@ -672,17 +670,17 @@ impl Shard {
             match poll_fn(next_action).await {
                 Action::Message(Some(Ok(message))) => {
                     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-                    if let TungsteniteMessage::Binary(bytes) = &message {
+                    if message.is_binary() {
                         if let Some(decompressed) = self
                             .inflater
-                            .inflate(bytes)
+                            .inflate(message.as_payload())
                             .map_err(ReceiveMessageError::from_compression)?
                         {
                             tracing::trace!(%decompressed);
                             break Message::Text(decompressed);
                         };
                     }
-                    if let Some(message) = Message::from_tungstenite(message) {
+                    if let Some(message) = Message::from_websocket_msg(&message) {
                         break message;
                     }
                 }
@@ -696,7 +694,7 @@ impl Shard {
                     feature = "rustls-native-roots",
                     feature = "rustls-webpki-roots"
                 ))]
-                Action::Message(Some(Err(TungsteniteError::Io(e))))
+                Action::Message(Some(Err(WebsocketError::Io(e))))
                     if e.kind() == IoErrorKind::UnexpectedEof
                         // Assert we're directly connected to Discord's gateway.
                         && self.config.proxy_url().is_none()
@@ -726,11 +724,11 @@ impl Shard {
                         ConnectionStatus::FatallyClosed { close_code } => {
                             return Err(ReceiveMessageError::from_fatally_closed(close_code))
                         }
-                        _ => unreachable!(
-                            "stream ended because websocket is closed (received close frame sets \
-                            status to disconnected or fatally closed) or because it errored (which \
-                            also sets status to disconnected)"
-                        ),
+                        _ => {
+                            // Abnormal closure without close frame exchange.
+                            self.disconnect(CloseInitiator::None);
+                            self.reconnect(None, 0).await?;
+                        }
                     };
 
                     continue;
@@ -804,13 +802,11 @@ impl Shard {
 
         match &message {
             Message::Close(frame) => {
-                // Tungstenite automatically replies to the close message.
+                // tokio-websockets automatically replies to the close message.
                 tracing::debug!(?frame, "received websocket close message");
                 // Don't run `disconnect` if we initiated the close.
                 if !self.status.is_disconnected() {
-                    self.disconnect(CloseInitiator::Gateway(
-                        frame.as_ref().map(|frame| frame.code),
-                    ));
+                    self.disconnect(CloseInitiator::Gateway(frame.as_ref().map(|f| f.code)));
                 }
             }
             Message::Text(event) => {
@@ -913,7 +909,7 @@ impl Shard {
                 kind: SendErrorType::Sending,
                 source: None,
             })?
-            .send(message.into_tungstenite())
+            .send(message.into_websocket_msg())
             .await
             .map_err(|source| SendError {
                 kind: SendErrorType::Sending,
@@ -1116,7 +1112,7 @@ impl Shard {
                 let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
                 // First heartbeat should have some jitter, see
                 // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
-                let jitter = heartbeat_interval.mul_f64(rand::random());
+                let jitter = heartbeat_interval.mul_f64(fastrand::f64());
                 tracing::debug!(?heartbeat_interval, ?jitter, "received hello");
 
                 if self.config().ratelimit_messages() {
