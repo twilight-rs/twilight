@@ -1692,12 +1692,6 @@ impl Display for Route<'_> {
 
                 f.write_str("/auto-moderation/rules")
             }
-            Route::CreateBan { guild_id, user_id } => {
-                f.write_str("guilds/")?;
-                Display::fmt(guild_id, f)?;
-                f.write_str("/bans/")?;
-                Display::fmt(user_id, f)
-            }
             Route::CreateChannel { guild_id }
             | Route::GetChannels { guild_id }
             | Route::UpdateGuildChannels { guild_id } => {
@@ -1940,7 +1934,9 @@ impl Display for Route<'_> {
 
                 f.write_str("/crosspost")
             }
-            Route::DeleteBan { guild_id, user_id } | Route::GetBan { guild_id, user_id } => {
+            Route::DeleteBan { guild_id, user_id }
+            | Route::GetBan { guild_id, user_id }
+            | Route::CreateBan { guild_id, user_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
                 f.write_str("/bans/")?;
