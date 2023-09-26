@@ -85,6 +85,24 @@ pub struct CommandVersionMarker;
 #[non_exhaustive]
 pub struct EmojiMarker;
 
+/// Marker for entitlement IDs.
+///
+/// Types such as [`Entitlement`] use this ID marker.
+///
+/// [`Entitlement`]: crate::application::monetization::entitlement::Entitlement
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct EntitlementMarker;
+
+/// Marker for entitlement SKU IDs.
+///
+/// Types such as [`Entitlement`] use this ID marker.
+///
+/// [`Entitlement`]: crate::application::monetization::entitlement::Entitlement
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct EntitlementSkuMarker;
+
 /// Marker for generic IDs.
 ///
 /// Types such as [`AuditLogChange::Id`] or [`CommandOptionValue`] use this
