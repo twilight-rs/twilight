@@ -138,6 +138,10 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    CreateTestEntitlement {
+        /// The ID of the application.
+        application_id: u64,
+    },
     /// Route information to create a thread in a channel.
     CreateThread {
         /// ID of the channel.
@@ -1288,6 +1292,7 @@ impl<'a> Route<'a> {
             | Self::CreateRole { .. }
             | Self::CreateStageInstance { .. }
             | Self::CreateTemplate { .. }
+            | Self::CreateTestEntitlement { .. }
             | Self::CreateTypingTrigger { .. }
             | Self::CreateWebhook { .. }
             | Self::CrosspostMessage { .. }
@@ -1428,6 +1433,10 @@ impl<'a> Route<'a> {
             Self::CreateThreadFromMessage { channel_id, .. } => {
                 Path::ChannelsIdMessagesIdThreads(channel_id)
             }
+            Self::CreateTestEntitlement { application_id }
+            | Self::GetEntitlements { application_id, .. } => {
+                Path::ApplicationIdEntitlements(application_id)
+            }
             Self::CreateTypingTrigger { channel_id } => Path::ChannelsIdTyping(channel_id),
             Self::CreateWebhook { channel_id } | Self::GetChannelWebhooks { channel_id } => {
                 Path::ChannelsIdWebhooks(channel_id)
@@ -1559,9 +1568,6 @@ impl<'a> Route<'a> {
             Self::GetCurrentUserGuildMember { .. } => Path::UsersIdGuildsIdMember,
             Self::GetEmoji { guild_id, .. } | Self::UpdateEmoji { guild_id, .. } => {
                 Path::GuildsIdEmojisId(guild_id)
-            }
-            Self::GetEntitlements { application_id, .. } => {
-                Path::ApplicationIdEntitlements(application_id)
             }
             Self::GetGateway => Path::Gateway,
             Self::GetGuild { guild_id, .. } | Self::UpdateGuild { guild_id } => {
@@ -1813,6 +1819,12 @@ impl Display for Route<'_> {
                 f.write_str("guilds/templates/")?;
 
                 f.write_str(template_code)
+            }
+            Route::CreateTestEntitlement { application_id } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+
+                f.write_str("/entitlements")
             }
             Route::CreateGuildIntegration { guild_id }
             | Route::GetGuildIntegrations { guild_id } => {
@@ -4044,6 +4056,32 @@ mod tests {
     fn get_gateway_bot() {
         let route = Route::GetGatewayBot;
         assert_eq!(route.to_string(), "gateway/bot");
+    }
+
+    #[test]
+    fn get_entitlements() {
+        let route = Route::GetEntitlements {
+            after: Some(32),
+            application_id: 1,
+            before: Some(2),
+            exclude_ended: Some(true),
+            guild_id: Some(42),
+            limit: Some(99),
+            sku_ids: &[Id::new(7)],
+            user_id: Some(11),
+        };
+
+        assert_eq!(
+            route.to_string(),
+            "applications/1/entitlements?after=32&before=2&exclude_ended=true&guild_id=42&limit=99&sku_ids=7&user_id=11"
+        );
+    }
+
+    #[test]
+    fn create_test_entitlement() {
+        let route = Route::CreateTestEntitlement { application_id: 1 };
+
+        assert_eq!(route.to_string(), "applications/1/entitlements");
     }
 
     #[test]

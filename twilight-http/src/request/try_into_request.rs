@@ -18,7 +18,9 @@ mod private {
                 CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
                 GetResponse, UpdateFollowup, UpdateResponse,
             },
-            monetization::get_entitlements::GetEntitlements,
+            monetization::{
+                create_test_entitlement::CreateTestEntitlement, get_entitlements::GetEntitlements,
+            },
         },
         channel::{
             invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
@@ -126,6 +128,7 @@ mod private {
     impl Sealed for CreateRole<'_> {}
     impl Sealed for CreateStageInstance<'_> {}
     impl Sealed for CreateTemplate<'_> {}
+    impl Sealed for CreateTestEntitlement<'_> {}
     impl Sealed for CreateThread<'_> {}
     impl Sealed for CreateThreadFromMessage<'_> {}
     impl Sealed for CreateTypingTrigger<'_> {}

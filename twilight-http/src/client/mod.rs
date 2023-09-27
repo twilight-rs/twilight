@@ -5,7 +5,11 @@ mod interaction;
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 use crate::request::{
-    application::monetization::GetEntitlements, guild::GetGuildOnboarding,
+    application::monetization::{
+        create_test_entitlement::{CreateTestEntitlement, CreateTestEntitlementOwner},
+        GetEntitlements,
+    },
+    guild::GetGuildOnboarding,
     GetCurrentAuthorizationInformation,
 };
 #[allow(deprecated)]
@@ -108,9 +112,9 @@ use twilight_model::{
     http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
-            ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker, GuildMarker,
-            IntegrationMarker, MessageMarker, RoleMarker, ScheduledEventMarker, StickerMarker,
-            UserMarker, WebhookMarker,
+            ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
+            EntitlementSkuMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
+            ScheduledEventMarker, StickerMarker, UserMarker, WebhookMarker,
         },
         Id,
     },
@@ -2574,6 +2578,39 @@ impl Client {
         sticker_id: Id<StickerMarker>,
     ) -> DeleteGuildSticker<'_> {
         DeleteGuildSticker::new(self, guild_id, sticker_id)
+    }
+
+    /// Creates a test entitlement to a given SKU for a given guild or user. Discord
+    /// will act as though that user or guild has entitlement to your premium offering.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::{Client, request::application::entitlement::CreateTestEntitlementOwner};
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let application_id = Id::new(1);
+    /// let sku_id = Id::new(2);
+    /// let owner = CreateTestEntitlementOwner::Guild(Id::new(3));
+    ///
+    /// client.create_test_entitlement(
+    ///    application_id,
+    ///    sku_id,
+    ///    owner,
+    /// ).await?;
+    ///
+    /// # Ok(()) }
+    pub const fn create_test_entitlement(
+        &self,
+        application_id: Id<ApplicationMarker>,
+        sku_id: Id<EntitlementSkuMarker>,
+        owner: CreateTestEntitlementOwner,
+    ) -> CreateTestEntitlement<'_> {
+        CreateTestEntitlement::new(self, application_id, sku_id, owner)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].
