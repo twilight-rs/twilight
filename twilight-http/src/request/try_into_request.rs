@@ -18,6 +18,7 @@ mod private {
                 CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
                 GetResponse, UpdateFollowup, UpdateResponse,
             },
+            monetization::get_entitlements::GetEntitlements,
         },
         channel::{
             invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
@@ -177,6 +178,7 @@ mod private {
     impl Sealed for GetCurrentUserGuilds<'_> {}
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
+    impl Sealed for GetEntitlements<'_> {}
     impl Sealed for GetFollowup<'_> {}
     impl Sealed for GetGateway<'_> {}
     impl Sealed for GetGatewayAuthed<'_> {}

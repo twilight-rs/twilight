@@ -162,6 +162,8 @@ pub enum Path {
     ChannelsIdTyping(u64),
     /// Operating on a channel's webhooks.
     ChannelsIdWebhooks(u64),
+    /// Operating on an applications's entitlements.
+    ApplicationIdEntitlements(u64),
     /// Operating with the gateway information.
     Gateway,
     /// Operating with the gateway information tailored to the current user.
@@ -332,6 +334,7 @@ impl FromStr for Path {
         Ok(match parts[..] {
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
+            ["applications", id, "entitlements"] => ApplicationIdEntitlements(parse_id(id)?),
             ["applications", id, "guilds", _, "commands"]
             | ["applications", id, "guilds", _, "commands", "permissions"] => {
                 ApplicationGuildCommand(parse_id(id)?)

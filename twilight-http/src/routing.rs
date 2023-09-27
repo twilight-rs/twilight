@@ -3,7 +3,10 @@ pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErr
 
 use crate::request::{channel::reaction::RequestReactionType, Method};
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::{marker::RoleMarker, Id};
+use twilight_model::id::{
+    marker::{EntitlementSkuMarker, RoleMarker},
+    Id,
+};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
@@ -452,6 +455,24 @@ pub enum Route<'a> {
     GetEmojis {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    GetEntitlements {
+        /// Retrieve entitlements after this time.
+        after: Option<u64>,
+        /// The ID of the application.
+        application_id: u64,
+        /// Retrieve entitlements before this time.
+        before: Option<u64>,
+        /// Whether to exclude ended entitlements.
+        exclude_ended: Option<bool>,
+        /// Guild ID to look up entitlements for.
+        guild_id: Option<u64>,
+        /// Number of entitlements to return. Set to 100 if unspecified.
+        limit: Option<u8>,
+        /// List of SKU IDs to check entitlements for.
+        sku_ids: &'a [Id<EntitlementSkuMarker>],
+        /// User ID to look up entitlements for.
+        user_id: Option<u64>,
     },
     /// Route to get a followup message for an interaction.
     GetFollowupMessage {
@@ -1166,6 +1187,7 @@ impl<'a> Route<'a> {
             | Self::GetCurrentUserGuildMember { .. }
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
+            | Self::GetEntitlements { .. }
             | Self::GetGateway
             | Self::GetFollowupMessage { .. }
             | Self::GetGlobalCommand { .. }
@@ -1537,6 +1559,9 @@ impl<'a> Route<'a> {
             Self::GetCurrentUserGuildMember { .. } => Path::UsersIdGuildsIdMember,
             Self::GetEmoji { guild_id, .. } | Self::UpdateEmoji { guild_id, .. } => {
                 Path::GuildsIdEmojisId(guild_id)
+            }
+            Self::GetEntitlements { application_id, .. } => {
+                Path::ApplicationIdEntitlements(application_id)
             }
             Self::GetGateway => Path::Gateway,
             Self::GetGuild { guild_id, .. } | Self::UpdateGuild { guild_id } => {
@@ -1958,6 +1983,68 @@ impl Display for Route<'_> {
                 f.write_str("/emojis/")?;
 
                 Display::fmt(emoji_id, f)
+            }
+            Route::GetEntitlements {
+                after,
+                application_id,
+                before,
+                exclude_ended,
+                guild_id,
+                limit,
+                sku_ids,
+                user_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements")?;
+
+                f.write_str("?")?;
+
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(before) = before {
+                    f.write_str("&before=")?;
+                    Display::fmt(before, f)?;
+                }
+
+                if let Some(exclude_ended) = exclude_ended {
+                    f.write_str("&exclude_ended=")?;
+                    Display::fmt(exclude_ended, f)?;
+                }
+
+                if let Some(guild_id) = guild_id {
+                    f.write_str("&guild_id=")?;
+                    Display::fmt(guild_id, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                if !sku_ids.is_empty() {
+                    let sku_id_count = sku_ids.len() - 1;
+
+                    f.write_str("&sku_ids=")?;
+
+                    for (idx, sku_id) in sku_ids.iter().enumerate() {
+                        Display::fmt(sku_id, f)?;
+
+                        if idx < sku_id_count {
+                            f.write_str(",")?;
+                        }
+                    }
+                }
+
+                if let Some(user_id) = user_id {
+                    f.write_str("&user_id=")?;
+                    Display::fmt(user_id, f)?;
+                }
+
+                Ok(())
             }
             Route::DeleteGlobalCommand {
                 application_id,

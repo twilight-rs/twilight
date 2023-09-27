@@ -4,7 +4,10 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
-use crate::request::{guild::GetGuildOnboarding, GetCurrentAuthorizationInformation};
+use crate::request::{
+    application::monetization::GetEntitlements, guild::GetGuildOnboarding,
+    GetCurrentAuthorizationInformation,
+};
 #[allow(deprecated)]
 use crate::{
     client::connector::Connector,
@@ -772,6 +775,29 @@ impl Client {
     /// ```
     pub const fn emojis(&self, guild_id: Id<GuildMarker>) -> GetEmojis<'_> {
         GetEmojis::new(self, guild_id)
+    }
+
+    /// Get the entitlements for an application.
+    ///
+    /// # Examples
+    ///
+    /// Get emojis for the application `100`:
+    ///
+    /// ```no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token".to_owned());
+    /// #
+    /// let application_id = Id::new(100);
+    ///
+    /// client.entitlements(application_id).await?;
+    /// # Ok(()) }
+    /// ```
+    pub const fn entitlements(&self, application_id: Id<ApplicationMarker>) -> GetEntitlements<'_> {
+        GetEntitlements::new(self, application_id)
     }
 
     /// Get an emoji for a guild by the the guild's ID and emoji's ID.
