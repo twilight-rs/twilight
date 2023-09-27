@@ -20,6 +20,7 @@ mod private {
             },
             monetization::{
                 create_test_entitlement::CreateTestEntitlement, get_entitlements::GetEntitlements,
+                DeleteTestEntitlement,
             },
         },
         channel::{
@@ -160,6 +161,7 @@ mod private {
     impl Sealed for DeleteTemplate<'_> {}
     impl Sealed for DeleteWebhook<'_> {}
     impl Sealed for DeleteWebhookMessage<'_> {}
+    impl Sealed for DeleteTestEntitlement<'_> {}
     impl Sealed for ExecuteWebhook<'_> {}
     impl Sealed for ExecuteWebhookAndWait<'_> {}
     impl Sealed for FollowNewsChannel<'_> {}

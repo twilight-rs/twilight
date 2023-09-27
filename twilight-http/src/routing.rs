@@ -342,6 +342,12 @@ pub enum Route<'a> {
         token: &'a str,
         webhook_id: u64,
     },
+    DeleteTestEntitlement {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the entitlement.
+        entitlement_id: u64,
+    },
     /// Route information to execute a webhook by ID and token.
     ExecuteWebhook {
         /// ID of the thread channel, if there is one.
@@ -1154,6 +1160,7 @@ impl<'a> Route<'a> {
             | Self::DeleteGuildIntegration { .. }
             | Self::DeleteGuildScheduledEvent { .. }
             | Self::DeleteGuildSticker { .. }
+            | Self::DeleteTestEntitlement { .. }
             | Self::DeleteInteractionOriginal { .. }
             | Self::DeleteInvite { .. }
             | Self::DeleteMessageReactions { .. }
@@ -1434,7 +1441,8 @@ impl<'a> Route<'a> {
                 Path::ChannelsIdMessagesIdThreads(channel_id)
             }
             Self::CreateTestEntitlement { application_id }
-            | Self::GetEntitlements { application_id, .. } => {
+            | Self::GetEntitlements { application_id, .. }
+            | Self::DeleteTestEntitlement { application_id, .. } => {
                 Path::ApplicationIdEntitlements(application_id)
             }
             Self::CreateTypingTrigger { channel_id } => Path::ChannelsIdTyping(channel_id),
@@ -2327,6 +2335,16 @@ impl Display for Route<'_> {
                 }
 
                 Ok(())
+            }
+            Route::DeleteTestEntitlement {
+                application_id,
+                entitlement_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements/")?;
+
+                Display::fmt(entitlement_id, f)
             }
             Route::FollowNewsChannel { channel_id } => {
                 f.write_str("channels/")?;

@@ -7,7 +7,7 @@ pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 use crate::request::{
     application::monetization::{
         create_test_entitlement::{CreateTestEntitlement, CreateTestEntitlementOwner},
-        GetEntitlements,
+        DeleteTestEntitlement, GetEntitlements,
     },
     guild::GetGuildOnboarding,
     GetCurrentAuthorizationInformation,
@@ -113,8 +113,8 @@ use twilight_model::{
     id::{
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
-            EntitlementSkuMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            ScheduledEventMarker, StickerMarker, UserMarker, WebhookMarker,
+            EntitlementMarker, EntitlementSkuMarker, GuildMarker, IntegrationMarker, MessageMarker,
+            RoleMarker, ScheduledEventMarker, StickerMarker, UserMarker, WebhookMarker,
         },
         Id,
     },
@@ -2611,6 +2611,16 @@ impl Client {
         owner: CreateTestEntitlementOwner,
     ) -> CreateTestEntitlement<'_> {
         CreateTestEntitlement::new(self, application_id, sku_id, owner)
+    }
+
+    /// Deletes a currently-active test entitlement. Discord will act as though that user or
+    /// guild no longer has entitlement to your premium offering.
+    pub const fn delete_test_entitlement(
+        &self,
+        application_id: Id<ApplicationMarker>,
+        entitlement_id: Id<EntitlementMarker>,
+    ) -> DeleteTestEntitlement<'_> {
+        DeleteTestEntitlement::new(self, application_id, entitlement_id)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].
