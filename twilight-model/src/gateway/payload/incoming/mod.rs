@@ -25,6 +25,7 @@ mod channel_delete;
 mod channel_pins_update;
 mod channel_update;
 mod command_permissions_update;
+mod entitlement_create;
 mod guild_audit_log_entry_create;
 mod guild_create;
 mod guild_delete;
@@ -82,7 +83,7 @@ pub use self::{
     auto_moderation_rule_update::AutoModerationRuleUpdate, ban_add::BanAdd, ban_remove::BanRemove,
     channel_create::ChannelCreate, channel_delete::ChannelDelete,
     channel_pins_update::ChannelPinsUpdate, channel_update::ChannelUpdate,
-    command_permissions_update::CommandPermissionsUpdate,
+    command_permissions_update::CommandPermissionsUpdate, entitlement_create::EntitlementCreate,
     guild_audit_log_entry_create::GuildAuditLogEntryCreate, guild_create::GuildCreate,
     guild_delete::GuildDelete, guild_emojis_update::GuildEmojisUpdate,
     guild_integrations_update::GuildIntegrationsUpdate,

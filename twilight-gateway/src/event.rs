@@ -50,6 +50,8 @@ bitflags! {
         ///
         /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
         const AUTO_MODERATION_RULE_UPDATE = 1 << 74;
+        /// An entitlement has been created.
+        const ENTITLEMENT_CREATE = 1 << 76;
         /// User has been banned from a guild.
         const BAN_ADD = 1;
         /// User has been unbanned from a guild.
@@ -340,6 +342,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::ChannelPinsUpdate => Self::CHANNEL_PINS_UPDATE,
             EventType::ChannelUpdate => Self::CHANNEL_UPDATE,
             EventType::CommandPermissionsUpdate => Self::COMMAND_PERMISSIONS_UPDATE,
+            EventType::EntitlementCreate => Self::ENTITLEMENT_CREATE,
             EventType::GatewayClose => Self::empty(),
             EventType::GatewayHeartbeat => Self::GATEWAY_HEARTBEAT,
             EventType::GatewayHeartbeatAck => Self::GATEWAY_HEARTBEAT_ACK,
