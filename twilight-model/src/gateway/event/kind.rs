@@ -19,6 +19,7 @@ pub enum EventType {
     #[serde(rename = "APPLICATION_COMMAND_PERMISSIONS_UPDATE")]
     CommandPermissionsUpdate,
     EntitlementCreate,
+    EntitlementUpdate,
     GatewayClose,
     GatewayHeartbeat,
     GatewayHeartbeatAck,
@@ -106,6 +107,7 @@ impl EventType {
             Self::ChannelUpdate => Some("CHANNEL_UPDATE"),
             Self::CommandPermissionsUpdate => Some("APPLICATION_COMMAND_PERMISSIONS_UPDATE"),
             Self::EntitlementCreate => Some("ENTITLEMENT_CREATE"),
+            Self::EntitlementUpdate => Some("ENTITLEMENT_UPDATE"),
             Self::GiftCodeUpdate => Some("GIFT_CODE_UPDATE"),
             Self::GuildAuditLogEntryCreate => Some("GUILD_AUDIT_LOG_ENTRY_CREATE"),
             Self::GuildCreate => Some("GUILD_CREATE"),
