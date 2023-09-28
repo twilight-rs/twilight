@@ -2,9 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     id::{
-        marker::{
-            ApplicationMarker, EntitlementMarker, EntitlementSkuMarker, GuildMarker, UserMarker,
-        },
+        marker::{ApplicationMarker, EntitlementMarker, GuildMarker, SKUMarker, UserMarker},
         Id,
     },
     util::Timestamp,
@@ -29,7 +27,7 @@ pub struct Entitlement {
     #[serde(rename = "type")]
     pub kind: EntitlementType,
     /// ID of the SKU.
-    pub sku_id: Id<EntitlementSkuMarker>,
+    pub sku_id: Id<SKUMarker>,
     /// Start date at which the entitlement is valid. Not present when using test entitlements.
     pub starts_at: Option<Timestamp>,
     /// ID of the user that is granted access to the entitlement's sku.

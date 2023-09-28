@@ -3,9 +3,7 @@ use std::future::IntoFuture;
 use twilight_model::{
     application::monetization::Entitlement,
     id::{
-        marker::{
-            ApplicationMarker, EntitlementMarker, EntitlementSkuMarker, GuildMarker, UserMarker,
-        },
+        marker::{ApplicationMarker, EntitlementMarker, GuildMarker, SKUMarker, UserMarker},
         Id,
     },
 };
@@ -27,7 +25,7 @@ struct GetEntitlementsFields<'a> {
     exclude_ended: Option<bool>,
     guild_id: Option<Id<GuildMarker>>,
     limit: Option<u8>,
-    sku_ids: &'a [Id<EntitlementSkuMarker>],
+    sku_ids: &'a [Id<SKUMarker>],
     user_id: Option<Id<UserMarker>>,
 }
 
@@ -105,7 +103,7 @@ impl<'a> GetEntitlements<'a> {
     }
 
     /// List of SKU IDs to check entitlements for.
-    pub const fn sku_ids(mut self, sku_ids: &'a [Id<EntitlementSkuMarker>]) -> Self {
+    pub const fn sku_ids(mut self, sku_ids: &'a [Id<SKUMarker>]) -> Self {
         self.fields.sku_ids = sku_ids;
 
         self

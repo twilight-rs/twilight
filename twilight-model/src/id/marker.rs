@@ -96,12 +96,12 @@ pub struct EntitlementMarker;
 
 /// Marker for entitlement SKU IDs.
 ///
-/// Types such as [`Entitlement`] use this ID marker.
+/// Types such as [`SKU`] use this ID marker.
 ///
-/// [`Entitlement`]: crate::application::monetization::entitlement::Entitlement
+/// [`SKU`]: crate::application::monetization::sku::SKU
 #[derive(Debug)]
 #[non_exhaustive]
-pub struct EntitlementSkuMarker;
+pub struct SKUMarker;
 
 /// Marker for generic IDs.
 ///
