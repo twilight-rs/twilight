@@ -837,7 +837,10 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("type"),
-                Token::Str("user"),
+                Token::UnitVariant {
+                    name: "SelectDefaultValue",
+                    variant: "user",
+                },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1234"),
