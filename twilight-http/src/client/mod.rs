@@ -2586,7 +2586,7 @@ impl Client {
     /// # Examples
     ///
     /// ```no_run
-    /// use twilight_http::{Client, request::application::entitlement::CreateTestEntitlementOwner};
+    /// use twilight_http::{Client, request::application::monetization::CreateTestEntitlementOwner};
     /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
