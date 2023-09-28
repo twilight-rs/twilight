@@ -16,24 +16,24 @@ use super::entitlement_type::EntitlementType;
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Entitlement {
     /// ID of the parent application.
-    application_id: Id<ApplicationMarker>,
+    pub application_id: Id<ApplicationMarker>,
     /// Not applicable for App Subscriptions. Subscriptions are not consumed and will be `false`
-    consumed: bool,
+    pub consumed: bool,
     /// Date at which the entitlement is no longer valid. Not present when using test entitlements.
-    ends_at: Option<Timestamp>,
+    pub ends_at: Option<Timestamp>,
     /// ID of the guild that is granted access to the entitlement's sku.
-    guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the entitlement.
-    id: Id<EntitlementMarker>,
+    pub id: Id<EntitlementMarker>,
     /// Type of entitlement.
     #[serde(rename = "type")]
-    kind: EntitlementType,
+    pub kind: EntitlementType,
     /// ID of the SKU.
-    sku_id: Id<EntitlementSkuMarker>,
+    pub sku_id: Id<EntitlementSkuMarker>,
     /// Start date at which the entitlement is valid. Not present when using test entitlements.
-    starts_at: Option<Timestamp>,
+    pub starts_at: Option<Timestamp>,
     /// ID of the user that is granted access to the entitlement's sku.
-    user_id: Option<Id<UserMarker>>,
+    pub user_id: Option<Id<UserMarker>>,
 }
 
 #[cfg(test)]
