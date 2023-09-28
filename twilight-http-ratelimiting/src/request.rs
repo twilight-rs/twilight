@@ -162,8 +162,10 @@ pub enum Path {
     ChannelsIdTyping(u64),
     /// Operating on a channel's webhooks.
     ChannelsIdWebhooks(u64),
-    /// Operating on an applications's entitlements.
+    /// Operating on an application's entitlements.
     ApplicationIdEntitlements(u64),
+    /// Operating on an application's SKUs.
+    ApplicationIdSKUs(u64),
     /// Operating with the gateway information.
     Gateway,
     /// Operating with the gateway information tailored to the current user.

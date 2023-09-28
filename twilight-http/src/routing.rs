@@ -780,6 +780,10 @@ pub enum Route<'a> {
         /// The ID of the message.
         message_id: u64,
     },
+    GetSKUs {
+        /// The ID of the application.
+        application_id: u64,
+    },
     /// Route information to get a stage instance.
     GetStageInstance {
         /// ID of the stage channel.
@@ -1239,6 +1243,7 @@ impl<'a> Route<'a> {
             | Self::GetPrivateArchivedThreads { .. }
             | Self::GetPublicArchivedThreads { .. }
             | Self::GetReactionUsers { .. }
+            | Self::GetSKUs { .. }
             | Self::GetStageInstance { .. }
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
@@ -1616,6 +1621,7 @@ impl<'a> Route<'a> {
             Self::GetPins { channel_id } | Self::PinMessage { channel_id, .. } => {
                 Path::ChannelsIdPins(channel_id)
             }
+            Self::GetSKUs { application_id } => Path::ApplicationIdSKUs(application_id),
             Self::GetSticker { .. } => Path::Stickers,
             Self::GetUserConnections => Path::UsersIdConnections,
             Self::GetVoiceRegions => Path::VoiceRegions,
@@ -3008,6 +3014,12 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/mfa")
+            }
+            Route::GetSKUs { application_id } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+
+                f.write_str("/skus")
             }
         }
     }
@@ -4812,5 +4824,11 @@ mod tests {
     fn get_guild_onboarding() {
         let route = Route::GetGuildOnboarding { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/onboarding"));
+    }
+
+    #[test]
+    fn get_skus() {
+        let route = Route::GetSKUs { application_id: 1 };
+        assert_eq!(route.to_string(), format!("applications/1/skus"));
     }
 }

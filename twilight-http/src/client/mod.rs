@@ -7,7 +7,7 @@ pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 use crate::request::{
     application::monetization::{
         create_test_entitlement::{CreateTestEntitlement, CreateTestEntitlementOwner},
-        DeleteTestEntitlement, GetEntitlements,
+        DeleteTestEntitlement, GetEntitlements, GetSKUs,
     },
     guild::GetGuildOnboarding,
     GetCurrentAuthorizationInformation,
@@ -2615,12 +2615,53 @@ impl Client {
 
     /// Deletes a currently-active test entitlement. Discord will act as though that user or
     /// guild no longer has entitlement to your premium offering.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let application_id = Id::new(1);
+    /// let entitlement_id = Id::new(2);
+    ///
+    /// client.delete_test_entitlement(
+    ///   application_id,
+    ///   entitlement_id,
+    /// ).await?;
+    ///
+    /// # Ok(()) }
     pub const fn delete_test_entitlement(
         &self,
         application_id: Id<ApplicationMarker>,
         entitlement_id: Id<EntitlementMarker>,
     ) -> DeleteTestEntitlement<'_> {
         DeleteTestEntitlement::new(self, application_id, entitlement_id)
+    }
+
+    /// Returns all SKUs for a given application.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let application_id = Id::new(1);
+    ///
+    /// let skus = client.get_skus(application_id).await?;
+    ///
+    /// # Ok(()) }
+    pub const fn get_skus(&self, application_id: Id<ApplicationMarker>) -> GetSKUs<'_> {
+        GetSKUs::new(self, application_id)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].

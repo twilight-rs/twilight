@@ -20,7 +20,7 @@ mod private {
             },
             monetization::{
                 create_test_entitlement::CreateTestEntitlement, get_entitlements::GetEntitlements,
-                DeleteTestEntitlement,
+                DeleteTestEntitlement, GetSKUs,
             },
         },
         channel::{
@@ -223,6 +223,7 @@ mod private {
     impl Sealed for GetPublicArchivedThreads<'_> {}
     impl Sealed for GetReactions<'_> {}
     impl Sealed for GetResponse<'_> {}
+    impl Sealed for GetSKUs<'_> {}
     impl Sealed for GetStageInstance<'_> {}
     impl Sealed for GetSticker<'_> {}
     impl Sealed for GetTemplate<'_> {}
