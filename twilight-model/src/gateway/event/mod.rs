@@ -48,7 +48,9 @@ pub enum Event {
     CommandPermissionsUpdate(CommandPermissionsUpdate),
     /// A user subscribes to a SKU.
     EntitlementCreate(EntitlementCreate),
-    /// Fires when a user's subscription renews for the
+    /// A user's entitlement is removed.
+    EntitlementDelete(EntitlementDelete),
+    /// A user's subscription renews for the
     /// next billing period.
     ///
     /// The `ends_at` field will have an updated value with
@@ -246,6 +248,7 @@ impl Event {
             Event::WebhooksUpdate(e) => Some(e.guild_id),
             Event::GatewayClose(_)
             | Event::EntitlementCreate(_)
+            | Event::EntitlementDelete(_)
             | Event::EntitlementUpdate(_)
             | Event::GatewayHeartbeat(_)
             | Event::GatewayHeartbeatAck
@@ -274,6 +277,7 @@ impl Event {
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
             Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
             Self::EntitlementCreate(_) => EventType::EntitlementCreate,
+            Self::EntitlementDelete(_) => EventType::EntitlementDelete,
             Self::EntitlementUpdate(_) => EventType::EntitlementUpdate,
             Self::GatewayClose(_) => EventType::GatewayClose,
             Self::GatewayHeartbeat(_) => EventType::GatewayHeartbeat,
@@ -355,6 +359,7 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::ChannelUpdate(v) => Self::ChannelUpdate(v),
             DispatchEvent::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
             DispatchEvent::EntitlementCreate(v) => Self::EntitlementCreate(v),
+            DispatchEvent::EntitlementDelete(v) => Self::EntitlementDelete(v),
             DispatchEvent::EntitlementUpdate(v) => Self::EntitlementUpdate(v),
             DispatchEvent::GiftCodeUpdate => Self::GiftCodeUpdate,
             DispatchEvent::GuildAuditLogEntryCreate(v) => Self::GuildAuditLogEntryCreate(v),

@@ -26,6 +26,7 @@ mod channel_pins_update;
 mod channel_update;
 mod command_permissions_update;
 mod entitlement_create;
+mod entitlement_delete;
 mod entitlement_update;
 mod guild_audit_log_entry_create;
 mod guild_create;
@@ -85,8 +86,9 @@ pub use self::{
     channel_create::ChannelCreate, channel_delete::ChannelDelete,
     channel_pins_update::ChannelPinsUpdate, channel_update::ChannelUpdate,
     command_permissions_update::CommandPermissionsUpdate, entitlement_create::EntitlementCreate,
-    entitlement_update::EntitlementUpdate, guild_audit_log_entry_create::GuildAuditLogEntryCreate,
-    guild_create::GuildCreate, guild_delete::GuildDelete, guild_emojis_update::GuildEmojisUpdate,
+    entitlement_delete::EntitlementDelete, entitlement_update::EntitlementUpdate,
+    guild_audit_log_entry_create::GuildAuditLogEntryCreate, guild_create::GuildCreate,
+    guild_delete::GuildDelete, guild_emojis_update::GuildEmojisUpdate,
     guild_integrations_update::GuildIntegrationsUpdate,
     guild_scheduled_event_create::GuildScheduledEventCreate,
     guild_scheduled_event_delete::GuildScheduledEventDelete,

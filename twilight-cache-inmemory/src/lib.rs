@@ -900,6 +900,7 @@ impl UpdateCache for Event {
             | Event::BanRemove(_)
             | Event::CommandPermissionsUpdate(_)
             | Event::EntitlementCreate(_)
+            | Event::EntitlementDelete(_)
             | Event::EntitlementUpdate(_)
             | Event::GatewayClose(_)
             | Event::GatewayHeartbeat(_)
