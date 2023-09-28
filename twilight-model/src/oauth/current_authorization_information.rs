@@ -71,6 +71,7 @@ mod tests {
 
         let value = CurrentAuthorizationInformation {
             application: Application {
+                bot: None,
                 bot_public: true,
                 bot_require_code_grant: true,
                 cover_image: None,
@@ -81,10 +82,12 @@ mod tests {
                 icon: Some(image_hash::ICON),
                 id: Id::new(100_000_000_000_000_000),
                 install_params: None,
+                interactions_endpoint_url: None,
                 name: NAME.to_owned(),
                 owner: None,
                 primary_sku_id: None,
                 privacy_policy_url: None,
+                role_connections_verification_url: None,
                 rpc_origins: Vec::new(),
                 slug: None,
                 tags: None,
