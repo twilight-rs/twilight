@@ -725,42 +725,12 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
     }
 
     if let Some(default_values) = select_menu.default_values.as_ref() {
-        if !matches!(
-            select_menu.kind,
-            SelectMenuType::User
-                | SelectMenuType::Role
-                | SelectMenuType::Mentionable
-                | SelectMenuType::Channel
-        ) {
-            return Err(ComponentValidationError {
-                kind: ComponentValidationErrorType::SelectUnsupportedDefaultValues {
-                    kind: select_menu.kind.clone(),
-                },
-            });
-        }
-        let provided = default_values.len();
-        if let Some(min) = select_menu.min_values {
-            let min = min as usize;
-            if provided < min {
-                return Err(ComponentValidationError {
-                    kind: ComponentValidationErrorType::SelectNotEnoughDefaultValues {
-                        provided,
-                        min,
-                    },
-                });
-            }
-        }
-        if let Some(max) = select_menu.max_values {
-            let max = max as usize;
-            if provided > max {
-                return Err(ComponentValidationError {
-                    kind: ComponentValidationErrorType::SelectTooManyDefaultValues {
-                        provided,
-                        max,
-                    },
-                });
-            }
-        }
+        component_select_default_values_supported(select_menu.kind)?;
+        component_select_default_values_count(
+            select_menu.min_values,
+            select_menu.max_values,
+            default_values.len(),
+        )?;
     }
 
     Ok(())
@@ -898,6 +868,70 @@ fn component_option_description(
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::SelectOptionDescriptionLength { chars },
         });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`SelectMenuType`] supports the `default_values` field.
+///
+/// # Errors
+///
+/// Returns an error of type [`SelectUnsupportedDefaultValues`] if the provided component type
+/// doesn't support the `default_values` field.
+const fn component_select_default_values_supported(
+    menu_type: SelectMenuType,
+) -> Result<(), ComponentValidationError> {
+    if !matches!(
+        menu_type,
+        SelectMenuType::User
+            | SelectMenuType::Role
+            | SelectMenuType::Mentionable
+            | SelectMenuType::Channel
+    ) {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::SelectUnsupportedDefaultValues { kind: menu_type },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`SelectMenu`]'s `default_values` field has the correct number of values.
+///
+/// # Errors
+///
+/// Returns an error of the type [`SelectTooManyDefaultValues`] if the provided list of default
+/// values exceeds the provided `max_values` (if present).
+///
+/// Alternatively, this returns an error of the type [`SelectNotEnoughDefaultValues`] if the
+/// provided list of default values doesn't meet the provided `min_values` requirement (if present).
+const fn component_select_default_values_count(
+    min_values: Option<u8>,
+    max_values: Option<u8>,
+    default_values: usize,
+) -> Result<(), ComponentValidationError> {
+    if let Some(min) = min_values {
+        let min = min as usize;
+        if default_values < min {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::SelectNotEnoughDefaultValues {
+                    provided: default_values,
+                    min,
+                },
+            });
+        }
+    }
+    if let Some(max) = max_values {
+        let max = max as usize;
+        if default_values > max {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::SelectTooManyDefaultValues {
+                    provided: default_values,
+                    max,
+                },
+            });
+        }
     }
 
     Ok(())
@@ -1313,6 +1347,33 @@ mod tests {
         assert!(component_option_description("a".repeat(100)).is_ok());
 
         assert!(component_option_description("a".repeat(101)).is_err());
+    }
+
+    #[test]
+    fn component_select_default_values_support() {
+        assert!(component_select_default_values_supported(SelectMenuType::User).is_ok());
+        assert!(component_select_default_values_supported(SelectMenuType::Role).is_ok());
+        assert!(component_select_default_values_supported(SelectMenuType::Mentionable).is_ok());
+        assert!(component_select_default_values_supported(SelectMenuType::Channel).is_ok());
+
+        assert!(component_select_default_values_supported(SelectMenuType::Text).is_err());
+    }
+
+    #[test]
+    fn component_select_num_default_values() {
+        assert!(component_select_default_values_count(None, None, 0).is_ok());
+        assert!(component_select_default_values_count(None, None, 1).is_ok());
+        assert!(component_select_default_values_count(Some(1), None, 5).is_ok());
+        assert!(component_select_default_values_count(Some(5), None, 5).is_ok());
+        assert!(component_select_default_values_count(None, Some(5), 5).is_ok());
+        assert!(component_select_default_values_count(None, Some(10), 5).is_ok());
+        assert!(component_select_default_values_count(Some(5), Some(5), 5).is_ok());
+        assert!(component_select_default_values_count(Some(1), Some(10), 5).is_ok());
+
+        assert!(component_select_default_values_count(Some(2), None, 1).is_err());
+        assert!(component_select_default_values_count(None, Some(1), 2).is_err());
+        assert!(component_select_default_values_count(Some(1), Some(1), 2).is_err());
+        assert!(component_select_default_values_count(Some(2), Some(2), 1).is_err());
     }
 
     #[test]

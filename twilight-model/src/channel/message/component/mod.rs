@@ -731,7 +731,6 @@ mod tests {
     use crate::id::Id;
     use serde_test::Token;
     use static_assertions::assert_impl_all;
-    use std::num::NonZeroU64;
 
     assert_impl_all!(
         Component: From<ActionRow>,
@@ -756,9 +755,7 @@ mod tests {
                 Component::SelectMenu(SelectMenu {
                     channel_types: None,
                     custom_id: "test custom id 2".into(),
-                    default_values: Some(vec![SelectDefaultValue::User(Id::from(
-                        NonZeroU64::new(1234).unwrap(),
-                    ))]),
+                    default_values: None,
                     disabled: false,
                     kind: SelectMenuType::Text,
                     max_values: Some(25),
@@ -959,6 +956,78 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn select_menu() {
+        fn check_select(default_values: Option<Vec<SelectDefaultValue>>) {
+            let select_menu = Component::SelectMenu(SelectMenu {
+                channel_types: None,
+                custom_id: String::from("my_select"),
+                default_values: default_values.clone(),
+                disabled: false,
+                kind: SelectMenuType::User,
+                max_values: None,
+                min_values: None,
+                options: None,
+                placeholder: None,
+            });
+            let mut tokens = vec![
+                Token::Struct {
+                    name: "Component",
+                    len: 2 + usize::from(default_values.is_some()),
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::UserSelectMenu.into()),
+                Token::Str("custom_id"),
+                Token::Some,
+                Token::Str("my_select"),
+            ];
+            if let Some(default_values) = default_values {
+                tokens.extend_from_slice(&[
+                    Token::Str("default_values"),
+                    Token::Some,
+                    Token::Seq {
+                        len: Some(default_values.len()),
+                    },
+                ]);
+                for value in &default_values {
+                    let id = match value {
+                        SelectDefaultValue::User(id) => id.to_string(),
+                        _ => panic!("unsupported select default value"),
+                    };
+                    tokens.extend_from_slice(&[
+                        Token::Struct {
+                            name: "SelectDefaultValue",
+                            len: 2,
+                        },
+                        Token::Str("type"),
+                        Token::UnitVariant {
+                            name: "SelectDefaultValue",
+                            variant: "user",
+                        },
+                        Token::Str("id"),
+                        Token::NewtypeStruct { name: "Id" },
+                        Token::Str(Box::leak::<'static>(Box::new(id))),
+                        Token::StructEnd,
+                    ])
+                }
+                tokens.push(Token::SeqEnd);
+            }
+            tokens.extend_from_slice(&[
+                Token::Str("disabled"),
+                Token::Bool(false),
+                Token::StructEnd,
+            ]);
+            serde_test::assert_tokens(&select_menu, &tokens);
+        }
+
+        check_select(None);
+        check_select(Some(vec![SelectDefaultValue::User(Id::new(1234))]));
+        check_select(Some(vec![
+            SelectDefaultValue::User(Id::new(1234)),
+            SelectDefaultValue::User(Id::new(5432)),
+        ]));
     }
 
     #[test]

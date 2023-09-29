@@ -35,7 +35,7 @@ pub struct SelectMenu {
 }
 
 /// A [`SelectMenu`]'s type.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum SelectMenuType {
     /// Select menus with a text-based `options` list.
