@@ -4007,7 +4007,13 @@ mod tests {
     #[test]
     fn get_current_user_application_info() {
         let route = Route::GetCurrentUserApplicationInfo;
-        assert_eq!(route.to_string(), "oauth2/applications/@me");
+        assert_eq!(route.to_string(), "applications/@me");
+    }
+
+    #[test]
+    fn update_current_user_application() {
+        let route = Route::UpdateCurrentUserApplication;
+        assert_eq!(route.to_string(), "applications/@me");
     }
 
     #[test]
