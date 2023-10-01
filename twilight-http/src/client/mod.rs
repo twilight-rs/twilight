@@ -4,7 +4,9 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
-use crate::request::{guild::GetGuildOnboarding, GetCurrentAuthorizationInformation};
+use crate::request::{
+    guild::GetGuildOnboarding, GetCurrentAuthorizationInformation, UpdateCurrentUserApplication,
+};
 #[allow(deprecated)]
 use crate::{
     client::connector::Connector,
@@ -690,6 +692,11 @@ impl Client {
     /// Get information about the current bot application.
     pub const fn current_user_application(&self) -> GetUserApplicationInfo<'_> {
         GetUserApplicationInfo::new(self)
+    }
+
+    /// Update the current user's application.
+    pub const fn update_current_user_application(&self) -> UpdateCurrentUserApplication<'_> {
+        UpdateCurrentUserApplication::new(self)
     }
 
     /// Update the current user.

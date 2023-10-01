@@ -9,7 +9,10 @@ use twilight_model::id::{marker::RoleMarker, Id};
 #[non_exhaustive]
 pub enum Route<'a> {
     /// Route information to add a user to a guild.
-    AddGuildMember { guild_id: u64, user_id: u64 },
+    AddGuildMember {
+        guild_id: u64,
+        user_id: u64,
+    },
     /// Route information to add a role to guild member.
     AddMemberRole {
         /// The ID of the guild.
@@ -1095,6 +1098,7 @@ pub enum Route<'a> {
         token: &'a str,
         webhook_id: u64,
     },
+    UpdateCurrentUserApplication,
 }
 
 impl<'a> Route<'a> {
@@ -1245,6 +1249,7 @@ impl<'a> Route<'a> {
             | Self::UpdateTemplate { .. }
             | Self::UpdateUserVoiceState { .. }
             | Self::UpdateWebhookMessage { .. }
+            | Self::UpdateCurrentUserApplication { .. }
             | Self::UpdateWebhook { .. } => Method::Patch,
             Self::CreateChannel { .. }
             | Self::CreateGlobalCommand { .. }
@@ -1532,7 +1537,9 @@ impl<'a> Route<'a> {
                 Path::ApplicationGuildCommandId(application_id)
             }
             Self::GetCurrentAuthorizationInformation => Path::OauthMe,
-            Self::GetCurrentUserApplicationInfo => Path::OauthApplicationsMe,
+            Self::GetCurrentUserApplicationInfo | Self::UpdateCurrentUserApplication => {
+                Path::ApplicationsMe
+            }
             Self::GetCurrentUser | Self::GetUser { .. } | Self::UpdateCurrentUser => Path::UsersId,
             Self::GetCurrentUserGuildMember { .. } => Path::UsersIdGuildsIdMember,
             Self::GetEmoji { guild_id, .. } | Self::UpdateEmoji { guild_id, .. } => {
@@ -2334,7 +2341,9 @@ impl Display for Route<'_> {
                 f.write_str("/permissions")
             }
             Route::GetCurrentAuthorizationInformation => f.write_str("oauth2/@me"),
-            Route::GetCurrentUserApplicationInfo => f.write_str("oauth2/applications/@me"),
+            Route::GetCurrentUserApplicationInfo | Route::UpdateCurrentUserApplication => {
+                f.write_str("applications/@me")
+            }
             Route::GetCurrentUser | Route::UpdateCurrentUser => f.write_str("users/@me"),
             Route::GetCurrentUserGuildMember { guild_id } => {
                 f.write_str("users/@me/guilds/")?;

@@ -123,6 +123,8 @@ pub enum Path {
     ApplicationGuildCommand(u64),
     /// Operating on a specific command in a guild.
     ApplicationGuildCommandId(u64),
+    /// Operating on current user application,
+    ApplicationsMe,
     /// Operating on a channel.
     ChannelsId(u64),
     /// Operating on a channel's followers.
@@ -330,6 +332,7 @@ impl FromStr for Path {
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
         Ok(match parts[..] {
+            ["applications", "me"] => ApplicationsMe,
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
             ["applications", id, "guilds", _, "commands"]
