@@ -1,5 +1,6 @@
 use super::{team::Team, ApplicationFlags, InstallParams};
 use crate::{
+    guild::Guild,
     id::{
         marker::{ApplicationMarker, GuildMarker, OauthSkuMarker},
         Id,
@@ -11,6 +12,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Application {
+    /// Approximate count of guilds this app has been added to.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub approximate_guild_count: Option<u64>,
     /// Partial user object for the bot user associated with the app.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bot: Option<User>,
@@ -24,6 +28,9 @@ pub struct Application {
     /// Description of the application.
     pub description: String,
     pub guild_id: Option<Id<GuildMarker>>,
+    /// Partial object of the associated guild.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild: Option<Guild>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
     /// Icon of the application.
@@ -48,6 +55,9 @@ pub struct Application {
     pub role_connections_verification_url: Option<String>,
     #[serde(default)]
     pub rpc_origins: Vec<String>,
+    /// Redirect URIs for the application.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redirect_uris: Option<Vec<String>>,
     pub slug: Option<String>,
     /// Tags describing the content and functionality of the application.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -105,6 +115,7 @@ mod tests {
     #[test]
     fn current_application_info() {
         let value = Application {
+            approximate_guild_count: Some(2),
             bot: None,
             bot_public: true,
             bot_require_code_grant: false,
@@ -112,6 +123,7 @@ mod tests {
             custom_install_url: None,
             description: "a pretty cool application".to_owned(),
             guild_id: Some(Id::new(1)),
+            guild: None,
             flags: Some(ApplicationFlags::EMBEDDED),
             icon: Some(image_hash::ICON),
             id: Id::new(2),
@@ -139,6 +151,7 @@ mod tests {
             }),
             primary_sku_id: Some(Id::new(4)),
             privacy_policy_url: Some("https://privacypolicy".into()),
+            redirect_uris: None,
             role_connections_verification_url: Some("https://roleconnections".into()),
             rpc_origins: vec!["one".to_owned()],
             slug: Some("app slug".to_owned()),
@@ -164,8 +177,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Application",
-                    len: 20,
+                    len: 21,
                 },
+                Token::Str("approximate_guild_count"),
+                Token::Some,
+                Token::U64(2),
                 Token::Str("bot_public"),
                 Token::Bool(true),
                 Token::Str("bot_require_code_grant"),

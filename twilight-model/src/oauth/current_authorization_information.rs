@@ -71,6 +71,7 @@ mod tests {
 
         let value = CurrentAuthorizationInformation {
             application: Application {
+                approximate_guild_count: Some(2),
                 bot: None,
                 bot_public: true,
                 bot_require_code_grant: true,
@@ -78,6 +79,7 @@ mod tests {
                 custom_install_url: None,
                 description: DESCRIPTION.to_owned(),
                 guild_id: None,
+                guild: None,
                 flags: None,
                 icon: Some(image_hash::ICON),
                 id: Id::new(100_000_000_000_000_000),
@@ -87,6 +89,7 @@ mod tests {
                 owner: None,
                 primary_sku_id: None,
                 privacy_policy_url: None,
+                redirect_uris: None,
                 role_connections_verification_url: None,
                 rpc_origins: Vec::new(),
                 slug: None,
@@ -110,8 +113,11 @@ mod tests {
                 Token::Str("application"),
                 Token::Struct {
                     name: "Application",
-                    len: 15,
+                    len: 16,
                 },
+                Token::Str("approximate_guild_count"),
+                Token::Some,
+                Token::U64(2),
                 Token::Str("bot_public"),
                 Token::Bool(true),
                 Token::Str("bot_require_code_grant"),

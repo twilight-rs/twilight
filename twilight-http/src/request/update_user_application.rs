@@ -26,7 +26,7 @@ struct UpdateCurrentUserApplicationFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     install_params: Option<InstallParams>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    interactions_endpoint_url: Option<Nullable<&'a str>>,
+    interactions_endpoint_url: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     role_connections_verification_url: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,8 +58,8 @@ impl<'a> UpdateCurrentUserApplication<'a> {
     }
 
     /// Set the cover image of the application.
-    pub const fn cover_image(mut self, cover_image: &'a str) -> Self {
-        self.fields.cover_image = Some(Nullable(Some(cover_image)));
+    pub const fn cover_image(mut self, cover_image: Option<&'a str>) -> Self {
+        self.fields.cover_image = Some(Nullable(cover_image));
 
         self
     }
@@ -86,8 +86,8 @@ impl<'a> UpdateCurrentUserApplication<'a> {
     }
 
     /// Set the icon of the application.
-    pub const fn icon(mut self, icon: &'a str) -> Self {
-        self.fields.icon = Some(Nullable(Some(icon)));
+    pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
+        self.fields.icon = Some(Nullable(icon));
 
         self
     }
@@ -102,7 +102,7 @@ impl<'a> UpdateCurrentUserApplication<'a> {
 
     /// Set the interactions endpoint URL of the application.
     pub const fn interactions_endpoint_url(mut self, interactions_endpoint_url: &'a str) -> Self {
-        self.fields.interactions_endpoint_url = Some(Nullable(Some(interactions_endpoint_url)));
+        self.fields.interactions_endpoint_url = Some(interactions_endpoint_url);
 
         self
     }
