@@ -1581,7 +1581,7 @@ Replace references to `Path::WebhooksIdTokenMessageId` with
 `CreateInvite::{max_age, max_uses}` now return validation errors, so the results
 returned from them need to be handled.
 
-Don't re-use `hyper` clients via the builder. If you need to configure the
+Don't reuse `hyper` clients via the builder. If you need to configure the
 underlying `hyper` client please create an issue with the reason why.
 
 Errors are no longer enums and don't expose their concrete underlying error
@@ -1632,7 +1632,7 @@ Return validation errors for `CreateInvite::max_age` and
 Remove ability to get current user's DM channels ([#782] - [@vivian]).
 
 Remove `ClientBuilder::hyper_client` and `From<HyperClient> for Client` which
-were available to re-use `hyper` clients ([#768] - [@vivian]).
+were available to reuse `hyper` clients ([#768] - [@vivian]).
 
 Return updated copy of member when updating a member ([#758] - [@vivian]).
 
