@@ -183,7 +183,7 @@ impl<'a> CreateGuildChannel<'a> {
         self
     }
 
-    /// Sets the default number of seconds that a user must wait before before they are
+    /// Set the default number of seconds that a user must wait before before they are
     /// able to send another message in any newly-created thread in the channel.
     ///
     /// This field is only applicable for text, announcement, media, and forum channels.
