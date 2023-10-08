@@ -1,6 +1,6 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
-    channel::message::{Reaction, ReactionType},
+    channel::message::{Reaction, ReactionCountDetails, ReactionType},
     gateway::payload::incoming::{
         ReactionAdd, ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji,
     },
@@ -39,9 +39,15 @@ impl UpdateCache for ReactionAdd {
                 .unwrap_or_default();
 
             message.reactions.push(Reaction {
+                burst_colors: Vec::new(),
                 count: 1,
+                count_details: ReactionCountDetails {
+                    burst: 0,
+                    normal: 1,
+                },
                 emoji: self.0.emoji.clone(),
                 me,
+                me_burst: false,
             });
         }
     }
