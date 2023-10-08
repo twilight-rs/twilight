@@ -345,6 +345,7 @@ impl FromStr for Path {
             | ["applications", id, "guilds", _, "commands", _, "permissions"] => {
                 ApplicationGuildCommandId(parse_id(id)?)
             }
+            ["applications", id, "skus"] => ApplicationIdSKUs(parse_id(id)?),
             ["channels", id] => ChannelsId(parse_id(id)?),
             ["channels", id, "followers"] => ChannelsIdFollowers(parse_id(id)?),
             ["channels", id, "invites"] => ChannelsIdInvites(parse_id(id)?),
