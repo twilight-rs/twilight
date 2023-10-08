@@ -64,7 +64,7 @@ pub struct Config {
     /// Session information to resume a shard on initialization.
     session: Option<Session>,
     /// TLS connector for Websocket connections.
-    // We need this to be public so [`stream`] can re-use TLS on multiple shards
+    // We need this to be public so [`stream`] can reuse TLS on multiple shards
     // if unconfigured.
     tls: TlsContainer,
     /// Token used to authenticate when identifying with the gateway.

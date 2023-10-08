@@ -28,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
         // Run `gateway_runner` and `reshard` concurrently until the first one
         // finishes.
         tokio::select! {
-            // Gateway_runner only finises on errors, so break the loop and exit
+            // Gateway_runner only finishes on errors, so break the loop and exit
             // the program.
             _ = gateway_runner(Arc::clone(&client), shards) => break,
             // Resharding complete! Time to run `gateway_runner` with the new
