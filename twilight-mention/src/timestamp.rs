@@ -163,7 +163,7 @@ impl Ord for Timestamp {
 
 impl PartialOrd for Timestamp {
     fn partial_cmp(&self, other: &Timestamp) -> Option<Ordering> {
-        self.unix.partial_cmp(&other.unix)
+        Some(self.cmp(other))
     }
 }
 

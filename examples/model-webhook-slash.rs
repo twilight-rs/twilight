@@ -1,4 +1,4 @@
-use ed25519_dalek::{PublicKey, Verifier, PUBLIC_KEY_LENGTH};
+use ed25519_dalek::{Verifier, VerifyingKey, PUBLIC_KEY_LENGTH};
 use hex::FromHex;
 use hyper::{
     header::CONTENT_TYPE,
@@ -16,8 +16,8 @@ use twilight_model::{
 };
 
 /// Public key given from Discord.
-static PUB_KEY: Lazy<PublicKey> = Lazy::new(|| {
-    PublicKey::from_bytes(&<[u8; PUBLIC_KEY_LENGTH] as FromHex>::from_hex("PUBLIC_KEY").unwrap())
+static PUB_KEY: Lazy<VerifyingKey> = Lazy::new(|| {
+    VerifyingKey::from_bytes(&<[u8; PUBLIC_KEY_LENGTH] as FromHex>::from_hex("PUBLIC_KEY").unwrap())
         .unwrap()
 });
 

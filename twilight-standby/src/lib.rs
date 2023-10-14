@@ -849,7 +849,7 @@ impl Standby {
         //
         // A form of enumeration can't be used because sometimes the index
         // doesn't advance; iterators would continue to provide incrementing
-        // enumeration indexes while we sometimes want to re-use an index.
+        // enumeration indexes while we sometimes want to reuse an index.
         let mut index = 0;
         let mut results = ProcessResults::new();
 

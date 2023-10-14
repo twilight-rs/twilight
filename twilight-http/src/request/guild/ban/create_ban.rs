@@ -5,6 +5,7 @@ use crate::{
     response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
+use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
@@ -16,7 +17,9 @@ use twilight_validate::request::{
     ValidationError,
 };
 
+#[derive(Serialize)]
 struct CreateBanFields {
+    /// Number of seconds to delete messages for, between `0` and `604800`.
     delete_message_seconds: Option<u32>,
 }
 
@@ -120,10 +123,10 @@ impl TryIntoRequest for CreateBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateBan {
-            delete_message_seconds: fields.delete_message_seconds,
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
-        });
+        })
+        .json(&fields);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
@@ -156,10 +159,11 @@ mod tests {
         let client = Client::new(String::new());
         let request = client
             .create_ban(GUILD_ID, USER_ID)
+            .delete_message_seconds(100)
             .reason(REASON)
             .try_into_request()?;
 
-        assert!(request.body().is_none());
+        assert!(request.body().is_some());
         assert!(request.form().is_none());
         assert_eq!(Method::Put, request.method());
 

@@ -24,7 +24,7 @@ pub const LIMIT_PERIOD: Duration = Duration::from_secs(60 * 60 * 24);
 
 /// Abstraction for types processing gateway identify requests.
 ///
-/// For convenience in twilight-gateway, implementors must also implement
+/// For convenience in twilight-gateway, implementers must also implement
 /// [`Debug`].
 pub trait Queue: Debug {
     /// Enqueue a shard with this ID.

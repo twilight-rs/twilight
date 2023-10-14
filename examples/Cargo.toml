@@ -7,7 +7,7 @@ version = "0.0.0"
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }
-ed25519-dalek = "1"
+ed25519-dalek = "2"
 futures-util = { default-features = false, version = "0.3" }
 hex = "0.4"
 hyper = { features = ["client", "server", "http2", "runtime"], version = "0.14" }

@@ -58,6 +58,7 @@ async fn runner(
         .take(max_concurrency.into())
         .collect::<Box<_>>();
 
+    #[allow(clippy::ignored_unit_patterns)]
     loop {
         tokio::select! {
             biased;
