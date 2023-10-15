@@ -27,13 +27,13 @@ enum Message {
 struct Settings {
     /// The maximum number of concurrent permits to grant. `0` instantly grants
     /// all permits.
-    max_concurrency: u8,
+    max_concurrency: u16,
     /// Remaining daily permits.
-    remaining: u16,
+    remaining: u32,
     /// Time until the daily permits reset.
     reset_after: Duration,
     /// The number of permits to reset to.
-    total: u16,
+    total: u32,
 }
 
 /// [`InMemoryQueue`]'s background task runner.
@@ -164,7 +164,7 @@ impl InMemoryQueue {
     /// # Panics
     ///
     /// Panics if `total` < `remaining`.
-    pub fn new(max_concurrency: u8, remaining: u16, reset_after: Duration, total: u16) -> Self {
+    pub fn new(max_concurrency: u16, remaining: u32, reset_after: Duration, total: u32) -> Self {
         assert!(total >= remaining);
         let (tx, rx) = mpsc::unbounded_channel();
 
@@ -222,7 +222,7 @@ impl InMemoryQueue {
     /// Panics if `total` < `remaining`.
     ///
     /// [Get Gateway Bot]: https://discord.com/developers/docs/topics/gateway#get-gateway-bot
-    pub fn update(&self, max_concurrency: u8, remaining: u16, reset_after: Duration, total: u16) {
+    pub fn update(&self, max_concurrency: u16, remaining: u32, reset_after: Duration, total: u32) {
         assert!(total >= remaining);
 
         self.tx
