@@ -18,7 +18,7 @@ fastrand = { default-features = false, features = ["std"], version = "2" }
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
 hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.24" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
-hyper-trust-dns = { default-features = false, optional = true, version = "0.5" }
+hyper-hickory = { default-features = false, optional = true, features = ["tokio"], version = "0.6" }
 percent-encoding = { default-features = false, version = "2" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
@@ -38,7 +38,7 @@ decompression = ["dep:brotli"]
 native = ["dep:hyper-tls"]
 rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]
 rustls-webpki-roots = ["dep:hyper-rustls", "hyper-rustls?/webpki-tokio"]
-trust-dns = ["dep:hyper-trust-dns"]
+hickory = ["dep:hyper-hickory"]
 
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
