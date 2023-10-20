@@ -35,7 +35,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn voice_state_update() {
-        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = VoiceStateUpdate(VoiceState {
@@ -181,7 +181,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn voice_state_update_deser_tokens() -> Result<(), TimestampParseError> {
-        let joined_at = Timestamp::from_str("2016-12-08T18:41:21.954000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2016-12-08T18:41:21.954000+00:00")?);
         let request_to_speak_timestamp = Timestamp::from_str("2021-03-31T18:45:31.297561+00:00")?;
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 

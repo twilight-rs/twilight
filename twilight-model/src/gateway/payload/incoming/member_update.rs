@@ -15,7 +15,7 @@ pub struct MemberUpdate {
     pub communication_disabled_until: Option<Timestamp>,
     pub guild_id: Id<GuildMarker>,
     pub deaf: Option<bool>,
-    pub joined_at: Timestamp,
+    pub joined_at: Option<Timestamp>,
     pub mute: Option<bool>,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
@@ -42,7 +42,7 @@ mod tests {
 
     #[test]
     fn member_update() {
-        let joined_at = Timestamp::from_micros(1_488_234_110_121_000).expect("non zero");
+        let joined_at = Some(Timestamp::from_micros(1_488_234_110_121_000).expect("non zero"));
         let communication_disabled_until =
             Timestamp::from_micros(1_641_027_600_000_000).expect("non zero");
 

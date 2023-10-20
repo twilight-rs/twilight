@@ -38,7 +38,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn reaction_with_member() {
-        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap();
+        let joined_at = Some(Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap());
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = GatewayReaction {
