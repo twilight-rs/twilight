@@ -911,7 +911,7 @@ mod tests {
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
     fn root() -> Result<(), Box<dyn Error>> {
-        let joined_at = Timestamp::from_str("2021-09-19T14:17:32.000000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2021-09-19T14:17:32.000000+00:00")?);
 
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
@@ -1114,7 +1114,7 @@ mod tests {
             communication_disabled_until: Some(in_past),
             guild_id: GUILD_ID,
             deaf: None,
-            joined_at: Timestamp::from_secs(1).unwrap(),
+            joined_at: Some(Timestamp::from_secs(1).unwrap()),
             mute: None,
             nick: None,
             pending: false,
