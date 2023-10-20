@@ -97,6 +97,7 @@ mod tests {
                 Token::Some,
                 Token::Bool(false),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2017-02-27T22:21:50.121000+00:00"),
                 Token::Str("mute"),
                 Token::Some,

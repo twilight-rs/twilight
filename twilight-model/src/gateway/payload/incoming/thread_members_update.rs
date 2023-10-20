@@ -234,6 +234,7 @@ mod tests {
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str(JOIN_TIMESTAMP),
                 Token::Str("mute"),
                 Token::Bool(true),

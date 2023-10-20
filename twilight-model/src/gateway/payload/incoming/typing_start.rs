@@ -102,6 +102,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),
