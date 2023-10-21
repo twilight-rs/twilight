@@ -503,7 +503,7 @@ impl<T: DeserializeOwned + Unpin> Future for ModelFuture<T> {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match Pin::new(&mut self.future).poll(cx) {
             Poll::Ready(Ok(bytes)) => Poll::Ready(
-                crate::json::from_bytes(&Bytes::from(bytes)).map_err(|source| {
+                crate::json::from_bytes(&bytes).map_err(|source| {
                     DeserializeBodyError {
                         kind: DeserializeBodyErrorType::Deserializing,
                         source: Some(Box::new(source)),
