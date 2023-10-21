@@ -553,6 +553,7 @@ mod tests {
             entitlements: Vec::from([Entitlement {
                 application_id: Id::new(100),
                 consumed: false,
+                deleted: false,
                 ends_at: None,
                 guild_id: None,
                 id: Id::new(200),
@@ -729,12 +730,14 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "Entitlement",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Str("consumed"),
+                Token::Bool(false),
+                Token::Str("deleted"),
                 Token::Bool(false),
                 Token::Str("ends_at"),
                 Token::None,

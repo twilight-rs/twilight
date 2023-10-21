@@ -17,6 +17,8 @@ pub struct Entitlement {
     pub application_id: Id<ApplicationMarker>,
     /// Not applicable for App Subscriptions. Subscriptions are not consumed and will be `false`
     pub consumed: bool,
+    /// Entitlement was deleted.
+    pub deleted: bool,
     /// Date at which the entitlement is no longer valid. Not present when using test entitlements.
     pub ends_at: Option<Timestamp>,
     /// ID of the guild that is granted access to the entitlement's sku.
@@ -55,6 +57,7 @@ mod tests {
         let value = Entitlement {
             application_id: Id::new(1),
             consumed: false,
+            deleted: false,
             ends_at: ends_at.into(),
             guild_id: Some(Id::new(10)),
             id: Id::new(2),
@@ -69,12 +72,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Entitlement",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("consumed"),
+                Token::Bool(false),
+                Token::Str("deleted"),
                 Token::Bool(false),
                 Token::Str("ends_at"),
                 Token::Some,

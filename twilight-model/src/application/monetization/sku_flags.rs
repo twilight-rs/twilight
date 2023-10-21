@@ -6,6 +6,8 @@ use serde::{
 
 bitflags! {
     pub struct SKUFlags: u64 {
+      /// SKU is available for purchase.
+      const AVAILABLE = 1 << 2;
       /// A subscription purchased by a user and applied to a single server.
       /// Everyone in that server gets your premium benefits.
       const GUILD_SUBSCRIPTION = 1 << 7;
@@ -74,11 +76,17 @@ mod tests {
         UpperHex
     );
 
+    const_assert_eq!(SKUFlags::AVAILABLE.bits(), 1 << 2);
     const_assert_eq!(SKUFlags::GUILD_SUBSCRIPTION.bits(), 1 << 7);
     const_assert_eq!(SKUFlags::USER_SUBSCRIPTION.bits(), 1 << 8);
 
     #[test]
     fn serde() {
+        serde_test::assert_tokens(
+            &SKUFlags::AVAILABLE,
+            &[Token::U64(SKUFlags::AVAILABLE.bits())],
+        );
+
         serde_test::assert_tokens(
             &SKUFlags::GUILD_SUBSCRIPTION,
             &[Token::U64(SKUFlags::GUILD_SUBSCRIPTION.bits())],
