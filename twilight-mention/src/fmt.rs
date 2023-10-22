@@ -1,12 +1,12 @@
 //! Formatters for creating mentions.
 
 use super::timestamp::Timestamp;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::fmt::{Display, Formatter, Result as FmtResult, Write};
 use twilight_model::{
     channel::Channel,
     guild::{Emoji, Member, Role},
     id::{
-        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
+        marker::{ChannelMarker, CommandMarker, EmojiMarker, RoleMarker, UserMarker},
         Id,
     },
     user::{CurrentUser, User},
@@ -34,6 +34,54 @@ impl Display for MentionFormat<Id<ChannelMarker>> {
         Display::fmt(&self.0, f)?;
 
         f.write_str(">")
+    }
+}
+
+/// Mention a command. This will format as:
+/// - `</NAME:COMMAND_ID>` for commands
+/// - `</NAME SUBCOMMAND:ID>` for subcommands
+/// - `</NAME SUBCOMMAND_GROUP SUBCOMMAND:ID>` for subcommand groups
+impl Display for MentionFormat<CommandMention> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("</")?;
+
+        match &self.0 {
+            CommandMention::Command { name, id } => {
+                // </NAME:COMMAND_ID>
+                f.write_str(name)?;
+                f.write_char(':')?;
+                Display::fmt(id, f)?;
+            }
+            CommandMention::SubCommand {
+                name,
+                sub_command,
+                id,
+            } => {
+                // </NAME SUBCOMMAND:ID>
+                f.write_str(name)?;
+                f.write_char(' ')?;
+                f.write_str(sub_command)?;
+                f.write_char(':')?;
+                Display::fmt(id, f)?;
+            }
+            CommandMention::SubCommandGroup {
+                name,
+                sub_command_group,
+                sub_command,
+                id,
+            } => {
+                // </NAME SUBCOMMAND_GROUP SUBCOMMAND:ID>
+                f.write_str(name)?;
+                f.write_char(' ')?;
+                f.write_str(sub_command_group)?;
+                f.write_char(' ')?;
+                f.write_str(sub_command)?;
+                f.write_char(':')?;
+                Display::fmt(id, f)?;
+            }
+        }
+
+        f.write_char('>')
     }
 }
 
@@ -118,6 +166,51 @@ impl Mention<Id<ChannelMarker>> for Id<ChannelMarker> {
     }
 }
 
+/// Mention a command. This will format as `</NAME:COMMAND_ID>`.
+impl<N> Mention<CommandMention> for (N, Id<CommandMarker>)
+where
+    N: ToString,
+{
+    fn mention(&self) -> MentionFormat<CommandMention> {
+        MentionFormat(CommandMention::Command {
+            name: self.0.to_string(),
+            id: self.1,
+        })
+    }
+}
+
+/// Mention a subcommand. This will format as `</NAME SUBCOMMAND:ID>`.
+impl<N, S> Mention<CommandMention> for (N, S, Id<CommandMarker>)
+where
+    N: ToString,
+    S: ToString,
+{
+    fn mention(&self) -> MentionFormat<CommandMention> {
+        MentionFormat(CommandMention::SubCommand {
+            name: self.0.to_string(),
+            sub_command: self.1.to_string(),
+            id: self.2,
+        })
+    }
+}
+
+/// Mention a subcommand group. This will format as `</NAME SUBCOMMAND_GROUP SUBCOMMAND:ID>`.
+impl<N, G, S> Mention<CommandMention> for (N, G, S, Id<CommandMarker>)
+where
+    N: ToString,
+    G: ToString,
+    S: ToString,
+{
+    fn mention(&self) -> MentionFormat<CommandMention> {
+        MentionFormat(CommandMention::SubCommandGroup {
+            name: self.0.to_string(),
+            sub_command_group: self.1.to_string(),
+            sub_command: self.2.to_string(),
+            id: self.3,
+        })
+    }
+}
+
 /// Mention a channel. This will format as `<#ID>`.
 impl Mention<Id<ChannelMarker>> for Channel {
     fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
@@ -189,13 +282,45 @@ impl Mention<Id<UserMarker>> for User {
     }
 }
 
+/// Components to construct a slash command mention.
+///
+/// Format slash commands, subcommands and subcommand groups.
+/// See [Discord Docs/Message Formatting].
+/// See [Discord Docs Changelog/Slash Command Mentions].
+///
+/// [Discord Docs/Message Formatting]: https://discord.com/developers/docs/reference#message-formatting
+/// [Discord Docs Changelog/Slash Command Mentions]: https://discord.com/developers/docs/change-log#slash-command-mentions
+#[allow(missing_docs)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CommandMention {
+    // Field order is the same as the mention format.
+    Command {
+        name: String,
+        id: Id<CommandMarker>,
+    },
+
+    SubCommand {
+        name: String,
+        sub_command: String,
+        id: Id<CommandMarker>,
+    },
+
+    SubCommandGroup {
+        name: String,
+        sub_command_group: String,
+        sub_command: String,
+        id: Id<CommandMarker>,
+    },
+}
+
 #[cfg(test)]
 mod tests {
     use crate::timestamp::{Timestamp, TimestampStyle};
 
-    use super::{Mention, MentionFormat};
+    use super::{CommandMention, Mention, MentionFormat};
     use static_assertions::assert_impl_all;
     use std::fmt::{Debug, Display};
+    use twilight_model::id::marker::CommandMarker;
     use twilight_model::{
         channel::Channel,
         guild::{Emoji, Member, Role},
@@ -208,6 +333,7 @@ mod tests {
 
     assert_impl_all!(MentionFormat<()>: Clone, Copy, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(MentionFormat<Id<ChannelMarker>>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(MentionFormat<CommandMention>: Clone, Debug, Display, Eq, PartialEq, Send, Sync);
     assert_impl_all!(MentionFormat<Id<EmojiMarker>>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
     assert_impl_all!(MentionFormat<Id<RoleMarker>>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
     assert_impl_all!(MentionFormat<Id<UserMarker>>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
@@ -237,6 +363,41 @@ mod tests {
         assert_eq!(
             "<#123>",
             Id::<ChannelMarker>::new(123).mention().to_string()
+        );
+    }
+
+    #[test]
+    fn mention_format_command() {
+        assert_eq!(
+            "</name:123>",
+            ("name", Id::<CommandMarker>::new(123))
+                .mention()
+                .to_string()
+        );
+    }
+
+    #[test]
+    fn mention_format_sub_command() {
+        assert_eq!(
+            "</name subcommand:123>",
+            ("name", "subcommand", Id::<CommandMarker>::new(123))
+                .mention()
+                .to_string()
+        );
+    }
+
+    #[test]
+    fn mention_format_sub_command_group() {
+        assert_eq!(
+            "</name subcommand_group subcommand:123>",
+            (
+                "name",
+                "subcommand_group",
+                "subcommand",
+                Id::<CommandMarker>::new(123)
+            )
+                .mention()
+                .to_string()
         );
     }
 
