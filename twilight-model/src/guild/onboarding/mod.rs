@@ -1,5 +1,6 @@
 //! Types for guild onboarding.
 
+mod mode;
 mod option;
 mod prompt;
 mod prompt_type;
@@ -11,6 +12,7 @@ use crate::id::{
 use serde::{Deserialize, Serialize};
 
 pub use self::{
+    mode::OnboardingMode,
     option::{OnboardingPromptEmoji, OnboardingPromptOption},
     prompt::OnboardingPrompt,
     prompt_type::OnboardingPromptType,
@@ -25,13 +27,15 @@ pub struct Onboarding {
     pub enabled: bool,
     /// ID of the guild this onboarding is a part of.
     pub guild_id: Id<GuildMarker>,
+    /// Current mode of onboarding.
+    pub mode: OnboardingMode,
     /// Array of [`OnboardingPrompt`]s for the guild onboarding flow.
     pub prompts: Vec<OnboardingPrompt>,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Onboarding;
+    use super::{Onboarding, OnboardingMode};
     use crate::id::Id;
     use serde_test::Token;
 
@@ -41,6 +45,7 @@ mod tests {
             default_channel_ids: Vec::new(),
             enabled: true,
             guild_id: Id::new(123_456_789),
+            mode: OnboardingMode::OnboardingDefault,
             prompts: Vec::new(),
         };
 
@@ -49,7 +54,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Onboarding",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("default_channel_ids"),
                 Token::Seq { len: Some(0) },
@@ -59,6 +64,8 @@ mod tests {
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("123456789"),
+                Token::Str("mode"),
+                Token::U8(0),
                 Token::Str("prompts"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
