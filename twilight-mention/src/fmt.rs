@@ -324,9 +324,10 @@ mod tests {
     fn mention_format_command() {
         assert_eq!(
             "</name:123>",
-            ("name", Id::<CommandMarker>::new(123))
-                .mention()
-                .to_string()
+            MentionFormat(CommandMention::Command {
+                id: Id::<CommandMarker>::new(123),
+                name: "name".to_string()
+            }).to_string()
         );
     }
 
@@ -334,9 +335,11 @@ mod tests {
     fn mention_format_sub_command() {
         assert_eq!(
             "</name subcommand:123>",
-            ("name", "subcommand", Id::<CommandMarker>::new(123))
-                .mention()
-                .to_string()
+            MentionFormat(CommandMention::SubCommand {
+                id: Id::<CommandMarker>::new(123),
+                name: "name".to_string(),
+                sub_command: "subcommand".to_string()
+            }).to_string()
         );
     }
 
@@ -344,14 +347,12 @@ mod tests {
     fn mention_format_sub_command_group() {
         assert_eq!(
             "</name subcommand_group subcommand:123>",
-            (
-                "name",
-                "subcommand_group",
-                "subcommand",
-                Id::<CommandMarker>::new(123)
-            )
-                .mention()
-                .to_string()
+            MentionFormat(CommandMention::SubCommandGroup {
+                id: Id::<CommandMarker>::new(123),
+                name: "name".to_string(),
+                sub_command: "subcommand".to_string(),
+                sub_command_group: "subcommand_group".to_string()
+            }).to_string()
         );
     }
 
