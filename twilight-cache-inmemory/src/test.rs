@@ -31,7 +31,7 @@ pub fn cache() -> InMemoryCache {
 
 #[allow(clippy::too_many_lines)]
 pub fn cache_with_message_and_reactions() -> InMemoryCache {
-    let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+    let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
     let cache = InMemoryCache::new();
     let avatar = ImageHash::parse(b"6961d9f1fdb5880bf4a3ec6348d3bbcf").unwrap();
     let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
@@ -277,7 +277,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
 }
 
 pub fn member(id: Id<UserMarker>) -> Member {
-    let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+    let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
     let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
     Member {

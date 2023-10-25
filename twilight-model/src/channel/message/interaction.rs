@@ -40,7 +40,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn message_interaction() -> Result<(), Box<dyn Error>> {
-        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?);
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = MessageInteraction {
@@ -108,6 +108,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),
