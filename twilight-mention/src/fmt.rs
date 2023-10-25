@@ -248,23 +248,22 @@ impl Mention<Id<UserMarker>> for User {
 #[allow(missing_docs)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandMention {
-    // Field order is the same as the mention format.
     Command {
-        name: String,
         id: Id<CommandMarker>,
+        name: String,
     },
 
     SubCommand {
+        id: Id<CommandMarker>,
         name: String,
         sub_command: String,
-        id: Id<CommandMarker>,
     },
 
     SubCommandGroup {
-        name: String,
-        sub_command_group: String,
-        sub_command: String,
         id: Id<CommandMarker>,
+        name: String,
+        sub_command: String,
+        sub_command_group: String,
     },
 }
 
