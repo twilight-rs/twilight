@@ -166,51 +166,6 @@ impl Mention<Id<ChannelMarker>> for Id<ChannelMarker> {
     }
 }
 
-/// Mention a command. This will format as `</NAME:COMMAND_ID>`.
-impl<N> Mention<CommandMention> for (N, Id<CommandMarker>)
-where
-    N: ToString,
-{
-    fn mention(&self) -> MentionFormat<CommandMention> {
-        MentionFormat(CommandMention::Command {
-            name: self.0.to_string(),
-            id: self.1,
-        })
-    }
-}
-
-/// Mention a subcommand. This will format as `</NAME SUBCOMMAND:ID>`.
-impl<N, S> Mention<CommandMention> for (N, S, Id<CommandMarker>)
-where
-    N: ToString,
-    S: ToString,
-{
-    fn mention(&self) -> MentionFormat<CommandMention> {
-        MentionFormat(CommandMention::SubCommand {
-            name: self.0.to_string(),
-            sub_command: self.1.to_string(),
-            id: self.2,
-        })
-    }
-}
-
-/// Mention a subcommand group. This will format as `</NAME SUBCOMMAND_GROUP SUBCOMMAND:ID>`.
-impl<N, G, S> Mention<CommandMention> for (N, G, S, Id<CommandMarker>)
-where
-    N: ToString,
-    G: ToString,
-    S: ToString,
-{
-    fn mention(&self) -> MentionFormat<CommandMention> {
-        MentionFormat(CommandMention::SubCommandGroup {
-            name: self.0.to_string(),
-            sub_command_group: self.1.to_string(),
-            sub_command: self.2.to_string(),
-            id: self.3,
-        })
-    }
-}
-
 /// Mention a channel. This will format as `<#ID>`.
 impl Mention<Id<ChannelMarker>> for Channel {
     fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
