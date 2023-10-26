@@ -7,6 +7,7 @@ pub mod member;
 pub mod role;
 pub mod sticker;
 pub mod update_guild_channel_positions;
+pub mod update_guild_onboarding;
 pub mod user;
 
 mod create_guild_channel;

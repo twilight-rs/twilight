@@ -14,10 +14,10 @@ use serde::{Deserialize, Serialize};
 /// [`Emoji`]: crate::guild::Emoji
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OnboardingPromptEmoji {
-    name: Option<String>,
-    id: Option<Id<EmojiMarker>>,
+    pub name: Option<String>,
+    pub id: Option<Id<EmojiMarker>>,
     #[serde(default)]
-    animated: bool,
+    pub animated: bool,
 }
 
 impl From<Emoji> for OnboardingPromptEmoji {
