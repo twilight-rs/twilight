@@ -24,7 +24,7 @@ use crate::{
 use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-struct UpdateOnboardingPromptOption {
+pub struct UpdateOnboardingPromptOption {
     pub channel_ids: Vec<Id<ChannelMarker>>,
     pub description: Option<String>,
     pub emoji: OnboardingPromptEmoji,
@@ -35,9 +35,8 @@ struct UpdateOnboardingPromptOption {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-struct UpdateGuildOnboardingPrompt {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<Id<OnboardingPromptMarker>>,
+pub struct UpdateGuildOnboardingPrompt {
+    pub id: Id<OnboardingPromptMarker>,
     pub in_onboarding: bool,
     #[serde(rename = "type")]
     pub kind: OnboardingPromptType,
@@ -49,10 +48,10 @@ struct UpdateGuildOnboardingPrompt {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdateGuildOnboardingFields {
-    default_channel_ids: Vec<Id<ChannelMarker>>,
-    prompts: Vec<UpdateGuildOnboardingPrompt>,
-    enabled: bool,
-    mode: OnboardingMode,
+    pub default_channel_ids: Vec<Id<ChannelMarker>>,
+    pub prompts: Vec<UpdateGuildOnboardingPrompt>,
+    pub enabled: bool,
+    pub mode: OnboardingMode,
 }
 
 /// Update the guild's onboarding flow
