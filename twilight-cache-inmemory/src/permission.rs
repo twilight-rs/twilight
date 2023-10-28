@@ -544,7 +544,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             return permissions;
         }
 
-        permissions.intersection(MEMBER_COMMUNICATION_DISABLED_ALLOWLIST)
+        permissions & MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
     }
 
     /// Determine whether a given user is the owner of a guild.
