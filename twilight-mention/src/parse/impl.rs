@@ -1,7 +1,9 @@
 use crate::timestamp::{Timestamp, TimestampStyle};
 
 use super::{MentionIter, MentionType, ParseMentionError, ParseMentionErrorType};
+use crate::fmt::CommandMention;
 use std::{num::NonZeroU64, str::Chars};
+use twilight_model::id::marker::CommandMarker;
 use twilight_model::id::{
     marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
     Id,
@@ -81,6 +83,132 @@ impl ParseMention for Id<ChannelMarker> {
         Self: Sized,
     {
         parse_mention(buf, Self::SIGILS).map(|(id, _, _)| Id::from(id))
+    }
+}
+
+impl ParseMention for CommandMention {
+    const SIGILS: &'static [&'static str] = &["/"];
+
+    fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
+    where
+        Self: Sized,
+    {
+        // Can't use `parse_mention` due to significant pattern differences for command mentions.
+
+        let mut echars = buf.chars().enumerate();
+
+        let c = echars.next();
+        if c.map_or(true, |(_, c)| c != '<') {
+            return Err(ParseMentionError {
+                kind: ParseMentionErrorType::LeadingArrow {
+                    found: c.map(|(_, c)| c),
+                },
+                source: None,
+            });
+        }
+
+        let c = echars.next();
+        if c.map_or(true, |(_, c)| c != '/') {
+            return Err(ParseMentionError {
+                kind: ParseMentionErrorType::Sigil {
+                    expected: Self::SIGILS,
+                    found: c.map(|(_, c)| c),
+                },
+                source: None,
+            });
+        }
+
+        let mut segments: Vec<&str> = Vec::new();
+        let mut current_segment: usize = 2;
+        let id_sep = loop {
+            match echars.next() {
+                None => {
+                    if !&buf[current_segment..].trim().is_empty() {
+                        segments.push(&buf[current_segment..]);
+                    }
+
+                    let (expected, found) = match segments.len() {
+                        // no segment found, require name and id
+                        0 => (2, 0),
+                        // only found name, needs id
+                        1 => (2, 1),
+                        // only found name and subcommand, needs id
+                        2 => (3, 2),
+                        // only found name, subcommand and subcommand group, needs id
+                        3 => (4, 3),
+                        // too many segments
+                        _ => {
+                            return Err(ParseMentionError {
+                                kind: ParseMentionErrorType::ExtraneousPart {
+                                    found: &buf[current_segment..],
+                                },
+                                source: None,
+                            })
+                        }
+                    };
+
+                    return Err(ParseMentionError {
+                        kind: ParseMentionErrorType::PartMissing { expected, found },
+                        source: None,
+                    });
+                }
+
+                Some((i, ':')) => {
+                    if !&buf[current_segment..i].trim().is_empty() {
+                        segments.push(&buf[current_segment..i]);
+                    }
+                    break i;
+                }
+
+                Some((i, ' ')) => {
+                    if !buf[current_segment..i].trim().is_empty() {
+                        segments.push(&buf[current_segment..i]);
+                    }
+
+                    current_segment = i + 1;
+                }
+
+                Some(_) => continue,
+            }
+        };
+
+        let id = loop {
+            match echars.next() {
+                None => {
+                    return Err(ParseMentionError {
+                        kind: ParseMentionErrorType::TrailingArrow { found: None },
+                        source: None,
+                    })
+                }
+                Some((i, '>')) => break &buf[(id_sep + 1)..i],
+                Some((_, c)) if !c.is_numeric() => {
+                    return Err(ParseMentionError {
+                        kind: ParseMentionErrorType::TrailingArrow { found: Some(c) },
+                        source: None,
+                    })
+                }
+                _ => continue,
+            }
+        };
+
+        let id: Id<CommandMarker> = match id.parse() {
+            Ok(id) => id,
+            Err(e) => {
+                return Err(ParseMentionError {
+                    kind: ParseMentionErrorType::IdNotU64 { found: id },
+                    source: Some(Box::new(e)),
+                })
+            }
+        };
+
+        let mut segments = segments.into_iter();
+        match_command_mention_from_segments(
+            id,
+            segments.next(),
+            segments.next(),
+            segments.next(),
+            segments.next(),
+        )
     }
 }
 
@@ -198,6 +326,52 @@ impl ParseMention for Id<UserMarker> {
         Self: Sized,
     {
         parse_mention(buf, Self::SIGILS).map(|(id, _, _)| Id::from(id))
+    }
+}
+
+/// Matches the four segments of [`CommandMention::parse`] into the final `Result` for it.
+#[inline]
+fn match_command_mention_from_segments<'s>(
+    id: Id<CommandMarker>,
+    first: Option<&'s str>,
+    second: Option<&'s str>,
+    third: Option<&'s str>,
+    fourth: Option<&'s str>,
+) -> Result<CommandMention, ParseMentionError<'s>> {
+    match (first, second, third, fourth) {
+        (_, _, _, Some(extra)) => Err(ParseMentionError {
+            kind: ParseMentionErrorType::ExtraneousPart { found: extra },
+            source: None,
+        }),
+        (None, _, _, _) => {
+            Err(ParseMentionError {
+                kind: ParseMentionErrorType::PartMissing {
+                    // at least two for command
+                    expected: 2,
+                    // we found the id until now
+                    found: 1,
+                },
+                source: None,
+            })
+        }
+        (Some(name), None, None, None) => Ok(CommandMention::Command {
+            name: name.to_string(),
+            id,
+        }),
+        (Some(name), Some(sub_command), None, None) => Ok(CommandMention::SubCommand {
+            name: name.to_string(),
+            sub_command: sub_command.to_string(),
+            id,
+        }),
+        (Some(name), Some(sub_command_group), Some(sub_command), None) => {
+            Ok(CommandMention::SubCommandGroup {
+                name: name.to_string(),
+                sub_command: sub_command.to_string(),
+                sub_command_group: sub_command_group.to_string(),
+                id,
+            })
+        }
+        _ => unreachable!(),
     }
 }
 
@@ -332,6 +506,7 @@ fn separator_sigil_present(chars: &mut Chars<'_>) -> bool {
 /// <https://rust-lang.github.io/api-guidelines/future-proofing.html>
 mod private {
     use super::super::MentionType;
+    use crate::fmt::CommandMention;
     use crate::timestamp::Timestamp;
     use twilight_model::id::{
         marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
@@ -341,6 +516,7 @@ mod private {
     pub trait Sealed {}
 
     impl Sealed for Id<ChannelMarker> {}
+    impl Sealed for CommandMention {}
     impl Sealed for Id<EmojiMarker> {}
     impl Sealed for MentionType {}
     impl Sealed for Id<RoleMarker> {}
@@ -355,6 +531,7 @@ mod tests {
         private::Sealed,
         ParseMention,
     };
+    use crate::fmt::CommandMention;
     use crate::{
         parse::ParseMentionError,
         timestamp::{Timestamp, TimestampStyle},
@@ -366,6 +543,7 @@ mod tests {
     };
 
     assert_impl_all!(Id<ChannelMarker>: ParseMention, Sealed);
+    assert_impl_all!(CommandMention: ParseMention, Sealed);
     assert_impl_all!(Id<EmojiMarker>: ParseMention, Sealed);
     assert_impl_all!(MentionType: ParseMention, Sealed);
     assert_impl_all!(Id<RoleMarker>: ParseMention, Sealed);
@@ -374,6 +552,7 @@ mod tests {
     #[test]
     fn sigils() {
         assert_eq!(&["#"], Id::<ChannelMarker>::SIGILS);
+        assert_eq!(&["/"], CommandMention::SIGILS);
         assert_eq!(&[":"], Id::<EmojiMarker>::SIGILS);
         assert_eq!(&["#", ":", "@&", "@", "t:"], MentionType::SIGILS);
         assert_eq!(&["@&"], Id::<RoleMarker>::SIGILS);
@@ -389,6 +568,91 @@ mod tests {
                 found: Some('@'),
             },
             Id::<ChannelMarker>::parse("<@123>").unwrap_err().kind(),
+        );
+    }
+
+    #[test]
+    fn parse_command_mention() {
+        assert_eq!(
+            &ParseMentionErrorType::PartMissing {
+                expected: 2,
+                found: 1,
+            },
+            CommandMention::parse("</ :123>").unwrap_err().kind()
+        );
+
+        assert_eq!(
+            CommandMention::Command {
+                name: "command".to_string(),
+                id: Id::new(123)
+            },
+            CommandMention::parse("</command:123>").unwrap()
+        );
+
+        assert_eq!(
+            CommandMention::SubCommand {
+                name: "command".to_string(),
+                sub_command: "subcommand".to_string(),
+                id: Id::new(123)
+            },
+            CommandMention::parse("</command subcommand:123>").unwrap()
+        );
+
+        // this is more relaxed than the discord client
+        assert_eq!(
+            CommandMention::SubCommand {
+                name: "command".to_string(),
+                sub_command: "subcommand".to_string(),
+                id: Id::new(123)
+            },
+            CommandMention::parse("</command  subcommand:123>").unwrap()
+        );
+
+        assert_eq!(
+            CommandMention::SubCommandGroup {
+                name: "command".to_string(),
+                sub_command: "subcommand".to_string(),
+                sub_command_group: "subcommand_group".to_string(),
+                id: Id::new(123)
+            },
+            CommandMention::parse("</command subcommand_group subcommand:123>").unwrap()
+        );
+
+        assert_eq!(
+            &ParseMentionErrorType::ExtraneousPart { found: "d" },
+            CommandMention::parse("</a b c d:123>").unwrap_err().kind()
+        );
+
+        assert_eq!(
+            &ParseMentionErrorType::IdNotU64 { found: "0" },
+            CommandMention::parse("</a:0>").unwrap_err().kind()
+        );
+
+        assert_eq!(
+            &ParseMentionErrorType::TrailingArrow { found: Some('b') },
+            CommandMention::parse("</a:b>").unwrap_err().kind()
+        );
+
+        assert_eq!(
+            &ParseMentionErrorType::TrailingArrow { found: None },
+            CommandMention::parse("</a:123").unwrap_err().kind()
+        );
+
+        for (input, expected, found) in [
+            ("</", 2, 0),
+            ("</a", 2, 1),
+            ("</a b", 3, 2),
+            ("</a b c", 4, 3),
+        ] {
+            assert_eq!(
+                &ParseMentionErrorType::PartMissing { expected, found },
+                CommandMention::parse(input).unwrap_err().kind()
+            );
+        }
+
+        assert_eq!(
+            &ParseMentionErrorType::ExtraneousPart { found: "d" },
+            CommandMention::parse("</a b c d").unwrap_err().kind()
         );
     }
 
