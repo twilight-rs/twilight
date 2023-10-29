@@ -327,7 +327,8 @@ mod tests {
             MentionFormat(CommandMention::Command {
                 id: Id::<CommandMarker>::new(123),
                 name: "name".to_string()
-            }).to_string()
+            })
+            .to_string()
         );
     }
 
@@ -339,7 +340,8 @@ mod tests {
                 id: Id::<CommandMarker>::new(123),
                 name: "name".to_string(),
                 sub_command: "subcommand".to_string()
-            }).to_string()
+            })
+            .to_string()
         );
     }
 
@@ -352,7 +354,8 @@ mod tests {
                 name: "name".to_string(),
                 sub_command: "subcommand".to_string(),
                 sub_command_group: "subcommand_group".to_string()
-            }).to_string()
+            })
+            .to_string()
         );
     }
 
