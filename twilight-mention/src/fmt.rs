@@ -173,6 +173,41 @@ impl Mention<Id<ChannelMarker>> for Channel {
     }
 }
 
+/// Mention a command.
+///
+/// This will format as:
+/// - `</NAME:COMMAND_ID>` for commands
+/// - `</NAME SUBCOMMAND:ID>` for subcommands
+/// - `</NAME SUBCOMMAND_GROUP SUBCOMMAND:ID>` for subcommand groups
+///
+/// # Cloning
+///
+/// This implementation uses [`clone`](Clone::clone) to construct a [`MentionFormat`] that owns the
+/// inner `CommandMention` as [`mention`](Mention::mention) takes a `&self`.
+/// The other implementations do this for types that are [`Copy`] and therefore do not need to use
+/// [`clone`](Clone::clone).
+///
+/// To avoid cloning use [`CommandMention::into_mention`].
+impl Mention<CommandMention> for CommandMention {
+    fn mention(&self) -> MentionFormat<CommandMention> {
+        MentionFormat(self.clone())
+    }
+}
+
+impl CommandMention {
+    /// Mention a command.
+    ///
+    /// This will format as:
+    /// - `</NAME:COMMAND_ID>` for commands
+    /// - `</NAME SUBCOMMAND:ID>` for subcommands
+    /// - `</NAME SUBCOMMAND_GROUP SUBCOMMAND:ID>` for subcommand groups
+    ///
+    /// This is a self-consuming alternative to [`CommandMention::mention`] and avoids cloning.
+    pub const fn into_mention(self) -> MentionFormat<CommandMention> {
+        MentionFormat(self)
+    }
+}
+
 /// Mention the current user. This will format as `<@ID>`.
 impl Mention<Id<UserMarker>> for CurrentUser {
     fn mention(&self) -> MentionFormat<Id<UserMarker>> {
