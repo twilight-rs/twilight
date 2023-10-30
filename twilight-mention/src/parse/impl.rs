@@ -355,19 +355,19 @@ fn match_command_mention_from_segments<'s>(
             })
         }
         (Some(name), None, None, None) => Ok(CommandMention::Command {
-            name: name.to_string(),
+            name: name.to_owned(),
             id,
         }),
         (Some(name), Some(sub_command), None, None) => Ok(CommandMention::SubCommand {
-            name: name.to_string(),
-            sub_command: sub_command.to_string(),
+            name: name.to_owned(),
+            sub_command: sub_command.to_owned(),
             id,
         }),
         (Some(name), Some(sub_command_group), Some(sub_command), None) => {
             Ok(CommandMention::SubCommandGroup {
-                name: name.to_string(),
-                sub_command: sub_command.to_string(),
-                sub_command_group: sub_command_group.to_string(),
+                name: name.to_owned(),
+                sub_command: sub_command.to_owned(),
+                sub_command_group: sub_command_group.to_owned(),
                 id,
             })
         }
@@ -583,7 +583,7 @@ mod tests {
 
         assert_eq!(
             CommandMention::Command {
-                name: "command".to_string(),
+                name: "command".to_owned(),
                 id: Id::new(123)
             },
             CommandMention::parse("</command:123>").unwrap()
@@ -591,8 +591,8 @@ mod tests {
 
         assert_eq!(
             CommandMention::SubCommand {
-                name: "command".to_string(),
-                sub_command: "subcommand".to_string(),
+                name: "command".to_owned(),
+                sub_command: "subcommand".to_owned(),
                 id: Id::new(123)
             },
             CommandMention::parse("</command subcommand:123>").unwrap()
@@ -601,8 +601,8 @@ mod tests {
         // this is more relaxed than the discord client
         assert_eq!(
             CommandMention::SubCommand {
-                name: "command".to_string(),
-                sub_command: "subcommand".to_string(),
+                name: "command".to_owned(),
+                sub_command: "subcommand".to_owned(),
                 id: Id::new(123)
             },
             CommandMention::parse("</command  subcommand:123>").unwrap()
@@ -610,9 +610,9 @@ mod tests {
 
         assert_eq!(
             CommandMention::SubCommandGroup {
-                name: "command".to_string(),
-                sub_command: "subcommand".to_string(),
-                sub_command_group: "subcommand_group".to_string(),
+                name: "command".to_owned(),
+                sub_command: "subcommand".to_owned(),
+                sub_command_group: "subcommand_group".to_owned(),
                 id: Id::new(123)
             },
             CommandMention::parse("</command subcommand_group subcommand:123>").unwrap()
