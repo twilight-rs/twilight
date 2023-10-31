@@ -943,11 +943,13 @@ mod tests {
 
     #[test]
     fn select_menu() {
-        fn check_select(default_values: Option<Vec<SelectDefaultValue>>) {
+        fn check_select(default_values: Option<Vec<(SelectDefaultValue, &'static str)>>) {
             let select_menu = Component::SelectMenu(SelectMenu {
                 channel_types: None,
                 custom_id: String::from("my_select"),
-                default_values: default_values.clone(),
+                default_values: default_values
+                    .clone()
+                    .map(|values| values.into_iter().map(|pair| pair.0).collect()),
                 disabled: false,
                 kind: SelectMenuType::User,
                 max_values: None,
@@ -974,11 +976,7 @@ mod tests {
                         len: Some(default_values.len()),
                     },
                 ]);
-                for value in &default_values {
-                    let id = match value {
-                        SelectDefaultValue::User(id) => id.to_string(),
-                        _ => panic!("unsupported select default value"),
-                    };
+                for (_, id) in default_values {
                     tokens.extend_from_slice(&[
                         Token::Struct {
                             name: "SelectDefaultValue",
@@ -991,7 +989,7 @@ mod tests {
                         },
                         Token::Str("id"),
                         Token::NewtypeStruct { name: "Id" },
-                        Token::Str(Box::leak::<'static>(Box::new(id))),
+                        Token::Str(id),
                         Token::StructEnd,
                     ])
                 }
@@ -1006,10 +1004,13 @@ mod tests {
         }
 
         check_select(None);
-        check_select(Some(vec![SelectDefaultValue::User(Id::new(1234))]));
-        check_select(Some(vec![
+        check_select(Some(vec![(
             SelectDefaultValue::User(Id::new(1234)),
-            SelectDefaultValue::User(Id::new(5432)),
+            "1234",
+        )]));
+        check_select(Some(vec![
+            (SelectDefaultValue::User(Id::new(1234)), "1234"),
+            (SelectDefaultValue::User(Id::new(5432)), "5432"),
         ]));
     }
 
