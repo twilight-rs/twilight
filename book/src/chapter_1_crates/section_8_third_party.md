@@ -17,6 +17,15 @@ Its features include slash command parsing and creation from structs with derive
 
 [GitHub repository][github/twilight-interactions] - [Documentation][docs-rs/twilight-interactions]
 
+### Vesper Framework
+
+`vesper` is a slash command framework meant to be used with twilight. 
+It uses procedural macros to make implementing slash commands as easy as possible and provides flexible argument parsing.
+Modals are also supported making use of derive macros, so they can be used effortlessly.
+
+[Github repository][github/vesper] - [Documentation][docs-rs/vesper]
+
 [docs-rs/twilight-interactions]: https://docs.rs/twilight-interactions/*/twilight_interactions/
 [github/twilight-interactions]: https://github.com/baptiste0928/twilight-interactions
-
+[docs-rs/vesper]: https://docs.rs/vesper/*/vesper/
+[github/vesper]: https://github.com/AlvaroMS25/vesper
