@@ -25,7 +25,8 @@ Modals are also supported making use of derive macros, so they can be used effor
 
 [Github repository][github/vesper] - [Documentation][docs-rs/vesper]
 
-[docs-rs/twilight-interactions]: https://docs.rs/twilight-interactions/*/twilight_interactions/
 [github/twilight-interactions]: https://github.com/baptiste0928/twilight-interactions
-[docs-rs/vesper]: https://docs.rs/vesper/*/vesper/
+[docs-rs/twilight-interactions]: https://docs.rs/twilight-interactions/*/twilight_interactions/
+
 [github/vesper]: https://github.com/AlvaroMS25/vesper
+[docs-rs/vesper]: https://docs.rs/vesper/*/vesper/
