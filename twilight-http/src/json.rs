@@ -1,7 +1,7 @@
 #[cfg(not(feature = "simd-json"))]
-pub use serde_json::{to_vec, Deserializer as JsonDeserializer, Error as JsonError};
+pub use serde_json::{to_vec, Error as JsonError};
 #[cfg(feature = "simd-json")]
-pub use simd_json::{to_vec, Deserializer as JsonDeserializer, Error as JsonError};
+pub use simd_json::{to_vec, Error as JsonError};
 
 use serde::de::DeserializeOwned;
 

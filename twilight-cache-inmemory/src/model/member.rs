@@ -26,7 +26,7 @@ pub struct CachedMember {
     pub(crate) communication_disabled_until: Option<Timestamp>,
     pub(crate) deaf: Option<bool>,
     pub(crate) flags: MemberFlags,
-    pub(crate) joined_at: Timestamp,
+    pub(crate) joined_at: Option<Timestamp>,
     pub(crate) mute: Option<bool>,
     pub(crate) nick: Option<String>,
     pub(crate) pending: bool,
@@ -66,7 +66,7 @@ impl CachedMember {
     }
 
     /// [`Timestamp`] of this member's join date.
-    pub const fn joined_at(&self) -> Timestamp {
+    pub const fn joined_at(&self) -> Option<Timestamp> {
         self.joined_at
     }
 
@@ -259,7 +259,7 @@ mod tests {
     );
 
     fn cached_member() -> CachedMember {
-        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
         CachedMember {
             avatar: None,
@@ -300,7 +300,7 @@ mod tests {
 
     #[test]
     fn eq_member() {
-        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let member = Member {
@@ -322,7 +322,7 @@ mod tests {
 
     #[test]
     fn eq_partial_member() {
-        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let member = PartialMember {

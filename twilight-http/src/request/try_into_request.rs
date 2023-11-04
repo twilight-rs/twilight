@@ -63,6 +63,7 @@ mod private {
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
             },
+            update_guild_onboarding::UpdateGuildOnboarding,
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
@@ -252,6 +253,7 @@ mod private {
     impl Sealed for UpdateGuildCommand<'_> {}
     impl Sealed for UpdateGuildMember<'_> {}
     impl Sealed for UpdateGuildMfa<'_> {}
+    impl Sealed for UpdateGuildOnboarding<'_> {}
     impl Sealed for UpdateGuildScheduledEvent<'_> {}
     impl Sealed for UpdateGuildSticker<'_> {}
     impl Sealed for UpdateGuildWelcomeScreen<'_> {}

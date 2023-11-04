@@ -183,6 +183,11 @@ pub enum ErrorType {
     /// println!("{:?}", error.source());
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`CreateMessage::content`]: crate::request::channel::message::create_message::CreateMessage
+    /// [`ExecuteWebhook::embeds`]: crate::request::channel::webhook::execute_webhook::ExecuteWebhook
+    /// [`IntoFuture`]: std::future::IntoFuture
+    /// [`TryIntoRequest`]: crate::request::TryIntoRequest
     Validation,
 }
 

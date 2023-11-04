@@ -107,7 +107,7 @@ mod tests {
         const JOIN_TIMESTAMP: &str = "2015-04-26T06:26:56.936000+00:00";
         const PREMIUM_SINCE: &str = "2021-03-16T14:29:19.046000+00:00";
 
-        let joined_at = Timestamp::from_str(JOIN_TIMESTAMP).expect("timestamp error");
+        let joined_at = Some(Timestamp::from_str(JOIN_TIMESTAMP).expect("timestamp error"));
         let premium_since = Timestamp::from_str(PREMIUM_SINCE).expect("timestamp error");
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
@@ -234,6 +234,7 @@ mod tests {
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str(JOIN_TIMESTAMP),
                 Token::Str("mute"),
                 Token::Bool(true),

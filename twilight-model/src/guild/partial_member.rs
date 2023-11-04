@@ -16,7 +16,7 @@ pub struct PartialMember {
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub flags: MemberFlags,
-    pub joined_at: Timestamp,
+    pub joined_at: Option<Timestamp>,
     pub mute: bool,
     pub nick: Option<String>,
     /// Permission data for the member.
@@ -45,7 +45,7 @@ mod tests {
 
     #[test]
     fn partial_member() -> Result<(), TimestampParseError> {
-        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?);
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = PartialMember {
@@ -76,6 +76,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),
