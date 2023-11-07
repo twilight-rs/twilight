@@ -15,7 +15,7 @@ pub use self::{
     action_row::ActionRow,
     button::{Button, ButtonStyle},
     kind::ComponentType,
-    select_menu::{SelectMenu, SelectMenuOption, SelectMenuType},
+    select_menu::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
     text_input::{TextInput, TextInputStyle},
 };
 
@@ -67,6 +67,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///     components: vec![Component::SelectMenu(SelectMenu {
 ///         channel_types: None,
 ///         custom_id: "class_select_1".to_owned(),
+///         default_values: None,
 ///         disabled: false,
 ///         kind: SelectMenuType::Text,
 ///         max_values: Some(3),
@@ -196,6 +197,7 @@ enum Field {
     ChannelTypes,
     Components,
     CustomId,
+    DefaultValues,
     Disabled,
     Emoji,
     Label,
@@ -235,6 +237,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
         // Optional fields.
         let mut channel_types: Option<Vec<ChannelType>> = None;
+        let mut default_values: Option<Vec<SelectDefaultValue>> = None;
         let mut disabled: Option<bool> = None;
         let mut emoji: Option<Option<ReactionType>> = None;
         let mut max_length: Option<Option<u16>> = None;
@@ -278,6 +281,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     }
 
                     custom_id = Some(map.next_value()?);
+                }
+                Field::DefaultValues => {
+                    if default_values.is_some() {
+                        return Err(DeError::duplicate_field("default_values"));
+                    }
+
+                    default_values = map.next_value()?;
                 }
                 Field::Disabled => {
                     if disabled.is_some() {
@@ -425,6 +435,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             // - options (if this is a text select menu)
             //
             // Optional fields:
+            // - default_values
             // - disabled
             // - max_values
             // - min_values
@@ -451,6 +462,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                 Self::Value::SelectMenu(SelectMenu {
                     channel_types,
                     custom_id,
+                    default_values,
                     disabled: disabled.unwrap_or_default(),
                     kind: match kind {
                         ComponentType::TextSelectMenu => SelectMenuType::Text,
@@ -545,6 +557,7 @@ impl Serialize for Component {
             //
             // Optional fields:
             // - channel_types (for channel select menus)
+            // - default_values
             // - disabled
             // - max_values
             // - min_values
@@ -553,6 +566,7 @@ impl Serialize for Component {
                 // We ignore text menus that don't include the `options` field, as those are
                 // detected later in the serialization process
                 2 + usize::from(select_menu.channel_types.is_some())
+                    + usize::from(select_menu.default_values.is_some())
                     + usize::from(select_menu.disabled)
                     + usize::from(select_menu.max_values.is_some())
                     + usize::from(select_menu.min_values.is_some())
@@ -648,6 +662,10 @@ impl Serialize for Component {
                 // optional in others, serialize as an Option.
                 state.serialize_field("custom_id", &Some(&select_menu.custom_id))?;
 
+                if select_menu.default_values.is_some() {
+                    state.serialize_field("default_values", &select_menu.default_values)?;
+                }
+
                 state.serialize_field("disabled", &select_menu.disabled)?;
 
                 if select_menu.max_values.is_some() {
@@ -710,6 +728,7 @@ mod tests {
     #![allow(clippy::non_ascii_literal)]
 
     use super::*;
+    use crate::id::Id;
     use serde_test::Token;
     use static_assertions::assert_impl_all;
 
@@ -736,6 +755,7 @@ mod tests {
                 Component::SelectMenu(SelectMenu {
                     channel_types: None,
                     custom_id: "test custom id 2".into(),
+                    default_values: None,
                     disabled: false,
                     kind: SelectMenuType::Text,
                     max_values: Some(25),
@@ -919,6 +939,79 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn select_menu() {
+        fn check_select(default_values: Option<Vec<(SelectDefaultValue, &'static str)>>) {
+            let select_menu = Component::SelectMenu(SelectMenu {
+                channel_types: None,
+                custom_id: String::from("my_select"),
+                default_values: default_values
+                    .clone()
+                    .map(|values| values.into_iter().map(|pair| pair.0).collect()),
+                disabled: false,
+                kind: SelectMenuType::User,
+                max_values: None,
+                min_values: None,
+                options: None,
+                placeholder: None,
+            });
+            let mut tokens = vec![
+                Token::Struct {
+                    name: "Component",
+                    len: 2 + usize::from(default_values.is_some()),
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::UserSelectMenu.into()),
+                Token::Str("custom_id"),
+                Token::Some,
+                Token::Str("my_select"),
+            ];
+            if let Some(default_values) = default_values {
+                tokens.extend_from_slice(&[
+                    Token::Str("default_values"),
+                    Token::Some,
+                    Token::Seq {
+                        len: Some(default_values.len()),
+                    },
+                ]);
+                for (_, id) in default_values {
+                    tokens.extend_from_slice(&[
+                        Token::Struct {
+                            name: "SelectDefaultValue",
+                            len: 2,
+                        },
+                        Token::Str("type"),
+                        Token::UnitVariant {
+                            name: "SelectDefaultValue",
+                            variant: "user",
+                        },
+                        Token::Str("id"),
+                        Token::NewtypeStruct { name: "Id" },
+                        Token::Str(id),
+                        Token::StructEnd,
+                    ])
+                }
+                tokens.push(Token::SeqEnd);
+            }
+            tokens.extend_from_slice(&[
+                Token::Str("disabled"),
+                Token::Bool(false),
+                Token::StructEnd,
+            ]);
+            serde_test::assert_tokens(&select_menu, &tokens);
+        }
+
+        check_select(None);
+        check_select(Some(vec![(
+            SelectDefaultValue::User(Id::new(1234)),
+            "1234",
+        )]));
+        check_select(Some(vec![
+            (SelectDefaultValue::User(Id::new(1234)), "1234"),
+            (SelectDefaultValue::User(Id::new(5432)), "5432"),
+        ]));
     }
 
     #[test]

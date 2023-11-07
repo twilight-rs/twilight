@@ -1,4 +1,6 @@
 use crate::channel::{message::ReactionType, ChannelType};
+use crate::id::marker::{ChannelMarker, RoleMarker, UserMarker};
+use crate::id::Id;
 use serde::{Deserialize, Serialize};
 
 /// Dropdown-style [`Component`] that renders below messages.
@@ -12,6 +14,8 @@ pub struct SelectMenu {
     pub channel_types: Option<Vec<ChannelType>>,
     /// Developer defined identifier.
     pub custom_id: String,
+    /// List of default values for auto-populated select menus.
+    pub default_values: Option<Vec<SelectDefaultValue>>,
     /// Whether the select menu is disabled.
     ///
     /// Defaults to `false`.
@@ -31,7 +35,7 @@ pub struct SelectMenu {
 }
 
 /// A [`SelectMenu`]'s type.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum SelectMenuType {
     /// Select menus with a text-based `options` list.
@@ -68,6 +72,18 @@ pub struct SelectMenuOption {
     pub value: String,
 }
 
+/// A default value for an auto-populated select menu.
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(tag = "type", content = "id", rename_all = "snake_case")]
+pub enum SelectDefaultValue {
+    /// Default user.
+    User(Id<UserMarker>),
+    /// Default role.
+    Role(Id<RoleMarker>),
+    /// Default channel.
+    Channel(Id<ChannelMarker>),
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -77,6 +93,7 @@ mod tests {
     assert_fields!(
         SelectMenu: channel_types,
         custom_id,
+        default_values,
         disabled,
         kind,
         max_values,
@@ -108,4 +125,17 @@ mod tests {
         Sync
     );
     assert_fields!(SelectMenuOption: default, description, emoji, label, value);
+
+    assert_impl_all!(
+        SelectDefaultValue: Copy,
+        Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        Ord,
+        PartialEq,
+        PartialOrd,
+        Serialize
+    );
 }

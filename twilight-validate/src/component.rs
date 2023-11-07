@@ -259,6 +259,13 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&SELECT_MAXIMUM_VALUES_LIMIT, f)
             }
+            ComponentValidationErrorType::SelectNotEnoughDefaultValues { provided, min } => {
+                f.write_str("a select menu provided ")?;
+                Display::fmt(provided, f)?;
+                f.write_str(" values, but it requires at least ")?;
+                Display::fmt(min, f)?;
+                f.write_str(" values")
+            }
             ComponentValidationErrorType::SelectOptionsMissing => {
                 f.write_str("a text select menu doesn't specify the required options field")
             }
@@ -296,6 +303,18 @@ impl Display for ComponentValidationError {
                 f.write_str(" options, but the max is ")?;
 
                 Display::fmt(&SELECT_OPTION_COUNT, f)
+            }
+            ComponentValidationErrorType::SelectTooManyDefaultValues { provided, max } => {
+                f.write_str("a select menu provided ")?;
+                Display::fmt(provided, f)?;
+                f.write_str(" values, but it allows at most ")?;
+                Display::fmt(max, f)?;
+                f.write_str(" values")
+            }
+            ComponentValidationErrorType::SelectUnsupportedDefaultValues { kind } => {
+                f.write_str("a select menu has defined default_values, but its type, ")?;
+                Debug::fmt(kind, f)?;
+                f.write_str(", does not support them")
             }
             ComponentValidationErrorType::TextInputLabelLength { len: count } => {
                 f.write_str("a text input label length is ")?;
@@ -402,6 +421,13 @@ pub enum ComponentValidationErrorType {
         /// Number of options that were provided.
         count: usize,
     },
+    /// The select menu specifies less default values than its own minimum values requirement.
+    SelectNotEnoughDefaultValues {
+        /// Number of default values provided.
+        provided: usize,
+        /// Select menu's minimum number of default values.
+        min: usize,
+    },
     /// The `options` field is `None` for a [text select menu][text-select].
     ///
     /// [text-select]: SelectMenuType::Text
@@ -435,6 +461,18 @@ pub enum ComponentValidationErrorType {
     SelectPlaceholderLength {
         /// Number of codepoints that were provided.
         chars: usize,
+    },
+    /// The select menu specifies less default values than its own minimum values requirement.
+    SelectTooManyDefaultValues {
+        /// Number of default values provided.
+        provided: usize,
+        /// Select menu's maximum number of values.
+        max: usize,
+    },
+    /// The select menu type doesn't support the `default_values` field.
+    SelectUnsupportedDefaultValues {
+        /// The select menu's type.
+        kind: SelectMenuType,
     },
     /// [`TextInput::label`] is invalid.
     TextInputLabelLength {
@@ -632,6 +670,15 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 /// Returns an error of type [`SelectPlaceholderLength`] if a provided select
 /// placeholder is too long.
 ///
+/// Returns an error of type [`SelectUnsupportedDefaultValues`] if the select menu's type doesn't
+/// support the `default_values` field.
+///
+/// Returns an error of type [`SelectNotEnoughDefaultValues`] if the select menu specifies fewer
+/// default values than its minimum values property.
+///
+/// Returns an error of type [`SelectTooManyDefaultValues`] if the select menu specifies more
+/// default values than its maximum values property.
+///
 /// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 /// [`SelectMaximumValuesCount`]: ComponentValidationErrorType::SelectMaximumValuesCount
@@ -640,6 +687,9 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 /// [`SelectOptionLabelLength`]: ComponentValidationErrorType::SelectOptionLabelLength
 /// [`SelectOptionValueLength`]: ComponentValidationErrorType::SelectOptionValueLength
 /// [`SelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
+/// [`SelectUnsupportedDefaultValues`]: ComponentValidationErrorType::SelectUnsupportedDefaultValues
+/// [`SelectNotEnoughDefaultValues`]: ComponentValidationErrorType::SelectNotEnoughDefaultValues
+/// [`SelectTooManyDefaultValues`]: ComponentValidationErrorType::SelectTooManyDefaultValues
 pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&select_menu.custom_id)?;
 
@@ -672,6 +722,15 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 
     if let Some(min_values) = select_menu.min_values {
         self::component_select_min_values(usize::from(min_values))?;
+    }
+
+    if let Some(default_values) = select_menu.default_values.as_ref() {
+        component_select_default_values_supported(select_menu.kind)?;
+        component_select_default_values_count(
+            select_menu.min_values,
+            select_menu.max_values,
+            default_values.len(),
+        )?;
     }
 
     Ok(())
@@ -809,6 +868,70 @@ fn component_option_description(
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::SelectOptionDescriptionLength { chars },
         });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`SelectMenuType`] supports the `default_values` field.
+///
+/// # Errors
+///
+/// Returns an error of type [`SelectUnsupportedDefaultValues`] if the provided component type
+/// doesn't support the `default_values` field.
+const fn component_select_default_values_supported(
+    menu_type: SelectMenuType,
+) -> Result<(), ComponentValidationError> {
+    if !matches!(
+        menu_type,
+        SelectMenuType::User
+            | SelectMenuType::Role
+            | SelectMenuType::Mentionable
+            | SelectMenuType::Channel
+    ) {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::SelectUnsupportedDefaultValues { kind: menu_type },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`SelectMenu`]'s `default_values` field has the correct number of values.
+///
+/// # Errors
+///
+/// Returns an error of the type [`SelectTooManyDefaultValues`] if the provided list of default
+/// values exceeds the provided `max_values` (if present).
+///
+/// Alternatively, this returns an error of the type [`SelectNotEnoughDefaultValues`] if the
+/// provided list of default values doesn't meet the provided `min_values` requirement (if present).
+const fn component_select_default_values_count(
+    min_values: Option<u8>,
+    max_values: Option<u8>,
+    default_values: usize,
+) -> Result<(), ComponentValidationError> {
+    if let Some(min) = min_values {
+        let min = min as usize;
+        if default_values < min {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::SelectNotEnoughDefaultValues {
+                    provided: default_values,
+                    min,
+                },
+            });
+        }
+    }
+    if let Some(max) = max_values {
+        let max = max as usize;
+        if default_values > max {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::SelectTooManyDefaultValues {
+                    provided: default_values,
+                    max,
+                },
+            });
+        }
     }
 
     Ok(())
@@ -1111,6 +1234,7 @@ mod tests {
             channel_types: None,
             custom_id: "custom id 2".into(),
             disabled: false,
+            default_values: None,
             kind: SelectMenuType::Text,
             max_values: Some(2),
             min_values: Some(1),
@@ -1223,6 +1347,33 @@ mod tests {
         assert!(component_option_description("a".repeat(100)).is_ok());
 
         assert!(component_option_description("a".repeat(101)).is_err());
+    }
+
+    #[test]
+    fn component_select_default_values_support() {
+        assert!(component_select_default_values_supported(SelectMenuType::User).is_ok());
+        assert!(component_select_default_values_supported(SelectMenuType::Role).is_ok());
+        assert!(component_select_default_values_supported(SelectMenuType::Mentionable).is_ok());
+        assert!(component_select_default_values_supported(SelectMenuType::Channel).is_ok());
+
+        assert!(component_select_default_values_supported(SelectMenuType::Text).is_err());
+    }
+
+    #[test]
+    fn component_select_num_default_values() {
+        assert!(component_select_default_values_count(None, None, 0).is_ok());
+        assert!(component_select_default_values_count(None, None, 1).is_ok());
+        assert!(component_select_default_values_count(Some(1), None, 5).is_ok());
+        assert!(component_select_default_values_count(Some(5), None, 5).is_ok());
+        assert!(component_select_default_values_count(None, Some(5), 5).is_ok());
+        assert!(component_select_default_values_count(None, Some(10), 5).is_ok());
+        assert!(component_select_default_values_count(Some(5), Some(5), 5).is_ok());
+        assert!(component_select_default_values_count(Some(1), Some(10), 5).is_ok());
+
+        assert!(component_select_default_values_count(Some(2), None, 1).is_err());
+        assert!(component_select_default_values_count(None, Some(1), 2).is_err());
+        assert!(component_select_default_values_count(Some(1), Some(1), 2).is_err());
+        assert!(component_select_default_values_count(Some(2), Some(2), 1).is_err());
     }
 
     #[test]
