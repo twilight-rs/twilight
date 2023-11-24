@@ -1387,7 +1387,7 @@ mod tests {
         assert!(username("no @ in username").is_err());
         assert!(username("no # in username").is_err());
         assert!(username("no : in username").is_err());
-        assert!(username(r#"no ``` in username"#).is_err());
+        assert!(username(r"no ``` in username").is_err());
         assert!(username("no discord in username").is_err());
         assert!(username("everyone").is_err());
         assert!(username("here").is_err());
