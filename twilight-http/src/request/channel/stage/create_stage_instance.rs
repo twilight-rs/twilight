@@ -57,7 +57,7 @@ impl<'a> CreateStageInstance<'a> {
         })
     }
 
-    /// Set the guild scheduled event associated with this Stage instance.
+    /// Set the guild scheduled event associated with this stage instance.
     pub const fn guild_scheduled_event_id(
         mut self,
         guild_scheduled_event_id: Id<ScheduledEventMarker>,
