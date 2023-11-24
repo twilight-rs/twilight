@@ -421,13 +421,13 @@ mod tests {
         }
     }
 
-    #[should_panic]
+    #[should_panic(expected = "large threshold isn't in the accepted range")]
     #[tokio::test]
     async fn large_threshold_minimum() {
         drop(builder().large_threshold(49));
     }
 
-    #[should_panic]
+    #[should_panic(expected = "large threshold isn't in the accepted range")]
     #[tokio::test]
     async fn large_threshold_maximum() {
         drop(builder().large_threshold(251));

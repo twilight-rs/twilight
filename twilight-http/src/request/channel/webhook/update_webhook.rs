@@ -150,7 +150,7 @@ mod tests {
         let client = Client::new("token".into());
 
         {
-            let expected = r#"{}"#;
+            let expected = r"{}";
             let actual = UpdateWebhook::new(&client, WEBHOOK_ID).try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
