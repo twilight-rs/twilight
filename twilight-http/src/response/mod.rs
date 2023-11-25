@@ -445,7 +445,7 @@ impl Future for BytesFuture {
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if let Poll::Ready(result) = Pin::new(&mut self.inner).poll(cx) {
-            Poll::Ready(result.map(|b| b.into_iter().collect()))
+            Poll::Ready(result.map(|b| b.to_vec()))
         } else {
             Poll::Pending
         }
