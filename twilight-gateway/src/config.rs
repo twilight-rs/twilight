@@ -125,7 +125,7 @@ impl<Q> Config<Q> {
     }
 
     /// Immutable reference to the queue in use by the shard.
-    pub fn queue(&self) -> &Q {
+    pub const fn queue(&self) -> &Q {
         &self.queue
     }
 
@@ -222,13 +222,13 @@ impl<Q> ConfigBuilder<Q> {
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env::{self, consts::OS};
-    /// use twilight_gateway::{Config, Intents, Shard};
+    /// use twilight_gateway::{ConfigBuilder, Intents, Shard};
     /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS);
     ///
-    /// let config = Config::builder(token, Intents::empty())
+    /// let config = ConfigBuilder::new(token, Intents::empty())
     ///     .identify_properties(properties)
     ///     .build();
     /// # Ok(()) }
@@ -289,7 +289,7 @@ impl<Q> ConfigBuilder<Q> {
     ///
     /// ```no_run
     /// use std::env;
-    /// use twilight_gateway::{Config, Intents, Shard, ShardId};
+    /// use twilight_gateway::{ConfigBuilder, Intents, Shard, ShardId};
     /// use twilight_model::gateway::{
     ///     payload::outgoing::update_presence::UpdatePresencePayload,
     ///     presence::{ActivityType, MinimalActivity, Status},
@@ -297,7 +297,7 @@ impl<Q> ConfigBuilder<Q> {
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder(env::var("DISCORD_TOKEN")?, Intents::empty())
+    /// let config = ConfigBuilder::new(env::var("DISCORD_TOKEN")?, Intents::empty())
     ///     .presence(UpdatePresencePayload::new(
     ///         vec![MinimalActivity {
     ///             kind: ActivityType::Playing,

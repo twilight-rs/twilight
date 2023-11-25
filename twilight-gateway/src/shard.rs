@@ -294,7 +294,7 @@ enum NextAction {
 ///
 /// ```no_run
 /// use std::env;
-/// use twilight_gateway::{Config, Event, EventTypeFlags, Intents, Shard, ShardId};
+/// use twilight_gateway::{ConfigBuilder, Event, EventTypeFlags, Intents, Shard, ShardId};
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
@@ -303,7 +303,7 @@ enum NextAction {
 /// let token = env::var("DISCORD_TOKEN")?;
 /// let event_types = EventTypeFlags::MESSAGE_CREATE | EventTypeFlags::MESSAGE_DELETE;
 ///
-/// let config = Config::builder(token, Intents::GUILD_MESSAGES)
+/// let config = ConfigBuilder::new(token, Intents::GUILD_MESSAGES)
 ///     .event_types(event_types)
 ///     .build();
 /// let mut shard = Shard::with_config(ShardId::ONE, config);

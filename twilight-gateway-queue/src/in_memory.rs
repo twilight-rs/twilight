@@ -168,7 +168,7 @@ impl InMemoryQueue {
         assert!(total >= remaining);
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let fut = runner(
+        tokio::spawn(runner(
             rx,
             Settings {
                 max_concurrency,
@@ -176,9 +176,7 @@ impl InMemoryQueue {
                 reset_after,
                 total,
             },
-        );
-
-        tokio::spawn(fut);
+        ));
 
         Self { tx }
     }
