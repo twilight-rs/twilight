@@ -561,11 +561,12 @@ impl Future for TextFuture {
                 // This is a very cold path. Converting a response body to a
                 // UTF-8 valid string should basically never fail anyway; it's
                 // worth it to have the context readily available for the user.
-                let copy = source.as_bytes().to_owned();
+                let utf8_error = source.utf8_error();
+                let bytes = source.into_bytes();
 
                 DeserializeBodyError {
-                    kind: DeserializeBodyErrorType::BodyNotUtf8 { bytes: copy },
-                    source: Some(Box::new(source)),
+                    kind: DeserializeBodyErrorType::BodyNotUtf8 { bytes },
+                    source: Some(Box::new(utf8_error)),
                 }
             })),
             Poll::Ready(Err(source)) => Poll::Ready(Err(source)),
