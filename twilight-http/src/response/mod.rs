@@ -558,9 +558,6 @@ impl Future for TextFuture {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match Pin::new(&mut self.0).poll(cx) {
             Poll::Ready(Ok(bytes)) => Poll::Ready(String::from_utf8(bytes).map_err(|source| {
-                // This is a very cold path. Converting a response body to a
-                // UTF-8 valid string should basically never fail anyway; it's
-                // worth it to have the context readily available for the user.
                 let utf8_error = source.utf8_error();
                 let bytes = source.into_bytes();
 
