@@ -26,11 +26,14 @@ const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 /// defaults.
 ///
 /// [`GuildCreate`]: twilight_model::gateway::payload::incoming::GuildCreate
+#[allow(deprecated)]
 const WEBSOCKET_CONFIG: WebSocketConfig = WebSocketConfig {
     accept_unmasked_frames: false,
     max_frame_size: None,
     max_message_size: None,
     max_send_queue: None,
+    write_buffer_size: 128 * 1024,
+    max_write_buffer_size: usize::MAX,
 };
 
 /// [`tokio_tungstenite`] library Websocket connection.
