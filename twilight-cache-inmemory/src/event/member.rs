@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use crate::{
     config::ResourceType,
-    model::member::ComputedInteractionMemberFields,
+    model::member::ComputedInteractionMember,
     traits::{
         CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
         CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
@@ -123,11 +123,13 @@ impl<
             .or_default()
             .insert(user_id);
 
-        let cached = CachedMember::from((
+        let cached = CachedMember::from(ComputedInteractionMember {
+            avatar,
+            deaf,
+            interaction_member: member.clone(),
+            mute,
             user_id,
-            member.clone(),
-            ComputedInteractionMemberFields { avatar, deaf, mute },
-        ));
+        });
 
         self.members.insert(id, cached);
     }

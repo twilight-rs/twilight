@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use serde::Serialize;
 use twilight_model::{
     application::interaction::InteractionMember,
@@ -12,29 +14,27 @@ use twilight_model::{
 
 use crate::CacheableMember;
 
-/// Computed fields required to complete a full cached member by implementing
-/// [`CacheableMember`] that are not otherwise present.
+/// Computed components required to complete a full cached interaction member
+/// by implementing [`CacheableMember`].
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ComputedInteractionMemberFields {
-    pub(crate) avatar: Option<ImageHash>,
-    pub(crate) deaf: Option<bool>,
-    pub(crate) mute: Option<bool>,
+pub struct ComputedInteractionMember {
+    /// Member's guild avatar.
+    pub avatar: Option<ImageHash>,
+    /// Whether the member is deafened in a voice channel.
+    pub deaf: Option<bool>,
+    /// Member that performed the interaction.
+    pub interaction_member: InteractionMember,
+    /// Whether the member is muted in a voice channel.
+    pub mute: Option<bool>,
+    /// ID of the user relating to the member.
+    pub user_id: Id<UserMarker>,
 }
 
-impl ComputedInteractionMemberFields {
-    /// Member's guild avatar.
-    pub const fn avatar(&self) -> Option<ImageHash> {
-        self.avatar
-    }
+impl Deref for ComputedInteractionMember {
+    type Target = InteractionMember;
 
-    /// Whether the member is deafened in a voice channel.
-    pub const fn deaf(&self) -> Option<bool> {
-        self.deaf
-    }
-
-    /// Whether the member is muted in a voice channel.
-    pub const fn mute(&self) -> Option<bool> {
-        self.mute
+    fn deref(&self) -> &Self::Target {
+        &self.interaction_member
     }
 }
 
@@ -155,20 +155,15 @@ impl From<Member> for CachedMember {
     }
 }
 
-impl
-    From<(
-        Id<UserMarker>,
-        InteractionMember,
-        ComputedInteractionMemberFields,
-    )> for CachedMember
-{
-    fn from(
-        (user_id, member, fields): (
-            Id<UserMarker>,
-            InteractionMember,
-            ComputedInteractionMemberFields,
-        ),
-    ) -> Self {
+impl From<ComputedInteractionMember> for CachedMember {
+    fn from(member: ComputedInteractionMember) -> Self {
+        let ComputedInteractionMember {
+            avatar,
+            deaf,
+            mute,
+            user_id,
+            interaction_member,
+        } = member;
         let InteractionMember {
             avatar: _,
             communication_disabled_until,
@@ -179,8 +174,7 @@ impl
             permissions: _,
             premium_since,
             roles,
-        } = member;
-        let ComputedInteractionMemberFields { avatar, deaf, mute } = fields;
+        } = interaction_member;
 
         Self {
             avatar,

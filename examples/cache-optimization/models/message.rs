@@ -8,17 +8,21 @@ use twilight_model::{
 #[derive(Clone, Debug, PartialEq)]
 pub struct MinimalCachedMessage {
     pub id: Id<MessageMarker>,
+    pub content: String,
 }
 
 impl From<Message> for MinimalCachedMessage {
     fn from(message: Message) -> Self {
-        Self { id: message.id }
+        Self {
+            id: message.id,
+            content: message.content,
+        }
     }
 }
 
 impl PartialEq<Message> for MinimalCachedMessage {
     fn eq(&self, other: &Message) -> bool {
-        self.id == other.id
+        self.id == other.id && self.content == other.content
     }
 }
 
@@ -48,6 +52,8 @@ impl CacheableMessage for MinimalCachedMessage {
     }
 
     fn update_with_message_update(&mut self, message_update: &MessageUpdate) {
-        self.id = message_update.id;
+        if let Some(content) = &message_update.content {
+            self.content = content.clone();
+        }
     }
 }

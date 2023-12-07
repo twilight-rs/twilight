@@ -1,4 +1,4 @@
-use twilight_cache_inmemory::{model::ComputedInteractionMemberFields, CacheableMember};
+use twilight_cache_inmemory::{model::ComputedInteractionMember, CacheableMember};
 use twilight_model::{
     application::interaction::InteractionMember,
     gateway::payload::incoming::MemberUpdate,
@@ -37,23 +37,11 @@ impl From<(Id<UserMarker>, PartialMember)> for MinimalCachedMember {
     }
 }
 
-impl
-    From<(
-        Id<UserMarker>,
-        InteractionMember,
-        ComputedInteractionMemberFields,
-    )> for MinimalCachedMember
-{
-    fn from(
-        (user_id, member, _): (
-            Id<UserMarker>,
-            InteractionMember,
-            ComputedInteractionMemberFields,
-        ),
-    ) -> Self {
+impl From<ComputedInteractionMember> for MinimalCachedMember {
+    fn from(member: ComputedInteractionMember) -> Self {
         Self {
-            user_id,
-            roles: member.roles,
+            user_id: member.user_id,
+            roles: member.interaction_member.roles,
             avatar: member.avatar,
         }
     }
@@ -70,7 +58,7 @@ impl PartialEq<PartialMember> for MinimalCachedMember {
         other
             .user
             .as_ref()
-            .map_or(true, |user| user.id == self.user_id)
+            .map_or(false, |user| user.id == self.user_id)
             && self.roles == other.roles
             && self.avatar == other.avatar
     }

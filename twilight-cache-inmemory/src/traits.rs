@@ -22,7 +22,7 @@
 //!
 //! [`InMemoryCache`]: crate::InMemoryCache
 
-use crate::model::member::ComputedInteractionMemberFields;
+use crate::model::member::ComputedInteractionMember;
 use std::fmt::Debug;
 use twilight_model::{
     application::interaction::InteractionMember,
@@ -49,11 +49,8 @@ use twilight_model::{channel::permission_overwrite::PermissionOverwrite, guild::
 /// Trait for a generic cached representation of a [`Member`].
 pub trait CacheableMember:
     From<Member>
-    + From<(
-        Id<UserMarker>,
-        InteractionMember,
-        ComputedInteractionMemberFields,
-    )> + From<(Id<UserMarker>, PartialMember)>
+    + From<ComputedInteractionMember>
+    + From<(Id<UserMarker>, PartialMember)>
     + PartialEq<Member>
     + PartialEq<PartialMember>
     + PartialEq<InteractionMember>

@@ -12,7 +12,7 @@ mod voice_state;
 pub use self::{
     emoji::CachedEmoji,
     guild::CachedGuild,
-    member::{CachedMember, ComputedInteractionMemberFields},
+    member::{CachedMember, ComputedInteractionMember},
     message::CachedMessage,
     presence::CachedPresence,
     sticker::CachedSticker,
