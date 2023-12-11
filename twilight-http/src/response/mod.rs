@@ -53,11 +53,12 @@ mod status_code;
 pub use self::{future::ResponseFuture, status_code::StatusCode};
 
 use self::marker::ListBody;
-use hyper::{
-    body::{self, Bytes},
+use http::{
     header::{HeaderValue, Iter as HeaderMapIter},
-    Body, Response as HyperResponse,
+    Response as HyperResponse,
 };
+use http_body_util::BodyExt;
+use hyper::body::{Bytes, Incoming};
 use serde::de::DeserializeOwned;
 use std::{
     error::Error,
@@ -174,12 +175,12 @@ pub enum DeserializeBodyErrorType {
 /// ```
 #[derive(Debug)]
 pub struct Response<T> {
-    inner: HyperResponse<Body>,
+    inner: HyperResponse<Incoming>,
     phantom: PhantomData<T>,
 }
 
 impl<T> Response<T> {
-    pub(crate) const fn new(inner: HyperResponse<Body>) -> Self {
+    pub(crate) const fn new(inner: HyperResponse<Incoming>) -> Self {
         Self {
             inner,
             phantom: PhantomData,
@@ -237,7 +238,7 @@ impl<T> Response<T> {
         let compressed = self
             .inner
             .headers()
-            .get(hyper::header::CONTENT_ENCODING)
+            .get(http::header::CONTENT_ENCODING)
             .is_some();
 
         let body = self.inner.into_body();
@@ -249,12 +250,14 @@ impl<T> Response<T> {
                     return decompress(body).await;
                 }
 
-                body::to_bytes(body)
+                Ok(body
+                    .collect()
                     .await
                     .map_err(|source| DeserializeBodyError {
                         kind: DeserializeBodyErrorType::Chunking,
                         source: Some(Box::new(source)),
-                    })
+                    })?
+                    .to_bytes())
             }
         };
 
@@ -573,17 +576,22 @@ impl Future for TextFuture {
 }
 
 #[cfg(feature = "decompression")]
-async fn decompress(body: Body) -> Result<Bytes, DeserializeBodyError> {
+async fn decompress<B: hyper::body::Body>(body: B) -> Result<Bytes, DeserializeBodyError>
+where
+    <B as hyper::body::Body>::Error: Send + Sync + Error + 'static,
+{
     use brotli::Decompressor;
     use hyper::body::Buf;
     use std::io::Read;
 
-    let aggregate = body::aggregate(body)
+    let aggregate = body
+        .collect()
         .await
         .map_err(|source| DeserializeBodyError {
             kind: DeserializeBodyErrorType::Chunking,
             source: Some(Box::new(source)),
-        })?;
+        })?
+        .aggregate();
 
     // Determine the size of the entire buffer, in order to create the
     // decompressed and compressed buffers.
@@ -628,7 +636,7 @@ mod tests {
     #[tokio::test]
     async fn test_decompression() -> Result<(), Box<dyn Error + Send + Sync>> {
         use super::decompress;
-        use hyper::Body;
+        use http_body_util::Full;
         use twilight_model::guild::invite::Invite;
 
         const COMPRESSED: [u8; 685] = [
@@ -671,7 +679,7 @@ mod tests {
             3,
         ];
 
-        let decompressed = decompress(Body::from(COMPRESSED.as_ref())).await?;
+        let decompressed = decompress(Full::new(COMPRESSED.as_slice())).await?;
 
         let deserialized = serde_json::from_slice::<Invite>(&decompressed)?;
 

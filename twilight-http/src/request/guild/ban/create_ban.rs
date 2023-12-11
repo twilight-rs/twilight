@@ -142,7 +142,7 @@ mod tests {
         client::Client,
         request::{AuditLogReason, TryIntoRequest, REASON_HEADER_NAME},
     };
-    use hyper::header::HeaderValue;
+    use http::header::HeaderValue;
     use std::error::Error;
     use twilight_http_ratelimiting::Method;
     use twilight_model::id::{
