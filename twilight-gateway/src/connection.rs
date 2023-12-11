@@ -6,7 +6,7 @@ use crate::{
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use tokio::net::TcpStream;
-use tokio_websockets::{ClientBuilder, Connector, Limits, MaybeTlsStream, WebsocketStream};
+use tokio_websockets::{ClientBuilder, Connector, Limits, MaybeTlsStream, WebSocketStream};
 
 /// Query argument with zlib-stream enabled.
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
@@ -24,7 +24,7 @@ const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 /// Connections are used by [`Shard`]s when reconnecting.
 ///
 /// [`Shard`]: crate::Shard
-pub type Connection = WebsocketStream<MaybeTlsStream<TcpStream>>;
+pub type Connection = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
 /// Formatter for a gateway URL, with the API version and compression features
 /// specified.

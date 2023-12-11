@@ -41,7 +41,7 @@ use tokio::{
     time as tokio_time,
 };
 use tokio_websockets::{
-    upgrade, ClientBuilder, Error as WebsocketError, MaybeTlsStream, Message, WebsocketStream,
+    upgrade, ClientBuilder, Error as WebsocketError, MaybeTlsStream, Message, WebSocketStream,
 };
 use twilight_model::id::{marker::UserMarker, Id};
 
@@ -464,7 +464,7 @@ impl Node {
 
 struct Connection {
     config: NodeConfig,
-    stream: WebsocketStream<MaybeTlsStream<TcpStream>>,
+    stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
     node_from: UnboundedReceiver<OutgoingEvent>,
     node_to: UnboundedSender<IncomingEvent>,
     players: PlayerManager,
@@ -635,7 +635,7 @@ fn connect_request(state: &NodeConfig) -> Result<ClientBuilder, NodeError> {
 
 async fn reconnect(
     config: &NodeConfig,
-) -> Result<WebsocketStream<MaybeTlsStream<TcpStream>>, NodeError> {
+) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, NodeError> {
     let (mut stream, res) = backoff(config).await?;
 
     let headers = res.headers();
@@ -668,7 +668,7 @@ async fn backoff(
     config: &NodeConfig,
 ) -> Result<
     (
-        WebsocketStream<MaybeTlsStream<TcpStream>>,
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
         upgrade::Response,
     ),
     NodeError,
