@@ -1,7 +1,10 @@
 use std::future::IntoFuture;
 
 use serde::Serialize;
-use twilight_model::oauth::{Application, ApplicationFlags, InstallParams};
+use twilight_model::oauth::{
+    Application, ApplicationFlags, ApplicationIntegrationMap, ApplicationIntegrationTypeConfig,
+    InstallParams,
+};
 
 use crate::{
     client::Client,
@@ -25,6 +28,8 @@ struct UpdateCurrentUserApplicationFields<'a> {
     icon: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     install_params: Option<InstallParams>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    integration_types_config: Option<ApplicationIntegrationMap<ApplicationIntegrationTypeConfig>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     interactions_endpoint_url: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -77,6 +82,7 @@ impl<'a> UpdateCurrentUserApplication<'a> {
                 flags: None,
                 icon: None,
                 install_params: None,
+                integration_types_config: None,
                 interactions_endpoint_url: None,
                 role_connections_verification_url: None,
                 tags: None,
@@ -125,6 +131,24 @@ impl<'a> UpdateCurrentUserApplication<'a> {
     /// Sets the install params of the application.
     pub fn install_params(mut self, install_params: InstallParams) -> Self {
         self.fields.install_params = Some(install_params);
+
+        self
+    }
+
+    pub fn integrations_types_config(
+        mut self,
+        guild: Option<InstallParams>,
+        user: Option<InstallParams>,
+    ) -> Self {
+        let guild = guild.map(|g| ApplicationIntegrationTypeConfig {
+            oauth2_install_params: Some(g),
+        });
+
+        let user = user.map(|u| ApplicationIntegrationTypeConfig {
+            oauth2_install_params: Some(u),
+        });
+
+        self.fields.integration_types_config = Some(ApplicationIntegrationMap { guild, user });
 
         self
     }

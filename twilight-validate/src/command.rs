@@ -841,6 +841,7 @@ mod tests {
     fn command_length() {
         let valid_command = Command {
             application_id: Some(Id::new(1)),
+            contexts: None,
             default_member_permissions: None,
             dm_permission: None,
             description: "a".repeat(100),
@@ -850,6 +851,7 @@ mod tests {
             )])),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
+            integration_types: None,
             kind: CommandType::ChatInput,
             name: "b".repeat(32),
             name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
@@ -993,6 +995,8 @@ mod tests {
                 required: None,
             }]),
             version: Id::new(4),
+            contexts: None,
+            integration_types: None,
         };
 
         assert_eq!(command_characters(&command), 660);

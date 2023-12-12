@@ -147,6 +147,7 @@ mod tests {
             guild_id: Some(Id::new(1)),
             id: Id::new(4),
             interaction: None,
+            interaction_metadata: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 avatar: None,
@@ -170,11 +171,11 @@ mod tests {
             poll: None,
             reactions: Vec::new(),
             reference: None,
+            referenced_message: None,
             role_subscription_data: None,
             sticker_items: Vec::new(),
-            thread: None,
-            referenced_message: None,
             timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
+            thread: None,
             tts: false,
             webhook_id: None,
         };
