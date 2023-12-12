@@ -301,6 +301,7 @@ impl CachedMessage {
 }
 
 impl From<Message> for CachedMessage {
+    #[allow(deprecated)]
     fn from(message: Message) -> Self {
         let Message {
             activity,
@@ -318,6 +319,7 @@ impl From<Message> for CachedMessage {
             guild_id,
             id,
             interaction,
+            interaction_metadata: _,
             kind,
             member,
             mention_channels,
@@ -376,6 +378,7 @@ impl From<Message> for CachedMessage {
 }
 
 impl PartialEq<Message> for CachedMessage {
+    #[allow(deprecated)]
     fn eq(&self, other: &Message) -> bool {
         self.id == other.id
             && self.activity == other.activity
