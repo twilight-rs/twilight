@@ -97,6 +97,8 @@ mod tests {
             nsfw: Some(true),
             options: Vec::new(),
             version: Id::new(1),
+            contexts: None,
+            integration_types: None,
         };
         _ = CommandBorrowed {
             application_id: command.application_id,

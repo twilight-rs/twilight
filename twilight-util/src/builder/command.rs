@@ -63,6 +63,7 @@ pub struct CommandBuilder(Command);
 impl CommandBuilder {
     /// Create a new default [`Command`] builder.
     #[must_use = "builders have no effect if unused"]
+    #[allow(deprecated)]
     pub fn new(name: impl Into<String>, description: impl Into<String>, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
@@ -78,6 +79,8 @@ impl CommandBuilder {
             nsfw: None,
             options: Vec::new(),
             version: Id::new(1),
+            contexts: None,
+            integration_types: None,
         })
     }
 
@@ -124,6 +127,7 @@ impl CommandBuilder {
     /// Set whether the command is available in DMs.
     ///
     /// Defaults to [`None`].
+    #[allow(deprecated)]
     pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
         self.0.dm_permission = Some(dm_permission);
 
@@ -1455,16 +1459,18 @@ mod tests {
 
         let command_manual = Command {
             application_id: None,
+            contexts: None,
             default_member_permissions: None,
             dm_permission: None,
             description: String::from("Get or edit permissions for a user or a role"),
+            description_localizations: None,
             guild_id: None,
             id: None,
+            integration_types: None,
             kind: CommandType::ChatInput,
             name: String::from("permissions"),
             name_localizations: None,
             nsfw: Some(true),
-            description_localizations: None,
             options: Vec::from([
                 CommandOption {
                     autocomplete: None,

@@ -26,9 +26,12 @@ use crate::{
         marker::{ApplicationMarker, CommandMarker, CommandVersionMarker, GuildMarker},
         Id,
     },
+    oauth::ApplicationIntegrationType,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use super::interaction::InteractionContextType;
 
 /// Data sent to Discord to create a command.
 ///
@@ -41,6 +44,8 @@ use std::collections::HashMap;
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contexts: Option<Vec<InteractionContextType>>,
     /// Default permissions required for a member to run the command.
     ///
     /// Setting this [`Permissions::empty()`] will prohibit anyone from running
@@ -50,6 +55,7 @@ pub struct Command {
     ///
     /// This is only relevant for globally-scoped commands. By default, commands
     /// are visible in DMs.
+    #[deprecated(note = "use contexts instead")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dm_permission: Option<bool>,
     /// Description of the command.
@@ -71,6 +77,8 @@ pub struct Command {
     pub guild_id: Option<Id<GuildMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<Id<CommandMarker>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub integration_types: Option<Vec<ApplicationIntegrationType>>,
     #[serde(rename = "type")]
     pub kind: CommandType,
     pub name: String,
@@ -312,6 +320,8 @@ mod tests {
                 required: None,
             }]),
             version: Id::new(1),
+            contexts: None,
+            integration_types: None,
         };
 
         serde_test::assert_tokens(
