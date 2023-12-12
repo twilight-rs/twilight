@@ -1075,7 +1075,7 @@ mod tests {
         },
         guild::Permissions,
         id::{marker::GuildMarker, Id},
-        oauth::{ApplicationFlags, PartialApplication},
+        oauth::{ApplicationFlags, PartialApplication, ApplicationIntegrationMap},
         user::{CurrentUser, User},
         util::Timestamp,
     };
@@ -1116,6 +1116,7 @@ mod tests {
             guild_id: Some(Id::new(4)),
             id: Id::new(3),
             interaction: None,
+            interaction_metadata: None,
             kind: MessageType::Regular,
             member: None,
             mention_channels: Vec::new(),
@@ -1152,8 +1153,12 @@ mod tests {
     #[allow(deprecated)]
     fn button() -> Interaction {
         Interaction {
-            app_permissions: Some(Permissions::SEND_MESSAGES),
+            app_permissions: Permissions::SEND_MESSAGES,
             application_id: Id::new(1),
+            authorizing_integration_owners: ApplicationIntegrationMap {
+                guild: None,
+                user: None,
+            },
             channel: Some(Channel {
                 bitrate: None,
                 guild_id: None,

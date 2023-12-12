@@ -1,4 +1,8 @@
-use super::{team::Team, ApplicationFlags, InstallParams};
+use super::{
+    application_integration_type::{ApplicationIntegrationMap, ApplicationIntegrationTypeConfig},
+    team::Team,
+    ApplicationFlags, InstallParams,
+};
 use crate::{
     guild::Guild,
     id::{
@@ -43,6 +47,9 @@ pub struct Application {
     /// Interactions endpoint URL for the app.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interactions_endpoint_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub integration_types_config:
+        Option<ApplicationIntegrationMap<ApplicationIntegrationTypeConfig>>,
     /// Name of the application.
     pub name: String,
     pub owner: Option<User>,
@@ -170,6 +177,7 @@ mod tests {
             }),
             terms_of_service_url: Some("https://termsofservice".into()),
             verify_key: "key".to_owned(),
+            integration_types_config: None,
         };
 
         serde_test::assert_tokens(
