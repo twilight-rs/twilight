@@ -24,6 +24,16 @@ pub enum Message {
 }
 
 impl Message {
+    /// Whether the message is a close message.
+    pub const fn is_close(&self) -> bool {
+        matches!(self, Self::Close(_))
+    }
+
+    /// Whether the message is a text message.
+    pub const fn is_text(&self) -> bool {
+        matches!(self, Self::Text(_))
+    }
+
     /// Convert a `tokio-websockets` websocket message into a `twilight` websocket
     /// message.
     pub(crate) fn from_websocket_msg(msg: &WebsocketMessage) -> Option<Self> {

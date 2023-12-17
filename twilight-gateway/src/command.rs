@@ -2,11 +2,6 @@
 //!
 //! [`Shard::command`]: crate::Shard::command
 
-use crate::{
-    error::{SendError, SendErrorType},
-    json,
-};
-use serde::Serialize;
 use twilight_model::gateway::payload::outgoing::{
     RequestGuildMembers, UpdatePresence, UpdateVoiceState,
 };
@@ -52,38 +47,15 @@ impl Command for RequestGuildMembers {}
 impl Command for UpdatePresence {}
 impl Command for UpdateVoiceState {}
 
-/// Prepare a command for sending by serializing it.
-///
-/// # Errors
-///
-/// Returns a [`SendErrorType::Serializing`] error type if the provided value
-/// failed to serialize into JSON.
-pub fn prepare(command: &impl Serialize) -> Result<String, SendError> {
-    json::to_string(command).map_err(|source| SendError {
-        source: Some(Box::new(source)),
-        kind: SendErrorType::Serializing,
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::Command;
-    use crate::json;
     use static_assertions::assert_impl_all;
     use twilight_model::gateway::payload::outgoing::{
-        Heartbeat, RequestGuildMembers, UpdatePresence, UpdateVoiceState,
+        RequestGuildMembers, UpdatePresence, UpdateVoiceState,
     };
 
     assert_impl_all!(RequestGuildMembers: Command);
     assert_impl_all!(UpdatePresence: Command);
     assert_impl_all!(UpdateVoiceState: Command);
-
-    #[test]
-    fn prepare() {
-        let heartbeat = Heartbeat::new(Some(30_000));
-        let string = json::to_string(&heartbeat).unwrap();
-        let message = super::prepare(&heartbeat).unwrap();
-
-        assert_eq!(message, string);
-    }
 }

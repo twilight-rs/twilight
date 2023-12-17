@@ -1,6 +1,6 @@
 //! User configuration for shards.
 
-use crate::{queue::InMemoryQueue, EventTypeFlags, Session};
+use crate::{queue::InMemoryQueue, Session};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::Arc,
@@ -34,16 +34,12 @@ impl Debug for Token {
 
 /// Configuration used by the shard to identify with the gateway and operate.
 ///
-/// Use [`Config::builder`] to configure a shard's configuration.
-///
 /// May be reused by cloning, also reusing the hidden TLS context---reducing
 /// memory usage. The TLS context may still be reused with an otherwise
 /// different config by turning it into to a [`ConfigBuilder`] through the
 /// [`From<Config>`] implementation and then rebuilding it into a rew config.
 #[derive(Clone, Debug)]
 pub struct Config<Q = InMemoryQueue> {
-    /// Event type flags.
-    event_types: EventTypeFlags,
     /// Identification properties the shard will use.
     identify_properties: Option<IdentifyProperties>,
     /// Intents that the shard requests when identifying with the gateway.
@@ -66,7 +62,7 @@ pub struct Config<Q = InMemoryQueue> {
     /// TLS connector for Websocket connections.
     // We need this to be public so [`stream`] can reuse TLS on multiple shards
     // if unconfigured.
-    tls: Arc<Connector>,
+    pub(crate) tls: Arc<Connector>,
     /// Token used to authenticate when identifying with the gateway.
     ///
     /// The token is prefixed with "Bot ", which is required by Discord for
@@ -77,9 +73,6 @@ pub struct Config<Q = InMemoryQueue> {
 impl Config {
     /// Create a new default shard configuration.
     ///
-    /// Shortcut for calling [`builder`][`Self::builder`] and immediately
-    /// finalizing the builder.
-    ///
     /// # Panics
     ///
     /// Panics if loading TLS certificates fails.
@@ -89,11 +82,6 @@ impl Config {
 }
 
 impl<Q> Config<Q> {
-    /// Event type flags.
-    pub const fn event_types(&self) -> EventTypeFlags {
-        self.event_types
-    }
-
     /// Immutable reference to the identification properties the shard will use.
     pub const fn identify_properties(&self) -> Option<&IdentifyProperties> {
         self.identify_properties.as_ref()
@@ -136,11 +124,6 @@ impl<Q> Config<Q> {
         self.ratelimit_messages
     }
 
-    /// Immutable reference to the TLS connector in use by the shard.
-    pub(crate) fn tls(&self) -> &Connector {
-        &self.tls
-    }
-
     /// Immutable reference to the token used to authenticate when identifying
     /// with the gateway.
     pub const fn token(&self) -> &str {
@@ -176,7 +159,6 @@ impl ConfigBuilder {
 
         Self {
             inner: Config {
-                event_types: EventTypeFlags::all(),
                 identify_properties: None,
                 intents,
                 large_threshold: 50,
@@ -197,17 +179,6 @@ impl<Q> ConfigBuilder<Q> {
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> Config<Q> {
         self.inner
-    }
-
-    /// Set the event types to process.
-    ///
-    /// This is an optimization technique; all events not included in the
-    /// provided event type flags will not be deserialized by the gateway and
-    /// will be discarded.
-    pub const fn event_types(mut self, event_types: EventTypeFlags) -> Self {
-        self.inner.event_types = event_types;
-
-        self
     }
 
     /// Set the properties to identify with.
@@ -343,7 +314,6 @@ impl<Q> ConfigBuilder<Q> {
     /// turns itself into a no-op.
     pub fn queue<NewQ>(self, queue: NewQ) -> ConfigBuilder<NewQ> {
         let Config {
-            event_types,
             identify_properties,
             intents,
             large_threshold,
@@ -358,7 +328,6 @@ impl<Q> ConfigBuilder<Q> {
 
         ConfigBuilder {
             inner: Config {
-                event_types,
                 identify_properties,
                 intents,
                 large_threshold,

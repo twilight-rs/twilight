@@ -1,10 +1,10 @@
 use std::env;
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use tokio_stream::StreamExt;
+use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId};
 use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
     let mut shard = Shard::new(
@@ -13,15 +13,14 @@ async fn main() -> anyhow::Result<()> {
         Intents::GUILD_MEMBERS | Intents::GUILDS,
     );
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
+    while let Some(item) = shard.next().await {
+        let event = match item.and_then(|message| {
+            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
+        }) {
+            Ok(Some(event)) => event,
+            Ok(None) => continue,
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
-
-                if source.is_fatal() {
-                    break;
-                }
 
                 continue;
             }
@@ -30,9 +29,7 @@ async fn main() -> anyhow::Result<()> {
         match event {
             Event::GuildCreate(guild) => {
                 // Let's request all of the guild's members for caching.
-                shard
-                    .command(&RequestGuildMembers::builder(guild.id).query("", None))
-                    .await?;
+                shard.command(&RequestGuildMembers::builder(guild.id).query("", None));
             }
             Event::Ready(_) => {
                 // You can also specify an individual member within a guild.
@@ -44,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
                     .nonce("requesting a single member")
                     .user_id(Id::new(2));
 
-                shard.command(&request).await?;
+                shard.command(&request);
 
                 // Similarly, you can also request multiple members. Only 100
                 // members by ID can be requested at a time, so the builder will
@@ -54,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
                     .user_ids(vec![Id::new(2), Id::new(3)])
                     .unwrap();
 
-                shard.command(&request).await?;
+                shard.command(&request);
 
                 // Instead of specifying user IDs, you can also search for
                 // members that you don't know the IDs of through their names.
@@ -67,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
                     .presences(true)
                     .query("tw", Some(50));
 
-                shard.command(&request).await?;
+                shard.command(&request);
             }
             Event::MemberChunk(chunk) => {
                 // Member chunks are received in response to requests for guild

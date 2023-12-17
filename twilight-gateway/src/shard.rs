@@ -5,72 +5,21 @@
 //! maintaining an identified session with the Discord gateway. For more
 //! information about what a shard is in the context of Discord's gateway API,
 //! refer to the documentation for [`Shard`].
-//!
-//! # Implementation Flow
-//!
-//! Other than informative methods and getters, shards have two functions:
-//! sending websocket messages and receiving websocket messages, called
-//! "events" in the context of the Discord gateway.
-//!
-//! Sending a message is simple and the flow of it looks like:
-//!
-//! 1. If the user sends a [command] via [`Shard::command`] the command is
-//! serialized into a raw websocket message and then...
-//! 2. [`Shard::send`] is called and the sending of the message goes through
-//! ratelimiting via [`CommandRatelimiter`] if ratelimiting [is enabled];
-//! 3. The [websocket message] is sent over the [websocket connection].
-//!
-//! Receiving a message is a little bit more complicated, but follows as:
-//!
-//! 1. The user calls [`Shard::next_message`] to receive the next message from
-//! the Websocket;
-//! 2. If the shard is disconnected then the connection is reconnected;
-//! 3. One of five things wait to happen:
-//!   a. the shard receives a close frame from the user over the [user channel],
-//!   which is then forwarded via [`Shard::close`]; or
-//!   b. the interval for the shard to send the next heartbeat occurs, in which
-//!   case [`Shard::heartbeat`] is called; or
-//!   c. the identify receiver is ready, in which case [`Shard::send`] is called
-//!   with the identify payload; or
-//!   d. the shard receives a command from the user over the [user channel],
-//!   which is then forwarded via [`Shard::send`]; or
-//!   e. the shard receives a message from Discord via the websocket connection.
-//! 4. In the case of 3(a) through 3(d), 3 is repeated; otherwise...
-//! 5. If the message is not a close it's [processed] by the shard;
-//! 6. The raw Websocket message is returned to the user
-//!
-//! If the user called [`Shard::next_event`] instead of [`Shard::next_message`],
-//! then the previous steps are taken and the resultant message is deserialized
-//! into a [`GatewayEvent`] if it matches the user's [`EventTypeFlags`].
-//!
-//! [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
-//! [command]: crate::Command
-//! [close message]: Message::Close
-//! [`EventTypeFlags`]: crate::EventTypeFlags
-//! [is enabled]: Config::ratelimit_messages
-//! [processed]: Shard::process
-//! [user channel]: crate::MessageSender
-//! [websocket connection]: Shard::connection
-//! [websocket message]: Message
 
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 use crate::inflater::Inflater;
 use crate::{
     channel::{MessageChannel, MessageSender},
-    command::{self, Command},
-    connection::{self, Connection},
-    error::{
-        ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
-        SendErrorType,
-    },
-    json::{self, UnknownEventError},
+    error::{ReceiveMessageError, ReceiveMessageErrorType},
+    json,
     latency::Latency,
     queue::{InMemoryQueue, Queue},
     ratelimiter::CommandRatelimiter,
     session::Session,
-    Config, Message, ShardId,
+    Command, Config, Message, ShardId, API_VERSION,
 };
-use futures_util::{stream::Stream, SinkExt};
+use futures_core::Stream;
+use futures_sink::Sink;
 use serde::{de::DeserializeOwned, Deserialize};
 #[cfg(any(
     feature = "native-tls",
@@ -80,19 +29,20 @@ use serde::{de::DeserializeOwned, Deserialize};
 use std::io::ErrorKind as IoErrorKind;
 use std::{
     env::consts::OS,
-    error::Error,
-    future::{poll_fn, Future},
+    fmt,
+    future::Future,
     pin::Pin,
     str,
-    task::{Context, Poll},
+    task::{ready, Context, Poll},
 };
 use tokio::{
+    net::TcpStream,
     sync::oneshot,
     time::{self, Duration, Instant, Interval, MissedTickBehavior},
 };
-use tokio_websockets::{Error as WebsocketError, Message as WebsocketMessage};
+use tokio_websockets::{ClientBuilder, Error as WebsocketError, Limits, MaybeTlsStream};
 use twilight_model::gateway::{
-    event::{Event, GatewayEventDeserializer},
+    event::GatewayEventDeserializer,
     payload::{
         incoming::Hello,
         outgoing::{
@@ -103,43 +53,55 @@ use twilight_model::gateway::{
     CloseCode, CloseFrame, Intents, OpCode,
 };
 
-/// Who initiated the closing of the websocket connection.
-#[derive(Clone, Copy, Debug)]
-enum CloseInitiator {
-    /// The gateway initiated the close.
-    ///
-    /// Contains an optional close code.
-    Gateway(Option<u16>),
-    /// The shard initiated the close.
-    ///
-    /// Contains a close code.
-    Shard(u16),
-    /// Nobody initiated the close (underlying connection errored).
-    None,
-}
+/// URL of the Discord gateway.
+const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 
-impl CloseInitiator {
-    /// The inner close code.
-    const fn close_code(self) -> Option<u16> {
-        match self {
-            CloseInitiator::Gateway(close_code) => close_code,
-            CloseInitiator::Shard(close_code) => Some(close_code),
-            CloseInitiator::None => None,
-        }
+/// Query argument with zlib-stream enabled.
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+const COMPRESSION_FEATURES: &str = "&compress=zlib-stream";
+
+/// No query arguments due to compression being disabled.
+#[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
+const COMPRESSION_FEATURES: &str = "";
+
+/// [`tokio_websockets`] library Websocket connection.
+type Connection = tokio_websockets::WebSocketStream<MaybeTlsStream<TcpStream>>;
+
+/// Wrapper struct around an `async fn` with a `Debug` implementation.
+struct ConnectionFuture(Pin<Box<dyn Future<Output = Result<Connection, WebsocketError>> + Send>>);
+
+impl fmt::Debug for ConnectionFuture {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("ConnectionFuture")
+            .field(&"<async fn>")
+            .finish()
     }
 }
 
-/// Current status of a shard.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ConnectionStatus {
+/// Close initiator of a websocket connection.
+#[derive(Clone, Copy, Debug)]
+enum CloseInitiator {
+    /// Gateway initiated the close.
+    ///
+    /// Contains an optional close code.
+    Gateway(Option<u16>),
+    /// Shard initiated the close.
+    ///
+    /// Contains a close code.
+    Shard(u16),
+    /// Transport error initiated the close.
+    Transport,
+}
+
+/// Current state of a [Shard].
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ShardState {
     /// Shard is connected to the gateway with an active session.
-    Connected,
+    Active,
     /// Shard is disconnected from the gateway but may reconnect in the future.
     ///
-    /// The underlying connection may still be open.
+    /// The websocket connection may still be open.
     Disconnected {
-        /// Close code, if available.
-        close_code: Option<u16>,
         /// Number of reconnection attempts that have been made.
         reconnect_attempts: u8,
     },
@@ -151,10 +113,7 @@ pub enum ConnectionStatus {
     ///
     /// [failed authentication]: CloseCode::AuthenticationFailed
     /// [invalid intents]: CloseCode::InvalidIntents
-    FatallyClosed {
-        /// Close code of the close message.
-        close_code: CloseCode,
-    },
+    FatallyClosed,
     /// Shard is waiting to establish or resume a session.
     Identifying,
     /// Shard is replaying missed dispatch events.
@@ -163,7 +122,7 @@ pub enum ConnectionStatus {
     Resuming,
 }
 
-impl ConnectionStatus {
+impl ShardState {
     /// Determine the connection status from the close code.
     ///
     /// Defers to [`CloseCode::can_reconnect`] to determine whether the
@@ -171,51 +130,26 @@ impl ConnectionStatus {
     /// the close code is unknown.
     fn from_close_code(close_code: Option<u16>) -> Self {
         match close_code.map(CloseCode::try_from) {
-            Some(Ok(close_code)) if !close_code.can_reconnect() => {
-                Self::FatallyClosed { close_code }
-            }
+            Some(Ok(close_code)) if !close_code.can_reconnect() => Self::FatallyClosed,
             _ => Self::Disconnected {
-                close_code,
                 reconnect_attempts: 0,
             },
         }
     }
 
-    /// Whether the shard is connected with an active session.
-    pub const fn is_connected(&self) -> bool {
-        matches!(self, Self::Connected)
-    }
-
     /// Whether the shard has disconnected but may reconnect in the future.
-    pub const fn is_disconnected(&self) -> bool {
+    const fn is_disconnected(self) -> bool {
         matches!(self, Self::Disconnected { .. })
-    }
-
-    /// Whether the shard has fatally closed, such as due to an invalid token.
-    pub const fn is_fatally_closed(&self) -> bool {
-        matches!(self, Self::FatallyClosed { .. })
     }
 
     /// Whether the shard is identified with an active session.
     ///
-    /// `true` if the status is [`Connected`] or [`Resuming`].
+    /// `true` if the status is [`Active`] or [`Resuming`].
     ///
-    /// [`Connected`]: Self::Connected
+    /// [`Active`]: Self::Active
     /// [`Resuming`]: Self::Resuming
-    pub const fn is_identified(&self) -> bool {
-        self.is_connected() || self.is_resuming()
-    }
-
-    /// Whether the shard is waiting to establish an active session.
-    pub const fn is_identifying(&self) -> bool {
-        matches!(self, Self::Identifying)
-    }
-
-    /// Whether the shard is replaying missed dispatch events.
-    ///
-    /// The shard is considered identified whilst resuming.
-    pub const fn is_resuming(&self) -> bool {
-        matches!(self, Self::Resuming)
+    pub const fn is_identified(self) -> bool {
+        matches!(self, Self::Active | Self::Resuming)
     }
 }
 
@@ -238,17 +172,31 @@ struct MinimalReady {
     session_id: String,
 }
 
-/// Possible actions the shard should take.
+/// Pending outgoing message indicator.
 #[derive(Debug)]
-enum NextAction {
-    /// Close the websocket connection with a [`CloseFrame::RESUME`].
-    CloseResume,
-    /// Close the websocket connection with a [`CloseFrame::NORMAL`].
-    CloseNormal,
-    /// Send a heartbeat.
-    Heartbeat,
-    /// Send a resume.
-    Resume,
+struct Pending {
+    /// The pending message, if not already sent.
+    gateway_event: Option<Message>,
+    /// Whether the pending gateway event is a heartbeat.
+    is_heartbeat: bool,
+}
+
+impl Pending {
+    /// Constructor for a pending close message.
+    const fn close(close_frame: Option<CloseFrame<'static>>) -> Option<Self> {
+        Some(Self {
+            gateway_event: Some(Message::Close(close_frame)),
+            is_heartbeat: false,
+        })
+    }
+
+    /// Constructor for a pending gateway event.
+    const fn text(json: String, is_heartbeat: bool) -> Option<Self> {
+        Some(Self {
+            gateway_event: Some(Message::Text(json)),
+            is_heartbeat,
+        })
+    }
 }
 
 /// Gateway API client responsible for up to 2500 guilds.
@@ -258,35 +206,22 @@ enum NextAction {
 /// gateway to re-connect or invalidate a session---and then to pass them on to
 /// the user.
 ///
-/// Shards start out disconnected, but will on the first call to
-/// [`next_message`] try to reconnect to the gateway. [`next_message`] must then
+/// Shards start out disconnected, but will on the first successful call to
+/// [`poll_next`] try to reconnect to the gateway. [`poll_next`] must then
 /// be repeatedly called in order for the shard to maintain its connection and
-/// update its internal state. Note that the [`next_event`] method internally
-/// calls [`next_message`].
+/// update its internal state.
 ///
-/// Shards go through an [identify queue][`queue`] that ratelimits the amount of
-/// concurrent identifies (across all shards) per 5 seconds. Exceeding this
-/// limit invalidates the shard's session and it is therefore very important to
-/// reuse the same queue when running multiple shards. Note that shards must be
-/// identified before they start receiving dispatch events and are able to send
-/// [`Command`]s.
+/// Shards go through an [identify queue][`queue`] that rate limits concurrent
+/// `Identify` events (across all shards) per 5 seconds. Exceeding this limit
+/// invalidates the shard's session and it is therefore **very important** to
+/// reuse the same queue for all shards.
 ///
 /// # Sharding
 ///
 /// A shard may not be connected to more than 2500 guilds, so large bots must
 /// split themselves across multiple shards. See the
-/// [Discord Docs/Sharding][docs:sharding], [`ShardId`], and [`stream`]
-/// documentation for more info.
-///
-/// # Sending shard commands in different tasks
-///
-/// Because shards should not be used across multiple tasks it's not always easy
-/// to directly send [gateway commands] over a shard. As a convenience method,
-/// [`Shard::sender`] can be used to receive an MPSC channel sender which, in
-/// addition to being cheaply cloned, also only sends queued up commands when
-/// the shard is identified and not ratelimited. Multiple shards' senders can,
-/// for example, be collected into an `Arc<Vec<MessageSender>>` and be shared
-/// across all event handler tasks.
+/// [Discord Docs/Sharding][docs:sharding] and [`ShardId`] documentation for
+/// more info.
 ///
 /// # Examples
 ///
@@ -294,31 +229,26 @@ enum NextAction {
 ///
 /// ```no_run
 /// use std::env;
-/// use twilight_gateway::{ConfigBuilder, Event, EventTypeFlags, Intents, Shard, ShardId};
+/// use tokio_stream::StreamExt;
+/// use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId};
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
 /// // token. Of course, this value may be passed into the program however is
 /// // preferred.
 /// let token = env::var("DISCORD_TOKEN")?;
-/// let event_types = EventTypeFlags::MESSAGE_CREATE | EventTypeFlags::MESSAGE_DELETE;
+/// let wanted_event_types = EventTypeFlags::MESSAGE_CREATE | EventTypeFlags::MESSAGE_DELETE;
 ///
-/// let config = ConfigBuilder::new(token, Intents::GUILD_MESSAGES)
-///     .event_types(event_types)
-///     .build();
-/// let mut shard = Shard::with_config(ShardId::ONE, config);
+/// let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILD_MESSAGES);
 ///
-/// // Create a loop of only new messages and deleted messages.
-///
-/// loop {
-///     let event = match shard.next_event().await {
-///         Ok(event) => event,
+/// while let Some(item) = shard.next().await {
+///     let event = match item
+///         .and_then(|message| twilight_gateway::deserialize_wanted(message, wanted_event_types))
+///     {
+///         Ok(Some(event)) => event,
+///         Ok(None) => continue,
 ///         Err(source) => {
 ///             tracing::warn!(?source, "error receiving event");
-///
-///             if source.is_fatal() {
-///                 break;
-///             }
 ///
 ///             continue;
 ///         }
@@ -339,9 +269,7 @@ enum NextAction {
 ///
 /// [docs:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 /// [gateway commands]: Shard::command
-/// [`next_event`]: Shard::next_event
-/// [`next_message`]: Shard::next_message
-/// [`stream`]: crate::stream
+/// [`poll_next`]: Shard::poll_next
 /// [`queue`]: crate::queue
 #[derive(Debug)]
 pub struct Shard<Q = InMemoryQueue> {
@@ -350,13 +278,15 @@ pub struct Shard<Q = InMemoryQueue> {
     /// Configurations are provided or created in shard initializing via
     /// [`Shard::new`] or [`Shard::with_config`].
     config: Config<Q>,
+    /// Future to establish a WebSocket connection with the Gateway.
+    connection_future: Option<ConnectionFuture>,
     /// Websocket connection, which may be connected to Discord's gateway.
     ///
     /// The connection should only be dropped after it has returned `Ok(None)`
     /// to comply with the WebSocket protocol.
     connection: Option<Connection>,
-    /// Interval of how often the gateway would like the shard to
-    /// [send heartbeats][`Self::heartbeat`].
+    /// Interval of how often the gateway would like the shard to send
+    /// heartbeats.
     ///
     /// The interval is received in the [`GatewayEvent::Hello`] event when
     /// first opening a new [connection].
@@ -373,8 +303,8 @@ pub struct Shard<Q = InMemoryQueue> {
     /// Zlib decompressor.
     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
     inflater: Inflater,
-    /// Next action to take in response to certain gateway events.
-    next_action: Option<NextAction>,
+    /// Potentially pending outgoing message.
+    pending: Option<Pending>,
     /// Recent heartbeat latency statistics.
     ///
     /// The latency is reset on receiving [`GatewayEvent::Hello`] as the host
@@ -386,14 +316,14 @@ pub struct Shard<Q = InMemoryQueue> {
     /// [`Config::ratelimit_messages`].
     ratelimiter: Option<CommandRatelimiter>,
     /// Used for resuming connections.
-    resume_gateway_url: Option<Box<str>>,
+    resume_url: Option<Box<str>>,
     /// Active session of the shard.
     ///
     /// The shard may not have an active session if it hasn't yet identified and
     /// received a `READY` dispatch event response.
     session: Option<Session>,
-    /// Current connection status of the Websocket connection.
-    status: ConnectionStatus,
+    /// Current state of the shard.
+    state: ShardState,
     /// Messages from the user to be relayed and sent over the Websocket
     /// connection.
     user_channel: MessageChannel,
@@ -413,6 +343,7 @@ impl<Q> Shard<Q> {
 
         Self {
             config,
+            connection_future: None,
             connection: None,
             heartbeat_interval: None,
             heartbeat_interval_event: false,
@@ -420,13 +351,12 @@ impl<Q> Shard<Q> {
             identify_rx: None,
             #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
             inflater: Inflater::new(),
-            next_action: None,
+            pending: None,
             latency: Latency::new(),
             ratelimiter: None,
-            resume_gateway_url: None,
+            resume_url: None,
             session,
-            status: ConnectionStatus::Disconnected {
-                close_code: None,
+            state: ShardState::Disconnected {
                 reconnect_attempts: 0,
             },
             user_channel: MessageChannel::new(),
@@ -451,9 +381,9 @@ impl<Q> Shard<Q> {
         &self.inflater
     }
 
-    /// Connection status of the shard.
-    pub const fn status(&self) -> &ConnectionStatus {
-        &self.status
+    /// State of the shard.
+    pub const fn state(&self) -> ShardState {
+        self.state
     }
 
     /// Shard latency statistics, including average latency and recent heartbeat
@@ -483,180 +413,95 @@ impl<Q> Shard<Q> {
         self.session.as_ref()
     }
 
-    /// Send a command over the gateway.
+    /// Queue a command to be sent to the gateway.
     ///
     /// Serializes the command and then calls [`send`].
     ///
-    /// # Examples
-    ///
-    /// Request members whose names start with "tw" in a guild:
-    ///
-    /// ```no_run
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::env;
-    /// use twilight_gateway::{ConnectionStatus, Intents, Shard, ShardId};
-    /// use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
-    ///
-    /// let intents = Intents::GUILD_VOICE_STATES;
-    /// let token = env::var("DISCORD_TOKEN")?;
-    ///
-    /// let mut shard = Shard::new(ShardId::ONE, token, intents);
-    ///
-    /// // Discord only allows sending the `RequestGuildMembers` command after
-    /// // the shard is identified.
-    /// while !shard.status().is_identified() {
-    ///     // Ignore these messages.
-    ///     shard.next_message().await?;
-    /// }
-    ///
-    /// // Query members whose names start with "tw" and limit the results to 10
-    /// // members.
-    /// let request = RequestGuildMembers::builder(Id::new(1)).query("tw", Some(10));
-    ///
-    /// // Send the request over the shard.
-    /// shard.command(&request).await?;
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`SendErrorType::Sending`] error type if the command could
-    /// not be sent over the websocket. This indicates the shard is either
-    /// currently restarting or closed and will restart.
-    ///
-    /// Returns a [`SendErrorType::Serializing`] error type if the provided
-    /// command failed to serialize.
-    ///
     /// [`send`]: Self::send
-    pub async fn command(&mut self, command: &impl Command) -> Result<(), SendError> {
-        // Types implementing `Command` may only be sent when identified.
-        if !self.status.is_identified() {
-            return Err(SendError {
-                kind: SendErrorType::Sending,
-                source: None,
-            });
-        }
-
-        let json = command::prepare(command)?;
-
-        self.send(json).await
+    #[allow(clippy::missing_panics_doc)]
+    pub fn command(&self, command: &impl Command) {
+        self.send(json::to_string(command).expect("serialization cannot fail"));
     }
 
-    /// Send a JSON encoded gateway event.
-    ///
-    /// A permit from the shard's [ratelimiter] is first awaited (if
-    /// ratelimiting is [enabled]) before sending the event.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`SendErrorType::Sending`] error type if the event could not
-    /// be sent over the websocket. This indicates the shard is either currently
-    /// restarting or closed and will restart.
-    ///
-    /// [enabled]: crate::ConfigBuilder::ratelimit_messages
-    /// [ratelimiter]: CommandRatelimiter
-    pub async fn send(&mut self, json: String) -> Result<(), SendError> {
-        if let Some(ratelimiter) = &mut self.ratelimiter {
-            ratelimiter.acquire().await;
-        }
-
-        self.send_unratelimited(Message::Text(json)).await
+    /// Queue a JSON encoded gateway event to be sent to the gateway.
+    #[allow(clippy::missing_panics_doc)]
+    pub fn send(&self, json: String) {
+        self.user_channel
+            .command_tx
+            .send(json)
+            .expect("channel open");
     }
 
-    /// Send a raw websocket message without first passing the ratelimiter.
-    async fn send_unratelimited(&mut self, message: Message) -> Result<(), SendError> {
-        self.connection
-            .as_mut()
-            .ok_or(SendError {
-                kind: SendErrorType::Sending,
-                source: None,
-            })?
-            .send(message.into_websocket_msg())
-            .await
-            .map_err(|source| SendError {
-                kind: SendErrorType::Sending,
-                source: Some(Box::new(source)),
-            })
-    }
-
-    /// Retrieve a channel to send outgoing gateway events over the shard to the
-    /// gateway.
+    /// Queue a websocket close frame.
     ///
-    /// This is primarily useful for sending to other tasks and threads where
-    /// the shard won't be available.
-    pub fn sender(&self) -> MessageSender {
-        self.user_channel.sender()
-    }
-
-    /// Send a Websocket close frame indicating whether to also invalidate the
-    /// shard's session.
+    /// Invalidates the session and shows the applicanton's bot as offline if
+    /// the close frame code is `1000` or `1001`. Otherwise Discord will
+    /// continue showing the bot as online until its presence times out.
     ///
-    /// Returns the shard's session if the close frame code is not `1000` or
-    /// `1001`, which invalidates the session and shows the application's bot as
-    /// offline. Otherwise Discord will not invalidate the shard's session and
-    /// will continue to show the application's bot as online until its presence
-    /// times out.
-    ///
-    /// Sets status to [`ConnectionStatus::Disconnected`] with the `close_code`
-    /// from the `close_frame`.
-    ///
-    /// To read all remaining events, continue calling [`Shard::next_message`]
-    /// until it returns the response close message or a
-    /// [`ReceiveMessageErrorType::Io`] error type.
-    ///
-    /// You do not need to call this method upon receiving a close message,
-    /// Twilight automatically responds for you.
+    /// To read all remaining messages, continue calling [`poll_next`] until it
+    /// returns [`Message::Close`] or a [`ReceiveMessageErrorType::WebSocket`]
+    /// error type.
     ///
     /// # Example
     ///
-    /// Close the gateway connection but process already received messages:
+    /// Close the shard and process remaining messages:
     ///
     /// ```no_run
     /// # use twilight_gateway::{Intents, Shard, ShardId};
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
+    /// use tokio_stream::StreamExt;
     /// use twilight_gateway::{error::ReceiveMessageErrorType, CloseFrame, Message};
     ///
-    /// shard.close(CloseFrame::NORMAL).await?;
+    /// shard.close(CloseFrame::NORMAL);
     ///
-    /// loop {
-    ///     match shard.next_message().await {
-    ///         Ok(Message::Close(_)) => {
-    ///             // We've now received a close message response from the
-    ///             // Gateway.
-    ///             // Further calls to `next_message` would cause a reconnect.
-    ///             break;
-    ///         }
-    ///         Ok(Message::Text(_)) => unimplemented!("handle message"),
-    ///         Err(source) if matches!(source.kind(), ReceiveMessageErrorType::Io) => break,
-    ///         Err(source) => tracing::warn!(?source, "error receiving message"),
+    /// while let Some(item) = shard.next().await {
+    ///     match item {
+    ///         Ok(Message::Close(_)) => break,
+    ///         Ok(Message::Text(_)) => unimplemented!(),
+    ///         Err(source) if matches!(source.kind(), ReceiveMessageErrorType::WebSocket) => break,
+    ///         Err(source) => unimplemented!(),
     ///     }
     /// }
     /// # Ok(()) }
     /// ```
     ///
-    /// # Errors
+    /// [`poll_next`]: Shard::poll_next
+    pub fn close(&self, close_frame: CloseFrame<'static>) {
+        _ = self.user_channel.close_tx.try_send(close_frame);
+    }
+
+    /// Retrieve a channel to send messages over the shard to the gateway.
     ///
-    /// Returns a [`SendErrorType::Sending`] error type if the close frame could
-    /// not be sent over the websocket. This indicates the shard is either
-    /// currently restarting or closed and will restart.
+    /// This is primarily useful for sending to other tasks and threads where
+    /// the shard won't be available.
     ///
-    /// [`ConfigBuilder::session`]: crate::ConfigBuilder::session
-    pub async fn close(
-        &mut self,
-        close_frame: CloseFrame<'static>,
-    ) -> Result<Option<Session>, SendError> {
-        let close_code = close_frame.code;
-
-        tracing::debug!(frame = ?close_frame, "sending websocket close message");
-        let message = Message::Close(Some(close_frame));
-
-        self.send_unratelimited(message).await?;
-
-        self.disconnect(CloseInitiator::Shard(close_code));
-
-        Ok(self.session.take())
+    /// # Example
+    ///
+    /// Queue a command in another process:
+    ///
+    /// ```no_run
+    /// # use twilight_gateway::{Intents, Shard, ShardId};
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
+    /// use tokio_stream::StreamExt;
+    ///
+    /// while let Some(item) = shard.next().await {
+    ///     match item {
+    ///         Ok(message) => {
+    ///             let sender = shard.sender();
+    ///             tokio::spawn(async move {
+    ///                 let command = unimplemented!();
+    ///                 sender.send(command);
+    ///             });
+    ///         }
+    ///         Err(source) => unimplemented!(),
+    ///     }
+    /// }
+    /// # Ok(()) }
+    /// ```
+    pub fn sender(&self) -> MessageSender {
+        self.user_channel.sender()
     }
 
     /// Update internal state from gateway disconnect.
@@ -669,455 +514,95 @@ impl<Q> Shard<Q> {
         // Not resuming, drop session and resume URL.
         // https://discord.com/developers/docs/topics/gateway#initiating-a-disconnect
         if matches!(initiator, CloseInitiator::Shard(1000 | 1001)) {
-            self.resume_gateway_url = None;
+            self.resume_url = None;
             self.session = None;
         }
-        self.status = match initiator {
-            CloseInitiator::Gateway(close_code) => ConnectionStatus::from_close_code(close_code),
-            _ => ConnectionStatus::Disconnected {
-                close_code: initiator.close_code(),
+        self.state = match initiator {
+            CloseInitiator::Gateway(close_code) => ShardState::from_close_code(close_code),
+            _ => ShardState::Disconnected {
                 reconnect_attempts: 0,
             },
         };
-    }
-
-    /// Send a heartbeat.
-    async fn heartbeat(&mut self) -> Result<(), SendError> {
-        // Sequence should be null if no dispatch event has been received.
-        let sequence = self.session().map(Session::sequence);
-        tracing::debug!(?sequence, "sending heartbeat");
-        let message = Message::Text(command::prepare(&Heartbeat::new(sequence))?);
-        // The ratelimiter reserves capacity for heartbeat messages.
-        self.send_unratelimited(message).await?;
-
-        self.latency.record_sent();
-
-        Ok(())
-    }
-
-    /// Establishes a Websocket connection, sets the [status] to [`Resuming`] or
-    /// [`Identifying`] if holding an active [`Session`] or not, and resets the
-    /// [inflater].
-    ///
-    /// Drops [`Connection`], see [`Self::connection`] when this is okay.
-    ///
-    /// [`Identifying`]: ConnectionStatus::Identifying
-    /// [inflater]: Self::inflater
-    /// [`Resuming`]: ConnectionStatus::Resuming
-    /// [status]: Self::status
-    async fn reconnect(
-        &mut self,
-        close_code: Option<u16>,
-        reconnect_attempts: u8,
-    ) -> Result<(), ReceiveMessageError> {
-        if reconnect_attempts != 0 {
-            let secs = 2u8.saturating_pow(reconnect_attempts.into());
-            time::sleep(Duration::from_secs(secs.into())).await;
-        }
-
-        let maybe_gateway_url = self
-            .resume_gateway_url
-            .as_deref()
-            .or_else(|| self.config.proxy_url());
-
-        self.connection = Some(
-            connection::connect(maybe_gateway_url, self.config.tls())
-                .await
-                .map_err(|source| {
-                    self.resume_gateway_url = None;
-                    self.status = ConnectionStatus::Disconnected {
-                        close_code,
-                        reconnect_attempts: reconnect_attempts + 1,
-                    };
-
-                    source
-                })?,
-        );
-        self.status = ConnectionStatus::Identifying;
-        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-        self.inflater.reset();
-
-        Ok(())
     }
 
     /// Parse a JSON message into an event with minimal data for [processing].
     ///
     /// # Errors
     ///
-    /// Returns a [`ProcessErrorType::Deserializing`] error type if the gateway
+    /// Returns a [`ReceiveMessageErrorType::Deserializing`] error type if the gateway
     /// event isn't a recognized structure, which may be the case for new or
     /// undocumented events.
     ///
     /// [processing]: Self::process
-    fn parse_event<T: DeserializeOwned>(json: &str) -> Result<MinimalEvent<T>, ProcessError> {
-        json::from_str::<MinimalEvent<T>>(json).map_err(|source| ProcessError {
-            kind: ProcessErrorType::Deserializing {
+    fn parse_event<T: DeserializeOwned>(
+        json: &str,
+    ) -> Result<MinimalEvent<T>, ReceiveMessageError> {
+        json::from_str::<MinimalEvent<T>>(json).map_err(|source| ReceiveMessageError {
+            kind: ReceiveMessageErrorType::Deserializing {
                 event: json.to_owned(),
             },
             source: Some(Box::new(source)),
         })
     }
+
+    /// Send and flush the pending message.
+    fn poll_flush_pending(
+        &mut self,
+        cx: &mut Context<'_>,
+    ) -> Poll<Result<(), ReceiveMessageError>> {
+        ready!(Pin::new(self.connection.as_mut().unwrap())
+            .poll_ready(cx)
+            .map_err(|source| {
+                self.disconnect(CloseInitiator::Transport);
+                self.connection = None;
+                ReceiveMessageError::from_websocket(source)
+            }))?;
+
+        let Some(pending) = &mut self.pending else {
+            return Poll::Ready(Ok(()));
+        };
+        if let Some(item) = &pending.gateway_event {
+            if let Some(ratelimiter) = self.ratelimiter.as_mut() {
+                if item.is_text() && !pending.is_heartbeat {
+                    ready!(ratelimiter.poll_acquire(cx));
+                }
+            }
+            if let Err(source) = Pin::new(self.connection.as_mut().unwrap())
+                .start_send(pending.gateway_event.take().unwrap().into_websocket_msg())
+            {
+                self.disconnect(CloseInitiator::Transport);
+                self.connection = None;
+                return Poll::Ready(Err(ReceiveMessageError::from_websocket(source)));
+            }
+        }
+
+        if let Err(source) = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_flush(cx)) {
+            self.disconnect(CloseInitiator::Transport);
+            self.connection = None;
+            return Poll::Ready(Err(ReceiveMessageError::from_websocket(source)));
+        }
+        if pending.is_heartbeat {
+            self.latency.record_sent();
+        }
+        self.pending = None;
+        Poll::Ready(Ok(()))
+    }
 }
 
 impl<Q: Queue> Shard<Q> {
-    /// Wait for the next Discord event from the gateway.
-    ///
-    /// This is a convenience method that internally calls [`next_message`] and
-    /// only returns wanted [`Event`]s, configured via
-    /// [`ConfigBuilder::event_types`]. Close messages are always considered
-    /// wanted and map onto the [`Event::GatewayClose`] variant.
-    ///
-    /// Events not registered in Twilight are skipped. If you need to receive
-    /// events Twilight doesn't support, use [`next_message`] to receive raw
-    /// payloads.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
-    /// message payload failed to decompress.
-    ///
-    /// Returns a [`ReceiveMessageErrorType::Deserializing`] error type if the
-    /// message payload failed to deserialize.
-    ///
-    /// Returns a [`ReceiveMessageErrorType::FatallyClosed`] error type if the
-    /// shard was closed due to a fatal error, such as invalid authorization.
-    ///
-    /// Returns a [`ReceiveMessageErrorType::Process`] error type if the shard
-    /// failed to internally process a received event.
-    ///
-    /// Returns a [`ReceiveMessageErrorType::Reconnect`] error type if the shard
-    /// failed to reconnect to the gateway. This isn't a fatal error and can be
-    /// retried.
-    ///
-    /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
-    /// shard failed to send a message to the gateway, such as a heartbeat.
-    ///
-    /// [`ConfigBuilder::event_types`]: crate::ConfigBuilder::event_types
-    /// [`next_message`]: Self::next_message
-    pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
-        loop {
-            match self.next_message().await? {
-                Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
-                Message::Text(text) => match crate::parse(text, self.config.event_types()) {
-                    Ok(Some(event)) => return Ok(event.into()),
-                    #[allow(clippy::redundant_closure_for_method_calls)]
-                    Err(e)
-                        if e.source()
-                            .and_then(|source| source.downcast_ref::<UnknownEventError>())
-                            .is_none() =>
-                    {
-                        return Err(e)
-                    }
-                    _ => {}
-                },
-            }
-        }
-    }
-
-    /// Wait for the next raw message from the websocket connection.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
-    /// message payload failed to decompress.
-    ///
-    /// Returns a [`ReceiveMessageErrorType::FatallyClosed`] error type if the
-    /// shard was closed due to a fatal error, such as invalid authorization.
-    ///
-    /// Returns a [`ReceiveMessageErrorType::Process`] error type if the shard
-    /// failed to internally process a received event.
-    ///
-    /// Returns a [`ReceiveMessageErrorType::Reconnect`] error type if the shard
-    /// failed to reconnect to the gateway. This isn't a fatal error and can be
-    /// retried.
-    ///
-    /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
-    /// shard failed to send a message to the gateway, such as a heartbeat.
-    #[tracing::instrument(fields(id = %self.id), name = "shard", skip(self))]
-    pub async fn next_message(&mut self) -> Result<Message, ReceiveMessageError> {
-        /// Actions the shard might take.
-        enum Action {
-            /// Close the gateway connection with this close frame.
-            Close(CloseFrame<'static>),
-            /// Send this command to the gateway.
-            Command(String),
-            /// Send a heartbeat command to the gateway.
-            Heartbeat,
-            /// Identify with the gateway.
-            Identify,
-            /// Handle this incoming gateway message.
-            Message(Option<Result<WebsocketMessage, WebsocketError>>),
-        }
-
-        match self.status {
-            ConnectionStatus::Disconnected {
-                close_code,
-                reconnect_attempts,
-            } => {
-                // The shard should should only reconnect after the gateway
-                // closes the underlying TCP connection.
-                if self.connection.is_none() {
-                    self.reconnect(close_code, reconnect_attempts).await?;
-                }
-            }
-            ConnectionStatus::FatallyClosed { close_code } if self.connection.is_none() => {
-                return Err(ReceiveMessageError::from_fatally_closed(close_code));
-            }
-            _ => {}
-        }
-
-        match self.next_action.take() {
-            Some(NextAction::CloseNormal) => {
-                self.close(CloseFrame::NORMAL)
-                    .await
-                    .map_err(ReceiveMessageError::from_send)?;
-            }
-            Some(NextAction::CloseResume) => {
-                self.session = self
-                    .close(CloseFrame::RESUME)
-                    .await
-                    .map_err(ReceiveMessageError::from_send)?;
-            }
-            Some(NextAction::Resume) => {
-                let session = self.session().expect("variant only set if some");
-                let resume = Resume::new(session.sequence(), session.id(), self.config().token());
-                let json = command::prepare(&resume).map_err(ReceiveMessageError::from_send)?;
-                self.send(json)
-                    .await
-                    .map_err(ReceiveMessageError::from_send)?;
-                self.status = ConnectionStatus::Resuming;
-            }
-            Some(NextAction::Heartbeat) => {
-                self.heartbeat()
-                    .await
-                    .map_err(ReceiveMessageError::from_send)?;
-            }
-            None => {}
-        }
-
-        let message = loop {
-            let next_action = |cx: &mut Context<'_>| {
-                if !(self.status.is_disconnected() || self.status.is_fatally_closed()) {
-                    if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
-                        return Poll::Ready(Action::Close(frame.expect("shard owns channel")));
-                    }
-                }
-
-                if self
-                    .heartbeat_interval
-                    .as_mut()
-                    .map_or(false, |heartbeater| heartbeater.poll_tick(cx).is_ready())
-                {
-                    return Poll::Ready(Action::Heartbeat);
-                }
-
-                let ratelimited = self
-                    .ratelimiter
-                    .as_mut()
-                    .map_or(false, |ratelimiter| ratelimiter.poll_ready(cx).is_pending());
-
-                if !ratelimited {
-                    if let Some(Poll::Ready(canceled)) = self
-                        .identify_rx
-                        .as_mut()
-                        .map(|rx| Pin::new(rx).poll(cx).map(|r| r.is_err()))
-                    {
-                        if !canceled {
-                            self.identify_rx = None;
-                            return Poll::Ready(Action::Identify);
-                        }
-                        self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
-                    }
-                }
-
-                if !ratelimited && self.status.is_identified() {
-                    if let Poll::Ready(command) = self.user_channel.command_rx.poll_recv(cx) {
-                        return Poll::Ready(Action::Command(command.expect("shard owns channel")));
-                    }
-                }
-
-                if let Poll::Ready(message) =
-                    Pin::new(self.connection.as_mut().expect("connected")).poll_next(cx)
-                {
-                    return Poll::Ready(Action::Message(message));
-                }
-
-                Poll::Pending
-            };
-
-            match poll_fn(next_action).await {
-                Action::Message(Some(Ok(message))) => {
-                    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-                    if message.is_binary() {
-                        if let Some(decompressed) = self
-                            .inflater
-                            .inflate(message.as_payload())
-                            .map_err(ReceiveMessageError::from_compression)?
-                        {
-                            tracing::trace!(%decompressed);
-                            break Message::Text(decompressed);
-                        };
-                    }
-                    if let Some(message) = Message::from_websocket_msg(&message) {
-                        break message;
-                    }
-                }
-                // Discord, against recommendations from the WebSocket spec,
-                // does not send a close_notify prior to shutting down the TCP
-                // stream. This arm tries to gracefully handle this. The
-                // connection is considered unusable after encountering an io
-                // error, returning `None`.
-                #[cfg(any(
-                    feature = "native-tls",
-                    feature = "rustls-native-roots",
-                    feature = "rustls-webpki-roots"
-                ))]
-                Action::Message(Some(Err(WebsocketError::Io(e))))
-                    if e.kind() == IoErrorKind::UnexpectedEof
-                        // Assert we're directly connected to Discord's gateway.
-                        && self.config.proxy_url().is_none()
-                        && (self.status.is_disconnected() || self.status.is_fatally_closed()) =>
-                {
-                    continue
-                }
-                Action::Message(Some(Err(source))) => {
-                    self.disconnect(CloseInitiator::None);
-
-                    return Err(ReceiveMessageError {
-                        kind: ReceiveMessageErrorType::Io,
-                        source: Some(Box::new(source)),
-                    });
-                }
-                Action::Message(None) => {
-                    tracing::debug!("gateway connection closed");
-                    self.connection = None;
-
-                    // This match statement should be similar the initial one in
-                    // this method.
-                    match self.status {
-                        ConnectionStatus::Disconnected {
-                            close_code,
-                            reconnect_attempts,
-                        } => self.reconnect(close_code, reconnect_attempts).await?,
-                        ConnectionStatus::FatallyClosed { close_code } => {
-                            return Err(ReceiveMessageError::from_fatally_closed(close_code))
-                        }
-                        _ => {
-                            // Abnormal closure without close frame exchange.
-                            self.disconnect(CloseInitiator::None);
-                            self.reconnect(None, 0).await?;
-                        }
-                    };
-
-                    continue;
-                }
-                Action::Heartbeat => {
-                    let is_first_heartbeat =
-                        self.heartbeat_interval.is_some() && self.latency.sent().is_none();
-
-                    // Discord never responded after the last heartbeat,
-                    // connection is failed or "zombied", see
-                    // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
-                    // Note that unlike documented *any* event is okay; it does
-                    // not have to be a heartbeat ACK.
-                    if !is_first_heartbeat && !self.heartbeat_interval_event {
-                        tracing::info!("connection is failed or \"zombied\"");
-                        self.session = self
-                            .close(CloseFrame::RESUME)
-                            .await
-                            .map_err(ReceiveMessageError::from_send)?;
-                    } else {
-                        self.heartbeat()
-                            .await
-                            .map_err(ReceiveMessageError::from_send)?;
-                        self.heartbeat_interval_event = false;
-                    }
-
-                    continue;
-                }
-                Action::Identify => {
-                    tracing::debug!("sending identify");
-                    let identify = Identify::new(IdentifyInfo {
-                        compress: false,
-                        intents: self.config.intents(),
-                        large_threshold: self.config.large_threshold(),
-                        presence: self.config.presence().cloned(),
-                        properties: self
-                            .config
-                            .identify_properties()
-                            .cloned()
-                            .unwrap_or_else(default_identify_properties),
-                        shard: Some(self.id),
-                        token: self.config.token().to_owned(),
-                    });
-                    let json =
-                        command::prepare(&identify).map_err(ReceiveMessageError::from_send)?;
-                    self.send(json)
-                        .await
-                        .map_err(ReceiveMessageError::from_send)?;
-
-                    continue;
-                }
-                Action::Close(frame) => {
-                    tracing::debug!("sending close frame from user channel");
-                    self.session = self
-                        .close(frame)
-                        .await
-                        .map_err(ReceiveMessageError::from_send)?;
-
-                    continue;
-                }
-                Action::Command(json) => {
-                    tracing::debug!("sending command from user channel");
-                    self.send(json)
-                        .await
-                        .map_err(ReceiveMessageError::from_send)?;
-
-                    continue;
-                }
-            }
-        };
-
-        match &message {
-            Message::Close(frame) => {
-                // tokio-websockets automatically replies to the close message.
-                tracing::debug!(?frame, "received websocket close message");
-                // Don't run `disconnect` if we initiated the close.
-                if !self.status.is_disconnected() {
-                    self.disconnect(CloseInitiator::Gateway(frame.as_ref().map(|f| f.code)));
-                }
-            }
-            Message::Text(event) => {
-                self.process(event).map_err(|source| ReceiveMessageError {
-                    kind: ReceiveMessageErrorType::Process,
-                    source: Some(Box::new(source)),
-                })?;
-            }
-        }
-
-        Ok(message)
-    }
-
     /// Updates the shard's internal state from a gateway event by recording
     /// and/or responding to certain Discord events.
     ///
     /// # Errors
     ///
-    /// Returns a [`ProcessErrorType::Deserializing`] error type if the gateway
-    /// event isn't a recognized structure, which may be the case for new or
-    /// undocumented events.
-    ///
-    /// Returns a [`ProcessErrorType::SendingMessage`] error type if a Websocket
-    /// message couldn't be sent over the connection, which may be the case if
-    /// the connection isn't connected.
-    ///
-    /// [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
+    /// Returns a [`ReceiveMessageErrorType::Deserializing`] error type if the
+    /// gateway event isn't a recognized structure.
     #[allow(clippy::too_many_lines)]
-    fn process(&mut self, event: &str) -> Result<(), ProcessError> {
+    fn process(&mut self, event: &str) -> Result<(), ReceiveMessageError> {
         let (raw_opcode, maybe_sequence, maybe_event_type) =
             GatewayEventDeserializer::from_json(event)
-                .ok_or(ProcessError {
-                    kind: ProcessErrorType::Deserializing {
+                .ok_or(ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Deserializing {
                         event: event.to_owned(),
                     },
                     source: Some("missing opcode".into()),
@@ -1130,14 +615,14 @@ impl<Q: Queue> Shard<Q> {
 
         match OpCode::from(raw_opcode) {
             Some(OpCode::Dispatch) => {
-                let event_type = maybe_event_type.ok_or(ProcessError {
-                    kind: ProcessErrorType::Deserializing {
+                let event_type = maybe_event_type.ok_or(ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Deserializing {
                         event: event.to_owned(),
                     },
                     source: Some("missing dispatch event type".into()),
                 })?;
-                let sequence = maybe_sequence.ok_or(ProcessError {
-                    kind: ProcessErrorType::Deserializing {
+                let sequence = maybe_sequence.ok_or(ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Deserializing {
                         event: event.to_owned(),
                     },
                     source: Some("missing sequence".into()),
@@ -1148,11 +633,11 @@ impl<Q: Queue> Shard<Q> {
                     "READY" => {
                         let event = Self::parse_event::<MinimalReady>(event)?;
 
-                        self.resume_gateway_url = Some(event.data.resume_gateway_url);
+                        self.resume_url = Some(event.data.resume_gateway_url);
                         self.session = Some(Session::new(sequence, event.data.session_id));
-                        self.status = ConnectionStatus::Connected;
+                        self.state = ShardState::Active;
                     }
-                    "RESUMED" => self.status = ConnectionStatus::Connected,
+                    "RESUMED" => self.state = ShardState::Active,
                     _ => {}
                 }
 
@@ -1162,7 +647,11 @@ impl<Q: Queue> Shard<Q> {
             }
             Some(OpCode::Heartbeat) => {
                 tracing::debug!("received heartbeat");
-                self.next_action = Some(NextAction::Heartbeat);
+                self.pending = Pending::text(
+                    json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
+                        .unwrap(),
+                    true,
+                );
             }
             Some(OpCode::HeartbeatAck) => {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
@@ -1193,8 +682,17 @@ impl<Q: Queue> Shard<Q> {
                 // remote which invalidates the recorded latencies.
                 self.latency = Latency::new();
 
-                if self.session.is_some() {
-                    self.next_action = Some(NextAction::Resume);
+                if let Some(session) = &self.session {
+                    self.pending = Pending::text(
+                        json::to_string(&Resume::new(
+                            session.sequence(),
+                            session.id(),
+                            self.config.token(),
+                        ))
+                        .unwrap(),
+                        false,
+                    );
+                    self.state = ShardState::Resuming;
                 } else {
                     self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
                 }
@@ -1203,19 +701,244 @@ impl<Q: Queue> Shard<Q> {
                 let resumable = Self::parse_event(event)?.data;
                 tracing::debug!(resumable, "received invalid session");
                 if resumable {
-                    self.next_action = Some(NextAction::CloseResume);
+                    self.pending = Pending::close(Some(CloseFrame::RESUME));
                 } else {
-                    self.next_action = Some(NextAction::CloseNormal);
+                    self.pending = Pending::close(Some(CloseFrame::NORMAL));
                 }
             }
             Some(OpCode::Reconnect) => {
                 tracing::debug!("received reconnect");
-                self.next_action = Some(NextAction::CloseResume);
+                self.pending = Pending::close(Some(CloseFrame::RESUME));
             }
             _ => tracing::info!("received an unknown opcode: {raw_opcode}"),
         }
 
         Ok(())
+    }
+}
+
+impl<Q: Queue + Unpin> Stream for Shard<Q> {
+    type Item = Result<Message, ReceiveMessageError>;
+
+    #[allow(clippy::too_many_lines)]
+    #[tracing::instrument(fields(id = %self.id), name = "shard", skip_all)]
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        match self.state {
+            ShardState::FatallyClosed => {
+                _ = ready!(Pin::new(
+                    self.connection
+                        .as_mut()
+                        .expect("poll_next called after Poll::Ready(None)")
+                )
+                .poll_close(cx));
+                self.connection = None;
+                return Poll::Ready(None);
+            }
+            ShardState::Disconnected { reconnect_attempts } if self.connection.is_none() => {
+                if self.connection_future.is_none() {
+                    let base_url = self
+                        .resume_url
+                        .as_deref()
+                        .or_else(|| self.config.proxy_url())
+                        .unwrap_or(GATEWAY_URL);
+                    let uri =
+                        format!("{base_url}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}");
+
+                    tracing::debug!(url = base_url, "connecting to gateway");
+
+                    let tls = self.config.tls.clone();
+                    self.connection_future = Some(ConnectionFuture(Box::pin(async move {
+                        let secs = 2u8.saturating_pow(reconnect_attempts.into());
+                        time::sleep(Duration::from_secs(secs.into())).await;
+                        Ok(ClientBuilder::new()
+                            .uri(&uri)
+                            .expect("URL should be valid")
+                            .limits(Limits::unlimited())
+                            .connector(&tls)
+                            .connect()
+                            .await?
+                            .0)
+                    })));
+                }
+
+                match ready!(Pin::new(&mut self.connection_future.as_mut().unwrap().0).poll(cx)) {
+                    Ok(connection) => {
+                        self.connection = Some(connection);
+                        self.connection_future = None;
+                        self.state = ShardState::Identifying;
+                        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+                        self.inflater.reset();
+                    }
+                    Err(source) => {
+                        self.resume_url = None;
+                        self.state = ShardState::Disconnected {
+                            reconnect_attempts: reconnect_attempts + 1,
+                        };
+                        return Poll::Ready(Some(Err(ReceiveMessageError {
+                            kind: ReceiveMessageErrorType::Reconnect,
+                            source: Some(Box::new(source)),
+                        })));
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        let message = loop {
+            ready!(self.poll_flush_pending(cx))?;
+
+            if !self.state.is_disconnected() {
+                if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
+                    let frame = frame.expect("shard owns channel");
+                    tracing::debug!("sending close frame from user channel");
+                    self.disconnect(CloseInitiator::Shard(frame.code));
+                    self.pending = Pending::close(Some(frame));
+                    ready!(self.poll_flush_pending(cx))?;
+                }
+            }
+
+            if self
+                .heartbeat_interval
+                .as_mut()
+                .map_or(false, |heartbeater| heartbeater.poll_tick(cx).is_ready())
+            {
+                // Discord never responded after the last heartbeat, connection
+                // is failed or "zombied", see
+                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
+                // Note that unlike documented *any* event is okay; it does not
+                // have to be a heartbeat ACK.
+                if self.latency.sent().is_some() && !self.heartbeat_interval_event {
+                    tracing::info!("connection is failed or \"zombied\"");
+                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME.code));
+                    self.pending = Pending::close(Some(CloseFrame::RESUME));
+                } else {
+                    tracing::debug!("sending heartbeat");
+                    self.pending = Pending::text(
+                        json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
+                            .unwrap(),
+                        true,
+                    );
+                    self.heartbeat_interval_event = false;
+                }
+                ready!(self.poll_flush_pending(cx))?;
+            }
+
+            let ratelimited = self
+                .ratelimiter
+                .as_mut()
+                .map_or(false, |ratelimiter| ratelimiter.poll_ready(cx).is_pending());
+
+            if !ratelimited {
+                if let Some(Poll::Ready(canceled)) = self
+                    .identify_rx
+                    .as_mut()
+                    .map(|rx| Pin::new(rx).poll(cx).map(|r| r.is_err()))
+                {
+                    if canceled {
+                        self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
+                        continue;
+                    }
+                    tracing::debug!("sending identify");
+                    self.identify_rx = None;
+                    self.pending = Pending::text(
+                        json::to_string(&Identify::new(IdentifyInfo {
+                            compress: false,
+                            intents: self.config.intents(),
+                            large_threshold: self.config.large_threshold(),
+                            presence: self.config.presence().cloned(),
+                            properties: self
+                                .config
+                                .identify_properties()
+                                .cloned()
+                                .unwrap_or_else(default_identify_properties),
+                            shard: Some(self.id),
+                            token: self.config.token().to_owned(),
+                        }))
+                        .unwrap(),
+                        false,
+                    );
+                    ready!(self.poll_flush_pending(cx))?;
+                }
+            }
+
+            if !ratelimited && self.state.is_identified() {
+                if let Poll::Ready(command) = self.user_channel.command_rx.poll_recv(cx) {
+                    let command = command.expect("shard owns channel");
+                    tracing::debug!("sending command from user channel");
+                    self.pending = Pending::text(command, false);
+                    ready!(self.poll_flush_pending(cx))?;
+                }
+            }
+
+            match ready!(Pin::new(self.connection.as_mut().expect("connected")).poll_next(cx)) {
+                Some(Ok(message)) => {
+                    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+                    if message.is_binary() {
+                        if let Some(decompressed) = self
+                            .inflater
+                            .inflate(message.as_payload())
+                            .map_err(ReceiveMessageError::from_compression)?
+                        {
+                            break Message::Text(decompressed);
+                        };
+                    }
+                    if let Some(message) = Message::from_websocket_msg(&message) {
+                        break message;
+                    }
+                }
+                // Discord, against recommendations from the WebSocket spec,
+                // does not send a close_notify prior to shutting down the TCP
+                // stream. This arm tries to gracefully handle this. The
+                // connection is considered unusable after encountering an io
+                // error, returning `None`.
+                #[cfg(any(
+                    feature = "native-tls",
+                    feature = "rustls-native-roots",
+                    feature = "rustls-webpki-roots"
+                ))]
+                Some(Err(WebsocketError::Io(e)))
+                    if e.kind() == IoErrorKind::UnexpectedEof
+                        && self.config.proxy_url().is_none()
+                        && self.state.is_disconnected() =>
+                {
+                    continue
+                }
+                Some(Err(source)) => {
+                    self.disconnect(CloseInitiator::Transport);
+
+                    return Poll::Ready(Some(Err(ReceiveMessageError {
+                        kind: ReceiveMessageErrorType::WebSocket,
+                        source: Some(Box::new(source)),
+                    })));
+                }
+                None => {
+                    tracing::debug!("gateway connection closed");
+                    let res = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_close(cx));
+                    self.connection = None;
+                    // Unclean WebSocket closure.
+                    if !self.state.is_disconnected() {
+                        self.disconnect(CloseInitiator::Transport);
+                    }
+                    res.map_err(ReceiveMessageError::from_websocket)?;
+                }
+            }
+        };
+
+        match &message {
+            Message::Close(frame) => {
+                // tokio-websockets automatically replies to the close message.
+                tracing::debug!(?frame, "received WebSocket close message");
+                // Don't run `disconnect` if we initiated the close.
+                if !self.state.is_disconnected() {
+                    self.disconnect(CloseInitiator::Gateway(frame.as_ref().map(|f| f.code)));
+                }
+            }
+            Message::Text(event) => {
+                self.process(event)?;
+            }
+        }
+
+        Poll::Ready(Some(Ok(message)))
     }
 }
 
@@ -1229,60 +952,10 @@ fn default_identify_properties() -> IdentifyProperties {
 
 #[cfg(test)]
 mod tests {
-    use super::{ConnectionStatus, Shard};
-    use static_assertions::{assert_fields, assert_impl_all};
+    use super::Shard;
+    use static_assertions::{assert_impl_all, assert_not_impl_any};
     use std::fmt::Debug;
-    use twilight_model::gateway::CloseCode;
 
-    assert_fields!(
-        ConnectionStatus::Disconnected: close_code,
-        reconnect_attempts
-    );
-    assert_fields!(ConnectionStatus::FatallyClosed: close_code);
-    assert_impl_all!(ConnectionStatus: Clone, Debug, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(Shard: Debug, Send, Sync);
-
-    #[test]
-    fn connection_status_from_close_frame() {
-        let empty = ConnectionStatus::from_close_code(None);
-        assert_eq!(
-            empty,
-            ConnectionStatus::Disconnected {
-                close_code: None,
-                reconnect_attempts: 0
-            }
-        );
-
-        let non_fatal_code = CloseCode::SessionTimedOut as u16;
-        let non_fatal_status = ConnectionStatus::from_close_code(Some(non_fatal_code));
-
-        assert_eq!(
-            non_fatal_status,
-            ConnectionStatus::Disconnected {
-                close_code: Some(non_fatal_code),
-                reconnect_attempts: 0
-            }
-        );
-
-        let fatal_code = CloseCode::AuthenticationFailed;
-        let fatal_status = ConnectionStatus::from_close_code(Some(fatal_code as u16));
-
-        assert_eq!(
-            fatal_status,
-            ConnectionStatus::FatallyClosed {
-                close_code: fatal_code
-            }
-        );
-
-        let unknown_code = u16::MAX;
-        let non_fatal_status = ConnectionStatus::from_close_code(Some(unknown_code));
-
-        assert_eq!(
-            non_fatal_status,
-            ConnectionStatus::Disconnected {
-                close_code: Some(unknown_code),
-                reconnect_attempts: 0
-            }
-        );
-    }
+    assert_impl_all!(Shard: Debug, Send);
+    assert_not_impl_any!(Shard: Sync);
 }

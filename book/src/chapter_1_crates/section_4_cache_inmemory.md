@@ -12,8 +12,9 @@ Process new messages that come over a shard into the cache:
 # #[tokio::main]
 # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 use std::env;
+use tokio_stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;
-use twilight_gateway::{Intents, Shard, ShardId};
+use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId};
 
 let token = env::var("DISCORD_TOKEN")?;
 
@@ -21,16 +22,14 @@ let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILD_MESSAGES);
 
 let cache = InMemoryCache::new();
 
-loop {
-    let event = match shard.next_event().await {
-        Ok(event) => event,
+while let Some(item) = shard.next().await {
+    let event = match item.and_then(|message| {
+        twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
+    }) {
+        Ok(Some(event)) => event,
+        Ok(None) => continue,
         Err(source) => {
             tracing::warn!(?source, "error receiving event");
-
-            if source.is_fatal() {
-                break;
-            }
-
             continue;
         }
     };

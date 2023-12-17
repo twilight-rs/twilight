@@ -5,7 +5,6 @@ name = "book"
 version = "0.0.0"
 
 [dependencies]
-futures = { version = "0.3", default-features = false }
 skeptic = "0.13.5"
 twilight-gateway = { path = "../../twilight-gateway" }
 twilight-http = { path = "../../twilight-http" }
@@ -16,6 +15,7 @@ twilight-mention = { path = "../../twilight-mention" }
 twilight-standby = { path = "../../twilight-standby" }
 twilight-util = { features = ["full"], path = "../../twilight-util" }
 tokio = { default-features = false, features = ["full"], version = "1.0" }
+tokio-stream = { default-features = false, version = "0.1" }
 tracing = "0.1.35"
 tracing-subscriber = "0.3"
 

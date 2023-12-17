@@ -11,7 +11,11 @@ connection to Discord's gateway. Much of its functionality can be configured,
 and it's used to receive gateway events or raw Websocket messages, useful for
 load balancing and microservices.
 
-Using the `stream` module, shards can be easily managed in groups.
+Multiple shards may easily be created at once, with a per shard config created
+from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
+`create_` set of functions. These functions will reuse shards' TLS context and
+[session queue][queue], something otherwise achieved by cloning an existing
+[`Config`].
 
 ## Features
 
@@ -33,7 +37,8 @@ Create a shard and loop over guild and voice state events:
 
 ```rust,no_run
 use std::env;
-use twilight_gateway::{Intents, Shard, ShardId};
+use tokio_stream::StreamExt;
+use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -48,21 +53,17 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("started shard");
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
+    while let Some(item) = shard.next().await {
+        let event = match item.and_then(|message| {
+            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
+        }) {
+            Ok(Some(event)) => event,
+            Ok(None) => continue,
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
 
-                // If the error is fatal, as may be the case for invalid
-                // authentication or intents, then break out of the loop to
-                // avoid constantly attempting to reconnect.
-                if source.is_fatal() {
-                    break;
-                }
-
                 continue;
-            },
+            }
         };
 
         // You'd normally want to spawn a new tokio task for each event and
@@ -74,16 +75,13 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-Create the recommended number of shards and run them concurrently through
-`ShardEventStream`:
+Create the recommended number of shards and run them in parallel
 
 ```rust,no_run
-use futures::StreamExt;
 use std::env;
-use twilight_gateway::{
-    stream::{self, ShardEventStream},
-    Config, Intents,
-};
+use tokio::task::JoinSet;
+use tokio_stream::StreamExt;
+use twilight_gateway::{Config, EventTypeFlags, Intents};
 use twilight_http::Client;
 
 #[tokio::main]
@@ -94,31 +92,33 @@ async fn main() -> anyhow::Result<()> {
     let client = Client::new(token.clone());
     let config = Config::new(token, Intents::GUILDS);
 
-    let mut shards = stream::create_recommended(&client, config, |_, builder| builder.build())
-        .await?
-        .collect::<Vec<_>>();
+    let shards =
+        twilight_gateway::create_recommended(&client, config, |_, builder| builder.build()).await?;
+    let mut set = JoinSet::new();
 
-    // Create an infinite stream over the shards' events.
-    let mut stream = ShardEventStream::new(shards.iter_mut());
+    for mut shard in shards {
+        set.spawn(async move {
+            while let Some(item) = shard.next().await {
+                let event = match item.and_then(|message| {
+                    twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
+                }) {
+                    Ok(Some(event)) => event,
+                    Ok(None) => continue,
+                    Err(source) => {
+                        tracing::warn!(?source, "error receiving event");
 
-    while let Some((shard, event)) = stream.next().await {
-        let event = match event {
-            Ok(event) => event,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+                        continue;
+                    }
+                };
 
-                if source.is_fatal() {
-                    break;
-                }
-
-                continue;
+                // You'd normally want to spawn a new tokio task for each event and
+                // handle the event there to not block the shard.
+                tracing::debug!(?event, shard = ?shard.id(), "received event");
             }
-        };
-
-        // You'd normally want to spawn a new tokio task for each event and
-        // handle the event there to not block the shards.
-        tracing::debug!(?event, shard = ?shard.id(), "received event");
+        });
     }
+
+    while set.join_next().await.is_some() {}
 
     Ok(())
 }

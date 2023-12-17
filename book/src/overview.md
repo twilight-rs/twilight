@@ -47,8 +47,9 @@ in from a channel:
 
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
+use tokio_stream::StreamExt;
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 
 #[tokio::main]
@@ -73,15 +74,14 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     // Startup the event loop to process each event in the event stream as they
     // come in.
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
+    while let Some(item) = shard.next().await {
+        let event = match item.and_then(|message| {
+            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
+        }) {
+            Ok(Some(event)) => event,
+            Ok(None) => continue,
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
-
-                if source.is_fatal() {
-                    break;
-                }
 
                 continue;
             }

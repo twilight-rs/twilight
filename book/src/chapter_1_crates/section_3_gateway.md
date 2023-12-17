@@ -80,7 +80,8 @@ Starting a `Shard` and printing the contents of new messages as they come in:
 
 ```rust,no_run
 use std::{env, error::Error};
-use twilight_gateway::{Intents, Shard, ShardId};
+use tokio_stream::StreamExt;
+use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -92,15 +93,14 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut shard = Shard::new(ShardId::ONE, token, intents);
     tracing::info!("created shard");
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
+    while let Some(item) = shard.next().await {
+        let event = match item.and_then(|message| {
+            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
+        }) {
+            Ok(Some(event)) => event,
+            Ok(None) => continue,
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
-
-                if source.is_fatal() {
-                    break;
-                }
 
                 continue;
             }

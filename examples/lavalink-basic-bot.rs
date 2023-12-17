@@ -5,7 +5,8 @@ use hyper_util::{
     rt::TokioExecutor,
 };
 use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
-use twilight_gateway::{Event, Intents, MessageSender, Shard, ShardId};
+use tokio_stream::StreamExt;
+use twilight_gateway::{Event, EventTypeFlags, Intents, MessageSender, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
     http::LoadedTracks,
@@ -71,15 +72,14 @@ async fn main() -> anyhow::Result<()> {
         )
     };
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
+    while let Some(item) = shard.next().await {
+        let event = match item.and_then(|message| {
+            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
+        }) {
+            Ok(Some(event)) => event,
+            Ok(None) => continue,
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
-
-                if source.is_fatal() {
-                    break;
-                }
 
                 continue;
             }
@@ -131,7 +131,7 @@ async fn join(msg: Message, state: State) -> anyhow::Result<()> {
         Some(channel_id),
         false,
         false,
-    ))?;
+    ));
 
     state
         .http
@@ -154,7 +154,7 @@ async fn leave(msg: Message, state: State) -> anyhow::Result<()> {
     player.send(Destroy::from(guild_id))?;
     state
         .sender
-        .command(&UpdateVoiceState::new(guild_id, None, false, false))?;
+        .command(&UpdateVoiceState::new(guild_id, None, false, false));
 
     state
         .http

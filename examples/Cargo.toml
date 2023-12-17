@@ -9,6 +9,7 @@ version = "0.0.0"
 anyhow = { default-features = false, features = ["std"], version = "1" }
 ed25519-dalek = "2"
 futures-util = { default-features = false, version = "0.3" }
+tokio-stream = { default-features = false, version = "0.1" }
 hex = "0.4"
 http-body-util = "0.1"
 hyper = { features = ["server"], version = "1" }
@@ -25,10 +26,6 @@ twilight-http = { path = "../twilight-http" }
 twilight-lavalink = { path = "../twilight-lavalink" }
 twilight-model = { path = "../twilight-model" }
 twilight-standby = { path = "../twilight-standby" }
-
-[[example]]
-name = "gateway-parallel"
-path = "gateway-parallel.rs"
 
 [[example]]
 name = "gateway-queue-http"
