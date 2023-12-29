@@ -9,13 +9,18 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{stage_instance::PrivacyLevel, StageInstance},
-    id::{marker::ChannelMarker, Id},
+    id::{
+        marker::{ChannelMarker, ScheduledEventMarker},
+        Id,
+    },
 };
 use twilight_validate::request::{stage_topic as validate_stage_topic, ValidationError};
 
 #[derive(Serialize)]
 struct CreateStageInstanceFields<'a> {
     channel_id: Id<ChannelMarker>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    guild_scheduled_event_id: Option<Id<ScheduledEventMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -36,6 +41,7 @@ impl<'a> CreateStageInstance<'a> {
     pub(crate) fn new(http: &'a Client, channel_id: Id<ChannelMarker>, topic: &'a str) -> Self {
         let fields = Ok(CreateStageInstanceFields {
             channel_id,
+            guild_scheduled_event_id: None,
             privacy_level: None,
             send_start_notification: None,
             topic,
@@ -47,6 +53,18 @@ impl<'a> CreateStageInstance<'a> {
         });
 
         Self { fields, http }
+    }
+
+    /// Set the guild scheduled event associated with this stage instance.
+    pub fn guild_scheduled_event_id(
+        mut self,
+        guild_scheduled_event_id: Id<ScheduledEventMarker>,
+    ) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.guild_scheduled_event_id = Some(guild_scheduled_event_id);
+        }
+
+        self
     }
 
     /// Set the [`PrivacyLevel`] of the instance.
