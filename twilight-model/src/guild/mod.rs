@@ -76,7 +76,7 @@ use serde::{
 };
 use std::fmt::{Formatter, Result as FmtResult};
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Hash)]
 pub struct Guild {
     pub afk_channel_id: Option<Id<ChannelMarker>>,
     pub afk_timeout: AfkTimeout,
