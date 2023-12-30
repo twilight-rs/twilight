@@ -42,7 +42,7 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - run: cargo check --all-features --all-targets
+      - run: cargo check --all-features --workspace --exclude book
 
   # Check documentation
   build-docs:
