@@ -5,7 +5,11 @@ mod interaction;
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 use crate::request::{
-    guild::GetGuildOnboarding, GetCurrentAuthorizationInformation, UpdateCurrentUserApplication,
+    guild::{
+        update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingFields},
+        GetGuildOnboarding,
+    },
+    GetCurrentAuthorizationInformation, UpdateCurrentUserApplication,
 };
 #[allow(deprecated)]
 use crate::{
@@ -950,6 +954,15 @@ impl Client {
         name: &'a str,
     ) -> Result<CreateGuildChannel<'a>, ChannelValidationError> {
         CreateGuildChannel::new(self, guild_id, name)
+    }
+
+    /// Modify the guild onboarding flow.
+    pub const fn update_guild_onboarding(
+        &self,
+        guild_id: Id<GuildMarker>,
+        fields: UpdateGuildOnboardingFields,
+    ) -> UpdateGuildOnboarding {
+        UpdateGuildOnboarding::new(self, guild_id, fields)
     }
 
     /// Modify the positions of the channels.

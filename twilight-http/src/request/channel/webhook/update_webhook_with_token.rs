@@ -124,7 +124,7 @@ mod tests {
         let client = Client::new("token".into());
 
         {
-            let expected = r#"{}"#;
+            let expected = r"{}";
             let actual =
                 UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token").try_into_request()?;
 

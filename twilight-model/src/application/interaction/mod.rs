@@ -434,7 +434,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines, deprecated)]
     fn test_interaction_full() -> Result<(), TimestampParseError> {
-        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?);
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Interaction {
@@ -651,6 +651,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("nick"),
                 Token::Some,
@@ -725,6 +726,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

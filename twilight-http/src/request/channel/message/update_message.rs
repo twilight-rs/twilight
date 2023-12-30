@@ -373,7 +373,7 @@ mod tests {
 
         assert_eq!(Some(expected.as_bytes()), actual.body());
 
-        let expected = r#"{}"#;
+        let expected = r"{}";
         let actual = UpdateMessage::new(&client, CHANNEL_ID, MESSAGE_ID).try_into_request()?;
 
         assert_eq!(Some(expected.as_bytes()), actual.body());

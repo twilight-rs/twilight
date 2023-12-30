@@ -994,6 +994,10 @@ pub enum Route<'a> {
         /// ID of the guild.
         guild_id: u64,
     },
+    UpdateGuildOnboarding {
+        /// The ID of the guild to update onboarding information for.
+        guild_id: u64,
+    },
     /// Route information to update a scheduled event in a guild.
     UpdateGuildScheduledEvent {
         /// ID of the guild.
@@ -1290,6 +1294,7 @@ impl<'a> Route<'a> {
             | Self::SetGuildCommands { .. }
             | Self::SyncTemplate { .. }
             | Self::UpdateCommandPermissions { .. }
+            | Self::UpdateGuildOnboarding { .. }
             | Self::UpdatePermissionOverwrite { .. } => Method::Put,
         }
     }
@@ -1557,7 +1562,9 @@ impl<'a> Route<'a> {
             Self::GetGuildMembers { guild_id, .. } | Self::UpdateCurrentMember { guild_id, .. } => {
                 Path::GuildsIdMembers(guild_id)
             }
-            Self::GetGuildOnboarding { guild_id } => Path::GuildsIdOnboarding(guild_id),
+            Self::GetGuildOnboarding { guild_id } | Self::UpdateGuildOnboarding { guild_id } => {
+                Path::GuildsIdOnboarding(guild_id)
+            }
             Self::CreateGuildScheduledEvent { guild_id, .. }
             | Self::GetGuildScheduledEvents { guild_id, .. } => {
                 Path::GuildsIdScheduledEvents(guild_id)
@@ -2403,7 +2410,7 @@ impl Display for Route<'_> {
 
                 Ok(())
             }
-            Route::GetGuildOnboarding { guild_id } => {
+            Route::GetGuildOnboarding { guild_id } | Route::UpdateGuildOnboarding { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
 

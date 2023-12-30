@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -50,6 +51,10 @@ impl Display for ParseMentionError<'_> {
                 Display::fmt(found, f)?;
 
                 f.write_str("') of mention is not a u64")
+            }
+            ParseMentionErrorType::ExtraneousPart { found } => {
+                f.write_str("found extraneous part ")?;
+                Debug::fmt(found, f)
             }
             ParseMentionErrorType::LeadingArrow { found } => {
                 f.write_str("expected to find a leading arrow ('<') but instead found ")?;
@@ -133,6 +138,11 @@ pub enum ParseMentionErrorType<'a> {
         /// String that could not be parsed into a u64.
         found: &'a str,
     },
+    /// An extra part was found that shouldn't be present.
+    ExtraneousPart {
+        /// The extra part that was found.
+        found: &'a str,
+    },
     /// Leading arrow (`<`) is not present.
     LeadingArrow {
         /// Character that was instead found where the leading arrow should be.
@@ -177,6 +187,7 @@ mod tests {
     use std::{error::Error, fmt::Debug};
 
     assert_fields!(ParseMentionErrorType::IdNotU64: found);
+    assert_fields!(ParseMentionErrorType::ExtraneousPart: found);
     assert_fields!(ParseMentionErrorType::LeadingArrow: found);
     assert_fields!(ParseMentionErrorType::Sigil: expected, found);
     assert_fields!(ParseMentionErrorType::TimestampStyleInvalid: found);
@@ -196,6 +207,17 @@ mod tests {
             }
             .to_string(),
         );
+
+        expected = "found extraneous part \"abc\"";
+        assert_eq!(
+            expected,
+            ParseMentionError {
+                kind: ParseMentionErrorType::ExtraneousPart { found: "abc" },
+                source: None
+            }
+            .to_string()
+        );
+
         expected = "expected to find a leading arrow ('<') but instead found 'a'";
         assert_eq!(
             expected,

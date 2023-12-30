@@ -26,8 +26,8 @@ impl OnboardingPromptType {
 impl From<u8> for OnboardingPromptType {
     fn from(value: u8) -> Self {
         match value {
-            1 => Self::MultipleChoice,
-            2 => Self::Dropdown,
+            0 => Self::MultipleChoice,
+            1 => Self::Dropdown,
             unknown => Self::Unknown(unknown),
         }
     }
@@ -36,8 +36,8 @@ impl From<u8> for OnboardingPromptType {
 impl From<OnboardingPromptType> for u8 {
     fn from(value: OnboardingPromptType) -> Self {
         match value {
-            OnboardingPromptType::MultipleChoice => 1,
-            OnboardingPromptType::Dropdown => 2,
+            OnboardingPromptType::MultipleChoice => 0,
+            OnboardingPromptType::Dropdown => 1,
             OnboardingPromptType::Unknown(unknown) => unknown,
         }
     }
@@ -51,8 +51,8 @@ mod tests {
     #[test]
     fn onboarding_prompt_type() {
         const MAP: &[(OnboardingPromptType, u8, &str)] = &[
-            (OnboardingPromptType::MultipleChoice, 1, "MultipleChoice"),
-            (OnboardingPromptType::Dropdown, 2, "DropDown"),
+            (OnboardingPromptType::MultipleChoice, 0, "MultipleChoice"),
+            (OnboardingPromptType::Dropdown, 1, "DropDown"),
             (OnboardingPromptType::Unknown(3), 3, "Unknown"),
         ];
 

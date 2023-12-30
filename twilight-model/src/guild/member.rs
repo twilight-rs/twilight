@@ -23,7 +23,7 @@ pub struct Member {
     ///
     /// Defaults to an empty bitfield.
     pub flags: MemberFlags,
-    pub joined_at: Timestamp,
+    pub joined_at: Option<Timestamp>,
     pub mute: bool,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
@@ -51,7 +51,7 @@ mod tests {
 
     #[test]
     fn member_deserializer() -> Result<(), TimestampParseError> {
-        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?);
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
@@ -104,6 +104,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),
@@ -154,7 +155,7 @@ mod tests {
     #[test]
     fn guild_member_communication_disabled_until() -> Result<(), TimestampParseError> {
         let communication_disabled_until = Timestamp::from_str("2021-12-23T14:29:19.046000+00:00")?;
-        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?);
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
@@ -208,6 +209,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),

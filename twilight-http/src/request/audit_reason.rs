@@ -37,6 +37,7 @@ mod private {
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
             role::{CreateRole, DeleteRole, UpdateRole},
             sticker::{CreateGuildSticker, UpdateGuildSticker},
+            update_guild_onboarding::UpdateGuildOnboarding,
             CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild, UpdateGuildMfa,
             UpdateGuildWidgetSettings,
         },
@@ -90,6 +91,7 @@ mod private {
     impl Sealed for UpdateGuild<'_> {}
     impl Sealed for UpdateGuildMember<'_> {}
     impl Sealed for UpdateGuildMfa<'_> {}
+    impl Sealed for UpdateGuildOnboarding<'_> {}
     impl Sealed for UpdateGuildScheduledEvent<'_> {}
     impl Sealed for UpdateGuildSticker<'_> {}
     impl Sealed for UpdateGuildWidgetSettings<'_> {}
