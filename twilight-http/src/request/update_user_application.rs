@@ -49,8 +49,10 @@ struct UpdateCurrentUserApplicationFields<'a> {
 /// let bearer_token = env::var("BEARER_TOKEN")?;
 ///
 /// let client = Client::new(bearer_token);
-/// let response = client.update_current_user_application()
-///    .description("My cool application").await?;
+/// let response = client
+///     .update_current_user_application()
+///     .description("My cool application")
+///     .await?;
 /// let application = response.model().await?;
 ///
 /// println!("Application: {}", application.description);
