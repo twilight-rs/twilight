@@ -1,6 +1,8 @@
-use hyper::{
-    client::{Client as HyperClient, HttpConnector},
-    Body, Request,
+use http_body_util::{BodyExt, Full};
+use hyper::{body::Bytes, Request};
+use hyper_util::{
+    client::legacy::{connect::HttpConnector, Client as HyperClient},
+    rt::TokioExecutor,
 };
 use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
 use twilight_gateway::{Event, Intents, MessageSender, Shard, ShardId};
@@ -22,7 +24,7 @@ type State = Arc<StateRef>;
 struct StateRef {
     http: HttpClient,
     lavalink: Lavalink,
-    hyper: HyperClient<HttpConnector>,
+    hyper: HyperClient<HttpConnector, Full<Bytes>>,
     sender: MessageSender,
     standby: Standby,
 }
@@ -62,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
             Arc::new(StateRef {
                 http,
                 lavalink,
-                hyper: HyperClient::new(),
+                hyper: HyperClient::builder(TokioExecutor::new()).build_http(),
                 sender,
                 standby: Standby::new(),
             }),
@@ -191,9 +193,9 @@ async fn play(msg: Message, state: State) -> anyhow::Result<()> {
         &player.node().config().authorization,
     )?
     .into_parts();
-    let req = Request::from_parts(parts, Body::from(body));
+    let req = Request::from_parts(parts, Full::from(body));
     let res = state.hyper.request(req).await?;
-    let response_bytes = hyper::body::to_bytes(res.into_body()).await?;
+    let response_bytes = res.collect().await?.to_bytes();
 
     let loaded = serde_json::from_slice::<LoadedTracks>(&response_bytes)?;
 
