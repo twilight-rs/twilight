@@ -464,7 +464,7 @@ impl Node {
 
 struct Connection {
     config: NodeConfig,
-    connection: WebsocketStream<MaybeTlsStream<TcpStream>>,
+    stream: WebsocketStream<MaybeTlsStream<TcpStream>>,
     node_from: UnboundedReceiver<OutgoingEvent>,
     node_to: UnboundedSender<IncomingEvent>,
     players: PlayerManager,
@@ -484,7 +484,7 @@ impl Connection {
         ),
         NodeError,
     > {
-        let connection = reconnect(&config).await?;
+        let stream = reconnect(&config).await?;
 
         let (to_node, from_lavalink) = mpsc::unbounded_channel();
         let (to_lavalink, from_node) = mpsc::unbounded_channel();
@@ -492,7 +492,7 @@ impl Connection {
         Ok((
             Self {
                 config,
-                connection,
+                stream,
                 node_from: from_node,
                 node_to: to_node,
                 players,
@@ -506,12 +506,12 @@ impl Connection {
     async fn run(mut self) -> Result<(), NodeError> {
         loop {
             tokio::select! {
-                incoming = self.connection.next() => {
+                incoming = self.stream.next() => {
                     if let Some(Ok(incoming)) = incoming {
                         self.incoming(incoming).await?;
                     } else {
                         tracing::debug!("connection to {} closed, reconnecting", self.config.address);
-                        self.connection = reconnect(&self.config).await?;
+                        self.stream = reconnect(&self.config).await?;
                     }
                 }
                 outgoing = self.node_from.recv() => {
@@ -526,7 +526,7 @@ impl Connection {
                             source: Some(Box::new(source)),
                         })?;
                         let msg = Message::text(payload);
-                        self.connection.send(msg).await.unwrap();
+                        self.stream.send(msg).await.unwrap();
                     } else {
                         tracing::debug!("node {} closed, ending connection", self.config.address);
 
