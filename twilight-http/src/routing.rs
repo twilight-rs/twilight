@@ -1249,7 +1249,7 @@ impl<'a> Route<'a> {
             | Self::UpdateTemplate { .. }
             | Self::UpdateUserVoiceState { .. }
             | Self::UpdateWebhookMessage { .. }
-            | Self::UpdateCurrentUserApplication { .. }
+            | Self::UpdateCurrentUserApplication
             | Self::UpdateWebhook { .. } => Method::Patch,
             Self::CreateChannel { .. }
             | Self::CreateGlobalCommand { .. }

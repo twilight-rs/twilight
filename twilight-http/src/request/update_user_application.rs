@@ -33,6 +33,32 @@ struct UpdateCurrentUserApplicationFields<'a> {
     tags: Option<Vec<&'a str>>,
 }
 
+/// Update the current user's application.
+///
+/// Returns the newly updated application.
+///
+/// Refer to [Discord Docs/Update Current User Application][1].
+///
+/// # Examples
+///
+/// ```no_run
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::env;
+/// use twilight_http::Client;
+///
+/// let bearer_token = env::var("BEARER_TOKEN")?;
+///
+/// let client = Client::new(bearer_token);
+/// let response = client.update_current_user_application()
+///    .description("My cool application").await?;
+/// let application = response.model().await?;
+///
+/// println!("Application: {}", application.description);
+///
+/// # Ok(()) }
+/// ```
+///
+/// [1]: https://discord.com/developers/docs/resources/application#edit-current-application
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUserApplication<'a> {
     fields: UpdateCurrentUserApplicationFields<'a>,
@@ -57,59 +83,58 @@ impl<'a> UpdateCurrentUserApplication<'a> {
         }
     }
 
-    /// Set the cover image of the application.
+    /// Sets the cover image of the application.
     pub const fn cover_image(mut self, cover_image: Option<&'a str>) -> Self {
         self.fields.cover_image = Some(Nullable(cover_image));
 
         self
     }
 
-    /// Set the custom install URL of the application.
+    /// Sets the custom install URL of the application.
     pub const fn custom_install_url(mut self, custom_install_url: &'a str) -> Self {
         self.fields.custom_install_url = Some(custom_install_url);
 
         self
     }
 
-    /// Set the description of the application.
+    /// Sets the description of the application.
     pub const fn description(mut self, description: &'a str) -> Self {
         self.fields.description = Some(description);
 
         self
     }
 
-    /// Set the flags of the application.
-    /// Only limited intent flags (GATEWAY_PRESENCE_LIMITED, GATEWAY_GUILD_MEMBERS_LIMITED,
-    /// and GATEWAY_MESSAGE_CONTENT_LIMITED) can be updated via the API.
+    /// Sets the flags of the application.
+    /// Only limited intent flags (`GATEWAY_PRESENCE_LIMITED`, `GATEWAY_GUILD_MEMBERS_LIMITED`,
+    /// and `GATEWAY_MESSAGE_CONTENT_LIMITED`) can be updated via the API.
     pub const fn flags(mut self, flags: ApplicationFlags) -> Self {
         self.fields.flags = Some(flags);
 
         self
     }
 
-    /// Set the icon of the application.
+    /// Sets the icon of the application.
     pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
         self.fields.icon = Some(Nullable(icon));
 
         self
     }
 
-    /// Set the install params of the application.
-    #[allow(clippy::missing_const_for_fn)]
+    /// Sets the install params of the application.
     pub fn install_params(mut self, install_params: InstallParams) -> Self {
         self.fields.install_params = Some(install_params);
 
         self
     }
 
-    /// Set the interactions endpoint URL of the application.
+    /// Sets the interactions endpoint URL of the application.
     pub const fn interactions_endpoint_url(mut self, interactions_endpoint_url: &'a str) -> Self {
         self.fields.interactions_endpoint_url = Some(interactions_endpoint_url);
 
         self
     }
 
-    /// Set the role connections verification URL of the application.
+    /// Sets the role connections verification URL of the application.
     pub const fn role_connections_verification_url(
         mut self,
         role_connections_verification_url: &'a str,
@@ -119,7 +144,7 @@ impl<'a> UpdateCurrentUserApplication<'a> {
         self
     }
 
-    /// Set the tags of the application.
+    /// Sets the tags of the application.
     pub fn tags(mut self, tags: Vec<&'a str>) -> Self {
         self.fields.tags = Some(tags);
 
