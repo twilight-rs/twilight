@@ -79,6 +79,8 @@ impl<'a> UpdateCurrentUserApplication<'a> {
     }
 
     /// Set the flags of the application.
+    /// Only limited intent flags (GATEWAY_PRESENCE_LIMITED, GATEWAY_GUILD_MEMBERS_LIMITED,
+    /// and GATEWAY_MESSAGE_CONTENT_LIMITED) can be updated via the API.
     pub const fn flags(mut self, flags: ApplicationFlags) -> Self {
         self.fields.flags = Some(flags);
 
