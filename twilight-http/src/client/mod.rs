@@ -9,8 +9,11 @@ use crate::request::{
         create_test_entitlement::{CreateTestEntitlement, CreateTestEntitlementOwner},
         DeleteTestEntitlement, GetEntitlements, GetSKUs,
     },
-    guild::GetGuildOnboarding,
-    GetCurrentAuthorizationInformation,
+    guild::{
+        update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingFields},
+        GetGuildOnboarding,
+    },
+    GetCurrentAuthorizationInformation, UpdateCurrentUserApplication,
 };
 #[allow(deprecated)]
 use crate::{
@@ -699,6 +702,11 @@ impl Client {
         GetUserApplicationInfo::new(self)
     }
 
+    /// Update the current user's application.
+    pub const fn update_current_user_application(&self) -> UpdateCurrentUserApplication<'_> {
+        UpdateCurrentUserApplication::new(self)
+    }
+
     /// Update the current user.
     ///
     /// All parameters are optional. If the username is changed, it may cause the discriminator to
@@ -973,6 +981,15 @@ impl Client {
         name: &'a str,
     ) -> Result<CreateGuildChannel<'a>, ChannelValidationError> {
         CreateGuildChannel::new(self, guild_id, name)
+    }
+
+    /// Modify the guild onboarding flow.
+    pub const fn update_guild_onboarding(
+        &self,
+        guild_id: Id<GuildMarker>,
+        fields: UpdateGuildOnboardingFields,
+    ) -> UpdateGuildOnboarding {
+        UpdateGuildOnboarding::new(self, guild_id, fields)
     }
 
     /// Modify the positions of the channels.

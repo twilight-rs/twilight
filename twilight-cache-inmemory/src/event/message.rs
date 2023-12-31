@@ -142,7 +142,7 @@ mod tests {
 
     #[test]
     fn message_create() -> Result<(), ImageHashParseError> {
-        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
         let cache = InMemoryCache::builder()
             .resource_types(ResourceType::MESSAGE | ResourceType::MEMBER | ResourceType::USER)
             .message_cache_size(2)

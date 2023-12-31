@@ -80,7 +80,7 @@ pub struct InteractionMember {
     /// Defaults to an empty bitfield.
     pub flags: MemberFlags,
     /// Member guild join date.
-    pub joined_at: Timestamp,
+    pub joined_at: Option<Timestamp>,
     /// Member nickname.
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's Membership Screening
@@ -118,7 +118,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn test_data_resolved() -> Result<(), TimestampParseError> {
-        let joined_at = Timestamp::from_str("2021-08-10T12:18:37.000000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2021-08-10T12:18:37.000000+00:00")?);
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
@@ -355,6 +355,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::Str("nick"),
                 Token::None,
@@ -440,6 +441,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

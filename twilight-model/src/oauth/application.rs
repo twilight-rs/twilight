@@ -1,5 +1,6 @@
 use super::{team::Team, ApplicationFlags, InstallParams};
 use crate::{
+    guild::Guild,
     id::{
         marker::{ApplicationMarker, GuildMarker, OauthSkuMarker},
         Id,
@@ -11,6 +12,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Application {
+    /// Approximate count of guilds this app has been added to.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub approximate_guild_count: Option<u64>,
+    /// Partial user object for the bot user associated with the app.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bot: Option<User>,
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
     /// Default rich presence invite cover image.
@@ -21,6 +28,9 @@ pub struct Application {
     /// Description of the application.
     pub description: String,
     pub guild_id: Option<Id<GuildMarker>>,
+    /// Partial object of the associated guild.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild: Option<Guild>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
     /// Icon of the application.
@@ -30,6 +40,9 @@ pub struct Application {
     /// Settings for the application's default in-app authorization, if enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub install_params: Option<InstallParams>,
+    /// Interactions endpoint URL for the app.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub interactions_endpoint_url: Option<String>,
     /// Name of the application.
     pub name: String,
     pub owner: Option<User>,
@@ -37,8 +50,14 @@ pub struct Application {
     /// URL of the application's privacy policy.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privacy_policy_url: Option<String>,
+    /// Role connection verification URL for the app.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role_connections_verification_url: Option<String>,
     #[serde(default)]
     pub rpc_origins: Vec<String>,
+    /// Redirect URIs for the application.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redirect_uris: Option<Vec<String>>,
     pub slug: Option<String>,
     /// Tags describing the content and functionality of the application.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -96,16 +115,20 @@ mod tests {
     #[test]
     fn current_application_info() {
         let value = Application {
+            approximate_guild_count: Some(2),
+            bot: None,
             bot_public: true,
             bot_require_code_grant: false,
             cover_image: Some(image_hash::COVER),
             custom_install_url: None,
             description: "a pretty cool application".to_owned(),
             guild_id: Some(Id::new(1)),
+            guild: None,
             flags: Some(ApplicationFlags::EMBEDDED),
             icon: Some(image_hash::ICON),
             id: Id::new(2),
             install_params: None,
+            interactions_endpoint_url: Some("https://interactions".into()),
             name: "cool application".to_owned(),
             owner: Some(User {
                 accent_color: None,
@@ -128,6 +151,8 @@ mod tests {
             }),
             primary_sku_id: Some(Id::new(4)),
             privacy_policy_url: Some("https://privacypolicy".into()),
+            redirect_uris: None,
+            role_connections_verification_url: Some("https://roleconnections".into()),
             rpc_origins: vec!["one".to_owned()],
             slug: Some("app slug".to_owned()),
             tags: Some(Vec::from([
@@ -152,8 +177,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Application",
-                    len: 18,
+                    len: 21,
                 },
+                Token::Str("approximate_guild_count"),
+                Token::Some,
+                Token::U64(2),
                 Token::Str("bot_public"),
                 Token::Bool(true),
                 Token::Str("bot_require_code_grant"),
@@ -176,6 +204,9 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
+                Token::Str("interactions_endpoint_url"),
+                Token::Some,
+                Token::Str("https://interactions"),
                 Token::Str("name"),
                 Token::Str("cool application"),
                 Token::Str("owner"),
@@ -212,6 +243,9 @@ mod tests {
                 Token::Str("privacy_policy_url"),
                 Token::Some,
                 Token::Str("https://privacypolicy"),
+                Token::Str("role_connections_verification_url"),
+                Token::Some,
+                Token::Str("https://roleconnections"),
                 Token::Str("rpc_origins"),
                 Token::Seq { len: Some(1) },
                 Token::Str("one"),

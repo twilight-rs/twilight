@@ -67,6 +67,7 @@ mod private {
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
             },
+            update_guild_onboarding::UpdateGuildOnboarding,
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
@@ -85,6 +86,7 @@ mod private {
             CreateGuildFromTemplate, CreateTemplate, DeleteTemplate, GetTemplate, GetTemplates,
             SyncTemplate, UpdateTemplate,
         },
+        update_user_application::UpdateCurrentUserApplication,
         user::{
             CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections,
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
@@ -260,6 +262,7 @@ mod private {
     impl Sealed for UpdateGuildCommand<'_> {}
     impl Sealed for UpdateGuildMember<'_> {}
     impl Sealed for UpdateGuildMfa<'_> {}
+    impl Sealed for UpdateGuildOnboarding<'_> {}
     impl Sealed for UpdateGuildScheduledEvent<'_> {}
     impl Sealed for UpdateGuildSticker<'_> {}
     impl Sealed for UpdateGuildWelcomeScreen<'_> {}
@@ -275,6 +278,7 @@ mod private {
     impl Sealed for UpdateWebhook<'_> {}
     impl Sealed for UpdateWebhookMessage<'_> {}
     impl Sealed for UpdateWebhookWithToken<'_> {}
+    impl Sealed for UpdateCurrentUserApplication<'_> {}
 }
 
 use super::base::Request;

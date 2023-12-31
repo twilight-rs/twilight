@@ -507,7 +507,7 @@ mod tests {
     }
 
     /// Test that creating an ID via [`Id::new`] with a value of zero panics.
-    #[should_panic]
+    #[should_panic(expected = "value is zero")]
     #[test]
     const fn test_new_checked_zero() {
         _ = Id::<GenericMarker>::new(0);

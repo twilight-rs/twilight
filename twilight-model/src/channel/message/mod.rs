@@ -215,7 +215,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn message_deserialization() {
-        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap();
+        let joined_at = Some(Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap());
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
@@ -358,6 +358,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),
@@ -408,7 +409,7 @@ mod tests {
     #[test]
     fn message_deserialization_complete() -> Result<(), TimestampParseError> {
         let edited_timestamp = Timestamp::from_str("2021-08-10T12:41:51.602000+00:00")?;
-        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?);
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
@@ -616,6 +617,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(flags.bits()),
                 Token::Str("joined_at"),
+                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

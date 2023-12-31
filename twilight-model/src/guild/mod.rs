@@ -76,7 +76,7 @@ use serde::{
 };
 use std::fmt::{Formatter, Result as FmtResult};
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Hash)]
 pub struct Guild {
     pub afk_channel_id: Option<Id<ChannelMarker>>,
     pub afk_timeout: AfkTimeout,
@@ -836,7 +836,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn guild() -> Result<(), TimestampParseError> {
-        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+        let joined_at = Some(Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?);
 
         let value = Guild {
             afk_channel_id: Some(Id::new(2)),
@@ -854,7 +854,7 @@ mod tests {
             features: Vec::from([GuildFeature::Banner]),
             icon: Some(image_hash::ICON),
             id: Id::new(1),
-            joined_at: Some(joined_at),
+            joined_at,
             large: true,
             max_members: Some(25_000),
             max_presences: Some(10_000),

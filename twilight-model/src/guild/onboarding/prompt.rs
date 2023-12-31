@@ -54,7 +54,7 @@ mod tests {
                 Token::Str("in_onboarding"),
                 Token::Bool(true),
                 Token::Str("type"),
-                Token::U8(1),
+                Token::U8(0),
                 Token::Str("options"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

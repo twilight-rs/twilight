@@ -960,7 +960,7 @@ mod tests {
 
     #[test]
     fn highest_role() {
-        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
         let cache = InMemoryCache::new();
         let guild_id = Id::new(1);
         let user = test::user(Id::new(1));
