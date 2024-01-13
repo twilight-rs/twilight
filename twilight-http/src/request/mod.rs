@@ -58,6 +58,7 @@ mod get_user_application;
 mod get_voice_regions;
 mod multipart;
 mod try_into_request;
+mod update_user_application;
 
 pub use self::{
     audit_reason::AuditLogReason,
@@ -69,6 +70,7 @@ pub use self::{
     get_voice_regions::GetVoiceRegions,
     multipart::Form,
     try_into_request::TryIntoRequest,
+    update_user_application::UpdateCurrentUserApplication,
 };
 pub use twilight_http_ratelimiting::request::Method;
 

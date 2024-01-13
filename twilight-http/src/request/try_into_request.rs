@@ -82,6 +82,7 @@ mod private {
             CreateGuildFromTemplate, CreateTemplate, DeleteTemplate, GetTemplate, GetTemplates,
             SyncTemplate, UpdateTemplate,
         },
+        update_user_application::UpdateCurrentUserApplication,
         user::{
             CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections,
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
@@ -269,6 +270,7 @@ mod private {
     impl Sealed for UpdateWebhook<'_> {}
     impl Sealed for UpdateWebhookMessage<'_> {}
     impl Sealed for UpdateWebhookWithToken<'_> {}
+    impl Sealed for UpdateCurrentUserApplication<'_> {}
 }
 
 use super::base::Request;

@@ -77,7 +77,7 @@ use crate::{
             UpdateCurrentUser,
         },
         GetCurrentAuthorizationInformation, GetGateway, GetUserApplicationInfo, GetVoiceRegions,
-        Method, Request,
+        Method, Request, UpdateCurrentUserApplication,
     },
     response::ResponseFuture,
     API_VERSION,
@@ -686,6 +686,11 @@ impl Client {
     /// Get information about the current bot application.
     pub const fn current_user_application(&self) -> GetUserApplicationInfo<'_> {
         GetUserApplicationInfo::new(self)
+    }
+
+    /// Update the current user's application.
+    pub const fn update_current_user_application(&self) -> UpdateCurrentUserApplication<'_> {
+        UpdateCurrentUserApplication::new(self)
     }
 
     /// Update the current user.
