@@ -100,6 +100,9 @@ pub enum InteractionResponseType {
     ApplicationCommandAutocompleteResult = 8,
     /// Respond to an interaction with a popup modal.
     Modal = 9,
+    /// Respond to an interaction with an upgrade button, only available
+    /// for apps with monetization enabled
+    PremiumRequired = 10,
 }
 
 #[cfg(test)]

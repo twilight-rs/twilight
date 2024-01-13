@@ -271,6 +271,7 @@ mod tests {
                 }),
                 target_id: None,
             }))),
+            entitlements: Vec::new(),
             guild_id: Some(Id::new(3)),
             guild_locale: None,
             id: Id::new(4),
