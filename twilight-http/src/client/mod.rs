@@ -4,13 +4,6 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
-// use crate::request::{
-//     guild::{
-//         update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingFields},
-//         GetGuildOnboarding,
-//     },
-//     GetCurrentAuthorizationInformation,
-// };
 use crate::{
     client::connector::Connector,
     error::{Error, ErrorType},
