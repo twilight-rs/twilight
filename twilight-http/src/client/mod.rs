@@ -82,11 +82,12 @@ use crate::{
     response::ResponseFuture,
     API_VERSION,
 };
-use hyper::{
-    client::Client as HyperClient,
-    header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
-    Body,
+use http::header::{
+    HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT,
 };
+use http_body_util::Full;
+use hyper::body::Bytes;
+use hyper_util::client::legacy::Client as HyperClient;
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     ops::Deref,
@@ -224,7 +225,7 @@ impl Deref for Token {
 pub struct Client {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
-    http: HyperClient<Connector>,
+    http: HyperClient<Connector, Full<Bytes>>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<Box<dyn Ratelimiter>>,
     timeout: Duration,
@@ -2657,11 +2658,11 @@ impl Client {
         }
 
         let try_req = if let Some(form) = form {
-            builder.body(Body::from(form.build()))
+            builder.body(Full::from(form.build()))
         } else if let Some(bytes) = body {
-            builder.body(Body::from(bytes))
+            builder.body(Full::from(bytes))
         } else {
-            builder.body(Body::empty())
+            builder.body(Full::default())
         };
 
         let inner = self.http.request(try_req.map_err(|source| Error {

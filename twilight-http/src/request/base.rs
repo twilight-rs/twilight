@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     routing::{Path, Route},
 };
-use hyper::header::{HeaderMap, HeaderName, HeaderValue};
+use http::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::Serialize;
 
 /// Builder to create a customized request.

@@ -1,5 +1,6 @@
 use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
-use hyper::{Body, Response};
+use http::Response;
+use hyper::body::Incoming;
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -125,7 +126,7 @@ pub enum ErrorType {
     ///
     /// This may occur during Discord API stability incidents.
     ServiceUnavailable {
-        response: Response<Body>,
+        response: Response<Incoming>,
     },
     /// Token in use has become revoked or is otherwise invalid.
     ///

@@ -15,10 +15,13 @@ version = "0.15.4"
 
 [dependencies]
 fastrand = { default-features = false, features = ["std"], version = "2" }
-hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
-hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.24" }
-hyper-tls = { default-features = false, optional = true, version = "0.5" }
-hyper-hickory = { default-features = false, optional = true, features = ["tokio"], version = "0.6" }
+http = { default-features = false, version = "1" }
+http-body-util = { default-features = false, version = "0.1" }
+hyper = { default-features = false, version = "1" }
+hyper-util = { default-features = false, features = ["client-legacy", "http1", "http2", "tokio"], version = "0.1.2" }
+hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2", "ring"], version = "0.26" }
+hyper-tls = { default-features = false, optional = true, features = ["alpn"], version = "0.6" }
+hyper-hickory = { default-features = false, optional = true, version = "0.7" }
 percent-encoding = { default-features = false, version = "2" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }

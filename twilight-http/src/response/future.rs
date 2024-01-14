@@ -3,7 +3,8 @@ use crate::{
     api_error::ApiError,
     error::{Error, ErrorType},
 };
-use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
+use http::StatusCode as HyperStatusCode;
+use hyper_util::client::legacy::ResponseFuture as HyperResponseFuture;
 use std::{
     future::Future,
     marker::PhantomData,
@@ -130,7 +131,7 @@ impl InFlight {
             let mut resp = resp;
             // Inaccurate since end-users can only access the decompressed body.
             #[cfg(feature = "decompression")]
-            resp.headers_mut().remove(hyper::header::CONTENT_LENGTH);
+            resp.headers_mut().remove(http::header::CONTENT_LENGTH);
 
             return InnerPoll::Ready(Ok(Response::new(resp)));
         }

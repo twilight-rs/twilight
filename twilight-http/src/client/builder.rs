@@ -1,6 +1,7 @@
 use super::Token;
 use crate::{client::connector, Client};
-use hyper::header::HeaderMap;
+use http::header::HeaderMap;
+use hyper_util::rt::TokioExecutor;
 use std::{
     sync::{atomic::AtomicBool, Arc},
     time::Duration,
@@ -32,7 +33,8 @@ impl ClientBuilder {
     pub fn build(self) -> Client {
         let connector = connector::create();
 
-        let http = hyper::Client::builder().build(connector);
+        let http =
+            hyper_util::client::legacy::Client::builder(TokioExecutor::new()).build(connector);
 
         let token_invalidated = if self.remember_invalid_token {
             Some(Arc::new(AtomicBool::new(false)))

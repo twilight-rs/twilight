@@ -1,13 +1,18 @@
 use ed25519_dalek::{Verifier, VerifyingKey, PUBLIC_KEY_LENGTH};
 use hex::FromHex;
+use http_body_util::{BodyExt, Full};
 use hyper::{
+    body::{Bytes, Incoming},
     header::CONTENT_TYPE,
     http::StatusCode,
-    service::{make_service_fn, service_fn},
-    Body, Method, Request, Response, Server,
+    server::conn::http1,
+    service::service_fn,
+    Method, Request, Response,
 };
+use hyper_util::rt::TokioIo;
 use once_cell::sync::Lazy;
-use std::future::Future;
+use std::{future::Future, net::SocketAddr};
+use tokio::net::TcpListener;
 use twilight_model::{
     application::interaction::{
         application_command::CommandData, Interaction, InteractionData, InteractionType,
@@ -26,9 +31,9 @@ static PUB_KEY: Lazy<VerifyingKey> = Lazy::new(|| {
 /// Responses are made by giving a function that takes a Interaction and returns
 /// a InteractionResponse or a error.
 async fn interaction_handler<F>(
-    req: Request<Body>,
+    req: Request<Incoming>,
     f: impl Fn(Box<CommandData>) -> F,
-) -> anyhow::Result<Response<Body>>
+) -> anyhow::Result<Response<Full<Bytes>>>
 where
     F: Future<Output = anyhow::Result<InteractionResponse>>,
 {
@@ -36,7 +41,7 @@ where
     if req.method() != Method::POST {
         return Ok(Response::builder()
             .status(StatusCode::METHOD_NOT_ALLOWED)
-            .body(Body::empty())?);
+            .body(Full::default())?);
     }
 
     // Check if the path the request is sent to is the root of the domain.
@@ -46,7 +51,7 @@ where
     if req.uri().path() != "/" {
         return Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
-            .body(Body::empty())?);
+            .body(Full::default())?);
     }
 
     // Extract the timestamp header for use later to check the signature.
@@ -55,7 +60,7 @@ where
     } else {
         return Ok(Response::builder()
             .status(StatusCode::BAD_REQUEST)
-            .body(Body::empty())?);
+            .body(Full::default())?);
     };
 
     // Extract the signature to check against.
@@ -68,12 +73,12 @@ where
     } else {
         return Ok(Response::builder()
             .status(StatusCode::BAD_REQUEST)
-            .body(Body::empty())?);
+            .body(Full::default())?);
     };
 
     // Fetch the whole body of the request as that is needed to check the
     // signature against.
-    let whole_body = hyper::body::to_bytes(req).await?;
+    let whole_body = req.collect().await?.to_bytes();
 
     // Check if the signature matches and else return a error response.
     if PUB_KEY
@@ -85,7 +90,7 @@ where
     {
         return Ok(Response::builder()
             .status(StatusCode::UNAUTHORIZED)
-            .body(Body::empty())?);
+            .body(Full::default())?);
     }
 
     // Deserialize the body into a interaction.
@@ -127,7 +132,7 @@ where
         // Unhandled interaction types.
         _ => Ok(Response::builder()
             .status(StatusCode::BAD_REQUEST)
-            .body(Body::empty())?),
+            .body(Full::default())?),
     }
 }
 
@@ -169,18 +174,24 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     // Local address to bind the service to.
-    let addr = "127.0.0.1:3030".parse().unwrap();
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3030));
 
-    // Make the interaction handler into a service function.
-    let interaction_service = make_service_fn(|_| async {
-        Ok::<_, anyhow::Error>(service_fn(|req| interaction_handler(req, handler)))
-    });
+    // Bind the server and serve the interaction service.
+    let listener = TcpListener::bind(addr).await?;
 
-    // Construct the server and serve the interaction service.
-    let server = Server::bind(&addr).serve(interaction_service);
+    loop {
+        let (conn, _) = listener.accept().await?;
 
-    // Start the server.
-    server.await?;
-
-    Ok(())
+        tokio::spawn(async move {
+            if let Err(e) = http1::Builder::new()
+                .serve_connection(
+                    TokioIo::new(conn),
+                    service_fn(|req| interaction_handler(req, handler)),
+                )
+                .await
+            {
+                tracing::error!("Error handling HTTP request: {e}");
+            };
+        });
+    }
 }
