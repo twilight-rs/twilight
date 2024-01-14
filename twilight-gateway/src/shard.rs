@@ -73,7 +73,7 @@ use crate::{
 use futures_util::{stream::Stream, SinkExt};
 use serde::{de::DeserializeOwned, Deserialize};
 #[cfg(any(
-    feature = "native",
+    feature = "native-tls",
     feature = "rustls-native-roots",
     feature = "rustls-webpki-roots"
 ))]
@@ -968,7 +968,7 @@ impl<Q: Queue> Shard<Q> {
                 // connection is considered unusable after encountering an io
                 // error, returning `None`.
                 #[cfg(any(
-                    feature = "native",
+                    feature = "native-tls",
                     feature = "rustls-native-roots",
                     feature = "rustls-webpki-roots"
                 ))]

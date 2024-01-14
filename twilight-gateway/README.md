@@ -18,7 +18,7 @@ Using the `stream` module, shards can be easily managed in groups.
 * `simd-json`: use [`simd-json`] instead of [`serde_json`] for deserializing
   events
 * TLS (mutually exclusive)
-  * `native`: platform's native TLS implementation via [`native-tls`]
+  * `native-tls`: platform's native TLS implementation via [`native-tls`]
   * `rustls-native-roots` (*default*): [`rustls`] using native root certificates
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers

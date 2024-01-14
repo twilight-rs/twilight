@@ -26,15 +26,15 @@ request types from the [`http`] crate. This is enabled by default.
 features. These features are mutually exclusive. `rustls-native-roots` is enabled by
 default.
 
-#### `native`
+#### `native-tls`
 
-The `native` feature enables [`tokio-websockets`]' `native-tls` feature.
+The `native-tls` feature enables [`tokio-websockets`]' `native-tls` feature.
 
-To enable `native`, do something like this in your `Cargo.toml`:
+To enable `native-tls`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-twilight-lavalink = { default-features = false, features = ["native"], version = "0.2" }
+twilight-lavalink = { default-features = false, features = ["native-tls"], version = "0.2" }
 ```
 
 #### `rustls-native-roots`

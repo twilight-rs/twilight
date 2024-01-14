@@ -55,11 +55,11 @@ Discord's API is HTTPS only.
 `twilight-http` has features to enable HTTPS connectivity with [`hyper`]. These
 features are mutually exclusive. `rustls-native-roots` is enabled by default.
 
-#### `native`
+#### `native-tls`
 
-The `native` feature uses a HTTPS connector provided by [`hyper-tls`].
+The `native-tls` feature uses a HTTPS connector provided by [`hyper-tls`].
 
-To enable `native`, do something like this in your `Cargo.toml`:
+To enable `native-tls`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]

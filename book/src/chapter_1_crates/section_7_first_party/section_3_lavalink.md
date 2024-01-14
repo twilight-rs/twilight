@@ -19,13 +19,13 @@ This is enabled by default.
 
 ### TLS
 
-`twilight-lavalink` has features to enable [`tokio-tungstenite`]'s TLS features.
+`twilight-lavalink` has features to enable [`tokio-websockets`]' TLS features.
 These features are mutually exclusive. `rustls-native-roots` is enabled by
 default.
 
-#### Native
+#### Native-TLS
 
-The `native` feature enables [`tokio-tungstenite`]'s `native-tls` feature.
+The `native-tls` feature enables [`tokio-websockets`]' `native-tls` feature.
 
 #### RusTLS
 
@@ -33,15 +33,15 @@ RusTLS allows specifying from where certificate roots are retrieved from.
 
 ##### Native roots
 
-The `rustls-native-roots` feature enables [`tokio-tungstenite`]'s
-`rustls-tls-native-roots` feature.
+The `rustls-native-roots` feature enables [`tokio-websockets`]'
+`rustls-native-roots` feature.
 
 This is enabled by default.
 
 ##### Web PKI roots
 
-The `rustls-webpki-roots` feature enables [`tokio-tungstenite`]'s
-`rustls-tls-webpki-roots` feature.
+The `rustls-webpki-roots` feature enables [`tokio-websockets`]'
+`rustls-webpki-roots` feature.
 
 ## Examples
 
@@ -110,4 +110,4 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 [model]: ../section_1_model.html
 [node]: https://twilight-rs.github.io/twilight/twilight_lavalink/node/struct.Node.html
 [process]: https://twilight-rs.github.io/twilight/twilight_lavalink/client/struct.Lavalink.html#method.process
-[`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
+[`tokio-websockets`]: https://crates.io/crates/tokio-websockets

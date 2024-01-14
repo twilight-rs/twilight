@@ -1,9 +1,9 @@
 # HTTP
 
 `twilight-http` is an HTTP client wrapping all of the documented Discord HTTP API.
-It is built on top of [Reqwest], and supports taking any generic Reqwest client,
-allowing you to pick your own TLS backend. By default, it uses [RusTLS] a Rust TLS implementation,
-but it can be changed to use NativeTLS which uses the TLS native to the platform, and on Unix uses OpenSSL.
+It is built on top of [hyper], and allows you to pick your own TLS backend.
+By default, it uses [RusTLS] a Rust TLS implementation, but it can be changed to
+use NativeTLS, which uses the TLS native to the platform, and on Unix uses OpenSSL.
 
 Ratelimiting is included out-of-the-box, along with support for proxies.
 
@@ -34,9 +34,9 @@ rustflags = ["-C", "target-cpu=native"]
 
 These features are mutually exclusive. `rustls` is enabled by default.
 
-#### Native
+#### Native-TLS
 
-The `native` feature causes the client to use [`hyper-tls`]. This will use the
+The `native-tls` feature causes the client to use [`hyper-tls`]. This will use the
 native TLS backend, such as OpenSSL on Linux.
 
 #### RusTLS
@@ -76,7 +76,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
 *crates.io*: <https://crates.io/crates/twilight-http>
 
-[Reqwest]: https://github.com/seanmonstar/reqwest
+[hyper]: https://github.com/hyperium/hyper
 [RusTLS]: https://github.com/ctz/rustls
 [`hyper-rustls`]: https://crates.io/crates/hyper-rustls
 [`hyper-tls`]: https://crates.io/crates/hyper-tls
