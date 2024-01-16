@@ -79,7 +79,6 @@ Create the recommended number of shards and run them in parallel
 
 ```rust,no_run
 use std::env;
-use tokio::task::JoinSet;
 use tokio_stream::StreamExt;
 use twilight_gateway::{Config, EventTypeFlags, Intents};
 use twilight_http::Client;
@@ -94,10 +93,10 @@ async fn main() -> anyhow::Result<()> {
 
     let shards =
         twilight_gateway::create_recommended(&client, config, |_, builder| builder.build()).await?;
-    let mut set = JoinSet::new();
+    let mut tasks = Vec::with_capacity(shards.len());
 
     for mut shard in shards {
-        set.spawn(async move {
+        tasks.push(tokio::spawn(async move {
             while let Some(item) = shard.next().await {
                 let event = match item.and_then(|message| {
                     twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
@@ -115,10 +114,12 @@ async fn main() -> anyhow::Result<()> {
                 // handle the event there to not block the shard.
                 tracing::debug!(?event, shard = ?shard.id(), "received event");
             }
-        });
+        }));
     }
 
-    while set.join_next().await.is_some() {}
+    for jh in tasks {
+        _ = jh.await;
+    }
 
     Ok(())
 }

@@ -434,7 +434,7 @@ impl<Q> Shard<Q> {
 
     /// Queue a websocket close frame.
     ///
-    /// Invalidates the session and shows the applicanton's bot as offline if
+    /// Invalidates the session and shows the application's bot as offline if
     /// the close frame code is `1000` or `1001`. Otherwise Discord will
     /// continue showing the bot as online until its presence times out.
     ///
@@ -550,6 +550,10 @@ impl<Q> Shard<Q> {
         &mut self,
         cx: &mut Context<'_>,
     ) -> Poll<Result<(), ReceiveMessageError>> {
+        if self.pending.is_none() {
+            return Poll::Ready(Ok(()));
+        }
+
         ready!(Pin::new(self.connection.as_mut().unwrap())
             .poll_ready(cx)
             .map_err(|source| {
@@ -558,17 +562,17 @@ impl<Q> Shard<Q> {
                 ReceiveMessageError::from_websocket(source)
             }))?;
 
-        let Some(pending) = &mut self.pending else {
-            return Poll::Ready(Ok(()));
-        };
-        if let Some(item) = &pending.gateway_event {
+        let pending = self.pending.as_mut().unwrap();
+
+        if let Some(message) = &pending.gateway_event {
             if let Some(ratelimiter) = self.ratelimiter.as_mut() {
-                if item.is_text() && !pending.is_heartbeat {
+                if message.is_text() && !pending.is_heartbeat {
                     ready!(ratelimiter.poll_acquire(cx));
                 }
             }
-            if let Err(source) = Pin::new(self.connection.as_mut().unwrap())
-                .start_send(pending.gateway_event.take().unwrap().into_websocket_msg())
+
+            let ws_message = pending.gateway_event.take().unwrap().into_websocket_msg();
+            if let Err(source) = Pin::new(self.connection.as_mut().unwrap()).start_send(ws_message)
             {
                 self.disconnect(CloseInitiator::Transport);
                 self.connection = None;
@@ -581,10 +585,12 @@ impl<Q> Shard<Q> {
             self.connection = None;
             return Poll::Ready(Err(ReceiveMessageError::from_websocket(source)));
         }
+
         if pending.is_heartbeat {
             self.latency.record_sent();
         }
         self.pending = None;
+
         Poll::Ready(Ok(()))
     }
 }
@@ -649,7 +655,7 @@ impl<Q: Queue> Shard<Q> {
                 tracing::debug!("received heartbeat");
                 self.pending = Pending::text(
                     json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                        .unwrap(),
+                        .expect("serialization cannot fail"),
                     true,
                 );
             }
@@ -689,7 +695,7 @@ impl<Q: Queue> Shard<Q> {
                             session.id(),
                             self.config.token(),
                         ))
-                        .unwrap(),
+                        .expect("serialization cannot fail"),
                         false,
                     );
                     self.state = ShardState::Resuming;
@@ -723,76 +729,83 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
     #[allow(clippy::too_many_lines)]
     #[tracing::instrument(fields(id = %self.id), name = "shard", skip_all)]
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        match self.state {
-            ShardState::FatallyClosed => {
-                _ = ready!(Pin::new(
-                    self.connection
-                        .as_mut()
-                        .expect("poll_next called after Poll::Ready(None)")
-                )
-                .poll_close(cx));
-                self.connection = None;
-                return Poll::Ready(None);
-            }
-            ShardState::Disconnected { reconnect_attempts } if self.connection.is_none() => {
-                if self.connection_future.is_none() {
-                    let base_url = self
-                        .resume_url
-                        .as_deref()
-                        .or_else(|| self.config.proxy_url())
-                        .unwrap_or(GATEWAY_URL);
-                    let uri =
-                        format!("{base_url}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}");
-
-                    tracing::debug!(url = base_url, "connecting to gateway");
-
-                    let tls = self.config.tls.clone();
-                    self.connection_future = Some(ConnectionFuture(Box::pin(async move {
-                        let secs = 2u8.saturating_pow(reconnect_attempts.into());
-                        time::sleep(Duration::from_secs(secs.into())).await;
-                        Ok(ClientBuilder::new()
-                            .uri(&uri)
-                            .expect("URL should be valid")
-                            .limits(Limits::unlimited())
-                            .connector(&tls)
-                            .connect()
-                            .await?
-                            .0)
-                    })));
+        let message = loop {
+            match self.state {
+                ShardState::FatallyClosed => {
+                    _ = ready!(Pin::new(
+                        self.connection
+                            .as_mut()
+                            .expect("poll_next called after Poll::Ready(None)")
+                    )
+                    .poll_close(cx));
+                    self.connection = None;
+                    return Poll::Ready(None);
                 }
+                ShardState::Disconnected { reconnect_attempts } if self.connection.is_none() => {
+                    if self.connection_future.is_none() {
+                        let base_url = self
+                            .resume_url
+                            .as_deref()
+                            .or_else(|| self.config.proxy_url())
+                            .unwrap_or(GATEWAY_URL);
+                        let uri = format!(
+                            "{base_url}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}"
+                        );
 
-                match ready!(Pin::new(&mut self.connection_future.as_mut().unwrap().0).poll(cx)) {
-                    Ok(connection) => {
-                        self.connection = Some(connection);
-                        self.connection_future = None;
-                        self.state = ShardState::Identifying;
-                        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-                        self.inflater.reset();
-                    }
-                    Err(source) => {
-                        self.resume_url = None;
-                        self.state = ShardState::Disconnected {
-                            reconnect_attempts: reconnect_attempts + 1,
-                        };
-                        return Poll::Ready(Some(Err(ReceiveMessageError {
-                            kind: ReceiveMessageErrorType::Reconnect,
-                            source: Some(Box::new(source)),
+                        tracing::debug!(url = base_url, "connecting to gateway");
+
+                        let tls = self.config.tls.clone();
+                        self.connection_future = Some(ConnectionFuture(Box::pin(async move {
+                            let secs = 2u8.saturating_pow(reconnect_attempts.into());
+                            time::sleep(Duration::from_secs(secs.into())).await;
+
+                            Ok(ClientBuilder::new()
+                                .uri(&uri)
+                                .expect("URL should be valid")
+                                .limits(Limits::unlimited())
+                                .connector(&tls)
+                                .connect()
+                                .await?
+                                .0)
                         })));
                     }
-                }
-            }
-            _ => {}
-        }
 
-        let message = loop {
+                    match ready!(Pin::new(&mut self.connection_future.as_mut().unwrap().0).poll(cx))
+                    {
+                        Ok(connection) => {
+                            self.connection = Some(connection);
+                            self.connection_future = None;
+                            self.state = ShardState::Identifying;
+                            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+                            self.inflater.reset();
+                        }
+                        Err(source) => {
+                            self.resume_url = None;
+                            self.state = ShardState::Disconnected {
+                                reconnect_attempts: reconnect_attempts + 1,
+                            };
+
+                            return Poll::Ready(Some(Err(ReceiveMessageError {
+                                kind: ReceiveMessageErrorType::Reconnect,
+                                source: Some(Box::new(source)),
+                            })));
+                        }
+                    }
+                }
+                _ => {}
+            }
+
             ready!(self.poll_flush_pending(cx))?;
 
             if !self.state.is_disconnected() {
                 if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
                     let frame = frame.expect("shard owns channel");
+                    let close_code = frame.code;
+
                     tracing::debug!("sending close frame from user channel");
-                    self.disconnect(CloseInitiator::Shard(frame.code));
                     self.pending = Pending::close(Some(frame));
+                    self.disconnect(CloseInitiator::Shard(close_code));
+
                     ready!(self.poll_flush_pending(cx))?;
                 }
             }
@@ -815,20 +828,21 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                     tracing::debug!("sending heartbeat");
                     self.pending = Pending::text(
                         json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                            .unwrap(),
+                            .expect("serialization cannot fail"),
                         true,
                     );
                     self.heartbeat_interval_event = false;
                 }
+
                 ready!(self.poll_flush_pending(cx))?;
             }
 
-            let ratelimited = self
+            let not_ratelimited = self
                 .ratelimiter
                 .as_mut()
-                .map_or(false, |ratelimiter| ratelimiter.poll_ready(cx).is_pending());
+                .map_or(true, |ratelimiter| ratelimiter.poll_ready(cx).is_ready());
 
-            if !ratelimited {
+            if not_ratelimited {
                 if let Some(Poll::Ready(canceled)) = self
                     .identify_rx
                     .as_mut()
@@ -838,8 +852,8 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                         self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
                         continue;
                     }
+
                     tracing::debug!("sending identify");
-                    self.identify_rx = None;
                     self.pending = Pending::text(
                         json::to_string(&Identify::new(IdentifyInfo {
                             compress: false,
@@ -854,23 +868,27 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                             shard: Some(self.id),
                             token: self.config.token().to_owned(),
                         }))
-                        .unwrap(),
+                        .expect("serialization cannot fail"),
                         false,
                     );
+                    self.identify_rx = None;
+
                     ready!(self.poll_flush_pending(cx))?;
                 }
             }
 
-            if !ratelimited && self.state.is_identified() {
+            if not_ratelimited && self.state.is_identified() {
                 if let Poll::Ready(command) = self.user_channel.command_rx.poll_recv(cx) {
                     let command = command.expect("shard owns channel");
+
                     tracing::debug!("sending command from user channel");
                     self.pending = Pending::text(command, false);
+
                     ready!(self.poll_flush_pending(cx))?;
                 }
             }
 
-            match ready!(Pin::new(self.connection.as_mut().expect("connected")).poll_next(cx)) {
+            match ready!(Pin::new(self.connection.as_mut().unwrap()).poll_next(cx)) {
                 Some(Ok(message)) => {
                     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
                     if message.is_binary() {
@@ -912,13 +930,14 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                     })));
                 }
                 None => {
-                    tracing::debug!("gateway connection closed");
                     let res = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_close(cx));
-                    self.connection = None;
-                    // Unclean WebSocket closure.
+                    tracing::debug!("gateway WebSocket connection closed");
+                    // Unclean closure.
                     if !self.state.is_disconnected() {
                         self.disconnect(CloseInitiator::Transport);
                     }
+                    self.connection = None;
+
                     res.map_err(ReceiveMessageError::from_websocket)?;
                 }
             }
