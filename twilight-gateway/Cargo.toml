@@ -44,7 +44,7 @@ tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log
 
 [features]
 default = ["rustls-native-roots", "twilight-http", "zlib-stock"]
-native = ["tokio-websockets/native-tls", "tokio-websockets/openssl"]
+native-tls = ["tokio-websockets/native-tls", "tokio-websockets/openssl"]
 rustls-native-roots = ["tokio-websockets/ring", "tokio-websockets/rustls-native-roots"]
 rustls-webpki-roots = ["tokio-websockets/ring", "tokio-websockets/rustls-webpki-roots"]
 zlib-simd = ["dep:flate2", "flate2?/zlib-ng"]

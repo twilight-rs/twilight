@@ -5,7 +5,7 @@
 type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
 /// HTTPS connector using `hyper-tls` as a TLS backend.
 #[cfg(all(
-    feature = "native",
+    feature = "native-tls",
     not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
 ))]
 type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
@@ -19,14 +19,14 @@ type HttpConnector = hyper_util::client::legacy::connect::HttpConnector;
 
 /// Re-exported generic connector for use in the client.
 #[cfg(any(
-    feature = "native",
+    feature = "native-tls",
     feature = "rustls-native-roots",
     feature = "rustls-webpki-roots"
 ))]
 pub type Connector = HttpsConnector<HttpConnector>;
 /// Re-exported generic connector for use in the client.
 #[cfg(not(any(
-    feature = "native",
+    feature = "native-tls",
     feature = "rustls-native-roots",
     feature = "rustls-webpki-roots"
 )))]
@@ -57,7 +57,7 @@ pub fn create() -> Connector {
         .enable_http2()
         .wrap_connector(connector);
     #[cfg(all(
-        feature = "native",
+        feature = "native-tls",
         not(feature = "rustls-native-roots"),
         not(feature = "rustls-webpki-roots")
     ))]

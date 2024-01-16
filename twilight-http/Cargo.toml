@@ -38,7 +38,7 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 [features]
 default = ["decompression", "rustls-native-roots"]
 decompression = ["dep:brotli"]
-native = ["dep:hyper-tls"]
+native-tls = ["dep:hyper-tls"]
 rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]
 rustls-webpki-roots = ["dep:hyper-rustls", "hyper-rustls?/webpki-tokio"]
 hickory = ["dep:hyper-hickory"]

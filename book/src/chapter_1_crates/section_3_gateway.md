@@ -34,13 +34,13 @@ rustflags = ["-C", "target-cpu=native"]
 
 ### TLS
 
-`twilight-gateway` has features to enable [`tokio-tungstenite`]'s TLS features.
+`twilight-gateway` has features to enable [`tokio-websockets`]' TLS features.
 These features are mutually exclusive. `rustls-native-roots` is enabled by
 default.
 
-#### Native
+#### Native-TLS
 
-The `native` feature enables [`tokio-tungstenite`]'s `native-tls` feature.
+The `native-tls` feature enables [`tokio-websockets`]' `native-tls` feature.
 
 #### RusTLS
 
@@ -48,15 +48,15 @@ RusTLS allows specifying from where certificate roots are retrieved from.
 
 ##### Native roots
 
-The `rustls-native-roots` feature enables [`tokio-tungstenite`]'s
-`rustls-tls-native-roots` feature.
+The `rustls-native-roots` feature enables [`tokio-websockets`]'
+`rustls-native-roots` feature.
 
 This is enabled by default.
 
 ##### Web PKI roots
 
-The `rustls-webpki-roots` feature enables [`tokio-tungstenite`]'s
-`rustls-tls-webpki-roots` feature.
+The `rustls-webpki-roots` feature enables [`tokio-websockets`]'
+`rustls-webpki-roots` feature.
 
 ### Zlib
 
@@ -130,4 +130,4 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 [`hyper-tls`]: https://crates.io/crates/hyper-tls
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
-[`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
+[`tokio-websockets`]: https://crates.io/crates/tokio-websockets
