@@ -131,7 +131,7 @@ async fn join(msg: Message, state: State) -> anyhow::Result<()> {
         Some(channel_id),
         false,
         false,
-    ));
+    ))?;
 
     state
         .http
@@ -154,7 +154,7 @@ async fn leave(msg: Message, state: State) -> anyhow::Result<()> {
     player.send(Destroy::from(guild_id))?;
     state
         .sender
-        .command(&UpdateVoiceState::new(guild_id, None, false, false));
+        .command(&UpdateVoiceState::new(guild_id, None, false, false))?;
 
     state
         .http

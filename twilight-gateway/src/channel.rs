@@ -3,7 +3,11 @@
 //!
 //! [`Shard::send`]: crate::Shard::send
 
-use crate::{command::Command, json, CloseFrame};
+use crate::{
+    command::Command,
+    error::{ChannelError, ChannelErrorType},
+    json, CloseFrame,
+};
 use tokio::sync::mpsc;
 
 /// Channel between a user and shard for sending outgoing gateway messages.
@@ -64,22 +68,26 @@ impl MessageSender {
 
     /// Send a command to the associated shard.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if the channel is closed.
-    #[track_caller]
-    pub fn command(&self, command: &impl Command) {
-        self.send(json::to_string(command).expect("serialization cannot fail"));
+    /// Returns a [`ChannelErrorType::Closed`] error type if the channel is
+    /// closed.
+    #[allow(clippy::missing_panics_doc)]
+    pub fn command(&self, command: &impl Command) -> Result<(), ChannelError> {
+        self.send(json::to_string(command).expect("serialization cannot fail"))
     }
 
     /// Send a JSON encoded gateway event to the associated shard.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if the channel is closed.
-    #[track_caller]
-    pub fn send(&self, json: String) {
-        self.command.send(json).expect("channel should be open");
+    /// Returns a [`ChannelErrorType::Closed`] error type if the channel is
+    /// closed.
+    pub fn send(&self, json: String) -> Result<(), ChannelError> {
+        self.command.send(json).map_err(|source| ChannelError {
+            kind: ChannelErrorType::Closed,
+            source: Some(Box::new(source)),
+        })
     }
 
     /// Send a Websocket close frame to the associated shard.
@@ -90,15 +98,21 @@ impl MessageSender {
     ///
     /// See the [`Shard::close`] docs for further information.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if the channel is closed.
+    /// Returns a [`ChannelErrorType::Closed`] error type if the channel is
+    /// closed.
     ///
     /// [`Shard::close`]: crate::Shard::close
-    #[track_caller]
-    pub fn close(&self, close_frame: CloseFrame<'static>) {
-        if let Err(e @ mpsc::error::TrySendError::Closed(_)) = self.close.try_send(close_frame) {
-            panic!("channel should be open: {e:?}")
+    pub fn close(&self, close_frame: CloseFrame<'static>) -> Result<(), ChannelError> {
+        if let Err(source @ mpsc::error::TrySendError::Closed(_)) = self.close.try_send(close_frame)
+        {
+            Err(ChannelError {
+                kind: ChannelErrorType::Closed,
+                source: Some(Box::new(source)),
+            })
+        } else {
+            Ok(())
         }
     }
 }

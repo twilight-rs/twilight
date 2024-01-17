@@ -31,57 +31,24 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
   * `zlib-stock` (*default*): [`flate2`]'s stock zlib implementation
   * `zlib-simd`: use [`zlib-ng`] for zlib, may have better performance
 
-## Examples
+## Example
 
-Create a shard and loop over guild and voice state events:
-
-```rust,no_run
-use std::env;
-use tokio_stream::StreamExt;
-use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId};
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    // Initialize the tracing subscriber.
-    tracing_subscriber::fmt::init();
-
-    let token = env::var("DISCORD_TOKEN")?;
-    let intents = Intents::GUILDS | Intents::GUILD_VOICE_STATES;
-
-    // Initialize the first and only shard in use by a bot.
-    let mut shard = Shard::new(ShardId::ONE, token, intents);
-
-    tracing::info!("started shard");
-
-    while let Some(item) = shard.next().await {
-        let event = match item.and_then(|message| {
-            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
-        }) {
-            Ok(Some(event)) => event,
-            Ok(None) => continue,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
-
-                continue;
-            }
-        };
-
-        // You'd normally want to spawn a new tokio task for each event and
-        // handle the event there to not block the shard.
-        tracing::debug!(?event, "received event");
-    }
-
-    Ok(())
-}
-```
-
-Create the recommended number of shards and run them in parallel
+Create the recommended number of shards and loop over their guild events in
+parallel
 
 ```rust,no_run
-use std::env;
+use std::{
+    env,
+    sync::atomic::{AtomicBool, Ordering},
+};
+use tokio::signal;
 use tokio_stream::StreamExt;
-use twilight_gateway::{Config, EventTypeFlags, Intents};
+use twilight_gateway::{
+    error::ReceiveMessageErrorType, CloseFrame, Config, Event, EventTypeFlags, Intents, Shard,
+};
 use twilight_http::Client;
+
+static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -92,29 +59,22 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::new(token, Intents::GUILDS);
 
     let shards =
-        twilight_gateway::create_recommended(&client, config, |_, builder| builder.build()).await?;
+        twilight_gateway::create_recommended(&client, config, |_, builder| builder.build())
+            .await?
+            .collect::<Vec<_>>();
+    let senders = shards.iter().map(Shard::sender).collect::<Vec<_>>();
+
     let mut tasks = Vec::with_capacity(shards.len());
 
-    for mut shard in shards {
-        tasks.push(tokio::spawn(async move {
-            while let Some(item) = shard.next().await {
-                let event = match item.and_then(|message| {
-                    twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
-                }) {
-                    Ok(Some(event)) => event,
-                    Ok(None) => continue,
-                    Err(source) => {
-                        tracing::warn!(?source, "error receiving event");
+    for shard in shards {
+        tasks.push(tokio::spawn(runner(shard)));
+    }
 
-                        continue;
-                    }
-                };
-
-                // You'd normally want to spawn a new tokio task for each event and
-                // handle the event there to not block the shard.
-                tracing::debug!(?event, shard = ?shard.id(), "received event");
-            }
-        }));
+    signal::ctrl_c().await?;
+    SHUTDOWN.store(true, Ordering::Relaxed);
+    for sender in senders {
+        // Ignore error if shard's already shutdown.
+        _ = sender.close(CloseFrame::NORMAL);
     }
 
     for jh in tasks {
@@ -123,6 +83,34 @@ async fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+async fn runner(mut shard: Shard) {
+    while let Some(item) = shard.next().await {
+        let event = match item.and_then(|message| {
+            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
+        }) {
+            Ok(Some(Event::GatewayClose(_))) if SHUTDOWN.load(Ordering::Relaxed) => break,
+            Ok(Some(event)) => event,
+            Ok(None) => continue,
+            Err(source)
+                if SHUTDOWN.load(Ordering::Relaxed)
+                    && matches!(source.kind(), ReceiveMessageErrorType::WebSocket) =>
+            {
+                break
+            }
+            Err(source) => {
+                tracing::warn!(?source, "error receiving event");
+
+                continue;
+            }
+        };
+
+        // You'd normally want to spawn a new tokio task for each event and
+        // handle the event there to not block the shard.
+        tracing::debug!(?event, shard = ?shard.id(), "received event");
+    }
+}
+
 ```
 
 There are a few additional examples located in the

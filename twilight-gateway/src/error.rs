@@ -8,6 +8,59 @@ use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 
+/// Sending a command over a channel failed.
+#[derive(Debug)]
+pub struct ChannelError {
+    /// Type of error.
+    pub(crate) kind: ChannelErrorType,
+    /// Source error if available.
+    pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl ChannelError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub const fn kind(&self) -> &ChannelErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ChannelErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for ChannelError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self.kind {
+            ChannelErrorType::Closed => f.write_str("tried sending over a closed channel"),
+        }
+    }
+}
+
+impl Error for ChannelError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`ChannelError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ChannelErrorType {
+    /// Tried sending over a closed channel.
+    Closed,
+}
+
 /// Failure when fetching the recommended number of shards to use from Discord's
 /// REST API.
 #[cfg(feature = "twilight-http")]
