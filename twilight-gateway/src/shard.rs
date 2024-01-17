@@ -708,13 +708,16 @@ impl<Q: Queue> Shard<Q> {
                 tracing::debug!(resumable, "received invalid session");
                 if resumable {
                     self.pending = Pending::close(Some(CloseFrame::RESUME));
+                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME.code));
                 } else {
                     self.pending = Pending::close(Some(CloseFrame::NORMAL));
+                    self.disconnect(CloseInitiator::Shard(CloseFrame::NORMAL.code));
                 }
             }
             Some(OpCode::Reconnect) => {
                 tracing::debug!("received reconnect");
                 self.pending = Pending::close(Some(CloseFrame::RESUME));
+                self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME.code));
             }
             _ => tracing::info!("received an unknown opcode: {raw_opcode}"),
         }
@@ -822,8 +825,8 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                 // have to be a heartbeat ACK.
                 if self.latency.sent().is_some() && !self.heartbeat_interval_event {
                     tracing::info!("connection is failed or \"zombied\"");
-                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME.code));
                     self.pending = Pending::close(Some(CloseFrame::RESUME));
+                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME.code));
                 } else {
                     tracing::debug!("sending heartbeat");
                     self.pending = Pending::text(
