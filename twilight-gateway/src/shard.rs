@@ -773,11 +773,12 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                         })));
                     }
 
-                    match ready!(Pin::new(&mut self.connection_future.as_mut().unwrap().0).poll(cx))
-                    {
+                    let res =
+                        ready!(Pin::new(&mut self.connection_future.as_mut().unwrap().0).poll(cx));
+                    self.connection_future = None;
+                    match res {
                         Ok(connection) => {
                             self.connection = Some(connection);
-                            self.connection_future = None;
                             self.state = ShardState::Identifying;
                             #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
                             self.inflater.reset();
