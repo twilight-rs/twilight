@@ -11,7 +11,6 @@ use twilight_model::application::interaction::Interaction;
 #[derive(Debug)]
 pub struct FromHexError(hex::FromHexError);
 
-
 /// A signature or public key was invalid.
 #[derive(Debug)]
 pub struct SigError(SignatureError);
@@ -26,11 +25,13 @@ pub enum SignatureValidationFailure {
     /// Request had invalid signature for the given public key.
     InvalidSignature(SigError),
 }
+
 impl std::fmt::Display for SignatureValidationFailure {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
+
 impl std::error::Error for SignatureValidationFailure {}
 
 /// Parsing the public key failed.
@@ -41,11 +42,13 @@ pub enum KeyError {
     /// The public key was malformed.
     MalformedKey(SignatureError),
 }
+
 impl std::fmt::Display for KeyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
+
 impl std::error::Error for KeyError {}
 
 /// The key you are meant to get from the Discord Developer Portal,
@@ -103,6 +106,7 @@ impl From<SignatureValidationFailure> for ExtractFailure {
         Self::Signature(value)
     }
 }
+
 impl From<serde_json::Error> for ExtractFailure {
     fn from(value: serde_json::Error) -> Self {
         Self::Deserialize(value)
