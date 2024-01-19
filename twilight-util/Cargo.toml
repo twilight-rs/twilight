@@ -18,7 +18,7 @@ twilight-validate = { default-features = false, optional = true, path = "../twil
 
 # Signature validation
 ed25519-dalek = { version = "2.1.0", optional = true, default-features = false }
-hex = { version = "0.4.3", optional = true, default-features = false }
+hex = { version = "0.4.3", optional = true, default-features = false, features = ["std"] }
 serde_json = { optional = true, version = "1.0.96", default-features = false, features = ["std"] }
 
 [dev-dependencies]

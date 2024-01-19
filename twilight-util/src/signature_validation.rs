@@ -9,7 +9,7 @@ use twilight_model::application::interaction::Interaction;
 
 /// Parsing a hexadecimal string failed.
 #[derive(Debug)]
-pub struct FromHexError(#[allow(dead_code)] hex::FromHexError);
+pub struct FromHexError(hex::FromHexError);
 
 impl std::fmt::Display for FromHexError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -17,7 +17,11 @@ impl std::fmt::Display for FromHexError {
     }
 }
 
-impl std::error::Error for FromHexError {}
+impl std::error::Error for FromHexError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
 
 /// A signature or public key was invalid.
 #[derive(Debug)]
