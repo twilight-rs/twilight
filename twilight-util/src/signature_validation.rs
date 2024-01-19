@@ -1,17 +1,29 @@
 //! Provides signature validation as is required for bots which work by giving Discord
 //! an HTTPS endpoint to send Interactions to.
+//!
+//! See <https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization>
+//! for more details.
 
 use ed25519_dalek::{Signature, SignatureError, VerifyingKey};
 use twilight_model::application::interaction::Interaction;
 
+/// Parsing a hexadecimal string failed.
 #[derive(Debug)]
 pub struct FromHexError(hex::FromHexError);
+
+
+/// A signature or public key was invalid.
 #[derive(Debug)]
 pub struct SigError(SignatureError);
 
+/// Signature validation failed. If you successfully gave your program
+/// the public key provided by Discord, this is almost definitely because
+/// you received an invalid request.
 #[derive(Debug)]
 pub enum SignatureValidationFailure {
+    /// Parsing a hexadecimal string failed.
     Hex(FromHexError),
+    /// Request had invalid signature for the given public key.
     InvalidSignature(SigError),
 }
 impl std::fmt::Display for SignatureValidationFailure {
@@ -21,10 +33,13 @@ impl std::fmt::Display for SignatureValidationFailure {
 }
 impl std::error::Error for SignatureValidationFailure {}
 
+/// Parsing the public key failed.
 #[derive(Debug)]
 pub enum KeyError {
+    /// The public key was invalid hexadecimal.
     Hex(FromHexError),
-    Sig(SignatureError),
+    /// The public key was malformed.
+    MalformedKey(SignatureError),
 }
 impl std::fmt::Display for KeyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -33,18 +48,26 @@ impl std::fmt::Display for KeyError {
 }
 impl std::error::Error for KeyError {}
 
+/// The key you are meant to get from the Discord Developer Portal,
+/// on your Application. It is currently listed on the General Information page,
+/// labeled "Public Key", at the time of this writing (January 19th, 2024).
 pub struct Key(VerifyingKey);
 impl Key {
-    fn from_hex(pub_key: &[u8]) -> Result<Self, KeyError> {
+    /// This function consumes the hexadecimal string which Discord
+    /// provides public keys in. Use `.as_bytes()` on a `&str`, or otherwise
+    /// obtain a byte-string of that text, to use with this function.
+    pub fn from_hex(pub_key: &[u8]) -> Result<Self, KeyError> {
         let mut key = [0; 32];
         hex::decode_to_slice(pub_key, &mut key).map_err(|e| KeyError::Hex(FromHexError(e)))?;
         VerifyingKey::from_bytes(&key)
             .map(|key| Self(key))
-            .map_err(|e| KeyError::Sig(e))
+            .map_err(|e| KeyError::MalformedKey(e))
     }
 }
 
+/// The name of the HTTP header Discord wants us to read for the signature.
 pub const SIGNATURE_HEADER: &str = "x-signature-ed25519";
+/// The name of the HTTP header Discord wants us to read for the signature timestamp.
 pub const TIMESTAMP_HEADER: &str = "x-signature-timestamp";
 
 /// Validates that a signature is valid for a given message body, timestamp, and signing key.
@@ -68,8 +91,11 @@ pub fn check_signature(
     }
 }
 
+/// Extracting the body of an Interaction failed.
 pub enum ExtractFailure {
+    /// The failure was due to the Interaction having an invalid signature.
     Signature(SignatureValidationFailure),
+    /// The failure was due to the Interaction being incorrect or invalid JSON.
     Deserialize(serde_json::Error),
 }
 impl From<SignatureValidationFailure> for ExtractFailure {
@@ -83,6 +109,7 @@ impl From<serde_json::Error> for ExtractFailure {
     }
 }
 
+/// Validate an Interaction's signature, and deserialize it from JSON.
 pub fn extract_interaction(
     sig: &[u8],
     timestamp: &[u8],

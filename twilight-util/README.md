@@ -26,6 +26,10 @@ a guild or channel.
 Allows the use of the `Snowflake` trait, which provides methods for the extraction of
 structured information from [Discord snowflakes].
 
+### `signature-validation`
+
+Provides utilities for doing [HTTP Interaction] [signature validation].
+
 [`twilight-rs`]: https://github.com/twilight-rs/twilight
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
@@ -37,3 +41,5 @@ structured information from [Discord snowflakes].
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.67+-93450a.svg?style=for-the-badge&logo=rust
 [Discord snowflakes]: https://discord.com/developers/docs/reference#snowflakes
+[HTTP Interaction]: https://discord.com/developers/docs/interactions/receiving-and-responding#receiving-an-interaction
+[signature validation]: https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
