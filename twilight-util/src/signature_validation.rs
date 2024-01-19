@@ -9,7 +9,15 @@ use twilight_model::application::interaction::Interaction;
 
 /// Parsing a hexadecimal string failed.
 #[derive(Debug)]
-pub struct FromHexError(hex::FromHexError);
+pub struct FromHexError(#[allow(dead_code)] hex::FromHexError);
+
+impl std::fmt::Display for FromHexError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+impl std::error::Error for FromHexError {}
 
 /// A signature or public key was invalid.
 #[derive(Debug)]
@@ -20,7 +28,7 @@ pub struct SigError(SignatureError);
 /// you received an invalid request.
 #[derive(Debug)]
 pub enum SignatureValidationFailure {
-    /// Parsing a hexadecimal string failed.
+    /// The request signature was invalid hexadecimal.
     Hex(FromHexError),
     /// Request had invalid signature for the given public key.
     InvalidSignature(SigError),
@@ -28,7 +36,7 @@ pub enum SignatureValidationFailure {
 
 impl std::fmt::Display for SignatureValidationFailure {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -45,7 +53,7 @@ pub enum KeyError {
 
 impl std::fmt::Display for KeyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -59,12 +67,16 @@ impl Key {
     /// This function consumes the hexadecimal string which Discord
     /// provides public keys in. Use `.as_bytes()` on a `&str`, or otherwise
     /// obtain a byte-string of that text, to use with this function.
+    ///
+    /// # Errors
+    /// This will fail if given invalid hexadecimal, or if the public key fails to
+    /// meet mathematical requirements.
     pub fn from_hex(pub_key: &[u8]) -> Result<Self, KeyError> {
         let mut key = [0; 32];
         hex::decode_to_slice(pub_key, &mut key).map_err(|e| KeyError::Hex(FromHexError(e)))?;
         VerifyingKey::from_bytes(&key)
-            .map(|key| Self(key))
-            .map_err(|e| KeyError::MalformedKey(e))
+            .map(Self)
+            .map_err(KeyError::MalformedKey)
     }
 }
 
@@ -74,6 +86,9 @@ pub const SIGNATURE_HEADER: &str = "x-signature-ed25519";
 pub const TIMESTAMP_HEADER: &str = "x-signature-timestamp";
 
 /// Validates that a signature is valid for a given message body, timestamp, and signing key.
+///
+/// # Errors
+/// This will fail if the request being validated has an invalid signature.
 pub fn check_signature(
     sig: &[u8],
     timestamp: &[u8],
@@ -114,6 +129,9 @@ impl From<serde_json::Error> for ExtractFailure {
 }
 
 /// Validate an Interaction's signature, and deserialize it from JSON.
+///
+/// # Errors
+/// This will fail if the request being validated has an invalid signature.
 pub fn extract_interaction(
     sig: &[u8],
     timestamp: &[u8],
