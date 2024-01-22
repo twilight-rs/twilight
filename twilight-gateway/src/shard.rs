@@ -79,7 +79,7 @@ impl fmt::Debug for ConnectionFuture {
 }
 
 /// Close initiator of a websocket connection.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 enum CloseInitiator {
     /// Gateway initiated the close.
     ///
@@ -88,7 +88,7 @@ enum CloseInitiator {
     /// Shard initiated the close.
     ///
     /// Contains a close code.
-    Shard(u16),
+    Shard(CloseFrame<'static>),
     /// Transport error initiated the close.
     Transport,
 }
@@ -182,14 +182,6 @@ struct Pending {
 }
 
 impl Pending {
-    /// Constructor for a pending close message.
-    const fn close(close_frame: Option<CloseFrame<'static>>) -> Option<Self> {
-        Some(Self {
-            gateway_event: Some(Message::Close(close_frame)),
-            is_heartbeat: false,
-        })
-    }
-
     /// Constructor for a pending gateway event.
     const fn text(json: String, is_heartbeat: bool) -> Option<Self> {
         Some(Self {
@@ -511,18 +503,24 @@ impl<Q> Shard<Q> {
         self.ratelimiter = None;
         // Abort identify.
         self.identify_rx = None;
-        // Not resuming, drop session and resume URL.
-        // https://discord.com/developers/docs/topics/gateway#initiating-a-disconnect
-        if matches!(initiator, CloseInitiator::Shard(1000 | 1001)) {
-            self.resume_url = None;
-            self.session = None;
-        }
         self.state = match initiator {
             CloseInitiator::Gateway(close_code) => ShardState::from_close_code(close_code),
             _ => ShardState::Disconnected {
                 reconnect_attempts: 0,
             },
         };
+        if let CloseInitiator::Shard(frame) = initiator {
+            // Not resuming, drop session and resume URL.
+            // https://discord.com/developers/docs/topics/gateway#initiating-a-disconnect
+            if matches!(frame.code, 1000 | 1001) {
+                self.resume_url = None;
+                self.session = None;
+            }
+            self.pending = Some(Pending {
+                gateway_event: Some(Message::Close(Some(frame))),
+                is_heartbeat: false,
+            });
+        }
     }
 
     /// Parse a JSON message into an event with minimal data for [processing].
@@ -554,13 +552,11 @@ impl<Q> Shard<Q> {
             return Poll::Ready(Ok(()));
         }
 
-        ready!(Pin::new(self.connection.as_mut().unwrap())
-            .poll_ready(cx)
-            .map_err(|source| {
-                self.disconnect(CloseInitiator::Transport);
-                self.connection = None;
-                ReceiveMessageError::from_websocket(source)
-            }))?;
+        ready!(Pin::new(self.connection.as_mut().unwrap()).poll_ready(cx)).map_err(|source| {
+            self.disconnect(CloseInitiator::Transport);
+            self.connection = None;
+            ReceiveMessageError::from_websocket(source)
+        })?;
 
         let pending = self.pending.as_mut().unwrap();
 
@@ -707,17 +703,14 @@ impl<Q: Queue> Shard<Q> {
                 let resumable = Self::parse_event(event)?.data;
                 tracing::debug!(resumable, "received invalid session");
                 if resumable {
-                    self.pending = Pending::close(Some(CloseFrame::RESUME));
-                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME.code));
+                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
                 } else {
-                    self.pending = Pending::close(Some(CloseFrame::NORMAL));
-                    self.disconnect(CloseInitiator::Shard(CloseFrame::NORMAL.code));
+                    self.disconnect(CloseInitiator::Shard(CloseFrame::NORMAL));
                 }
             }
             Some(OpCode::Reconnect) => {
                 tracing::debug!("received reconnect");
-                self.pending = Pending::close(Some(CloseFrame::RESUME));
-                self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME.code));
+                self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
             }
             _ => tracing::info!("received an unknown opcode: {raw_opcode}"),
         }
@@ -804,11 +797,9 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
             if !self.state.is_disconnected() {
                 if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
                     let frame = frame.expect("shard owns channel");
-                    let close_code = frame.code;
 
                     tracing::debug!("sending close frame from user channel");
-                    self.pending = Pending::close(Some(frame));
-                    self.disconnect(CloseInitiator::Shard(close_code));
+                    self.disconnect(CloseInitiator::Shard(frame));
 
                     ready!(self.poll_flush_pending(cx))?;
                 }
@@ -826,8 +817,7 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                 // have to be a heartbeat ACK.
                 if self.latency.sent().is_some() && !self.heartbeat_interval_event {
                     tracing::info!("connection is failed or \"zombied\"");
-                    self.pending = Pending::close(Some(CloseFrame::RESUME));
-                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME.code));
+                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
                 } else {
                     tracing::debug!("sending heartbeat");
                     self.pending = Pending::text(
