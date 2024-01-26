@@ -6,7 +6,6 @@ use hyper_util::{
 };
 use std::env;
 use tokio::sync::oneshot;
-use tokio_stream::StreamExt;
 use twilight_gateway::{
     queue::Queue, ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _,
 };
@@ -51,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
 
     let mut shard = Shard::with_config(ShardId::ONE, config);
 
-    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
         let Ok(event) = item else {
             tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 

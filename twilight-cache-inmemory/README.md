@@ -34,7 +34,6 @@ Update a cache with events that come in through the gateway:
 
 ```rust,no_run
 use std::{env, error::Error};
-use tokio_stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;
 use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 
@@ -49,7 +48,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Create a cache, caching up to 10 messages per channel:
     let cache = InMemoryCache::builder().message_cache_size(10).build();
 
-    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
         let Ok(event) = item else {
             tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 

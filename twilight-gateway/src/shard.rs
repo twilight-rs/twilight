@@ -221,7 +221,6 @@ impl Pending {
 ///
 /// ```no_run
 /// use std::env;
-/// use tokio_stream::StreamExt;
 /// use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -233,7 +232,7 @@ impl Pending {
 ///
 /// let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILD_MESSAGES);
 ///
-/// while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+/// while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
 ///     let Ok(event) = item else {
 ///         tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 ///

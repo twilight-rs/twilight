@@ -9,14 +9,33 @@ use futures_core::Stream;
 /// this one.
 ///
 /// [underscore import]: https://doc.rust-lang.org/reference/items/use-declarations.html#underscore-imports
-pub trait StreamExt: Stream<Item = Result<Message, ReceiveMessageError>> + Unpin + Sized {
-    /// Deserialize the messages in a given stream.
+pub trait StreamExt: Stream {
+    /// Consumes and returns the next wanted [`Event`] in the stream or `None`
+    /// if the stream is finished.
     ///
-    /// `deserialize()` takes a `EventTypeFlags` to filter deserialization to
-    /// only wanted event types.
+    /// `next_event()` takes a `EventTypeFlags` which is then passed along to
+    /// [`parse`]. Unwanted event types are skipped.
     ///
     /// Close messages are always considered wanted and map onto
     /// [`Event::GatewayClose`].
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// async fn next_event(&mut self, wanted_event_types: EventTypeFlags) -> Option<Result<Event, ReceiveMessageError>>
+    /// ```
+    ///
+    /// Note that because `next_event` doesn’t take ownership over the stream,
+    /// the [`Stream`] type must be [`Unpin`]. If you want to use `next` with a
+    /// [`!Unpin`](Unpin) stream, you’ll first have to pin the stream. This
+    /// can be done by boxing the stream using [`Box::pin`] or pinning it to
+    /// the stack using [`pin!`].
+    ///
+    /// # Cancel safety
+    ///
+    /// This method is cancel safe. The returned future only holds onto a
+    /// reference to the underlying stream, so dropping it will never lose a
+    /// value.
     ///
     /// # Example
     ///
@@ -24,10 +43,9 @@ pub trait StreamExt: Stream<Item = Result<Message, ReceiveMessageError>> + Unpin
     /// # use twilight_gateway::{Intents, Shard, ShardId};
     /// # #[tokio::main] async fn main() {
     /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
-    /// use tokio_stream::StreamExt;
     /// use twilight_gateway::{Event, EventTypeFlags, StreamExt as _};
     ///
-    /// while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+    /// while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
     ///     let Ok(event) = item else {
     ///         tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
     ///
@@ -42,16 +60,22 @@ pub trait StreamExt: Stream<Item = Result<Message, ReceiveMessageError>> + Unpin
     /// # }
     /// ```
     ///
+    /// [`Event`]: crate::Event
     /// [`Event::GatewayClose`]: crate::Event::GatewayClose
-    fn deserialize(&mut self, wanted_event_types: EventTypeFlags) -> private::EventStream<Self> {
-        private::EventStream::new(self, wanted_event_types)
+    /// [`parse`]: crate::parse
+    /// [`pin!`]: std::pin::pin
+    fn next_event(&mut self, wanted_event_types: EventTypeFlags) -> private::NextEvent<Self>
+    where
+        Self: Unpin,
+    {
+        private::NextEvent::new(self, wanted_event_types)
     }
 }
 
-impl<St: Stream<Item = Result<Message, ReceiveMessageError>> + Unpin> StreamExt for St {}
+impl<St: ?Sized> StreamExt for St where St: Stream<Item = Result<Message, ReceiveMessageError>> {}
 
 mod private {
-    //! Private module to hide the returned type from the [`deserialize`](super::StreamExt::deserialize)
+    //! Private module to hide the returned type from the [`next_event`](super::StreamExt::next_event)
     //! method.
     //!
     //! Effectively disallows consumers from implementing the trait.
@@ -59,32 +83,33 @@ mod private {
     use crate::{error::ReceiveMessageError, json::parse, EventTypeFlags, Message};
     use futures_core::Stream;
     use std::{
+        future::Future,
         pin::Pin,
         task::{ready, Context, Poll},
     };
     use twilight_model::gateway::event::Event;
 
-    /// Stream for the [`deserialize`](super::StreamExt::deserialize) method.
-    pub struct EventStream<'a, St> {
+    /// Future for the [`next_event`](super::StreamExt::next_event) method.
+    pub struct NextEvent<'a, St: ?Sized> {
         /// Gateway event types to deserialize.
         events: EventTypeFlags,
         /// Inner wrapped stream.
         stream: &'a mut St,
     }
 
-    impl<'a, St> EventStream<'a, St> {
-        /// Create a new event stream.
+    impl<'a, St: ?Sized> NextEvent<'a, St> {
+        /// Create a new future.
         pub fn new(stream: &'a mut St, events: EventTypeFlags) -> Self {
             Self { events, stream }
         }
     }
 
-    impl<'a, St: Stream<Item = Result<Message, ReceiveMessageError>> + Unpin> Stream
-        for EventStream<'a, St>
+    impl<'a, St: ?Sized + Stream<Item = Result<Message, ReceiveMessageError>> + Unpin> Future
+        for NextEvent<'a, St>
     {
-        type Item = Result<Event, ReceiveMessageError>;
+        type Output = Option<Result<Event, ReceiveMessageError>>;
 
-        fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             let events = self.events;
             let try_from_message = |message| match message {
                 Message::Text(json) => parse(json, events).map(|opt| opt.map(Into::into)),

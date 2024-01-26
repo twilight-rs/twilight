@@ -114,13 +114,11 @@ The following example is a template for bootstrapping a new bot using
 Twilight's HTTP and gateway clients with its in-memory cache. In order to
 run this, replace the contents of a new project's `main.rs` file with the
 following. Be sure to set the `DISCORD_TOKEN` environment variable to your
-bot's token. You must also depend on `tokio`, `tokio_stream`
-`twilight-cache-inmemory`, `twilight-gateway`, `twilight-http`, and
-`twilight-model` in your `Cargo.toml`.
+bot's token. You must also depend on `tokio`, `twilight-cache-inmemory`,
+`twilight-gateway`, `twilight-http`, and `twilight-model` in your `Cargo.toml`.
 
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
-use tokio_stream::StreamExt;
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 use twilight_http::Client as HttpClient;
@@ -149,7 +147,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     // Process each event as they come in.
-    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
         let Ok(event) = item else {
             tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 

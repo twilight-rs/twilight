@@ -1,5 +1,4 @@
 use std::env;
-use tokio_stream::StreamExt;
 use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
 
@@ -13,7 +12,7 @@ async fn main() -> anyhow::Result<()> {
         Intents::GUILD_MEMBERS | Intents::GUILDS,
     );
 
-    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
         let Ok(event) = item else {
             tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 

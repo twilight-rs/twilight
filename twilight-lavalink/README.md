@@ -57,7 +57,6 @@ Create a [client], add a [node], and give events to the client to [process]
 events:
 
 ```rust,no_run
-use futures_util::stream::StreamExt;
 use std::{
     env,
     future::Future,
@@ -87,7 +86,7 @@ async fn main() -> anyhow::Result<()> {
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
     let mut shard = Shard::new(ShardId::ONE, token, intents);
 
-    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
         let Ok(event) = item else {
             tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 

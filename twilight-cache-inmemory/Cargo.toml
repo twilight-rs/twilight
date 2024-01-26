@@ -25,7 +25,6 @@ twilight-util = { default-features = false, features = ["permission-calculator"]
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-tokio-stream = { default-features = false, version = "0.1" }
 tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway" }

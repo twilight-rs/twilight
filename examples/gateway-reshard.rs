@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
         let mut set = JoinSet::new();
         for mut shard in shards {
             set.spawn(async move {
-                while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+                while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
                     let Ok(event) = item else {
                         tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 

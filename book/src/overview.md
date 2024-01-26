@@ -47,7 +47,6 @@ in from a channel:
 
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
-use tokio_stream::StreamExt;
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 
@@ -75,7 +74,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     // Startup the event loop to process each event in the event stream as they
     // come in.
-    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
         let Ok(event) = item else {
             tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 

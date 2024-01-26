@@ -42,7 +42,6 @@ use std::{
     sync::atomic::{AtomicBool, Ordering},
 };
 use tokio::signal;
-use tokio_stream::StreamExt;
 use twilight_gateway::{
     error::ReceiveMessageErrorType, CloseFrame, Config, Event, EventTypeFlags, Intents, Shard,
     StreamExt as _,
@@ -84,7 +83,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn runner(mut shard: Shard) {
-    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
         let event = match item {
             Ok(Event::GatewayClose(_)) if SHUTDOWN.load(Ordering::Relaxed) => break,
             Ok(event) => event,
