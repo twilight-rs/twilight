@@ -222,7 +222,7 @@ impl Pending {
 /// ```no_run
 /// use std::env;
 /// use tokio_stream::StreamExt;
-/// use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId};
+/// use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
@@ -233,17 +233,11 @@ impl Pending {
 ///
 /// let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILD_MESSAGES);
 ///
-/// while let Some(item) = shard.next().await {
-///     let event = match item
-///         .and_then(|message| twilight_gateway::deserialize_wanted(message, wanted_event_types))
-///     {
-///         Ok(Some(event)) => event,
-///         Ok(None) => continue,
-///         Err(source) => {
-///             tracing::warn!(?source, "error receiving event");
+/// while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+///     let Ok(event) = item else {
+///         tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 ///
-///             continue;
-///         }
+///         continue;
 ///     };
 ///
 ///     match event {
@@ -440,7 +434,7 @@ impl<Q> Shard<Q> {
     ///
     /// ```no_run
     /// # use twilight_gateway::{Intents, Shard, ShardId};
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main] async fn main() {
     /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
     /// use tokio_stream::StreamExt;
     /// use twilight_gateway::{error::ReceiveMessageErrorType, CloseFrame, Message};
@@ -455,7 +449,7 @@ impl<Q> Shard<Q> {
     ///         Err(source) => unimplemented!(),
     ///     }
     /// }
-    /// # Ok(()) }
+    /// # }
     /// ```
     ///
     /// [`poll_next`]: Shard::poll_next
@@ -474,7 +468,7 @@ impl<Q> Shard<Q> {
     ///
     /// ```no_run
     /// # use twilight_gateway::{Intents, Shard, ShardId};
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main] async fn main() {
     /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
     /// use tokio_stream::StreamExt;
     ///
@@ -490,7 +484,7 @@ impl<Q> Shard<Q> {
     ///         Err(source) => unimplemented!(),
     ///     }
     /// }
-    /// # Ok(()) }
+    /// # }
     /// ```
     pub fn sender(&self) -> MessageSender {
         self.user_channel.sender()

@@ -27,6 +27,7 @@ mod message;
 mod ratelimiter;
 mod session;
 mod shard;
+mod stream;
 
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 pub use self::inflater::Inflater;
@@ -35,12 +36,13 @@ pub use self::{
     command::Command,
     config::{Config, ConfigBuilder},
     event::EventTypeFlags,
-    json::deserialize_wanted,
+    json::parse,
     latency::Latency,
     message::Message,
     ratelimiter::CommandRatelimiter,
     session::Session,
     shard::{Shard, ShardState},
+    stream::StreamExt,
 };
 pub use twilight_model::gateway::{CloseFrame, Intents, ShardId};
 
@@ -111,15 +113,13 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>, Q: Clone>(
 /// use std::{collections::HashMap, env, sync::Arc};
 /// use twilight_gateway::{Config, Intents};
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
 /// let config = Config::new(token.clone(), Intents::GUILDS);
 /// let shards = twilight_gateway::create_iterator(0..10, 10, config, |_, builder| builder.build());
 ///
 /// assert_eq!(shards.len(), 10);
-/// # Ok(()) }
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 ///
 /// # Panics

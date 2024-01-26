@@ -45,6 +45,7 @@ use tokio::signal;
 use tokio_stream::StreamExt;
 use twilight_gateway::{
     error::ReceiveMessageErrorType, CloseFrame, Config, Event, EventTypeFlags, Intents, Shard,
+    StreamExt as _,
 };
 use twilight_http::Client;
 
@@ -85,13 +86,10 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn runner(mut shard: Shard) {
-    while let Some(item) = shard.next().await {
-        let event = match item.and_then(|message| {
-            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
-        }) {
-            Ok(Some(Event::GatewayClose(_))) if SHUTDOWN.load(Ordering::Relaxed) => break,
-            Ok(Some(event)) => event,
-            Ok(None) => continue,
+    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+        let event = match item {
+            Ok(Event::GatewayClose(_)) if SHUTDOWN.load(Ordering::Relaxed) => break,
+            Ok(event) => event,
             Err(source)
                 if SHUTDOWN.load(Ordering::Relaxed)
                     && matches!(source.kind(), ReceiveMessageErrorType::WebSocket) =>

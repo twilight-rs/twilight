@@ -14,7 +14,7 @@ Process new messages that come over a shard into the cache:
 use std::env;
 use tokio_stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;
-use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId};
+use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 
 let token = env::var("DISCORD_TOKEN")?;
 
@@ -22,16 +22,11 @@ let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILD_MESSAGES);
 
 let cache = InMemoryCache::new();
 
-while let Some(item) = shard.next().await {
-    let event = match item.and_then(|message| {
-        twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
-    }) {
-        Ok(Some(event)) => event,
-        Ok(None) => continue,
-        Err(source) => {
-            tracing::warn!(?source, "error receiving event");
-            continue;
-        }
+while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+    let Ok(event) = item else {
+        tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
+
+        continue;
     };
 
     cache.update(&event);

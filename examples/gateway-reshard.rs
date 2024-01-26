@@ -5,8 +5,10 @@ use std::{
     time::Duration,
 };
 use tokio::{task::JoinSet, time};
-use tokio_stream::{StreamExt, StreamMap};
-use twilight_gateway::{Config, ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId};
+use tokio_stream::{StreamExt as _, StreamMap};
+use twilight_gateway::{
+    Config, ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _,
+};
 use twilight_http::Client;
 
 #[tokio::main]
@@ -27,17 +29,11 @@ async fn main() -> anyhow::Result<()> {
         let mut set = JoinSet::new();
         for mut shard in shards {
             set.spawn(async move {
-                while let Some(item) = shard.next().await {
-                    let event = match item.and_then(|message| {
-                        twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
-                    }) {
-                        Ok(Some(event)) => event,
-                        Ok(None) => continue,
-                        Err(source) => {
-                            tracing::warn!(?source, "error receiving event");
+                while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+                    let Ok(event) = item else {
+                        tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-                            continue;
-                        }
+                        continue;
                     };
 
                     // You'd normally want to spawn a new tokio task for each event and

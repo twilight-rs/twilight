@@ -8,33 +8,25 @@ pub use simd_json::to_string;
 
 use crate::{
     error::{ReceiveMessageError, ReceiveMessageErrorType},
-    EventTypeFlags, Message,
+    EventTypeFlags,
 };
 use serde::de::DeserializeSeed;
 use twilight_model::gateway::{
-    event::{Event, GatewayEventDeserializer},
+    event::{GatewayEvent, GatewayEventDeserializer},
     OpCode,
 };
 
-/// Deserialize a websocket message into an event if `wanted_event_types`
-/// contains its type.
-///
-/// Close messages are always considered wanted and map onto
-/// [`Event::GatewayClose`].
+/// Parse a JSON encoded gateway event into a `GatewayEvent` if
+/// `wanted_event_types` contains its type.
 ///
 /// # Errors
 ///
 /// Returns a [`ReceiveMessageErrorType::Deserializing`] error if the *known*
 /// event could not be deserialized.
-pub fn deserialize_wanted(
-    message: Message,
+pub fn parse(
+    event: String,
     wanted_event_types: EventTypeFlags,
-) -> Result<Option<Event>, ReceiveMessageError> {
-    let event = match message {
-        Message::Close(frame) => return Ok(Some(Event::GatewayClose(frame))),
-        Message::Text(event) => event,
-    };
-
+) -> Result<Option<GatewayEvent>, ReceiveMessageError> {
     let Some(gateway_deserializer) = GatewayEventDeserializer::from_json(&event) else {
         return Err(ReceiveMessageError {
             kind: ReceiveMessageErrorType::Deserializing { event },
@@ -76,7 +68,7 @@ pub fn deserialize_wanted(
 
         gateway_deserializer
             .deserialize(&mut json_deserializer)
-            .map(|event| Some(event.into()))
+            .map(Some)
             .map_err(|source| ReceiveMessageError {
                 kind: ReceiveMessageErrorType::Deserializing {
                     #[cfg(feature = "simd-json")]

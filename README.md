@@ -122,9 +122,8 @@ bot's token. You must also depend on `tokio`, `tokio_stream`
 use std::{env, error::Error, sync::Arc};
 use tokio_stream::StreamExt;
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
-use twilight_gateway::{Event, EventTypeFlags, Shard, ShardId};
+use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 use twilight_http::Client as HttpClient;
-use twilight_model::gateway::Intents;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -150,17 +149,11 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     // Process each event as they come in.
-    while let Some(item) = shard.next().await {
-        let event = match item.and_then(|message| {
-            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
-        }) {
-            Ok(Some(event)) => event,
-            Ok(None) => continue,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+        let Ok(event) = item else {
+            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-                continue;
-            }
+            continue;
         };
 
         // Update the cache with the event.

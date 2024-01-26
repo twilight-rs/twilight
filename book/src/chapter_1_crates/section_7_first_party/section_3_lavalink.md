@@ -56,7 +56,7 @@ use std::{
     str::FromStr,
 };
 use tokio_stream::StreamExt;
-use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId};
+use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::Lavalink;
 
@@ -76,17 +76,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
     let mut shard = Shard::new(ShardId::ONE, token, intents);
 
-    while let Some(item) = shard.next().await {
-        let event = match item.and_then(|message| {
-            twilight_gateway::deserialize_wanted(message, EventTypeFlags::all())
-        }) {
-            Ok(Some(event)) => event,
-            Ok(None) => continue,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+    while let Some(item) = shard.deserialize(EventTypeFlags::all()).next().await {
+        let Ok(event) = item else {
+            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-                continue;
-            }
+            continue;
         };
 
         lavalink.process(&event).await?;
