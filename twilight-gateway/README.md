@@ -60,14 +60,12 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::new(token, Intents::GUILDS);
 
     let shards =
-        twilight_gateway::create_recommended(&client, config, |_, builder| builder.build())
-            .await?
-            .collect::<Vec<_>>();
-    let senders = shards.iter().map(Shard::sender).collect::<Vec<_>>();
-
+        twilight_gateway::create_recommended(&client, config, |_, builder| builder.build()).await?;
+    let mut senders = Vec::with_capacity(shards.len());
     let mut tasks = Vec::with_capacity(shards.len());
 
     for shard in shards {
+        senders.push(shard.sender());
         tasks.push(tokio::spawn(runner(shard)));
     }
 
@@ -108,7 +106,6 @@ async fn runner(mut shard: Shard) {
         tracing::debug!(?event, shard = ?shard.id(), "received event");
     }
 }
-
 ```
 
 There are a few additional examples located in the
