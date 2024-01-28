@@ -72,13 +72,17 @@ pub const API_VERSION: u8 = 10;
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
-pub fn create_bucket<F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>, Q: Clone>(
+pub fn create_bucket<F, Q>(
     bucket_id: u16,
     concurrency: u16,
     total: u32,
     config: Config<Q>,
     per_shard_config: F,
-) -> impl ExactSizeIterator<Item = Shard<Q>> {
+) -> impl ExactSizeIterator<Item = Shard<Q>>
+where
+    F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>,
+    Q: Clone,
+{
     assert!(
         u32::from(bucket_id) < total,
         "bucket id must be less than the total"
@@ -128,12 +132,16 @@ pub fn create_bucket<F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>, Q: Clone>(
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
-pub fn create_iterator<F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>, Q: Clone>(
+pub fn create_iterator<F, Q>(
     numbers: impl ExactSizeIterator<Item = u32>,
     total: u32,
     config: Config<Q>,
     per_shard_config: F,
-) -> impl ExactSizeIterator<Item = Shard<Q>> {
+) -> impl ExactSizeIterator<Item = Shard<Q>>
+where
+    F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>,
+    Q: Clone,
+{
     numbers.map(move |index| {
         let id = ShardId::new(index, total);
         let config = per_shard_config(id, ConfigBuilder::from(config.clone()));
@@ -163,11 +171,15 @@ pub fn create_iterator<F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>, Q: Clone>(
 ///
 /// [`GetGatewayAuthed`]: twilight_http::request::GetGatewayAuthed
 #[cfg(feature = "twilight-http")]
-pub async fn create_recommended<F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>, Q: Clone>(
+pub async fn create_recommended<F, Q>(
     client: &Client,
     config: Config<Q>,
     per_shard_config: F,
-) -> Result<impl ExactSizeIterator<Item = Shard<Q>>, StartRecommendedError> {
+) -> Result<impl ExactSizeIterator<Item = Shard<Q>>, StartRecommendedError>
+where
+    F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>,
+    Q: Clone,
+{
     let request = client.gateway().authed();
     let response = request.await.map_err(|source| StartRecommendedError {
         kind: StartRecommendedErrorType::Request,
