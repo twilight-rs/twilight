@@ -4,11 +4,11 @@
 //! [`Shard::send`]: crate::Shard::send
 
 use crate::{
-    command::{self, Command},
-    error::{SendError, SendErrorType},
-    CloseFrame,
+    command::Command,
+    error::{ChannelError, ChannelErrorType},
+    json, CloseFrame,
 };
-use tokio::sync::mpsc::{self, error::TrySendError};
+use tokio::sync::mpsc;
 
 /// Channel between a user and shard for sending outgoing gateway messages.
 #[derive(Debug)]
@@ -16,11 +16,11 @@ pub struct MessageChannel {
     /// Receiving half for shards to receive users' close frames.
     pub close_rx: mpsc::Receiver<CloseFrame<'static>>,
     /// Sending half for users to send close frames via shards.
-    close_tx: mpsc::Sender<CloseFrame<'static>>,
+    pub close_tx: mpsc::Sender<CloseFrame<'static>>,
     /// Receiving half for shards to receive users' commands.
     pub command_rx: mpsc::UnboundedReceiver<String>,
     /// Sending half for users to send commands via shards.
-    command_tx: mpsc::UnboundedSender<String>,
+    pub command_tx: mpsc::UnboundedSender<String>,
 }
 
 impl MessageChannel {
@@ -48,10 +48,6 @@ impl MessageChannel {
 
 /// Channel to send messages over a [`Shard`] to the Discord gateway.
 ///
-/// Unlike the methods on [`Shard`], messages queued up through this are
-/// conditionally sent when not ratelimited and identified (except for close
-/// frames which are sent as long as the shard is connected to the Websocket).
-///
 /// [`Shard`]: crate::Shard
 #[derive(Clone, Debug)]
 pub struct MessageSender {
@@ -74,27 +70,23 @@ impl MessageSender {
     ///
     /// # Errors
     ///
-    /// Returns a [`SendErrorType::Sending`] error type if the channel is
+    /// Returns a [`ChannelErrorType::Closed`] error type if the channel is
     /// closed.
-    ///
-    /// Returns a [`SendErrorType::Serializing`] error type if the provided
-    /// command failed to serialize.
-    pub fn command(&self, command: &impl Command) -> Result<(), SendError> {
-        let json = command::prepare(command)?;
-
-        self.send(json)
+    #[allow(clippy::missing_panics_doc)]
+    pub fn command(&self, command: &impl Command) -> Result<(), ChannelError> {
+        self.send(json::to_string(command).expect("serialization cannot fail"))
     }
 
     /// Send a JSON encoded gateway event to the associated shard.
     ///
     /// # Errors
     ///
-    /// Returns a [`SendErrorType::Sending`] error type if the channel is
+    /// Returns a [`ChannelErrorType::Closed`] error type if the channel is
     /// closed.
-    pub fn send(&self, json: String) -> Result<(), SendError> {
-        self.command.send(json).map_err(|_| SendError {
-            kind: SendErrorType::Sending,
-            source: None,
+    pub fn send(&self, json: String) -> Result<(), ChannelError> {
+        self.command.send(json).map_err(|source| ChannelError {
+            kind: ChannelErrorType::Closed,
+            source: Some(Box::new(source)),
         })
     }
 
@@ -108,17 +100,19 @@ impl MessageSender {
     ///
     /// # Errors
     ///
-    /// Returns a [`SendErrorType::Sending`] error type if the channel is
+    /// Returns a [`ChannelErrorType::Closed`] error type if the channel is
     /// closed.
     ///
     /// [`Shard::close`]: crate::Shard::close
-    pub fn close(&self, close_frame: CloseFrame<'static>) -> Result<(), SendError> {
-        match self.close.try_send(close_frame) {
-            Ok(()) | Err(TrySendError::Full(_)) => Ok(()),
-            _ => Err(SendError {
-                kind: SendErrorType::Sending,
-                source: None,
-            }),
+    pub fn close(&self, close_frame: CloseFrame<'static>) -> Result<(), ChannelError> {
+        if let Err(source @ mpsc::error::TrySendError::Closed(_)) = self.close.try_send(close_frame)
+        {
+            Err(ChannelError {
+                kind: ChannelErrorType::Closed,
+                source: Some(Box::new(source)),
+            })
+        } else {
+            Ok(())
         }
     }
 }
@@ -126,49 +120,9 @@ impl MessageSender {
 #[cfg(test)]
 mod tests {
     use super::{MessageChannel, MessageSender};
-    use crate::json;
     use static_assertions::assert_impl_all;
-    use std::{error::Error, fmt::Debug};
-    use twilight_model::{
-        gateway::{
-            payload::outgoing::{Heartbeat, RequestGuildMembers},
-            CloseFrame,
-        },
-        id::Id,
-    };
+    use std::fmt::Debug;
 
     assert_impl_all!(MessageChannel: Debug, Send, Sync);
     assert_impl_all!(MessageSender: Clone, Debug, Send, Sync);
-
-    #[test]
-    fn channel_sending() -> Result<(), Box<dyn Error>> {
-        let mut channel = MessageChannel::new();
-        let sender = channel.sender();
-        assert!(channel.command_rx.try_recv().is_err());
-        assert!(channel.close_rx.try_recv().is_err());
-
-        let frame = CloseFrame::NORMAL;
-        let request = RequestGuildMembers::builder(Id::new(1)).query("", None);
-        let heartbeat = Heartbeat::new(Some(30_000));
-        let heartbeat_string = json::to_string(&heartbeat)?;
-        assert!(sender.command(&request).is_ok());
-        assert!(sender.send(heartbeat_string.clone()).is_ok());
-        assert!(sender.close(frame.clone()).is_ok());
-        assert!(sender.close(frame.clone()).is_ok());
-
-        assert_eq!(request, json::from_str(&channel.command_rx.try_recv()?)?);
-        assert_eq!(heartbeat_string, channel.command_rx.try_recv()?);
-        assert_eq!(frame, channel.close_rx.try_recv()?);
-        assert!(channel.close_rx.try_recv().is_err());
-
-        assert!(!sender.is_closed());
-        drop(channel);
-        assert!(sender.is_closed());
-
-        assert!(sender.command(&request).is_err());
-        assert!(sender.send(heartbeat_string).is_err());
-        assert!(sender.close(frame).is_err());
-
-        Ok(())
-    }
 }

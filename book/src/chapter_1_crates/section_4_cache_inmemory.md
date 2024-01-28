@@ -13,7 +13,7 @@ Process new messages that come over a shard into the cache:
 # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 use std::env;
 use twilight_cache_inmemory::InMemoryCache;
-use twilight_gateway::{Intents, Shard, ShardId};
+use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 
 let token = env::var("DISCORD_TOKEN")?;
 
@@ -21,18 +21,11 @@ let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILD_MESSAGES);
 
 let cache = InMemoryCache::new();
 
-loop {
-    let event = match shard.next_event().await {
-        Ok(event) => event,
-        Err(source) => {
-            tracing::warn!(?source, "error receiving event");
+while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+    let Ok(event) = item else {
+        tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-            if source.is_fatal() {
-                break;
-            }
-
-            continue;
-        }
+        continue;
     };
 
     cache.update(&event);

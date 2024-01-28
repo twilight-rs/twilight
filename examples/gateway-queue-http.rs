@@ -6,7 +6,9 @@ use hyper_util::{
 };
 use std::env;
 use tokio::sync::oneshot;
-use twilight_gateway::{queue::Queue, ConfigBuilder, Intents, Shard, ShardId};
+use twilight_gateway::{
+    queue::Queue, ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _,
+};
 
 #[derive(Debug)]
 struct HttpQueue(Client<HttpConnector, Empty<Bytes>>);
@@ -48,18 +50,11 @@ async fn main() -> anyhow::Result<()> {
 
     let mut shard = Shard::with_config(ShardId::ONE, config);
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+        let Ok(event) = item else {
+            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-                if source.is_fatal() {
-                    break;
-                }
-
-                continue;
-            }
+            continue;
         };
 
         tracing::debug!(?event, "received event");

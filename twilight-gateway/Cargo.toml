@@ -16,7 +16,8 @@ version = "0.15.4"
 [dependencies]
 bitflags = { default-features = false, version = "2" }
 fastrand = { default-features = false, features = ["std"], version = "2" }
-futures-util = { default-features = false, features = ["sink", "std"], version = "0.3" }
+futures-core = { default-features = false, features = ["std"], version = "0.3" }
+futures-sink = { default-features = false, features = ["std"], version = "0.3" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.19" }
@@ -36,10 +37,10 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }
-futures = { default-features = false, version = "0.3" }
 serde_test = { default-features = false, version = "1.0.136" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread", "test-util"], version = "1.12" }
+tokio-stream = { default-features = false, version = "0.1" }
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 
 [features]

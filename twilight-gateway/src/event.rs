@@ -35,6 +35,7 @@ bitflags! {
     /// [`Intents::GUILDS`]: twilight_model::gateway::Intents::GUILDS
     /// [`RoleCreate`]: twilight_model::gateway::event::Event::RoleCreate
     /// [`RoleUpdate`]: twilight_model::gateway::event::Event::RoleUpdate
+    /// [`Shard`]: crate::Shard
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct EventTypeFlags: u128 {
         /// Message has been blocked by AutoMod according to a rule.

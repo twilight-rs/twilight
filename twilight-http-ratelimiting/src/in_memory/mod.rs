@@ -10,9 +10,9 @@ use super::{
 use crate::{
     request::Path, GetBucketFuture, GetTicketFuture, HasBucketFuture, IsGloballyLockedFuture,
 };
-use futures_util::future;
 use std::{
     collections::hash_map::{Entry, HashMap},
+    future,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc, Mutex,
@@ -110,23 +110,23 @@ impl Ratelimiter for InMemoryRatelimiter {
             .expect("buckets poisoned")
             .get(path)
             .map_or_else(
-                || Box::pin(future::ok(None)),
+                || Box::pin(future::ready(Ok(None))),
                 |bucket| {
                     let started_at = bucket.started_at.lock().expect("bucket poisoned");
                     let reset_after = Duration::from_millis(bucket.reset_after());
 
-                    Box::pin(future::ok(Some(InfoBucket::new(
+                    Box::pin(future::ready(Ok(Some(InfoBucket::new(
                         bucket.limit(),
                         bucket.remaining(),
                         reset_after,
                         *started_at,
-                    ))))
+                    )))))
                 },
             )
     }
 
     fn is_globally_locked(&self) -> IsGloballyLockedFuture {
-        Box::pin(future::ok(self.global.is_locked()))
+        Box::pin(future::ready(Ok(self.global.is_locked())))
     }
 
     fn has(&self, path: &Path) -> HasBucketFuture {
@@ -136,7 +136,7 @@ impl Ratelimiter for InMemoryRatelimiter {
             .expect("buckets poisoned")
             .contains_key(path);
 
-        Box::pin(future::ok(has))
+        Box::pin(future::ready(Ok(has)))
     }
 
     fn ticket(&self, path: Path) -> GetTicketFuture {
@@ -156,6 +156,6 @@ impl Ratelimiter for InMemoryRatelimiter {
             );
         }
 
-        Box::pin(future::ok(rx))
+        Box::pin(future::ready(Ok(rx)))
     }
 }

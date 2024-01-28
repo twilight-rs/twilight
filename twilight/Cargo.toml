@@ -14,7 +14,6 @@ version = "0.15.1"
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }
-futures = { default-features = false, version = "0.3" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }

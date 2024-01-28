@@ -11,54 +11,18 @@ use crate::{
     EventTypeFlags,
 };
 use serde::de::DeserializeSeed;
-use std::{
-    error::Error,
-    fmt::{Debug, Display, Formatter, Result as FmtResult},
-};
 use twilight_model::gateway::{
     event::{GatewayEvent, GatewayEventDeserializer},
     OpCode,
 };
 
-/// Error occurred due to an unknown event and opcode pair.
-#[derive(Debug)]
-#[non_exhaustive]
-pub(crate) struct UnknownEventError {
-    /// Event type in the payload.
-    pub event_type: Option<String>,
-    /// Opcode in the payload.
-    pub opcode: Option<u8>,
-}
-
-impl Display for UnknownEventError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("unknown opcode/dispatch event type: ")?;
-        Debug::fmt(&self.opcode, f)?;
-        f.write_str("/")?;
-
-        Debug::fmt(&self.event_type, f)
-    }
-}
-
-impl Error for UnknownEventError {}
-
-/// Parse a JSON encoded event into a gateway event if its type is in
-/// `wanted_event_types`.
-///
-/// This function can be used together with [`Shard::next_message`] for greater
-/// control of the deserialization process without giving up the ease of use of
-/// [`Shard::next_event`].
-///
-/// Returns [`None`] if the event type is not contained inside of
-/// `wanted_event_types`.
+/// Parse a JSON encoded gateway event into a `GatewayEvent` if
+/// `wanted_event_types` contains its type.
 ///
 /// # Errors
 ///
-/// Returns a [`ReceiveMessageErrorType::Deserializing`] error if the event
-/// could not be deserialized.
-///
-/// [`Shard::next_event`]: crate::Shard::next_event
-/// [`Shard::next_message`]: crate::Shard::next_message
+/// Returns a [`ReceiveMessageErrorType::Deserializing`] error if the *known*
+/// event could not be deserialized.
 pub fn parse(
     event: String,
     wanted_event_types: EventTypeFlags,
@@ -66,38 +30,18 @@ pub fn parse(
     let Some(gateway_deserializer) = GatewayEventDeserializer::from_json(&event) else {
         return Err(ReceiveMessageError {
             kind: ReceiveMessageErrorType::Deserializing { event },
-            source: Some(Box::new(UnknownEventError {
-                event_type: None,
-                opcode: None,
-            })),
+            source: None,
         });
     };
 
     let Some(opcode) = OpCode::from(gateway_deserializer.op()) else {
-        let opcode = gateway_deserializer.op();
-
-        return Err(ReceiveMessageError {
-            kind: ReceiveMessageErrorType::Deserializing { event },
-            source: Some(Box::new(UnknownEventError {
-                event_type: None,
-                opcode: Some(opcode),
-            })),
-        });
+        return Ok(None);
     };
 
     let event_type = gateway_deserializer.event_type();
 
     let Ok(event_type) = EventTypeFlags::try_from((opcode, event_type)) else {
-        let opcode = opcode as u8;
-        let owned_event_type = event_type.map(ToOwned::to_owned);
-
-        return Err(ReceiveMessageError {
-            kind: ReceiveMessageErrorType::Deserializing { event },
-            source: Some(Box::new(UnknownEventError {
-                event_type: owned_event_type,
-                opcode: Some(opcode),
-            })),
-        });
+        return Ok(None);
     };
 
     if wanted_event_types.contains(event_type) {

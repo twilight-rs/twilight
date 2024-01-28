@@ -1,4 +1,4 @@
-//! Ratelimiter on the user's ability to [send messages].
+//! Rate limit events sent to the Gateway.
 //!
 //! See <https://discord.com/developers/docs/topics/gateway#rate-limiting>
 //!
@@ -8,15 +8,12 @@
 //! only ratelimit algorithm that supports burst requests and guarantees that
 //! the (t - [`PERIOD`], t] window is never exceeded. See
 //! <https://hechao.li/2018/06/25/Rate-Limiter-Part1> for an overview of it and
-//! other alternative ratelimit algorithms.
-//!
-//! [`Instant::now`]: std::time::Instant::now
-//! [send messages]: crate::Shard::send
+//! other alternative algorithms.
 
 use std::{
-    future::{poll_fn, Future},
+    future::Future,
     pin::Pin,
-    task::{Context, Poll},
+    task::{ready, Context, Poll},
 };
 use tokio::time::{sleep_until, Duration, Instant, Sleep};
 
@@ -75,11 +72,19 @@ impl CommandRatelimiter {
         })
     }
 
-    /// Waits for a permit to become available.
-    pub(crate) async fn acquire(&mut self) {
-        poll_fn(|cx| self.poll_ready(cx)).await;
-
+    /// Polls for a permit.
+    ///
+    /// # Return value
+    ///
+    /// The function returns:
+    ///
+    /// * `Poll::Pending` if the ratelimiter is full
+    /// * `Poll::Ready` if a permit was granted.
+    pub(crate) fn poll_acquire(&mut self, cx: &mut Context<'_>) -> Poll<()> {
+        ready!(self.poll_ready(cx));
         self.instants.push(Instant::now() + PERIOD);
+
+        Poll::Ready(())
     }
 
     /// Polls for readiness.
@@ -89,7 +94,7 @@ impl CommandRatelimiter {
     /// The function returns:
     ///
     /// * `Poll::Pending` if the ratelimiter is full
-    /// * `Poll::Ready` if the ratelimiter is ready for a new permit.
+    /// * `Poll::Ready` if the ratelimiter has spare capacity.
     pub(crate) fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<()> {
         if self.instants.len() != self.instants.capacity() {
             return Poll::Ready(());
@@ -185,7 +190,7 @@ mod tests {
 
         assert_eq!(ratelimiter.available(), ratelimiter.max());
         for _ in 0..ratelimiter.max() {
-            ratelimiter.acquire().await;
+            poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
         }
         assert_eq!(ratelimiter.available(), 0);
 
@@ -204,7 +209,7 @@ mod tests {
 
         assert_eq!(ratelimiter.available(), ratelimiter.max());
         for _ in 0..ratelimiter.max() / 2 {
-            ratelimiter.acquire().await;
+            poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
         }
         assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
 
@@ -212,7 +217,7 @@ mod tests {
 
         assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
         for _ in 0..ratelimiter.max() / 2 {
-            ratelimiter.acquire().await;
+            poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
         }
         assert_eq!(ratelimiter.available(), 0);
 
@@ -231,11 +236,11 @@ mod tests {
         let max = ratelimiter.max();
 
         for _ in 0..max {
-            ratelimiter.acquire().await;
+            poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
         }
         assert_eq!(ratelimiter.available(), 0);
 
-        ratelimiter.acquire().await;
+        poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
         assert_eq!(max, ratelimiter.max());
     }
 
@@ -244,7 +249,7 @@ mod tests {
         let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
 
         for _ in 0..ratelimiter.max() {
-            ratelimiter.acquire().await;
+            poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
         }
         assert_eq!(ratelimiter.available(), 0);
 

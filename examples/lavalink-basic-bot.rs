@@ -5,7 +5,9 @@ use hyper_util::{
     rt::TokioExecutor,
 };
 use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
-use twilight_gateway::{Event, Intents, MessageSender, Shard, ShardId};
+use twilight_gateway::{
+    Event, EventTypeFlags, Intents, MessageSender, Shard, ShardId, StreamExt as _,
+};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
     http::LoadedTracks,
@@ -71,18 +73,11 @@ async fn main() -> anyhow::Result<()> {
         )
     };
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+        let Ok(event) = item else {
+            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-                if source.is_fatal() {
-                    break;
-                }
-
-                continue;
-            }
+            continue;
         };
 
         state.standby.process(&event);

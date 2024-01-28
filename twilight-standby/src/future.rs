@@ -2,7 +2,7 @@
 //!
 //! [`Standby`]: super::Standby
 
-use futures_util::{future::FutureExt, stream::Stream};
+use futures_core::Stream;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -59,7 +59,7 @@ impl Future for WaitForEventFuture {
     type Output = Result<Event, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.rx.poll_unpin(cx).map_err(Canceled)
+        Pin::new(&mut self.rx).poll(cx).map_err(Canceled)
     }
 }
 
@@ -95,7 +95,7 @@ impl Future for WaitForGuildEventFuture {
     type Output = Result<Event, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.rx.poll_unpin(cx).map_err(Canceled)
+        Pin::new(&mut self.rx).poll(cx).map_err(Canceled)
     }
 }
 
@@ -131,7 +131,7 @@ impl Future for WaitForMessageFuture {
     type Output = Result<MessageCreate, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.rx.poll_unpin(cx).map_err(Canceled)
+        Pin::new(&mut self.rx).poll(cx).map_err(Canceled)
     }
 }
 
@@ -167,7 +167,7 @@ impl Future for WaitForReactionFuture {
     type Output = Result<ReactionAdd, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.rx.poll_unpin(cx).map_err(Canceled)
+        Pin::new(&mut self.rx).poll(cx).map_err(Canceled)
     }
 }
 
@@ -203,7 +203,7 @@ impl Future for WaitForComponentFuture {
     type Output = Result<Interaction, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.rx.poll_unpin(cx).map_err(Canceled)
+        Pin::new(&mut self.rx).poll(cx).map_err(Canceled)
     }
 }
 
@@ -231,7 +231,7 @@ mod tests {
         WaitForEventFuture, WaitForEventStream, WaitForGuildEventFuture, WaitForGuildEventStream,
         WaitForMessageFuture, WaitForMessageStream, WaitForReactionFuture, WaitForReactionStream,
     };
-    use futures_util::stream::Stream;
+    use futures_core::Stream;
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, future::Future};
 

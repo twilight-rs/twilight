@@ -57,14 +57,13 @@ Create a [client], add a [node], and give events to the client to [process]
 events:
 
 ```rust,no_run
-use futures_util::stream::StreamExt;
 use std::{
     env,
     future::Future,
     net::SocketAddr,
     str::FromStr,
 };
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
 
@@ -87,18 +86,11 @@ async fn main() -> anyhow::Result<()> {
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
     let mut shard = Shard::new(ShardId::ONE, token, intents);
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+        let Ok(event) = item else {
+            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-                if source.is_fatal() {
-                    break;
-                }
-
-                continue;
-            }
+            continue;
         };
 
         lavalink.process(&event).await?;

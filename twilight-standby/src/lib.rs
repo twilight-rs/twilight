@@ -219,7 +219,6 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::future;
     /// use twilight_model::{
     ///     gateway::event::{Event, EventType},
     ///     id::Id,
@@ -268,7 +267,7 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::stream::StreamExt;
+    /// use tokio_stream::StreamExt;
     /// use twilight_model::{
     ///     gateway::event::{Event, EventType},
     ///     id::Id,
@@ -322,7 +321,6 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::future;
     /// use twilight_model::gateway::event::{Event, EventType};
     /// use twilight_standby::Standby;
     ///
@@ -380,7 +378,7 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::stream::StreamExt;
+    /// use tokio_stream::StreamExt;
     /// use twilight_model::gateway::event::{Event, EventType};
     /// use twilight_standby::Standby;
     ///
@@ -438,7 +436,6 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::future;
     /// use twilight_model::{gateway::payload::incoming::MessageCreate, id::Id};
     /// use twilight_standby::Standby;
     ///
@@ -487,7 +484,7 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::stream::StreamExt;
+    /// use tokio_stream::StreamExt;
     /// use twilight_model::{gateway::payload::incoming::MessageCreate, id::Id};
     /// use twilight_standby::Standby;
     ///
@@ -536,7 +533,6 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::future;
     /// use twilight_model::{gateway::payload::incoming::ReactionAdd, id::Id};
     /// use twilight_standby::Standby;
     ///
@@ -584,7 +580,7 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::stream::StreamExt;
+    /// use tokio_stream::StreamExt;
     /// use twilight_model::{
     ///     channel::message::ReactionType,
     ///     gateway::payload::incoming::ReactionAdd,
@@ -637,7 +633,6 @@ impl Standby {
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::future;
     /// use twilight_model::{application::interaction::Interaction, id::Id};
     /// use twilight_standby::Standby;
     ///
@@ -679,7 +674,7 @@ impl Standby {
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::stream::StreamExt;
+    /// use tokio_stream::StreamExt;
     /// use twilight_model::{
     ///     application::interaction::{Interaction, InteractionData},
     ///     id::Id,
@@ -1061,9 +1056,9 @@ mod tests {
     #![allow(clippy::non_ascii_literal)]
 
     use crate::Standby;
-    use futures_util::StreamExt;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
+    use tokio_stream::StreamExt;
     use twilight_gateway::{Event, EventType};
     use twilight_model::{
         application::interaction::{
