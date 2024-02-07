@@ -1,13 +1,4 @@
-use crate::{
-    config::ResourceType,
-    traits::{
-        CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
-        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
-        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
-        CacheableVoiceState,
-    },
-    InMemoryCache, UpdateCache,
-};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
 use twilight_model::{
     gateway::payload::incoming::{RoleCreate, RoleDelete, RoleUpdate},
     guild::Role,
@@ -17,37 +8,7 @@ use twilight_model::{
     },
 };
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >
-{
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     pub(crate) fn cache_roles(
         &self,
         guild_id: Id<GuildMarker>,
@@ -66,7 +27,12 @@ impl<
             .insert(role.id);
 
         // Insert the role into the all roles map
-        crate::upsert_guild_item(&self.roles, guild_id, role.id, CachedRole::from(role));
+        crate::upsert_guild_item(
+            &self.roles,
+            guild_id,
+            role.id,
+            CacheModels::Role::from(role),
+        );
     }
 
     fn delete_role(&self, role_id: Id<RoleMarker>) {
@@ -78,55 +44,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for RoleCreate
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for RoleCreate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::ROLE) {
             return;
         }
@@ -135,55 +54,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for RoleDelete
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for RoleDelete {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::ROLE) {
             return;
         }
@@ -192,55 +64,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for RoleUpdate
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for RoleUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::ROLE) {
             return;
         }

@@ -33,8 +33,8 @@ pub use self::{
     stats::InMemoryCacheStats,
     traits::{
         CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
-        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
-        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
+        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheableModels,
+        CacheablePresence, CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
         CacheableVoiceState,
     },
 };
@@ -189,28 +189,14 @@ fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
 // When adding a field here, be sure to add it to `InMemoryCache::clear` if
 // necessary.
 #[derive(Debug)]
-pub struct InMemoryCache<
-    CachedChannel: CacheableChannel = Channel,
-    CachedCurrentUser: CacheableCurrentUser = CurrentUser,
-    CachedEmoji: CacheableEmoji = model::CachedEmoji,
-    CachedGuild: CacheableGuild = model::CachedGuild,
-    CachedGuildIntegration: CacheableGuildIntegration = GuildIntegration,
-    CachedMember: CacheableMember = model::CachedMember,
-    CachedMessage: CacheableMessage = model::CachedMessage,
-    CachedPresence: CacheablePresence = model::CachedPresence,
-    CachedRole: CacheableRole = Role,
-    CachedStageInstance: CacheableStageInstance = StageInstance,
-    CachedSticker: CacheableSticker = model::CachedSticker,
-    CachedUser: CacheableUser = User,
-    CachedVoiceState: CacheableVoiceState = model::CachedVoiceState,
-> {
+pub struct InMemoryCache<CacheModels: CacheableModels> {
     config: Config,
-    channels: DashMap<Id<ChannelMarker>, CachedChannel>,
+    channels: DashMap<Id<ChannelMarker>, CacheModels::Channel>,
     channel_messages: DashMap<Id<ChannelMarker>, VecDeque<Id<MessageMarker>>>,
     // So long as the lock isn't held across await or panic points this is fine.
-    current_user: Mutex<Option<CachedCurrentUser>>,
-    emojis: DashMap<Id<EmojiMarker>, GuildResource<CachedEmoji>>,
-    guilds: DashMap<Id<GuildMarker>, CachedGuild>,
+    current_user: Mutex<Option<CacheModels::CurrentUser>>,
+    emojis: DashMap<Id<EmojiMarker>, GuildResource<CacheModels::Emoji>>,
+    guilds: DashMap<Id<GuildMarker>, CacheModels::Guild>,
     guild_channels: DashMap<Id<GuildMarker>, HashSet<Id<ChannelMarker>>>,
     guild_emojis: DashMap<Id<GuildMarker>, HashSet<Id<EmojiMarker>>>,
     guild_integrations: DashMap<Id<GuildMarker>, HashSet<Id<IntegrationMarker>>>,
@@ -219,16 +205,18 @@ pub struct InMemoryCache<
     guild_roles: DashMap<Id<GuildMarker>, HashSet<Id<RoleMarker>>>,
     guild_stage_instances: DashMap<Id<GuildMarker>, HashSet<Id<StageMarker>>>,
     guild_stickers: DashMap<Id<GuildMarker>, HashSet<Id<StickerMarker>>>,
-    integrations:
-        DashMap<(Id<GuildMarker>, Id<IntegrationMarker>), GuildResource<CachedGuildIntegration>>,
-    members: DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedMember>,
-    messages: DashMap<Id<MessageMarker>, CachedMessage>,
-    presences: DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedPresence>,
-    roles: DashMap<Id<RoleMarker>, GuildResource<CachedRole>>,
-    stage_instances: DashMap<Id<StageMarker>, GuildResource<CachedStageInstance>>,
-    stickers: DashMap<Id<StickerMarker>, GuildResource<CachedSticker>>,
+    integrations: DashMap<
+        (Id<GuildMarker>, Id<IntegrationMarker>),
+        GuildResource<CacheModels::GuildIntegration>,
+    >,
+    members: DashMap<(Id<GuildMarker>, Id<UserMarker>), CacheModels::Member>,
+    messages: DashMap<Id<MessageMarker>, CacheModels::Message>,
+    presences: DashMap<(Id<GuildMarker>, Id<UserMarker>), CacheModels::Presence>,
+    roles: DashMap<Id<RoleMarker>, GuildResource<CacheModels::Role>>,
+    stage_instances: DashMap<Id<StageMarker>, GuildResource<CacheModels::StageInstance>>,
+    stickers: DashMap<Id<StickerMarker>, GuildResource<CacheModels::Sticker>>,
     unavailable_guilds: DashSet<Id<GuildMarker>>,
-    users: DashMap<Id<UserMarker>, CachedUser>,
+    users: DashMap<Id<UserMarker>, CacheModels::User>,
     user_guilds: DashMap<Id<UserMarker>, HashSet<Id<GuildMarker>>>,
     /// Mapping of channels and the users currently connected.
     #[allow(clippy::type_complexity)]
@@ -236,59 +224,35 @@ pub struct InMemoryCache<
     /// Mapping of guilds and users currently connected to its voice channels.
     voice_state_guilds: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
     /// Mapping of guild ID and user ID pairs to their voice states.
-    voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>,
+    voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), CacheModels::VoiceState>,
+}
+
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub struct DefaultCacheModels;
+
+impl CacheableModels for DefaultCacheModels {
+    type Channel = Channel;
+    type CurrentUser = CurrentUser;
+    type Emoji = model::CachedEmoji;
+    type Guild = model::CachedGuild;
+    type GuildIntegration = GuildIntegration;
+    type Member = model::CachedMember;
+    type Message = model::CachedMessage;
+    type Presence = model::CachedPresence;
+    type Role = Role;
+    type StageInstance = StageInstance;
+    type Sticker = model::CachedSticker;
+    type User = User;
+    type VoiceState = model::CachedVoiceState;
 }
 
 /// The default implementation of [`InMemoryCache`].
 /// This is a type alias to the trait type defaults to allow the compiler
 /// to properly infer the generics.
-pub type DefaultInMemoryCache = InMemoryCache<
-    Channel,
-    CurrentUser,
-    model::CachedEmoji,
-    model::CachedGuild,
-    GuildIntegration,
-    model::CachedMember,
-    model::CachedMessage,
-    model::CachedPresence,
-    Role,
-    StageInstance,
-    model::CachedSticker,
-    User,
-    model::CachedVoiceState,
->;
+pub type DefaultInMemoryCache = InMemoryCache<DefaultCacheModels>;
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >
-{
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     /// Creates a new, empty cache.
     ///
     /// # Examples
@@ -309,21 +273,7 @@ impl<
 
     /// Create a new builder to configure and construct an in-memory cache.
     #[allow(clippy::type_complexity)]
-    pub const fn builder() -> InMemoryCacheBuilder<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > {
+    pub const fn builder() -> InMemoryCacheBuilder<CacheModels> {
         InMemoryCacheBuilder::new()
     }
 
@@ -387,24 +337,7 @@ impl<
     /// }
     /// ```
     #[allow(clippy::iter_not_returning_iterator, clippy::type_complexity)]
-    pub const fn iter(
-        &self,
-    ) -> InMemoryCacheIter<
-        '_,
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > {
+    pub const fn iter(&self) -> InMemoryCacheIter<'_, CacheModels> {
         InMemoryCacheIter::new(self)
     }
 
@@ -424,24 +357,7 @@ impl<
     /// println!("guild count: {guilds}");
     /// ```
     #[allow(clippy::type_complexity)]
-    pub const fn stats(
-        &self,
-    ) -> InMemoryCacheStats<
-        '_,
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > {
+    pub const fn stats(&self) -> InMemoryCacheStats<'_, CacheModels> {
         InMemoryCacheStats::new(self)
     }
 
@@ -476,52 +392,18 @@ impl<
     /// ```
     #[cfg(feature = "permission-calculator")]
     #[allow(clippy::type_complexity)]
-    pub const fn permissions(
-        &self,
-    ) -> InMemoryCachePermissions<
-        '_,
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > {
+    pub const fn permissions(&self) -> InMemoryCachePermissions<'_, CacheModels> {
         InMemoryCachePermissions::new(self)
     }
 
     /// Update the cache with an event from the gateway.
-    pub fn update(
-        &self,
-        value: &impl UpdateCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+    pub fn update(&self, value: &impl UpdateCache<CacheModels>) {
         value.update(self);
     }
 
     /// Gets the current user.
     #[allow(clippy::missing_panics_doc)]
-    pub fn current_user(&self) -> Option<CachedCurrentUser> {
+    pub fn current_user(&self) -> Option<CacheModels::CurrentUser> {
         self.current_user
             .lock()
             .expect("current user poisoned")
@@ -532,7 +414,7 @@ impl<
     pub fn channel(
         &self,
         channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, CachedChannel>> {
+    ) -> Option<Reference<'_, Id<ChannelMarker>, CacheModels::Channel>> {
         self.channels.get(&channel_id).map(Reference::new)
     }
 
@@ -557,7 +439,7 @@ impl<
     pub fn emoji(
         &self,
         emoji_id: Id<EmojiMarker>,
-    ) -> Option<Reference<'_, Id<EmojiMarker>, GuildResource<CachedEmoji>>> {
+    ) -> Option<Reference<'_, Id<EmojiMarker>, GuildResource<CacheModels::Emoji>>> {
         self.emojis.get(&emoji_id).map(Reference::new)
     }
 
@@ -569,7 +451,7 @@ impl<
     pub fn guild(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, CachedGuild>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, CacheModels::Guild>> {
         self.guilds.get(&guild_id).map(Reference::new)
     }
 
@@ -710,7 +592,7 @@ impl<
         Reference<
             '_,
             (Id<GuildMarker>, Id<IntegrationMarker>),
-            GuildResource<CachedGuildIntegration>,
+            GuildResource<CacheModels::GuildIntegration>,
         >,
     > {
         self.integrations
@@ -728,7 +610,7 @@ impl<
         &self,
         guild_id: Id<GuildMarker>,
         user_id: Id<UserMarker>,
-    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CachedMember>> {
+    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CacheModels::Member>> {
         self.members.get(&(guild_id, user_id)).map(Reference::new)
     }
 
@@ -742,7 +624,7 @@ impl<
     pub fn message(
         &self,
         message_id: Id<MessageMarker>,
-    ) -> Option<Reference<'_, Id<MessageMarker>, CachedMessage>> {
+    ) -> Option<Reference<'_, Id<MessageMarker>, CacheModels::Message>> {
         self.messages.get(&message_id).map(Reference::new)
     }
 
@@ -756,7 +638,7 @@ impl<
         &self,
         guild_id: Id<GuildMarker>,
         user_id: Id<UserMarker>,
-    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CachedPresence>> {
+    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CacheModels::Presence>> {
         self.presences.get(&(guild_id, user_id)).map(Reference::new)
     }
 
@@ -768,7 +650,7 @@ impl<
     pub fn role(
         &self,
         role_id: Id<RoleMarker>,
-    ) -> Option<Reference<'_, Id<RoleMarker>, GuildResource<CachedRole>>> {
+    ) -> Option<Reference<'_, Id<RoleMarker>, GuildResource<CacheModels::Role>>> {
         self.roles.get(&role_id).map(Reference::new)
     }
 
@@ -780,7 +662,7 @@ impl<
     pub fn stage_instance(
         &self,
         stage_id: Id<StageMarker>,
-    ) -> Option<Reference<'_, Id<StageMarker>, GuildResource<CachedStageInstance>>> {
+    ) -> Option<Reference<'_, Id<StageMarker>, GuildResource<CacheModels::StageInstance>>> {
         self.stage_instances.get(&stage_id).map(Reference::new)
     }
 
@@ -795,7 +677,7 @@ impl<
     pub fn sticker(
         &self,
         sticker_id: Id<StickerMarker>,
-    ) -> Option<Reference<'_, Id<StickerMarker>, GuildResource<CachedSticker>>> {
+    ) -> Option<Reference<'_, Id<StickerMarker>, GuildResource<CacheModels::Sticker>>> {
         self.stickers.get(&sticker_id).map(Reference::new)
     }
 
@@ -807,7 +689,7 @@ impl<
     pub fn user(
         &self,
         user_id: Id<UserMarker>,
-    ) -> Option<Reference<'_, Id<UserMarker>, CachedUser>> {
+    ) -> Option<Reference<'_, Id<UserMarker>, CacheModels::User>> {
         self.users.get(&user_id).map(Reference::new)
     }
 
@@ -838,7 +720,7 @@ impl<
     pub fn voice_channel_states(
         &self,
         channel_id: Id<ChannelMarker>,
-    ) -> Option<VoiceChannelStates<'_, CachedVoiceState>> {
+    ) -> Option<VoiceChannelStates<'_, CacheModels::VoiceState>> {
         let user_ids = self.voice_state_channels.get(&channel_id)?;
 
         Some(VoiceChannelStates {
@@ -859,7 +741,7 @@ impl<
         &self,
         user_id: Id<UserMarker>,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>> {
+    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CacheModels::VoiceState>> {
         self.voice_states
             .get(&(guild_id, user_id))
             .map(Reference::new)
@@ -912,37 +794,7 @@ impl<
 
 // This needs to be implemented manually because the compiler apparently
 // can't derive Default for a struct with generics.
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    > Default
-    for InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >
-{
+impl<CacheModels: CacheableModels> Default for InMemoryCache<CacheModels> {
     fn default() -> Self {
         Self {
             config: Config::default(),
@@ -1039,44 +891,11 @@ mod private {
 /// Implemented for dispatch events.
 ///
 /// This trait is sealed and cannot be implemented.
-pub trait UpdateCache<
-    CachedChannel: CacheableChannel,
-    CachedCurrentUser: CacheableCurrentUser,
-    CachedEmoji: CacheableEmoji,
-    CachedGuild: CacheableGuild,
-    CachedGuildIntegration: CacheableGuildIntegration,
-    CachedMember: CacheableMember,
-    CachedMessage: CacheableMessage,
-    CachedPresence: CacheablePresence,
-    CachedRole: CacheableRole,
-    CachedStageInstance: CacheableStageInstance,
-    CachedSticker: CacheableSticker,
-    CachedUser: CacheableUser,
-    CachedVoiceState: CacheableVoiceState,
->: private::Sealed
-{
+pub trait UpdateCache<CacheModels: CacheableModels>: private::Sealed {
     /// Updates the cache based on data contained within an event.
     // Allow this for presentation purposes in documentation.
     #[allow(unused_variables, clippy::type_complexity)]
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
-    }
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {}
 }
 
 /// Iterator over a voice channel's list of voice states.
@@ -1103,57 +922,10 @@ impl<'a, CachedVoiceState> Iterator for VoiceChannelStates<'a, CachedVoiceState>
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for Event
-{
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
     // clippy: using `.deref()` is cleaner
     #[allow(clippy::explicit_deref_methods)]
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         match self {
             Event::ChannelCreate(v) => cache.update(v.deref()),
             Event::ChannelDelete(v) => cache.update(v.deref()),

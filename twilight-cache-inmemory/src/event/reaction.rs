@@ -1,12 +1,7 @@
 use crate::{
     config::ResourceType,
-    traits::{
-        CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
-        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
-        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
-        CacheableVoiceState,
-    },
-    InMemoryCache, UpdateCache,
+    traits::{CacheableCurrentUser, CacheableMessage},
+    CacheableModels, InMemoryCache, UpdateCache,
 };
 use twilight_model::{
     channel::message::{Reaction, ReactionCountDetails, ReactionType},
@@ -15,55 +10,8 @@ use twilight_model::{
     },
 };
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for ReactionAdd
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ReactionAdd {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::REACTION) {
             return;
         }
@@ -109,55 +57,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for ReactionRemove
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ReactionRemove {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::REACTION) {
             return;
         }
@@ -188,55 +89,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for ReactionRemoveAll
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ReactionRemoveAll {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::REACTION) {
             return;
         }
@@ -249,55 +103,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for ReactionRemoveEmoji
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ReactionRemoveEmoji {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::REACTION) {
             return;
         }

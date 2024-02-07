@@ -15,58 +15,19 @@ pub mod voice_state;
 
 use std::{borrow::Cow, collections::HashSet};
 
-use crate::{
-    config::ResourceType,
-    traits::{
-        CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
-        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
-        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
-        CacheableVoiceState,
-    },
-    InMemoryCache, UpdateCache,
-};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
 use twilight_model::{
     gateway::payload::incoming::{Ready, UnavailableGuild, UserUpdate},
     id::{marker::GuildMarker, Id},
     user::{CurrentUser, User},
 };
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >
-{
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     fn cache_current_user(&self, current_user: CurrentUser) {
         self.current_user
             .lock()
             .expect("current user poisoned")
-            .replace(CachedCurrentUser::from(current_user));
+            .replace(CacheModels::CurrentUser::from(current_user));
     }
 
     pub(crate) fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<Id<GuildMarker>>) {
@@ -86,7 +47,7 @@ impl<
         let user = user.into_owned();
         let user_id = user.id;
 
-        self.users.insert(user_id, CachedUser::from(user));
+        self.users.insert(user_id, CacheModels::User::from(user));
 
         if let Some(guild_id) = guild_id {
             let mut guild_id_set = HashSet::new();
@@ -101,55 +62,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for Ready
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Ready {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if cache.wants(ResourceType::USER_CURRENT) {
             cache.cache_current_user(self.user.clone());
         }
@@ -162,110 +76,16 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for UnavailableGuild
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for UnavailableGuild {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if cache.wants(ResourceType::GUILD) {
             cache.unavailable_guild(self.id);
         }
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for UserUpdate
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for UserUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::USER_CURRENT) {
             return;
         }

@@ -1,66 +1,10 @@
-use crate::{
-    config::ResourceType,
-    traits::{
-        CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
-        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
-        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
-        CacheableVoiceState,
-    },
-    InMemoryCache, UpdateCache,
-};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
 use twilight_model::gateway::payload::incoming::{
     ThreadCreate, ThreadDelete, ThreadListSync, ThreadUpdate,
 };
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for ThreadCreate
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ThreadCreate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
@@ -69,55 +13,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for ThreadDelete
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ThreadDelete {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
@@ -126,55 +23,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for ThreadListSync
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ThreadListSync {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
@@ -183,55 +33,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for ThreadUpdate
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ThreadUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }

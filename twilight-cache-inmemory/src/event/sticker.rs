@@ -1,14 +1,8 @@
 use std::{borrow::Cow, collections::HashSet};
 
 use crate::{
-    config::ResourceType,
-    traits::{
-        CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
-        CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence,
-        CacheableRole, CacheableStageInstance, CacheableSticker, CacheableUser,
-        CacheableVoiceState,
-    },
-    GuildResource, InMemoryCache, UpdateCache,
+    config::ResourceType, CacheableModels, CacheableSticker, GuildResource, InMemoryCache,
+    UpdateCache,
 };
 use twilight_model::{
     channel::message::Sticker,
@@ -16,37 +10,7 @@ use twilight_model::{
     id::{marker::GuildMarker, Id},
 };
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >
-{
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     pub(crate) fn cache_stickers(&self, guild_id: Id<GuildMarker>, stickers: Vec<Sticker>) {
         if let Some(mut guild_stickers) = self.guild_stickers.get_mut(&guild_id) {
             let incoming_sticker_ids = stickers
@@ -88,7 +52,7 @@ impl<
         }
 
         let sticker_id = sticker.id;
-        let cached = CachedSticker::from(sticker);
+        let cached = CacheModels::Sticker::from(sticker);
 
         self.stickers.insert(
             cached.id(),
@@ -105,55 +69,8 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    UpdateCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > for GuildStickersUpdate
-{
-    fn update(
-        &self,
-        cache: &InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildStickersUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::STICKER) {
             return;
         }
@@ -164,7 +81,7 @@ impl<
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, InMemoryCache};
+    use crate::{test, InMemoryCache, DefaultCacheModels};
     use twilight_model::id::{
         marker::{GuildMarker, StickerMarker},
         Id,
@@ -174,7 +91,7 @@ mod tests {
     const STICKER_ONE_ID: Id<StickerMarker> = Id::new(2);
     const STICKER_TWO_ID: Id<StickerMarker> = Id::new(3);
 
-    fn cache_with_stickers() -> InMemoryCache {
+    fn cache_with_stickers() -> InMemoryCache<DefaultCacheModels> {
         let cache = test::cache();
         let one = test::sticker(STICKER_ONE_ID, GUILD_ID);
         let two = test::sticker(STICKER_TWO_ID, GUILD_ID);

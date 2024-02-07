@@ -46,6 +46,23 @@ use twilight_model::{
 #[cfg(feature = "permission-calculator")]
 use twilight_model::{channel::permission_overwrite::PermissionOverwrite, guild::Permissions};
 
+#[allow(missing_docs)]
+pub trait CacheableModels: Debug {
+    type Member: CacheableMember;
+    type Role: CacheableRole;
+    type Channel: CacheableChannel;
+    type Guild: CacheableGuild;
+    type VoiceState: CacheableVoiceState;
+    type Message: CacheableMessage;
+    type CurrentUser: CacheableCurrentUser;
+    type Sticker: CacheableSticker;
+    type Emoji: CacheableEmoji;
+    type GuildIntegration: CacheableGuildIntegration;
+    type Presence: CacheablePresence;
+    type StageInstance: CacheableStageInstance;
+    type User: CacheableUser;
+}
+
 /// Trait for a generic cached representation of a [`Member`].
 pub trait CacheableMember:
     From<Member>

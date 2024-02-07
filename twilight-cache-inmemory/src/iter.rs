@@ -12,28 +12,15 @@
 //! underlying key and value. It also implements [`std::ops::Deref`] and
 //! dereferences to the value.
 
-use crate::{
-    model,
-    traits::{
-        CacheableChannel, CacheableGuild, CacheableMember, CacheableMessage, CacheableRole,
-        CacheableVoiceState,
-    },
-    CacheableCurrentUser, CacheableEmoji, CacheableGuildIntegration, CacheablePresence,
-    CacheableStageInstance, CacheableSticker, CacheableUser, GuildResource, InMemoryCache,
-};
+use crate::{CacheableModels, GuildResource, InMemoryCache};
 use dashmap::{iter::Iter, mapref::multiple::RefMulti};
 use std::{hash::Hash, ops::Deref};
-use twilight_model::{
-    channel::{Channel, StageInstance},
-    guild::{GuildIntegration, Role},
-    id::{
-        marker::{
-            ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            StageMarker, StickerMarker, UserMarker,
-        },
-        Id,
+use twilight_model::id::{
+    marker::{
+        ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
+        StageMarker, StickerMarker, UserMarker,
     },
-    user::{CurrentUser, User},
+    Id,
 };
 
 /// Reference to a resource value being iterated over in the cache.
@@ -134,128 +121,33 @@ impl<K: Eq + Hash, V> Deref for IterReference<'_, K, V> {
 /// ```
 #[allow(clippy::type_complexity)]
 #[derive(Debug)]
-pub struct InMemoryCacheIter<
-    'a,
-    CachedChannel: CacheableChannel = Channel,
-    CachedCurrentUser: CacheableCurrentUser = CurrentUser,
-    CachedEmoji: CacheableEmoji = model::CachedEmoji,
-    CachedGuild: CacheableGuild = model::CachedGuild,
-    CachedGuildIntegration: CacheableGuildIntegration = GuildIntegration,
-    CachedMember: CacheableMember = model::CachedMember,
-    CachedMessage: CacheableMessage = model::CachedMessage,
-    CachedPresence: CacheablePresence = model::CachedPresence,
-    CachedRole: CacheableRole = Role,
-    CachedStageInstance: CacheableStageInstance = StageInstance,
-    CachedSticker: CacheableSticker = model::CachedSticker,
-    CachedUser: CacheableUser = User,
-    CachedVoiceState: CacheableVoiceState = model::CachedVoiceState,
->(
-    &'a InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >,
-);
+pub struct InMemoryCacheIter<'a, CacheModels: CacheableModels>(&'a InMemoryCache<CacheModels>);
 
-impl<
-        'a,
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    InMemoryCacheIter<
-        'a,
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >
-{
+impl<'a, CacheModels: CacheableModels> InMemoryCacheIter<'a, CacheModels> {
     /// Create a new interface to create iterators over various resource types.
     #[allow(clippy::type_complexity)]
-    pub(super) const fn new(
-        cache: &'a InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) -> Self {
+    pub(super) const fn new(cache: &'a InMemoryCache<CacheModels>) -> Self {
         Self(cache)
     }
 
     /// Immutable reference to the underlying cache.
     #[allow(clippy::type_complexity)]
-    pub const fn cache_ref(
-        &'a self,
-    ) -> &'a InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > {
+    pub const fn cache_ref(&'a self) -> &'a InMemoryCache<CacheModels> {
         self.0
     }
 
     /// Create an iterator over the channels in the cache.
-    pub fn channels(&self) -> ResourceIter<'a, Id<ChannelMarker>, CachedChannel> {
+    pub fn channels(&self) -> ResourceIter<'a, Id<ChannelMarker>, CacheModels::Channel> {
         ResourceIter::new(self.0.channels.iter())
     }
 
     /// Create an iterator over the emojis in the cache.
-    pub fn emojis(&self) -> ResourceIter<'a, Id<EmojiMarker>, GuildResource<CachedEmoji>> {
+    pub fn emojis(&self) -> ResourceIter<'a, Id<EmojiMarker>, GuildResource<CacheModels::Emoji>> {
         ResourceIter::new(self.0.emojis.iter())
     }
 
     /// Create an iterator over the guilds in the cache.
-    pub fn guilds(&self) -> ResourceIter<'a, Id<GuildMarker>, CachedGuild> {
+    pub fn guilds(&self) -> ResourceIter<'a, Id<GuildMarker>, CacheModels::Guild> {
         ResourceIter::new(self.0.guilds.iter())
     }
 
@@ -265,52 +157,58 @@ impl<
     ) -> ResourceIter<
         'a,
         (Id<GuildMarker>, Id<IntegrationMarker>),
-        GuildResource<CachedGuildIntegration>,
+        GuildResource<CacheModels::GuildIntegration>,
     > {
         ResourceIter::new(self.0.integrations.iter())
     }
 
     /// Create an iterator over the members across all guilds in the cache.
-    pub fn members(&self) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CachedMember> {
+    pub fn members(
+        &self,
+    ) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CacheModels::Member> {
         ResourceIter::new(self.0.members.iter())
     }
 
     /// Create an iterator over the messages in the cache.
-    pub fn messages(&self) -> ResourceIter<'a, Id<MessageMarker>, CachedMessage> {
+    pub fn messages(&self) -> ResourceIter<'a, Id<MessageMarker>, CacheModels::Message> {
         ResourceIter::new(self.0.messages.iter())
     }
 
     /// Create an iterator over the presences in the cache.
-    pub fn presences(&self) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CachedPresence> {
+    pub fn presences(
+        &self,
+    ) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CacheModels::Presence> {
         ResourceIter::new(self.0.presences.iter())
     }
 
     /// Create an iterator over the roles in the cache.
-    pub fn roles(&self) -> ResourceIter<'a, Id<RoleMarker>, GuildResource<CachedRole>> {
+    pub fn roles(&self) -> ResourceIter<'a, Id<RoleMarker>, GuildResource<CacheModels::Role>> {
         ResourceIter::new(self.0.roles.iter())
     }
 
     /// Create an iterator over the stage instances in the cache.
     pub fn stage_instances(
         &self,
-    ) -> ResourceIter<'a, Id<StageMarker>, GuildResource<CachedStageInstance>> {
+    ) -> ResourceIter<'a, Id<StageMarker>, GuildResource<CacheModels::StageInstance>> {
         ResourceIter::new(self.0.stage_instances.iter())
     }
 
     /// Create an iterator over the stickers in the cache.
-    pub fn stickers(&self) -> ResourceIter<'a, Id<StickerMarker>, GuildResource<CachedSticker>> {
+    pub fn stickers(
+        &self,
+    ) -> ResourceIter<'a, Id<StickerMarker>, GuildResource<CacheModels::Sticker>> {
         ResourceIter::new(self.0.stickers.iter())
     }
 
     /// Create an iterator over the users in the cache.
-    pub fn users(&self) -> ResourceIter<'a, Id<UserMarker>, CachedUser> {
+    pub fn users(&self) -> ResourceIter<'a, Id<UserMarker>, CacheModels::User> {
         ResourceIter::new(self.0.users.iter())
     }
 
     /// Create an iterator over the voice states in the cache.
     pub fn voice_states(
         &self,
-    ) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState> {
+    ) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CacheModels::VoiceState> {
         ResourceIter::new(self.0.voice_states.iter())
     }
 }
@@ -359,7 +257,7 @@ impl<'a, K: Eq + Hash, V> Iterator for ResourceIter<'a, K, V> {
 #[cfg(test)]
 mod tests {
     use super::{InMemoryCacheIter, IterReference, ResourceIter};
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{test, DefaultCacheModels, DefaultInMemoryCache};
     use static_assertions::assert_impl_all;
     use std::{borrow::Cow, fmt::Debug};
     use twilight_model::{
@@ -367,7 +265,7 @@ mod tests {
         user::User,
     };
 
-    assert_impl_all!(InMemoryCacheIter<'_>: Debug, Send, Sync);
+    assert_impl_all!(InMemoryCacheIter<'_, DefaultCacheModels>: Debug, Send, Sync);
     assert_impl_all!(IterReference<'_, Id<UserMarker>, User>: Send, Sync);
     assert_impl_all!(ResourceIter<'_, Id<UserMarker>, User>: Iterator, Send, Sync);
 

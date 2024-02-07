@@ -1,17 +1,7 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use twilight_model::{
-    channel::{Channel, StageInstance},
-    guild::{GuildIntegration, Role},
-    user::{CurrentUser, User},
-};
-
-use crate::{
-    model, CacheableChannel, CacheableCurrentUser, CacheableEmoji, CacheableGuild,
-    CacheableGuildIntegration, CacheableMember, CacheableMessage, CacheablePresence, CacheableRole,
-    CacheableStageInstance, CacheableSticker, CacheableUser, CacheableVoiceState,
-};
+use crate::CacheableModels;
 
 use super::{
     config::{Config, ResourceType},
@@ -22,70 +12,9 @@ use super::{
 #[allow(clippy::type_complexity)]
 #[must_use = "has no effect if not built"]
 #[derive(Debug)]
-pub struct InMemoryCacheBuilder<
-    CachedChannel: CacheableChannel = Channel,
-    CachedCurrentUser: CacheableCurrentUser = CurrentUser,
-    CachedEmoji: CacheableEmoji = model::CachedEmoji,
-    CachedGuild: CacheableGuild = model::CachedGuild,
-    CachedGuildIntegration: CacheableGuildIntegration = GuildIntegration,
-    CachedMember: CacheableMember = model::CachedMember,
-    CachedMessage: CacheableMessage = model::CachedMessage,
-    CachedPresence: CacheablePresence = model::CachedPresence,
-    CachedRole: CacheableRole = Role,
-    CachedStageInstance: CacheableStageInstance = StageInstance,
-    CachedSticker: CacheableSticker = model::CachedSticker,
-    CachedUser: CacheableUser = User,
-    CachedVoiceState: CacheableVoiceState = model::CachedVoiceState,
->(
-    Config,
-    PhantomData<(
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    )>,
-);
+pub struct InMemoryCacheBuilder<CacheModels: CacheableModels>(Config, PhantomData<CacheModels>);
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    InMemoryCacheBuilder<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >
-{
+impl<CacheModels: CacheableModels> InMemoryCacheBuilder<CacheModels> {
     /// Creates a builder to configure and construct an [`InMemoryCache`].
     pub const fn new() -> Self {
         Self(Config::new(), PhantomData)
@@ -93,23 +22,7 @@ impl<
 
     /// Consume the builder, returning a configured cache.
     #[allow(clippy::type_complexity)]
-    pub fn build(
-        self,
-    ) -> InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > {
+    pub fn build(self) -> InMemoryCache<CacheModels> {
         InMemoryCache::new_with_config(self.0)
     }
 
@@ -132,37 +45,7 @@ impl<
     }
 }
 
-impl<
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    > Default
-    for InMemoryCacheBuilder<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >
-{
+impl<CacheModels: CacheableModels> Default for InMemoryCacheBuilder<CacheModels> {
     fn default() -> Self {
         Self(Config::default(), PhantomData)
     }

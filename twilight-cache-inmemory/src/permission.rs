@@ -37,13 +37,8 @@
 
 use super::InMemoryCache;
 use crate::{
-    model,
-    traits::{
-        CacheableChannel, CacheableGuild, CacheableMember, CacheableMessage, CacheableRole,
-        CacheableVoiceState,
-    },
-    CacheableCurrentUser, CacheableEmoji, CacheableGuildIntegration, CacheablePresence,
-    CacheableStageInstance, CacheableSticker, CacheableUser,
+    traits::{CacheableChannel, CacheableGuild, CacheableMember, CacheableRole},
+    CacheableModels,
 };
 use std::{
     error::Error,
@@ -51,13 +46,12 @@ use std::{
     time::{Duration, SystemTime},
 };
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, StageInstance},
-    guild::{GuildIntegration, Permissions, Role},
+    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
+    guild::Permissions,
     id::{
         marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
         Id,
     },
-    user::{CurrentUser, User},
 };
 use twilight_util::permission_calculator::PermissionCalculator;
 
@@ -307,91 +301,14 @@ struct MemberRoles {
 #[allow(clippy::type_complexity)]
 #[derive(Clone, Debug)]
 #[must_use = "has no effect if unused"]
-pub struct InMemoryCachePermissions<
-    'a,
-    CachedChannel: CacheableChannel = Channel,
-    CachedCurrentUser: CacheableCurrentUser = CurrentUser,
-    CachedEmoji: CacheableEmoji = model::CachedEmoji,
-    CachedGuild: CacheableGuild = model::CachedGuild,
-    CachedGuildIntegration: CacheableGuildIntegration = GuildIntegration,
-    CachedMember: CacheableMember = model::CachedMember,
-    CachedMessage: CacheableMessage = model::CachedMessage,
-    CachedPresence: CacheablePresence = model::CachedPresence,
-    CachedRole: CacheableRole = Role,
-    CachedStageInstance: CacheableStageInstance = StageInstance,
-    CachedSticker: CacheableSticker = model::CachedSticker,
-    CachedUser: CacheableUser = User,
-    CachedVoiceState: CacheableVoiceState = model::CachedVoiceState,
-> {
-    cache: &'a InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >,
+pub struct InMemoryCachePermissions<'a, CacheModels: CacheableModels> {
+    cache: &'a InMemoryCache<CacheModels>,
     check_member_communication_disabled: bool,
 }
 
-impl<
-        'a,
-        CachedChannel: CacheableChannel,
-        CachedCurrentUser: CacheableCurrentUser,
-        CachedEmoji: CacheableEmoji,
-        CachedGuild: CacheableGuild,
-        CachedGuildIntegration: CacheableGuildIntegration,
-        CachedMember: CacheableMember,
-        CachedMessage: CacheableMessage,
-        CachedPresence: CacheablePresence,
-        CachedRole: CacheableRole,
-        CachedStageInstance: CacheableStageInstance,
-        CachedSticker: CacheableSticker,
-        CachedUser: CacheableUser,
-        CachedVoiceState: CacheableVoiceState,
-    >
-    InMemoryCachePermissions<
-        'a,
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    >
-{
+impl<'a, CacheModels: CacheableModels> InMemoryCachePermissions<'a, CacheModels> {
     #[allow(clippy::type_complexity)]
-    pub(super) const fn new(
-        cache: &'a InMemoryCache<
-            CachedChannel,
-            CachedCurrentUser,
-            CachedEmoji,
-            CachedGuild,
-            CachedGuildIntegration,
-            CachedMember,
-            CachedMessage,
-            CachedPresence,
-            CachedRole,
-            CachedStageInstance,
-            CachedSticker,
-            CachedUser,
-            CachedVoiceState,
-        >,
-    ) -> Self {
+    pub(super) const fn new(cache: &'a InMemoryCache<CacheModels>) -> Self {
         Self {
             cache,
             check_member_communication_disabled: true,
@@ -400,46 +317,14 @@ impl<
 
     /// Immutable reference to the underlying cache.
     #[allow(clippy::type_complexity)]
-    pub const fn cache_ref(
-        &'a self,
-    ) -> &'a InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > {
+    pub const fn cache_ref(&'a self) -> &'a InMemoryCache<CacheModels> {
         self.cache
     }
 
     /// Consume the statistics interface, returning the underlying cache
     /// reference.
     #[allow(clippy::type_complexity)]
-    pub const fn into_cache(
-        self,
-    ) -> &'a InMemoryCache<
-        CachedChannel,
-        CachedCurrentUser,
-        CachedEmoji,
-        CachedGuild,
-        CachedGuildIntegration,
-        CachedMember,
-        CachedMessage,
-        CachedPresence,
-        CachedRole,
-        CachedStageInstance,
-        CachedSticker,
-        CachedUser,
-        CachedVoiceState,
-    > {
+    pub const fn into_cache(self) -> &'a InMemoryCache<CacheModels> {
         self.cache
     }
 
@@ -639,7 +524,7 @@ impl<
     /// [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
     fn disable_member_communication(
         &self,
-        member: &CachedMember,
+        member: &CacheModels::Member,
         permissions: Permissions,
     ) -> Permissions {
         // Administrators are never disabled.
@@ -691,7 +576,7 @@ impl<
     fn member_roles(
         &self,
         guild_id: Id<GuildMarker>,
-        member: &'a CachedMember,
+        member: &'a CacheModels::Member,
     ) -> Result<MemberRoles, MemberRolesErrorType> {
         let mut member_roles = Vec::with_capacity(member.roles().len());
 
@@ -721,7 +606,7 @@ impl<
     /// parent and child permissions.
     fn parent_overwrites(
         &self,
-        thread: &CachedChannel,
+        thread: &CacheModels::Channel,
     ) -> Result<Vec<PermissionOverwrite>, ChannelError> {
         let parent_id = thread.parent_id().ok_or(ChannelError {
             kind: ChannelErrorType::ParentChannelNotPresent {
@@ -764,7 +649,7 @@ mod tests {
     use super::{
         ChannelError, ChannelErrorType, InMemoryCachePermissions, RootError, RootErrorType,
     };
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{test, DefaultCacheModels, DefaultInMemoryCache};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
         error::Error,
@@ -796,7 +681,7 @@ mod tests {
     assert_fields!(ChannelErrorType::RoleUnavailable: role_id);
     assert_impl_all!(ChannelErrorType: Debug, Send, Sync);
     assert_impl_all!(ChannelError: Debug, Send, Sync);
-    assert_impl_all!(InMemoryCachePermissions<'_>: Clone, Debug, Send, Sync);
+    assert_impl_all!(InMemoryCachePermissions<'_, DefaultCacheModels>: Clone, Debug, Send, Sync);
     assert_fields!(RootErrorType::MemberUnavailable: guild_id, user_id);
     assert_fields!(RootErrorType::RoleUnavailable: role_id);
     assert_impl_all!(RootErrorType: Debug, Send, Sync);
