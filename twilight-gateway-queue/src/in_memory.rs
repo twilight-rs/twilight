@@ -122,9 +122,6 @@ async fn runner(
                     }
 
                     while let Some((id, tx)) = queue.pop_front() {
-                        let calculated_ratelimit_key = (id % u32::from(max_concurrency)) as usize;
-                        debug_assert_eq!(ratelimit_key, calculated_ratelimit_key);
-
                         if tx.send(()).is_err() {
                             continue;
                         }
