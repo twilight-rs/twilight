@@ -17,9 +17,10 @@ pub mod sticker;
 pub mod user;
 pub mod voice_state;
 
-struct CustomInMemoryCache;
+#[derive(Clone, Debug)]
+pub struct CustomCacheModels;
 
-impl CacheableModels for CustomInMemoryCache {
+impl CacheableModels for CustomCacheModels {
     type Channel = channel::MinimalCachedChannel;
     type CurrentUser = current_user::MinimalCachedCurrentUser;
     type Emoji = emoji::MinimalCachedEmoji;
@@ -36,4 +37,4 @@ impl CacheableModels for CustomInMemoryCache {
 }
 
 /// Type alias for a cache that uses our custom cache types.
-pub type CustomInMemoryCache = InMemoryCache<CustomInMemoryCache>;
+pub type CustomInMemoryCache = InMemoryCache<CustomCacheModels>;
