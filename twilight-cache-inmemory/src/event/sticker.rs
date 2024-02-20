@@ -81,7 +81,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildStickersUpd
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, InMemoryCache, DefaultCacheModels};
+    use crate::{test, DefaultCacheModels, InMemoryCache};
     use twilight_model::id::{
         marker::{GuildMarker, StickerMarker},
         Id,
