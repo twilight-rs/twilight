@@ -726,13 +726,7 @@ pub const fn guild_permissions(count: usize) -> Result<(), CommandValidationErro
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
-    use twilight_model::{
-        application::command::{
-            CommandOptionChoice, CommandOptionChoiceValue, CommandOptionType, CommandType,
-        },
-        id::Id,
-    };
+    use twilight_model::id::Id;
 
     #[test]
     fn choice_name_limit() {

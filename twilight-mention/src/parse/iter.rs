@@ -1,5 +1,5 @@
 use super::ParseMention;
-use std::{iter::Iterator, marker::PhantomData, str::CharIndices};
+use std::{marker::PhantomData, str::CharIndices};
 
 /// Iterator of mentions within a buffer.
 ///
