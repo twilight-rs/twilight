@@ -5,7 +5,7 @@ use crate::{
     util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
-use std::cmp::{Ord, Ordering, PartialOrd};
+use std::cmp::Ordering;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
