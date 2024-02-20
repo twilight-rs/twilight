@@ -46,20 +46,33 @@ use twilight_model::{
 #[cfg(feature = "permission-calculator")]
 use twilight_model::{channel::permission_overwrite::PermissionOverwrite, guild::Permissions};
 
-#[allow(missing_docs)]
-pub trait CacheableModels: Debug {
+/// Super-trait for the generic cached representations of Discord API models.
+pub trait CacheableModels: Clone + Debug {
+    /// The cached [`Member`] model representation.
     type Member: CacheableMember;
+    /// The cached [`Role`] model representation.
     type Role: CacheableRole;
+    /// The cached [`Channel`] model representation.
     type Channel: CacheableChannel;
+    /// The cached [`Guild`] model representation.
     type Guild: CacheableGuild;
+    /// The cached [`VoiceState`] model representation.
     type VoiceState: CacheableVoiceState;
+    /// The cached [`Message`] model representation.
     type Message: CacheableMessage;
+    /// The cached [`CurrentUser`] model representation.
     type CurrentUser: CacheableCurrentUser;
+    /// The cached [`Sticker`] model representation.
     type Sticker: CacheableSticker;
+    /// The cached [`Emoji`] model representation.
     type Emoji: CacheableEmoji;
+    /// The cached [`GuildIntegration`] model representation.
     type GuildIntegration: CacheableGuildIntegration;
+    /// The cached [`Presence`] model representation.
     type Presence: CacheablePresence;
+    /// The cached [`StageInstance`] model representation.
     type StageInstance: CacheableStageInstance;
+    /// The cached [`User`] model representation.
     type User: CacheableUser;
 }
 

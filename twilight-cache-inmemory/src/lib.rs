@@ -189,7 +189,7 @@ fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
 // When adding a field here, be sure to add it to `InMemoryCache::clear` if
 // necessary.
 #[derive(Debug)]
-pub struct InMemoryCache<CacheModels: CacheableModels> {
+pub struct InMemoryCache<CacheModels: CacheableModels = DefaultCacheModels> {
     config: Config,
     channels: DashMap<Id<ChannelMarker>, CacheModels::Channel>,
     channel_messages: DashMap<Id<ChannelMarker>, VecDeque<Id<MessageMarker>>>,
@@ -228,7 +228,7 @@ pub struct InMemoryCache<CacheModels: CacheableModels> {
 }
 
 #[allow(missing_docs)]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DefaultCacheModels;
 
 impl CacheableModels for DefaultCacheModels {

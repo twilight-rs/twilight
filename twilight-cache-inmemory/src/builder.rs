@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use crate::CacheableModels;
+use crate::{CacheableModels, DefaultCacheModels};
 
 use super::{
     config::{Config, ResourceType},
@@ -12,7 +12,10 @@ use super::{
 #[allow(clippy::type_complexity)]
 #[must_use = "has no effect if not built"]
 #[derive(Debug)]
-pub struct InMemoryCacheBuilder<CacheModels: CacheableModels>(Config, PhantomData<CacheModels>);
+pub struct InMemoryCacheBuilder<CacheModels: CacheableModels = DefaultCacheModels>(
+    Config,
+    PhantomData<CacheModels>,
+);
 
 impl<CacheModels: CacheableModels> InMemoryCacheBuilder<CacheModels> {
     /// Creates a builder to configure and construct an [`InMemoryCache`].

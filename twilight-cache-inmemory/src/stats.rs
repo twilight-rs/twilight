@@ -3,7 +3,7 @@ use twilight_model::id::{
     Id,
 };
 
-use crate::CacheableModels;
+use crate::{CacheableModels, DefaultCacheModels};
 
 use super::InMemoryCache;
 
@@ -31,7 +31,9 @@ use super::InMemoryCache;
 /// [`users`]: Self::users
 #[allow(clippy::type_complexity)]
 #[derive(Clone, Debug)]
-pub struct InMemoryCacheStats<'a, CacheModels: CacheableModels>(&'a InMemoryCache<CacheModels>);
+pub struct InMemoryCacheStats<'a, CacheModels: CacheableModels = DefaultCacheModels>(
+    &'a InMemoryCache<CacheModels>,
+);
 
 impl<'a, CacheModels: CacheableModels> InMemoryCacheStats<'a, CacheModels> {
     #[allow(clippy::type_complexity)]
