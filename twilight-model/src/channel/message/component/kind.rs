@@ -88,7 +88,6 @@ impl Display for ComponentType {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, hash::Hash};

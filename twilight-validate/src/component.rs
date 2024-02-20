@@ -1051,7 +1051,6 @@ fn component_text_input_value(value: impl AsRef<str>) -> Result<(), ComponentVal
 mod tests {
     use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::fmt::Debug;
     use twilight_model::channel::message::ReactionType;
 
     assert_fields!(ComponentValidationErrorType::ActionRowComponentCount: count);
