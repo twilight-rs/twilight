@@ -152,6 +152,7 @@ impl<'a, CacheModels: CacheableModels> InMemoryCacheIter<'a, CacheModels> {
     }
 
     /// Create an iterator over the integrations in the cache.
+    #[allow(clippy::type_complexity)]
     pub fn integrations(
         &self,
     ) -> ResourceIter<

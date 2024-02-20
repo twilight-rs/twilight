@@ -188,6 +188,7 @@ fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
 /// [`Intents`]: ::twilight_model::gateway::Intents
 // When adding a field here, be sure to add it to `InMemoryCache::clear` if
 // necessary.
+#[allow(clippy::type_complexity)]
 #[derive(Debug)]
 pub struct InMemoryCache<CacheModels: CacheableModels = DefaultCacheModels> {
     config: Config,
