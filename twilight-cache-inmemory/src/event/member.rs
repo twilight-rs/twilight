@@ -1,9 +1,11 @@
+use std::borrow::Cow;
+
 use crate::{
     config::ResourceType,
-    model::{member::ComputedInteractionMemberFields, CachedMember},
-    InMemoryCache, UpdateCache,
+    model::member::ComputedInteractionMember,
+    traits::{CacheableGuild, CacheableMember},
+    CacheableModels, InMemoryCache, UpdateCache,
 };
-use std::borrow::Cow;
 use twilight_model::{
     application::interaction::InteractionMember,
     gateway::payload::incoming::{MemberAdd, MemberChunk, MemberRemove, MemberUpdate},
@@ -14,7 +16,7 @@ use twilight_model::{
     },
 };
 
-impl InMemoryCache {
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     pub(crate) fn cache_members(
         &self,
         guild_id: Id<GuildMarker>,
@@ -36,7 +38,7 @@ impl InMemoryCache {
         }
 
         self.cache_user(Cow::Borrowed(&member.user), Some(guild_id));
-        let cached = CachedMember::from_model(member);
+        let cached = CacheModels::Member::from(member);
         self.members.insert(id, cached);
         self.guild_members
             .entry(guild_id)
@@ -63,7 +65,7 @@ impl InMemoryCache {
             .or_default()
             .insert(user_id);
 
-        let cached = CachedMember::from_partial_member(user_id, member.clone());
+        let cached = CacheModels::Member::from((user_id, member.clone()));
         self.members.insert(id, cached);
     }
 
@@ -86,21 +88,23 @@ impl InMemoryCache {
             .or_default()
             .insert(user_id);
 
-        let cached = CachedMember::from_interaction_member(
+        let cached = CacheModels::Member::from(ComputedInteractionMember {
+            avatar,
+            deaf,
+            interaction_member: member.clone(),
+            mute,
             user_id,
-            member.clone(),
-            ComputedInteractionMemberFields { avatar, deaf, mute },
-        );
+        });
 
         self.members.insert(id, cached);
     }
 }
 
-impl UpdateCache for MemberAdd {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberAdd {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if cache.wants(ResourceType::GUILD) {
             if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
-                guild.member_count = guild.member_count.map(|count| count + 1);
+                guild.increase_member_count(1);
             }
         }
 
@@ -112,8 +116,8 @@ impl UpdateCache for MemberAdd {
     }
 }
 
-impl UpdateCache for MemberChunk {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberChunk {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::MEMBER) {
             return;
         }
@@ -126,11 +130,11 @@ impl UpdateCache for MemberChunk {
     }
 }
 
-impl UpdateCache for MemberRemove {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberRemove {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if cache.wants(ResourceType::GUILD) {
             if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
-                guild.member_count = guild.member_count.map(|count| count - 1);
+                guild.decrease_member_count(1);
             }
         }
 
@@ -160,38 +164,29 @@ impl UpdateCache for MemberRemove {
     }
 }
 
-impl UpdateCache for MemberUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::MEMBER) {
             return;
         }
 
         let key = (self.guild_id, self.user.id);
 
-        let Some(mut member) = cache.members.get_mut(&key) else {
-            return;
-        };
-
-        member.avatar = self.avatar;
-        member.deaf = self.deaf.or_else(|| member.deaf());
-        member.mute = self.mute.or_else(|| member.mute());
-        member.nick = self.nick.clone();
-        member.roles = self.roles.clone();
-        member.joined_at = self.joined_at;
-        member.pending = self.pending;
-        member.communication_disabled_until = self.communication_disabled_until;
+        if let Some(mut member) = cache.members.get_mut(&key) {
+            member.update_with_member_update(self);
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, InMemoryCache};
+    use crate::{test, DefaultInMemoryCache};
     use std::borrow::Cow;
     use twilight_model::{gateway::payload::incoming::MemberRemove, id::Id};
 
     #[test]
     fn cache_guild_member() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         // Single inserts
         {
@@ -249,7 +244,7 @@ mod tests {
     #[test]
     fn cache_user_guild_state() {
         let user_id = Id::new(2);
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         cache.cache_user(Cow::Owned(test::user(user_id)), Some(Id::new(1)));
 
         // Test the guild's ID is the only one in the user's set of guilds.

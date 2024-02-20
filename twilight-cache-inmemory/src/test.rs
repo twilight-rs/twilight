@@ -1,4 +1,4 @@
-use crate::InMemoryCache;
+use crate::DefaultInMemoryCache;
 use twilight_model::{
     channel::{
         message::{
@@ -25,14 +25,14 @@ use twilight_model::{
     voice::VoiceState,
 };
 
-pub fn cache() -> InMemoryCache {
-    InMemoryCache::new()
+pub fn cache() -> DefaultInMemoryCache {
+    DefaultInMemoryCache::new()
 }
 
 #[allow(clippy::too_many_lines)]
-pub fn cache_with_message_and_reactions() -> InMemoryCache {
+pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
     let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
-    let cache = InMemoryCache::new();
+    let cache = DefaultInMemoryCache::new();
     let avatar = ImageHash::parse(b"6961d9f1fdb5880bf4a3ec6348d3bbcf").unwrap();
     let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 

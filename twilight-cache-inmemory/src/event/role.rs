@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
 use twilight_model::{
     gateway::payload::incoming::{RoleCreate, RoleDelete, RoleUpdate},
     guild::Role,
@@ -8,7 +8,7 @@ use twilight_model::{
     },
 };
 
-impl InMemoryCache {
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     pub(crate) fn cache_roles(
         &self,
         guild_id: Id<GuildMarker>,
@@ -27,7 +27,12 @@ impl InMemoryCache {
             .insert(role.id);
 
         // Insert the role into the all roles map
-        crate::upsert_guild_item(&self.roles, guild_id, role.id, role);
+        crate::upsert_guild_item(
+            &self.roles,
+            guild_id,
+            role.id,
+            CacheModels::Role::from(role),
+        );
     }
 
     fn delete_role(&self, role_id: Id<RoleMarker>) {
@@ -39,8 +44,8 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for RoleCreate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for RoleCreate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::ROLE) {
             return;
         }
@@ -49,8 +54,8 @@ impl UpdateCache for RoleCreate {
     }
 }
 
-impl UpdateCache for RoleDelete {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for RoleDelete {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::ROLE) {
             return;
         }
@@ -59,8 +64,8 @@ impl UpdateCache for RoleDelete {
     }
 }
 
-impl UpdateCache for RoleUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for RoleUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::ROLE) {
             return;
         }
@@ -71,12 +76,12 @@ impl UpdateCache for RoleUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, InMemoryCache};
+    use crate::{test, DefaultInMemoryCache};
     use twilight_model::{gateway::payload::incoming::RoleCreate, id::Id};
 
     #[test]
     fn insert_role_on_event() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         cache.update(&RoleCreate {
             guild_id: Id::new(1),
@@ -93,7 +98,7 @@ mod tests {
 
     #[test]
     fn cache_role() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         // Single inserts
         {

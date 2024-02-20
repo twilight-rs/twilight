@@ -1,10 +1,10 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
 use twilight_model::gateway::payload::incoming::{
     ThreadCreate, ThreadDelete, ThreadListSync, ThreadUpdate,
 };
 
-impl UpdateCache for ThreadCreate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ThreadCreate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
@@ -13,8 +13,8 @@ impl UpdateCache for ThreadCreate {
     }
 }
 
-impl UpdateCache for ThreadDelete {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ThreadDelete {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
@@ -23,8 +23,8 @@ impl UpdateCache for ThreadDelete {
     }
 }
 
-impl UpdateCache for ThreadListSync {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ThreadListSync {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
@@ -33,8 +33,8 @@ impl UpdateCache for ThreadListSync {
     }
 }
 
-impl UpdateCache for ThreadUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ThreadUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }

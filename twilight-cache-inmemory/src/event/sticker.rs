@@ -1,14 +1,16 @@
-use crate::{
-    config::ResourceType, model::CachedSticker, GuildResource, InMemoryCache, UpdateCache,
-};
 use std::{borrow::Cow, collections::HashSet};
+
+use crate::{
+    config::ResourceType, CacheableModels, CacheableSticker, GuildResource, InMemoryCache,
+    UpdateCache,
+};
 use twilight_model::{
-    channel::message::sticker::Sticker,
+    channel::message::Sticker,
     gateway::payload::incoming::GuildStickersUpdate,
     id::{marker::GuildMarker, Id},
 };
 
-impl InMemoryCache {
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     pub(crate) fn cache_stickers(&self, guild_id: Id<GuildMarker>, stickers: Vec<Sticker>) {
         if let Some(mut guild_stickers) = self.guild_stickers.get_mut(&guild_id) {
             let incoming_sticker_ids = stickers
@@ -50,10 +52,10 @@ impl InMemoryCache {
         }
 
         let sticker_id = sticker.id;
-        let cached = CachedSticker::from_model(sticker);
+        let cached = CacheModels::Sticker::from(sticker);
 
         self.stickers.insert(
-            cached.id,
+            cached.id(),
             GuildResource {
                 guild_id,
                 value: cached,
@@ -67,8 +69,8 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for GuildStickersUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildStickersUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::STICKER) {
             return;
         }
@@ -79,7 +81,7 @@ impl UpdateCache for GuildStickersUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, InMemoryCache};
+    use crate::{test, DefaultCacheModels, InMemoryCache};
     use twilight_model::id::{
         marker::{GuildMarker, StickerMarker},
         Id,
@@ -89,7 +91,7 @@ mod tests {
     const STICKER_ONE_ID: Id<StickerMarker> = Id::new(2);
     const STICKER_TWO_ID: Id<StickerMarker> = Id::new(3);
 
-    fn cache_with_stickers() -> InMemoryCache {
+    fn cache_with_stickers() -> InMemoryCache<DefaultCacheModels> {
         let cache = test::cache();
         let one = test::sticker(STICKER_ONE_ID, GUILD_ID);
         let two = test::sticker(STICKER_TWO_ID, GUILD_ID);

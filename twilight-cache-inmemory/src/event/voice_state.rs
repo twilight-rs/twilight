@@ -1,7 +1,9 @@
-use crate::{config::ResourceType, model::CachedVoiceState, InMemoryCache, UpdateCache};
-use twilight_model::{gateway::payload::incoming::VoiceStateUpdate, voice::VoiceState};
+use crate::CacheableVoiceState;
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use twilight_model::gateway::payload::incoming::VoiceStateUpdate;
+use twilight_model::voice::VoiceState;
 
-impl InMemoryCache {
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     pub(crate) fn cache_voice_states(&self, voice_states: impl IntoIterator<Item = VoiceState>) {
         for voice_state in voice_states {
             self.cache_voice_state(voice_state);
@@ -35,7 +37,7 @@ impl InMemoryCache {
 
         if let Some(channel_id) = voice_state.channel_id {
             let cached_voice_state =
-                CachedVoiceState::from_model(channel_id, guild_id, voice_state);
+                CacheModels::VoiceState::from((channel_id, guild_id, voice_state));
 
             self.voice_states
                 .insert((guild_id, user_id), cached_voice_state);
@@ -72,8 +74,8 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for VoiceStateUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for VoiceStateUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::VOICE_STATE) {
             return;
         }
@@ -88,7 +90,7 @@ impl UpdateCache for VoiceStateUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{model::CachedVoiceState, test, InMemoryCache, ResourceType};
+    use crate::{model::CachedVoiceState, test, DefaultInMemoryCache, ResourceType};
     use std::str::FromStr;
     use twilight_model::{
         gateway::payload::incoming::VoiceStateUpdate,
@@ -104,7 +106,7 @@ mod tests {
 
     #[test]
     fn voice_state_inserts_and_removes() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         // Note: Channel ids are `<guildid><idx>` where idx is the index of the channel id
         // This is done to prevent channel id collisions between guilds
@@ -241,7 +243,7 @@ mod tests {
 
     #[test]
     fn voice_states() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         cache.cache_voice_state(test::voice_state(Id::new(1), Some(Id::new(2)), Id::new(3)));
         cache.cache_voice_state(test::voice_state(Id::new(1), Some(Id::new(2)), Id::new(4)));
 
@@ -254,7 +256,7 @@ mod tests {
 
     #[test]
     fn voice_states_with_no_cached_guilds() {
-        let cache = InMemoryCache::builder()
+        let cache = DefaultInMemoryCache::builder()
             .resource_types(ResourceType::VOICE_STATE)
             .build();
 
@@ -281,7 +283,7 @@ mod tests {
     fn voice_states_members() -> Result<(), ImageHashParseError> {
         let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
 
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         let avatar = ImageHash::parse(b"169280485ba78d541a9090e7ea35a14e")?;
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
@@ -357,11 +359,11 @@ mod tests {
         const GUILD_ID: Id<GuildMarker> = Id::new(1);
         const USER_ID: Id<UserMarker> = Id::new(3);
 
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
         cache.update(&VoiceStateUpdate(voice_state.clone()));
 
-        let cached = CachedVoiceState::from_model(CHANNEL_ID, GUILD_ID, voice_state);
+        let cached = CachedVoiceState::from((CHANNEL_ID, GUILD_ID, voice_state));
         let in_cache = cache.voice_state(USER_ID, GUILD_ID).unwrap();
         assert_eq!(in_cache.value(), &cached);
     }

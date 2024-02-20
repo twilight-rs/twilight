@@ -21,11 +21,16 @@ serde_json = { version = "1" }
 tokio = { default-features = false, features = ["macros", "signal", "rt-multi-thread"], version = "1.0" }
 tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
+twilight-cache-inmemory = { path = "../twilight-cache-inmemory", features = ["permission-calculator"] }
 twilight-gateway = { path = "../twilight-gateway" }
 twilight-http = { path = "../twilight-http" }
 twilight-lavalink = { path = "../twilight-lavalink" }
 twilight-model = { path = "../twilight-model" }
 twilight-standby = { path = "../twilight-standby" }
+
+[[example]]
+name = "cache-optimization"
+path = "cache-optimization/main.rs"
 
 [[example]]
 name = "gateway-queue-http"

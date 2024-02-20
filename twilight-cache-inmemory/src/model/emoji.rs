@@ -1,3 +1,4 @@
+use crate::CacheableEmoji;
 use serde::Serialize;
 use twilight_model::{
     guild::Emoji,
@@ -65,9 +66,10 @@ impl CachedEmoji {
     pub const fn user_id(&self) -> Option<Id<UserMarker>> {
         self.user_id
     }
+}
 
-    /// Construct a cached emoji from its [`twilight_model`] form.
-    pub(crate) fn from_model(emoji: Emoji) -> Self {
+impl From<Emoji> for CachedEmoji {
+    fn from(emoji: Emoji) -> Self {
         let Emoji {
             animated,
             available,
@@ -79,7 +81,7 @@ impl CachedEmoji {
             user,
         } = emoji;
 
-        CachedEmoji {
+        Self {
             animated,
             available,
             id,
@@ -104,6 +106,8 @@ impl PartialEq<Emoji> for CachedEmoji {
             && self.available == other.available
     }
 }
+
+impl CacheableEmoji for CachedEmoji {}
 
 #[cfg(test)]
 mod tests {

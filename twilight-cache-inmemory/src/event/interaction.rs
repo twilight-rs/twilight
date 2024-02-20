@@ -1,11 +1,11 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
 use std::borrow::Cow;
 use twilight_model::{
     application::interaction::InteractionData, gateway::payload::incoming::InteractionCreate,
 };
 
-impl UpdateCache for InteractionCreate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for InteractionCreate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         // Cache interaction member
         if cache.wants(ResourceType::MEMBER) {
             if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
@@ -59,7 +59,7 @@ impl UpdateCache for InteractionCreate {
 
 #[cfg(test)]
 mod tests {
-    use crate::InMemoryCache;
+    use crate::DefaultInMemoryCache;
     use std::collections::HashMap;
     use twilight_model::{
         application::{
@@ -92,7 +92,7 @@ mod tests {
         let avatar3 = ImageHash::parse(b"5e23c298295ad37936cfe24ad314774f")?;
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         cache.update(&InteractionCreate(Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),

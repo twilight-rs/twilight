@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
 use twilight_model::{
     gateway::payload::incoming::{IntegrationCreate, IntegrationDelete, IntegrationUpdate},
     guild::GuildIntegration,
@@ -8,7 +8,7 @@ use twilight_model::{
     },
 };
 
-impl InMemoryCache {
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     fn cache_integration(&self, guild_id: Id<GuildMarker>, integration: GuildIntegration) {
         self.guild_integrations
             .entry(guild_id)
@@ -19,7 +19,7 @@ impl InMemoryCache {
             &self.integrations,
             guild_id,
             (guild_id, integration.id),
-            integration,
+            CacheModels::GuildIntegration::from(integration),
         );
     }
 
@@ -36,8 +36,8 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for IntegrationCreate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for IntegrationCreate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::INTEGRATION) {
             return;
         }
@@ -47,14 +47,14 @@ impl UpdateCache for IntegrationCreate {
                 &cache.integrations,
                 guild_id,
                 (guild_id, self.id),
-                self.0.clone(),
+                CacheModels::GuildIntegration::from(self.0.clone()),
             );
         }
     }
 }
 
-impl UpdateCache for IntegrationDelete {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for IntegrationDelete {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::INTEGRATION) {
             return;
         }
@@ -63,8 +63,8 @@ impl UpdateCache for IntegrationDelete {
     }
 }
 
-impl UpdateCache for IntegrationUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for IntegrationUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::INTEGRATION) {
             return;
         }

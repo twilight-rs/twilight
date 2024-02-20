@@ -2,9 +2,10 @@ use std::slice::Iter;
 
 use serde::Serialize;
 use twilight_model::{
+    gateway::payload::incoming::GuildUpdate,
     guild::{
-        AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, GuildFeature, MfaLevel,
-        NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
+        AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, GuildFeature,
+        MfaLevel, NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
     },
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
@@ -12,6 +13,8 @@ use twilight_model::{
     },
     util::{ImageHash, Timestamp},
 };
+
+use crate::CacheableGuild;
 
 /// Represents a cached [`Guild`].
 ///
@@ -272,6 +275,188 @@ impl CachedGuild {
     /// Whether the widget is enabled.
     pub const fn widget_enabled(&self) -> Option<bool> {
         self.widget_enabled
+    }
+}
+
+impl From<Guild> for CachedGuild {
+    fn from(guild: Guild) -> Self {
+        let Guild {
+            afk_channel_id,
+            afk_timeout,
+            application_id,
+            approximate_member_count: _,
+            approximate_presence_count: _,
+            banner,
+            default_message_notifications,
+            description,
+            discovery_splash,
+            explicit_content_filter,
+            features,
+            icon,
+            id,
+            joined_at,
+            large,
+            max_members,
+            max_presences,
+            max_video_channel_users,
+            member_count,
+            mfa_level,
+            name,
+            nsfw_level,
+            owner_id,
+            owner,
+            permissions,
+            preferred_locale,
+            premium_progress_bar_enabled,
+            premium_subscription_count,
+            premium_tier,
+            public_updates_channel_id,
+            rules_channel_id,
+            safety_alerts_channel_id,
+            splash,
+            system_channel_flags,
+            system_channel_id,
+            unavailable,
+            vanity_url_code,
+            verification_level,
+            widget_channel_id,
+            widget_enabled,
+            ..
+        } = guild;
+
+        Self {
+            afk_channel_id,
+            afk_timeout,
+            application_id,
+            banner,
+            default_message_notifications,
+            description,
+            discovery_splash,
+            explicit_content_filter,
+            features,
+            icon,
+            id,
+            joined_at,
+            large,
+            max_members,
+            max_presences,
+            max_video_channel_users,
+            member_count,
+            mfa_level,
+            name,
+            nsfw_level,
+            owner_id,
+            owner,
+            permissions,
+            preferred_locale,
+            premium_progress_bar_enabled,
+            premium_subscription_count,
+            premium_tier,
+            public_updates_channel_id,
+            rules_channel_id,
+            safety_alerts_channel_id,
+            splash,
+            system_channel_id,
+            system_channel_flags,
+            unavailable,
+            vanity_url_code,
+            verification_level,
+            widget_channel_id,
+            widget_enabled,
+        }
+    }
+}
+
+impl PartialEq<Guild> for CachedGuild {
+    fn eq(&self, other: &Guild) -> bool {
+        self.afk_channel_id == other.afk_channel_id
+            && self.afk_timeout == other.afk_timeout
+            && self.application_id == other.application_id
+            && self.banner == other.banner
+            && self.default_message_notifications == other.default_message_notifications
+            && self.description == other.description
+            && self.discovery_splash == other.discovery_splash
+            && self.explicit_content_filter == other.explicit_content_filter
+            && self.features == other.features
+            && self.icon == other.icon
+            && self.joined_at == other.joined_at
+            && self.large == other.large
+            && self.max_members == other.max_members
+            && self.max_presences == other.max_presences
+            && self.max_video_channel_users == other.max_video_channel_users
+            && self.member_count == other.member_count
+            && self.mfa_level == other.mfa_level
+            && self.name == other.name
+            && self.nsfw_level == other.nsfw_level
+            && self.owner_id == other.owner_id
+            && self.owner == other.owner
+            && self.permissions == other.permissions
+            && self.preferred_locale == other.preferred_locale
+            && self.premium_progress_bar_enabled == other.premium_progress_bar_enabled
+            && self.premium_subscription_count == other.premium_subscription_count
+            && self.premium_tier == other.premium_tier
+            && self.public_updates_channel_id == other.public_updates_channel_id
+            && self.rules_channel_id == other.rules_channel_id
+            && self.safety_alerts_channel_id == other.safety_alerts_channel_id
+            && self.splash == other.splash
+            && self.system_channel_id == other.system_channel_id
+            && self.system_channel_flags == other.system_channel_flags
+            && self.unavailable == other.unavailable
+            && self.vanity_url_code == other.vanity_url_code
+            && self.verification_level == other.verification_level
+            && self.widget_channel_id == other.widget_channel_id
+            && self.widget_enabled == other.widget_enabled
+    }
+}
+
+impl CacheableGuild for CachedGuild {
+    fn id(&self) -> Id<GuildMarker> {
+        self.id
+    }
+
+    #[cfg(feature = "permission-calculator")]
+    fn owner_id(&self) -> Id<UserMarker> {
+        self.owner_id
+    }
+
+    fn set_unavailable(&mut self, unavailable: bool) {
+        self.unavailable = unavailable;
+    }
+
+    fn update_with_guild_update(&mut self, guild_update: &GuildUpdate) {
+        self.afk_channel_id = guild_update.afk_channel_id;
+        self.afk_timeout = guild_update.afk_timeout;
+        self.banner = guild_update.banner;
+        self.default_message_notifications = guild_update.default_message_notifications;
+        self.description = guild_update.description.clone();
+        self.features = guild_update.features.clone();
+        self.icon = guild_update.icon;
+        self.max_members = guild_update.max_members;
+        self.max_presences = Some(guild_update.max_presences.unwrap_or(25000));
+        self.mfa_level = guild_update.mfa_level;
+        self.name = guild_update.name.clone();
+        self.nsfw_level = guild_update.nsfw_level;
+        self.owner = guild_update.owner;
+        self.owner_id = guild_update.owner_id;
+        self.permissions = guild_update.permissions;
+        self.preferred_locale = guild_update.preferred_locale.clone();
+        self.premium_tier = guild_update.premium_tier;
+        self.premium_subscription_count
+            .replace(guild_update.premium_subscription_count.unwrap_or_default());
+        self.splash = guild_update.splash;
+        self.system_channel_id = guild_update.system_channel_id;
+        self.verification_level = guild_update.verification_level;
+        self.vanity_url_code = guild_update.vanity_url_code.clone();
+        self.widget_channel_id = guild_update.widget_channel_id;
+        self.widget_enabled = guild_update.widget_enabled;
+    }
+
+    fn increase_member_count(&mut self, amount: u64) {
+        self.member_count = self.member_count.map(|count| count + amount);
+    }
+
+    fn decrease_member_count(&mut self, amount: u64) {
+        self.member_count = self.member_count.map(|count| count - amount);
     }
 }
 

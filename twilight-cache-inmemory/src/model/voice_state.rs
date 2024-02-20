@@ -8,6 +8,8 @@ use twilight_model::{
     voice::VoiceState,
 };
 
+use crate::CacheableVoiceState;
+
 /// Represents a cached [`VoiceState`].
 ///
 /// [`VoiceState`]: twilight_model::voice::VoiceState
@@ -88,13 +90,11 @@ impl CachedVoiceState {
     pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
     }
+}
 
-    /// Construct a cached voice state from its [`twilight_model`] form.
-    #[allow(clippy::missing_const_for_fn)]
-    pub(crate) fn from_model(
-        channel_id: Id<ChannelMarker>,
-        guild_id: Id<GuildMarker>,
-        voice_state: VoiceState,
+impl From<(Id<ChannelMarker>, Id<GuildMarker>, VoiceState)> for CachedVoiceState {
+    fn from(
+        (channel_id, guild_id, voice_state): (Id<ChannelMarker>, Id<GuildMarker>, VoiceState),
     ) -> Self {
         // Reasons for dropping fields:
         //
@@ -151,6 +151,12 @@ impl PartialEq<VoiceState> for CachedVoiceState {
     }
 }
 
+impl CacheableVoiceState for CachedVoiceState {
+    fn channel_id(&self) -> Id<ChannelMarker> {
+        self.channel_id
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::CachedVoiceState;
@@ -196,7 +202,7 @@ mod tests {
     #[test]
     fn eq() {
         let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
-        let cached = CachedVoiceState::from_model(CHANNEL_ID, GUILD_ID, voice_state.clone());
+        let cached = CachedVoiceState::from((CHANNEL_ID, GUILD_ID, voice_state.clone()));
 
         assert_eq!(cached, voice_state);
     }
@@ -204,7 +210,7 @@ mod tests {
     #[test]
     fn getters() {
         let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
-        let cached = CachedVoiceState::from_model(CHANNEL_ID, GUILD_ID, voice_state.clone());
+        let cached = CachedVoiceState::from((CHANNEL_ID, GUILD_ID, voice_state.clone()));
 
         assert_eq!(Some(cached.channel_id()), voice_state.channel_id);
         assert_eq!(cached.deaf(), voice_state.deaf);

@@ -3,6 +3,8 @@ use twilight_model::id::{
     Id,
 };
 
+use crate::{CacheableModels, DefaultCacheModels};
+
 use super::InMemoryCache;
 
 /// Retrieve statistics about the number of entities of each resource in the
@@ -17,9 +19,9 @@ use super::InMemoryCache;
 /// Retrieve the number of users stored in the cache:
 ///
 /// ```no_run
-/// use twilight_cache_inmemory::InMemoryCache;
+/// use twilight_cache_inmemory::DefaultInMemoryCache;
 ///
-/// let cache = InMemoryCache::new();
+/// let cache = DefaultInMemoryCache::new();
 ///
 /// // later on...
 /// println!("user count: {}", cache.stats().users());
@@ -27,22 +29,28 @@ use super::InMemoryCache;
 ///
 /// [`channel_messages`]: Self::channel_messages
 /// [`users`]: Self::users
+#[allow(clippy::type_complexity)]
 #[derive(Clone, Debug)]
-pub struct InMemoryCacheStats<'a>(&'a InMemoryCache);
+pub struct InMemoryCacheStats<'a, CacheModels: CacheableModels = DefaultCacheModels>(
+    &'a InMemoryCache<CacheModels>,
+);
 
-impl<'a> InMemoryCacheStats<'a> {
-    pub(super) const fn new(cache: &'a InMemoryCache) -> Self {
+impl<'a, CacheModels: CacheableModels> InMemoryCacheStats<'a, CacheModels> {
+    #[allow(clippy::type_complexity)]
+    pub(super) const fn new(cache: &'a InMemoryCache<CacheModels>) -> Self {
         Self(cache)
     }
 
     /// Return an immutable reference to the underlying cache.
-    pub const fn cache_ref(&'a self) -> &'a InMemoryCache {
+    #[allow(clippy::type_complexity)]
+    pub const fn cache_ref(&'a self) -> &'a InMemoryCache<CacheModels> {
         self.0
     }
 
     /// Consume the statistics interface, returning the underlying cache
     /// reference.
-    pub const fn into_cache(self) -> &'a InMemoryCache {
+    #[allow(clippy::type_complexity)]
+    pub const fn into_cache(self) -> &'a InMemoryCache<CacheModels> {
         self.0
     }
 

@@ -11,6 +11,7 @@ use twilight_model::{
         },
         Attachment, ChannelMention,
     },
+    gateway::payload::incoming::MessageUpdate,
     guild::PartialMember,
     id::{
         marker::{
@@ -21,6 +22,8 @@ use twilight_model::{
     },
     util::Timestamp,
 };
+
+use crate::CacheableMessage;
 
 /// Information about the message interaction.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -73,6 +76,15 @@ impl CachedMessageInteraction {
             name,
             user_id: user.id,
         }
+    }
+}
+
+impl PartialEq<MessageInteraction> for CachedMessageInteraction {
+    fn eq(&self, other: &MessageInteraction) -> bool {
+        self.id == other.id
+            && self.kind == other.kind
+            && self.name == other.name
+            && self.user_id == other.user.id
     }
 }
 
@@ -282,9 +294,10 @@ impl CachedMessage {
     pub const fn webhook_id(&self) -> Option<Id<WebhookMarker>> {
         self.webhook_id
     }
+}
 
-    /// Construct a cached message from its [`twilight_model`] form.
-    pub(crate) fn from_model(message: Message) -> Self {
+impl From<Message> for CachedMessage {
+    fn from(message: Message) -> Self {
         let Message {
             activity,
             application,
@@ -352,9 +365,118 @@ impl CachedMessage {
     }
 }
 
-impl From<Message> for CachedMessage {
-    fn from(message: Message) -> Self {
-        Self::from_model(message)
+impl PartialEq<Message> for CachedMessage {
+    fn eq(&self, other: &Message) -> bool {
+        self.id == other.id
+            && self.activity == other.activity
+            && self.application == other.application
+            && self.application_id == other.application_id
+            && self.attachments == other.attachments
+            && self.author == other.author.id
+            && self.channel_id == other.channel_id
+            && self.components == other.components
+            && self.content == other.content
+            && self.edited_timestamp == other.edited_timestamp
+            && self.embeds == other.embeds
+            && self.flags == other.flags
+            && self.guild_id == other.guild_id
+            && self
+                .interaction
+                .as_ref()
+                .map_or(other.interaction.is_none(), |interaction| {
+                    other
+                        .interaction
+                        .as_ref()
+                        .map_or(false, |other_interaction| interaction == other_interaction)
+                })
+            && self.kind == other.kind
+            && self.member == other.member
+            && self.mention_channels == other.mention_channels
+            && self.mention_everyone == other.mention_everyone
+            && self.mention_roles == other.mention_roles
+            && self.mentions.len() == other.mentions.len()
+            && self
+                .mentions
+                .iter()
+                .zip(other.mentions.iter())
+                .all(|(user_id, mention)| user_id == &mention.id)
+            && self.pinned == other.pinned
+            && self.reactions == other.reactions
+            && self.reference == other.reference
+            && self.role_subscription_data == other.role_subscription_data
+            && self.sticker_items == other.sticker_items
+            && self.thread_id == other.thread.as_ref().map(|thread| thread.id)
+            && self.timestamp == other.timestamp
+            && self.tts == other.tts
+            && self.webhook_id == other.webhook_id
+    }
+}
+
+impl CacheableMessage for CachedMessage {
+    fn update_with_message_update(&mut self, message_update: &MessageUpdate) {
+        if let Some(attachments) = &message_update.attachments {
+            self.attachments = attachments.clone();
+        }
+
+        if let Some(content) = &message_update.content {
+            self.content = content.clone();
+        }
+
+        if let Some(edited_timestamp) = message_update.edited_timestamp {
+            self.edited_timestamp.replace(edited_timestamp);
+        }
+
+        if let Some(embeds) = &message_update.embeds {
+            self.embeds = embeds.clone();
+        }
+
+        if let Some(mention_everyone) = message_update.mention_everyone {
+            self.mention_everyone = mention_everyone;
+        }
+
+        if let Some(mention_roles) = &message_update.mention_roles {
+            self.mention_roles = mention_roles.clone();
+        }
+
+        if let Some(mentions) = &message_update.mentions {
+            self.mentions = mentions.iter().map(|x| x.id).collect::<Vec<_>>();
+        }
+
+        if let Some(pinned) = message_update.pinned {
+            self.pinned = pinned;
+        }
+
+        if let Some(timestamp) = message_update.timestamp {
+            self.timestamp = timestamp;
+        }
+
+        if let Some(tts) = message_update.tts {
+            self.tts = tts;
+        }
+    }
+
+    fn reactions(&self) -> &[Reaction] {
+        &self.reactions
+    }
+
+    fn reactions_mut(&mut self) -> &mut [Reaction] {
+        &mut self.reactions
+    }
+
+    fn retain_reactions(&mut self, f: impl FnMut(&Reaction) -> bool) {
+        self.reactions.retain(f);
+    }
+
+    fn clear_reactions(&mut self) {
+        self.reactions.clear();
+    }
+
+    fn add_reaction(&mut self, reaction: Reaction) {
+        self.reactions.push(reaction);
+    }
+
+    fn remove_reaction(&mut self, idx: usize) {
+        self.reactions.remove(idx);
     }
 }
 

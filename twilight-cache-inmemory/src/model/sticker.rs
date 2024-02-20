@@ -10,6 +10,8 @@ use twilight_model::{
     },
 };
 
+use crate::CacheableSticker;
+
 /// Representation of a cached [`Sticker`].
 ///
 /// [`Sticker`]: twilight_model::channel::message::sticker::Sticker
@@ -94,9 +96,10 @@ impl CachedSticker {
     pub const fn user_id(&self) -> Option<Id<UserMarker>> {
         self.user_id
     }
+}
 
-    /// Construct a cached sticker from its [`twilight_model`] form.
-    pub(crate) fn from_model(sticker: Sticker) -> Self {
+impl From<Sticker> for CachedSticker {
+    fn from(sticker: Sticker) -> Self {
         let Sticker {
             available,
             description,
@@ -140,6 +143,12 @@ impl PartialEq<Sticker> for CachedSticker {
             && self.sort_value == other.sort_value
             && self.tags == other.tags
             && self.user_id == other.user.as_ref().map(|user| user.id)
+    }
+}
+
+impl CacheableSticker for CachedSticker {
+    fn id(&self) -> Id<StickerMarker> {
+        self.id
     }
 }
 
