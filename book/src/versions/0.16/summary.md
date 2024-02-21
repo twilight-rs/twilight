@@ -60,8 +60,8 @@ queue their action into a channel, like [`MessageSender`], and are therefore no
 longer async and now infallible.
 
 The [`create_range`] method was renamed to [`create_iterator`] and takes an
-iterator over shard IDs instead of ranges. The methods were also moved to the
-top of the crate.
+iterator over shard IDs instead of ranges. The `create_*` methods were also
+moved to the top of the crate.
 
 We also reworked the error types. [`ProcessError`] was removed entirely, while
 [`SendError`] was renamed to [`ChannelError`]. [`ReceiveMessageErrorType`] now
