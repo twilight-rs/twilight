@@ -32,7 +32,7 @@
 - [**breaking**] Remove deprecated apis ([#2132](https://github.com/twilight-rs/twilight/issues/2132))
 - Switch to fastrand ([#2239](https://github.com/twilight-rs/twilight/issues/2239))
 - Remove unnecessary conversion  ([#2294](https://github.com/twilight-rs/twilight/issues/2294))
-- [**breaking**] Avoid copying the reponse body on utf8 error ([#2299](https://github.com/twilight-rs/twilight/issues/2299))
+- [**breaking**] Avoid copying the response body on utf8 error ([#2299](https://github.com/twilight-rs/twilight/issues/2299))
 
 ## [0.15.3] - 2023-09-10
 
