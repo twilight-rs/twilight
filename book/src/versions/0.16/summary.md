@@ -56,8 +56,8 @@ Additionally, the [`Config`] struct now no longer stores the
 [`twilight_gateway::StreamExt::next_event`] now.
 
 The [`Shard::command`], [`Shard::send`] and [`Shard::close`] methods now also
-queue their action into a channel, like [`MessageSender`] and are therefore no
-longer async and infallible.
+queue their action into a channel, like [`MessageSender`], and are therefore no
+longer async and now infallible.
 
 The [`create_range`] method was renamed to [`create_iterator`] and takes an
 iterator over shard IDs instead of ranges. The methods were also moved to the
