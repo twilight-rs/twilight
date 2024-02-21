@@ -108,6 +108,8 @@ loop {
 <summary>Twilight 0.16</summary>
 
 ```rust,ignore
+use twilight_gateway::StreamExt;
+
 let intents = Intents::GUILDS | Intents::GUILD_MODERATION;
 let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents);
 
