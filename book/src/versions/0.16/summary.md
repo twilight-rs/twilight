@@ -153,6 +153,7 @@ let response = client.create_message(channel_id)
     .tts(true)
     .await?;
 ```
+</details>
 
 ## Generic in-memory cache
 
