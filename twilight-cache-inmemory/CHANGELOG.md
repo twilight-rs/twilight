@@ -1,5 +1,26 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- Address new rust CI errors ([#2285](https://github.com/twilight-rs/twilight/issues/2285))
+- [**breaking**] `Member#joined_at` can sometimes be null ([#2288](https://github.com/twilight-rs/twilight/issues/2288))
+
+### Build
+
+- [**breaking**] Update bitflags crate to v2 ([#2199](https://github.com/twilight-rs/twilight/issues/2199))
+
+### Features
+
+- [**breaking**] Implement additional select menu types ([#2219](https://github.com/twilight-rs/twilight/issues/2219))
+- [**breaking**] Add support for super reactions ([#2275](https://github.com/twilight-rs/twilight/issues/2275))
+- [**breaking**] Make the cache generic over model-specific traits ([#2179](https://github.com/twilight-rs/twilight/issues/2179))
+
+### Refactor
+
+- [**breaking**] Remove undocumented gateway events ([#2237](https://github.com/twilight-rs/twilight/issues/2237))
+
 ## [0.15.3] - 2023-09-10
 
 ### Bug Fixes

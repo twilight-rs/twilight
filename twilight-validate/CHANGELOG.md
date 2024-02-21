@@ -1,5 +1,17 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- Implement additional select menu types ([#2219](https://github.com/twilight-rs/twilight/issues/2219))
+- Add `regex_patterns` and `allow_list` ([#2189](https://github.com/twilight-rs/twilight/issues/2189))
+- Implement select menu default values ([#2281](https://github.com/twilight-rs/twilight/issues/2281))
+
+### Refactor
+
+- Remove redundant imports ([#2316](https://github.com/twilight-rs/twilight/issues/2316))
+
 ## [0.15.2] - 2023-09-10
 
 ### Bug Fixes

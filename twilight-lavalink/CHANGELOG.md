@@ -1,5 +1,23 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- Address clippy 1.75 lints ([#2305](https://github.com/twilight-rs/twilight/issues/2305))
+
+### Build
+
+- Update to rustls 0.22, tokio-websockets 0.5 ([#2302](https://github.com/twilight-rs/twilight/issues/2302))
+
+### Features
+
+- [**breaking**] Reduce size of gateway rest models ([#2168](https://github.com/twilight-rs/twilight/issues/2168))
+
+### Refactor
+
+- Switch to fastrand and tokio-websockets ([#2239](https://github.com/twilight-rs/twilight/issues/2239))
+
 ## [0.15.2] - 2023-09-10
 
 ### Bug Fixes

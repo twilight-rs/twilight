@@ -1,5 +1,20 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- [**breaking**] Bump `SessionStartLimit` field sizes ([#2286](https://github.com/twilight-rs/twilight/issues/2286))
+
+### Features
+
+- [**breaking**] Reduce size of gateway rest models ([#2168](https://github.com/twilight-rs/twilight/issues/2168))
+- [**breaking**] Turn `Queue` into a generic type ([#2249](https://github.com/twilight-rs/twilight/issues/2249))
+
+### Refactor
+
+- [**breaking**] Rewrite crate ([#2228](https://github.com/twilight-rs/twilight/issues/2228))
+
 ## [0.15.3] - 2023-09-10
 
 ### Bug Fixes

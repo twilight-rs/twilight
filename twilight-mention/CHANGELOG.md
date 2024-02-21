@@ -1,5 +1,19 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- Address new rust CI errors ([#2285](https://github.com/twilight-rs/twilight/issues/2285))
+
+### Features
+
+- Add mention for commands ([#2290](https://github.com/twilight-rs/twilight/issues/2290))
+
+### Refactor
+
+- Remove redundant imports ([#2316](https://github.com/twilight-rs/twilight/issues/2316))
+
 ## [0.15.2] - 2023-09-10
 
 ### Build

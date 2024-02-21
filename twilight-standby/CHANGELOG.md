@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- Address new rust CI errors ([#2285](https://github.com/twilight-rs/twilight/issues/2285))
+
+### Build
+
+- Remove dependency on futures-util ([#2309](https://github.com/twilight-rs/twilight/issues/2309))
+
 ## [0.15.3] - 2023-09-10
 
 ### Bug Fixes
