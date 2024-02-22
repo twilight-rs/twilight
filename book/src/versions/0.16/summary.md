@@ -32,7 +32,7 @@ We also changed the RNG used by our crates to [fastrand].
 The gateway queue crate was rewritten from scratch. The [`Queue`] trait no
 longer returns an opaque future type, instead it makes use of channels now.
 
-The three separate queue implementations were merged into a single one, the
+The three separate queue implementations were merged into one, the
 [`InMemoryQueue`]. It is recommended to fetch the data for instantiating one
 from the Discord API via [`Client::gateway`] to avoid getting ratelimited.
 
