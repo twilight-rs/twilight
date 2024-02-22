@@ -44,11 +44,11 @@ The gateway crate has seen several changes as well. Alongside the gateway
 queue rewrite, the [`Queue`] on the shards is now stored as a generic to avoid
 an allocation. It defaults to an [`InMemoryQueue`].
 
-A major pitfall with the twilight's gateway pre-0.16 was that
-[`Shard::next_event`] and [`Shard::next_message`] were not cancellation-safe.
-This has been addressed by implementing [`Stream`] for the shard and updating
-the internals to be cancellation-safe. [`futures_util::StreamExt::next`] now
-serves as the replacement for [`Shard::next_message`], while
+A major pitfall with twilight's gateway pre-0.16 was that [`Shard::next_event`]
+and [`Shard::next_message`] were not cancellation-safe. This has been addressed
+by implementing [`Stream`] for the shard and updating the internals to be
+cancellation-safe. [`futures_util::StreamExt::next`] now serves as the
+replacement for [`Shard::next_message`], while
 [`twilight_gateway::StreamExt::next_event`] replaces [`Shard::next_event`].
 
 Additionally, the [`Config`] struct now no longer stores the
