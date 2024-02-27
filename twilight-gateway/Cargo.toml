@@ -21,7 +21,7 @@ futures-sink = { default-features = false, features = ["std"], version = "0.3" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.19" }
-tokio-websockets = { default-features = false, features = ["client", "fastrand", "sha1_smol", "simd"], version = "0.5" }
+tokio-websockets = { default-features = false, features = ["client", "fastrand", "sha1_smol", "simd"], version = "0.7" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.16.0-rc.1" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.16.0-rc.1" }
