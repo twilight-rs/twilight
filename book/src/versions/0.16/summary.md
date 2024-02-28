@@ -276,4 +276,4 @@ was removed.
 [hyper]: https://docs.rs/hyper/1.2.0/hyper/index.html
 [rustls]: https://docs.rs/rustls/0.22.2/rustls/index.html
 [tokio-tungstenite]: https://docs.rs/tokio-tungstenite/0.21.0/tokio_tungstenite/index.html
-[tokio-websockets]: https://docs.rs/tokio-websockets/0.5.1/tokio_websockets/index.html
+[tokio-websockets]: https://docs.rs/tokio-websockets/0.7.0/tokio_websockets/index.html
