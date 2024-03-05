@@ -619,13 +619,13 @@ fn connect_request(state: &NodeConfig) -> Result<ClientBuilder, NodeError> {
         })?
         .add_header(AUTHORIZATION, state.authorization.parse().unwrap())
         .add_header(
-            HeaderName::from_static("User-Id"),
+            HeaderName::from_static("user-id"),
             state.user_id.get().into(),
         );
 
     if state.resume.is_some() {
         builder = builder.add_header(
-            HeaderName::from_static("Resume-Key"),
+            HeaderName::from_static("resume-key"),
             state.address.to_string().parse().unwrap(),
         );
     }
