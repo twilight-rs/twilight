@@ -13,6 +13,10 @@ handle sending voice channel updates to Lavalink by processing events via
 the [client's `process` method][`Lavalink::process`], which you must call
 with every Voice State Update and Voice Server Update you receive.
 
+***IMPORTANT***
+
+> Lavalink has went to another major API version which changed significantly. To establish this clear change and allow porting current bots easier you can use whichever api you prefer. See the [v3 module](crate::v3) for more details on this interface.
+
 ## Features
 
 ### `http-support`
@@ -53,54 +57,7 @@ This should be preferred over `rustls-native-roots` in Docker containers based o
 
 ## Examples
 
-Create a [client], add a [node], and give events to the client to [process]
-events:
-
-```rust,no_run
-use std::{
-    env,
-    future::Future,
-    net::SocketAddr,
-    str::FromStr,
-};
-use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
-use twilight_http::Client as HttpClient;
-use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    // Initialize the tracing subscriber.
-    tracing_subscriber::fmt::init();
-
-    let token = env::var("DISCORD_TOKEN")?;
-    let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
-    let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
-    let shard_count = 1u32;
-
-    let http = HttpClient::new(token.clone());
-    let user_id = http.current_user().await?.model().await?.id;
-
-    let lavalink = Lavalink::new(user_id, shard_count);
-    lavalink.add(lavalink_host, lavalink_auth).await?;
-
-    let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-    let mut shard = Shard::new(ShardId::ONE, token, intents);
-
-    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
-        let Ok(event) = item else {
-            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
-
-            continue;
-        };
-
-        lavalink.process(&event).await?;
-    }
-
-    Ok(())
-}
-```
-
-There is also an example of a basic bot located in the [root of the
+There is an example of a basic bot located in the [root of the
 `twilight` repository][github examples link].
 
 [Lavalink]: https://github.com/freyacodes/Lavalink

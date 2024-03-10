@@ -10,8 +10,8 @@
 //! [read the position]: Player::position
 
 use crate::{
-    model::{Destroy, OutgoingEvent},
-    node::{Node, NodeSenderError},
+    v3::model::{Destroy, OutgoingEvent},
+    v3::node::{Node, NodeSenderError},
 };
 use dashmap::DashMap;
 use std::{

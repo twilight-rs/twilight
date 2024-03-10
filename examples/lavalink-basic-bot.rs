@@ -10,9 +10,9 @@ use twilight_gateway::{
 };
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
-    http::LoadedTracks,
-    model::{Destroy, Pause, Play, Seek, Stop, Volume},
-    Lavalink,
+    v3::http::LoadedTracks,
+    v3::model::{Destroy, Pause, Play, Seek, Stop, Volume},
+    v3::Lavalink,
 };
 use twilight_model::{
     channel::Message,
@@ -182,7 +182,7 @@ async fn play(msg: Message, state: State) -> anyhow::Result<()> {
     let guild_id = msg.guild_id.unwrap();
 
     let player = state.lavalink.player(guild_id).await.unwrap();
-    let (parts, body) = twilight_lavalink::http::load_track(
+    let (parts, body) = twilight_lavalink::v3::http::load_track(
         player.node().config().address,
         &msg.content,
         &player.node().config().authorization,

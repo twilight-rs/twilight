@@ -18,8 +18,8 @@
 //! [`Lavalink`]: crate::client::Lavalink
 
 use crate::{
-    model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
-    player::PlayerManager,
+    v3::model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
+    v3::player::PlayerManager,
 };
 use futures_util::{
     lock::BiLock,

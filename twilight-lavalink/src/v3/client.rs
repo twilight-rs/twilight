@@ -1,9 +1,9 @@
 //! Client to manage nodes and players.
 
 use crate::{
-    model::VoiceUpdate,
-    node::{IncomingEvents, Node, NodeConfig, NodeError, Resume},
-    player::{Player, PlayerManager},
+    v3::model::VoiceUpdate,
+    v3::node::{IncomingEvents, Node, NodeConfig, NodeError, Resume},
+    v3::player::{Player, PlayerManager},
 };
 use dashmap::DashMap;
 use std::{
