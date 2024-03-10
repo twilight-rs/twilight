@@ -57,7 +57,7 @@ use std::{
 };
 use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 use twilight_http::Client as HttpClient;
-use twilight_lavalink::Lavalink;
+use twilight_lavalink::v3::Lavalink;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {

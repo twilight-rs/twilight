@@ -1,4 +1,4 @@
-# V3
+# Lavalink V3
 
 This is the implementation of the v3 lavalink player api. There were substantial changes to the api.
 You can include and use this project without upgrading by simply prefixing your includes with `v3::`.
@@ -17,7 +17,7 @@ use std::{
 };
 use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 use twilight_http::Client as HttpClient;
-use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
+use twilight_lavalink::v3::{http::LoadedTracks, model::Play, Lavalink};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

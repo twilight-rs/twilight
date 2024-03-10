@@ -114,7 +114,7 @@ impl Player {
     /// Send a [`Play`] and [`Pause`] event:
     ///
     /// ```
-    /// use twilight_lavalink::{
+    /// use twilight_lavalink::v3::{
     ///     model::{Pause, Play},
     ///     Lavalink,
     /// };
