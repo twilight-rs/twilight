@@ -16,6 +16,7 @@ pub mod stage_instance;
 pub mod sticker;
 pub mod user;
 pub mod voice_state;
+pub mod guild_scheduled_events;
 
 #[derive(Clone, Debug)]
 pub struct CustomCacheModels;
@@ -26,6 +27,7 @@ impl CacheableModels for CustomCacheModels {
     type Emoji = emoji::MinimalCachedEmoji;
     type Guild = guild::MinimalCachedGuild;
     type GuildIntegration = guild_integration::MinimalCachedGuildIntegration;
+    type GuildScheduledEvent = guild_scheduled_events::MinimalGuildScheduledEvent;
     type Member = member::MinimalCachedMember;
     type Message = message::MinimalCachedMessage;
     type Presence = presence::MinimalCachedPresence;
