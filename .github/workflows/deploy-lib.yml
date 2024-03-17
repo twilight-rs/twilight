@@ -9,8 +9,18 @@ on:
       - "twilight*/**"
       - "Cargo.toml"
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency: "pages"
+
 jobs:
   deploy-docs:
+    environment:
+      name: api-documentation
+      url: ${{ steps.deployment.outputs.page_url }}
     name: Deploy docs to gh-pages
     runs-on: ubuntu-latest
 
@@ -36,14 +46,15 @@ jobs:
       - name: Prepare docs
         run: |
           echo '<meta http-equiv="refresh" content="0;url=twilight/index.html">' > target/doc/index.html
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
 
-      - name: Deploy docs
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY_BOT }}
-          publish_branch: gh-pages
-          publish_dir: target/doc
-          allow_empty_commit: true
-          cname: api.twilight.rs
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
+          path: target/doc
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
