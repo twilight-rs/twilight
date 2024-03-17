@@ -12,12 +12,15 @@ use twilight_model::{
         GatewayReaction,
     },
     guild::{
-        AfkTimeout, DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member,
-        MemberFlags, MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role, RoleFlags,
-        SystemChannelFlags, VerificationLevel,
+        scheduled_event::{GuildScheduledEvent, EntityType, PrivacyLevel, Status}, AfkTimeout, DefaultMessageNotificationLevel, Emoji,
+        ExplicitContentFilter, Guild, Member, MemberFlags, MfaLevel, NSFWLevel, PartialMember,
+        Permissions, PremiumTier, Role, RoleFlags, SystemChannelFlags, VerificationLevel,
     },
     id::{
-        marker::{ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, StickerMarker, UserMarker},
+        marker::{
+            ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, ScheduledEventMarker,
+            StickerMarker, UserMarker,
+        },
         Id,
     },
     user::{CurrentUser, User},
@@ -436,5 +439,30 @@ pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
         voice_states: Vec::new(),
         widget_channel_id: None,
         widget_enabled: None,
+    }
+}
+
+pub fn guild_schduled_event(
+    id: Id<ScheduledEventMarker>,
+    guild_id: Id<GuildMarker>,
+    user_count: Option<u64>,
+) -> GuildScheduledEvent {
+    GuildScheduledEvent {
+        channel_id: None,
+        creator: None,
+        creator_id: None,
+        description: None,
+        entity_id: None,
+        entity_metadata: None,
+        entity_type: EntityType::External,
+        guild_id,
+        id,
+        image: None,
+        name: "test".to_owned(),
+        privacy_level: PrivacyLevel::GuildOnly,
+        scheduled_end_time: None,
+        scheduled_start_time: Timestamp::from_secs(789).unwrap(),
+        status: Status::Completed,
+        user_count,
     }
 }
