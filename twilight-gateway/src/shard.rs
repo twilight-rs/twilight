@@ -327,8 +327,8 @@ impl<Q> Shard<Q> {
         let session = config.take_session();
         let mut resume_url = config.take_resume_url();
         //ensure resume_url is only used if we have a session to resume
-        if session.is_none(){
-            resume_url=None;
+        if session.is_none() {
+            resume_url = None;
         }
 
         Self {
