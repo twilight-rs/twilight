@@ -57,6 +57,8 @@ pub struct Config<Q = InMemoryQueue> {
     ///
     /// [outgoing message]: crate::Shard::send
     ratelimit_messages: bool,
+    /// URL to connect to if the shard resumes on initialization.
+    resume_url:Option<Box<str>>,
     /// Session information to resume a shard on initialization.
     session: Option<Session>,
     /// TLS connector for Websocket connections.
@@ -130,6 +132,11 @@ impl<Q> Config<Q> {
         &self.token.inner
     }
 
+    /// Url to connect to if the shard resumes on initialization.
+    pub(crate) fn take_resume_url(&mut self) -> Option<Box<str>> {
+        self.resume_url.take()
+    }
+
     /// Session information to resume a shard on initialization.
     pub(crate) fn take_session(&mut self) -> Option<Session> {
         self.session.take()
@@ -166,6 +173,7 @@ impl ConfigBuilder {
                 proxy_url: None,
                 queue: InMemoryQueue::default(),
                 ratelimit_messages: true,
+                resume_url: None,
                 session: None,
                 tls: Arc::new(Connector::new().unwrap()),
                 token: Token::new(token.into_boxed_str()),
@@ -321,6 +329,7 @@ impl<Q> ConfigBuilder<Q> {
             proxy_url,
             queue: _,
             ratelimit_messages,
+            resume_url,
             session,
             tls,
             token,
@@ -335,6 +344,7 @@ impl<Q> ConfigBuilder<Q> {
                 proxy_url,
                 queue,
                 ratelimit_messages,
+                resume_url,
                 session,
                 tls,
                 token,
@@ -350,6 +360,18 @@ impl<Q> ConfigBuilder<Q> {
     /// Defaults to being enabled.
     pub const fn ratelimit_messages(mut self, ratelimit_messages: bool) -> Self {
         self.inner.ratelimit_messages = ratelimit_messages;
+
+        self
+    }
+
+    /// Set the resume URL to use when the initial shard connection resumes an old session.
+    ///
+    /// This is only used if the initial shard connection resumes instead of identifying and only affects the first session.
+    ///
+    /// This only has an effect if [`session`] is also set.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn resume_url(mut self, resume_url:String) -> Self{
+        self.inner.resume_url=Some(resume_url.into_boxed_str());
 
         self
     }

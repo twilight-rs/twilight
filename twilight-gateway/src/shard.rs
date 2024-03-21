@@ -325,6 +325,7 @@ impl<Q> Shard<Q> {
     /// Create a new shard with the provided configuration.
     pub fn with_config(shard_id: ShardId, mut config: Config<Q>) -> Self {
         let session = config.take_session();
+        let resume_url = config.take_resume_url();
 
         Self {
             config,
@@ -339,7 +340,7 @@ impl<Q> Shard<Q> {
             pending: None,
             latency: Latency::new(),
             ratelimiter: None,
-            resume_url: None,
+            resume_url,
             session,
             state: ShardState::Disconnected {
                 reconnect_attempts: 0,
@@ -388,6 +389,13 @@ impl<Q> Shard<Q> {
     /// [`ConfigBuilder::ratelimit_messages`]: crate::ConfigBuilder::ratelimit_messages
     pub const fn ratelimiter(&self) -> Option<&CommandRatelimiter> {
         self.ratelimiter.as_ref()
+    }
+
+    /// Immutable reference to the gateways current resume URL.
+    ///
+    /// A resume URL might not be present if the shard had its session invalidated and has not yet reconnected.
+    pub fn resume_url(&self) -> Option<&str> {
+        self.resume_url.as_deref()
     }
 
     /// Immutable reference to the active gateway session.
