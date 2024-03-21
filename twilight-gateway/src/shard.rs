@@ -325,7 +325,11 @@ impl<Q> Shard<Q> {
     /// Create a new shard with the provided configuration.
     pub fn with_config(shard_id: ShardId, mut config: Config<Q>) -> Self {
         let session = config.take_session();
-        let resume_url = config.take_resume_url();
+        let mut resume_url = config.take_resume_url();
+        //ensure resume_url is only used if we have a session to resume
+        if session.is_none(){
+            resume_url=None;
+        }
 
         Self {
             config,
