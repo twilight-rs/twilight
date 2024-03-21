@@ -23,3 +23,6 @@ pub mod permission_calculator;
 
 #[cfg(feature = "snowflake")]
 pub mod snowflake;
+
+#[cfg(feature = "signature-validation")]
+pub mod signature_validation;
