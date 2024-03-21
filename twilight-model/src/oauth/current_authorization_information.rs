@@ -97,6 +97,7 @@ mod tests {
                 team: None,
                 terms_of_service_url: None,
                 verify_key: "a".to_owned(),
+                integration_types_config: None,
             },
             expires: Timestamp::parse("2023-01-09T17:19:44.000000+00:00")?,
             scopes: Vec::from([scope::APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE.to_owned()]),

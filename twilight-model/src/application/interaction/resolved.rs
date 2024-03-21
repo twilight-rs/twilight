@@ -236,6 +236,7 @@ mod tests {
                     timestamp,
                     tts: false,
                     webhook_id: None,
+                    interaction_metadata: None,
                 },
             )])
             .collect(),

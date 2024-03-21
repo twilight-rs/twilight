@@ -8,11 +8,15 @@ pub mod application_command;
 pub mod message_component;
 pub mod modal;
 
+mod context_type;
 mod interaction_type;
+mod metadata;
 mod resolved;
 
 pub use self::{
+    context_type::InteractionContextType,
     interaction_type::InteractionType,
+    metadata::InteractionMetadata,
     resolved::{InteractionChannel, InteractionDataResolved, InteractionMember},
 };
 
@@ -25,8 +29,9 @@ use crate::{
     guild::{PartialMember, Permissions},
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
-        Id,
+        AnonymizableId, Id,
     },
+    oauth::ApplicationIntegrationMap,
     user::User,
 };
 use serde::{
@@ -44,12 +49,11 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Interaction {
     /// App's permissions in the channel the interaction was sent from.
-    ///
-    /// Present when the interaction is invoked in a guild.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub app_permissions: Option<Permissions>,
+    pub app_permissions: Permissions,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
+    pub authorizing_integration_owners:
+        ApplicationIntegrationMap<AnonymizableId<GuildMarker>, Id<UserMarker>>,
     /// The channel the interaction was invoked in.
     ///
     /// Present on all interactions types, except [`Ping`].
@@ -187,6 +191,7 @@ enum InteractionField {
     Type,
     User,
     Version,
+    AuthorizingIntegrationOwners,
 }
 
 struct InteractionVisitor;
@@ -214,6 +219,9 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut message: Option<Message> = None;
         let mut token: Option<String> = None;
         let mut user: Option<User> = None;
+        let mut authorizing_integration_owners: Option<
+            ApplicationIntegrationMap<AnonymizableId<GuildMarker>, Id<UserMarker>>,
+        > = None;
 
         loop {
             let key = match map.next_key() {
@@ -329,11 +337,22 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     // Ignoring the version field.
                     map.next_value::<IgnoredAny>()?;
                 }
+                InteractionField::AuthorizingIntegrationOwners => {
+                    if authorizing_integration_owners.is_some() {
+                        return Err(DeError::duplicate_field("authorizing_integration_owners"));
+                    }
+
+                    authorizing_integration_owners = map.next_value()?;
+                }
             }
         }
 
+        let app_permissions =
+            app_permissions.ok_or_else(|| DeError::missing_field("app_permissions"))?;
         let application_id =
             application_id.ok_or_else(|| DeError::missing_field("application_id"))?;
+        let authorizing_integration_owners = authorizing_integration_owners
+            .ok_or_else(|| DeError::missing_field("authorizing_integration_owners"))?;
         let id = id.ok_or_else(|| DeError::missing_field("id"))?;
         let token = token.ok_or_else(|| DeError::missing_field("token"))?;
         let kind = kind.ok_or_else(|| DeError::missing_field("kind"))?;
@@ -389,6 +408,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             message,
             token,
             user,
+            authorizing_integration_owners,
         })
     }
 }
@@ -425,6 +445,7 @@ mod tests {
         channel::Channel,
         guild::{MemberFlags, PartialMember, Permissions},
         id::Id,
+        oauth::ApplicationIntegrationMap,
         test::image_hash,
         user::User,
         util::datetime::{Timestamp, TimestampParseError},
@@ -439,7 +460,7 @@ mod tests {
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Interaction {
-            app_permissions: Some(Permissions::SEND_MESSAGES),
+            app_permissions: Permissions::SEND_MESSAGES,
             application_id: Id::new(100),
             channel: Some(Channel {
                 bitrate: None,
@@ -573,6 +594,10 @@ mod tests {
             message: None,
             token: "interaction token".into(),
             user: None,
+            authorizing_integration_owners: ApplicationIntegrationMap {
+                guild: None,
+                user: None,
+            },
         };
 
         // TODO: switch the `assert_tokens` see #2190
@@ -581,10 +606,9 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Interaction",
-                    len: 12,
+                    len: 13,
                 },
                 Token::Str("app_permissions"),
-                Token::Some,
                 Token::Str("2048"),
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -771,6 +795,16 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("token"),
                 Token::Str("interaction token"),
+                Token::Str("authorizing_integration_owners"),
+                Token::Struct {
+                    name: "ApplicationIntegrationMap",
+                    len: 2,
+                },
+                Token::Str("guild"),
+                Token::None,
+                Token::Str("user"),
+                Token::None,
+                Token::StructEnd,
                 Token::StructEnd,
             ],
         );

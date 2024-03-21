@@ -43,7 +43,7 @@ use crate::{
         Id,
     },
     user::User,
-    util::Timestamp,
+    util::Timestamp, application::interaction::InteractionMetadata,
 };
 use serde::{Deserialize, Serialize};
 
@@ -133,8 +133,11 @@ pub struct Message {
     /// Id of the message.
     pub id: Id<MessageMarker>,
     /// Interaction the message was sent as a response to.
+    #[deprecated(note = "use interaction_metadata instead")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interaction: Option<MessageInteraction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub interaction_metadata: Option<Box<InteractionMetadata>>,
     /// Type of message.
     #[serde(rename = "type")]
     pub kind: MessageType,
@@ -284,6 +287,7 @@ mod tests {
             thread: None,
             tts: false,
             webhook_id: None,
+            interaction_metadata: None,
         };
 
         serde_test::assert_tokens(
@@ -509,6 +513,7 @@ mod tests {
             thread: None,
             tts: false,
             webhook_id: Some(Id::new(1)),
+            interaction_metadata: None,
         };
 
         serde_test::assert_tokens(
