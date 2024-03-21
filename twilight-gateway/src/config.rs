@@ -58,7 +58,7 @@ pub struct Config<Q = InMemoryQueue> {
     /// [outgoing message]: crate::Shard::send
     ratelimit_messages: bool,
     /// URL to connect to if the shard resumes on initialization.
-    resume_url:Option<Box<str>>,
+    resume_url: Option<Box<str>>,
     /// Session information to resume a shard on initialization.
     session: Option<Session>,
     /// TLS connector for Websocket connections.
@@ -368,10 +368,10 @@ impl<Q> ConfigBuilder<Q> {
     ///
     /// This is only used if the initial shard connection resumes instead of identifying and only affects the first session.
     ///
-    /// This only has an effect if [`session`] is also set.
+    /// This only has an effect if [`ConfigBuilder::session`] is also set.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn resume_url(mut self, resume_url:String) -> Self{
-        self.inner.resume_url=Some(resume_url.into_boxed_str());
+    pub fn resume_url(mut self, resume_url: String) -> Self {
+        self.inner.resume_url = Some(resume_url.into_boxed_str());
 
         self
     }

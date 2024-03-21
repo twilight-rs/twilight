@@ -393,7 +393,8 @@ impl<Q> Shard<Q> {
 
     /// Immutable reference to the gateways current resume URL.
     ///
-    /// A resume URL might not be present if the shard had its session invalidated and has not yet reconnected.
+    /// A resume URL might not be present if the shard had its session
+    /// invalidated and has not yet reconnected.
     pub fn resume_url(&self) -> Option<&str> {
         self.resume_url.as_deref()
     }
