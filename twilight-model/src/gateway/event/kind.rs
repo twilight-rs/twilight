@@ -83,6 +83,7 @@ pub enum EventType {
     TypingStart,
     UnavailableGuild,
     UserUpdate,
+    VoiceChannelEffectSend,
     VoiceServerUpdate,
     VoiceStateUpdate,
     WebhooksUpdate,
@@ -150,6 +151,7 @@ impl EventType {
             Self::TypingStart => Some("TYPING_START"),
             Self::UnavailableGuild => Some("UNAVAILABLE_GUILD"),
             Self::UserUpdate => Some("USER_UPDATE"),
+            Self::VoiceChannelEffectSend => Some("VOICE_CHANNEL_EFFECT_SEND"),
             Self::VoiceServerUpdate => Some("VOICE_SERVER_UPDATE"),
             Self::VoiceStateUpdate => Some("VOICE_STATE_UPDATE"),
             Self::WebhooksUpdate => Some("WEBHOOKS_UPDATE"),
@@ -226,6 +228,7 @@ impl<'a> TryFrom<&'a str> for EventType {
             "TYPING_START" => Ok(Self::TypingStart),
             "UNAVAILABLE_GUILD" => Ok(Self::UnavailableGuild),
             "USER_UPDATE" => Ok(Self::UserUpdate),
+            "VOICE_CHANNEL_EFFECT_SEND" => Ok(Self::VoiceChannelEffectSend),
             "VOICE_SERVER_UPDATE" => Ok(Self::VoiceServerUpdate),
             "VOICE_STATE_UPDATE" => Ok(Self::VoiceStateUpdate),
             "WEBHOOKS_UPDATE" => Ok(Self::WebhooksUpdate),
@@ -358,6 +361,10 @@ mod tests {
         assert_variant(EventType::TypingStart, "TYPING_START");
         assert_variant(EventType::UnavailableGuild, "UNAVAILABLE_GUILD");
         assert_variant(EventType::UserUpdate, "USER_UPDATE");
+        assert_variant(
+            EventType::VoiceChannelEffectSend,
+            "VOICE_CHANNEL_EFFECT_SEND",
+        );
         assert_variant(EventType::VoiceServerUpdate, "VOICE_SERVER_UPDATE");
         assert_variant(EventType::VoiceStateUpdate, "VOICE_STATE_UPDATE");
         assert_variant(EventType::WebhooksUpdate, "WEBHOOKS_UPDATE");
