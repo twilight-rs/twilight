@@ -102,7 +102,6 @@ mod tests {
         gateway::payload::incoming::{
             GuildScheduledEventCreate, GuildScheduledEventUserAdd, GuildScheduledEventUserRemove,
         },
-        guild::scheduled_event::GuildScheduledEvent,
         id::Id,
     };
 
