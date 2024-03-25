@@ -1,5 +1,11 @@
 use twilight_cache_inmemory::traits::CacheableGuildScheduledEvent;
-use twilight_model::{id::{marker::{GuildMarker, ScheduledEventMarker}, Id}, guild::scheduled_event::GuildScheduledEvent};
+use twilight_model::{
+    guild::scheduled_event::GuildScheduledEvent,
+    id::{
+        marker::{GuildMarker, ScheduledEventMarker},
+        Id,
+    },
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct MinimalGuildScheduledEvent {
@@ -10,7 +16,11 @@ pub struct MinimalGuildScheduledEvent {
 
 impl From<GuildScheduledEvent> for MinimalGuildScheduledEvent {
     fn from(event: GuildScheduledEvent) -> Self {
-        Self { guild_id: event.guild_id, id: event.id, user_count: event.user_count }
+        Self {
+            guild_id: event.guild_id,
+            id: event.id,
+            user_count: event.user_count,
+        }
     }
 }
 
