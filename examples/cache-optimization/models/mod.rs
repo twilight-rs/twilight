@@ -8,6 +8,7 @@ pub mod current_user;
 pub mod emoji;
 pub mod guild;
 pub mod guild_integration;
+pub mod guild_scheduled_events;
 pub mod member;
 pub mod message;
 pub mod presence;
@@ -16,7 +17,6 @@ pub mod stage_instance;
 pub mod sticker;
 pub mod user;
 pub mod voice_state;
-pub mod guild_scheduled_events;
 
 #[derive(Clone, Debug)]
 pub struct CustomCacheModels;

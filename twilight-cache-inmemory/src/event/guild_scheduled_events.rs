@@ -99,7 +99,9 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildScheduledEv
 mod tests {
     use crate::{test, DefaultInMemoryCache};
     use twilight_model::{
-        gateway::payload::incoming::{GuildScheduledEventCreate, GuildScheduledEventUserAdd, GuildScheduledEventUserRemove},
+        gateway::payload::incoming::{
+            GuildScheduledEventCreate, GuildScheduledEventUserAdd, GuildScheduledEventUserRemove,
+        },
         guild::scheduled_event::GuildScheduledEvent,
         id::Id,
     };
@@ -118,9 +120,15 @@ mod tests {
             Some(41),
         )));
 
-        assert_eq!(1, cache.guild_scheduled_events.get(&guild_id).unwrap().len());
+        assert_eq!(
+            1,
+            cache.guild_scheduled_events.get(&guild_id).unwrap().len()
+        );
         assert_eq!(1, cache.scheduled_events.len());
-        assert_eq!(41, cache.scheduled_events.get(&id).unwrap().user_count.unwrap());
+        assert_eq!(
+            41,
+            cache.scheduled_events.get(&id).unwrap().user_count.unwrap()
+        );
 
         cache.update(&GuildScheduledEventUserAdd {
             guild_id,
@@ -128,7 +136,10 @@ mod tests {
             user_id,
         });
 
-        assert_eq!(42, cache.scheduled_events.get(&id).unwrap().user_count.unwrap());
+        assert_eq!(
+            42,
+            cache.scheduled_events.get(&id).unwrap().user_count.unwrap()
+        );
 
         cache.update(&GuildScheduledEventUserRemove {
             guild_id,
@@ -136,6 +147,9 @@ mod tests {
             user_id,
         });
 
-        assert_eq!(41, cache.scheduled_events.get(&id).unwrap().user_count.unwrap());
+        assert_eq!(
+            41,
+            cache.scheduled_events.get(&id).unwrap().user_count.unwrap()
+        );
     }
 }

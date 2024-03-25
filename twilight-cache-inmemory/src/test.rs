@@ -12,9 +12,10 @@ use twilight_model::{
         GatewayReaction,
     },
     guild::{
-        scheduled_event::{GuildScheduledEvent, EntityType, PrivacyLevel, Status}, AfkTimeout, DefaultMessageNotificationLevel, Emoji,
-        ExplicitContentFilter, Guild, Member, MemberFlags, MfaLevel, NSFWLevel, PartialMember,
-        Permissions, PremiumTier, Role, RoleFlags, SystemChannelFlags, VerificationLevel,
+        scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
+        AfkTimeout, DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member,
+        MemberFlags, MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role, RoleFlags,
+        SystemChannelFlags, VerificationLevel,
     },
     id::{
         marker::{
