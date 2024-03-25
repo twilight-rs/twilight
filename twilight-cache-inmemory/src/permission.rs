@@ -727,6 +727,7 @@ mod tests {
             emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::AllMembers,
             features: Vec::new(),
+            guild_scheduled_events: Vec::new(),
             icon: None,
             joined_at: None,
             large: false,
