@@ -17,6 +17,9 @@ version = "0.16.0-rc.1"
 dashmap = { default-features = false, version = "5.3" }
 futures-util = { default-features = false, features = ["bilock", "sink", "std", "unstable"], version = "0.3" }
 http = { default-features = false, version = "1" }
+hyper = { default-features = false, features = ["client", "http1", "http2"], version = "1" }
+hyper-util = { default-features = false, features = ["client-legacy", "client", "http1", "http2", "tokio"], version = "0.1" }
+http-body-util = "0.1"
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
@@ -42,6 +45,7 @@ http-support = ["dep:percent-encoding"]
 native-tls = ["tokio-websockets/native-tls", "tokio-websockets/openssl"]
 rustls-native-roots = ["tokio-websockets/ring", "tokio-websockets/rustls-native-roots"]
 rustls-webpki-roots = ["tokio-websockets/ring", "tokio-websockets/rustls-webpki-roots"]
+lavalink-protocol-http2 = []
 
 [package.metadata.docs.rs]
 all-features = true

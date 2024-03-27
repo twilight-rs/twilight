@@ -10,6 +10,10 @@ use twilight_gateway::{
 };
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
+    http::LoadResultData::{Playlist, Search, Track},
+    model::{Equalizer, EqualizerBand},
+};
+use twilight_lavalink::{
     http::LoadedTracks,
     model::{Destroy, Pause, Play, Seek, Stop, Volume},
     Lavalink,
@@ -96,6 +100,7 @@ async fn main() -> anyhow::Result<()> {
                 Some("!seek") => spawn(seek(msg.0, Arc::clone(&state))),
                 Some("!stop") => spawn(stop(msg.0, Arc::clone(&state))),
                 Some("!volume") => spawn(volume(msg.0, Arc::clone(&state))),
+                Some("!equalize") => spawn(equalize(msg.0, Arc::clone(&state))),
                 _ => continue,
             }
         }
@@ -194,24 +199,69 @@ async fn play(msg: Message, state: State) -> anyhow::Result<()> {
 
     let loaded = serde_json::from_slice::<LoadedTracks>(&response_bytes)?;
 
-    if let Some(track) = loaded.tracks.first() {
-        player.send(Play::from((guild_id, &track.track)))?;
+    match loaded.data {
+        Track(track) => {
+            player.send(Play::from((guild_id, &track.encoded)))?;
 
-        let content = format!(
-            "Playing **{:?}** by **{:?}**",
-            track.info.title, track.info.author
-        );
-        state
-            .http
-            .create_message(msg.channel_id)
-            .content(&content)
-            .await?;
-    } else {
-        state
-            .http
-            .create_message(msg.channel_id)
-            .content("Didn't find any results")
-            .await?;
+            let content = format!(
+                "Playing **{:?}** by **{:?}**",
+                track.info.title, track.info.author
+            );
+            state
+                .http
+                .create_message(msg.channel_id)
+                .content(&content)
+                .await?;
+        }
+        Playlist(playlist) => {
+            if let Some(top_track) = playlist.tracks.first() {
+                player.send(Play::from((guild_id, &top_track.encoded)))?;
+
+                let content = format!(
+                    "Playing **{:?}** by **{:?}**",
+                    top_track.info.title, top_track.info.author
+                );
+                state
+                    .http
+                    .create_message(msg.channel_id)
+                    .content(&content)
+                    .await?;
+            }
+
+            state
+                .http
+                .create_message(msg.channel_id)
+                .content("Didn't find any playlist results")
+                .await?;
+        }
+        Search(result) => {
+            if let Some(first_result) = result.first() {
+                player.send(Play::from((guild_id, &first_result.encoded)))?;
+
+                let content = format!(
+                    "Playing **{:?}** by **{:?}**",
+                    first_result.info.title, first_result.info.author
+                );
+                state
+                    .http
+                    .create_message(msg.channel_id)
+                    .content(&content)
+                    .await?;
+            }
+
+            state
+                .http
+                .create_message(msg.channel_id)
+                .content("Didn't find any search results")
+                .await?;
+        }
+        _ => {
+            state
+                .http
+                .create_message(msg.channel_id)
+                .content("Didn't find any results")
+                .await?;
+        }
     }
 
     Ok(())
@@ -269,6 +319,57 @@ async fn seek(msg: Message, state: State) -> anyhow::Result<()> {
         .http
         .create_message(msg.channel_id)
         .content(&format!("Seeked to {position}s"))
+        .await?;
+
+    Ok(())
+}
+
+async fn equalize(msg: Message, state: State) -> anyhow::Result<()> {
+    tracing::debug!(
+        "equalize command in channel {} by {}",
+        msg.channel_id,
+        msg.author.name
+    );
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content("What band do you want to equalize (0-14)?")
+        .await?;
+
+    let author_id = msg.author.id;
+    let band_msg = state
+        .standby
+        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
+            new_msg.author.id == author_id
+        })
+        .await?;
+    let guild_id = msg.guild_id.unwrap();
+    let band = band_msg.content.parse::<i64>()?;
+
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content("What gain do you want to equalize (-0.25 to 1.0)?")
+        .await?;
+
+    let gain_msg = state
+        .standby
+        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
+            new_msg.author.id == author_id
+        })
+        .await?;
+    let gain = gain_msg.content.parse::<f64>()?;
+
+    let player = state.lavalink.player(guild_id).await.unwrap();
+    player.send(Equalizer::from((
+        guild_id,
+        vec![EqualizerBand::new(band, gain)],
+    )))?;
+
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content(&format!("Changed gain level to {gain} on band {band}."))
         .await?;
 
     Ok(())
