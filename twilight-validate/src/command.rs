@@ -149,6 +149,9 @@ impl Display for CommandValidationError {
 
                 f.write_str(" characters")
             }
+            CommandValidationErrorType::DescriptionNotAllowed => f.write_str(
+                "command description must be a empty string on message and user commands",
+            ),
             CommandValidationErrorType::NameLengthInvalid => {
                 f.write_str("command name must be between ")?;
                 Display::fmt(&NAME_LENGTH_MIN, f)?;
@@ -251,6 +254,8 @@ pub enum CommandValidationErrorType {
     },
     /// Command description is invalid.
     DescriptionInvalid,
+    /// Command description must be a empty string.
+    DescriptionNotAllowed,
     /// Command name length is invalid.
     NameLengthInvalid,
     /// Command name contain an invalid character.
@@ -327,7 +332,7 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
         }
     } else if !description.is_empty() {
         return Err(CommandValidationError {
-            kind: CommandValidationErrorType::DescriptionInvalid,
+            kind: CommandValidationErrorType::DescriptionNotAllowed,
         });
     };
 
