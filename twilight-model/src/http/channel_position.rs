@@ -7,7 +7,8 @@ use crate::id::{marker::ChannelMarker, Id};
 /// Used to update the position of channels over HTTP.
 ///
 /// ## Note:
-/// The fields with `Option<Option<T>>` Will be `null` if they have
+///
+/// The fields with `Option<Option<T>>` will be `null` if they have
 /// the form `Some(None)`, `None` will be skipped.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Position {
