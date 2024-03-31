@@ -52,7 +52,6 @@ use crate::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
             },
-            update_guild_channel_positions::Position,
             update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingFields},
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
@@ -102,7 +101,7 @@ use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::AllowedMentions, ChannelType},
     guild::{auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel},
-    http::permission_overwrite::PermissionOverwrite,
+    http::{channel_position::Position, permission_overwrite::PermissionOverwrite},
     id::{
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker, GuildMarker,
@@ -959,9 +958,6 @@ impl Client {
     /// Modify the positions of the channels.
     ///
     /// The minimum amount of channels to modify, is a swap between two channels.
-    ///
-    /// This function accepts an `Iterator` of `(Id<ChannelMarker>, u64)`. It also
-    /// accepts an `Iterator` of `Position`, which has extra fields.
     pub const fn update_guild_channel_positions<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,
