@@ -1,20 +1,60 @@
-use crate::guild::Guild;
+use crate::{
+    guild::{Guild, UnavailableGuild},
+    id::{marker::GuildMarker, Id},
+};
 use serde::{Deserialize, Serialize};
-use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct GuildCreate(pub Guild);
+#[serde(untagged)]
+pub enum GuildCreate {
+    Available(Guild),
+    Unavailable(UnavailableGuild),
+}
 
-impl Deref for GuildCreate {
-    type Target = Guild;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl GuildCreate {
+    /// Extract guild id.
+    pub const fn id(&self) -> Id<GuildMarker> {
+        match self {
+            GuildCreate::Available(g) => g.id,
+            GuildCreate::Unavailable(g) => g.id,
+        }
     }
 }
 
-impl DerefMut for GuildCreate {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+#[cfg(test)]
+mod tests {
+    use serde_test::Token;
+
+    use crate::{guild::UnavailableGuild, id::Id};
+
+    use super::GuildCreate;
+
+    #[test]
+    fn unavailable_guild() {
+        let expected = GuildCreate::Unavailable(UnavailableGuild {
+            id: Id::new(1234),
+            unavailable: true,
+        });
+
+        // Note: This looks a bit strange because it does not use
+        //       Token::TupleVariant, this is because it will
+        //       serialize back into a struct, and thus make it
+        //       fails. This also tests that the enum is transparent
+        //       for serde.
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "UnavailableGuild",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1234"),
+                Token::Str("unavailable"),
+                Token::Bool(true),
+                Token::StructEnd,
+            ],
+        );
     }
 }

@@ -183,7 +183,7 @@ impl Event {
             Event::ChannelUpdate(e) => e.0.guild_id,
             Event::CommandPermissionsUpdate(e) => Some(e.0.guild_id),
             Event::GuildAuditLogEntryCreate(e) => e.0.guild_id,
-            Event::GuildCreate(e) => Some(e.0.id),
+            Event::GuildCreate(e) => Some(e.id()),
             Event::GuildDelete(e) => Some(e.id),
             Event::GuildEmojisUpdate(e) => Some(e.guild_id),
             Event::GuildIntegrationsUpdate(e) => Some(e.guild_id),

@@ -136,7 +136,12 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
 impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildCreate {
     fn update(&self, cache: &InMemoryCache<CacheModels>) {
-        cache.cache_guild(self.0.clone());
+        match self {
+            GuildCreate::Available(g) => cache.cache_guild(g.clone()),
+            GuildCreate::Unavailable(g) => {
+                cache.unavailable_guilds.insert(g.id);
+            }
+        }
     }
 }
 
@@ -350,7 +355,7 @@ mod tests {
         let cache = DefaultInMemoryCache::new();
         let guild = test::guild(Id::new(1), None);
 
-        cache.update(&GuildCreate(guild.clone()));
+        cache.update(&GuildCreate::Available(guild.clone()));
 
         let mutation = PartialGuild {
             id: guild.id,
@@ -406,7 +411,7 @@ mod tests {
         let member = test::member(user_id);
         let guild = test::guild(guild_id, Some(1));
 
-        cache.update(&GuildCreate(guild));
+        cache.update(&GuildCreate::Available(guild));
         cache.update(&MemberAdd { guild_id, member });
 
         assert_eq!(cache.guild(guild_id).unwrap().member_count, Some(2));
@@ -425,7 +430,7 @@ mod tests {
         let mut guild = test::guild(guild_id, Some(1));
         guild.members.push(member);
 
-        cache.update(&GuildCreate(guild.clone()));
+        cache.update(&GuildCreate::Available(guild.clone()));
 
         assert_eq!(
             1,
@@ -446,7 +451,7 @@ mod tests {
         );
         assert!(cache.guild(guild_id).unwrap().unavailable);
 
-        cache.update(&GuildCreate(guild));
+        cache.update(&GuildCreate::Available(guild));
 
         assert_eq!(
             1,
