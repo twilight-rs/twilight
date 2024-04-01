@@ -61,7 +61,7 @@ use twilight_util::permission_calculator::PermissionCalculator;
 /// Refer to the [module level] documentation for more information on how
 /// disabled member communication is calculated.
 ///
-/// [communication has been disabled]: crate::MemberInterface::communication_disabled_until
+/// [communication has been disabled]: crate::model::CachedMember::communication_disabled_until
 /// [module level]: crate::permission
 pub const MEMBER_COMMUNICATION_DISABLED_ALLOWLIST: Permissions = Permissions::from_bits_truncate(
     Permissions::READ_MESSAGE_HISTORY.bits() | Permissions::VIEW_CHANNEL.bits(),
@@ -334,7 +334,7 @@ impl<'a, CacheModels: CacheableModels> InMemoryCachePermissions<'a, CacheModels>
     ///
     /// Defaults to being enabled.
     ///
-    /// [field]: crate::MemberInterface::communication_disabled_until
+    /// [field]: crate::model::CachedMember::communication_disabled_until
     /// [module level]: crate::permission
     pub const fn check_member_communication_disabled(
         mut self,
@@ -394,7 +394,7 @@ impl<'a, CacheModels: CacheableModels> InMemoryCachePermissions<'a, CacheModels>
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
     /// [`ResourceType`]: crate::ResourceType
-    /// [communication has been disabled]: crate::MemberInterface::communication_disabled_until
+    /// [communication has been disabled]: crate::model::CachedMember::communication_disabled_until
     /// [module level]: crate::permission
     /// [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
     pub fn in_channel(
@@ -484,7 +484,7 @@ impl<'a, CacheModels: CacheableModels> InMemoryCachePermissions<'a, CacheModels>
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
     /// [`ResourceType`]: crate::ResourceType
-    /// [communication has been disabled]: crate::MemberInterface::communication_disabled_until
+    /// [communication has been disabled]: crate::model::CachedMember::communication_disabled_until
     /// [module level]: crate::permission
     /// [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
     pub fn root(

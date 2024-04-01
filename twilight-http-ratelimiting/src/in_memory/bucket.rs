@@ -40,6 +40,8 @@ pub struct Bucket {
     /// Total number of tickets allotted in a cycle.
     pub limit: AtomicU64,
     /// Path this ratelimit applies to.
+    // This is dead code, but it is useful for debugging.
+    #[allow(dead_code)]
     pub path: Path,
     /// Queue associated with this bucket.
     pub queue: BucketQueue,
