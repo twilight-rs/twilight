@@ -12,7 +12,7 @@ pub enum GuildCreate {
 }
 
 impl GuildCreate {
-    /// Extract guild id.
+    /// ID of the guild.
     pub const fn id(&self) -> Id<GuildMarker> {
         match self {
             GuildCreate::Available(g) => g.id,
@@ -36,11 +36,8 @@ mod tests {
             unavailable: true,
         });
 
-        // Note: This looks a bit strange because it does not use
-        //       Token::TupleVariant, this is because it will
-        //       serialize back into a struct, and thus make it
-        //       fails. This also tests that the enum is transparent
-        //       for serde.
+        // Note: serde(untagged) makes the enum transparent which is
+        //       the reason we don't use the variant here.
         serde_test::assert_tokens(
             &expected,
             &[

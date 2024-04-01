@@ -1088,7 +1088,7 @@ mod tests {
             everyone_permissions,
         )]);
 
-        cache.update(&GuildCreate::Availableg(guild));
+        cache.update(&GuildCreate::Available(guild));
         let mut member = test::member(USER_ID);
         member.communication_disabled_until = Some(in_future);
         cache.update(&MemberAdd {
