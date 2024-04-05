@@ -273,8 +273,8 @@ bitflags! {
         /// [`Intents::GUILD_MESSAGES`]: crate::Intents::GUILD_MESSAGES
         const GUILD_MESSAGES = Self::MESSAGE_CREATE.bits()
             | Self::MESSAGE_DELETE.bits()
-            | Self::MESSAGE_DELETE.bits()
-            | Self::MESSAGE_DELETE_BULK.bits();
+            | Self::MESSAGE_DELETE_BULK.bits()
+            | Self::MESSAGE_UPDATE.bits();
 
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_REACTIONS`].
         ///
