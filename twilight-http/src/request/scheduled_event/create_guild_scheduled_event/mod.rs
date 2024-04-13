@@ -11,7 +11,7 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request, RequestBuilder},
+    request::{AuditLogReason, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -80,8 +80,8 @@ struct CreateGuildScheduledEventFields<'a> {
 ///         channel_id,
 ///         "Garfield Appreciation Hour",
 ///         &garfield_start_time,
-///     )?
-///     .description("Discuss: How important is Garfield to You?")?
+///     )
+///     .description("Discuss: How important is Garfield to You?")
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -105,11 +105,11 @@ struct CreateGuildScheduledEventFields<'a> {
 ///         "Baltimore Convention Center",
 ///         &garfield_con_start_time,
 ///         &garfield_con_end_time,
-///     )?
+///     )
 ///     .description(
 ///         "In a spiritual successor to BronyCon, Garfield fans from \
 /// around the globe celebrate all things related to the loveable cat.",
-///     )?
+///     )
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -118,8 +118,8 @@ struct CreateGuildScheduledEventFields<'a> {
 pub struct CreateGuildScheduledEvent<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    fields: CreateGuildScheduledEventFields<'a>,
-    reason: Option<&'a str>,
+    fields: Result<CreateGuildScheduledEventFields<'a>, ValidationError>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateGuildScheduledEvent<'a> {
@@ -131,7 +131,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         Self {
             guild_id,
             http,
-            fields: CreateGuildScheduledEventFields {
+            fields: Ok(CreateGuildScheduledEventFields {
                 channel_id: None,
                 description: None,
                 entity_metadata: None,
@@ -141,8 +141,8 @@ impl<'a> CreateGuildScheduledEvent<'a> {
                 privacy_level: Some(privacy_level),
                 scheduled_end_time: None,
                 scheduled_start_time: None,
-            },
-            reason: None,
+            }),
+            reason: Ok(None),
         }
     }
 
@@ -156,21 +156,27 @@ impl<'a> CreateGuildScheduledEvent<'a> {
     ///
     /// [`ScheduledEventName`]: twilight_validate::request::ValidationErrorType::ScheduledEventName
     pub fn external(
-        self,
+        mut self,
         name: &'a str,
         location: &'a str,
         scheduled_start_time: &'a Timestamp,
         scheduled_end_time: &'a Timestamp,
-    ) -> Result<CreateGuildExternalScheduledEvent<'a>, ValidationError> {
-        validate_scheduled_event_name(name)?;
+    ) -> CreateGuildExternalScheduledEvent<'a> {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_scheduled_event_name(name)?;
 
-        Ok(CreateGuildExternalScheduledEvent::new(
+            fields.name.replace(name);
+
+            Ok(fields)
+        });
+
+        CreateGuildExternalScheduledEvent::new(
             self,
             name,
             location,
             scheduled_start_time,
             scheduled_end_time,
-        ))
+        )
     }
 
     /// Create a stage instance scheduled event in a guild.
@@ -183,19 +189,19 @@ impl<'a> CreateGuildScheduledEvent<'a> {
     ///
     /// [`ScheduledEventName`]: twilight_validate::request::ValidationErrorType::ScheduledEventName
     pub fn stage_instance(
-        self,
+        mut self,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
-    ) -> Result<CreateGuildStageInstanceScheduledEvent<'a>, ValidationError> {
-        validate_scheduled_event_name(name)?;
+    ) -> CreateGuildStageInstanceScheduledEvent<'a> {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_scheduled_event_name(name)?;
+            fields.name.replace(name);
 
-        Ok(CreateGuildStageInstanceScheduledEvent::new(
-            self,
-            channel_id,
-            name,
-            scheduled_start_time,
-        ))
+            Ok(fields)
+        });
+
+        CreateGuildStageInstanceScheduledEvent::new(self, channel_id, name, scheduled_start_time)
     }
 
     /// Create a voice channel scheduled event in a guild.
@@ -208,19 +214,19 @@ impl<'a> CreateGuildScheduledEvent<'a> {
     ///
     /// [`ScheduledEventName`]: twilight_validate::request::ValidationErrorType::ScheduledEventName
     pub fn voice(
-        self,
+        mut self,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
-    ) -> Result<CreateGuildVoiceScheduledEvent<'a>, ValidationError> {
-        validate_scheduled_event_name(name)?;
+    ) -> CreateGuildVoiceScheduledEvent<'a> {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_scheduled_event_name(name)?;
+            fields.name.replace(name);
 
-        Ok(CreateGuildVoiceScheduledEvent::new(
-            self,
-            channel_id,
-            name,
-            scheduled_start_time,
-        ))
+            Ok(fields)
+        });
+
+        CreateGuildVoiceScheduledEvent::new(self, channel_id, name, scheduled_start_time)
     }
 
     fn exec(self) -> ResponseFuture<GuildScheduledEvent> {
@@ -233,20 +239,20 @@ impl<'a> CreateGuildScheduledEvent<'a> {
     }
 
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Request::builder(&Route::CreateGuildScheduledEvent {
             guild_id: self.guild_id.get(),
         })
-        .json(&self.fields)
-        .map(RequestBuilder::build)
+        .json(&fields)
+        .build()
     }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }

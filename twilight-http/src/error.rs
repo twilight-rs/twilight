@@ -1,5 +1,6 @@
 use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
-use hyper::{Body, Response};
+use http::Response;
+use hyper::body::Incoming;
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -34,6 +35,13 @@ impl Error {
     pub(super) fn json(source: JsonError) -> Self {
         Self {
             kind: ErrorType::Json,
+            source: Some(Box::new(source)),
+        }
+    }
+
+    pub(super) fn validation(source: impl StdError + Send + Sync + 'static) -> Self {
+        Self {
+            kind: ErrorType::Validation,
             source: Some(Box::new(source)),
         }
     }
@@ -79,6 +87,7 @@ impl Display for Error {
             ErrorType::Unauthorized => {
                 f.write_str("token in use is invalid, expired, or is revoked")
             }
+            ErrorType::Validation => f.write_str("request fields have invalid values"),
         }
     }
 }
@@ -117,13 +126,70 @@ pub enum ErrorType {
     ///
     /// This may occur during Discord API stability incidents.
     ServiceUnavailable {
-        response: Response<Body>,
+        response: Response<Incoming>,
     },
     /// Token in use has become revoked or is otherwise invalid.
     ///
     /// This can occur if a bot token is invalidated or an access token expires
     /// or is revoked. Recreate the client to configure a new token.
     Unauthorized,
+    /// A field failed validation requirements during request building.
+    ///
+    /// The inputs of request methods for fields are validated for correctness.
+    /// For example, [`CreateMessage::content`] is validated to ensure that the
+    /// message content isn't too long; [`ExecuteWebhook::embeds`] is validated
+    /// to ensure that a correct number of embeds are provided; and so on.
+    ///
+    /// Validation failures aren't immediately returned; rather, validation
+    /// errors are returned when calling the [`IntoFuture`] or
+    /// [`TryIntoRequest`] implementations on requests.
+    ///
+    /// # Examples
+    ///
+    /// Passing a message with valid content succeeds as expected:
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let channel_id = twilight_model::id::Id::new(1);
+    /// use std::env;
+    /// use twilight_http::{client::Client, request::TryIntoRequest};
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let builder = client.create_message(channel_id).content("Ping!");
+    ///
+    /// assert!(builder.try_into_request().is_ok());
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// However, passing an invalid content returns a validation error upon
+    /// finalizing the request building:
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let channel_id = twilight_model::id::Id::new(1);
+    /// use std::{env, error::Error};
+    /// use twilight_http::{client::Client, error::ErrorType, request::TryIntoRequest};
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    ///
+    /// // this is a very long message
+    /// let content = "pinkie pie is cool ".repeat(1000);
+    ///
+    /// let builder = client.create_message(channel_id).content(&content);
+    ///
+    /// let error = builder.try_into_request().unwrap_err();
+    /// assert!(matches!(error.kind(), ErrorType::Validation));
+    ///
+    /// // print the contents of the validation error
+    /// println!("{:?}", error.source());
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`CreateMessage::content`]: crate::request::channel::message::create_message::CreateMessage
+    /// [`ExecuteWebhook::embeds`]: crate::request::channel::webhook::execute_webhook::ExecuteWebhook
+    /// [`IntoFuture`]: std::future::IntoFuture
+    /// [`TryIntoRequest`]: crate::request::TryIntoRequest
+    Validation,
 }
 
 impl Debug for ErrorType {
@@ -171,6 +237,7 @@ impl Debug for ErrorType {
                 .field("response", response)
                 .finish(),
             Self::Unauthorized => f.write_str("Unauthorized"),
+            Self::Validation => f.write_str("Validation"),
         }
     }
 }

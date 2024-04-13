@@ -26,7 +26,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 /// # let client = Client::new("token".to_owned());
 /// client
 ///     .delete_webhook_message(Id::new(1), "token here", Id::new(2))
-///     .reason("reason here")?
+///     .reason("reason here")
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -34,7 +34,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 pub struct DeleteWebhookMessage<'a> {
     http: &'a Client,
     message_id: Id<MessageMarker>,
-    reason: Option<&'a str>,
+    reason: Result<Option<&'a str>, ValidationError>,
     thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
     webhook_id: Id<WebhookMarker>,
@@ -50,7 +50,7 @@ impl<'a> DeleteWebhookMessage<'a> {
         Self {
             http,
             message_id,
-            reason: None,
+            reason: Ok(None),
             thread_id: None,
             token,
             webhook_id,
@@ -64,21 +64,13 @@ impl<'a> DeleteWebhookMessage<'a> {
 
         self
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.into_future()
-    }
 }
 
 impl<'a> AuditLogReason<'a> for DeleteWebhookMessage<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
-        validate_audit_reason(reason)?;
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
-        self.reason.replace(reason);
-
-        Ok(self)
+        self
     }
 }
 
@@ -107,11 +99,11 @@ impl TryIntoRequest for DeleteWebhookMessage<'_> {
         })
         .use_authorization_token(false);
 
-        if let Some(reason) = self.reason.as_ref() {
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }
 

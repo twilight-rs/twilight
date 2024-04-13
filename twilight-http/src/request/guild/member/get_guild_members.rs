@@ -44,13 +44,13 @@ struct GetGuildMembersFields {
 /// let members = client
 ///     .guild_members(guild_id)
 ///     .after(user_id)
-///     .limit(500)?
+///     .limit(500)
 ///     .await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildMembers<'a> {
-    fields: GetGuildMembersFields,
+    fields: Result<GetGuildMembersFields, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
@@ -58,18 +58,20 @@ pub struct GetGuildMembers<'a> {
 impl<'a> GetGuildMembers<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: GetGuildMembersFields {
+            fields: Ok(GetGuildMembersFields {
                 after: None,
                 limit: None,
-            },
+            }),
             guild_id,
             http,
         }
     }
 
     /// Sets the user ID to get members after.
-    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
-        self.fields.after = Some(after);
+    pub fn after(mut self, after: Id<UserMarker>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.after = Some(after);
+        }
 
         self
     }
@@ -84,21 +86,15 @@ impl<'a> GetGuildMembers<'a> {
     /// greater than 1000.
     ///
     /// [`GetGuildMembers`]: twilight_validate::request::ValidationErrorType::GetGuildMembers
-    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_get_guild_members_limit(limit) {
-            return Err(source);
-        }
+    pub fn limit(mut self, limit: u16) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_get_guild_members_limit(limit)?;
+            fields.limit = Some(limit);
 
-        self.fields.limit = Some(limit);
+            Ok(fields)
+        });
 
-        Ok(self)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<ListBody<Member>> {
-        self.into_future()
+        self
     }
 }
 
@@ -119,10 +115,12 @@ impl IntoFuture for GetGuildMembers<'_> {
 
 impl TryIntoRequest for GetGuildMembers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Ok(Request::from_route(&Route::GetGuildMembers {
-            after: self.fields.after.map(Id::get),
+            after: fields.after.map(Id::get),
             guild_id: self.guild_id.get(),
-            limit: self.fields.limit,
+            limit: fields.limit,
         }))
     }
 }

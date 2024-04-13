@@ -55,11 +55,11 @@ Discord's API is HTTPS only.
 `twilight-http` has features to enable HTTPS connectivity with [`hyper`]. These
 features are mutually exclusive. `rustls-native-roots` is enabled by default.
 
-#### `native`
+#### `native-tls`
 
-The `native` feature uses a HTTPS connector provided by [`hyper-tls`].
+The `native-tls` feature uses a HTTPS connector provided by [`hyper-tls`].
 
-To enable `native`, do something like this in your `Cargo.toml`:
+To enable `native-tls`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
@@ -84,19 +84,19 @@ This should be preferred over `rustls-native-roots` in Docker containers based o
 
 ### Trust-DNS
 
-The `trust-dns` enables [`hyper-trust-dns`], which replaces the default
-`GaiResolver` in [`hyper`]. [`hyper-trust-dns`] instead provides a fully
-async DNS resolver on the application level.
+The `hickory` feature enables [`hyper-hickory`], which replaces the default
+`GaiResolver` in [`hyper`]. [`hyper-hickory`] instead provides a fully async
+DNS resolver on the application level.
 
 [`brotli`]: https://github.com/dropbox/rust-brotli
 [`hyper`]: https://crates.io/crates/hyper
+[`hyper-hickory`]: https://crates.io/crates/hyper-hickory
 [`hyper-rustls`]: https://crates.io/crates/hyper-rustls
 [`hyper-tls`]: https://crates.io/crates/hyper-tls
 [`rustls`]: https://crates.io/crates/rustls
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
-[`hyper-trust-dns`]: https://crates.io/crates/hyper-trust-dns
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/

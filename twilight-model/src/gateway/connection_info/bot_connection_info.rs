@@ -8,7 +8,7 @@ pub struct BotConnectionInfo {
     /// Current session availability and session connection concurrency limits.
     pub session_start_limit: SessionStartLimit,
     /// Recommended shard count to use.
-    pub shards: u64,
+    pub shards: u32,
     /// URL to the gateway.
     pub url: String,
 }
@@ -44,16 +44,16 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("max_concurrency"),
-                Token::U64(16),
+                Token::U16(16),
                 Token::Str("remaining"),
-                Token::U64(998),
+                Token::U32(998),
                 Token::Str("reset_after"),
                 Token::U64(84_686_789),
                 Token::Str("total"),
-                Token::U64(1000),
+                Token::U32(1000),
                 Token::StructEnd,
                 Token::Str("shards"),
-                Token::U64(3),
+                Token::U32(3),
                 Token::Str("url"),
                 Token::Str("wss://gateway.discord.gg"),
                 Token::StructEnd,

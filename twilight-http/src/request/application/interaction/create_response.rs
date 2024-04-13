@@ -36,12 +36,6 @@ impl<'a> CreateResponse<'a> {
             http,
         }
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for CreateResponse<'_> {
@@ -86,10 +80,10 @@ impl TryIntoRequest for CreateResponse<'_> {
 
             request = request.form(form);
         } else {
-            request = request.json(&self.response)?;
+            request = request.json(&self.response);
         }
 
-        Ok(request.build())
+        request.build()
     }
 }
 

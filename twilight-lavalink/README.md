@@ -22,31 +22,31 @@ request types from the [`http`] crate. This is enabled by default.
 
 ### TLS
 
-`twilight-lavalink` has features to enable [`tokio-tungstenite`]'s TLS
+`twilight-lavalink` has features to enable [`tokio-websockets`]' TLS
 features. These features are mutually exclusive. `rustls-native-roots` is enabled by
 default.
 
-#### `native`
+#### `native-tls`
 
-The `native` feature enables [`tokio-tungstenite`]'s `native-tls` feature.
+The `native-tls` feature enables [`tokio-websockets`]' `native-tls` feature.
 
-To enable `native`, do something like this in your `Cargo.toml`:
+To enable `native-tls`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-twilight-lavalink = { default-features = false, features = ["native"], version = "0.2" }
+twilight-lavalink = { default-features = false, features = ["native-tls"], version = "0.2" }
 ```
 
 #### `rustls-native-roots`
 
-The `rustls-native-roots` feature enables [`tokio-tungstenite`]'s `rustls-tls-native-roots` feature,
+The `rustls-native-roots` feature enables [`tokio-websockets`]' `rustls-native-roots` feature,
 which uses [`rustls`] as the TLS backend and [`rustls-native-certs`] for root certificates.
 
 This is enabled by default.
 
 #### `rustls-webpki-roots`
 
-The `rustls-webpki-roots` feature enables [`tokio-tungstenite`]'s `rustls-tls-webpki-roots` feature,
+The `rustls-webpki-roots` feature enables [`tokio-websockets`]' `rustls-webpki-roots` feature,
 which uses [`rustls`] as the TLS backend and [`webpki-roots`] for root certificates.
 
 This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
@@ -57,14 +57,13 @@ Create a [client], add a [node], and give events to the client to [process]
 events:
 
 ```rust,no_run
-use futures_util::stream::StreamExt;
 use std::{
     env,
     future::Future,
     net::SocketAddr,
     str::FromStr,
 };
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
 
@@ -76,7 +75,7 @@ async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
     let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
     let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
-    let shard_count = 1u64;
+    let shard_count = 1u32;
 
     let http = HttpClient::new(token.clone());
     let user_id = http.current_user().await?.model().await?.id;
@@ -87,18 +86,11 @@ async fn main() -> anyhow::Result<()> {
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
     let mut shard = Shard::new(ShardId::ONE, token, intents);
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+        let Ok(event) = item else {
+            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-                if source.is_fatal() {
-                    break;
-                }
-
-                continue;
-            }
+            continue;
         };
 
         lavalink.process(&event).await?;
@@ -115,7 +107,7 @@ There is also an example of a basic bot located in the [root of the
 [`http`]: https://crates.io/crates/http
 [`rustls`]: https://crates.io/crates/rustls
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
-[`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
+[`tokio-websockets`]: https://crates.io/crates/tokio-websockets
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [client]: Lavalink
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2

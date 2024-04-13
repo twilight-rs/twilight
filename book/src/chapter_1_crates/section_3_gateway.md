@@ -34,13 +34,13 @@ rustflags = ["-C", "target-cpu=native"]
 
 ### TLS
 
-`twilight-gateway` has features to enable [`tokio-tungstenite`]'s TLS features.
+`twilight-gateway` has features to enable [`tokio-websockets`]' TLS features.
 These features are mutually exclusive. `rustls-native-roots` is enabled by
 default.
 
-#### Native
+#### Native-TLS
 
-The `native` feature enables [`tokio-tungstenite`]'s `native-tls` feature.
+The `native-tls` feature enables [`tokio-websockets`]' `native-tls` feature.
 
 #### RusTLS
 
@@ -48,15 +48,15 @@ RusTLS allows specifying from where certificate roots are retrieved from.
 
 ##### Native roots
 
-The `rustls-native-roots` feature enables [`tokio-tungstenite`]'s
-`rustls-tls-native-roots` feature.
+The `rustls-native-roots` feature enables [`tokio-websockets`]'
+`rustls-native-roots` feature.
 
 This is enabled by default.
 
 ##### Web PKI roots
 
-The `rustls-webpki-roots` feature enables [`tokio-tungstenite`]'s
-`rustls-tls-webpki-roots` feature.
+The `rustls-webpki-roots` feature enables [`tokio-websockets`]'
+`rustls-webpki-roots` feature.
 
 ### Zlib
 
@@ -80,7 +80,7 @@ Starting a `Shard` and printing the contents of new messages as they come in:
 
 ```rust,no_run
 use std::{env, error::Error};
-use twilight_gateway::{Intents, Shard, ShardId};
+use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -92,18 +92,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut shard = Shard::new(ShardId::ONE, token, intents);
     tracing::info!("created shard");
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+        let Ok(event) = item else {
+            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-                if source.is_fatal() {
-                    break;
-                }
-
-                continue;
-            }
+            continue;
         };
 
         tracing::debug!(?event, "event");
@@ -130,4 +123,4 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 [`hyper-tls`]: https://crates.io/crates/hyper-tls
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
-[`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
+[`tokio-websockets`]: https://crates.io/crates/tokio-websockets

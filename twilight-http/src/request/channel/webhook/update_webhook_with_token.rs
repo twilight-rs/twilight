@@ -24,7 +24,7 @@ struct UpdateWebhookWithTokenFields<'a> {
 /// Update a webhook, with a token, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhookWithToken<'a> {
-    fields: UpdateWebhookWithTokenFields<'a>,
+    fields: Result<UpdateWebhookWithTokenFields<'a>, ValidationError>,
     http: &'a Client,
     token: &'a str,
     webhook_id: Id<WebhookMarker>,
@@ -37,10 +37,10 @@ impl<'a> UpdateWebhookWithToken<'a> {
         token: &'a str,
     ) -> Self {
         Self {
-            fields: UpdateWebhookWithTokenFields {
+            fields: Ok(UpdateWebhookWithTokenFields {
                 avatar: None,
                 name: None,
-            },
+            }),
             http,
             token,
             webhook_id,
@@ -54,8 +54,10 @@ impl<'a> UpdateWebhookWithToken<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        self.fields.avatar = Some(Nullable(avatar));
+    pub fn avatar(mut self, avatar: Option<&'a str>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.avatar = Some(Nullable(avatar));
+        }
 
         self
     }
@@ -68,18 +70,15 @@ impl<'a> UpdateWebhookWithToken<'a> {
     /// invalid.
     ///
     /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
-    pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
-        validate_webhook_username(name)?;
+    pub fn name(mut self, name: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_webhook_username(name)?;
+            fields.name = Some(name);
 
-        self.fields.name = Some(name);
+            Ok(fields)
+        });
 
-        Ok(self)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<Webhook> {
-        self.into_future()
+        self
     }
 }
 
@@ -100,15 +99,15 @@ impl IntoFuture for UpdateWebhookWithToken<'_> {
 
 impl TryIntoRequest for UpdateWebhookWithToken<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateWebhook {
+        let fields = self.fields.map_err(Error::validation)?;
+
+        Request::builder(&Route::UpdateWebhook {
             token: Some(self.token),
             webhook_id: self.webhook_id.get(),
         })
-        .use_authorization_token(false);
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        .use_authorization_token(false)
+        .json(&fields)
+        .build()
     }
 }
 
@@ -150,7 +149,7 @@ mod tests {
         {
             let expected = r#"{"name":"Captain Hook"}"#;
             let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
-                .name("Captain Hook")?
+                .name("Captain Hook")
                 .try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
@@ -160,7 +159,7 @@ mod tests {
             let expected = r#"{"avatar":null,"name":"Captain Hook"}"#;
             let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
                 .avatar(None)
-                .name("Captain Hook")?
+                .name("Captain Hook")
                 .try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());

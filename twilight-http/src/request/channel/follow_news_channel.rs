@@ -37,12 +37,6 @@ impl<'a> FollowNewsChannel<'a> {
             fields: FollowNewsChannelFields { webhook_channel_id },
         }
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<FollowedChannel> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for FollowNewsChannel<'_> {
@@ -62,12 +56,10 @@ impl IntoFuture for FollowNewsChannel<'_> {
 
 impl TryIntoRequest for FollowNewsChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::FollowNewsChannel {
+        Request::builder(&Route::FollowNewsChannel {
             channel_id: self.channel_id.get(),
-        });
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        })
+        .json(&self.fields)
+        .build()
     }
 }

@@ -71,8 +71,6 @@ pub enum Event {
     GatewayInvalidateSession(bool),
     /// The gateway is indicating to perform a reconnect.
     GatewayReconnect,
-    /// Undocumented event, should be ignored.
-    GiftCodeUpdate,
     /// A audit log entry was created.
     GuildAuditLogEntryCreate(Box<GuildAuditLogEntryCreate>),
     /// A guild was created.
@@ -127,10 +125,6 @@ pub enum Event {
     MessageUpdate(Box<MessageUpdate>),
     /// A user's active presence (such as game or online status) was updated.
     PresenceUpdate(Box<PresenceUpdate>),
-    /// Multiple presences outside of a guild were updated.
-    ///
-    /// For bots this is always empty and useless.
-    PresencesReplace,
     /// A reaction was added to a message.
     ReactionAdd(Box<ReactionAdd>),
     /// A reaction was removed from a message.
@@ -255,8 +249,6 @@ impl Event {
             | Event::GatewayHello(_)
             | Event::GatewayInvalidateSession(_)
             | Event::GatewayReconnect
-            | Event::GiftCodeUpdate
-            | Event::PresencesReplace
             | Event::Ready(_)
             | Event::Resumed
             | Event::UserUpdate(_) => None,
@@ -285,7 +277,6 @@ impl Event {
             Self::GatewayHello(_) => EventType::GatewayHello,
             Self::GatewayInvalidateSession(_) => EventType::GatewayInvalidateSession,
             Self::GatewayReconnect => EventType::GatewayReconnect,
-            Self::GiftCodeUpdate => EventType::GiftCodeUpdate,
             Self::GuildAuditLogEntryCreate(_) => EventType::GuildAuditLogEntryCreate,
             Self::GuildCreate(_) => EventType::GuildCreate,
             Self::GuildDelete(_) => EventType::GuildDelete,
@@ -313,7 +304,6 @@ impl Event {
             Self::MessageDeleteBulk(_) => EventType::MessageDeleteBulk,
             Self::MessageUpdate(_) => EventType::MessageUpdate,
             Self::PresenceUpdate(_) => EventType::PresenceUpdate,
-            Self::PresencesReplace => EventType::PresencesReplace,
             Self::ReactionAdd(_) => EventType::ReactionAdd,
             Self::ReactionRemove(_) => EventType::ReactionRemove,
             Self::ReactionRemoveAll(_) => EventType::ReactionRemoveAll,
@@ -394,7 +384,6 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::MessageDeleteBulk(v) => Self::MessageDeleteBulk(v),
             DispatchEvent::MessageUpdate(v) => Self::MessageUpdate(v),
             DispatchEvent::PresenceUpdate(v) => Self::PresenceUpdate(v),
-            DispatchEvent::PresencesReplace => Self::PresencesReplace,
             DispatchEvent::ReactionAdd(v) => Self::ReactionAdd(v),
             DispatchEvent::ReactionRemove(v) => Self::ReactionRemove(v),
             DispatchEvent::ReactionRemoveAll(v) => Self::ReactionRemoveAll(v),

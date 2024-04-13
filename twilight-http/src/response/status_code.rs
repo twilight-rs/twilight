@@ -6,7 +6,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 ///
 /// Status codes can easily be compared with status code integers due to
 /// implementing `PartialEq<u16>`. This is equivalent to checking against the
-/// value returned by [`StatusCode::raw`].
+/// value returned by [`StatusCode::get`].
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct StatusCode(u16);
 
@@ -21,17 +21,6 @@ impl StatusCode {
     /// Raw status code value.
     #[must_use = "status code must be used to be useful"]
     pub const fn get(self) -> u16 {
-        self.0
-    }
-
-    /// Raw status code value.
-    ///
-    /// Deprecated alias for [`get`].
-    ///
-    /// [`get`]: Self::get
-    #[deprecated(since = "0.10.2", note = "renamed to `get`")]
-    #[must_use = "status code must be used to be useful"]
-    pub const fn raw(self) -> u16 {
         self.0
     }
 

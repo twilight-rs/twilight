@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Refactor
+
+- Remove redundant imports ([#2316](https://github.com/twilight-rs/twilight/issues/2316))
+
 ## [0.15.2] - 2023-04-27
 
 ### Features

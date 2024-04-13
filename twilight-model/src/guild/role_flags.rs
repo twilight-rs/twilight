@@ -6,6 +6,7 @@ use serde::{
 
 bitflags! {
     /// The flags for a role represented as a bitfield.
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct RoleFlags: u64 {
         /// A role that is available to select as an option within the guild onboarding flow.
         const IN_PROMPT = 1 << 0;
@@ -60,9 +61,7 @@ mod tests {
         LowerHex,
         Not,
         Octal,
-        Ord,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sub,

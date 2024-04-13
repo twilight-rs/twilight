@@ -56,7 +56,6 @@ pub enum DispatchEvent {
     MessageDeleteBulk(MessageDeleteBulk),
     MessageUpdate(Box<MessageUpdate>),
     PresenceUpdate(Box<PresenceUpdate>),
-    PresencesReplace,
     ReactionAdd(Box<ReactionAdd>),
     ReactionRemove(Box<ReactionRemove>),
     ReactionRemoveAll(ReactionRemoveAll),
@@ -129,7 +128,6 @@ impl DispatchEvent {
             Self::MessageDeleteBulk(_) => EventType::MessageDeleteBulk,
             Self::MessageUpdate(_) => EventType::MessageUpdate,
             Self::PresenceUpdate(_) => EventType::PresenceUpdate,
-            Self::PresencesReplace => EventType::PresencesReplace,
             Self::ReactionAdd(_) => EventType::ReactionAdd,
             Self::ReactionRemove(_) => EventType::ReactionRemove,
             Self::ReactionRemoveAll(_) => EventType::ReactionRemoveAll,
@@ -174,7 +172,6 @@ impl TryFrom<Event> for DispatchEvent {
             Event::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
             Event::ChannelUpdate(v) => Self::ChannelUpdate(v),
             Event::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
-            Event::GiftCodeUpdate => Self::GiftCodeUpdate,
             Event::GuildAuditLogEntryCreate(v) => Self::GuildAuditLogEntryCreate(v),
             Event::GuildCreate(v) => Self::GuildCreate(v),
             Event::GuildDelete(v) => Self::GuildDelete(v),
@@ -201,7 +198,6 @@ impl TryFrom<Event> for DispatchEvent {
             Event::MessageDeleteBulk(v) => Self::MessageDeleteBulk(v),
             Event::MessageUpdate(v) => Self::MessageUpdate(v),
             Event::PresenceUpdate(v) => Self::PresenceUpdate(v),
-            Event::PresencesReplace => Self::PresencesReplace,
             Event::ReactionAdd(v) => Self::ReactionAdd(v),
             Event::ReactionRemove(v) => Self::ReactionRemove(v),
             Event::ReactionRemoveAll(v) => Self::ReactionRemoveAll(v),
@@ -388,11 +384,6 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "PRESENCE_UPDATE" => {
                 DispatchEvent::PresenceUpdate(Box::new(PresenceUpdate::deserialize(deserializer)?))
             }
-            "PRESENCES_REPLACE" => {
-                deserializer.deserialize_ignored_any(IgnoredAny)?;
-
-                DispatchEvent::PresencesReplace
-            }
             "READY" => DispatchEvent::Ready(Box::new(Ready::deserialize(deserializer)?)),
             "RESUMED" => {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
@@ -441,26 +432,5 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             }
             other => return Err(DeError::unknown_variant(other, &[])),
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{DispatchEvent, DispatchEventWithTypeDeserializer};
-    use serde::de::DeserializeSeed;
-    use serde_json::Deserializer;
-
-    #[test]
-    fn gift_code_update() {
-        // Input will be ignored so long as it's valid JSON.
-        let input = r#"{
-            "a": "b"
-        }"#;
-
-        let deserializer = DispatchEventWithTypeDeserializer::new("GIFT_CODE_UPDATE");
-        let mut json_deserializer = Deserializer::from_str(input);
-        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
-
-        assert_eq!(event, DispatchEvent::GiftCodeUpdate);
     }
 }

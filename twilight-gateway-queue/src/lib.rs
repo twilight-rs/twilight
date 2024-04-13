@@ -1,153 +1,50 @@
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![doc = include_str!("../README.md")]
 #![warn(
     clippy::missing_const_for_fn,
+    clippy::missing_docs_in_private_items,
     clippy::pedantic,
     missing_docs,
     unsafe_code
 )]
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    clippy::unnecessary_wraps
-)]
+#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
-#[cfg(feature = "twilight-http")]
-mod day_limiter;
-#[cfg(feature = "twilight-http")]
-mod large_bot_queue;
+mod in_memory;
 
-#[cfg(feature = "twilight-http")]
-pub use large_bot_queue::LargeBotQueue;
+pub use in_memory::InMemoryQueue;
 
-use std::{
-    fmt::Debug,
-    future::{self, Future},
-    pin::Pin,
-    time::Duration,
-};
-use tokio::{
-    sync::{
-        mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
-        oneshot::{self, Sender},
-    },
-    time::sleep,
-};
+use tokio::{sync::oneshot, time::Duration};
 
-/// Queue for shards to request the ability to initialize new sessions with the
-/// gateway.
-///
-/// This will usually only need to be implemented when you have a multi-process
-/// sharding setup. Refer to the [module-level] documentation for more
-/// information.
-///
-/// [module-level]: crate
-pub trait Queue: Debug + Send + Sync {
-    /// A shard has requested the ability to request a session initialization
-    /// with the gateway.
+/// Period between buckets.
+pub const IDENTIFY_DELAY: Duration = Duration::from_secs(5);
+
+/// Duration from the first identify until the remaining count resets to the
+/// total count.
+pub const LIMIT_PERIOD: Duration = Duration::from_secs(60 * 60 * 24);
+
+/// Abstraction for types processing gateway identify requests.
+pub trait Queue {
+    /// Enqueue a shard with this ID.
     ///
-    /// The returned future must resolve only when the shard can initiate the
-    /// session.
-    fn request<'a>(&'a self, shard_id: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>>;
+    /// Send `()` to signal the shard to proceed. Note that shards may have
+    /// dropped the receiver prior.
+    ///
+    /// Closing the channel should causes the shard to requeue.
+    fn enqueue(&self, id: u32) -> oneshot::Receiver<()>;
 }
 
-/// A local, in-process implementation of a [`Queue`] which manages the
-/// connection attempts of one or more shards.
-///
-/// The queue will take incoming requests and then queue them, releasing one of
-/// the requests every 6 seconds. The queue is necessary because there's a
-/// ratelimit on how often shards can initiate sessions.
-///
-/// Handling shard queues usually won't need to be manually handled due to the
-/// gateway having built-in queueing when managing multiple shards.
-///
-/// # When not to use this
-///
-/// This queue implementation is "local", meaning it's intended to be used if
-/// you manage shards only in this process. If you run shards in multiple
-/// different processes (do you utilize microservices a lot?), then you **must
-/// not** use this implementation. Shards across multiple processes may
-/// create new sessions at the same time, which is bad.
-///
-/// It should also not be used for very large sharding, for that the
-/// [`LargeBotQueue`] can be used.
-///
-/// If you can't use this, look into an alternative implementation of the
-/// [`Queue`], such as the [`gateway-queue`] broker.
-///
-/// [`gateway-queue`]: https://github.com/twilight-rs/gateway-queue
-#[derive(Clone, Debug)]
-pub struct LocalQueue(UnboundedSender<Sender<()>>);
-
-impl Default for LocalQueue {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl LocalQueue {
-    /// Creates a new local queue.
-    pub fn new() -> Self {
-        let (tx, rx) = unbounded_channel();
-
-        tokio::spawn(waiter(rx));
-
-        Self(tx)
-    }
-}
-
-async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
-    const DUR: Duration = Duration::from_secs(6);
-    while let Some(req) = rx.recv().await {
-        if let Err(source) = req.send(()) {
-            tracing::warn!("skipping, send failed: {source:?}");
-        } else {
-            sleep(DUR).await;
-        }
-    }
-}
-
-impl Queue for LocalQueue {
-    /// Request to be able to identify with the gateway. This will place this
-    /// request behind all other requests, and the returned future will resolve
-    /// once the request has been completed.
-    fn request(&'_ self, [id, total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
-        Box::pin(async move {
-            let (tx, rx) = oneshot::channel();
-
-            if let Err(source) = self.0.send(tx) {
-                tracing::warn!("skipping, send failed: {source:?}");
-                return;
-            }
-
-            tracing::info!("shard {id}/{total} waiting for allowance");
-
-            _ = rx.await;
-        })
-    }
-}
-
-/// An implementation of [`Queue`] that instantly allows requests.
-///
-/// Useful when running behind a proxy gateway. Running without a
-/// functional queue **will** get you ratelimited.
-#[derive(Debug)]
-pub struct NoOpQueue;
-
-impl Queue for NoOpQueue {
-    fn request(&'_ self, [_id, _total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
-        Box::pin(future::ready(()))
+impl<T> Queue for &T
+where
+    T: Queue,
+{
+    fn enqueue(&self, shard: u32) -> oneshot::Receiver<()> {
+        (**self).enqueue(shard)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{LocalQueue, NoOpQueue, Queue};
-    use static_assertions::{assert_impl_all, assert_obj_safe};
-    use std::fmt::Debug;
+    use super::Queue;
+    use static_assertions::assert_obj_safe;
 
-    assert_impl_all!(LocalQueue: Clone, Debug, Queue, Send, Sync);
-    assert_impl_all!(NoOpQueue: Debug, Queue, Send, Sync);
-    assert_impl_all!(dyn Queue: Debug, Send, Sync);
     assert_obj_safe!(Queue);
 }

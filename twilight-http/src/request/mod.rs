@@ -27,7 +27,7 @@
 //! let client = Client::new(std::env::var("DISCORD_TOKEN")?);
 //! client
 //!     .delete_ban(guild_id, user_id)
-//!     .reason("ban expired")?
+//!     .reason("ban expired")
 //!     .await?;
 //! # Ok(()) }
 //! ```
@@ -75,7 +75,7 @@ pub use self::{
 pub use twilight_http_ratelimiting::request::Method;
 
 use crate::error::{Error, ErrorType};
-use hyper::header::{HeaderName, HeaderValue};
+use http::header::{HeaderName, HeaderValue};
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::Serialize;
 use std::iter;

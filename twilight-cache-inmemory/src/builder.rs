@@ -1,21 +1,31 @@
+use std::fmt::Debug;
+use std::marker::PhantomData;
+
+use crate::{CacheableModels, DefaultCacheModels};
+
 use super::{
     config::{Config, ResourceType},
     InMemoryCache,
 };
 
 /// Builder to configure and construct an [`InMemoryCache`].
-#[derive(Debug, Default)]
+#[allow(clippy::type_complexity)]
 #[must_use = "has no effect if not built"]
-pub struct InMemoryCacheBuilder(Config);
+#[derive(Debug)]
+pub struct InMemoryCacheBuilder<CacheModels: CacheableModels = DefaultCacheModels>(
+    Config,
+    PhantomData<CacheModels>,
+);
 
-impl InMemoryCacheBuilder {
+impl<CacheModels: CacheableModels> InMemoryCacheBuilder<CacheModels> {
     /// Creates a builder to configure and construct an [`InMemoryCache`].
     pub const fn new() -> Self {
-        Self(Config::new())
+        Self(Config::new(), PhantomData)
     }
 
     /// Consume the builder, returning a configured cache.
-    pub fn build(self) -> InMemoryCache {
+    #[allow(clippy::type_complexity)]
+    pub fn build(self) -> InMemoryCache<CacheModels> {
         InMemoryCache::new_with_config(self.0)
     }
 
@@ -35,6 +45,12 @@ impl InMemoryCacheBuilder {
         self.0.message_cache_size = message_cache_size;
 
         self
+    }
+}
+
+impl<CacheModels: CacheableModels> Default for InMemoryCacheBuilder<CacheModels> {
+    fn default() -> Self {
+        Self(Config::default(), PhantomData)
     }
 }
 

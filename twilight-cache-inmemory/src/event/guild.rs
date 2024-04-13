@@ -1,85 +1,29 @@
-use crate::{
-    config::ResourceType,
-    model::{CachedGuild, CachedPresence},
-    InMemoryCache, UpdateCache,
-};
+use crate::{config::ResourceType, CacheableGuild, CacheableModels, InMemoryCache, UpdateCache};
 use dashmap::DashMap;
-use std::{collections::HashSet, hash::Hash};
+use std::{collections::HashSet, hash::Hash, mem};
 use twilight_model::{
     gateway::payload::incoming::{GuildCreate, GuildDelete, GuildUpdate},
     guild::Guild,
     id::{marker::GuildMarker, Id},
 };
 
-impl InMemoryCache {
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     #[allow(clippy::too_many_lines)]
-    fn cache_guild(&self, guild: Guild) {
-        let Guild {
-            afk_channel_id,
-            afk_timeout,
-            application_id,
-            approximate_member_count: _,
-            approximate_presence_count: _,
-            banner,
-            channels,
-            default_message_notifications,
-            description,
-            discovery_splash,
-            emojis,
-            explicit_content_filter,
-            features,
-            icon,
-            id,
-            joined_at,
-            large,
-            max_members,
-            max_presences,
-            max_video_channel_users,
-            member_count,
-            members,
-            mfa_level,
-            name,
-            nsfw_level,
-            owner_id,
-            owner,
-            permissions,
-            preferred_locale,
-            premium_progress_bar_enabled,
-            premium_subscription_count,
-            premium_tier,
-            presences,
-            public_updates_channel_id,
-            roles,
-            rules_channel_id,
-            safety_alerts_channel_id,
-            splash,
-            stage_instances,
-            stickers,
-            system_channel_flags,
-            system_channel_id,
-            threads,
-            unavailable,
-            vanity_url_code,
-            verification_level,
-            voice_states,
-            widget_channel_id,
-            widget_enabled,
-        } = guild;
-
+    fn cache_guild(&self, mut guild: Guild) {
         // The map and set creation needs to occur first, so caching states and
         // objects always has a place to put them.
         if self.wants(ResourceType::CHANNEL) {
-            self.guild_channels.insert(id, HashSet::new());
+            self.guild_channels.insert(guild.id, HashSet::new());
 
-            let mut channels = channels;
-            let mut threads = threads;
+            let mut channels = mem::take(&mut guild.channels);
+            let mut threads = mem::take(&mut guild.threads);
 
             for channel in &mut channels {
-                channel.guild_id = Some(id);
+                channel.guild_id = Some(guild.id);
             }
 
             for channel in &mut threads {
-                channel.guild_id = Some(id);
+                channel.guild_id = Some(guild.id);
             }
 
             self.cache_channels(channels);
@@ -87,82 +31,42 @@ impl InMemoryCache {
         }
 
         if self.wants(ResourceType::EMOJI) {
-            self.guild_emojis.insert(id, HashSet::new());
-            self.cache_emojis(id, emojis);
+            self.guild_emojis.insert(guild.id, HashSet::new());
+            self.cache_emojis(guild.id, mem::take(&mut guild.emojis));
         }
 
         if self.wants(ResourceType::MEMBER) {
-            self.guild_members.insert(id, HashSet::new());
-            self.cache_members(id, members);
+            self.guild_members.insert(guild.id, HashSet::new());
+            self.cache_members(guild.id, mem::take(&mut guild.members));
         }
 
         if self.wants(ResourceType::PRESENCE) {
-            self.guild_presences.insert(id, HashSet::new());
-            self.cache_presences(id, presences.into_iter().map(CachedPresence::from));
+            self.guild_presences.insert(guild.id, HashSet::new());
+            self.cache_presences(guild.id, mem::take(&mut guild.presences));
         }
 
         if self.wants(ResourceType::ROLE) {
-            self.guild_roles.insert(id, HashSet::new());
-            self.cache_roles(id, roles);
+            self.guild_roles.insert(guild.id, HashSet::new());
+            self.cache_roles(guild.id, mem::take(&mut guild.roles));
         }
 
         if self.wants(ResourceType::STICKER) {
-            self.guild_stage_instances.insert(id, HashSet::new());
-            self.cache_stickers(id, stickers);
+            self.guild_stage_instances.insert(guild.id, HashSet::new());
+            self.cache_stickers(guild.id, mem::take(&mut guild.stickers));
         }
 
         if self.wants(ResourceType::VOICE_STATE) {
-            self.voice_state_guilds.insert(id, HashSet::new());
-            self.cache_voice_states(voice_states);
+            self.voice_state_guilds.insert(guild.id, HashSet::new());
+            self.cache_voice_states(mem::take(&mut guild.voice_states));
         }
 
         if self.wants(ResourceType::STAGE_INSTANCE) {
-            self.guild_stage_instances.insert(id, HashSet::new());
-            self.cache_stage_instances(id, stage_instances);
+            self.guild_stage_instances.insert(guild.id, HashSet::new());
+            self.cache_stage_instances(guild.id, mem::take(&mut guild.stage_instances));
         }
 
         if self.wants(ResourceType::GUILD) {
-            let guild = CachedGuild {
-                afk_channel_id,
-                afk_timeout,
-                application_id,
-                banner,
-                default_message_notifications,
-                description,
-                discovery_splash,
-                explicit_content_filter,
-                features,
-                icon,
-                id,
-                joined_at,
-                large,
-                max_members,
-                max_presences,
-                max_video_channel_users,
-                member_count,
-                mfa_level,
-                name,
-                nsfw_level,
-                owner_id,
-                owner,
-                permissions,
-                preferred_locale,
-                premium_progress_bar_enabled,
-                premium_subscription_count,
-                premium_tier,
-                public_updates_channel_id,
-                rules_channel_id,
-                safety_alerts_channel_id,
-                splash,
-                system_channel_id,
-                system_channel_flags,
-                unavailable,
-                vanity_url_code,
-                verification_level,
-                widget_channel_id,
-                widget_enabled,
-            };
-
+            let guild = CacheModels::Guild::from(guild);
             self.unavailable_guilds.remove(&guild.id());
             self.guilds.insert(guild.id(), guild);
         }
@@ -184,7 +88,7 @@ impl InMemoryCache {
         if self.wants(ResourceType::GUILD) {
             if unavailable {
                 if let Some(mut guild) = self.guilds.get_mut(&id) {
-                    guild.unavailable = true;
+                    guild.set_unavailable(true);
                 }
             } else {
                 self.guilds.remove(&id);
@@ -230,58 +134,33 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for GuildCreate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildCreate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         cache.cache_guild(self.0.clone());
     }
 }
 
-impl UpdateCache for GuildDelete {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildDelete {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         cache.delete_guild(self.id, false);
     }
 }
 
-impl UpdateCache for GuildUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::GUILD) {
             return;
         }
 
         if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
-            guild.afk_channel_id = self.afk_channel_id;
-            guild.afk_timeout = self.afk_timeout;
-            guild.banner = self.banner;
-            guild.default_message_notifications = self.default_message_notifications;
-            guild.description = self.description.clone();
-            guild.features = self.features.clone();
-            guild.icon = self.icon;
-            guild.max_members = self.max_members;
-            guild.max_presences = Some(self.max_presences.unwrap_or(25000));
-            guild.mfa_level = self.mfa_level;
-            guild.name = self.name.clone();
-            guild.nsfw_level = self.nsfw_level;
-            guild.owner = self.owner;
-            guild.owner_id = self.owner_id;
-            guild.permissions = self.permissions;
-            guild.preferred_locale = self.preferred_locale.clone();
-            guild.premium_tier = self.premium_tier;
-            guild
-                .premium_subscription_count
-                .replace(self.premium_subscription_count.unwrap_or_default());
-            guild.splash = self.splash;
-            guild.system_channel_id = self.system_channel_id;
-            guild.verification_level = self.verification_level;
-            guild.vanity_url_code = self.vanity_url_code.clone();
-            guild.widget_channel_id = self.widget_channel_id;
-            guild.widget_enabled = self.widget_enabled;
+            guild.update_with_guild_update(self);
         };
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, InMemoryCache};
+    use crate::{test, DefaultInMemoryCache};
     use std::str::FromStr;
     use twilight_model::{
         channel::{
@@ -449,7 +328,7 @@ mod tests {
             widget_enabled: None,
         };
 
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         cache.cache_guild(guild);
 
         let channel = cache.channel(Id::new(111)).unwrap();
@@ -468,7 +347,7 @@ mod tests {
 
     #[test]
     fn guild_update() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         let guild = test::guild(Id::new(1), None);
 
         cache.update(&GuildCreate(guild.clone()));
@@ -522,7 +401,7 @@ mod tests {
     fn guild_member_count() {
         let user_id = Id::new(2);
         let guild_id = Id::new(1);
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         let user = test::user(user_id);
         let member = test::member(user_id);
         let guild = test::guild(guild_id, Some(1));
@@ -541,7 +420,7 @@ mod tests {
     fn guild_members_size_after_unavailable() {
         let user_id = Id::new(2);
         let guild_id = Id::new(1);
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
         let member = test::member(user_id);
         let mut guild = test::guild(guild_id, Some(1));
         guild.members.push(member);

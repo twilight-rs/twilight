@@ -26,7 +26,7 @@ use futures_util::{
     sink::SinkExt,
     stream::{Stream, StreamExt},
 };
-use http::{header::HeaderName, Request, Response, StatusCode};
+use http::header::{HeaderName, AUTHORIZATION};
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -40,9 +40,8 @@ use tokio::{
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     time as tokio_time,
 };
-use tokio_tungstenite::{
-    tungstenite::{client::IntoClientRequest, Error as TungsteniteError, Message},
-    MaybeTlsStream, WebSocketStream,
+use tokio_websockets::{
+    upgrade, ClientBuilder, Error as WebsocketError, MaybeTlsStream, Message, WebSocketStream,
 };
 use twilight_model::id::{marker::UserMarker, Id};
 
@@ -526,7 +525,7 @@ impl Connection {
                             kind: NodeErrorType::SerializingMessage { message: outgoing },
                             source: Some(Box::new(source)),
                         })?;
-                        let msg = Message::Text(payload);
+                        let msg = Message::text(payload);
                         self.stream.send(msg).await.unwrap();
                     } else {
                         tracing::debug!("node {} closed, ending connection", self.config.address);
@@ -546,31 +545,19 @@ impl Connection {
             self.config.address,
         );
 
-        let text = match incoming {
-            Message::Close(_) => {
-                tracing::debug!("got close, closing connection");
-                let _result = self.stream.send(Message::Close(None)).await;
+        let text = if incoming.is_text() {
+            incoming.as_text().expect("message is text")
+        } else if incoming.is_close() {
+            tracing::debug!("got close, closing connection");
 
-                return Ok(false);
-            }
-            Message::Ping(data) => {
-                tracing::debug!("got ping, sending pong");
-                let msg = Message::Pong(data);
+            return Ok(false);
+        } else {
+            tracing::debug!("got ping, pong or binary payload: {incoming:?}");
 
-                // We don't need to immediately care if a pong fails.
-                let _result = self.stream.send(msg).await;
-
-                return Ok(true);
-            }
-            Message::Text(text) => text,
-            other => {
-                tracing::debug!("got pong or bytes payload: {other:?}");
-
-                return Ok(true);
-            }
+            return Ok(true);
         };
 
-        let Ok(event) = serde_json::from_str(&text) else {
+        let Ok(event) = serde_json::from_str(text) else {
             tracing::warn!("unknown message from lavalink node: {text}");
 
             return Ok(true);
@@ -623,22 +610,27 @@ impl Drop for Connection {
     }
 }
 
-fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
-    let mut request = format!("ws://{}", state.address)
-        .into_client_request()
+fn connect_request(state: &NodeConfig) -> Result<ClientBuilder, NodeError> {
+    let mut builder = ClientBuilder::new()
+        .uri(&format!("ws://{}", state.address))
         .map_err(|source| NodeError {
             kind: NodeErrorType::BuildingConnectionRequest,
             source: Some(Box::new(source)),
-        })?;
-    let headers = request.headers_mut();
-    headers.insert("Authorization", state.authorization.parse().unwrap());
-    headers.insert("User-Id", state.user_id.get().into());
+        })?
+        .add_header(AUTHORIZATION, state.authorization.parse().unwrap())
+        .add_header(
+            HeaderName::from_static("user-id"),
+            state.user_id.get().into(),
+        );
 
     if state.resume.is_some() {
-        headers.insert("Resume-Key", state.address.to_string().parse().unwrap());
+        builder = builder.add_header(
+            HeaderName::from_static("resume-key"),
+            state.address.to_string().parse().unwrap(),
+        );
     }
 
-    Ok(request)
+    Ok(builder)
 }
 
 async fn reconnect(
@@ -660,7 +652,7 @@ async fn reconnect(
                     "key": config.address,
                     "timeout": resume.timeout,
                 });
-                let msg = Message::Text(serde_json::to_string(&payload).unwrap());
+                let msg = Message::text(serde_json::to_string(&payload).unwrap());
 
                 stream.send(msg).await.unwrap();
             } else {
@@ -677,7 +669,7 @@ async fn backoff(
 ) -> Result<
     (
         WebSocketStream<MaybeTlsStream<TcpStream>>,
-        Response<Option<Vec<u8>>>,
+        upgrade::Response,
     ),
     NodeError,
 > {
@@ -686,13 +678,15 @@ async fn backoff(
     loop {
         let request = connect_request(config)?;
 
-        match tokio_tungstenite::connect_async(request).await {
+        match request.connect().await {
             Ok((stream, response)) => return Ok((stream, response)),
             Err(source) => {
                 tracing::warn!("failed to connect to node {source}: {:?}", config.address);
 
-                if matches!(&source, TungsteniteError::Http(resp) if resp.status() == StatusCode::UNAUTHORIZED)
-                {
+                if matches!(
+                    &source,
+                    WebsocketError::Upgrade(upgrade::Error::DidNotSwitchProtocols(401))
+                ) {
                     return Err(NodeError {
                         kind: NodeErrorType::Unauthorized {
                             address: config.address,

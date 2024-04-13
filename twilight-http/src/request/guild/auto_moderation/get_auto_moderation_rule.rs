@@ -38,12 +38,6 @@ impl<'a> GetAutoModerationRule<'a> {
             http,
         }
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<AutoModerationRule> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for GetAutoModerationRule<'_> {
@@ -63,10 +57,10 @@ impl IntoFuture for GetAutoModerationRule<'_> {
 
 impl TryIntoRequest for GetAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::builder(&Route::GetAutoModerationRule {
+        Request::builder(&Route::GetAutoModerationRule {
             auto_moderation_rule_id: self.auto_moderation_rule_id.get(),
             guild_id: self.guild_id.get(),
         })
-        .build())
+        .build()
     }
 }

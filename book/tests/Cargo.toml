@@ -5,7 +5,6 @@ name = "book"
 version = "0.0.0"
 
 [dependencies]
-futures = { version = "0.3", default-features = false }
 skeptic = "0.13.5"
 twilight-gateway = { path = "../../twilight-gateway" }
 twilight-http = { path = "../../twilight-http" }

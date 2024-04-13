@@ -9,8 +9,12 @@ pub mod message_component;
 pub mod modal;
 
 mod interaction_type;
+mod resolved;
 
-pub use self::interaction_type::InteractionType;
+pub use self::{
+    interaction_type::InteractionType,
+    resolved::{InteractionChannel, InteractionDataResolved, InteractionMember},
+};
 
 use self::{
     application_command::CommandData, message_component::MessageComponentInteractionData,
@@ -417,7 +421,7 @@ pub enum InteractionData {
     /// Data received for the [`MessageComponent`] interaction type.
     ///
     /// [`MessageComponent`]: InteractionType::MessageComponent
-    MessageComponent(MessageComponentInteractionData),
+    MessageComponent(Box<MessageComponentInteractionData>),
     /// Data received for the [`ModalSubmit`] interaction type.
     ///
     /// [`ModalSubmit`]: InteractionType::ModalSubmit
@@ -427,11 +431,8 @@ pub enum InteractionData {
 #[cfg(test)]
 mod tests {
     use super::{
-        application_command::{
-            CommandData, CommandDataOption, CommandInteractionDataResolved, CommandOptionValue,
-            InteractionMember,
-        },
-        Interaction, InteractionData, InteractionType,
+        application_command::{CommandData, CommandDataOption, CommandOptionValue},
+        Interaction, InteractionData, InteractionDataResolved, InteractionMember, InteractionType,
     };
     use crate::{
         application::{
@@ -504,7 +505,7 @@ mod tests {
                     name: "member".into(),
                     value: CommandOptionValue::User(Id::new(600)),
                 }]),
-                resolved: Some(CommandInteractionDataResolved {
+                resolved: Some(InteractionDataResolved {
                     attachments: HashMap::new(),
                     channels: HashMap::new(),
                     members: IntoIterator::into_iter([(
@@ -664,7 +665,7 @@ mod tests {
                 Token::Str("resolved"),
                 Token::Some,
                 Token::Struct {
-                    name: "CommandInteractionDataResolved",
+                    name: "InteractionDataResolved",
                     len: 2,
                 },
                 Token::Str("members"),

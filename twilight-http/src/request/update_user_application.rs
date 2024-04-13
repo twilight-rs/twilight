@@ -173,8 +173,8 @@ impl TryIntoRequest for UpdateCurrentUserApplication<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateCurrentUserApplication);
 
-        request = request.json(&self.fields)?;
+        request = request.json(&self.fields);
 
-        Ok(request.build())
+        request.build()
     }
 }

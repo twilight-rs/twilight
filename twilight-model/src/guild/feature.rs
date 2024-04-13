@@ -20,9 +20,6 @@ pub enum GuildFeature {
     AutoModeration,
     /// Has access to set a guild banner image.
     Banner,
-    /// Has access to use commerce features (create store channels).
-    #[deprecated]
-    Commerce,
     /// Can enable welcome screen, membership screening, stage channels,
     /// discovery, and receives community updates.
     Community,
@@ -42,9 +39,6 @@ pub enum GuildFeature {
     InviteSplash,
     /// Has enabled membership screening.
     MemberVerificationGateEnabled,
-    /// Has enabled monetization.
-    #[deprecated(since = "0.14.1", note = "not in active use by discord")]
-    MonetizationEnabled,
     /// Has increased custom sticker slots.
     MoreStickers,
     /// Has access to create news channels.
@@ -84,7 +78,6 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::AnimatedIcon => "ANIMATED_ICON".into(),
             GuildFeature::AutoModeration => "AUTO_MODERATION".into(),
             GuildFeature::Banner => "BANNER".into(),
-            GuildFeature::Commerce => "COMMERCE".into(),
             GuildFeature::Community => "COMMUNITY".into(),
             GuildFeature::CreatorMonetizableProvisional => "CREATOR_MONETIZABLE_PROVISIONAL".into(),
             GuildFeature::CreatorStorePage => "CREATOR_STORE_PAGE".into(),
@@ -96,7 +89,6 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::MemberVerificationGateEnabled => {
                 "MEMBER_VERIFICATION_GATE_ENABLED".into()
             }
-            GuildFeature::MonetizationEnabled => "MONETIZATION_ENABLED".into(),
             GuildFeature::MoreStickers => "MORE_STICKERS".into(),
             GuildFeature::News => "NEWS".into(),
             GuildFeature::Partnered => "PARTNERED".into(),
@@ -125,7 +117,6 @@ impl From<String> for GuildFeature {
             "ANIMATED_ICON" => Self::AnimatedIcon,
             "AUTO_MODERATION" => Self::AutoModeration,
             "BANNER" => Self::Banner,
-            "COMMERCE" => Self::Commerce,
             "COMMUNITY" => Self::Community,
             "CREATOR_MONETIZABLE_PROVISIONAL" => GuildFeature::CreatorMonetizableProvisional,
             "CREATOR_STORE_PAGE" => GuildFeature::CreatorStorePage,
@@ -135,7 +126,6 @@ impl From<String> for GuildFeature {
             "INVITES_DISABLED" => Self::InvitesDisabled,
             "INVITE_SPLASH" => Self::InviteSplash,
             "MEMBER_VERIFICATION_GATE_ENABLED" => Self::MemberVerificationGateEnabled,
-            "MONETIZATION_ENABLED" => Self::MonetizationEnabled,
             "MORE_STICKERS" => Self::MoreStickers,
             "NEWS" => Self::News,
             "PARTNERED" => Self::Partnered,
@@ -174,7 +164,6 @@ mod tests {
             &[Token::Str("AUTO_MODERATION")],
         );
         serde_test::assert_tokens(&GuildFeature::Banner, &[Token::Str("BANNER")]);
-        serde_test::assert_tokens(&GuildFeature::Commerce, &[Token::Str("COMMERCE")]);
         serde_test::assert_tokens(&GuildFeature::Community, &[Token::Str("COMMUNITY")]);
         serde_test::assert_tokens(
             &GuildFeature::CreatorMonetizableProvisional,
@@ -198,10 +187,6 @@ mod tests {
         serde_test::assert_tokens(
             &GuildFeature::MemberVerificationGateEnabled,
             &[Token::Str("MEMBER_VERIFICATION_GATE_ENABLED")],
-        );
-        serde_test::assert_tokens(
-            &GuildFeature::MonetizationEnabled,
-            &[Token::Str("MONETIZATION_ENABLED")],
         );
         serde_test::assert_tokens(&GuildFeature::MoreStickers, &[Token::Str("MORE_STICKERS")]);
         serde_test::assert_tokens(&GuildFeature::News, &[Token::Str("NEWS")]);

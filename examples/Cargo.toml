@@ -9,8 +9,11 @@ version = "0.0.0"
 anyhow = { default-features = false, features = ["std"], version = "1" }
 ed25519-dalek = "2"
 futures-util = { default-features = false, version = "0.3" }
+tokio-stream = { default-features = false, version = "0.1" }
 hex = "0.4"
-hyper = { features = ["client", "server", "http2", "runtime"], version = "0.14" }
+http-body-util = "0.1"
+hyper = { features = ["server"], version = "1" }
+hyper-util = { features = ["http1", "client-legacy"], version = "0.1" }
 log = { default-features = false, version = "0.4" }
 once_cell = "1.4"
 serde = { version = "1", features = ["derive"] }
@@ -18,6 +21,7 @@ serde_json = { version = "1" }
 tokio = { default-features = false, features = ["macros", "signal", "rt-multi-thread"], version = "1.0" }
 tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
+twilight-cache-inmemory = { path = "../twilight-cache-inmemory", features = ["permission-calculator"] }
 twilight-gateway = { path = "../twilight-gateway" }
 twilight-http = { path = "../twilight-http" }
 twilight-lavalink = { path = "../twilight-lavalink" }
@@ -25,8 +29,12 @@ twilight-model = { path = "../twilight-model" }
 twilight-standby = { path = "../twilight-standby" }
 
 [[example]]
-name = "gateway-parallel"
-path = "gateway-parallel.rs"
+name = "cache-optimization"
+path = "cache-optimization/main.rs"
+
+[[example]]
+name = "gateway-queue-http"
+path = "gateway-queue-http.rs"
 
 [[example]]
 name = "gateway-reshard"

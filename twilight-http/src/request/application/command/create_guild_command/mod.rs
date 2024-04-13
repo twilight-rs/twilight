@@ -12,7 +12,6 @@ use twilight_model::id::{
     marker::{ApplicationMarker, GuildMarker},
     Id,
 };
-use twilight_validate::command::CommandValidationError;
 
 /// Create a new command in a guild.
 #[must_use = "the command must have a type"]
@@ -61,7 +60,7 @@ impl<'a> CreateGuildCommand<'a> {
         self,
         name: &'a str,
         description: &'a str,
-    ) -> Result<CreateGuildChatInputCommand<'a>, CommandValidationError> {
+    ) -> CreateGuildChatInputCommand<'a> {
         CreateGuildChatInputCommand::new(
             self.http,
             self.application_id,
@@ -84,10 +83,7 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub fn message(
-        self,
-        name: &'a str,
-    ) -> Result<CreateGuildMessageCommand<'a>, CommandValidationError> {
+    pub fn message(self, name: &'a str) -> CreateGuildMessageCommand<'a> {
         CreateGuildMessageCommand::new(self.http, self.application_id, self.guild_id, name)
     }
 
@@ -104,7 +100,7 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub fn user(self, name: &'a str) -> Result<CreateGuildUserCommand<'a>, CommandValidationError> {
+    pub fn user(self, name: &'a str) -> CreateGuildUserCommand<'a> {
         CreateGuildUserCommand::new(self.http, self.application_id, self.guild_id, name)
     }
 }

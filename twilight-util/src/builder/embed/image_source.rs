@@ -186,7 +186,7 @@ impl ImageSource {
 mod tests {
     use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{error::Error, fmt::Debug};
+    use std::fmt::Debug;
 
     assert_impl_all!(ImageSourceAttachmentErrorType: Debug, Send, Sync);
     assert_impl_all!(ImageSourceAttachmentError: Error, Send, Sync);

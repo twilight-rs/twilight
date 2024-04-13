@@ -307,7 +307,7 @@ use crate::error::Error;
 /// let channel_id = Id::new(1);
 /// let builder = client
 ///     .create_message(channel_id)
-///     .content("This is a test message!")?
+///     .content("This is a test message!")
 ///     .tts(false);
 ///
 /// let request = builder.try_into_request()?;
@@ -360,8 +360,10 @@ mod tests {
     fn conversion() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
         let channel_id = Id::new(1);
-        let builder = client.create_message(channel_id).content("test")?;
-        let request = builder.try_into_request()?;
+        let request = client
+            .create_message(channel_id)
+            .content("test")
+            .try_into_request()?;
 
         assert_eq!(Some(br#"{"content":"test"}"#.as_ref()), request.body());
         assert!(request.form().is_none());

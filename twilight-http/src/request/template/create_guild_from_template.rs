@@ -29,24 +29,24 @@ struct CreateGuildFromTemplateFields<'a> {
 /// [`GuildName`]: twilight_validate::request::ValidationErrorType::GuildName
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildFromTemplate<'a> {
-    fields: CreateGuildFromTemplateFields<'a>,
+    fields: Result<CreateGuildFromTemplateFields<'a>, ValidationError>,
     http: &'a Client,
     template_code: &'a str,
 }
 
 impl<'a> CreateGuildFromTemplate<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        template_code: &'a str,
-        name: &'a str,
-    ) -> Result<Self, ValidationError> {
-        validate_guild_name(name)?;
+    pub(crate) fn new(http: &'a Client, template_code: &'a str, name: &'a str) -> Self {
+        let fields = Ok(CreateGuildFromTemplateFields { name, icon: None }).and_then(|fields| {
+            validate_guild_name(name)?;
 
-        Ok(Self {
-            fields: CreateGuildFromTemplateFields { name, icon: None },
+            Ok(fields)
+        });
+
+        Self {
+            fields,
             http,
             template_code,
-        })
+        }
     }
 
     /// Set the icon.
@@ -56,16 +56,12 @@ impl<'a> CreateGuildFromTemplate<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn icon(mut self, icon: &'a str) -> Self {
-        self.fields.icon = Some(icon);
+    pub fn icon(mut self, icon: &'a str) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.icon = Some(icon);
+        }
 
         self
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<Guild> {
-        self.into_future()
     }
 }
 
@@ -86,13 +82,13 @@ impl IntoFuture for CreateGuildFromTemplate<'_> {
 
 impl TryIntoRequest for CreateGuildFromTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::CreateGuildFromTemplate {
+        let fields = self.fields.map_err(Error::validation)?;
+
+        Request::builder(&Route::CreateGuildFromTemplate {
             template_code: self.template_code,
-        });
-
-        request = request.json(&self.fields)?;
-
-        Ok(request.build())
+        })
+        .json(&fields)
+        .build()
     }
 }
 
@@ -108,14 +104,14 @@ mod tests {
         {
             let expected = r#"{"name":"New Guild"}"#;
             let actual =
-                CreateGuildFromTemplate::new(&client, "code", "New Guild")?.try_into_request()?;
+                CreateGuildFromTemplate::new(&client, "code", "New Guild").try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
         }
 
         {
             let expected = r#"{"name":"New Guild","icon":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI"}"#;
-            let actual = CreateGuildFromTemplate::new(&client, "code", "New Guild")?
+            let actual = CreateGuildFromTemplate::new(&client, "code", "New Guild")
             .icon("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI")
             .try_into_request()?;
 

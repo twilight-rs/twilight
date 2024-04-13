@@ -1,5 +1,30 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- Address new rust CI errors ([#2285](https://github.com/twilight-rs/twilight/issues/2285))
+
+### Build
+
+- Update to rustls 0.22, tokio-websockets 0.5 ([#2302](https://github.com/twilight-rs/twilight/issues/2302))
+- [**breaking**] Rename native feature to native-tls ([#2308](https://github.com/twilight-rs/twilight/issues/2308))
+
+### Features
+
+- [**breaking**] Reduce size of gateway rest models ([#2168](https://github.com/twilight-rs/twilight/issues/2168))
+- [**breaking**] Turn `Queue` into a generic type ([#2249](https://github.com/twilight-rs/twilight/issues/2249))
+- [**breaking**] Impl Stream for Shard ([#2309](https://github.com/twilight-rs/twilight/issues/2309))
+
+### Refactor
+
+- [**breaking**] Remove deprecated apis ([#2132](https://github.com/twilight-rs/twilight/issues/2132))
+- [**breaking**] Update bitflags crate to v2 ([#2199](https://github.com/twilight-rs/twilight/issues/2199))
+- [**breaking**] Remove undocumented gateway events ([#2237](https://github.com/twilight-rs/twilight/issues/2237))
+- [**breaking**] Changes for compatibility with twilight-gateway-queue rewrite ([#2228](https://github.com/twilight-rs/twilight/issues/2228))
+- Switch to fastrand and tokio-websockets ([#2239](https://github.com/twilight-rs/twilight/issues/2239))
+
 ## [0.15.3] - 2023-09-10
 
 ### Bug Fixes

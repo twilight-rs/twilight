@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -90,12 +90,6 @@ impl<'a> UpdateGuildCommand<'a> {
 
         self
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<Command> {
-        self.into_future()
-    }
 }
 
 impl IntoFuture for UpdateGuildCommand<'_> {
@@ -121,6 +115,6 @@ impl TryIntoRequest for UpdateGuildCommand<'_> {
             guild_id: self.guild_id.get(),
         })
         .json(&self.fields)
-        .map(RequestBuilder::build)
+        .build()
     }
 }

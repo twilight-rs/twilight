@@ -177,7 +177,7 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 }
 
-struct GatewayEventVisitor<'a>(u8, Option<u64>, Option<Cow<'a, str>>);
+struct GatewayEventVisitor<'a>(u8, Option<Cow<'a, str>>);
 
 impl GatewayEventVisitor<'_> {
     fn field<'de, T: Deserialize<'de>, V: MapAccess<'de>>(
@@ -252,7 +252,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         Ok(match op {
             OpCode::Dispatch => {
                 let t = self
-                    .2
+                    .1
                     .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
 
                 let mut d = None;
@@ -355,7 +355,7 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializer<'_> {
         deserializer.deserialize_struct(
             "GatewayEvent",
             FIELDS,
-            GatewayEventVisitor(self.op, self.sequence, self.event_type),
+            GatewayEventVisitor(self.op, self.event_type),
         )
     }
 }

@@ -3,42 +3,44 @@
 //! This module contains the type definitions for parameters
 //! relevant for ratelimiting.
 //!
-//! The [`super::Ratelimiter`] uses [`Path`]s and [`Method`]s to store
-//! and associate buckets with routes.
+//! The [`Ratelimiter`] uses [`Path`]s and [`Method`]s to store and associate
+//! buckets with endpoints.
+//!
+//! [`Ratelimiter`]: super::Ratelimiter
 
-use http::Method as HttpMethod;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
 };
 
-/// Request method.
+/// HTTP request [method].
+///
+/// [method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum Method {
-    /// DELETE method.
+    /// Delete a resource.
     Delete,
-    /// GET method.
+    /// Retrieve a resource.
     Get,
-    /// PATCH method.
+    /// Update a resource.
     Patch,
-    /// POST method.
+    /// Create a resource.
     Post,
-    /// PUT method.
+    /// Replace a resource.
     Put,
 }
 
 impl Method {
-    /// Convert the method into the equivalent [`http::Method`].
-    #[must_use]
-    pub const fn to_http(self) -> HttpMethod {
+    /// Name of the method.
+    pub const fn name(self) -> &'static str {
         match self {
-            Self::Delete => HttpMethod::DELETE,
-            Self::Get => HttpMethod::GET,
-            Self::Patch => HttpMethod::PATCH,
-            Self::Post => HttpMethod::POST,
-            Self::Put => HttpMethod::PUT,
+            Method::Delete => "DELETE",
+            Method::Get => "GET",
+            Method::Patch => "PATCH",
+            Method::Post => "POST",
+            Method::Put => "PUT",
         }
     }
 }
@@ -486,7 +488,6 @@ impl TryFrom<(Method, &str)> for Path {
 mod tests {
     use super::{Path, PathParseError, PathParseErrorType};
     use crate::request::Method;
-    use http::Method as HttpMethod;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug, hash::Hash, str::FromStr};
 
@@ -532,10 +533,10 @@ mod tests {
 
     #[test]
     fn method_conversions() {
-        assert_eq!(HttpMethod::DELETE, Method::Delete.to_http());
-        assert_eq!(HttpMethod::GET, Method::Get.to_http());
-        assert_eq!(HttpMethod::PATCH, Method::Patch.to_http());
-        assert_eq!(HttpMethod::POST, Method::Post.to_http());
-        assert_eq!(HttpMethod::PUT, Method::Put.to_http());
+        assert_eq!("DELETE", Method::Delete.name());
+        assert_eq!("GET", Method::Get.name());
+        assert_eq!("PATCH", Method::Patch.name());
+        assert_eq!("POST", Method::Post.name());
+        assert_eq!("PUT", Method::Put.name());
     }
 }

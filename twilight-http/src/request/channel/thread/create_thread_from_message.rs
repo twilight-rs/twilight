@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -46,7 +46,7 @@ struct CreateThreadFromMessageFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
     channel_id: Id<ChannelMarker>,
-    fields: CreateThreadFromMessageFields<'a>,
+    fields: Result<CreateThreadFromMessageFields<'a>, ChannelValidationError>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
 }
@@ -57,37 +57,35 @@ impl<'a> CreateThreadFromMessage<'a> {
         channel_id: Id<ChannelMarker>,
         message_id: Id<MessageMarker>,
         name: &'a str,
-    ) -> Result<Self, ChannelValidationError> {
-        validate_name(name)?;
+    ) -> Self {
+        let fields = Ok(CreateThreadFromMessageFields {
+            auto_archive_duration: None,
+            name,
+        })
+        .and_then(|fields| {
+            validate_name(name)?;
 
-        Ok(Self {
+            Ok(fields)
+        });
+
+        Self {
             channel_id,
-            fields: CreateThreadFromMessageFields {
-                auto_archive_duration: None,
-                name,
-            },
+            fields,
             http,
             message_id,
-        })
+        }
     }
 
     /// Set the thread's auto archive duration.
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
-    pub const fn auto_archive_duration(
-        mut self,
-        auto_archive_duration: AutoArchiveDuration,
-    ) -> Self {
-        self.fields.auto_archive_duration = Some(auto_archive_duration);
+    pub fn auto_archive_duration(mut self, auto_archive_duration: AutoArchiveDuration) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.auto_archive_duration = Some(auto_archive_duration);
+        }
 
         self
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<Channel> {
-        self.into_future()
     }
 }
 
@@ -108,11 +106,13 @@ impl IntoFuture for CreateThreadFromMessage<'_> {
 
 impl TryIntoRequest for CreateThreadFromMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Request::builder(&Route::CreateThreadFromMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),
         })
-        .json(&self.fields)
-        .map(RequestBuilder::build)
+        .json(&fields)
+        .build()
     }
 }

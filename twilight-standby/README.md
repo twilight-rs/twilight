@@ -73,9 +73,8 @@ A full sample bot connecting to the gateway, processing events, and
 including a handler to wait for reactions:
 
 ```rust,no_run
-use futures_util::StreamExt;
 use std::{env, sync::Arc};
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 use twilight_model::{
     channel::Message,
     gateway::payload::incoming::ReactionAdd,
@@ -92,18 +91,11 @@ async fn main() -> anyhow::Result<()> {
 
     let standby = Arc::new(Standby::new());
 
-    loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+        let Ok(event) = item else {
+            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
-                if source.is_fatal() {
-                    break;
-                }
-
-                continue;
-            }
+            continue;
         };
 
         // Have standby process the event, which will fulfill any futures

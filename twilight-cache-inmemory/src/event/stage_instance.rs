@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::StageInstance,
     gateway::payload::incoming::{StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate},
@@ -8,7 +8,7 @@ use twilight_model::{
     },
 };
 
-impl InMemoryCache {
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     pub(crate) fn cache_stage_instances(
         &self,
         guild_id: Id<GuildMarker>,
@@ -29,7 +29,7 @@ impl InMemoryCache {
             &self.stage_instances,
             guild_id,
             stage_instance.id,
-            stage_instance,
+            CacheModels::StageInstance::from(stage_instance),
         );
     }
 
@@ -44,8 +44,8 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for StageInstanceCreate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for StageInstanceCreate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::STAGE_INSTANCE) {
             return;
         }
@@ -54,8 +54,8 @@ impl UpdateCache for StageInstanceCreate {
     }
 }
 
-impl UpdateCache for StageInstanceDelete {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for StageInstanceDelete {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::STAGE_INSTANCE) {
             return;
         }
@@ -64,8 +64,8 @@ impl UpdateCache for StageInstanceDelete {
     }
 }
 
-impl UpdateCache for StageInstanceUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for StageInstanceUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::STAGE_INSTANCE) {
             return;
         }
@@ -76,7 +76,7 @@ impl UpdateCache for StageInstanceUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::InMemoryCache;
+    use crate::DefaultInMemoryCache;
     use twilight_model::{
         channel::{stage_instance::PrivacyLevel, StageInstance},
         gateway::payload::incoming::{
@@ -87,7 +87,7 @@ mod tests {
 
     #[test]
     fn stage_channels() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         let stage_instance = StageInstance {
             channel_id: Id::new(1),

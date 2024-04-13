@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, model::CachedEmoji, GuildResource, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, CacheableModels, GuildResource, InMemoryCache, UpdateCache};
 use std::borrow::Cow;
 use twilight_model::{
     gateway::payload::incoming::GuildEmojisUpdate,
@@ -6,7 +6,7 @@ use twilight_model::{
     id::{marker::GuildMarker, Id},
 };
 
-impl InMemoryCache {
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     pub(crate) fn cache_emojis(&self, guild_id: Id<GuildMarker>, emojis: Vec<Emoji>) {
         if let Some(mut guild_emojis) = self.guild_emojis.get_mut(&guild_id) {
             let incoming: Vec<_> = emojis.iter().map(|e| e.id).collect();
@@ -43,7 +43,7 @@ impl InMemoryCache {
         }
 
         let emoji_id = emoji.id;
-        let cached = CachedEmoji::from_model(emoji);
+        let cached = CacheModels::Emoji::from(emoji);
 
         self.emojis.insert(
             emoji_id,
@@ -60,8 +60,8 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for GuildEmojisUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildEmojisUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::EMOJI) {
             return;
         }
@@ -72,7 +72,7 @@ impl UpdateCache for GuildEmojisUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, InMemoryCache};
+    use crate::{test, DefaultInMemoryCache};
     use twilight_model::{
         gateway::payload::incoming::GuildEmojisUpdate,
         id::{marker::EmojiMarker, Id},
@@ -91,7 +91,7 @@ mod tests {
             }
         }
 
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         // Single inserts
         {
@@ -147,7 +147,7 @@ mod tests {
 
     #[test]
     fn emoji_removal() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         let guild_id = Id::new(1);
 

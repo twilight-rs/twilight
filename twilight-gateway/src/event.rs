@@ -35,6 +35,8 @@ bitflags! {
     /// [`Intents::GUILDS`]: twilight_model::gateway::Intents::GUILDS
     /// [`RoleCreate`]: twilight_model::gateway::event::Event::RoleCreate
     /// [`RoleUpdate`]: twilight_model::gateway::event::Event::RoleUpdate
+    /// [`Shard`]: crate::Shard
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct EventTypeFlags: u128 {
         /// Message has been blocked by AutoMod according to a rule.
         const AUTO_MODERATION_ACTION_EXECUTION = 1 << 71;
@@ -83,8 +85,6 @@ bitflags! {
         const GATEWAY_INVALIDATE_SESSION = 1 << 69;
         /// Gateway is indicating that a shard should perform a reconnect.
         const GATEWAY_RECONNECT = 1 << 9;
-        /// Gift code sent in a channel has been updated.
-        const GIFT_CODE_UPDATE = 1 << 49;
         /// An audit log entry has been created.
         const GUILD_AUDIT_LOG_ENTRY_CREATE = 1 << 75;
         /// A guild has been created.
@@ -142,11 +142,6 @@ bitflags! {
         const MESSAGE_UPDATE = 1 << 22;
         /// User's presence details are updated.
         const PRESENCE_UPDATE = 1 << 23;
-        /// Group of presences are replaced.
-        ///
-        /// This is a placeholder as it *can* happen for bots but has no real
-        /// meaning.
-        const PRESENCES_REPLACE = 1 << 24;
         /// Reaction has been added to a message.
         const REACTION_ADD = 1 << 25;
         /// Reaction has been removed from a message.
@@ -247,11 +242,6 @@ bitflags! {
             | Self::THREAD_LIST_SYNC.bits()
             | Self::THREAD_MEMBER_UPDATE.bits()
             | Self::THREAD_MEMBERS_UPDATE.bits();
-        /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
-        ///
-        /// [`Intents::GUILD_BANS`]: crate::Intents::GUILD_BANS
-        #[deprecated(since = "0.14.3", note = "use the `GUILD_MODERATION` intent instead")]
-        const GUILD_BANS = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits() | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits();
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MODERATION`].
         ///
         /// [`Intents::GUILD_MODERATION`]: crate::Intents::GUILD_MODERATION
@@ -289,8 +279,8 @@ bitflags! {
         /// [`Intents::GUILD_MESSAGES`]: crate::Intents::GUILD_MESSAGES
         const GUILD_MESSAGES = Self::MESSAGE_CREATE.bits()
             | Self::MESSAGE_DELETE.bits()
-            | Self::MESSAGE_DELETE.bits()
-            | Self::MESSAGE_DELETE_BULK.bits();
+            | Self::MESSAGE_DELETE_BULK.bits()
+            | Self::MESSAGE_UPDATE.bits();
 
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_REACTIONS`].
         ///
@@ -355,7 +345,6 @@ impl From<EventType> for EventTypeFlags {
             EventType::GatewayHello => Self::GATEWAY_HELLO,
             EventType::GatewayInvalidateSession => Self::GATEWAY_INVALIDATE_SESSION,
             EventType::GatewayReconnect => Self::GATEWAY_RECONNECT,
-            EventType::GiftCodeUpdate => Self::GIFT_CODE_UPDATE,
             EventType::GuildAuditLogEntryCreate => Self::GUILD_AUDIT_LOG_ENTRY_CREATE,
             EventType::GuildCreate => Self::GUILD_CREATE,
             EventType::GuildDelete => Self::GUILD_DELETE,
@@ -383,7 +372,6 @@ impl From<EventType> for EventTypeFlags {
             EventType::MessageDeleteBulk => Self::MESSAGE_DELETE_BULK,
             EventType::MessageUpdate => Self::MESSAGE_UPDATE,
             EventType::PresenceUpdate => Self::PRESENCE_UPDATE,
-            EventType::PresencesReplace => Self::PRESENCES_REPLACE,
             EventType::ReactionAdd => Self::REACTION_ADD,
             EventType::ReactionRemove => Self::REACTION_REMOVE,
             EventType::ReactionRemoveAll => Self::REACTION_REMOVE_ALL,

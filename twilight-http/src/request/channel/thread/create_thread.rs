@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -35,7 +35,7 @@ struct CreateThreadFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThread<'a> {
     channel_id: Id<ChannelMarker>,
-    fields: CreateThreadFields<'a>,
+    fields: Result<CreateThreadFields<'a>, ChannelValidationError>,
     http: &'a Client,
 }
 
@@ -45,47 +45,46 @@ impl<'a> CreateThread<'a> {
         channel_id: Id<ChannelMarker>,
         name: &'a str,
         kind: ChannelType,
-    ) -> Result<Self, ChannelValidationError> {
-        validate_name(name)?;
-
-        validate_is_thread(kind)?;
-
-        Ok(Self {
-            channel_id,
-            fields: CreateThreadFields {
-                auto_archive_duration: None,
-                invitable: None,
-                kind,
-                name,
-            },
-            http,
+    ) -> Self {
+        let fields = Ok(CreateThreadFields {
+            auto_archive_duration: None,
+            invitable: None,
+            kind,
+            name,
         })
+        .and_then(|fields| {
+            validate_name(name)?;
+            validate_is_thread(kind)?;
+
+            Ok(fields)
+        });
+
+        Self {
+            channel_id,
+            fields,
+            http,
+        }
     }
 
     /// Set the thread's auto archive duration.
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
-    pub const fn auto_archive_duration(
-        mut self,
-        auto_archive_duration: AutoArchiveDuration,
-    ) -> Self {
-        self.fields.auto_archive_duration = Some(auto_archive_duration);
+    pub fn auto_archive_duration(mut self, auto_archive_duration: AutoArchiveDuration) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.auto_archive_duration = Some(auto_archive_duration);
+        }
 
         self
     }
 
     /// Whether non-moderators can add other non-moderators to a thread.
-    pub const fn invitable(mut self, invitable: bool) -> Self {
-        self.fields.invitable = Some(invitable);
+    pub fn invitable(mut self, invitable: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.invitable = Some(invitable);
+        }
 
         self
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<Channel> {
-        self.into_future()
     }
 }
 
@@ -106,10 +105,12 @@ impl IntoFuture for CreateThread<'_> {
 
 impl TryIntoRequest for CreateThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Request::builder(&Route::CreateThread {
             channel_id: self.channel_id.get(),
         })
-        .json(&self.fields)
-        .map(RequestBuilder::build)
+        .json(&fields)
+        .build()
     }
 }

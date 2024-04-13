@@ -31,7 +31,7 @@ struct GetReactionsFields {
 pub struct GetReactions<'a> {
     channel_id: Id<ChannelMarker>,
     emoji: &'a RequestReactionType<'a>,
-    fields: GetReactionsFields,
+    fields: Result<GetReactionsFields, ValidationError>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
 }
@@ -46,18 +46,20 @@ impl<'a> GetReactions<'a> {
         Self {
             channel_id,
             emoji,
-            fields: GetReactionsFields {
+            fields: Ok(GetReactionsFields {
                 after: None,
                 limit: None,
-            },
+            }),
             http,
             message_id,
         }
     }
 
     /// Get users after this id.
-    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
-        self.fields.after = Some(after);
+    pub fn after(mut self, after: Id<UserMarker>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.after = Some(after);
+        }
 
         self
     }
@@ -73,21 +75,15 @@ impl<'a> GetReactions<'a> {
     /// 100.
     ///
     /// [`GetReactions`]: twilight_validate::request::ValidationErrorType::GetReactions
-    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
-        #[allow(clippy::question_mark)]
-        if let Err(source) = validate_get_reactions_limit(limit) {
-            return Err(source);
-        }
+    pub fn limit(mut self, limit: u16) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_get_reactions_limit(limit)?;
+            fields.limit = Some(limit);
 
-        self.fields.limit = Some(limit);
+            Ok(fields)
+        });
 
-        Ok(self)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    #[deprecated(since = "0.15.1", note = "use `.await` or `into_future` instead")]
-    pub fn exec(self) -> ResponseFuture<ListBody<User>> {
-        self.into_future()
+        self
     }
 }
 
@@ -108,11 +104,13 @@ impl IntoFuture for GetReactions<'_> {
 
 impl TryIntoRequest for GetReactions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Ok(Request::from_route(&Route::GetReactionUsers {
-            after: self.fields.after.map(Id::get),
+            after: fields.after.map(Id::get),
             channel_id: self.channel_id.get(),
             emoji: self.emoji,
-            limit: self.fields.limit,
+            limit: fields.limit,
             message_id: self.message_id.get(),
         }))
     }

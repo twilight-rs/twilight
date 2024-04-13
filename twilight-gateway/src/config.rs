@@ -1,11 +1,11 @@
 //! User configuration for shards.
 
-use crate::{tls::TlsContainer, EventTypeFlags, Session};
+use crate::{queue::InMemoryQueue, Session};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::Arc,
 };
-use twilight_gateway_queue::{LocalQueue, Queue};
+use tokio_websockets::Connector;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
@@ -34,16 +34,12 @@ impl Debug for Token {
 
 /// Configuration used by the shard to identify with the gateway and operate.
 ///
-/// Use [`Config::builder`] to configure a shard's configuration.
-///
 /// May be reused by cloning, also reusing the hidden TLS context---reducing
 /// memory usage. The TLS context may still be reused with an otherwise
 /// different config by turning it into to a [`ConfigBuilder`] through the
 /// [`From<Config>`] implementation and then rebuilding it into a rew config.
 #[derive(Clone, Debug)]
-pub struct Config {
-    /// Event type flags.
-    event_types: EventTypeFlags,
+pub struct Config<Q = InMemoryQueue> {
     /// Identification properties the shard will use.
     identify_properties: Option<IdentifyProperties>,
     /// Intents that the shard requests when identifying with the gateway.
@@ -56,17 +52,19 @@ pub struct Config {
     /// Gateway proxy URL.
     proxy_url: Option<Box<str>>,
     /// Queue in use by the shard.
-    queue: Arc<dyn Queue>,
+    queue: Q,
     /// Whether [outgoing message] ratelimiting is enabled.
     ///
     /// [outgoing message]: crate::Shard::send
     ratelimit_messages: bool,
+    /// URL to connect to if the shard resumes on initialization.
+    resume_url: Option<Box<str>>,
     /// Session information to resume a shard on initialization.
     session: Option<Session>,
     /// TLS connector for Websocket connections.
     // We need this to be public so [`stream`] can reuse TLS on multiple shards
     // if unconfigured.
-    tls: TlsContainer,
+    pub(crate) tls: Arc<Connector>,
     /// Token used to authenticate when identifying with the gateway.
     ///
     /// The token is prefixed with "Bot ", which is required by Discord for
@@ -77,30 +75,15 @@ pub struct Config {
 impl Config {
     /// Create a new default shard configuration.
     ///
-    /// Shortcut for calling [`builder`][`Self::builder`] and immediately
-    /// finalizing the builder.
-    ///
     /// # Panics
     ///
     /// Panics if loading TLS certificates fails.
     pub fn new(token: String, intents: Intents) -> Self {
-        Self::builder(token, intents).build()
+        ConfigBuilder::new(token, intents).build()
     }
+}
 
-    /// Create a builder to customize a shard's configuration.
-    ///
-    /// # Panics
-    ///
-    /// Panics if loading TLS certificates fails.
-    pub fn builder(token: String, intents: Intents) -> ConfigBuilder {
-        ConfigBuilder::new(token, intents)
-    }
-
-    /// Event type flags.
-    pub const fn event_types(&self) -> EventTypeFlags {
-        self.event_types
-    }
-
+impl<Q> Config<Q> {
     /// Immutable reference to the identification properties the shard will use.
     pub const fn identify_properties(&self) -> Option<&IdentifyProperties> {
         self.identify_properties.as_ref()
@@ -132,7 +115,7 @@ impl Config {
     }
 
     /// Immutable reference to the queue in use by the shard.
-    pub fn queue(&self) -> &Arc<dyn Queue> {
+    pub const fn queue(&self) -> &Q {
         &self.queue
     }
 
@@ -143,15 +126,15 @@ impl Config {
         self.ratelimit_messages
     }
 
-    /// Immutable reference to the TLS connector in use by the shard.
-    pub(crate) const fn tls(&self) -> &TlsContainer {
-        &self.tls
-    }
-
     /// Immutable reference to the token used to authenticate when identifying
     /// with the gateway.
     pub const fn token(&self) -> &str {
         &self.token.inner
+    }
+
+    /// Url to connect to if the shard resumes on initialization.
+    pub(crate) fn take_resume_url(&mut self) -> Option<Box<str>> {
+        self.resume_url.take()
     }
 
     /// Session information to resume a shard on initialization.
@@ -163,9 +146,9 @@ impl Config {
 /// Builder to customize the operation of a shard.
 #[derive(Debug)]
 #[must_use = "builder must be completed to be used"]
-pub struct ConfigBuilder {
+pub struct ConfigBuilder<Q = InMemoryQueue> {
     /// Inner configuration being modified.
-    inner: Config,
+    inner: Config<Q>,
 }
 
 impl ConfigBuilder {
@@ -183,42 +166,27 @@ impl ConfigBuilder {
 
         Self {
             inner: Config {
-                event_types: EventTypeFlags::all(),
                 identify_properties: None,
                 intents,
                 large_threshold: 50,
                 presence: None,
                 proxy_url: None,
-                queue: Arc::new(LocalQueue::new()),
+                queue: InMemoryQueue::default(),
                 ratelimit_messages: true,
+                resume_url: None,
                 session: None,
-                tls: TlsContainer::new().unwrap(),
+                tls: Arc::new(Connector::new().unwrap()),
                 token: Token::new(token.into_boxed_str()),
             },
         }
     }
+}
 
-    /// Create a new builder from an existing configuration.
-    #[deprecated(since = "0.15.3", note = "use From<Config> instead")]
-    pub const fn with_config(config: Config) -> Self {
-        Self { inner: config }
-    }
-
+impl<Q> ConfigBuilder<Q> {
     /// Consume the builder, constructing a shard.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn build(self) -> Config {
+    pub fn build(self) -> Config<Q> {
         self.inner
-    }
-
-    /// Set the event types to process.
-    ///
-    /// This is an optimization technique; all events not included in the
-    /// provided event type flags will not be deserialized by the gateway and
-    /// will be discarded.
-    pub const fn event_types(mut self, event_types: EventTypeFlags) -> Self {
-        self.inner.event_types = event_types;
-
-        self
     }
 
     /// Set the properties to identify with.
@@ -233,13 +201,13 @@ impl ConfigBuilder {
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env::{self, consts::OS};
-    /// use twilight_gateway::{Config, Intents, Shard};
+    /// use twilight_gateway::{ConfigBuilder, Intents, Shard};
     /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS);
     ///
-    /// let config = Config::builder(token, Intents::empty())
+    /// let config = ConfigBuilder::new(token, Intents::empty())
     ///     .identify_properties(properties)
     ///     .build();
     /// # Ok(()) }
@@ -300,7 +268,7 @@ impl ConfigBuilder {
     ///
     /// ```no_run
     /// use std::env;
-    /// use twilight_gateway::{Config, Intents, Shard, ShardId};
+    /// use twilight_gateway::{ConfigBuilder, Intents, Shard, ShardId};
     /// use twilight_model::gateway::{
     ///     payload::outgoing::update_presence::UpdatePresencePayload,
     ///     presence::{ActivityType, MinimalActivity, Status},
@@ -308,7 +276,7 @@ impl ConfigBuilder {
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder(env::var("DISCORD_TOKEN")?, Intents::empty())
+    /// let config = ConfigBuilder::new(env::var("DISCORD_TOKEN")?, Intents::empty())
     ///     .presence(UpdatePresencePayload::new(
     ///         vec![MinimalActivity {
     ///             kind: ActivityType::Playing,
@@ -348,15 +316,40 @@ impl ConfigBuilder {
 
     /// Set the queue to use for queueing shard sessions.
     ///
-    /// Defaults to a [`LocalQueue`].
+    /// Defaults to [`InMemoryQueue`] with its default settings.
     ///
-    /// Refer to the [`queue`] module for more information.
-    ///
-    /// [`queue`]: crate::queue
-    pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
-        self.inner.queue = queue;
+    /// Note that [`InMemoryQueue`] with a `max_concurrency` of `0` effectively
+    /// turns itself into a no-op.
+    pub fn queue<NewQ>(self, queue: NewQ) -> ConfigBuilder<NewQ> {
+        let Config {
+            identify_properties,
+            intents,
+            large_threshold,
+            presence,
+            proxy_url,
+            queue: _,
+            ratelimit_messages,
+            resume_url,
+            session,
+            tls,
+            token,
+        } = self.inner;
 
-        self
+        ConfigBuilder {
+            inner: Config {
+                identify_properties,
+                intents,
+                large_threshold,
+                presence,
+                proxy_url,
+                queue,
+                ratelimit_messages,
+                resume_url,
+                session,
+                tls,
+                token,
+            },
+        }
     }
 
     /// Set whether or not outgoing messages will be ratelimited.
@@ -367,6 +360,18 @@ impl ConfigBuilder {
     /// Defaults to being enabled.
     pub const fn ratelimit_messages(mut self, ratelimit_messages: bool) -> Self {
         self.inner.ratelimit_messages = ratelimit_messages;
+
+        self
+    }
+
+    /// Set the resume URL to use when the initial shard connection resumes an old session.
+    ///
+    /// This is only used if the initial shard connection resumes instead of identifying and only affects the first session.
+    ///
+    /// This only has an effect if [`ConfigBuilder::session`] is also set.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn resume_url(mut self, resume_url: String) -> Self {
+        self.inner.resume_url = Some(resume_url.into_boxed_str());
 
         self
     }
@@ -387,8 +392,8 @@ impl ConfigBuilder {
     }
 }
 
-impl From<Config> for ConfigBuilder {
-    fn from(value: Config) -> Self {
+impl<Q> From<Config<Q>> for ConfigBuilder<Q> {
+    fn from(value: Config<Q>) -> Self {
         Self { inner: value }
     }
 }

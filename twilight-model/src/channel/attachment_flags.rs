@@ -5,6 +5,7 @@ use serde::{
 };
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct AttachmentFlags: u64 {
         /// This attachment has been edited using the remix feature on mobile
         const IS_REMIX = 1 << 2;
@@ -59,9 +60,7 @@ mod tests {
         LowerHex,
         Not,
         Octal,
-        Ord,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sub,

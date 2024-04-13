@@ -27,7 +27,6 @@ pub enum EventType {
     GatewayHello,
     GatewayInvalidateSession,
     GatewayReconnect,
-    GiftCodeUpdate,
     GuildAuditLogEntryCreate,
     GuildCreate,
     GuildDelete,
@@ -59,7 +58,6 @@ pub enum EventType {
     MessageDeleteBulk,
     MessageUpdate,
     PresenceUpdate,
-    PresencesReplace,
     #[serde(rename = "MESSAGE_REACTION_ADD")]
     ReactionAdd,
     #[serde(rename = "MESSAGE_REACTION_REMOVE")]
@@ -137,7 +135,6 @@ impl EventType {
             Self::MessageDelete => Some("MESSAGE_DELETE"),
             Self::MessageDeleteBulk => Some("MESSAGE_DELETE_BULK"),
             Self::MessageUpdate => Some("MESSAGE_UPDATE"),
-            Self::PresencesReplace => Some("PRESENCES_REPLACE"),
             Self::PresenceUpdate => Some("PRESENCE_UPDATE"),
             Self::ReactionAdd => Some("MESSAGE_REACTION_ADD"),
             Self::ReactionRemove => Some("MESSAGE_REACTION_REMOVE"),
@@ -217,7 +214,6 @@ impl<'a> TryFrom<&'a str> for EventType {
             "MESSAGE_DELETE_BULK" => Ok(Self::MessageDeleteBulk),
             "MESSAGE_UPDATE" => Ok(Self::MessageUpdate),
             "PRESENCE_UPDATE" => Ok(Self::PresenceUpdate),
-            "PRESENCES_REPLACE" => Ok(Self::PresencesReplace),
             "MESSAGE_REACTION_ADD" => Ok(Self::ReactionAdd),
             "MESSAGE_REACTION_REMOVE" => Ok(Self::ReactionRemove),
             "MESSAGE_REACTION_REMOVE_ALL" => Ok(Self::ReactionRemoveAll),
@@ -300,7 +296,6 @@ mod tests {
             "GATEWAY_INVALIDATE_SESSION",
         );
         assert_variant(EventType::GatewayReconnect, "GATEWAY_RECONNECT");
-        assert_variant(EventType::GiftCodeUpdate, "GIFT_CODE_UPDATE");
         assert_variant(
             EventType::GuildAuditLogEntryCreate,
             "GUILD_AUDIT_LOG_ENTRY_CREATE",
@@ -348,7 +343,6 @@ mod tests {
         assert_variant(EventType::MessageDeleteBulk, "MESSAGE_DELETE_BULK");
         assert_variant(EventType::MessageUpdate, "MESSAGE_UPDATE");
         assert_variant(EventType::PresenceUpdate, "PRESENCE_UPDATE");
-        assert_variant(EventType::PresencesReplace, "PRESENCES_REPLACE");
         assert_variant(EventType::ReactionAdd, "MESSAGE_REACTION_ADD");
         assert_variant(EventType::ReactionRemove, "MESSAGE_REACTION_REMOVE");
         assert_variant(EventType::ReactionRemoveAll, "MESSAGE_REACTION_REMOVE_ALL");

@@ -1,5 +1,39 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- Use `default_message_seconds` as a JSON field for `create_ban` ([#2280](https://github.com/twilight-rs/twilight/issues/2280))
+- Fix docs deploy ([#2295](https://github.com/twilight-rs/twilight/issues/2295))
+
+### Build
+
+- [**breaking**] Update trust-dns (now hickory) ([#2287](https://github.com/twilight-rs/twilight/issues/2287))
+- Update to rustls 0.22, hyper 1.x ([#2302](https://github.com/twilight-rs/twilight/issues/2302))
+- [**breaking**] Rename native feature to native-tls ([#2308](https://github.com/twilight-rs/twilight/issues/2308))
+
+### Features
+
+- [**breaking**] Hide `http` dependency ([#2163](https://github.com/twilight-rs/twilight/issues/2163))
+- [**breaking**] Return errors at finalization ([#2171](https://github.com/twilight-rs/twilight/issues/2171))
+- [**breaking**] Add `regex_patterns` and `allow_list` ([#2189](https://github.com/twilight-rs/twilight/issues/2189))
+- Support default thread timeout for channel creation ([#2274](https://github.com/twilight-rs/twilight/issues/2274))
+- Add new onboarding mode and support for modifying onboarding ([#2291](https://github.com/twilight-rs/twilight/issues/2291))
+- Add `guild_scheduled_event_id` to `create_stage_instance` ([#2283](https://github.com/twilight-rs/twilight/issues/2283))
+- Add support for application editing and new application fields ([#2284](https://github.com/twilight-rs/twilight/issues/2284))
+
+### Performance
+
+- Use optimized `slice::to_vec()` ([#2298](https://github.com/twilight-rs/twilight/issues/2298))
+
+### Refactor
+
+- [**breaking**] Remove deprecated apis ([#2132](https://github.com/twilight-rs/twilight/issues/2132))
+- Switch to fastrand ([#2239](https://github.com/twilight-rs/twilight/issues/2239))
+- Remove unnecessary conversion  ([#2294](https://github.com/twilight-rs/twilight/issues/2294))
+- [**breaking**] Avoid copying the response body on utf8 error ([#2299](https://github.com/twilight-rs/twilight/issues/2299))
+
 ## [0.15.3] - 2023-09-10
 
 ### Bug Fixes

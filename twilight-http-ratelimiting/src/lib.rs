@@ -24,7 +24,6 @@ pub use self::{
 };
 
 use self::ticket::{TicketReceiver, TicketSender};
-use futures_util::FutureExt;
 use std::{
     error::Error,
     fmt::Debug,
@@ -166,11 +165,12 @@ pub trait Ratelimiter: Debug + Send + Sync {
     /// This is identical to calling [`Self::ticket`] and then
     /// awaiting the [`TicketReceiver`].
     fn wait_for_ticket(&self, path: Path) -> WaitForTicketFuture {
-        Box::pin(self.ticket(path).then(|maybe_rx| async move {
-            match maybe_rx {
+        let get_ticket = self.ticket(path);
+        Box::pin(async move {
+            match get_ticket.await {
                 Ok(rx) => rx.await.map_err(From::from),
                 Err(e) => Err(e),
             }
-        }))
+        })
     }
 }

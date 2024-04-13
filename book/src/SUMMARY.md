@@ -21,3 +21,4 @@
       - [2023-09-10 Updates](./versions/0.15/2023-09-10.md)
       - [2023-04-27 Updates](./versions/0.15/2023-04-27.md)
       - [2023-02-26 Updates](./versions/0.15/2023-02-26.md)
+    - [Version 0.16](./versions/0.16/summary.md)

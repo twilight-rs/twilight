@@ -1,46 +1,46 @@
-use crate::{config::ResourceType, model::CachedPresence, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
 use twilight_model::{
-    gateway::payload::incoming::PresenceUpdate,
+    gateway::{payload::incoming::PresenceUpdate, presence::Presence},
     id::{marker::GuildMarker, Id},
 };
 
-impl InMemoryCache {
+impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     pub(crate) fn cache_presences(
         &self,
         guild_id: Id<GuildMarker>,
-        presences: impl IntoIterator<Item = CachedPresence>,
+        presences: impl IntoIterator<Item = Presence>,
     ) {
         for presence in presences {
             self.cache_presence(guild_id, presence);
         }
     }
 
-    fn cache_presence(&self, guild_id: Id<GuildMarker>, presence: CachedPresence) {
+    fn cache_presence(&self, guild_id: Id<GuildMarker>, presence: Presence) {
         self.guild_presences
             .entry(guild_id)
             .or_default()
-            .insert(presence.user_id);
+            .insert(presence.user.id());
 
-        self.presences
-            .insert((guild_id, presence.user_id()), presence);
+        self.presences.insert(
+            (guild_id, presence.user.id()),
+            CacheModels::Presence::from(presence),
+        );
     }
 }
 
-impl UpdateCache for PresenceUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for PresenceUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
         if !cache.wants(ResourceType::PRESENCE) {
             return;
         }
 
-        let presence = CachedPresence::from_model(self.0.clone());
-
-        cache.cache_presence(self.guild_id, presence);
+        cache.cache_presence(self.guild_id, self.0.clone());
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, InMemoryCache};
+    use crate::{test, DefaultInMemoryCache};
     use twilight_model::{
         gateway::{
             event::Event,
@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn presence_update() {
-        let cache = InMemoryCache::new();
+        let cache = DefaultInMemoryCache::new();
 
         let guild_id = Id::new(1);
         let user_id = Id::new(1);

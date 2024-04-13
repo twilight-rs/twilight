@@ -1,5 +1,16 @@
 # Changelog
 
+## [unreleased]
+
+### Build
+
+- Remove dependency on futures-util ([#2309](https://github.com/twilight-rs/twilight/issues/2309))
+
+### Features
+
+- [**breaking**] Hide `http` dependency ([#2163](https://github.com/twilight-rs/twilight/issues/2163))
+- Add support for application editing and new application fields ([#2284](https://github.com/twilight-rs/twilight/issues/2284))
+
 ## [0.15.2] - 2023-09-10
 
 ### Build

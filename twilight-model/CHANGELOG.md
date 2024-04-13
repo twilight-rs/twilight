@@ -1,5 +1,38 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- Address new rust CI errors ([#2285](https://github.com/twilight-rs/twilight/issues/2285))
+- [**breaking**] Bump `SessionStartLimit` field sizes ([#2286](https://github.com/twilight-rs/twilight/issues/2286))
+- [**breaking**] `Member#joined_at` can sometimes be null ([#2288](https://github.com/twilight-rs/twilight/issues/2288))
+
+### Build
+
+- [**breaking**] Update bitflags crate to v2 ([#2199](https://github.com/twilight-rs/twilight/issues/2199))
+
+### Features
+
+- [**breaking**] reduce size of gateway rest models ([#2168](https://github.com/twilight-rs/twilight/issues/2168))
+- [**breaking**] Implement additional select menu types ([#2219](https://github.com/twilight-rs/twilight/issues/2219))
+- Add support for guild media channels ([#2222](https://github.com/twilight-rs/twilight/issues/2222))
+- [**breaking**] Add support for super reactions ([#2275](https://github.com/twilight-rs/twilight/issues/2275))
+- [**breaking**] Add new onboarding mode and support for modifying onboarding ([#2291](https://github.com/twilight-rs/twilight/issues/2291))
+- [**breaking**] Implement select menu default values ([#2281](https://github.com/twilight-rs/twilight/issues/2281))
+- [**breaking**] Add support for application editing and new application fields ([#2284](https://github.com/twilight-rs/twilight/issues/2284))
+
+### Performance
+
+- Remove sequence from GatewayEventVisitor ([#2307](https://github.com/twilight-rs/twilight/issues/2307))
+
+### Refactor
+
+- [**breaking**] Remove deprecated apis ([#2132](https://github.com/twilight-rs/twilight/issues/2132))
+- [**breaking**] Remove user profile ([#2131](https://github.com/twilight-rs/twilight/issues/2131))
+- [**breaking**] Remove undocumented gateway events ([#2237](https://github.com/twilight-rs/twilight/issues/2237))
+- Remove redundant imports ([#2316](https://github.com/twilight-rs/twilight/issues/2316))
+
 ## [0.15.4] - 2023-09-10
 
 ### Bug Fixes
