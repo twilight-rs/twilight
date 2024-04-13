@@ -3,7 +3,7 @@ use std::future::IntoFuture;
 use twilight_model::{
     application::monetization::Entitlement,
     id::{
-        marker::{ApplicationMarker, EntitlementMarker, GuildMarker, SKUMarker, UserMarker},
+        marker::{ApplicationMarker, EntitlementMarker, GuildMarker, SkuMarker, UserMarker},
         Id,
     },
 };
@@ -25,7 +25,7 @@ struct GetEntitlementsFields<'a> {
     exclude_ended: Option<bool>,
     guild_id: Option<Id<GuildMarker>>,
     limit: Option<u8>,
-    sku_ids: &'a [Id<SKUMarker>],
+    sku_ids: &'a [Id<SkuMarker>],
     user_id: Option<Id<UserMarker>>,
 }
 
@@ -33,15 +33,14 @@ struct GetEntitlementsFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct GetEntitlements<'a> {
     application_id: Id<ApplicationMarker>,
-    http: &'a Client,
     fields: GetEntitlementsFields<'a>,
+    http: &'a Client,
 }
 
 impl<'a> GetEntitlements<'a> {
     pub(crate) const fn new(http: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
         Self {
             application_id,
-            http,
             fields: GetEntitlementsFields {
                 after: None,
                 before: None,
@@ -51,6 +50,7 @@ impl<'a> GetEntitlements<'a> {
                 sku_ids: &[],
                 user_id: None,
             },
+            http,
         }
     }
 
@@ -103,7 +103,7 @@ impl<'a> GetEntitlements<'a> {
     }
 
     /// List of SKU IDs to check entitlements for.
-    pub const fn sku_ids(mut self, sku_ids: &'a [Id<SKUMarker>]) -> Self {
+    pub const fn sku_ids(mut self, sku_ids: &'a [Id<SkuMarker>]) -> Self {
         self.fields.sku_ids = sku_ids;
 
         self

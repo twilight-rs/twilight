@@ -1,24 +1,24 @@
 use serde::{Deserialize, Serialize};
 
 use crate::id::{
-    marker::{ApplicationMarker, SKUMarker},
+    marker::{ApplicationMarker, SkuMarker},
     Id,
 };
 
-use super::{SKUFlags, SKUType};
+use super::{SkuFlags, SkuType};
 
 /// SKUs (stock-keeping units) in Discord represent premium offerings that can be made available to your application's users or guilds.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
-pub struct SKU {
+pub struct Sku {
     /// ID of the parent application.
     application_id: Id<ApplicationMarker>,
     /// Flags for the SKU.
-    flags: SKUFlags,
+    flags: SkuFlags,
     /// ID of SKU.
-    id: Id<SKUMarker>,
+    id: Id<SkuMarker>,
     /// Type of SKU.
     #[serde(rename = "type")]
-    kind: SKUType,
+    kind: SkuType,
     /// Customer-facing name of your premium offering.
     name: String,
     /// System-generated URL slug based on the SKU's name.
@@ -30,19 +30,19 @@ mod tests {
     use serde_test::Token;
 
     use crate::{
-        application::monetization::{SKUFlags, SKUType},
+        application::monetization::{SkuFlags, SkuType},
         id::Id,
     };
 
-    use super::SKU;
+    use super::Sku;
 
     #[test]
     fn sku() {
-        let value = SKU {
+        let value = Sku {
             application_id: Id::new(1),
-            flags: SKUFlags::GUILD_SUBSCRIPTION,
+            flags: SkuFlags::GUILD_SUBSCRIPTION,
             id: Id::new(2),
-            kind: SKUType::Subscription,
+            kind: SkuType::Subscription,
             name: "a name".to_owned(),
             slug: "a-slug".to_owned(),
         };

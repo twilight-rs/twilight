@@ -1,7 +1,7 @@
 use std::future::IntoFuture;
 
 use twilight_model::{
-    application::monetization::SKU,
+    application::monetization::Sku,
     id::{marker::ApplicationMarker, Id},
 };
 
@@ -27,8 +27,8 @@ impl<'a> GetSKUs<'a> {
 }
 
 impl IntoFuture for GetSKUs<'_> {
-    type Output = Result<Response<ListBody<SKU>>, Error>;
-    type IntoFuture = ResponseFuture<ListBody<SKU>>;
+    type Output = Result<Response<ListBody<Sku>>, Error>;
+    type IntoFuture = ResponseFuture<ListBody<Sku>>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

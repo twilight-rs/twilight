@@ -551,7 +551,7 @@ mod tests {
                 }),
                 target_id: None,
             }))),
-            entitlements: Vec::from([Entitlement {
+            entitlements: vec![Entitlement {
                 application_id: Id::new(100),
                 consumed: false,
                 deleted: false,

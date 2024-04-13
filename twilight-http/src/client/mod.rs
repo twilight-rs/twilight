@@ -112,7 +112,7 @@ use twilight_model::{
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
             EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            SKUMarker, ScheduledEventMarker, StickerMarker, UserMarker, WebhookMarker,
+            SkuMarker, ScheduledEventMarker, StickerMarker, UserMarker, WebhookMarker,
         },
         Id,
     },
@@ -2616,7 +2616,7 @@ impl Client {
     pub const fn create_test_entitlement(
         &self,
         application_id: Id<ApplicationMarker>,
-        sku_id: Id<SKUMarker>,
+        sku_id: Id<SkuMarker>,
         owner: CreateTestEntitlementOwner,
     ) -> CreateTestEntitlement<'_> {
         CreateTestEntitlement::new(self, application_id, sku_id, owner)

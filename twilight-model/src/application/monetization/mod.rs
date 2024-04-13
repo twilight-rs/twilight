@@ -5,6 +5,6 @@ pub mod sku_flags;
 pub mod sku_type;
 
 pub use self::{
-    entitlement::Entitlement, entitlement_type::EntitlementType, sku::SKU, sku_flags::SKUFlags,
-    sku_type::SKUType,
+    entitlement::Entitlement, entitlement_type::EntitlementType, sku::Sku, sku_flags::SkuFlags,
+    sku_type::SkuType,
 };

@@ -101,7 +101,7 @@ pub struct EntitlementMarker;
 /// [`SKU`]: crate::application::monetization::sku::SKU
 #[derive(Debug)]
 #[non_exhaustive]
-pub struct SKUMarker;
+pub struct SkuMarker;
 
 /// Marker for generic IDs.
 ///

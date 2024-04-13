@@ -4,7 +4,7 @@ pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErr
 use crate::request::{channel::reaction::RequestReactionType, Method};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{
-    marker::{RoleMarker, SKUMarker},
+    marker::{RoleMarker, SkuMarker},
     Id,
 };
 
@@ -483,7 +483,7 @@ pub enum Route<'a> {
         /// Number of entitlements to return. Set to 100 if unspecified.
         limit: Option<u8>,
         /// List of SKU IDs to check entitlements for.
-        sku_ids: &'a [Id<SKUMarker>],
+        sku_ids: &'a [Id<SkuMarker>],
         /// User ID to look up entitlements for.
         user_id: Option<u64>,
     },

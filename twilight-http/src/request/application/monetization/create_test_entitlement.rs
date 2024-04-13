@@ -4,7 +4,7 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 use twilight_model::{
     application::monetization::Entitlement,
     id::{
-        marker::{ApplicationMarker, GuildMarker, SKUMarker, UserMarker},
+        marker::{ApplicationMarker, GuildMarker, SkuMarker, UserMarker},
         Id,
     },
 };
@@ -39,7 +39,7 @@ impl CreateTestEntitlementOwner {
 }
 
 struct CreateTestEntitlementFields {
-    sku_id: Id<SKUMarker>,
+    sku_id: Id<SkuMarker>,
     owner: CreateTestEntitlementOwner,
 }
 
@@ -66,7 +66,7 @@ impl<'a> CreateTestEntitlement<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
-        sku_id: Id<SKUMarker>,
+        sku_id: Id<SkuMarker>,
         owner: CreateTestEntitlementOwner,
     ) -> Self {
         Self {

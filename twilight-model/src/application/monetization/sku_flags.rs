@@ -6,7 +6,7 @@ use serde::{
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-    pub struct SKUFlags: u64 {
+    pub struct SkuFlags: u64 {
       /// SKU is available for purchase.
       const AVAILABLE = 1 << 2;
       /// A subscription purchased by a user and applied to a single server.
@@ -18,13 +18,13 @@ bitflags! {
     }
 }
 
-impl<'de> Deserialize<'de> for SKUFlags {
+impl<'de> Deserialize<'de> for SkuFlags {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
     }
 }
 
-impl Serialize for SKUFlags {
+impl Serialize for SkuFlags {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -35,7 +35,7 @@ impl Serialize for SKUFlags {
 
 #[cfg(test)]
 mod tests {
-    use super::SKUFlags;
+    use super::SkuFlags;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_impl_all, const_assert_eq};
@@ -48,7 +48,7 @@ mod tests {
     };
 
     assert_impl_all!(
-        SKUFlags: Binary,
+        SkuFlags: Binary,
         BitAnd,
         BitAndAssign,
         BitOr,
@@ -60,8 +60,8 @@ mod tests {
         Debug,
         Deserialize<'static>,
         Eq,
-        Extend<SKUFlags>,
-        FromIterator<SKUFlags>,
+        Extend<SkuFlags>,
+        FromIterator<SkuFlags>,
         Hash,
         LowerHex,
         Not,
@@ -77,27 +77,27 @@ mod tests {
         UpperHex
     );
 
-    const_assert_eq!(SKUFlags::AVAILABLE.bits(), 1 << 2);
-    const_assert_eq!(SKUFlags::GUILD_SUBSCRIPTION.bits(), 1 << 7);
-    const_assert_eq!(SKUFlags::USER_SUBSCRIPTION.bits(), 1 << 8);
+    const_assert_eq!(SkuFlags::AVAILABLE.bits(), 1 << 2);
+    const_assert_eq!(SkuFlags::GUILD_SUBSCRIPTION.bits(), 1 << 7);
+    const_assert_eq!(SkuFlags::USER_SUBSCRIPTION.bits(), 1 << 8);
 
     #[test]
     fn serde() {
         serde_test::assert_tokens(
-            &SKUFlags::AVAILABLE,
-            &[Token::U64(SKUFlags::AVAILABLE.bits())],
+            &SkuFlags::AVAILABLE,
+            &[Token::U64(SkuFlags::AVAILABLE.bits())],
         );
 
         serde_test::assert_tokens(
-            &SKUFlags::GUILD_SUBSCRIPTION,
-            &[Token::U64(SKUFlags::GUILD_SUBSCRIPTION.bits())],
+            &SkuFlags::GUILD_SUBSCRIPTION,
+            &[Token::U64(SkuFlags::GUILD_SUBSCRIPTION.bits())],
         );
 
         serde_test::assert_tokens(
-            &SKUFlags::USER_SUBSCRIPTION,
-            &[Token::U64(SKUFlags::USER_SUBSCRIPTION.bits())],
+            &SkuFlags::USER_SUBSCRIPTION,
+            &[Token::U64(SkuFlags::USER_SUBSCRIPTION.bits())],
         );
 
-        serde_test::assert_de_tokens(&SKUFlags::empty(), &[Token::U64(1 << 63)]);
+        serde_test::assert_de_tokens(&SkuFlags::empty(), &[Token::U64(1 << 63)]);
     }
 }
