@@ -51,7 +51,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "SKU",
+                    name: "Sku",
                     len: 6,
                 },
                 Token::Str("application_id"),
@@ -63,7 +63,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
-                Token::U8(1),
+                Token::U8(5),
                 Token::Str("name"),
                 Token::Str("a name"),
                 Token::Str("slug"),
