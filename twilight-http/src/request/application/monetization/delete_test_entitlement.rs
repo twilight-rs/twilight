@@ -49,10 +49,10 @@ impl IntoFuture for DeleteTestEntitlement<'_> {
 
 impl TryIntoRequest for DeleteTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::builder(&Route::DeleteTestEntitlement {
+        Request::builder(&Route::DeleteTestEntitlement {
             application_id: self.application_id.get(),
             entitlement_id: self.entitlement_id.get(),
         })
-        .build())
+        .build()
     }
 }

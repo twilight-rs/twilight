@@ -10,7 +10,7 @@ use twilight_model::{
 };
 
 use crate::{
-    request::{Request, RequestBuilder, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
     Client, Error, Response,
@@ -98,7 +98,7 @@ impl TryIntoRequest for CreateTestEntitlement<'_> {
             application_id: self.application_id.get(),
         })
         .json(&self.fields)
-        .map(RequestBuilder::build)
+        .build()
     }
 }
 

@@ -5,6 +5,7 @@ use serde::{
 };
 
 bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct SKUFlags: u64 {
       /// SKU is available for purchase.
       const AVAILABLE = 1 << 2;

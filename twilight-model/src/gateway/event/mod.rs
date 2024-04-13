@@ -351,7 +351,6 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::EntitlementCreate(v) => Self::EntitlementCreate(v),
             DispatchEvent::EntitlementDelete(v) => Self::EntitlementDelete(v),
             DispatchEvent::EntitlementUpdate(v) => Self::EntitlementUpdate(v),
-            DispatchEvent::GiftCodeUpdate => Self::GiftCodeUpdate,
             DispatchEvent::GuildAuditLogEntryCreate(v) => Self::GuildAuditLogEntryCreate(v),
             DispatchEvent::GuildCreate(v) => Self::GuildCreate(v),
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),

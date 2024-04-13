@@ -4,16 +4,9 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
-use crate::request::{
-    application::monetization::{
-        create_test_entitlement::{CreateTestEntitlement, CreateTestEntitlementOwner},
-        DeleteTestEntitlement, GetEntitlements, GetSKUs,
-    },
-    guild::{
-        update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingFields},
-        GetGuildOnboarding,
-    },
-    GetCurrentAuthorizationInformation, UpdateCurrentUserApplication,
+use crate::request::application::monetization::{
+    CreateTestEntitlement, CreateTestEntitlementOwner, DeleteTestEntitlement, GetEntitlements,
+    GetSKUs,
 };
 #[allow(deprecated)]
 use crate::{

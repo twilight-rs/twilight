@@ -92,7 +92,7 @@ impl<'a> GetEntitlements<'a> {
     /// is less than 1 or greater than 100.
     ///
     /// [`GetEntitlementsError`]: twilight_validate::request::ValidationErrorType::GetEntitlements
-    pub const fn limit(mut self, limit: u8) -> Result<Self, ValidationError> {
+    pub fn limit(mut self, limit: u8) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_entitlements_limit(limit) {
             return Err(source);
         }

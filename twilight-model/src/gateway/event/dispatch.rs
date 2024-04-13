@@ -28,7 +28,6 @@ pub enum DispatchEvent {
     EntitlementCreate(EntitlementCreate),
     EntitlementDelete(EntitlementDelete),
     EntitlementUpdate(EntitlementUpdate),
-    GiftCodeUpdate,
     GuildAuditLogEntryCreate(Box<GuildAuditLogEntryCreate>),
     GuildCreate(Box<GuildCreate>),
     GuildDelete(GuildDelete),
@@ -100,7 +99,6 @@ impl DispatchEvent {
             Self::EntitlementCreate(_) => EventType::EntitlementCreate,
             Self::EntitlementDelete(_) => EventType::EntitlementDelete,
             Self::EntitlementUpdate(_) => EventType::EntitlementUpdate,
-            Self::GiftCodeUpdate => EventType::GiftCodeUpdate,
             Self::GuildAuditLogEntryCreate(_) => EventType::GuildAuditLogEntryCreate,
             Self::GuildCreate(_) => EventType::GuildCreate,
             Self::GuildDelete(_) => EventType::GuildDelete,
@@ -276,11 +274,6 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             ),
             "ENTITLEMENT_CREATE" => {
                 DispatchEvent::EntitlementCreate(EntitlementCreate::deserialize(deserializer)?)
-            }
-            "GIFT_CODE_UPDATE" => {
-                deserializer.deserialize_ignored_any(IgnoredAny)?;
-
-                DispatchEvent::GiftCodeUpdate
             }
             "GUILD_AUDIT_LOG_ENTRY_CREATE" => DispatchEvent::GuildAuditLogEntryCreate(Box::new(
                 GuildAuditLogEntryCreate::deserialize(deserializer)?,
