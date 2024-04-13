@@ -562,7 +562,7 @@ mod tests {
                 sku_id: Id::new(300),
                 starts_at: None,
                 user_id: None,
-            }]),
+            }],
             guild_id: Some(Id::new(400)),
             guild_locale: Some("de".to_owned()),
             id: Id::new(500),

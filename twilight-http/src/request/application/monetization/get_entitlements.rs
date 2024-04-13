@@ -93,9 +93,7 @@ impl<'a> GetEntitlements<'a> {
     ///
     /// [`GetEntitlementsError`]: twilight_validate::request::ValidationErrorType::GetEntitlements
     pub fn limit(mut self, limit: u8) -> Result<Self, ValidationError> {
-        if let Err(source) = validate_get_entitlements_limit(limit) {
-            return Err(source);
-        }
+        validate_get_entitlements_limit(limit)?;
 
         self.fields.limit = Some(limit);
 

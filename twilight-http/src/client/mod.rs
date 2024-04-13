@@ -112,7 +112,7 @@ use twilight_model::{
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
             EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            SkuMarker, ScheduledEventMarker, StickerMarker, UserMarker, WebhookMarker,
+            ScheduledEventMarker, SkuMarker, StickerMarker, UserMarker, WebhookMarker,
         },
         Id,
     },
