@@ -27,6 +27,18 @@ impl std::error::Error for FromHexError {
 #[derive(Debug)]
 pub struct SigError(SignatureError);
 
+impl std::fmt::Display for SigError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+impl std::error::Error for SigError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+
 /// Signature validation failed. If you successfully gave your program
 /// the public key provided by Discord, this is almost definitely because
 /// you received an invalid request.
@@ -81,6 +93,17 @@ impl Key {
         VerifyingKey::from_bytes(&key)
             .map(Self)
             .map_err(KeyError::MalformedKey)
+    }
+    /// Validate a signature for a given message body, timestamp, and signing key.
+    ///
+    /// (This method is a duplicate of [`check_signature`].)
+    pub fn verify(
+        &self,
+        sig: &[u8],
+        timestamp: &[u8],
+        body: &[u8],
+    ) -> Result<(), SignatureValidationFailure> {
+        check_signature(sig, timestamp, body, self)
     }
 }
 
