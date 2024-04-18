@@ -100,11 +100,11 @@ impl Key {
     /// (This method is a duplicate of [`check_signature`].)
     pub fn verify(
         &self,
-        sig: &[u8],
+        signature: &[u8],
         timestamp: &[u8],
         body: &[u8],
     ) -> Result<(), SignatureValidationFailure> {
-        check_signature(sig, timestamp, body, self)
+        check_signature(signature, timestamp, body, self)
     }
 }
 
@@ -119,13 +119,13 @@ pub const TIMESTAMP_HEADER: &str = "x-signature-timestamp";
 /// This will fail if the request being validated has an invalid signature, or if it
 /// was given the wrong key.
 pub fn check_signature(
-    sig: &[u8],
+    signature: &[u8],
     timestamp: &[u8],
     body: &[u8],
     key: &Key,
 ) -> Result<(), SignatureValidationFailure> {
     let mut sig_buf = [0; 64];
-    hex::decode_to_slice(sig, &mut sig_buf)
+    hex::decode_to_slice(signature, &mut sig_buf)
         .map_err(|e| SignatureValidationFailure::Hex(FromHexError(e)))?;
     let sig = Signature::from_bytes(&sig_buf);
 
@@ -168,13 +168,13 @@ impl From<serde_json::Error> for ExtractFailure {
 /// - The request has an invalid signature
 /// - The wrong key was given
 /// - Deserialization of the Interaction fails
-[cfg(feature = "signature-validation-extract-interaction")]
+#[cfg(feature = "signature-validation-extract-interaction")]
 pub fn extract_interaction(
-    sig: &[u8],
+    signature: &[u8],
     timestamp: &[u8],
     body: &[u8],
     key: &Key,
 ) -> Result<Interaction, ExtractFailure> {
-    check_signature(sig, timestamp, body, key)?;
+    check_signature(signature, timestamp, body, key)?;
     Ok(serde_json::from_slice(body)?)
 }
