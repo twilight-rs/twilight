@@ -5,7 +5,7 @@
 //! for more details.
 
 use ed25519_dalek::{Signature, SignatureError, VerifyingKey};
-#[cfg(feature = "signature-validation-extract_interaction")]
+#[cfg(feature = "signature-validation-extract-interaction")]
 use twilight_model::application::interaction::Interaction;
 
 /// Parsing a hexadecimal string failed.
@@ -138,7 +138,7 @@ pub fn check_signature(
 }
 
 /// Extracting the body of an Interaction failed.
-#[cfg(feature = "signature-validation-extract_interaction")]
+#[cfg(feature = "signature-validation-extract-interaction")]
 pub enum ExtractFailure {
     /// The failure was due to the Interaction having an invalid signature.
     Signature(SignatureValidationFailure),
@@ -146,14 +146,14 @@ pub enum ExtractFailure {
     Deserialize(serde_json::Error),
 }
 
-#[cfg(feature = "signature-validation-extract_interaction")]
+#[cfg(feature = "signature-validation-extract-interaction")]
 impl From<SignatureValidationFailure> for ExtractFailure {
     fn from(value: SignatureValidationFailure) -> Self {
         Self::Signature(value)
     }
 }
 
-#[cfg(feature = "signature-validation-extract_interaction")]
+#[cfg(feature = "signature-validation-extract-interaction")]
 impl From<serde_json::Error> for ExtractFailure {
     fn from(value: serde_json::Error) -> Self {
         Self::Deserialize(value)
@@ -164,7 +164,7 @@ impl From<serde_json::Error> for ExtractFailure {
 ///
 /// # Errors
 /// This will fail if the request being validated has an invalid signature.
-#[cfg(feature = "signature-validation-extract_interaction")]
+#[cfg(feature = "signature-validation-extract-interaction")]
 pub fn extract_interaction(
     sig: &[u8],
     timestamp: &[u8],
