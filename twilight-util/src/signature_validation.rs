@@ -116,7 +116,8 @@ pub const TIMESTAMP_HEADER: &str = "x-signature-timestamp";
 /// Validates that a signature is valid for a given message body, timestamp, and signing key.
 ///
 /// # Errors
-/// This will fail if the request being validated has an invalid signature.
+/// This will fail if the request being validated has an invalid signature, or if it
+/// was given the wrong key.
 pub fn check_signature(
     sig: &[u8],
     timestamp: &[u8],
@@ -163,8 +164,11 @@ impl From<serde_json::Error> for ExtractFailure {
 /// Validate an Interaction's signature, and deserialize it from JSON.
 ///
 /// # Errors
-/// This will fail if the request being validated has an invalid signature.
-#[cfg(feature = "signature-validation-extract-interaction")]
+/// This will fail in the following cases:
+/// - The request has an invalid signature
+/// - The wrong key was given
+/// - Deserialization of the Interaction fails
+[cfg(feature = "signature-validation-extract-interaction")]
 pub fn extract_interaction(
     sig: &[u8],
     timestamp: &[u8],
