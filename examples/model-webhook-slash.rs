@@ -1,5 +1,3 @@
-use ed25519_dalek::{Verifier, VerifyingKey, PUBLIC_KEY_LENGTH};
-use hex::FromHex;
 use http_body_util::{BodyExt, Full};
 use hyper::{
     body::{Bytes, Incoming},
@@ -19,12 +17,10 @@ use twilight_model::{
     },
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
+use twilight_util::signature_validation::Key;
 
 /// Public key given from Discord.
-static PUB_KEY: Lazy<VerifyingKey> = Lazy::new(|| {
-    VerifyingKey::from_bytes(&<[u8; PUBLIC_KEY_LENGTH] as FromHex>::from_hex("PUBLIC_KEY").unwrap())
-        .unwrap()
-});
+static PUB_KEY: Lazy<Key> = Lazy::new(|| Key::from_hex("PUBLIC_KEY".as_bytes()).unwrap());
 
 /// Main request handler which will handle checking the signature.
 ///
@@ -66,10 +62,9 @@ where
     // Extract the signature to check against.
     let signature = if let Some(hex_sig) = req
         .headers()
-        .get("x-signature-ed25519")
-        .and_then(|v| v.to_str().ok())
+        .get(twilight_util::signature_validation::SIGNATURE_HEADER)
     {
-        hex_sig.parse().unwrap()
+        hex_sig.to_owned()
     } else {
         return Ok(Response::builder()
             .status(StatusCode::BAD_REQUEST)
@@ -82,10 +77,7 @@ where
 
     // Check if the signature matches and else return a error response.
     if PUB_KEY
-        .verify(
-            [timestamp.as_bytes(), &whole_body].concat().as_ref(),
-            &signature,
-        )
+        .verify(signature.as_bytes(), timestamp.as_bytes(), &whole_body)
         .is_err()
     {
         return Ok(Response::builder()
