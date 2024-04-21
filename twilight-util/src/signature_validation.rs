@@ -98,6 +98,10 @@ impl Key {
     /// Validate a signature for a given message body, timestamp, and signing key.
     ///
     /// (This method is a duplicate of [`check_signature`].)
+    ///
+    /// # Errors
+    /// This will fail if the request being validated has an invalid signature, or if it
+    /// was given the wrong key.
     pub fn verify(
         &self,
         signature: &[u8],
