@@ -147,7 +147,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     // Process each event as they come in.
-    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+    while let Some(item) = shard.next_event().await {
         let Ok(event) = item else {
             tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
 
