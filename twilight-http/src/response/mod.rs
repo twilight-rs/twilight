@@ -580,7 +580,7 @@ async fn decompress<B: hyper::body::Body>(body: B) -> Result<Bytes, DeserializeB
 where
     <B as hyper::body::Body>::Error: Send + Sync + Error + 'static,
 {
-    use brotli::Decompressor;
+    use brotli_decompressor::Decompressor;
     use hyper::body::Buf;
     use std::io::Read;
 
