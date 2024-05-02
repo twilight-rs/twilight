@@ -2,7 +2,7 @@ use super::Application;
 use crate::{user::User, util::Timestamp};
 use serde::{Deserialize, Serialize};
 
-/// Information about the current OAuth authorization.
+/// Information about the current OAuth2 authorization.
 ///
 /// Requires authentication with a bearer token to make the request necessary to
 /// retrieve this.

@@ -433,7 +433,7 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
-    /// Route information to get the current OAuth authorization information.
+    /// Route information to get the current OAuth2 authorization information.
     GetCurrentAuthorizationInformation,
     /// Route information to get the current user.
     GetCurrentUser,

@@ -35,7 +35,7 @@ pub struct Attachment {
     pub file: Vec<u8>,
     /// Name of the file.
     ///
-    /// Examples may be "twilight_sparkle.png", "cat.jpg", or "logs.txt".
+    /// Examples may be `twilight_sparkle.png`, `cat.jpg`, or `logs.txt`.
     pub filename: String,
     /// Unique ID of the attachment in the message.
     ///

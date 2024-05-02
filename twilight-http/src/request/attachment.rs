@@ -68,6 +68,12 @@ impl<'a> AttachmentManager<'a> {
     }
 }
 
+impl Default for AttachmentManager<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialAttachment<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]

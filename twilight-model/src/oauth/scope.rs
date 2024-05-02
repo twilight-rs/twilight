@@ -1,4 +1,4 @@
-//! Known list of available OAuth 2 scopes.
+//! Known list of available OAuth2 scopes.
 //!
 //! Refer to [Discord Docs/OAuth 2 Scopes] for a complete up-to-date list.
 //!

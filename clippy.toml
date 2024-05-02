@@ -1,0 +1,9 @@
+doc-valid-idents = [
+  "AutoMod",
+  "IPv4",
+  "IPv6",
+  "OAuth",
+  "OAuth2",
+  "WebSocket",
+  "YouTube",
+]

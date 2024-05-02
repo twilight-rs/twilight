@@ -286,8 +286,8 @@ impl CacheableMember for CachedMember {
         self.avatar = member_update.avatar;
         self.deaf = member_update.deaf.or_else(|| self.deaf());
         self.mute = member_update.mute.or_else(|| self.mute());
-        self.nick = member_update.nick.clone();
-        self.roles = member_update.roles.clone();
+        self.nick.clone_from(&member_update.nick);
+        self.roles.clone_from(&member_update.roles);
         self.joined_at = member_update.joined_at;
         self.pending = member_update.pending;
         self.communication_disabled_until = member_update.communication_disabled_until;
