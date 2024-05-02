@@ -93,7 +93,7 @@ impl CacheableMember for MinimalCachedMember {
 
     fn update_with_member_update(&mut self, member_update: &MemberUpdate) {
         self.user_id = member_update.user.id;
-        self.roles = member_update.roles.clone();
+        self.roles.clone_from(&member_update.roles);
         self.avatar = member_update.avatar;
     }
 }
