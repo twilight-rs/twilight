@@ -32,12 +32,12 @@ twilight-model = { default-features = false, path = "../twilight-model", version
 twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.16.0-rc.1" }
 
 # Optional dependencies.
-brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
+brotli-decompressor = { default-features = false, features = ["std"], optional = true, version = "4" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.14" }
 
 [features]
 default = ["decompression", "rustls-native-roots"]
-decompression = ["dep:brotli"]
+decompression = ["dep:brotli-decompressor"]
 native-tls = ["dep:hyper-tls"]
 rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]
 rustls-webpki-roots = ["dep:hyper-rustls", "hyper-rustls?/webpki-tokio"]
