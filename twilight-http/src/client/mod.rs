@@ -160,7 +160,7 @@ impl Deref for Token {
 /// HTTP interaction requests may be accessed via the [`Client::interaction`]
 /// method.
 ///
-/// # OAuth
+/// # OAuth2
 ///
 /// To use Bearer tokens prefix the token with `"Bearer "`, including the space
 /// at the end like so:
@@ -679,7 +679,7 @@ impl Client {
         GetCurrentUserGuildMember::new(self, guild_id)
     }
 
-    /// Get information about the current OAuth authorization.
+    /// Get information about the current OAuth2 authorization.
     pub const fn current_authorization(&self) -> GetCurrentAuthorizationInformation<'_> {
         GetCurrentAuthorizationInformation::new(self)
     }

@@ -53,7 +53,7 @@ impl CacheableMessage for MinimalCachedMessage {
 
     fn update_with_message_update(&mut self, message_update: &MessageUpdate) {
         if let Some(content) = &message_update.content {
-            self.content = content.clone();
+            self.content.clone_from(content);
         }
     }
 }

@@ -428,25 +428,27 @@ impl CacheableGuild for CachedGuild {
         self.afk_timeout = guild_update.afk_timeout;
         self.banner = guild_update.banner;
         self.default_message_notifications = guild_update.default_message_notifications;
-        self.description = guild_update.description.clone();
-        self.features = guild_update.features.clone();
+        self.description.clone_from(&guild_update.description);
+        self.features.clone_from(&guild_update.features);
         self.icon = guild_update.icon;
         self.max_members = guild_update.max_members;
         self.max_presences = Some(guild_update.max_presences.unwrap_or(25000));
         self.mfa_level = guild_update.mfa_level;
-        self.name = guild_update.name.clone();
+        self.name.clone_from(&guild_update.name);
         self.nsfw_level = guild_update.nsfw_level;
         self.owner = guild_update.owner;
         self.owner_id = guild_update.owner_id;
         self.permissions = guild_update.permissions;
-        self.preferred_locale = guild_update.preferred_locale.clone();
+        self.preferred_locale
+            .clone_from(&guild_update.preferred_locale);
         self.premium_tier = guild_update.premium_tier;
         self.premium_subscription_count
             .replace(guild_update.premium_subscription_count.unwrap_or_default());
         self.splash = guild_update.splash;
         self.system_channel_id = guild_update.system_channel_id;
         self.verification_level = guild_update.verification_level;
-        self.vanity_url_code = guild_update.vanity_url_code.clone();
+        self.vanity_url_code
+            .clone_from(&guild_update.vanity_url_code);
         self.widget_channel_id = guild_update.widget_channel_id;
         self.widget_enabled = guild_update.widget_enabled;
     }

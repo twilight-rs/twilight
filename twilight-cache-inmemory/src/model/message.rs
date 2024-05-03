@@ -415,11 +415,11 @@ impl PartialEq<Message> for CachedMessage {
 impl CacheableMessage for CachedMessage {
     fn update_with_message_update(&mut self, message_update: &MessageUpdate) {
         if let Some(attachments) = &message_update.attachments {
-            self.attachments = attachments.clone();
+            self.attachments.clone_from(attachments);
         }
 
         if let Some(content) = &message_update.content {
-            self.content = content.clone();
+            self.content.clone_from(content);
         }
 
         if let Some(edited_timestamp) = message_update.edited_timestamp {
@@ -427,7 +427,7 @@ impl CacheableMessage for CachedMessage {
         }
 
         if let Some(embeds) = &message_update.embeds {
-            self.embeds = embeds.clone();
+            self.embeds.clone_from(embeds);
         }
 
         if let Some(mention_everyone) = message_update.mention_everyone {
@@ -435,7 +435,7 @@ impl CacheableMessage for CachedMessage {
         }
 
         if let Some(mention_roles) = &message_update.mention_roles {
-            self.mention_roles = mention_roles.clone();
+            self.mention_roles.clone_from(mention_roles);
         }
 
         if let Some(mentions) = &message_update.mentions {

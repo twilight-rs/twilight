@@ -48,7 +48,7 @@ impl Display for ShardIdParseError {
 /// Type of [`ShardIdParseError`] that occurred.
 #[derive(Debug)]
 pub enum ShardIdParseErrorType {
-    /// ShardId's number was greater or equal to its total.
+    /// `ShardId`'s number was greater or equal to its total.
     NumberGreaterOrEqualTotal {
         /// Value of number.
         number: u32,

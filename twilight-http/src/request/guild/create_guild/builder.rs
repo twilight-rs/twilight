@@ -473,7 +473,7 @@ pub enum VoiceFieldsErrorType {
         /// The invalid name.
         name: String,
     },
-    /// THe name is too long.
+    /// The name is too long.
     NameTooLong {
         /// The invalid name.
         name: String,
@@ -634,7 +634,7 @@ pub enum CategoryFieldsErrorType {
         /// The invalid name.
         name: String,
     },
-    /// THe name is too long.
+    /// The name is too long.
     NameTooLong {
         /// The invalid name.
         name: String,
@@ -802,6 +802,12 @@ impl GuildChannelFieldsBuilder {
         });
 
         self
+    }
+}
+
+impl Default for GuildChannelFieldsBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
