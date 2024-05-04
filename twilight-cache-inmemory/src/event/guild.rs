@@ -351,6 +351,37 @@ mod tests {
     }
 
     #[test]
+    fn unavailable_available_guild() {
+        let cache = DefaultInMemoryCache::new();
+        let guild = test::guild(Id::new(1), None);
+
+        cache.update(&GuildCreate::Unavailable(
+            twilight_model::guild::UnavailableGuild {
+                id: guild.id,
+                unavailable: true,
+            },
+        ));
+        assert!(cache.unavailable_guilds.get(&guild.id).is_some());
+
+        cache.update(&GuildCreate::Available(guild.clone()));
+        assert_eq!(*cache.guilds.get(&guild.id).unwrap(), guild);
+        assert!(cache.unavailable_guilds.get(&guild.id).is_none());
+
+        cache.update(&GuildCreate::Unavailable(
+            twilight_model::guild::UnavailableGuild {
+                id: guild.id,
+                unavailable: true,
+            },
+        ));
+        assert!(cache.unavailable_guilds.get(&guild.id).is_some());
+        assert!(cache.guilds.get(&guild.id).unwrap().unavailable);
+
+        cache.update(&GuildCreate::Available(guild.clone()));
+        assert!(!cache.guilds.get(&guild.id).unwrap().unavailable);
+        assert!(cache.unavailable_guilds.get(&guild.id).is_none());
+    }
+
+    #[test]
     fn guild_update() {
         let cache = DefaultInMemoryCache::new();
         let guild = test::guild(Id::new(1), None);
