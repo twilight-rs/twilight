@@ -139,7 +139,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildCreate {
         match self {
             GuildCreate::Available(g) => cache.cache_guild(g.clone()),
             GuildCreate::Unavailable(g) => {
-                cache.unavailable_guilds.insert(g.id);
+                cache.unavailable_guild(g.id);
             }
         }
     }
