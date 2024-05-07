@@ -20,11 +20,32 @@ with every Voice State Update and Voice Server Update you receive.
 The `http-support` feature adds support for the `http` module to return
 request types from the [`http`] crate. This is enabled by default.
 
+### Crypto provider
+
+Using [`rustls`] for TLS requires configuring a crypto provider via crate
+features or manually installing a global default. The default is `rustls-ring`.
+
+#### `rustls-ring`
+
+The `rustls-ring` feature will enable the use of [`ring`] as the crypto
+provider. This is recommended for platform compatibility.
+
+#### `rustls-aws_lc_rs`
+
+The `rustls-aws_lc_rs` feature will enable the use of [`aws-lc-rs`] as the
+crypto provider. This is recommended for performance and on widely used
+platforms.
+
+#### Manual installation
+
+If none of the other crypto providers are enabled, a custom one must be
+installed by the application using [`CryptoProvider::install_default`].
+
 ### TLS
 
 `twilight-lavalink` has features to enable [`tokio-websockets`]' TLS
-features. These features are mutually exclusive. `rustls-native-roots` is enabled by
-default.
+features. These features are mutually exclusive. `rustls-platform-verifier` is
+enabled by default.
 
 #### `native-tls`
 
@@ -41,6 +62,13 @@ twilight-lavalink = { default-features = false, features = ["native-tls"], versi
 
 The `rustls-native-roots` feature enables [`tokio-websockets`]' `rustls-native-roots` feature,
 which uses [`rustls`] as the TLS backend and [`rustls-native-certs`] for root certificates.
+This requires configuring a crypto provider.
+
+#### `rustls-platform-verifier`
+
+The `rustls-platform-verifier` feature enables [`tokio-websockets`]' `rustls-platform-verifier`
+feature, which uses [`rustls`] as the TLS backend and [`rustls-platform-verifier`] for
+certificate validation. This requires configuring a crypto provider.
 
 This is enabled by default.
 
@@ -48,6 +76,7 @@ This is enabled by default.
 
 The `rustls-webpki-roots` feature enables [`tokio-websockets`]' `rustls-webpki-roots` feature,
 which uses [`rustls`] as the TLS backend and [`webpki-roots`] for root certificates.
+This requires configuring a crypto provider.
 
 This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 
@@ -104,9 +133,13 @@ There is also an example of a basic bot located in the [root of the
 `twilight` repository][github examples link].
 
 [Lavalink]: https://github.com/freyacodes/Lavalink
+[`CryptoProvider::install_default`]: https://docs.rs/rustls/latest/rustls/crypto/struct.CryptoProvider.html#method.install_default
+[`aws-lc-rs`]: https://crates.io/crates/aws-lc-rs
 [`http`]: https://crates.io/crates/http
+[`ring`]: https://crates.io/crates/ring
 [`rustls`]: https://crates.io/crates/rustls
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
+[`rustls-platform-verifier`]: https://crates.io/crates/rustls-platform-verifier
 [`tokio-websockets`]: https://crates.io/crates/tokio-websockets
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [client]: Lavalink

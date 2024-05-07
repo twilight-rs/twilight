@@ -24,6 +24,7 @@ use serde::{de::DeserializeOwned, Deserialize};
 #[cfg(any(
     feature = "native-tls",
     feature = "rustls-native-roots",
+    feature = "rustls-platform-verifier",
     feature = "rustls-webpki-roots"
 ))]
 use std::io::ErrorKind as IoErrorKind;
@@ -916,6 +917,7 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                 #[cfg(any(
                     feature = "native-tls",
                     feature = "rustls-native-roots",
+                    feature = "rustls-platform-verifier",
                     feature = "rustls-webpki-roots"
                 ))]
                 Some(Err(WebsocketError::Io(e)))

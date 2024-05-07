@@ -19,10 +19,11 @@ http = { default-features = false, version = "1" }
 http-body-util = { default-features = false, version = "0.1" }
 hyper = { default-features = false, version = "1" }
 hyper-util = { default-features = false, features = ["client-legacy", "http1", "http2", "tokio"], version = "0.1.2" }
-hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2", "ring"], version = "0.26" }
+hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.27.3" }
 hyper-tls = { default-features = false, optional = true, features = ["alpn"], version = "0.6" }
 hyper-hickory = { default-features = false, optional = true, version = "0.7" }
 percent-encoding = { default-features = false, version = "2" }
+rustls = { default-features = false, optional = true, version = "0.23" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
@@ -36,12 +37,16 @@ brotli-decompressor = { default-features = false, features = ["std"], optional =
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.14" }
 
 [features]
-default = ["decompression", "rustls-native-roots"]
+default = ["decompression", "rustls-platform-verifier", "rustls-ring"]
 decompression = ["dep:brotli-decompressor"]
-native-tls = ["dep:hyper-tls"]
-rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]
-rustls-webpki-roots = ["dep:hyper-rustls", "hyper-rustls?/webpki-tokio"]
 hickory = ["dep:hyper-hickory"]
+native-tls = ["dep:hyper-tls"]
+rustls-platform-verifier = ["dep:hyper-rustls", "dep:rustls", "hyper-rustls?/rustls-platform-verifier"]
+rustls-native-roots = ["dep:hyper-rustls", "dep:rustls", "hyper-rustls?/native-tokio"]
+rustls-webpki-roots = ["dep:hyper-rustls", "dep:rustls", "hyper-rustls?/webpki-tokio"]
+rustls-ring = ["hyper-rustls?/ring"]
+rustls-aws_lc_rs = ["hyper-rustls?/aws-lc-rs"]
+rustls-aws-lc-rs = ["rustls-aws_lc_rs"] # Alias for convenience, underscores are preferred in the rustls stack
 
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
