@@ -50,6 +50,8 @@ pub enum DispatchEvent {
     MessageCreate(Box<MessageCreate>),
     MessageDelete(MessageDelete),
     MessageDeleteBulk(MessageDeleteBulk),
+    MessagePollVoteAdd(MessagePollVoteAdd),
+    MessagePollVoteRemove(MessagePollVoteRemove),
     MessageUpdate(Box<MessageUpdate>),
     PresenceUpdate(Box<PresenceUpdate>),
     ReactionAdd(Box<ReactionAdd>),
@@ -118,6 +120,8 @@ impl DispatchEvent {
             Self::MessageCreate(_) => EventType::MessageCreate,
             Self::MessageDelete(_) => EventType::MessageDelete,
             Self::MessageDeleteBulk(_) => EventType::MessageDeleteBulk,
+            Self::MessagePollVoteAdd(_) => EventType::MessagePollVoteAdd,
+            Self::MessagePollVoteRemove(_) => EventType::MessagePollVoteRemove,
             Self::MessageUpdate(_) => EventType::MessageUpdate,
             Self::PresenceUpdate(_) => EventType::PresenceUpdate,
             Self::ReactionAdd(_) => EventType::ReactionAdd,
@@ -188,6 +192,8 @@ impl TryFrom<Event> for DispatchEvent {
             Event::MessageCreate(v) => Self::MessageCreate(v),
             Event::MessageDelete(v) => Self::MessageDelete(v),
             Event::MessageDeleteBulk(v) => Self::MessageDeleteBulk(v),
+            Event::MessagePollVoteAdd(v) => Self::MessagePollVoteAdd(v),
+            Event::MessagePollVoteRemove(v) => Self::MessagePollVoteRemove(v),
             Event::MessageUpdate(v) => Self::MessageUpdate(v),
             Event::PresenceUpdate(v) => Self::PresenceUpdate(v),
             Event::ReactionAdd(v) => Self::ReactionAdd(v),
@@ -362,6 +368,12 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "MESSAGE_REACTION_REMOVE_ALL" => {
                 DispatchEvent::ReactionRemoveAll(ReactionRemoveAll::deserialize(deserializer)?)
             }
+            "MESSAGE_POLL_VOTE_ADD" => {
+                DispatchEvent::MessagePollVoteAdd(MessagePollVoteAdd::deserialize(deserializer)?)
+            }
+            "MESSAGE_POLL_VOTE_REMOVE" => DispatchEvent::MessagePollVoteRemove(
+                MessagePollVoteRemove::deserialize(deserializer)?,
+            ),
             "MESSAGE_UPDATE" => {
                 DispatchEvent::MessageUpdate(Box::new(MessageUpdate::deserialize(deserializer)?))
             }

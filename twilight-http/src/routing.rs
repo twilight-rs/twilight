@@ -338,6 +338,11 @@ pub enum Route<'a> {
         token: &'a str,
         webhook_id: u64,
     },
+    /// Route information to end a poll.
+    EndPoll {
+        channel_id: u64,
+        message_id: u64,
+    },
     /// Route information to execute a webhook by ID and token.
     ExecuteWebhook {
         /// ID of the thread channel, if there is one.
@@ -358,6 +363,19 @@ pub enum Route<'a> {
     GetActiveThreads {
         /// ID of the guild.
         guild_id: u64,
+    },
+    /// Route information for fetching poll vote information.
+    GetAnswerVoters {
+        /// Get users after this user ID.
+        after: Option<u64>,
+        /// The id of the poll answer.
+        answer_id: u8,
+        /// The ID of the channel the poll is in.
+        channel_id: u64,
+        /// The maximum number of users to return (1-100).
+        limit: Option<u8>,
+        /// The message ID of the poll.
+        message_id: u64,
     },
     /// Route information to get a paginated list of audit logs in a guild.
     GetAuditLogs {
@@ -1157,6 +1175,7 @@ impl<'a> Route<'a> {
             | Self::RemoveThreadMember { .. }
             | Self::UnpinMessage { .. } => Method::Delete,
             Self::GetActiveThreads { .. }
+            | Self::GetAnswerVoters { .. }
             | Self::GetAuditLogs { .. }
             | Self::GetAutoModerationRule { .. }
             | Self::GetBan { .. }
@@ -1279,6 +1298,7 @@ impl<'a> Route<'a> {
             | Self::CreateWebhook { .. }
             | Self::CrosspostMessage { .. }
             | Self::DeleteMessages { .. }
+            | Self::EndPoll { .. }
             | Self::ExecuteWebhook { .. }
             | Self::FollowNewsChannel { .. }
             | Self::InteractionCallback { .. }
@@ -1610,6 +1630,9 @@ impl<'a> Route<'a> {
             }
             Self::UpdateNickname { guild_id } => Path::GuildsIdMembersMeNick(guild_id),
             Self::UpdateGuildMfa { guild_id } => Path::GuildsIdMfa(guild_id),
+            Self::EndPoll { channel_id, .. } | Self::GetAnswerVoters { channel_id, .. } => {
+                Path::ChannelsIdPolls(channel_id)
+            }
         }
     }
 }
@@ -1747,6 +1770,32 @@ impl Display for Route<'_> {
                 f.write_str("/auto-moderation/rules/")?;
 
                 Display::fmt(auto_moderation_rule_id, f)
+            }
+            Route::GetAnswerVoters {
+                after,
+                answer_id,
+                channel_id,
+                limit,
+                message_id,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/polls/")?;
+                Display::fmt(message_id, f)?;
+                f.write_str("/answers/")?;
+                Display::fmt(answer_id, f)?;
+
+                if let Some(after) = after {
+                    f.write_str("?after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                Ok(())
             }
             Route::GetGlobalCommands {
                 application_id,
@@ -2217,6 +2266,17 @@ impl Display for Route<'_> {
                 }
 
                 Ok(())
+            }
+            Route::EndPoll {
+                channel_id,
+                message_id,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/polls/")?;
+                Display::fmt(message_id, f)?;
+
+                f.write_str("/expire")
             }
             Route::ExecuteWebhook {
                 thread_id,
