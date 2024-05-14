@@ -14,6 +14,7 @@ pub struct MessageSnapshot {
     /// Subset of fields in the message object.
     message: MessageSnapshotFields,
     /// ID of the origin message's guild.
+    #[serde(skip_serializing_if = "Option::is_none")]
     guild_id: Option<Id<GuildMarker>>,
 }
 

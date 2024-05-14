@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 /// The type of reference for a message.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
 pub enum MessageReferenceType {
     /// A standard reference used by replies.
+    #[default]
     Default,
     /// Reference used to point to a message at a point in time.
     Forward,
@@ -41,15 +42,6 @@ impl MessageReferenceType {
             Self::Forward => "Forward",
             Self::Unknown(_) => "Unknown",
         }
-    }
-}
-
-// The default value is `Default` because the only reason this value would
-// not be present is if a message referenced before the API deployed was created.
-// The docs state it's fine to assume field to be `Default` if it's not present.
-impl Default for MessageReferenceType {
-    fn default() -> Self {
-        Self::Default
     }
 }
 
