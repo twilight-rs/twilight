@@ -38,7 +38,7 @@ impl<'de> Deserialize<'de> for ThreadMembersUpdate {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
 struct ThreadMembersUpdateIntermediary {
-    /// ThreadMembers without the guild ID.
+    /// [`ThreadMember`]s without the guild ID.
     #[serde(default)]
     pub added_members: Vec<ThreadMemberIntermediary>,
     pub guild_id: Id<GuildMarker>,

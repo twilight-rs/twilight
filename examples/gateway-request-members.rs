@@ -22,7 +22,7 @@ async fn main() -> anyhow::Result<()> {
         match event {
             Event::GuildCreate(guild) => {
                 // Let's request all of the guild's members for caching.
-                shard.command(&RequestGuildMembers::builder(guild.id).query("", None));
+                shard.command(&RequestGuildMembers::builder(guild.id()).query("", None));
             }
             Event::Ready(_) => {
                 // You can also specify an individual member within a guild.

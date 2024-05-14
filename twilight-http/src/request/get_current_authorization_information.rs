@@ -8,7 +8,7 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::oauth::CurrentAuthorizationInformation;
 
-/// Retrieve information about the current OAuth authorization.
+/// Retrieve information about the current OAuth2 authorization.
 ///
 /// Returns the application's, authorization's, and if applicable the user's
 /// details.

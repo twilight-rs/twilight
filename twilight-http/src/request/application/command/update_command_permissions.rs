@@ -28,7 +28,7 @@ struct UpdateCommandPermissionsFields<'a> {
 /// Note that this overwrites the command permissions, so the full set of
 /// permissions has to be sent every time.
 ///
-/// This request requires that the client was configured with an OAuth Bearer
+/// This request requires that the client was configured with an OAuth2 Bearer
 /// token.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCommandPermissions<'a> {

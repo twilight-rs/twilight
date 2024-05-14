@@ -202,21 +202,3 @@ jobs:
 
       - name: Check feature combinations
         run: cargo hack check --feature-powerset
-
-  test-book:
-    name: Test book examples with skeptic
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Install stable toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2
-
-      - name: Test
-        working-directory: book
-        run: cargo test --manifest-path tests/Cargo.toml

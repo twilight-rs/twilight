@@ -204,9 +204,9 @@ pub enum AuditLogEventType {
     ///
     /// [channel]: crate::channel::Channel
     ThreadDelete,
-    /// A [GuildCommandPermissions] was updated.
+    /// A [`GuildCommandPermissions`] was updated.
     ///
-    /// [GuildCommandPermissions]: crate::application::command::permissions::GuildCommandPermissions
+    /// [`GuildCommandPermissions`]: crate::application::command::permissions::GuildCommandPermissions
     ApplicationCommandPermissionUpdate,
     /// [`AutoModerationRule`] has been created.
     ///

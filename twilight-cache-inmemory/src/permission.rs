@@ -923,7 +923,7 @@ mod tests {
         let cache = DefaultInMemoryCache::new();
         let permissions = cache.permissions();
 
-        cache.update(&GuildCreate(base_guild()));
+        cache.update(&GuildCreate::Available(base_guild()));
         cache.update(&MemberAdd {
             guild_id: GUILD_ID,
             member: test::member(USER_ID),
@@ -969,7 +969,7 @@ mod tests {
         let cache = DefaultInMemoryCache::new();
         let permissions = cache.permissions();
 
-        cache.update(&GuildCreate(base_guild()));
+        cache.update(&GuildCreate::Available(base_guild()));
         assert!(matches!(
             permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
             ChannelErrorType::ChannelUnavailable { channel_id: c_id }
@@ -1030,7 +1030,7 @@ mod tests {
     fn owner() -> Result<(), Box<dyn Error>> {
         let cache = DefaultInMemoryCache::new();
         let permissions = cache.permissions();
-        cache.update(&GuildCreate(base_guild()));
+        cache.update(&GuildCreate::Available(base_guild()));
 
         assert!(permissions.root(OWNER_ID, GUILD_ID)?.is_all());
 
@@ -1088,7 +1088,7 @@ mod tests {
             everyone_permissions,
         )]);
 
-        cache.update(&GuildCreate(guild));
+        cache.update(&GuildCreate::Available(guild));
         let mut member = test::member(USER_ID);
         member.communication_disabled_until = Some(in_future);
         cache.update(&MemberAdd {
