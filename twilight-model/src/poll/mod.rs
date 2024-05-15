@@ -1,8 +1,8 @@
-pub mod answer;
-pub mod answer_count;
-pub mod layout_type;
-pub mod media;
-pub mod results;
+mod answer;
+mod answer_count;
+mod layout_type;
+mod media;
+mod results;
 
 use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
@@ -22,7 +22,6 @@ pub struct Poll {
     /// Whether a user can select multiple answers.
     pub allow_multiselect: bool,
     /// The time when the poll ends.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub expiry: Option<Timestamp>,
     /// The layout type of the poll.
     pub layout_type: PollLayoutType,
@@ -77,12 +76,12 @@ mod tests {
             results: Some(PollResults {
                 answer_counts: vec![
                     AnswerCount {
-                        answer_id: 1,
+                        id: 1,
                         count: 2,
                         me_voted: true,
                     },
                     AnswerCount {
-                        answer_id: 3,
+                        id: 3,
                         count: 4,
                         me_voted: false,
                     },
@@ -96,7 +95,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Poll",
-                    len: 5,
+                    len: 6,
                 },
                 Token::Str("answers"),
                 Token::Seq { len: Some(2) },
@@ -167,15 +166,15 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("allow_multiselect"),
                 Token::Bool(true),
+                Token::Str("expiry"),
+                Token::None,
                 Token::Str("layout_type"),
                 Token::U8(1),
                 Token::Str("question"),
                 Token::Struct {
                     name: "PollMedia",
-                    len: 2,
+                    len: 1,
                 },
-                Token::Str("emoji"),
-                Token::None,
                 Token::Str("text"),
                 Token::Some,
                 Token::Str("e"),
@@ -192,10 +191,10 @@ mod tests {
                     name: "AnswerCount",
                     len: 3,
                 },
-                Token::Str("answer_id"),
+                Token::Str("id"),
                 Token::U8(1),
                 Token::Str("count"),
-                Token::U8(2),
+                Token::U64(2),
                 Token::Str("me_voted"),
                 Token::Bool(true),
                 Token::StructEnd,
@@ -203,10 +202,10 @@ mod tests {
                     name: "AnswerCount",
                     len: 3,
                 },
-                Token::Str("answer_id"),
+                Token::Str("id"),
                 Token::U8(3),
                 Token::Str("count"),
-                Token::U8(4),
+                Token::U64(4),
                 Token::Str("me_voted"),
                 Token::Bool(false),
                 Token::StructEnd,

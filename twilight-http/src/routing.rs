@@ -1782,16 +1782,17 @@ impl Display for Route<'_> {
                 Display::fmt(channel_id, f)?;
                 f.write_str("/polls/")?;
                 Display::fmt(message_id, f)?;
-                f.write_str("/answers/")?;
+                f.write_str("/answers?")?;
                 Display::fmt(answer_id, f)?;
 
                 if let Some(after) = after {
-                    f.write_str("?after=")?;
+                    f.write_str("after=")?;
                     Display::fmt(after, f)?;
+                    f.write_str("&")?;
                 }
 
                 if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
+                    f.write_str("limit=")?;
                     Display::fmt(limit, f)?;
                 }
 

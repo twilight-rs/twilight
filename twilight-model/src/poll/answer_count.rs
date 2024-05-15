@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AnswerCount {
     /// The answer ID.
-    pub answer_id: u8,
+    pub id: u8,
     /// The number of votes for this answer.
-    pub count: u8,
+    pub count: u64,
     /// Whether the current user voted for this answer.
     pub me_voted: bool,
 }
@@ -18,7 +18,7 @@ mod tests {
     #[test]
     fn answer_count() {
         let value = AnswerCount {
-            answer_id: 1,
+            id: 1,
             count: 2,
             me_voted: true,
         };
@@ -30,10 +30,10 @@ mod tests {
                     name: "AnswerCount",
                     len: 3,
                 },
-                Token::Str("answer_id"),
+                Token::Str("id"),
                 Token::U8(1),
                 Token::Str("count"),
-                Token::U8(2),
+                Token::U64(2),
                 Token::Str("me_voted"),
                 Token::Bool(true),
                 Token::StructEnd,

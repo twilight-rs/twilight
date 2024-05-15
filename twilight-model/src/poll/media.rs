@@ -8,8 +8,10 @@ pub struct PollMedia {
     /// When creating a poll answer with an emoji, one only
     /// needs to send either the id (custom emoji) or name
     /// (default emoji) as the only field.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub emoji: Option<PartialPollMediaEmoji>,
     /// The text of the field.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
 }
 

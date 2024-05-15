@@ -9,10 +9,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessagePollVoteAdd {
     /// ID of the answer.
-    pub answer_id: u64,
+    pub answer_id: u8,
     /// ID of the channel.
     pub channel_id: Id<ChannelMarker>,
     /// ID of the guild.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the message.
     pub message_id: Id<MessageMarker>,
