@@ -285,3 +285,12 @@ pub struct UserMarker;
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct WebhookMarker;
+
+/// SKU ID marker for avatar decoration data.
+///
+/// Types such as [`AvatarDecorationData`] use this ID marker.
+///
+/// [`AvatarDecorationData`]: crate::user::AvatarDecorationData
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct AvatarDecorationDataSkuMarker;
