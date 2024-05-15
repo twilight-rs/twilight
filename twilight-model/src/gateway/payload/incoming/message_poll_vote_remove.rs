@@ -44,7 +44,7 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("answer_id"),
-                Token::U64(1),
+                Token::U8(1),
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),

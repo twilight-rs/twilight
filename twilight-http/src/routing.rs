@@ -1782,8 +1782,9 @@ impl Display for Route<'_> {
                 Display::fmt(channel_id, f)?;
                 f.write_str("/polls/")?;
                 Display::fmt(message_id, f)?;
-                f.write_str("/answers?")?;
+                f.write_str("/answers/")?;
                 Display::fmt(answer_id, f)?;
+                f.write_str("?")?;
 
                 if let Some(after) = after {
                     f.write_str("after=")?;
