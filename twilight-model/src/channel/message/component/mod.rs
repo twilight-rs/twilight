@@ -19,7 +19,7 @@ pub use self::{
     text_input::{TextInput, TextInputStyle},
 };
 
-use super::ReactionType;
+use super::EmojiReactionType;
 use crate::channel::ChannelType;
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -239,7 +239,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut channel_types: Option<Vec<ChannelType>> = None;
         let mut default_values: Option<Vec<SelectDefaultValue>> = None;
         let mut disabled: Option<bool> = None;
-        let mut emoji: Option<Option<ReactionType>> = None;
+        let mut emoji: Option<Option<EmojiReactionType>> = None;
         let mut max_length: Option<Option<u16>> = None;
         let mut max_values: Option<Option<u8>> = None;
         let mut min_length: Option<Option<u16>> = None;
@@ -899,7 +899,7 @@ mod tests {
         let value = Component::Button(Button {
             custom_id: Some("test".to_owned()),
             disabled: false,
-            emoji: Some(ReactionType::Unicode {
+            emoji: Some(EmojiReactionType::Unicode {
                 name: FLAG.to_owned(),
             }),
             label: Some("Test".to_owned()),
@@ -922,7 +922,7 @@ mod tests {
                 Token::String("emoji"),
                 Token::Some,
                 Token::Struct {
-                    name: "ReactionType",
+                    name: "EmojiReactionType",
                     len: 1,
                 },
                 Token::String("name"),

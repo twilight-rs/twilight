@@ -1066,7 +1066,7 @@ mod tests {
             InteractionType,
         },
         channel::{
-            message::{component::ComponentType, Message, MessageType, ReactionType},
+            message::{component::ComponentType, EmojiReactionType, Message, MessageType},
             Channel, ChannelType,
         },
         gateway::{
@@ -1137,8 +1137,10 @@ mod tests {
 
     fn reaction() -> GatewayReaction {
         GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
             channel_id: Id::new(2),
-            emoji: ReactionType::Unicode {
+            emoji: EmojiReactionType::Unicode {
                 name: "🍎".to_owned(),
             },
             guild_id: Some(Id::new(1)),

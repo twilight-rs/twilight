@@ -1190,7 +1190,7 @@ fn component_text_input_value(value: impl AsRef<str>) -> Result<(), ComponentVal
 mod tests {
     use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
-    use twilight_model::channel::message::ReactionType;
+    use twilight_model::channel::message::EmojiReactionType;
 
     assert_fields!(ComponentValidationErrorType::ActionRowComponentCount: count);
     assert_fields!(ComponentValidationErrorType::ComponentCount: count);
@@ -1221,7 +1221,7 @@ mod tests {
         let button = Button {
             custom_id: None,
             disabled: false,
-            emoji: Some(ReactionType::Unicode {
+            emoji: Some(EmojiReactionType::Unicode {
                 name: "📚".into()
             }),
             label: Some("Read".into()),

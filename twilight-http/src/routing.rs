@@ -751,6 +751,8 @@ pub enum Route<'a> {
         limit: Option<u16>,
         /// The ID of the message.
         message_id: u64,
+        /// The type of reactions to fetch.
+        kind: Option<u8>,
     },
     /// Route information to get a stage instance.
     GetStageInstance {
@@ -2738,6 +2740,7 @@ impl Display for Route<'_> {
                 emoji,
                 limit,
                 message_id,
+                kind,
             } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
@@ -2755,6 +2758,11 @@ impl Display for Route<'_> {
                 if let Some(limit) = limit {
                     f.write_str("&limit=")?;
                     Display::fmt(limit, f)?;
+                }
+
+                if let Some(kind) = kind {
+                    f.write_str("&type=")?;
+                    Display::fmt(kind, f)?;
                 }
 
                 Ok(())
