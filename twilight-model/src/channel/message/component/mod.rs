@@ -58,7 +58,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// use twilight_model::{
 ///     channel::message::{
 ///         component::{ActionRow, Component, SelectMenu, SelectMenuOption, SelectMenuType},
-///         ReactionType,
+///         EmojiReactionType,
 ///     },
 ///     id::Id,
 /// };
@@ -75,7 +75,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///         options: Some(Vec::from([
 ///             SelectMenuOption {
 ///                 default: false,
-///                 emoji: Some(ReactionType::Custom {
+///                 emoji: Some(EmojiReactionType::Custom {
 ///                     animated: false,
 ///                     id: Id::new(625891304148303894),
 ///                     name: Some("rogue".to_owned()),
@@ -86,7 +86,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///             },
 ///             SelectMenuOption {
 ///                 default: false,
-///                 emoji: Some(ReactionType::Custom {
+///                 emoji: Some(EmojiReactionType::Custom {
 ///                     animated: false,
 ///                     id: Id::new(625891304081063986),
 ///                     name: Some("mage".to_owned()),
@@ -97,7 +97,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///             },
 ///             SelectMenuOption {
 ///                 default: false,
-///                 emoji: Some(ReactionType::Custom {
+///                 emoji: Some(EmojiReactionType::Custom {
 ///                     animated: false,
 ///                     id: Id::new(625891303795982337),
 ///                     name: Some("priest".to_owned()),
