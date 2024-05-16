@@ -582,7 +582,7 @@ impl Standby {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use tokio_stream::StreamExt;
     /// use twilight_model::{
-    ///     channel::message::ReactionType,
+    ///     channel::message::EmojiReactionType,
     ///     gateway::payload::incoming::ReactionAdd,
     ///     id::Id,
     /// };
@@ -593,7 +593,7 @@ impl Standby {
     /// let message_id = Id::new(123);
     ///
     /// let mut reactions = standby.wait_for_reaction_stream(message_id, |event: &ReactionAdd| {
-    ///     matches!(&event.emoji, ReactionType::Unicode { name } if name == "🤠")
+    ///     matches!(&event.emoji, EmojiReactionType::Unicode { name } if name == "🤠")
     /// });
     ///
     /// while let Some(reaction) = reactions.next().await {
