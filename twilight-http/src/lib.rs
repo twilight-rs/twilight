@@ -9,6 +9,7 @@
 pub mod api_error;
 pub mod client;
 pub mod error;
+pub mod query_array;
 pub mod request;
 pub mod response;
 pub mod routing;
