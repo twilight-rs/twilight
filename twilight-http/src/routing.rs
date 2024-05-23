@@ -2385,7 +2385,7 @@ impl Display for Route<'_> {
                     query.push("include_roles", QueryArray(*include_roles));
                 }
 
-                Ok(())
+                Display::fmt(&query, f)
             }
             Route::GetGuildScheduledEvent {
                 guild_id,
