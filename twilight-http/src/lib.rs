@@ -10,6 +10,7 @@ pub mod api_error;
 pub mod client;
 pub mod error;
 pub mod query_array;
+pub mod query_str_writer;
 pub mod request;
 pub mod response;
 pub mod routing;

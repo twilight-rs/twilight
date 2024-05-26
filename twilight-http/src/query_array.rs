@@ -6,11 +6,11 @@ pub struct QueryArray<T>(pub T);
 
 impl<T, U> Display for QueryArray<T>
 where
-    T: IntoIterator<Item = U> + Copy,
+    T: IntoIterator<Item = U> + Clone,
     U: Display,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut iter = self.0.into_iter().peekable();
+        let mut iter = self.0.clone().into_iter().peekable();
 
         while let Some(item) = iter.next() {
             item.fmt(f)?;
@@ -20,16 +20,6 @@ where
         }
 
         Ok(())
-    }
-}
-
-impl<T, U> From<QueryArray<T>> for String
-where
-    T: IntoIterator<Item = U> + Copy,
-    U: Display,
-{
-    fn from(val: QueryArray<T>) -> Self {
-        val.to_string()
     }
 }
 
