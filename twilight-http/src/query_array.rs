@@ -13,7 +13,7 @@ where
         let mut iter = self.0.clone().into_iter().peekable();
 
         while let Some(item) = iter.next() {
-            item.fmt(f)?;
+            Display::fmt(&item, f)?;
             if iter.peek().is_some() {
                 f.write_str(",")?;
             }
