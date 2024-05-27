@@ -1,6 +1,35 @@
 use std::fmt::{Display, Formatter, Write};
 
 /// A helper struct to write query paramseters to a formatter.
+///
+/// # Example
+///
+/// ```
+/// use twilight_http::query_str_formatter::QueryStringFormatter;
+///
+/// struct Params {
+///   foo: String,
+///   bar: u64,
+/// }
+///
+/// impl Display for Params {
+///  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+///   let mut formatter = QueryStringFormatter::new(f);
+///   formatter.write_param("foo", &self.foo)?;
+///   formatter.write_param("bar", &self.bar)?;
+///   Ok(())
+/// }
+///
+/// fn main() {
+///   let params = Params {
+///     foo: "hello".to_string(),
+///     bar: 123,
+///    };
+///
+///   assert_eq!(params.to_string(), "foo=hello&bar=123");
+/// }
+///
+///
 pub struct QueryStringFormatter<'w1, 'w2> {
     formatter: &'w1 mut Formatter<'w2>,
     is_first: bool,
@@ -14,6 +43,11 @@ impl<'w1, 'w2> QueryStringFormatter<'w1, 'w2> {
         }
     }
 
+    /// Writes a query parameter to the formatter.
+    ///
+    /// # Errors
+    ///
+    /// This returns a [`std::fmt::Error`] if the formatter returns an error.
     pub fn write_param(&mut self, key: &str, value: &impl Display) -> std::fmt::Result {
         if self.is_first {
             self.formatter.write_char('?')?;
@@ -27,6 +61,11 @@ impl<'w1, 'w2> QueryStringFormatter<'w1, 'w2> {
         Display::fmt(value, self.formatter)
     }
 
+    /// Writes a query parameter to the formatter.
+    ///
+    /// # Errors
+    ///
+    /// This returns a [`std::fmt::Error`] if the formatter returns an error.
     pub fn write_opt_param(&mut self, key: &str, value: Option<&impl Display>) -> std::fmt::Result {
         if let Some(value) = value {
             self.write_param(key, value)
@@ -60,8 +99,6 @@ mod tests {
             b: "hello".to_string(),
         };
 
-        let mut output = String::new();
-        write!(output, "{}", test).unwrap();
-        assert_eq!(output, "?a=1&b=hello");
+        assert_eq!(test.to_string(), "?a=1&b=hello");
     }
 }

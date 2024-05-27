@@ -3,7 +3,7 @@ pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErr
 
 use crate::{
     query_array::QueryArray,
-    query_str_writer::QueryStringFormatter,
+    query_str_formatter::QueryStringFormatter,
     request::{channel::reaction::RequestReactionType, Method},
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
