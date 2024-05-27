@@ -14,20 +14,20 @@ use std::fmt::{Display, Formatter, Write};
 ///
 /// impl Display for Params {
 ///  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-///   let mut formatter = QueryStringFormatter::new(f);
-///   formatter.write_param("foo", &self.foo)?;
-///   formatter.write_param("bar", &self.bar)?;
-///   Ok(())
+///     let mut formatter = QueryStringFormatter::new(f);
+///     formatter.write_param("foo", &self.foo)?;
+///     formatter.write_param("bar", &self.bar)?;
+///     Ok(())
+///   }
 /// }
 ///
-/// fn main() {
-///   let params = Params {
-///     foo: "hello".to_string(),
-///     bar: 123,
-///    };
+/// let params = Params {
+///   foo: "hello".to_string(),
+///   bar: 123,
+/// };
 ///
-///   assert_eq!(params.to_string(), "foo=hello&bar=123");
-/// }
+/// assert_eq!(params.to_string(), "foo=hello&bar=123");
+///
 /// ```
 pub struct QueryStringFormatter<'w1, 'w2> {
     formatter: &'w1 mut Formatter<'w2>,
