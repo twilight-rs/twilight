@@ -5,6 +5,7 @@ use std::fmt::{Display, Formatter, Write};
 /// # Example
 ///
 /// ```
+/// use std::fmt::{Display, Formatter, Write};
 /// use twilight_http::query_str_formatter::QueryStringFormatter;
 ///
 /// struct Params {
@@ -26,7 +27,7 @@ use std::fmt::{Display, Formatter, Write};
 ///     bar: 123,
 /// };
 ///
-/// assert_eq!(params.to_string(), "foo=hello&bar=123");
+/// assert_eq!(params.to_string(), "?foo=hello&bar=123");
 /// ```
 pub struct QueryStringFormatter<'w1, 'w2> {
     formatter: &'w1 mut Formatter<'w2>,
