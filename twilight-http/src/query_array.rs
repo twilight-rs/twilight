@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-/// Provides a display implementation for serializing arrays-like objects into
+/// Provides a display implementation for serializing iterable objects into
 /// query params.
 pub struct QueryArray<T>(pub T);
 
