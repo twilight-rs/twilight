@@ -28,8 +28,7 @@ use std::fmt::{Display, Formatter, Write};
 ///
 ///   assert_eq!(params.to_string(), "foo=hello&bar=123");
 /// }
-///
-///
+/// ```
 pub struct QueryStringFormatter<'w1, 'w2> {
     formatter: &'w1 mut Formatter<'w2>,
     is_first: bool,
