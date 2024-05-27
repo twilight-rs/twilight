@@ -8,26 +8,25 @@ use std::fmt::{Display, Formatter, Write};
 /// use twilight_http::query_str_formatter::QueryStringFormatter;
 ///
 /// struct Params {
-///   foo: String,
-///   bar: u64,
+///     foo: String,
+///     bar: u64,
 /// }
 ///
 /// impl Display for Params {
-///  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-///     let mut formatter = QueryStringFormatter::new(f);
-///     formatter.write_param("foo", &self.foo)?;
-///     formatter.write_param("bar", &self.bar)?;
-///     Ok(())
-///   }
+///     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+///         let mut formatter = QueryStringFormatter::new(f);
+///         formatter.write_param("foo", &self.foo)?;
+///         formatter.write_param("bar", &self.bar)?;
+///         Ok(())
+///     }
 /// }
 ///
 /// let params = Params {
-///   foo: "hello".to_string(),
-///   bar: 123,
+///     foo: "hello".to_string(),
+///     bar: 123,
 /// };
 ///
 /// assert_eq!(params.to_string(), "foo=hello&bar=123");
-///
 /// ```
 pub struct QueryStringFormatter<'w1, 'w2> {
     formatter: &'w1 mut Formatter<'w2>,
