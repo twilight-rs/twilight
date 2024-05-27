@@ -9,13 +9,12 @@
 pub mod api_error;
 pub mod client;
 pub mod error;
-pub mod query_array;
-pub mod query_str_formatter;
 pub mod request;
 pub mod response;
 pub mod routing;
 
 mod json;
+mod query_formatter;
 
 /// Discord API version used by this crate.
 pub const API_VERSION: u8 = 10;

@@ -2,8 +2,7 @@ use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
 
 use crate::{
-    query_array::QueryArray,
-    query_str_formatter::QueryStringFormatter,
+    query_formatter::{QueryArray, QueryStringFormatter},
     request::{channel::reaction::RequestReactionType, Method},
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -2182,11 +2181,7 @@ impl Display for Route<'_> {
 
                 let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(thread_id) = thread_id {
-                    query_formatter.write_param("thread_id", thread_id)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("thread_id", thread_id.as_ref())
             }
             Route::DeleteWebhook { token, webhook_id }
             | Route::GetWebhook { token, webhook_id }
@@ -2214,15 +2209,8 @@ impl Display for Route<'_> {
 
                 let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(thread_id) = thread_id {
-                    query_formatter.write_param("thread_id", thread_id)?;
-                }
-
-                if let Some(wait) = wait {
-                    query_formatter.write_param("wait", wait)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("thread_id", thread_id.as_ref())?;
+                query_formatter.write_opt_param("wait", wait.as_ref())
             }
             Route::FollowNewsChannel { channel_id } => {
                 f.write_str("channels/")?;
@@ -2248,29 +2236,13 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
                 f.write_str("/audit-logs")?;
 
-                let mut writer = QueryStringFormatter::new(f);
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(action_type) = action_type {
-                    writer.write_param("action_type", action_type)?;
-                }
-
-                if let Some(after) = after {
-                    writer.write_param("after", after)?;
-                }
-
-                if let Some(before) = before {
-                    writer.write_param("before", before)?;
-                }
-
-                if let Some(limit) = limit {
-                    writer.write_param("limit", limit)?;
-                }
-
-                if let Some(user_id) = user_id {
-                    writer.write_param("user_id", user_id)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("action_type", action_type.as_ref())?;
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())?;
+                query_formatter.write_opt_param("user_id", user_id.as_ref())
             }
             Route::GetBans { guild_id } => {
                 f.write_str("guilds/")?;
@@ -2336,7 +2308,7 @@ impl Display for Route<'_> {
                 let mut query_formatter = QueryStringFormatter::new(f);
 
                 if *with_counts {
-                    query_formatter.write_param("with_counts", with_counts)?;
+                    query_formatter.write_param("with_counts", &true)?;
                 }
 
                 Ok(())
@@ -2416,7 +2388,7 @@ impl Display for Route<'_> {
                 let mut query_formatter = QueryStringFormatter::new(f);
 
                 if *with_user_count {
-                    query_formatter.write_param("with_user_count", with_user_count)?;
+                    query_formatter.write_param("with_user_count", &true)?;
                 }
 
                 Ok(())
@@ -2442,7 +2414,7 @@ impl Display for Route<'_> {
                 query_formatter.write_opt_param("limit", limit.as_ref())?;
 
                 if *with_member {
-                    query_formatter.write_param("with_member", with_member)?;
+                    query_formatter.write_param("with_member", &true)?;
                 }
 
                 Ok(())
@@ -2458,7 +2430,7 @@ impl Display for Route<'_> {
                 let mut query_formatter = QueryStringFormatter::new(f);
 
                 if *with_user_count {
-                    query_formatter.write_param("with_user_count", with_user_count)?;
+                    query_formatter.write_param("with_user_count", &true)?;
                 }
 
                 Ok(())
@@ -2542,7 +2514,7 @@ impl Display for Route<'_> {
                 let mut query_formatter = QueryStringFormatter::new(f);
 
                 if *with_counts {
-                    query_formatter.write_param("with_counts", with_counts)?;
+                    query_formatter.write_param("with_counts", &true)?;
                 }
 
                 Ok(())
@@ -2558,11 +2530,11 @@ impl Display for Route<'_> {
                 let mut query_formatter = QueryStringFormatter::new(f);
 
                 if *with_counts {
-                    query_formatter.write_param("with_counts", with_counts)?;
+                    query_formatter.write_param("with_counts", &true)?;
                 }
 
                 if *with_expiration {
-                    query_formatter.write_param("with_expiration", with_expiration)?;
+                    query_formatter.write_param("with_expiration", &true)?;
                 }
 
                 Ok(())
@@ -2728,8 +2700,9 @@ impl Display for Route<'_> {
 
                 let mut query_formatter = QueryStringFormatter::new(f);
 
-                query_formatter.write_opt_param("limit", limit.as_ref())?;
-                query_formatter.write_param("query", &utf8_percent_encode(query, NON_ALPHANUMERIC))
+                query_formatter
+                    .write_param("query", &utf8_percent_encode(query, NON_ALPHANUMERIC))?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::SyncGuildIntegration {
                 guild_id,
@@ -4488,7 +4461,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!("guilds/5/members/search?limit=99&query=foo%20bar")
+            format!("guilds/{GUILD_ID}/members/search?query=foo%20bar&limit=99")
         );
 
         let route = Route::SearchGuildMembers {
@@ -4499,7 +4472,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!("guilds/5/members/search?limit=99&query=foo%2Fbar")
+            format!("guilds/{GUILD_ID}/members/search?query=foo%2Fbar&limit=99")
         );
     }
 

@@ -1,34 +1,6 @@
 use std::fmt::{Display, Formatter, Write};
 
 /// A helper struct to write query paramseters to a formatter.
-///
-/// # Example
-///
-/// ```
-/// use std::fmt::{Display, Formatter, Write};
-/// use twilight_http::query_str_formatter::QueryStringFormatter;
-///
-/// struct Params {
-///     foo: String,
-///     bar: u64,
-/// }
-///
-/// impl Display for Params {
-///     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-///         let mut formatter = QueryStringFormatter::new(f);
-///         formatter.write_param("foo", &self.foo)?;
-///         formatter.write_param("bar", &self.bar)?;
-///         Ok(())
-///     }
-/// }
-///
-/// let params = Params {
-///     foo: "hello".to_string(),
-///     bar: 123,
-/// };
-///
-/// assert_eq!(params.to_string(), "?foo=hello&bar=123");
-/// ```
 pub struct QueryStringFormatter<'w1, 'w2> {
     formatter: &'w1 mut Formatter<'w2>,
     is_first: bool,
@@ -74,30 +46,81 @@ impl<'w1, 'w2> QueryStringFormatter<'w1, 'w2> {
     }
 }
 
+/// Provides a display implementation for serializing iterable objects into
+/// query params.
+#[derive(Debug)]
+pub struct QueryArray<T>(pub T);
+
+impl<T, U> Display for QueryArray<T>
+where
+    T: IntoIterator<Item = U> + Clone,
+    U: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut iter = self.0.clone().into_iter().peekable();
+
+        while let Some(item) = iter.next() {
+            Display::fmt(&item, f)?;
+            if iter.peek().is_some() {
+                f.write_str(",")?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     struct Test {
-        a: u32,
-        b: String,
+        a: Option<u32>,
+        b: Option<String>,
     }
 
     impl Display for Test {
         fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
             let mut writer = QueryStringFormatter::new(f);
-            writer.write_param("a", &self.a)?;
-            writer.write_param("b", &self.b)
+            writer.write_opt_param("a", self.a.as_ref())?;
+            writer.write_opt_param("b", self.b.as_ref())
         }
     }
 
     #[test]
-    fn test_query_string_writer() {
+    fn test_query_string_formatter_filled() {
         let test = Test {
-            a: 1,
-            b: "hello".to_string(),
+            a: Some(1),
+            b: Some("hello".to_string()),
         };
 
         assert_eq!(test.to_string(), "?a=1&b=hello");
+    }
+
+    #[test]
+    fn test_query_string_formatter_empty() {
+        let test = Test { a: None, b: None };
+
+        assert_eq!(test.to_string(), "");
+    }
+
+    #[test]
+    fn test_query_string_formatter_single() {
+        let test = Test {
+            a: Some(1),
+            b: None,
+        };
+
+        assert_eq!(test.to_string(), "?a=1");
+    }
+
+    #[test]
+    fn test_query_array() {
+        let query_array = QueryArray([1, 2, 3]);
+        assert_eq!(query_array.to_string(), "1,2,3");
+
+        let params = vec!["a", "b", "c"];
+        let query_array = QueryArray(&params);
+        assert_eq!(query_array.to_string(), "a,b,c");
     }
 }
