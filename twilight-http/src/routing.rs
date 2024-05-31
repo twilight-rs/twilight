@@ -3,7 +3,10 @@ pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErr
 
 use crate::request::{channel::reaction::RequestReactionType, Method};
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::{marker::RoleMarker, Id};
+use twilight_model::id::{
+    marker::{RoleMarker, SkuMarker},
+    Id,
+};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
@@ -137,6 +140,10 @@ pub enum Route<'a> {
     CreateTemplate {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    CreateTestEntitlement {
+        /// The ID of the application.
+        application_id: u64,
     },
     /// Route information to create a thread in a channel.
     CreateThread {
@@ -338,6 +345,12 @@ pub enum Route<'a> {
         token: &'a str,
         webhook_id: u64,
     },
+    DeleteTestEntitlement {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the entitlement.
+        entitlement_id: u64,
+    },
     /// Route information to execute a webhook by ID and token.
     ExecuteWebhook {
         /// ID of the thread channel, if there is one.
@@ -455,6 +468,24 @@ pub enum Route<'a> {
     GetEmojis {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    GetEntitlements {
+        /// Retrieve entitlements after this time.
+        after: Option<u64>,
+        /// The ID of the application.
+        application_id: u64,
+        /// Retrieve entitlements before this time.
+        before: Option<u64>,
+        /// Whether to exclude ended entitlements.
+        exclude_ended: Option<bool>,
+        /// Guild ID to look up entitlements for.
+        guild_id: Option<u64>,
+        /// Number of entitlements to return. Set to 100 if unspecified.
+        limit: Option<u8>,
+        /// List of SKU IDs to check entitlements for.
+        sku_ids: &'a [Id<SkuMarker>],
+        /// User ID to look up entitlements for.
+        user_id: Option<u64>,
     },
     /// Route to get a followup message for an interaction.
     GetFollowupMessage {
@@ -751,6 +782,10 @@ pub enum Route<'a> {
         limit: Option<u16>,
         /// The ID of the message.
         message_id: u64,
+    },
+    GetSKUs {
+        /// The ID of the application.
+        application_id: u64,
     },
     /// Route information to get a stage instance.
     GetStageInstance {
@@ -1137,6 +1172,7 @@ impl<'a> Route<'a> {
             | Self::DeleteGuildIntegration { .. }
             | Self::DeleteGuildScheduledEvent { .. }
             | Self::DeleteGuildSticker { .. }
+            | Self::DeleteTestEntitlement { .. }
             | Self::DeleteInteractionOriginal { .. }
             | Self::DeleteInvite { .. }
             | Self::DeleteMessageReactions { .. }
@@ -1174,6 +1210,7 @@ impl<'a> Route<'a> {
             | Self::GetCurrentUserGuildMember { .. }
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
+            | Self::GetEntitlements { .. }
             | Self::GetGateway
             | Self::GetFollowupMessage { .. }
             | Self::GetGlobalCommand { .. }
@@ -1214,6 +1251,7 @@ impl<'a> Route<'a> {
             | Self::GetPrivateArchivedThreads { .. }
             | Self::GetPublicArchivedThreads { .. }
             | Self::GetReactionUsers { .. }
+            | Self::GetSKUs { .. }
             | Self::GetStageInstance { .. }
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
@@ -1275,6 +1313,7 @@ impl<'a> Route<'a> {
             | Self::CreateRole { .. }
             | Self::CreateStageInstance { .. }
             | Self::CreateTemplate { .. }
+            | Self::CreateTestEntitlement { .. }
             | Self::CreateTypingTrigger { .. }
             | Self::CreateWebhook { .. }
             | Self::CrosspostMessage { .. }
@@ -1415,6 +1454,11 @@ impl<'a> Route<'a> {
             }
             Self::CreateThreadFromMessage { channel_id, .. } => {
                 Path::ChannelsIdMessagesIdThreads(channel_id)
+            }
+            Self::CreateTestEntitlement { application_id }
+            | Self::GetEntitlements { application_id, .. }
+            | Self::DeleteTestEntitlement { application_id, .. } => {
+                Path::ApplicationIdEntitlements(application_id)
             }
             Self::CreateTypingTrigger { channel_id } => Path::ChannelsIdTyping(channel_id),
             Self::CreateWebhook { channel_id } | Self::GetChannelWebhooks { channel_id } => {
@@ -1591,6 +1635,7 @@ impl<'a> Route<'a> {
             Self::GetPins { channel_id } | Self::PinMessage { channel_id, .. } => {
                 Path::ChannelsIdPins(channel_id)
             }
+            Self::GetSKUs { application_id } => Path::ApplicationIdSKUs(application_id),
             Self::GetSticker { .. } => Path::Stickers,
             Self::GetUserConnections => Path::UsersIdConnections,
             Self::GetVoiceRegions => Path::VoiceRegions,
@@ -1803,6 +1848,12 @@ impl Display for Route<'_> {
 
                 f.write_str(template_code)
             }
+            Route::CreateTestEntitlement { application_id } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+
+                f.write_str("/entitlements")
+            }
             Route::CreateGuildIntegration { guild_id }
             | Route::GetGuildIntegrations { guild_id } => {
                 f.write_str("guilds/")?;
@@ -1972,6 +2023,68 @@ impl Display for Route<'_> {
                 f.write_str("/emojis/")?;
 
                 Display::fmt(emoji_id, f)
+            }
+            Route::GetEntitlements {
+                after,
+                application_id,
+                before,
+                exclude_ended,
+                guild_id,
+                limit,
+                sku_ids,
+                user_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements")?;
+
+                f.write_str("?")?;
+
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(before) = before {
+                    f.write_str("&before=")?;
+                    Display::fmt(before, f)?;
+                }
+
+                if let Some(exclude_ended) = exclude_ended {
+                    f.write_str("&exclude_ended=")?;
+                    Display::fmt(exclude_ended, f)?;
+                }
+
+                if let Some(guild_id) = guild_id {
+                    f.write_str("&guild_id=")?;
+                    Display::fmt(guild_id, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                if !sku_ids.is_empty() {
+                    let sku_id_count = sku_ids.len() - 1;
+
+                    f.write_str("&sku_ids=")?;
+
+                    for (idx, sku_id) in sku_ids.iter().enumerate() {
+                        Display::fmt(sku_id, f)?;
+
+                        if idx < sku_id_count {
+                            f.write_str(",")?;
+                        }
+                    }
+                }
+
+                if let Some(user_id) = user_id {
+                    f.write_str("&user_id=")?;
+                    Display::fmt(user_id, f)?;
+                }
+
+                Ok(())
             }
             Route::DeleteGlobalCommand {
                 application_id,
@@ -2242,6 +2355,16 @@ impl Display for Route<'_> {
                 }
 
                 Ok(())
+            }
+            Route::DeleteTestEntitlement {
+                application_id,
+                entitlement_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements/")?;
+
+                Display::fmt(entitlement_id, f)
             }
             Route::FollowNewsChannel { channel_id } => {
                 f.write_str("channels/")?;
@@ -2907,6 +3030,12 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/mfa")
+            }
+            Route::GetSKUs { application_id } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+
+                f.write_str("/skus")
             }
         }
     }
@@ -3976,6 +4105,32 @@ mod tests {
     }
 
     #[test]
+    fn get_entitlements() {
+        let route = Route::GetEntitlements {
+            after: Some(32),
+            application_id: 1,
+            before: Some(2),
+            exclude_ended: Some(true),
+            guild_id: Some(42),
+            limit: Some(99),
+            sku_ids: &[Id::new(7)],
+            user_id: Some(11),
+        };
+
+        assert_eq!(
+            route.to_string(),
+            "applications/1/entitlements?after=32&before=2&exclude_ended=true&guild_id=42&limit=99&sku_ids=7&user_id=11"
+        );
+    }
+
+    #[test]
+    fn create_test_entitlement() {
+        let route = Route::CreateTestEntitlement { application_id: 1 };
+
+        assert_eq!(route.to_string(), "applications/1/entitlements");
+    }
+
+    #[test]
     fn get_command_permissions() {
         let route = Route::GetCommandPermissions {
             application_id: APPLICATION_ID,
@@ -4691,5 +4846,11 @@ mod tests {
     fn get_guild_onboarding() {
         let route = Route::GetGuildOnboarding { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/onboarding"));
+    }
+
+    #[test]
+    fn get_skus() {
+        let route = Route::GetSKUs { application_id: 1 };
+        assert_eq!(route.to_string(), format!("applications/1/skus"));
     }
 }
