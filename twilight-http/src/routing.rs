@@ -1835,18 +1835,9 @@ impl Display for Route<'_> {
                 Display::fmt(answer_id, f)?;
                 f.write_str("?")?;
 
-                if let Some(after) = after {
-                    f.write_str("after=")?;
-                    Display::fmt(after, f)?;
-                    f.write_str("&")?;
-                }
-
-                if let Some(limit) = limit {
-                    f.write_str("limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                Ok(())
+                let mut writer = QueryStringFormatter::new(f);
+                writer.write_opt_param("after", after.as_ref())?;
+                writer.write_opt_param("limit", limit.as_ref())
             }
             Route::GetGlobalCommands {
                 application_id,
