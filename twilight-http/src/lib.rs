@@ -14,6 +14,7 @@ pub mod response;
 pub mod routing;
 
 mod json;
+mod query_formatter;
 
 /// Discord API version used by this crate.
 pub const API_VERSION: u8 = 10;

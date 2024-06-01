@@ -18,6 +18,9 @@ pub enum EventType {
     ChannelUpdate,
     #[serde(rename = "APPLICATION_COMMAND_PERMISSIONS_UPDATE")]
     CommandPermissionsUpdate,
+    EntitlementCreate,
+    EntitlementDelete,
+    EntitlementUpdate,
     GatewayClose,
     GatewayHeartbeat,
     GatewayHeartbeatAck,
@@ -102,6 +105,9 @@ impl EventType {
             Self::ChannelPinsUpdate => Some("CHANNEL_PINS_UPDATE"),
             Self::ChannelUpdate => Some("CHANNEL_UPDATE"),
             Self::CommandPermissionsUpdate => Some("APPLICATION_COMMAND_PERMISSIONS_UPDATE"),
+            Self::EntitlementCreate => Some("ENTITLEMENT_CREATE"),
+            Self::EntitlementDelete => Some("ENTITLEMENT_DELETE"),
+            Self::EntitlementUpdate => Some("ENTITLEMENT_UPDATE"),
             Self::GuildAuditLogEntryCreate => Some("GUILD_AUDIT_LOG_ENTRY_CREATE"),
             Self::GuildCreate => Some("GUILD_CREATE"),
             Self::GuildDelete => Some("GUILD_DELETE"),
@@ -180,6 +186,7 @@ impl<'a> TryFrom<&'a str> for EventType {
             "CHANNEL_PINS_UPDATE" => Ok(Self::ChannelPinsUpdate),
             "CHANNEL_UPDATE" => Ok(Self::ChannelUpdate),
             "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => Ok(Self::CommandPermissionsUpdate),
+            "ENTITLEMENT_CREATE" => Ok(Self::EntitlementCreate),
             "GUILD_CREATE" => Ok(Self::GuildCreate),
             "GUILD_DELETE" => Ok(Self::GuildDelete),
             "GUILD_EMOJIS_UPDATE" => Ok(Self::GuildEmojisUpdate),
@@ -361,5 +368,6 @@ mod tests {
         assert_variant(EventType::VoiceServerUpdate, "VOICE_SERVER_UPDATE");
         assert_variant(EventType::VoiceStateUpdate, "VOICE_STATE_UPDATE");
         assert_variant(EventType::WebhooksUpdate, "WEBHOOKS_UPDATE");
+        assert_variant(EventType::EntitlementCreate, "ENTITLEMENT_CREATE");
     }
 }
