@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 /// Data used to update the positions of roles.
 pub struct RolePosition {
-    /// The role ID.
+    /// Role identifier.
     pub id: Id<RoleMarker>,
-    /// The new position of the role.
+    /// Sorting position of the role.
     pub position: u64,
 }
 
