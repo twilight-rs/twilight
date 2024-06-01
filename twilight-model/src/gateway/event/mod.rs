@@ -46,6 +46,16 @@ pub enum Event {
     ChannelUpdate(Box<ChannelUpdate>),
     /// A command's permissions were updated.
     CommandPermissionsUpdate(CommandPermissionsUpdate),
+    /// A user subscribes to a SKU.
+    EntitlementCreate(EntitlementCreate),
+    /// A user's entitlement is removed.
+    EntitlementDelete(EntitlementDelete),
+    /// A user's subscription renews for the
+    /// next billing period.
+    ///
+    /// The `ends_at` field will have an updated value with
+    /// the new expiration date.
+    EntitlementUpdate(EntitlementUpdate),
     /// Close message with an optional frame including information about the
     /// reason for the close.
     GatewayClose(Option<CloseFrame<'static>>),
@@ -237,6 +247,9 @@ impl Event {
             Event::VoiceStateUpdate(e) => e.0.guild_id,
             Event::WebhooksUpdate(e) => Some(e.guild_id),
             Event::GatewayClose(_)
+            | Event::EntitlementCreate(_)
+            | Event::EntitlementDelete(_)
+            | Event::EntitlementUpdate(_)
             | Event::GatewayHeartbeat(_)
             | Event::GatewayHeartbeatAck
             | Event::GatewayHello(_)
@@ -261,6 +274,9 @@ impl Event {
             Self::ChannelPinsUpdate(_) => EventType::ChannelPinsUpdate,
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
             Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
+            Self::EntitlementCreate(_) => EventType::EntitlementCreate,
+            Self::EntitlementDelete(_) => EventType::EntitlementDelete,
+            Self::EntitlementUpdate(_) => EventType::EntitlementUpdate,
             Self::GatewayClose(_) => EventType::GatewayClose,
             Self::GatewayHeartbeat(_) => EventType::GatewayHeartbeat,
             Self::GatewayHeartbeatAck => EventType::GatewayHeartbeatAck,
@@ -340,6 +356,9 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
             DispatchEvent::ChannelUpdate(v) => Self::ChannelUpdate(v),
             DispatchEvent::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
+            DispatchEvent::EntitlementCreate(v) => Self::EntitlementCreate(v),
+            DispatchEvent::EntitlementDelete(v) => Self::EntitlementDelete(v),
+            DispatchEvent::EntitlementUpdate(v) => Self::EntitlementUpdate(v),
             DispatchEvent::GuildAuditLogEntryCreate(v) => Self::GuildAuditLogEntryCreate(v),
             DispatchEvent::GuildCreate(v) => Self::GuildCreate(v),
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),

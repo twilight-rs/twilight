@@ -25,6 +25,9 @@ pub enum DispatchEvent {
     ChannelPinsUpdate(ChannelPinsUpdate),
     ChannelUpdate(Box<ChannelUpdate>),
     CommandPermissionsUpdate(CommandPermissionsUpdate),
+    EntitlementCreate(EntitlementCreate),
+    EntitlementDelete(EntitlementDelete),
+    EntitlementUpdate(EntitlementUpdate),
     GuildAuditLogEntryCreate(Box<GuildAuditLogEntryCreate>),
     GuildCreate(Box<GuildCreate>),
     GuildDelete(GuildDelete),
@@ -95,6 +98,9 @@ impl DispatchEvent {
             Self::ChannelPinsUpdate(_) => EventType::ChannelPinsUpdate,
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
             Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
+            Self::EntitlementCreate(_) => EventType::EntitlementCreate,
+            Self::EntitlementDelete(_) => EventType::EntitlementDelete,
+            Self::EntitlementUpdate(_) => EventType::EntitlementUpdate,
             Self::GuildAuditLogEntryCreate(_) => EventType::GuildAuditLogEntryCreate,
             Self::GuildCreate(_) => EventType::GuildCreate,
             Self::GuildDelete(_) => EventType::GuildDelete,
@@ -272,6 +278,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => DispatchEvent::CommandPermissionsUpdate(
                 CommandPermissionsUpdate::deserialize(deserializer)?,
             ),
+            "ENTITLEMENT_CREATE" => {
+                DispatchEvent::EntitlementCreate(EntitlementCreate::deserialize(deserializer)?)
+            }
             "GUILD_AUDIT_LOG_ENTRY_CREATE" => DispatchEvent::GuildAuditLogEntryCreate(Box::new(
                 GuildAuditLogEntryCreate::deserialize(deserializer)?,
             )),

@@ -36,6 +36,8 @@ use serde::{
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
 
+use super::monetization::Entitlement;
+
 /// Payload received when a user executes an interaction.
 ///
 /// See [Discord Docs/Interaction Object].
@@ -79,6 +81,8 @@ pub struct Interaction {
     /// [`ModalSubmit`]: InteractionType::ModalSubmit
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<InteractionData>,
+    /// For monetized apps, any entitlements for the invoking user, representing access to premium SKUs
+    pub entitlements: Vec<Entitlement>,
     /// ID of the guild the interaction was invoked in.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -177,6 +181,7 @@ enum InteractionField {
     Channel,
     ChannelId,
     Data,
+    Entitlements,
     GuildId,
     GuildLocale,
     Id,
@@ -205,6 +210,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut channel: Option<Channel> = None;
         let mut channel_id: Option<Id<ChannelMarker>> = None;
         let mut data: Option<Value> = None;
+        let mut entitlements: Vec<Entitlement> = Vec::new();
         let mut guild_id: Option<Id<GuildMarker>> = None;
         let mut guild_locale: Option<String> = None;
         let mut id: Option<Id<InteractionMarker>> = None;
@@ -261,6 +267,13 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     }
 
                     data = map.next_value()?;
+                }
+                InteractionField::Entitlements => {
+                    if data.is_some() {
+                        return Err(DeError::duplicate_field("entitlements"));
+                    }
+
+                    entitlements = map.next_value()?;
                 }
                 InteractionField::GuildId => {
                     if guild_id.is_some() {
@@ -380,6 +393,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             channel,
             channel_id,
             data,
+            entitlements,
             guild_id,
             guild_locale,
             id,
@@ -421,7 +435,10 @@ mod tests {
         Interaction, InteractionData, InteractionDataResolved, InteractionMember, InteractionType,
     };
     use crate::{
-        application::command::{CommandOptionType, CommandType},
+        application::{
+            command::{CommandOptionType, CommandType},
+            monetization::{entitlement::Entitlement, EntitlementType},
+        },
         channel::Channel,
         guild::{MemberFlags, PartialMember, Permissions},
         id::Id,
@@ -534,6 +551,18 @@ mod tests {
                 }),
                 target_id: None,
             }))),
+            entitlements: vec![Entitlement {
+                application_id: Id::new(100),
+                consumed: false,
+                deleted: false,
+                ends_at: None,
+                guild_id: None,
+                id: Id::new(200),
+                kind: EntitlementType::ApplicationSubscription,
+                sku_id: Id::new(300),
+                starts_at: None,
+                user_id: None,
+            }],
             guild_id: Some(Id::new(400)),
             guild_locale: Some("de".to_owned()),
             id: Id::new(500),
@@ -581,7 +610,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Interaction",
-                    len: 12,
+                    len: 13,
                 },
                 Token::Str("app_permissions"),
                 Token::Some,
@@ -699,6 +728,37 @@ mod tests {
                 Token::MapEnd,
                 Token::StructEnd,
                 Token::StructEnd,
+                Token::Str("entitlements"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "Entitlement",
+                    len: 10,
+                },
+                Token::Str("application_id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("100"),
+                Token::Str("consumed"),
+                Token::Bool(false),
+                Token::Str("deleted"),
+                Token::Bool(false),
+                Token::Str("ends_at"),
+                Token::None,
+                Token::Str("guild_id"),
+                Token::None,
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("200"),
+                Token::Str("type"),
+                Token::U8(8),
+                Token::Str("sku_id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("300"),
+                Token::Str("starts_at"),
+                Token::None,
+                Token::Str("user_id"),
+                Token::None,
+                Token::StructEnd,
+                Token::SeqEnd,
                 Token::Str("guild_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
