@@ -113,10 +113,11 @@ mod tests {
     use std::collections::HashMap;
 
     #[test]
-    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines, deprecated)]
     fn command_option_full() {
         let value = Command {
             application_id: Some(Id::new(100)),
+            contexts: None,
             default_member_permissions: Some(Permissions::ADMINISTRATOR),
             dm_permission: Some(false),
             description: "this command is a test".into(),
@@ -126,6 +127,7 @@ mod tests {
             )])),
             guild_id: Some(Id::new(300)),
             id: Some(Id::new(200)),
+            integration_types: None,
             kind: CommandType::ChatInput,
             name: "test command".into(),
             name_localizations: Some(HashMap::from([("en-US".into(), "test command".into())])),
@@ -320,8 +322,6 @@ mod tests {
                 required: None,
             }]),
             version: Id::new(1),
-            contexts: None,
-            integration_types: None,
         };
 
         serde_test::assert_tokens(

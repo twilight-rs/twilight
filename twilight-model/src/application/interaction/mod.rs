@@ -51,9 +51,12 @@ use super::monetization::Entitlement;
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Interaction {
     /// App's permissions in the channel the interaction was sent from.
-    pub app_permissions: Permissions,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
+    /// Mapping of installation contexts that the interaction was
+    /// authorized for to related user or guild IDs.
     pub authorizing_integration_owners:
         ApplicationIntegrationMap<AnonymizableId<GuildMarker>, Id<UserMarker>>,
     /// The channel the interaction was invoked in.
@@ -360,8 +363,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             }
         }
 
-        let app_permissions =
-            app_permissions.ok_or_else(|| DeError::missing_field("app_permissions"))?;
         let application_id =
             application_id.ok_or_else(|| DeError::missing_field("application_id"))?;
         let authorizing_integration_owners = authorizing_integration_owners
@@ -411,6 +412,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         Ok(Self::Value {
             app_permissions,
             application_id,
+            authorizing_integration_owners,
             channel,
             channel_id,
             data,
@@ -424,7 +426,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             message,
             token,
             user,
-            authorizing_integration_owners,
         })
     }
 }
@@ -479,8 +480,12 @@ mod tests {
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
 
         let value = Interaction {
-            app_permissions: Permissions::SEND_MESSAGES,
+            app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(100),
+            authorizing_integration_owners: ApplicationIntegrationMap {
+                guild: None,
+                user: None,
+            },
             channel: Some(Channel {
                 bitrate: None,
                 guild_id: None,
@@ -627,10 +632,6 @@ mod tests {
             message: None,
             token: "interaction token".into(),
             user: None,
-            authorizing_integration_owners: ApplicationIntegrationMap {
-                guild: None,
-                user: None,
-            },
         };
 
         // TODO: switch the `assert_tokens` see #2190
@@ -642,10 +643,17 @@ mod tests {
                     len: 13,
                 },
                 Token::Str("app_permissions"),
+                Token::Some,
                 Token::Str("2048"),
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
+                Token::Str("authorizing_integration_owners"),
+                Token::Struct {
+                    name: "ApplicationIntegrationMap",
+                    len: 0,
+                },
+                Token::StructEnd,
                 Token::Str("channel"),
                 Token::Some,
                 Token::Struct {
@@ -856,16 +864,6 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("token"),
                 Token::Str("interaction token"),
-                Token::Str("authorizing_integration_owners"),
-                Token::Struct {
-                    name: "ApplicationIntegrationMap",
-                    len: 2,
-                },
-                Token::Str("guild"),
-                Token::None,
-                Token::Str("user"),
-                Token::None,
-                Token::StructEnd,
                 Token::StructEnd,
             ],
         );
