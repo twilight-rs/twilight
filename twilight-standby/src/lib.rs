@@ -1075,13 +1075,14 @@ mod tests {
         },
         guild::Permissions,
         id::{marker::GuildMarker, Id},
-        oauth::{ApplicationFlags, PartialApplication, ApplicationIntegrationMap},
+        oauth::{ApplicationFlags, ApplicationIntegrationMap, PartialApplication},
         user::{CurrentUser, User},
         util::Timestamp,
     };
 
     assert_impl_all!(Standby: Debug, Default, Send, Sync);
 
+    #[allow(deprecated)]
     fn message() -> Message {
         Message {
             activity: None,
@@ -1159,7 +1160,7 @@ mod tests {
     #[allow(deprecated)]
     fn button() -> Interaction {
         Interaction {
-            app_permissions: Permissions::SEND_MESSAGES,
+            app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
             authorizing_integration_owners: ApplicationIntegrationMap {
                 guild: None,

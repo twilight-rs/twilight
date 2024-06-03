@@ -1408,7 +1408,7 @@ mod tests {
     assert_impl_all!(UserBuilder: Clone, Debug, Send, Sync);
 
     #[test]
-    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines, deprecated)]
     fn construct_command_with_builder() {
         let command =
             CommandBuilder::new(

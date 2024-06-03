@@ -96,7 +96,7 @@ mod tests {
         let cache = DefaultInMemoryCache::new();
 
         cache.update(&InteractionCreate(Interaction {
-            app_permissions: Permissions::SEND_MESSAGES,
+            app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
             authorizing_integration_owners: ApplicationIntegrationMap {
                 guild: None,
