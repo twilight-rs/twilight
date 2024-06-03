@@ -838,6 +838,7 @@ mod tests {
 
     // This tests [`description`] and [`name`] by proxy.
     #[test]
+    #[allow(deprecated)]
     fn command_length() {
         let valid_command = Command {
             application_id: Some(Id::new(1)),
@@ -910,6 +911,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn command_combined_limit() {
         let mut command = Command {
             application_id: Some(Id::new(1)),

@@ -41,6 +41,7 @@ pub use self::{
 };
 
 use crate::{
+    application::interaction::InteractionMetadata,
     channel::{Attachment, Channel, ChannelMention},
     guild::PartialMember,
     id::{
@@ -51,7 +52,7 @@ use crate::{
     },
     poll::Poll,
     user::User,
-    util::Timestamp, application::interaction::InteractionMetadata,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 
@@ -146,6 +147,8 @@ pub struct Message {
     #[deprecated(note = "use interaction_metadata instead")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interaction: Option<MessageInteraction>,
+    /// Contains metadata related to the interacting if the message is
+    /// sent as a result of an interaction.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interaction_metadata: Option<Box<InteractionMetadata>>,
     /// Type of message.
@@ -233,7 +236,7 @@ mod tests {
     use serde_test::Token;
     use std::str::FromStr;
 
-    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines, deprecated)]
     #[test]
     fn message_deserialization() {
         let joined_at = Some(Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap());
@@ -448,7 +451,7 @@ mod tests {
         );
     }
 
-    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines, deprecated)]
     #[test]
     fn message_deserialization_complete() -> Result<(), TimestampParseError> {
         let edited_timestamp = Timestamp::from_str("2021-08-10T12:41:51.602000+00:00")?;

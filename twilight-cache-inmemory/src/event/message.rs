@@ -102,6 +102,7 @@ mod tests {
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
+    #[allow(deprecated)]
     #[test]
     fn message_create() -> Result<(), ImageHashParseError> {
         let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));

@@ -116,7 +116,7 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
-    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines, deprecated)]
     fn test_data_resolved() -> Result<(), TimestampParseError> {
         let joined_at = Some(Timestamp::from_str("2021-08-10T12:18:37.000000+00:00")?);
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
@@ -207,6 +207,7 @@ mod tests {
                     guild_id: Some(Id::new(1)),
                     id: Id::new(4),
                     interaction: None,
+                    interaction_metadata: None,
                     kind: MessageType::Regular,
                     member: Some(PartialMember {
                         avatar: None,
@@ -230,18 +231,17 @@ mod tests {
                     poll: None,
                     reactions: Vec::new(),
                     reference: None,
+                    referenced_message: None,
                     role_subscription_data: None,
                     sticker_items: vec![MessageSticker {
                         format_type: StickerFormatType::Png,
                         id: Id::new(1),
                         name: "sticker name".to_owned(),
                     }],
-                    referenced_message: None,
-                    thread: None,
                     timestamp,
+                    thread: None,
                     tts: false,
                     webhook_id: None,
-                    interaction_metadata: None,
                 },
             )])
             .collect(),
