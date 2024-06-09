@@ -44,6 +44,7 @@ pub mod application;
 pub mod attachment;
 pub mod channel;
 pub mod guild;
+pub mod poll;
 pub mod scheduled_event;
 pub mod sticker;
 pub mod template;

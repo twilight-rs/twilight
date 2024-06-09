@@ -154,6 +154,8 @@ pub enum Path {
     ChannelsIdPins(u64),
     /// Operating on a channel's individual pinned message.
     ChannelsIdPinsMessageId(u64),
+    /// Operating on a channel's polls.
+    ChannelsIdPolls(u64),
     /// Operating on a group DM's recipients.
     ChannelsIdRecipients(u64),
     /// Operating on a thread's members.

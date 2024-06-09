@@ -77,6 +77,8 @@ bitflags! {
         const USE_EXTERNAL_SOUNDS = 1 << 45;
         /// Allows sending voice messages
         const SEND_VOICE_MESSAGES = 1 << 46;
+        /// Allows sending polls.
+        const SEND_POLLS = 1 << 49;
     }
 }
 
@@ -203,6 +205,8 @@ mod tests {
     );
     const_assert_eq!(Permissions::USE_SOUNDBOARD.bits(), 1 << 42);
     const_assert_eq!(Permissions::USE_EXTERNAL_SOUNDS.bits(), 1 << 45);
+    const_assert_eq!(Permissions::SEND_VOICE_MESSAGES.bits(), 1 << 46);
+    const_assert_eq!(Permissions::SEND_POLLS.bits(), 1 << 49);
 
     #[test]
     fn serde() {
