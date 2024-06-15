@@ -57,11 +57,11 @@ impl Bucket {
     /// Create a new bucket for the specified [`Path`].
     pub fn new(path: Path) -> Self {
         Self {
-            limit: AtomicU64::new(u64::max_value()),
+            limit: AtomicU64::new(u64::MAX),
             path,
             queue: BucketQueue::default(),
-            remaining: AtomicU64::new(u64::max_value()),
-            reset_after: AtomicU64::new(u64::max_value()),
+            remaining: AtomicU64::new(u64::MAX),
+            reset_after: AtomicU64::new(u64::MAX),
             started_at: Mutex::new(None),
         }
     }
@@ -134,7 +134,7 @@ impl Bucket {
         }
 
         if let Some((limit, remaining, reset_after)) = ratelimits {
-            if bucket_limit != limit && bucket_limit == u64::max_value() {
+            if bucket_limit != limit && bucket_limit == u64::MAX {
                 self.reset_after.store(reset_after, Ordering::SeqCst);
                 self.limit.store(limit, Ordering::SeqCst);
             }
