@@ -111,7 +111,7 @@ pub struct SignatureValidationFailure {
     source: Option<Box<dyn std::error::Error + Send + Sync>>,
 }
 
-/// The kind of [`SignatureValidationFailure`] that occured.
+/// The kind of [`SignatureValidationFailure`] that occurred.
 #[derive(Debug)]
 pub enum SignatureValidationFailureKind {
     /// The request signature was invalid hexadecimal.
@@ -162,7 +162,7 @@ impl std::error::Error for SignatureValidationFailure {
     }
 }
 
-/// Error occouring when the key cannot be parsed.
+/// Error occurring when the key cannot be parsed.
 #[derive(Debug)]
 pub struct KeyError {
     kind: KeyErrorKind,
