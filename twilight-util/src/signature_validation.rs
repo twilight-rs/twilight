@@ -5,8 +5,6 @@
 //! for more details.
 
 use ed25519_dalek::{Signature as DalekSignature, VerifyingKey as DalekVerifyingKey};
-#[cfg(feature = "signature-validation-extract-interaction")]
-use twilight_model::application::interaction::Interaction;
 
 /// The name of the HTTP header Discord wants us to read for the signature.
 pub const SIGNATURE_HEADER: &str = "x-signature-ed25519";
