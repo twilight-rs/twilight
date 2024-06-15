@@ -27,13 +27,13 @@ static_assertions = { default-features = false, version = "1" }
 time = { default-features = false, features = ["formatting"], version = "0.3" }
 
 [features]
+default = ["full"]
 builder = ["dep:twilight-model", "dep:twilight-validate"]
 link = ["dep:twilight-model"]
 permission-calculator = ["dep:twilight-model"]
 snowflake = ["dep:twilight-model"]
 signature-validation = ["dep:ed25519-dalek", "dep:hex"]
-signature-validation-extract-interaction = ["signature-validation", "dep:serde_json", "dep:twilight-model"]
-full = ["builder", "link", "permission-calculator", "snowflake", "signature-validation", "signature-validation-extract-interaction"]
+full = ["builder", "link", "permission-calculator", "snowflake", "signature-validation"]
 
 [package.metadata.docs.rs]
 all-features = true

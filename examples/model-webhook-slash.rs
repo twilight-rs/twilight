@@ -17,7 +17,7 @@ use twilight_model::{
     },
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
-use twilight_util::signature_validation::Key;
+use twilight_util::signature_validation::{Key, TIMESTAMP_HEADER};
 
 /// Public key given from Discord.
 static PUB_KEY: Lazy<Key> = Lazy::new(|| Key::from_hex("PUBLIC_KEY".as_bytes()).unwrap());
@@ -51,7 +51,7 @@ where
     }
 
     // Extract the timestamp header for use later to check the signature.
-    let timestamp = if let Some(ts) = req.headers().get("x-signature-timestamp") {
+    let timestamp = if let Some(ts) = req.headers().get(TIMESTAMP_HEADER) {
         ts.to_owned()
     } else {
         return Ok(Response::builder()
