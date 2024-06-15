@@ -49,6 +49,8 @@ pub enum AutoModerationActionType {
     /// [`Keyword`]: super::AutoModerationTriggerType::Keyword
     /// [`Permissions::MODERATE_MEMBERS`]: crate::guild::Permissions::MODERATE_MEMBERS
     Timeout,
+    /// Prevents a member from using text, voice, or other interactions.
+    BlockMemberInteraction,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -59,6 +61,7 @@ impl From<u8> for AutoModerationActionType {
             1 => Self::BlockMessage,
             2 => Self::SendAlertMessage,
             3 => Self::Timeout,
+            4 => Self::BlockMemberInteraction,
             _ => Self::Unknown(value),
         }
     }
@@ -70,6 +73,7 @@ impl From<AutoModerationActionType> for u8 {
             AutoModerationActionType::BlockMessage => 1,
             AutoModerationActionType::SendAlertMessage => 2,
             AutoModerationActionType::Timeout => 3,
+            AutoModerationActionType::BlockMemberInteraction => 4,
             AutoModerationActionType::Unknown(unknown) => unknown,
         }
     }
@@ -128,6 +132,10 @@ mod tests {
         assert_eq!(1, u8::from(AutoModerationActionType::BlockMessage));
         assert_eq!(2, u8::from(AutoModerationActionType::SendAlertMessage));
         assert_eq!(3, u8::from(AutoModerationActionType::Timeout));
+        assert_eq!(
+            4,
+            u8::from(AutoModerationActionType::BlockMemberInteraction)
+        );
         assert_eq!(250, u8::from(AutoModerationActionType::Unknown(250)));
     }
 }

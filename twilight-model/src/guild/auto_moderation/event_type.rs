@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 pub enum AutoModerationEventType {
     /// When a member sends or edits a message in a guild.
     MessageSend,
+    /// When a member edits their profile.
+    MemberUpdate,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -14,6 +16,7 @@ impl From<u8> for AutoModerationEventType {
     fn from(value: u8) -> Self {
         match value {
             1 => Self::MessageSend,
+            2 => Self::MemberUpdate,
             _ => Self::Unknown(value),
         }
     }
@@ -23,6 +26,7 @@ impl From<AutoModerationEventType> for u8 {
     fn from(value: AutoModerationEventType) -> Self {
         match value {
             AutoModerationEventType::MessageSend => 1,
+            AutoModerationEventType::MemberUpdate => 2,
             AutoModerationEventType::Unknown(unknown) => unknown,
         }
     }
@@ -51,6 +55,7 @@ mod tests {
     #[test]
     fn values() {
         assert_eq!(1, u8::from(AutoModerationEventType::MessageSend));
+        assert_eq!(2, u8::from(AutoModerationEventType::MemberUpdate));
         assert_eq!(250, u8::from(AutoModerationEventType::Unknown(250)));
     }
 }
