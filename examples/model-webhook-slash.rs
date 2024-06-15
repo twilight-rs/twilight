@@ -17,7 +17,7 @@ use twilight_model::{
     },
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
-use twilight_util::signature_validation::{Key, TIMESTAMP_HEADER};
+use twilight_util::signature_validation::{Key, Signature, TIMESTAMP_HEADER};
 
 /// Public key given from Discord.
 static PUB_KEY: Lazy<Key> = Lazy::new(|| Key::from_hex("PUBLIC_KEY".as_bytes()).unwrap());
@@ -64,7 +64,12 @@ where
         .headers()
         .get(twilight_util::signature_validation::SIGNATURE_HEADER)
     {
-        hex_sig.to_owned()
+        let Ok(sig) = Signature::from_slice(hex_sig.as_bytes()) else {
+            return Ok(Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .body(Full::default())?);
+        };
+        sig
     } else {
         return Ok(Response::builder()
             .status(StatusCode::BAD_REQUEST)
@@ -77,7 +82,7 @@ where
 
     // Check if the signature matches and else return a error response.
     if PUB_KEY
-        .verify(signature.as_bytes(), timestamp.as_bytes(), &whole_body)
+        .verify(&signature, timestamp.as_bytes(), &whole_body)
         .is_err()
     {
         return Ok(Response::builder()

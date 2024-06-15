@@ -93,7 +93,7 @@ pub fn check_signature(
     let mut buf = Vec::with_capacity(timestamp.len() + body.len());
     buf.extend_from_slice(timestamp);
     buf.extend_from_slice(body);
-    match key.0.verify_strict(&buf, &signature.inner) {
+    match key.inner.verify_strict(&buf, &signature.inner) {
         Ok(()) => Ok(()),
         Err(e) => Err(SignatureValidationFailure {
             kind: SignatureValidationFailureKind::InvalidSignature,
