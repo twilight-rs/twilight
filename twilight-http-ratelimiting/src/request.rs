@@ -399,6 +399,12 @@ impl FromStr for Path {
             ["guilds", "templates", code] => GuildsTemplatesCode(code.to_string()),
             ["guilds", id] => GuildsId(parse_id(id)?),
             ["guilds", id, "audit-logs"] => GuildsIdAuditLogs(parse_id(id)?),
+            ["guilds", id, "auto-moderation", "rules"] => {
+                GuildsIdAutoModerationRules(parse_id(id)?)
+            }
+            ["guilds", id, "auto-moderation", "rules", _] => {
+                GuildsIdAutoModerationRulesId(parse_id(id)?)
+            }
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(parse_id(id)?),
             ["guilds", id, "channels"] => GuildsIdChannels(parse_id(id)?),
