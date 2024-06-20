@@ -60,6 +60,7 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
             system: None,
             verified: None,
         },
+        call: None,
         channel_id: Id::new(2),
         components: Vec::new(),
         content: "ping".to_owned(),
