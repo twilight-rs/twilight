@@ -1,11 +1,13 @@
 mod channel;
 mod guild;
+mod invite_type;
 mod target_type;
 mod welcome_screen;
 
 pub use self::{
     channel::InviteChannel,
     guild::InviteGuild,
+    invite_type::InviteType,
     target_type::TargetType,
     welcome_screen::{WelcomeScreen, WelcomeScreenChannel},
 };
@@ -39,6 +41,8 @@ pub struct Invite {
     pub target_user: Option<User>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temporary: Option<bool>,
+    #[serde(rename = "type")]
+    pub kind: InviteType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uses: Option<u64>,
 }
@@ -46,8 +50,8 @@ pub struct Invite {
 #[cfg(test)]
 mod tests {
     use super::{
-        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild, TargetType, User,
-        WelcomeScreen,
+        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild, InviteType,
+        TargetType, User, WelcomeScreen,
     };
     use crate::{
         channel::ChannelType,
@@ -109,6 +113,7 @@ mod tests {
             target_type: Some(TargetType::Stream),
             target_user: None,
             temporary: None,
+            kind: InviteType::Guild,
             uses: None,
         };
 
@@ -117,7 +122,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Invite",
-                    len: 5,
+                    len: 6,
                 },
                 Token::Str("approximate_member_count"),
                 Token::Some,
@@ -142,6 +147,8 @@ mod tests {
                 Token::Str("target_type"),
                 Token::Some,
                 Token::U8(1),
+                Token::Str("type"),
+                Token::U8(0),
                 Token::StructEnd,
             ],
         );
@@ -235,6 +242,7 @@ mod tests {
                 verified: None,
             }),
             temporary: Some(false),
+            kind: InviteType::Guild,
             uses: Some(3),
         };
 
@@ -243,7 +251,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Invite",
-                    len: 14,
+                    len: 15,
                 },
                 Token::Str("approximate_member_count"),
                 Token::Some,
@@ -417,6 +425,8 @@ mod tests {
                 Token::Str("temporary"),
                 Token::Some,
                 Token::Bool(false),
+                Token::Str("type"),
+                Token::U8(0),
                 Token::Str("uses"),
                 Token::Some,
                 Token::U64(3),
