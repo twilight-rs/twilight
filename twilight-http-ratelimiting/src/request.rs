@@ -338,7 +338,7 @@ impl FromStr for Path {
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
         Ok(match parts[..] {
-            ["applications", "me"] => ApplicationsMe,
+            ["applications", "@me"] => ApplicationsMe,
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
             ["applications", id, "entitlements"] => ApplicationIdEntitlements(parse_id(id)?),
