@@ -1075,13 +1075,14 @@ mod tests {
         },
         guild::Permissions,
         id::{marker::GuildMarker, Id},
-        oauth::{ApplicationFlags, PartialApplication},
+        oauth::{ApplicationFlags, ApplicationIntegrationMap, PartialApplication},
         user::{CurrentUser, User},
         util::Timestamp,
     };
 
     assert_impl_all!(Standby: Debug, Default, Send, Sync);
 
+    #[allow(deprecated)]
     fn message() -> Message {
         Message {
             activity: None,
@@ -1116,6 +1117,7 @@ mod tests {
             guild_id: Some(Id::new(4)),
             id: Id::new(3),
             interaction: None,
+            interaction_metadata: None,
             kind: MessageType::Regular,
             member: None,
             mention_channels: Vec::new(),
@@ -1154,6 +1156,10 @@ mod tests {
         Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
+            authorizing_integration_owners: ApplicationIntegrationMap {
+                guild: None,
+                user: None,
+            },
             channel: Some(Channel {
                 bitrate: None,
                 guild_id: None,
