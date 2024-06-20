@@ -34,7 +34,7 @@ mod private {
             emoji::{CreateEmoji, DeleteEmoji, UpdateEmoji},
             integration::DeleteGuildIntegration,
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
-            role::{CreateRole, DeleteRole, UpdateRole},
+            role::{CreateRole, DeleteRole, UpdateRole, UpdateRolePositions},
             sticker::{CreateGuildSticker, UpdateGuildSticker},
             update_guild_onboarding::UpdateGuildOnboarding,
             CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild, UpdateGuildMfa,
@@ -95,6 +95,7 @@ mod private {
     impl Sealed for UpdateGuildSticker<'_> {}
     impl Sealed for UpdateGuildWidgetSettings<'_> {}
     impl Sealed for UpdateRole<'_> {}
+    impl Sealed for UpdateRolePositions<'_> {}
     impl Sealed for UpdateThread<'_> {}
     impl Sealed for UpdateWebhook<'_> {}
 }
@@ -115,7 +116,7 @@ mod tests {
             emoji::{CreateEmoji, DeleteEmoji, UpdateEmoji},
             integration::DeleteGuildIntegration,
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
-            role::{CreateRole, DeleteRole, UpdateRole},
+            role::{CreateRole, DeleteRole, UpdateRole, UpdateRolePositions},
             sticker::{CreateGuildSticker, UpdateGuildSticker},
             CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild,
         },
@@ -157,5 +158,6 @@ mod tests {
     assert_impl_all!(UpdateGuildMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateGuildSticker<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateRole<'_>: AuditLogReason<'static>);
+    assert_impl_all!(UpdateRolePositions<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateWebhook<'_>: AuditLogReason<'static>);
 }
