@@ -1,4 +1,4 @@
-use crate::channel::{message::ReactionType, ChannelType};
+use crate::channel::{message::EmojiReactionType, ChannelType};
 use crate::id::marker::{ChannelMarker, RoleMarker, UserMarker};
 use crate::id::Id;
 use serde::{Deserialize, Serialize};
@@ -65,7 +65,7 @@ pub struct SelectMenuOption {
     /// Emoji associated with the option. Appears left of the label and
     /// description.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub emoji: Option<ReactionType>,
+    pub emoji: Option<EmojiReactionType>,
     /// User-facing name.
     pub label: String,
     /// Developer defined value.

@@ -1,4 +1,4 @@
-use crate::channel::message::ReactionType;
+use crate::channel::message::EmojiReactionType;
 use serde::{Deserialize, Serialize};
 
 /// Clickable [`Component`] below messages.
@@ -20,7 +20,7 @@ pub struct Button {
     /// Defaults to `false`.
     pub disabled: bool,
     /// Visual emoji for clients to display with the button.
-    pub emoji: Option<ReactionType>,
+    pub emoji: Option<EmojiReactionType>,
     /// Text appearing on the button.
     pub label: Option<String>,
     /// Style variant of the button.

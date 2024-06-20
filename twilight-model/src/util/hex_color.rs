@@ -29,6 +29,7 @@ impl Serialize for HexColor {
     }
 }
 
+#[derive(Debug)]
 pub enum HexColorParseError {
     InvalidLength,
     InvalidFormat,

@@ -8,6 +8,7 @@ use crate::{
 };
 use std::future::IntoFuture;
 use twilight_model::{
+    channel::message::ReactionType,
     id::{
         marker::{ChannelMarker, MessageMarker, UserMarker},
         Id,
@@ -21,6 +22,7 @@ use twilight_validate::request::{
 struct GetReactionsFields {
     after: Option<Id<UserMarker>>,
     limit: Option<u16>,
+    kind: Option<ReactionType>,
 }
 
 /// Get a list of users that reacted to a message with an `emoji`.
@@ -49,6 +51,7 @@ impl<'a> GetReactions<'a> {
             fields: Ok(GetReactionsFields {
                 after: None,
                 limit: None,
+                kind: None,
             }),
             http,
             message_id,
@@ -85,6 +88,17 @@ impl<'a> GetReactions<'a> {
 
         self
     }
+
+    /// Set the kind of reaction to retrieve.
+    ///
+    /// This can be either a super reaction or a normal reaction.
+    pub fn kind(mut self, kind: ReactionType) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.kind = Some(kind);
+        }
+
+        self
+    }
 }
 
 impl IntoFuture for GetReactions<'_> {
@@ -112,6 +126,7 @@ impl TryIntoRequest for GetReactions<'_> {
             emoji: self.emoji,
             limit: fields.limit,
             message_id: self.message_id.get(),
+            kind: fields.kind.map(Into::into),
         }))
     }
 }

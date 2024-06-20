@@ -3,7 +3,7 @@ use twilight_model::{
     channel::{
         message::{
             sticker::{Sticker, StickerFormatType, StickerType},
-            Message, MessageFlags, MessageType, ReactionType,
+            EmojiReactionType, Message, MessageFlags, MessageType,
         },
         Channel, ChannelType,
     },
@@ -102,8 +102,10 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
     cache.update(&MessageCreate(msg));
 
     let mut reaction = ReactionAdd(GatewayReaction {
+        burst: false,
+        burst_colors: Vec::new(),
         channel_id: Id::new(2),
-        emoji: ReactionType::Unicode {
+        emoji: EmojiReactionType::Unicode {
             name: "😀".to_owned(),
         },
         guild_id: Some(Id::new(1)),
@@ -183,13 +185,13 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
 
     cache.update(&reaction);
 
-    reaction.emoji = ReactionType::Unicode {
+    reaction.emoji = EmojiReactionType::Unicode {
         name: "🗺️".to_owned(),
     };
 
     cache.update(&reaction);
 
-    reaction.emoji = ReactionType::Custom {
+    reaction.emoji = EmojiReactionType::Custom {
         animated: true,
         id: Id::new(6),
         name: Some("custom".to_owned()),

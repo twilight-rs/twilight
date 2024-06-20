@@ -13,6 +13,7 @@ mod interaction;
 mod kind;
 mod mention;
 mod reaction;
+mod reaction_type;
 mod reference;
 mod role_subscription_data;
 
@@ -26,7 +27,8 @@ pub use self::{
     interaction::MessageInteraction,
     kind::MessageType,
     mention::Mention,
-    reaction::{Reaction, ReactionCountDetails, ReactionType},
+    reaction::{EmojiReactionType, Reaction, ReactionCountDetails},
+    reaction_type::ReactionType,
     reference::MessageReference,
     role_subscription_data::RoleSubscriptionData,
     sticker::Sticker,
@@ -198,8 +200,8 @@ mod tests {
     use super::{
         reaction::ReactionCountDetails,
         sticker::{MessageSticker, StickerFormatType},
-        Message, MessageActivity, MessageActivityType, MessageApplication, MessageFlags,
-        MessageReference, MessageType, Reaction, ReactionType,
+        EmojiReactionType, Message, MessageActivity, MessageActivityType, MessageApplication,
+        MessageFlags, MessageReference, MessageType, Reaction,
     };
     use crate::{
         channel::{ChannelMention, ChannelType},
@@ -486,7 +488,7 @@ mod tests {
                     burst: 0,
                     normal: 7,
                 },
-                emoji: ReactionType::Unicode {
+                emoji: EmojiReactionType::Unicode {
                     name: "a".to_owned(),
                 },
                 me: true,
@@ -681,7 +683,7 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("emoji"),
                 Token::Struct {
-                    name: "ReactionType",
+                    name: "EmojiReactionType",
                     len: 1,
                 },
                 Token::Str("name"),
