@@ -41,6 +41,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn member_update() {
         let joined_at = Some(Timestamp::from_micros(1_488_234_110_121_000).expect("non zero"));
         let communication_disabled_until =
@@ -60,6 +61,7 @@ mod tests {
             user: User {
                 accent_color: None,
                 avatar_decoration: None,
+                avatar_decoration_data: None,
                 banner: None,
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
@@ -115,7 +117,7 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("accent_color"),
                 Token::None,
@@ -123,6 +125,8 @@ mod tests {
                 Token::Some,
                 Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("avatar_decoration"),
+                Token::None,
+                Token::Str("avatar_decoration_data"),
                 Token::None,
                 Token::Str("banner"),
                 Token::None,

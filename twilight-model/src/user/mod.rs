@@ -1,3 +1,4 @@
+mod avatar_decoration_data;
 mod connection;
 mod connection_visibility;
 mod current_user;
@@ -6,7 +7,8 @@ mod flags;
 mod premium_type;
 
 pub use self::{
-    connection::Connection, connection_visibility::ConnectionVisibility, current_user::CurrentUser,
+    avatar_decoration_data::AvatarDecorationData, connection::Connection,
+    connection_visibility::ConnectionVisibility, current_user::CurrentUser,
     current_user_guild::CurrentUserGuild, flags::UserFlags, premium_type::PremiumType,
 };
 
@@ -125,6 +127,8 @@ pub struct User {
     pub avatar: Option<ImageHash>,
     /// Hash of the user's avatar decoration.
     pub avatar_decoration: Option<ImageHash>,
+    /// Data for the user's avatar decoration.
+    pub avatar_decoration_data: Option<AvatarDecorationData>,
     /// Hash of the user's banner image.
     pub banner: Option<ImageHash>,
     #[serde(default)]
@@ -207,7 +211,7 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 16,
+                len: 17,
             },
             Token::Str("accent_color"),
             Token::None,
@@ -217,6 +221,8 @@ mod tests {
             Token::Str("avatar_decoration"),
             Token::Some,
             Token::Str(image_hash::AVATAR_DECORATION_INPUT),
+            Token::Str("avatar_decoration_data"),
+            Token::None,
             Token::Str("banner"),
             Token::Some,
             Token::Str(image_hash::BANNER_INPUT),
@@ -261,7 +267,7 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 17,
+                len: 18,
             },
             Token::Str("accent_color"),
             Token::None,
@@ -271,6 +277,8 @@ mod tests {
             Token::Str("avatar_decoration"),
             Token::Some,
             Token::Str(image_hash::AVATAR_DECORATION_INPUT),
+            Token::Str("avatar_decoration_data"),
+            Token::None,
             Token::Str("banner"),
             Token::Some,
             Token::Str(image_hash::BANNER_INPUT),
@@ -330,6 +338,7 @@ mod tests {
             accent_color: None,
             avatar: Some(image_hash::AVATAR),
             avatar_decoration: Some(image_hash::AVATAR_DECORATION),
+            avatar_decoration_data: None,
             banner: Some(image_hash::BANNER),
             bot: false,
             discriminator: 1,
@@ -362,6 +371,7 @@ mod tests {
             accent_color: None,
             avatar: Some(image_hash::AVATAR),
             avatar_decoration: Some(image_hash::AVATAR_DECORATION),
+            avatar_decoration_data: None,
             banner: Some(image_hash::BANNER),
             bot: false,
             discriminator: 0,
@@ -391,6 +401,7 @@ mod tests {
             accent_color: None,
             avatar: Some(image_hash::AVATAR),
             avatar_decoration: Some(image_hash::AVATAR_DECORATION),
+            avatar_decoration_data: None,
             banner: Some(image_hash::BANNER),
             bot: false,
             discriminator: 1,

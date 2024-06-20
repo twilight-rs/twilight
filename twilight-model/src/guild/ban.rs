@@ -21,6 +21,7 @@ mod tests {
                 accent_color: None,
                 avatar: Some(image_hash::AVATAR),
                 avatar_decoration: None,
+                avatar_decoration_data: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,

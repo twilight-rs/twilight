@@ -339,6 +339,7 @@ mod tests {
             accent_color: None,
             avatar: None,
             avatar_decoration: None,
+            avatar_decoration_data: None,
             banner: None,
             bot: false,
             discriminator: 1,
