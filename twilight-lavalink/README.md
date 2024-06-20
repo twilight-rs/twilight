@@ -13,12 +13,26 @@ handle sending voice channel updates to Lavalink by processing events via
 the [client's `process` method][`Lavalink::process`], which you must call
 with every Voice State Update and Voice Server Update you receive.
 
+A breakdown of how this functions:
+- The client is [`Lavalink`](crate::client::Lavalink) that forwards the required events from Discord.
+    - We read the [Voice State and Voice Server Updates](https://discord.com/developers/docs/topics/gateway-events#voice) from discord to format the data to send to a Lavalink `VoiceUpdate` Event.
+    - There is a lower level [node](crate::node) that processes this for you. It isn't recommended to use this but rather the lavalink struct with the players. If you don't find functionality please open up and issue to expose what you need.
+- You send the client an [outgoing event](crate::model::outgoing). These include play, pause, seek, etc. You send these through the [player](crate::player) that is attached to Lavalink.
+- If you want to search or load you need to create a http client currently and then you can use [these helpers functions](crate::http#functions) to generate the http uri and body to send over your http client. you will then get response you can deserialize as json into the structs in the [http module](crate::http).
+
+Currently some [Filters](crate::model::outgoing::Filters) are not yet supported.
+Some endpoints such as [Lavalink Info] and [Update Session] have also not yet
+been implemented. Please reach out and open an issue for any missing feature you
+would like to use. The Lavalink V4 port did not add support for any new features
+not previously found in V3.
+
 ## Features
 
-### `http-support`
+### `http2`
 
-The `http-support` feature adds support for the `http` module to return
-request types from the [`http`] crate. This is enabled by default.
+The `http2` feature enables support for communicating with the Lavalink server
+over HTTP/2. You will also need to enable http2 support in your Lavalink server
+configuration as it is disabled by default.
 
 ### TLS
 
@@ -104,6 +118,8 @@ There is also an example of a basic bot located in the [root of the
 `twilight` repository][github examples link].
 
 [Lavalink]: https://github.com/freyacodes/Lavalink
+[Lavalink Info]: https://lavalink.dev/api/rest.html#get-lavalink-version
+[Update Session]: https://lavalink.dev/api/rest#update-session
 [`http`]: https://crates.io/crates/http
 [`rustls`]: https://crates.io/crates/rustls
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
