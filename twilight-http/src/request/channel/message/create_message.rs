@@ -13,6 +13,7 @@ use std::future::IntoFuture;
 use twilight_model::{
     channel::message::{
         AllowedMentions, Component, Embed, Message, MessageFlags, MessageReference,
+        MessageReferenceType,
     },
     http::attachment::Attachment,
     id::{
@@ -231,6 +232,7 @@ impl<'a> CreateMessage<'a> {
                 reference.fail_if_not_exists = Some(fail_if_not_exists);
             } else {
                 fields.message_reference = Some(MessageReference {
+                    kind: MessageReferenceType::default(),
                     channel_id: None,
                     guild_id: None,
                     message_id: None,
@@ -299,6 +301,36 @@ impl<'a> CreateMessage<'a> {
                 }
             } else {
                 MessageReference {
+                    kind: MessageReferenceType::Default,
+                    channel_id: Some(channel_id),
+                    guild_id: None,
+                    message_id: Some(other),
+                    fail_if_not_exists: None,
+                }
+            };
+
+            fields.message_reference = Some(reference);
+
+            fields
+        });
+
+        self
+    }
+
+    /// Specify the ID of another message to forward.
+    pub fn forward(mut self, other: Id<MessageMarker>) -> Self {
+        self.fields = self.fields.map(|mut fields| {
+            let channel_id = self.channel_id;
+
+            let reference = if let Some(reference) = fields.message_reference {
+                MessageReference {
+                    channel_id: Some(channel_id),
+                    message_id: Some(other),
+                    ..reference
+                }
+            } else {
+                MessageReference {
+                    kind: MessageReferenceType::Forward,
                     channel_id: Some(channel_id),
                     guild_id: None,
                     message_id: Some(other),
