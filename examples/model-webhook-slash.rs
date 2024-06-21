@@ -1,5 +1,3 @@
-use ed25519_dalek::{Verifier, VerifyingKey, PUBLIC_KEY_LENGTH};
-use hex::FromHex;
 use http_body_util::{BodyExt, Full};
 use hyper::{
     body::{Bytes, Incoming},
@@ -19,12 +17,10 @@ use twilight_model::{
     },
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
+use twilight_util::signature_validation::{Key, Signature, TIMESTAMP_HEADER};
 
 /// Public key given from Discord.
-static PUB_KEY: Lazy<VerifyingKey> = Lazy::new(|| {
-    VerifyingKey::from_bytes(&<[u8; PUBLIC_KEY_LENGTH] as FromHex>::from_hex("PUBLIC_KEY").unwrap())
-        .unwrap()
-});
+static PUB_KEY: Lazy<Key> = Lazy::new(|| Key::from_hex("PUBLIC_KEY".as_bytes()).unwrap());
 
 /// Main request handler which will handle checking the signature.
 ///
@@ -55,7 +51,7 @@ where
     }
 
     // Extract the timestamp header for use later to check the signature.
-    let timestamp = if let Some(ts) = req.headers().get("x-signature-timestamp") {
+    let timestamp = if let Some(ts) = req.headers().get(TIMESTAMP_HEADER) {
         ts.to_owned()
     } else {
         return Ok(Response::builder()
@@ -66,10 +62,14 @@ where
     // Extract the signature to check against.
     let signature = if let Some(hex_sig) = req
         .headers()
-        .get("x-signature-ed25519")
-        .and_then(|v| v.to_str().ok())
+        .get(twilight_util::signature_validation::SIGNATURE_HEADER)
     {
-        hex_sig.parse().unwrap()
+        let Ok(sig) = Signature::from_slice(hex_sig.as_bytes()) else {
+            return Ok(Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .body(Full::default())?);
+        };
+        sig
     } else {
         return Ok(Response::builder()
             .status(StatusCode::BAD_REQUEST)
@@ -82,10 +82,7 @@ where
 
     // Check if the signature matches and else return a error response.
     if PUB_KEY
-        .verify(
-            [timestamp.as_bytes(), &whole_body].concat().as_ref(),
-            &signature,
-        )
+        .verify(&signature, timestamp.as_bytes(), &whole_body)
         .is_err()
     {
         return Ok(Response::builder()
