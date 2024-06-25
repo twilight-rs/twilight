@@ -8,6 +8,7 @@ pub mod current_user;
 pub mod emoji;
 pub mod guild;
 pub mod guild_integration;
+pub mod guild_scheduled_events;
 pub mod member;
 pub mod message;
 pub mod presence;
@@ -26,6 +27,7 @@ impl CacheableModels for CustomCacheModels {
     type Emoji = emoji::MinimalCachedEmoji;
     type Guild = guild::MinimalCachedGuild;
     type GuildIntegration = guild_integration::MinimalCachedGuildIntegration;
+    type GuildScheduledEvent = guild_scheduled_events::MinimalGuildScheduledEvent;
     type Member = member::MinimalCachedMember;
     type Message = message::MinimalCachedMessage;
     type Presence = presence::MinimalCachedPresence;

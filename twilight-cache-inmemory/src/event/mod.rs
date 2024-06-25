@@ -1,6 +1,7 @@
 pub mod channel;
 pub mod emoji;
 pub mod guild;
+pub mod guild_scheduled_events;
 pub mod integration;
 pub mod interaction;
 pub mod member;

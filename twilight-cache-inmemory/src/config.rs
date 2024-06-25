@@ -37,6 +37,8 @@ bitflags! {
         const INTEGRATION = 1 << 12;
         /// Information relating to guild stickers.
         const STICKER = 1 << 13;
+        /// Information relating to guild scheduled events.
+        const GUILD_SCHEDULED_EVENT = 1 << 14;
     }
 }
 
