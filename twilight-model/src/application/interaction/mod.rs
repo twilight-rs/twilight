@@ -210,7 +210,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut channel: Option<Channel> = None;
         let mut channel_id: Option<Id<ChannelMarker>> = None;
         let mut data: Option<Value> = None;
-        let mut entitlements: Vec<Entitlement> = Vec::new();
+        let mut entitlements: Option<Vec<Entitlement>> = None;
         let mut guild_id: Option<Id<GuildMarker>> = None;
         let mut guild_locale: Option<String> = None;
         let mut id: Option<Id<InteractionMarker>> = None;
@@ -269,7 +269,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     data = map.next_value()?;
                 }
                 InteractionField::Entitlements => {
-                    if data.is_some() {
+                    if entitlements.is_some() {
                         return Err(DeError::duplicate_field("entitlements"));
                     }
 
@@ -386,6 +386,8 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 Some(InteractionData::ModalSubmit(data))
             }
         };
+
+        let entitlements = entitlements.unwrap_or_default();
 
         Ok(Self::Value {
             app_permissions,
