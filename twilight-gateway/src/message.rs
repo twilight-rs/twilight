@@ -24,6 +24,9 @@ pub enum Message {
 }
 
 impl Message {
+    /// Close message indicating the connection was closed abnormally.
+    pub(crate) const ABNORMAL_CLOSE: Self = Self::Close(Some(CloseFrame::new(1006, "")));
+
     /// Whether the message is a close message.
     pub const fn is_close(&self) -> bool {
         matches!(self, Self::Close(_))

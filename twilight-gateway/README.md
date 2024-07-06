@@ -87,12 +87,6 @@ async fn runner(mut shard: Shard) {
         let event = match item {
             Ok(Event::GatewayClose(_)) if SHUTDOWN.load(Ordering::Relaxed) => break,
             Ok(event) => event,
-            Err(source)
-                if SHUTDOWN.load(Ordering::Relaxed)
-                    && matches!(source.kind(), ReceiveMessageErrorType::WebSocket) =>
-            {
-                break
-            }
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
 

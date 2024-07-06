@@ -437,8 +437,7 @@ impl<Q> Shard<Q> {
     /// continue showing the bot as online until its presence times out.
     ///
     /// To read all remaining messages, continue calling [`poll_next`] until it
-    /// returns [`Message::Close`] or a [`ReceiveMessageErrorType::WebSocket`]
-    /// error type.
+    /// returns [`Message::Close`].
     ///
     /// # Example
     ///
@@ -457,7 +456,6 @@ impl<Q> Shard<Q> {
     ///     match item {
     ///         Ok(Message::Close(_)) => break,
     ///         Ok(Message::Text(_)) => unimplemented!(),
-    ///         Err(source) if matches!(source.kind(), ReceiveMessageErrorType::WebSocket) => break,
     ///         Err(source) => unimplemented!(),
     ///     }
     /// }
@@ -550,19 +548,16 @@ impl<Q> Shard<Q> {
     }
 
     /// Send and flush the pending message.
-    fn poll_flush_pending(
-        &mut self,
-        cx: &mut Context<'_>,
-    ) -> Poll<Result<(), ReceiveMessageError>> {
+    fn poll_flush_pending(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), WebsocketError>> {
         if self.pending.is_none() {
             return Poll::Ready(Ok(()));
         }
 
-        ready!(Pin::new(self.connection.as_mut().unwrap()).poll_ready(cx)).map_err(|source| {
+        if let Err(e) = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_ready(cx)) {
             self.disconnect(CloseInitiator::Transport);
             self.connection = None;
-            ReceiveMessageError::from_websocket(source)
-        })?;
+            return Poll::Ready(Err(e));
+        }
 
         let pending = self.pending.as_mut().unwrap();
 
@@ -574,18 +569,17 @@ impl<Q> Shard<Q> {
             }
 
             let ws_message = pending.gateway_event.take().unwrap().into_websocket_msg();
-            if let Err(source) = Pin::new(self.connection.as_mut().unwrap()).start_send(ws_message)
-            {
+            if let Err(e) = Pin::new(self.connection.as_mut().unwrap()).start_send(ws_message) {
                 self.disconnect(CloseInitiator::Transport);
                 self.connection = None;
-                return Poll::Ready(Err(ReceiveMessageError::from_websocket(source)));
+                return Poll::Ready(Err(e));
             }
         }
 
-        if let Err(source) = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_flush(cx)) {
+        if let Err(e) = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_flush(cx)) {
             self.disconnect(CloseInitiator::Transport);
             self.connection = None;
-            return Poll::Ready(Err(ReceiveMessageError::from_websocket(source)));
+            return Poll::Ready(Err(e));
         }
 
         if pending.is_heartbeat {
@@ -798,7 +792,9 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                 _ => {}
             }
 
-            ready!(self.poll_flush_pending(cx))?;
+            if ready!(self.poll_flush_pending(cx)).is_err() {
+                return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
+            }
 
             if !self.state.is_disconnected() {
                 if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
@@ -807,7 +803,9 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                     tracing::debug!("sending close frame from user channel");
                     self.disconnect(CloseInitiator::Shard(frame));
 
-                    ready!(self.poll_flush_pending(cx))?;
+                    if ready!(self.poll_flush_pending(cx)).is_err() {
+                        return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
+                    }
                 }
             }
 
@@ -834,7 +832,9 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                     self.heartbeat_interval_event = false;
                 }
 
-                ready!(self.poll_flush_pending(cx))?;
+                if ready!(self.poll_flush_pending(cx)).is_err() {
+                    return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
+                }
             }
 
             let not_ratelimited = self
@@ -873,7 +873,9 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                     );
                     self.identify_rx = None;
 
-                    ready!(self.poll_flush_pending(cx))?;
+                    if ready!(self.poll_flush_pending(cx)).is_err() {
+                        return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
+                    }
                 }
             }
 
@@ -884,7 +886,9 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                     tracing::debug!("sending command from user channel");
                     self.pending = Pending::text(command, false);
 
-                    ready!(self.poll_flush_pending(cx))?;
+                    if ready!(self.poll_flush_pending(cx)).is_err() {
+                        return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
+                    }
                 }
             }
 
@@ -921,24 +925,18 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                 {
                     continue
                 }
-                Some(Err(source)) => {
+                Some(Err(_)) => {
                     self.disconnect(CloseInitiator::Transport);
-
-                    return Poll::Ready(Some(Err(ReceiveMessageError {
-                        kind: ReceiveMessageErrorType::WebSocket,
-                        source: Some(Box::new(source)),
-                    })));
+                    return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
                 }
                 None => {
-                    let res = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_close(cx));
+                    _ = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_close(cx));
                     tracing::debug!("gateway WebSocket connection closed");
                     // Unclean closure.
                     if !self.state.is_disconnected() {
                         self.disconnect(CloseInitiator::Transport);
                     }
                     self.connection = None;
-
-                    res.map_err(ReceiveMessageError::from_websocket)?;
                 }
             }
         };
