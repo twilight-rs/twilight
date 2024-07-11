@@ -376,6 +376,7 @@ mod lavalink_incoming_model_tests {
 
 #[cfg(test)]
 mod lavalink_outgoing_model_tests {
+    use crate::model::outgoing::TrackOption;
     use crate::model::{Destroy, Equalizer, Pause, Play, Seek, Stop, Volume};
 
     use twilight_model::id::{marker::GuildMarker, Id};
@@ -414,7 +415,7 @@ mod lavalink_outgoing_model_tests {
     fn should_serialize_an_outgoing_play() {
         let play = OutgoingEvent::Play(Play{
             track: UpdatePlayerTrack {
-                encoded: Some("QAAAzgMAMUJsZWVkIEl0IE91dCBbT2ZmaWNpYWwgTXVzaWMgVmlkZW9dIC0gTGlua2luIFBhcmsAC0xpbmtpbiBQYXJrAAAAAAAClCgAC09udXVZY3FoekNFAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9T251dVljcWh6Q0UBADRodHRwczovL2kueXRpbWcuY29tL3ZpL09udXVZY3FoekNFL21heHJlc2RlZmF1bHQuanBnAAAHeW91dHViZQAAAAAAAAAA".to_string()),
+                track_string: TrackOption::Encoded(Some("QAAAzgMAMUJsZWVkIEl0IE91dCBbT2ZmaWNpYWwgTXVzaWMgVmlkZW9dIC0gTGlua2luIFBhcmsAC0xpbmtpbiBQYXJrAAAAAAAClCgAC09udXVZY3FoekNFAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9T251dVljcWh6Q0UBADRodHRwczovL2kueXRpbWcuY29tL3ZpL09udXVZY3FoekNFL21heHJlc2RlZmF1bHQuanBnAAAHeW91dHViZQAAAAAAAAAA".to_string())),
             },
             position: None,
             end_time: Some(None),
@@ -432,7 +433,9 @@ mod lavalink_outgoing_model_tests {
     #[test]
     fn should_serialize_an_outgoing_stop() {
         let stop = OutgoingEvent::Stop(Stop {
-            track: UpdatePlayerTrack { encoded: None },
+            track: UpdatePlayerTrack {
+                track_string: TrackOption::Encoded(None),
+            },
             guild_id: Id::<GuildMarker>::new(987_654_321),
         });
         compare_json_payload(&stop, r#"{"track":{"encoded":null}}"#);

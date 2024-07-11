@@ -6,14 +6,27 @@ use twilight_model::{
 };
 
 /// The track on the player. The encoded and identifier are mutually exclusive.
-/// Using only encoded for now. Encoded was chosen since that was previously
-/// used in the v3 implementation. We don't support userData field currently.
+/// We don't support userData field currently.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub struct UpdatePlayerTrack {
-    /// The base64 encoded track to play.
-    pub encoded: Option<String>,
+    /// The string of the track to play.
+    #[serde(flatten)]
+    pub track_string: TrackOption,
+}
+
+/// Used to play a specific track. These are mutually exclusive.
+/// When identifier is used, Lavalink will try to resolve the identifier as a
+/// single track. An HTTP 400 error is returned when resolving a playlist,
+/// search result, or no tracks.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TrackOption {
+    /// The base64 encoded track to play. null stops the current track.
+    Encoded(Option<String>),
+    /// The identifier of the track to play.
+    Identifier(String),
 }
 
 /// An outgoing event to send to Lavalink.
@@ -305,7 +318,7 @@ impl<T: Into<String>, S: Into<Option<u64>>, E: Into<Option<u64>>>
             volume: None,
             paused: None,
             track: UpdatePlayerTrack {
-                encoded: Some(track.into()),
+                track_string: TrackOption::Encoded(Some(track.into())),
             },
         }
     }
@@ -359,7 +372,9 @@ impl From<Id<GuildMarker>> for Stop {
     fn from(guild_id: Id<GuildMarker>) -> Self {
         Self {
             guild_id,
-            track: UpdatePlayerTrack { encoded: None },
+            track: UpdatePlayerTrack {
+                track_string: TrackOption::Encoded(None),
+            },
         }
     }
 }
