@@ -27,11 +27,11 @@ pub enum Event {
     /// Message was blocked by AutoMod according to a rule.
     AutoModerationActionExecution(AutoModerationActionExecution),
     /// Sent when an auto moderation rule is created.
-    AutoModerationRuleCreate(Box<AutoModerationRuleCreate>),
+    AutoModerationRuleCreate(AutoModerationRuleCreate),
     /// Sent when an auto moderation rule is deleted.
-    AutoModerationRuleDelete(Box<AutoModerationRuleDelete>),
+    AutoModerationRuleDelete(AutoModerationRuleDelete),
     /// Sent when an auto moderation rule is updated.
-    AutoModerationRuleUpdate(Box<AutoModerationRuleUpdate>),
+    AutoModerationRuleUpdate(AutoModerationRuleUpdate),
     /// A user was banned from a guild.
     BanAdd(BanAdd),
     /// A user's ban from a guild was removed.
@@ -476,14 +476,11 @@ mod tests {
     // requires a variable to be used in a function, so this is a false
     // positive.
     #[allow(dead_code)]
-    const EVENT_THRESHOLD: usize = 224;
+    const EVENT_THRESHOLD: usize = 256;
 
     const_assert!(mem::size_of::<Event>() == EVENT_THRESHOLD);
 
     // Boxed events.
-    const_assert!(mem::size_of::<AutoModerationRuleCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<AutoModerationRuleDelete>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<AutoModerationRuleUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelCreate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelDelete>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelUpdate>() > EVENT_THRESHOLD);
@@ -510,6 +507,9 @@ mod tests {
     const_assert!(mem::size_of::<VoiceStateUpdate>() > EVENT_THRESHOLD);
 
     // Unboxed.
+    const_assert!(mem::size_of::<AutoModerationRuleCreate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<AutoModerationRuleDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<AutoModerationRuleUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<AutoModerationActionExecution>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<BanAdd>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<BanRemove>() <= EVENT_THRESHOLD);
