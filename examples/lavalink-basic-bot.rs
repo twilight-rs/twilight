@@ -57,6 +57,7 @@ async fn main() -> anyhow::Result<()> {
         let http = HttpClient::new(token.clone());
         let user_id = http.current_user().await?.model().await?.id;
 
+        // The client is [`Lavalink`](crate::client::Lavalink) that forwards the required events from Discord.
         let lavalink = Lavalink::new(user_id, shard_count);
         lavalink.add(lavalink_host, lavalink_auth).await?;
 
@@ -85,6 +86,10 @@ async fn main() -> anyhow::Result<()> {
         };
 
         state.standby.process(&event);
+
+        // We read the [Voice State and Voice Server Updates](https://discord.com/developers/docs/topics/gateway-events#voice) from discord to format the data to send to a Lavalink `VoiceUpdate` Event.
+        // There is a lower level [node](crate::node) that processes this for you. It isn't recommended to use this but rather the lavalink struct with the players. If you don't find functionality please open up and issue to expose what you need.
+        // See the command functions for where we use the players.
         state.lavalink.process(&event).await?;
 
         if let Event::MessageCreate(msg) = event {
