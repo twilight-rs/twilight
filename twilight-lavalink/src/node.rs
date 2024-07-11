@@ -580,7 +580,7 @@ impl Connection {
             };
         }
 
-        tracing::error!("No session id is found. Session id should have been provided from the websocket connection already.");
+        tracing::error!("no session id is found. Session id should have been provided from the websocket connection already.");
 
         Err(NodeError {
             kind: NodeErrorType::OutgoingEventHasNoSession,
@@ -592,7 +592,7 @@ impl Connection {
         let (method, url) = self.get_outgoing_endpoint_based_on_event(&outgoing)?;
         let payload = serde_json::to_string(&outgoing).expect("serialization cannot fail");
 
-        let authority = url.authority().expect("Authority comes from endpoint. We should have a valid authority and is just used in the header.");
+        let authority = url.authority().expect("Authority comes from endpoint");
 
         let req = Request::builder()
             .uri(url.borrow())
