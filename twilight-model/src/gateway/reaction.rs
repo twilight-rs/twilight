@@ -1,17 +1,25 @@
 use crate::{
-    channel::message::ReactionType,
+    channel::message::EmojiReactionType,
     guild::Member,
     id::{
         marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
         Id,
     },
+    util::HexColor,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GatewayReaction {
+    /// True if this is a super-reaction.
+    pub burst: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    /// Colors used for super-reaction animation in hex format.
+    ///
+    /// This is only present when super-reactions are added.
+    pub burst_colors: Vec<HexColor>,
     pub channel_id: Id<ChannelMarker>,
-    pub emoji: ReactionType,
+    pub emoji: EmojiReactionType,
     pub guild_id: Option<Id<GuildMarker>>,
     pub member: Option<Member>,
     /// ID of the user who authored the message which was reacted to.
@@ -25,12 +33,12 @@ pub struct GatewayReaction {
 mod tests {
     use super::GatewayReaction;
     use crate::{
-        channel::message::ReactionType,
+        channel::message::EmojiReactionType,
         guild::{Member, MemberFlags},
         id::Id,
         test::image_hash,
         user::User,
-        util::Timestamp,
+        util::{HexColor, Timestamp},
     };
     use serde_test::Token;
     use std::str::FromStr;
@@ -40,10 +48,16 @@ mod tests {
     fn reaction_with_member() {
         let joined_at = Some(Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap());
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
+        let burst_colors = ["#F200FF"];
 
         let value = GatewayReaction {
+            burst: true,
+            burst_colors: burst_colors
+                .iter()
+                .map(|c| HexColor::from_str(c).unwrap())
+                .collect(),
             channel_id: Id::new(2),
-            emoji: ReactionType::Unicode {
+            emoji: EmojiReactionType::Unicode {
                 name: "a".to_owned(),
             },
             guild_id: Some(Id::new(1)),
@@ -89,14 +103,20 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GatewayReaction",
-                    len: 7,
+                    len: 9,
                 },
+                Token::Str("burst"),
+                Token::Bool(true),
+                Token::Str("burst_colors"),
+                Token::Seq { len: Some(1) },
+                Token::Str(burst_colors[0]),
+                Token::SeqEnd,
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("emoji"),
                 Token::Struct {
-                    name: "ReactionType",
+                    name: "EmojiReactionType",
                     len: 1,
                 },
                 Token::Str("name"),
@@ -181,8 +201,10 @@ mod tests {
     #[test]
     fn reaction_without_member() {
         let value = GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
             channel_id: Id::new(2),
-            emoji: ReactionType::Unicode {
+            emoji: EmojiReactionType::Unicode {
                 name: "a".to_owned(),
             },
             guild_id: None,
@@ -197,14 +219,16 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GatewayReaction",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("burst"),
+                Token::Bool(false),
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("emoji"),
                 Token::Struct {
-                    name: "ReactionType",
+                    name: "EmojiReactionType",
                     len: 1,
                 },
                 Token::Str("name"),
