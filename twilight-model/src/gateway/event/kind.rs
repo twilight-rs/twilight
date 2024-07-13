@@ -56,6 +56,8 @@ pub enum EventType {
     MessageCreate,
     MessageDelete,
     MessageDeleteBulk,
+    MessagePollVoteAdd,
+    MessagePollVoteRemove,
     MessageUpdate,
     PresenceUpdate,
     #[serde(rename = "MESSAGE_REACTION_ADD")]
@@ -134,6 +136,8 @@ impl EventType {
             Self::MessageDelete => Some("MESSAGE_DELETE"),
             Self::MessageDeleteBulk => Some("MESSAGE_DELETE_BULK"),
             Self::MessageUpdate => Some("MESSAGE_UPDATE"),
+            Self::MessagePollVoteAdd => Some("MESSAGE_POLL_VOTE_ADD"),
+            Self::MessagePollVoteRemove => Some("MESSAGE_POLL_VOTE_REMOVE"),
             Self::PresenceUpdate => Some("PRESENCE_UPDATE"),
             Self::ReactionAdd => Some("MESSAGE_REACTION_ADD"),
             Self::ReactionRemove => Some("MESSAGE_REACTION_REMOVE"),
@@ -211,6 +215,8 @@ impl<'a> TryFrom<&'a str> for EventType {
             "MESSAGE_DELETE" => Ok(Self::MessageDelete),
             "MESSAGE_DELETE_BULK" => Ok(Self::MessageDeleteBulk),
             "MESSAGE_UPDATE" => Ok(Self::MessageUpdate),
+            "MESSAGE_POLL_VOTE_ADD" => Ok(Self::MessagePollVoteAdd),
+            "MESSAGE_POLL_VOTE_REMOVE" => Ok(Self::MessagePollVoteRemove),
             "PRESENCE_UPDATE" => Ok(Self::PresenceUpdate),
             "MESSAGE_REACTION_ADD" => Ok(Self::ReactionAdd),
             "MESSAGE_REACTION_REMOVE" => Ok(Self::ReactionRemove),
@@ -340,6 +346,8 @@ mod tests {
         assert_variant(EventType::MessageDelete, "MESSAGE_DELETE");
         assert_variant(EventType::MessageDeleteBulk, "MESSAGE_DELETE_BULK");
         assert_variant(EventType::MessageUpdate, "MESSAGE_UPDATE");
+        assert_variant(EventType::MessagePollVoteAdd, "MESSAGE_POLL_VOTE_ADD");
+        assert_variant(EventType::MessagePollVoteRemove, "MESSAGE_POLL_VOTE_REMOVE");
         assert_variant(EventType::PresenceUpdate, "PRESENCE_UPDATE");
         assert_variant(EventType::ReactionAdd, "MESSAGE_REACTION_ADD");
         assert_variant(EventType::ReactionRemove, "MESSAGE_REACTION_REMOVE");

@@ -76,6 +76,7 @@ mod private {
             UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
             UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
         },
+        poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildStageInstanceScheduledEvent,
             CreateGuildVoiceScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
@@ -164,10 +165,12 @@ mod private {
     impl Sealed for DeleteWebhook<'_> {}
     impl Sealed for DeleteWebhookMessage<'_> {}
     impl Sealed for DeleteTestEntitlement<'_> {}
+    impl Sealed for EndPoll<'_> {}
     impl Sealed for ExecuteWebhook<'_> {}
     impl Sealed for ExecuteWebhookAndWait<'_> {}
     impl Sealed for FollowNewsChannel<'_> {}
     impl Sealed for GetActiveThreads<'_> {}
+    impl Sealed for GetAnswerVoters<'_> {}
     impl Sealed for GetAuditLog<'_> {}
     impl Sealed for GetAutoModerationRule<'_> {}
     impl Sealed for GetBan<'_> {}

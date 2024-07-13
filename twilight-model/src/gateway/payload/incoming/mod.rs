@@ -53,6 +53,8 @@ mod member_update;
 mod message_create;
 mod message_delete;
 mod message_delete_bulk;
+mod message_poll_vote_add;
+mod message_poll_vote_remove;
 mod message_update;
 mod presence_update;
 mod reaction_add;
@@ -101,7 +103,8 @@ pub use self::{
     invite_create::InviteCreate, invite_delete::InviteDelete, member_add::MemberAdd,
     member_chunk::MemberChunk, member_remove::MemberRemove, member_update::MemberUpdate,
     message_create::MessageCreate, message_delete::MessageDelete,
-    message_delete_bulk::MessageDeleteBulk, message_update::MessageUpdate,
+    message_delete_bulk::MessageDeleteBulk, message_poll_vote_add::MessagePollVoteAdd,
+    message_poll_vote_remove::MessagePollVoteRemove, message_update::MessageUpdate,
     presence_update::PresenceUpdate, reaction_add::ReactionAdd, reaction_remove::ReactionRemove,
     reaction_remove_all::ReactionRemoveAll, reaction_remove_emoji::ReactionRemoveEmoji,
     ready::Ready, role_create::RoleCreate, role_delete::RoleDelete, role_update::RoleUpdate,
