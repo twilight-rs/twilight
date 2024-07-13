@@ -32,6 +32,9 @@ pub struct Attachment {
     pub id: Id<AttachmentMarker>,
     pub proxy_url: String,
     pub size: u64,
+    /// The title of the file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
     pub url: String,
     /// Base64 encoded bytearray representing a sampled waveform (currently for voice messages).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -82,6 +85,7 @@ mod tests {
             id: Id::new(700_000_000_000_000_000),
             proxy_url: "https://cdn.example.com/1.png".to_owned(),
             size: 13_593,
+            title: Some("a title".to_owned()),
             url: "https://example.com/1.png".to_owned(),
             waveform: Some(String::from("waveform")),
             width: Some(184),
@@ -118,6 +122,7 @@ mod tests {
                 Token::Str("https://cdn.example.com/1.png"),
                 Token::Str("size"),
                 Token::U64(13_593),
+                Token::Str("title"),
                 Token::Str("url"),
                 Token::Str("https://example.com/1.png"),
                 Token::Str("waveform"),

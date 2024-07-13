@@ -136,6 +136,7 @@ mod tests {
                     id: Id::new(400),
                     proxy_url: "https://proxy.example.com/rainbow_dash.png".to_owned(),
                     size: 13370,
+                    title: None,
                     url: "https://example.com/rainbow_dash.png".to_owned(),
                     waveform: None,
                     width: Some(1337),
