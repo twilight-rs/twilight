@@ -4,6 +4,11 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
+use crate::request::application::monetization::{
+    CreateTestEntitlement, CreateTestEntitlementOwner, DeleteTestEntitlement, GetEntitlements,
+    GetSKUs,
+};
+#[allow(deprecated)]
 use crate::{
     client::connector::Connector,
     error::{Error, ErrorType},
@@ -61,6 +66,7 @@ use crate::{
             UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
             UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
         },
+        poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
             CreateGuildScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
             GetGuildScheduledEventUsers, GetGuildScheduledEvents, UpdateGuildScheduledEvent,
@@ -100,13 +106,16 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::AllowedMentions, ChannelType},
-    guild::{auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel},
+    guild::{
+        auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel,
+        RolePosition,
+    },
     http::{channel_position::Position, permission_overwrite::PermissionOverwrite},
     id::{
         marker::{
-            ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker, GuildMarker,
-            IntegrationMarker, MessageMarker, RoleMarker, ScheduledEventMarker, StickerMarker,
-            UserMarker, WebhookMarker,
+            ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
+            EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
+            ScheduledEventMarker, SkuMarker, StickerMarker, UserMarker, WebhookMarker,
         },
         Id,
     },
@@ -773,6 +782,29 @@ impl Client {
     /// ```
     pub const fn emojis(&self, guild_id: Id<GuildMarker>) -> GetEmojis<'_> {
         GetEmojis::new(self, guild_id)
+    }
+
+    /// Get the entitlements for an application.
+    ///
+    /// # Examples
+    ///
+    /// Get emojis for the application `100`:
+    ///
+    /// ```no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token".to_owned());
+    /// #
+    /// let application_id = Id::new(100);
+    ///
+    /// client.entitlements(application_id).await?;
+    /// # Ok(()) }
+    /// ```
+    pub const fn entitlements(&self, application_id: Id<ApplicationMarker>) -> GetEntitlements<'_> {
+        GetEntitlements::new(self, application_id)
     }
 
     /// Get an emoji for a guild by the the guild's ID and emoji's ID.
@@ -1680,7 +1712,7 @@ impl Client {
     pub const fn update_role_positions<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,
-        roles: &'a [(Id<RoleMarker>, u64)],
+        roles: &'a [RolePosition],
     ) -> UpdateRolePositions<'a> {
         UpdateRolePositions::new(self, guild_id, roles)
     }
@@ -2555,6 +2587,145 @@ impl Client {
         sticker_id: Id<StickerMarker>,
     ) -> DeleteGuildSticker<'_> {
         DeleteGuildSticker::new(self, guild_id, sticker_id)
+    }
+
+    /// Creates a test entitlement to a given SKU for a given guild or user. Discord
+    /// will act as though that user or guild has entitlement to your premium offering.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::{Client, request::application::monetization::CreateTestEntitlementOwner};
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let application_id = Id::new(1);
+    /// let sku_id = Id::new(2);
+    /// let owner = CreateTestEntitlementOwner::Guild(Id::new(3));
+    ///
+    /// client.create_test_entitlement(
+    ///    application_id,
+    ///    sku_id,
+    ///    owner,
+    /// ).await?;
+    ///
+    /// # Ok(()) }
+    pub const fn create_test_entitlement(
+        &self,
+        application_id: Id<ApplicationMarker>,
+        sku_id: Id<SkuMarker>,
+        owner: CreateTestEntitlementOwner,
+    ) -> CreateTestEntitlement<'_> {
+        CreateTestEntitlement::new(self, application_id, sku_id, owner)
+    }
+
+    /// Ends a poll in a channel.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let channel_id = Id::new(1);
+    /// let message_id = Id::new(2);
+    ///
+    /// client.end_poll(channel_id, message_id).await?;
+    /// # Ok(()) }
+    /// ```
+    pub const fn end_poll(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
+    ) -> EndPoll<'_> {
+        EndPoll::new(self, channel_id, message_id)
+    }
+
+    /// Deletes a currently-active test entitlement. Discord will act as though that user or
+    /// guild no longer has entitlement to your premium offering.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let application_id = Id::new(1);
+    /// let entitlement_id = Id::new(2);
+    ///
+    /// client.delete_test_entitlement(
+    ///   application_id,
+    ///   entitlement_id,
+    /// ).await?;
+    ///
+    /// # Ok(()) }
+    pub const fn delete_test_entitlement(
+        &self,
+        application_id: Id<ApplicationMarker>,
+        entitlement_id: Id<EntitlementMarker>,
+    ) -> DeleteTestEntitlement<'_> {
+        DeleteTestEntitlement::new(self, application_id, entitlement_id)
+    }
+
+    /// /// Get the voters for an answer in a poll.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let channel_id = Id::new(1);
+    /// let message_id = Id::new(2);
+    /// let answer_id = 1;
+    ///
+    /// let voters = client.get_answer_voters(channel_id, message_id, answer_id).await?;
+    ///
+    /// println!("{:?}", voters);
+    /// # Ok(()) }
+    pub const fn get_answer_voters(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
+        answer_id: u8,
+    ) -> GetAnswerVoters<'_> {
+        GetAnswerVoters::new(self, channel_id, message_id, answer_id)
+    }
+
+    /// Returns all SKUs for a given application.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let application_id = Id::new(1);
+    ///
+    /// let skus = client.get_skus(application_id).await?;
+    ///
+    /// # Ok(()) }
+    pub const fn get_skus(&self, application_id: Id<ApplicationMarker>) -> GetSKUs<'_> {
+        GetSKUs::new(self, application_id)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].

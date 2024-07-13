@@ -17,6 +17,8 @@ struct UpdateCurrentUserFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    banner: Option<Nullable<&'a str>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<&'a str>,
 }
 
@@ -36,6 +38,7 @@ impl<'a> UpdateCurrentUser<'a> {
         Self {
             fields: Ok(UpdateCurrentUserFields {
                 avatar: None,
+                banner: None,
                 username: None,
             }),
             http,
@@ -53,6 +56,21 @@ impl<'a> UpdateCurrentUser<'a> {
     pub fn avatar(mut self, avatar: Option<&'a str>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.avatar = Some(Nullable(avatar));
+        }
+
+        self
+    }
+
+    /// Set the user's banner.
+    ///
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
+    ///
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
+    pub fn banner(mut self, banner: Option<&'a str>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.banner = Some(Nullable(banner));
         }
 
         self

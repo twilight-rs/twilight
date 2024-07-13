@@ -70,6 +70,7 @@ mod tests {
                 accent_color: None,
                 avatar: None,
                 avatar_decoration: None,
+                avatar_decoration_data: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,
@@ -122,13 +123,15 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("accent_color"),
                 Token::None,
                 Token::Str("avatar"),
                 Token::None,
                 Token::Str("avatar_decoration"),
+                Token::None,
+                Token::Str("avatar_decoration_data"),
                 Token::None,
                 Token::Str("banner"),
                 Token::None,
@@ -153,6 +156,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn guild_member_communication_disabled_until() -> Result<(), TimestampParseError> {
         let communication_disabled_until = Timestamp::from_str("2021-12-23T14:29:19.046000+00:00")?;
         let joined_at = Some(Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?);
@@ -174,6 +178,7 @@ mod tests {
                 accent_color: None,
                 avatar: None,
                 avatar_decoration: None,
+                avatar_decoration_data: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,
@@ -227,13 +232,15 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("accent_color"),
                 Token::None,
                 Token::Str("avatar"),
                 Token::None,
                 Token::Str("avatar_decoration"),
+                Token::None,
+                Token::Str("avatar_decoration_data"),
                 Token::None,
                 Token::Str("banner"),
                 Token::None,

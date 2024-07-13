@@ -14,17 +14,17 @@ pub struct Reaction {
     /// Reaction count details for each type of reaction.
     pub count_details: ReactionCountDetails,
     /// Emoji of this reaction.
-    pub emoji: ReactionType,
+    pub emoji: EmojiReactionType,
     /// Whether the current user has reacted with this emoji.
     pub me: bool,
     /// Whether the current user super-reacted using this emoji
     pub me_burst: bool,
 }
 
-/// Type of [`Reaction`].
+/// Type of emoji in a [`Reaction`].
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]
-pub enum ReactionType {
+pub enum EmojiReactionType {
     /// Custom [`Emoji`].
     ///
     /// [`Emoji`]: crate::guild::Emoji
@@ -66,7 +66,7 @@ pub struct ReactionCountDetails {
 
 #[cfg(test)]
 mod tests {
-    use super::{Reaction, ReactionCountDetails, ReactionType};
+    use super::{EmojiReactionType, Reaction, ReactionCountDetails};
     use crate::{id::Id, util::HexColor};
     use serde_test::Token;
 
@@ -79,7 +79,7 @@ mod tests {
                 burst: 0,
                 normal: 7,
             },
-            emoji: ReactionType::Unicode {
+            emoji: EmojiReactionType::Unicode {
                 name: "a".to_owned(),
             },
             me: true,
@@ -111,7 +111,7 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("emoji"),
                 Token::Struct {
-                    name: "ReactionType",
+                    name: "EmojiReactionType",
                     len: 1,
                 },
                 Token::Str("name"),
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn custom() {
-        let value = ReactionType::Custom {
+        let value = EmojiReactionType::Custom {
             animated: false,
             id: Id::new(1337),
             name: Some("foo".to_owned()),
@@ -138,7 +138,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "ReactionType",
+                    name: "EmojiReactionType",
                     len: 3,
                 },
                 Token::Str("animated"),
@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn unicode() {
-        let value = ReactionType::Unicode {
+        let value = EmojiReactionType::Unicode {
             name: "\u{1f643}".to_owned(),
         };
 
@@ -183,7 +183,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "ReactionType",
+                    name: "EmojiReactionType",
                     len: 1,
                 },
                 Token::Str("name"),

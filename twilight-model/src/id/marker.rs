@@ -85,6 +85,24 @@ pub struct CommandVersionMarker;
 #[non_exhaustive]
 pub struct EmojiMarker;
 
+/// Marker for entitlement IDs.
+///
+/// Types such as [`Entitlement`] use this ID marker.
+///
+/// [`Entitlement`]: crate::application::monetization::entitlement::Entitlement
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct EntitlementMarker;
+
+/// Marker for entitlement SKU IDs.
+///
+/// Types such as [`SKU`] use this ID marker.
+///
+/// [`SKU`]: crate::application::monetization::sku::SKU
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct SkuMarker;
+
 /// Marker for generic IDs.
 ///
 /// Types such as [`AuditLogChange::Id`] or [`CommandOptionValue`] use this
@@ -285,3 +303,12 @@ pub struct UserMarker;
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct WebhookMarker;
+
+/// SKU ID marker for avatar decoration data.
+///
+/// Types such as [`AvatarDecorationData`] use this ID marker.
+///
+/// [`AvatarDecorationData`]: crate::user::AvatarDecorationData
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct AvatarDecorationDataSkuMarker;

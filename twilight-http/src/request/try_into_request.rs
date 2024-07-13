@@ -18,6 +18,10 @@ mod private {
                 CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
                 GetResponse, UpdateFollowup, UpdateResponse,
             },
+            monetization::{
+                create_test_entitlement::CreateTestEntitlement, get_entitlements::GetEntitlements,
+                DeleteTestEntitlement, GetSKUs,
+            },
         },
         channel::{
             invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
@@ -72,6 +76,7 @@ mod private {
             UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
             UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
         },
+        poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildStageInstanceScheduledEvent,
             CreateGuildVoiceScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
@@ -127,6 +132,7 @@ mod private {
     impl Sealed for CreateRole<'_> {}
     impl Sealed for CreateStageInstance<'_> {}
     impl Sealed for CreateTemplate<'_> {}
+    impl Sealed for CreateTestEntitlement<'_> {}
     impl Sealed for CreateThread<'_> {}
     impl Sealed for CreateThreadFromMessage<'_> {}
     impl Sealed for CreateTypingTrigger<'_> {}
@@ -158,10 +164,13 @@ mod private {
     impl Sealed for DeleteTemplate<'_> {}
     impl Sealed for DeleteWebhook<'_> {}
     impl Sealed for DeleteWebhookMessage<'_> {}
+    impl Sealed for DeleteTestEntitlement<'_> {}
+    impl Sealed for EndPoll<'_> {}
     impl Sealed for ExecuteWebhook<'_> {}
     impl Sealed for ExecuteWebhookAndWait<'_> {}
     impl Sealed for FollowNewsChannel<'_> {}
     impl Sealed for GetActiveThreads<'_> {}
+    impl Sealed for GetAnswerVoters<'_> {}
     impl Sealed for GetAuditLog<'_> {}
     impl Sealed for GetAutoModerationRule<'_> {}
     impl Sealed for GetBan<'_> {}
@@ -179,6 +188,7 @@ mod private {
     impl Sealed for GetCurrentUserGuilds<'_> {}
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
+    impl Sealed for GetEntitlements<'_> {}
     impl Sealed for GetFollowup<'_> {}
     impl Sealed for GetGateway<'_> {}
     impl Sealed for GetGatewayAuthed<'_> {}
@@ -218,6 +228,7 @@ mod private {
     impl Sealed for GetPublicArchivedThreads<'_> {}
     impl Sealed for GetReactions<'_> {}
     impl Sealed for GetResponse<'_> {}
+    impl Sealed for GetSKUs<'_> {}
     impl Sealed for GetStageInstance<'_> {}
     impl Sealed for GetSticker<'_> {}
     impl Sealed for GetTemplate<'_> {}

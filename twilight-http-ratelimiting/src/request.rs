@@ -154,6 +154,8 @@ pub enum Path {
     ChannelsIdPins(u64),
     /// Operating on a channel's individual pinned message.
     ChannelsIdPinsMessageId(u64),
+    /// Operating on a channel's polls.
+    ChannelsIdPolls(u64),
     /// Operating on a group DM's recipients.
     ChannelsIdRecipients(u64),
     /// Operating on a thread's members.
@@ -166,6 +168,10 @@ pub enum Path {
     ChannelsIdTyping(u64),
     /// Operating on a channel's webhooks.
     ChannelsIdWebhooks(u64),
+    /// Operating on an application's entitlements.
+    ApplicationIdEntitlements(u64),
+    /// Operating on an application's SKUs.
+    ApplicationIdSKUs(u64),
     /// Operating with the gateway information.
     Gateway,
     /// Operating with the gateway information tailored to the current user.
@@ -334,9 +340,10 @@ impl FromStr for Path {
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
         Ok(match parts[..] {
-            ["applications", "me"] => ApplicationsMe,
+            ["applications", "@me"] => ApplicationsMe,
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
+            ["applications", id, "entitlements"] => ApplicationIdEntitlements(parse_id(id)?),
             ["applications", id, "guilds", _, "commands"]
             | ["applications", id, "guilds", _, "commands", "permissions"] => {
                 ApplicationGuildCommand(parse_id(id)?)
@@ -345,6 +352,7 @@ impl FromStr for Path {
             | ["applications", id, "guilds", _, "commands", _, "permissions"] => {
                 ApplicationGuildCommandId(parse_id(id)?)
             }
+            ["applications", id, "skus"] => ApplicationIdSKUs(parse_id(id)?),
             ["channels", id] => ChannelsId(parse_id(id)?),
             ["channels", id, "followers"] => ChannelsIdFollowers(parse_id(id)?),
             ["channels", id, "invites"] => ChannelsIdInvites(parse_id(id)?),
@@ -393,6 +401,12 @@ impl FromStr for Path {
             ["guilds", "templates", code] => GuildsTemplatesCode(code.to_string()),
             ["guilds", id] => GuildsId(parse_id(id)?),
             ["guilds", id, "audit-logs"] => GuildsIdAuditLogs(parse_id(id)?),
+            ["guilds", id, "auto-moderation", "rules"] => {
+                GuildsIdAutoModerationRules(parse_id(id)?)
+            }
+            ["guilds", id, "auto-moderation", "rules", _] => {
+                GuildsIdAutoModerationRulesId(parse_id(id)?)
+            }
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(parse_id(id)?),
             ["guilds", id, "channels"] => GuildsIdChannels(parse_id(id)?),

@@ -20,6 +20,7 @@ use twilight_model::{
         },
         Id,
     },
+    poll::Poll,
     util::Timestamp,
 };
 
@@ -115,6 +116,7 @@ pub struct CachedMessage {
     pub(crate) mention_roles: Vec<Id<RoleMarker>>,
     pub(crate) mentions: Vec<Id<UserMarker>>,
     pub(crate) pinned: bool,
+    pub(crate) poll: Option<Poll>,
     pub(crate) reactions: Vec<Reaction>,
     reference: Option<MessageReference>,
     role_subscription_data: Option<RoleSubscriptionData>,
@@ -322,6 +324,7 @@ impl From<Message> for CachedMessage {
             mention_roles,
             mentions,
             pinned,
+            poll,
             reactions,
             reference,
             referenced_message: _,
@@ -356,6 +359,7 @@ impl From<Message> for CachedMessage {
             mention_roles,
             mentions: mentions.into_iter().map(|mention| mention.id).collect(),
             pinned,
+            poll,
             reactions,
             reference,
             role_subscription_data,

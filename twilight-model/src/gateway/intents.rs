@@ -262,6 +262,24 @@ bitflags! {
         ///
         /// [`AUTO_MODERATION_ACTION_EXECUTION`]: super::event::Event::AutoModerationActionExecution
         const AUTO_MODERATION_EXECUTION = 1 << 21;
+        /// Guild polls intent.
+        ///
+        /// Event(s) received:
+        /// - [`MESSAGE_POLL_VOTE_ADD`]
+        /// - [`MESSAGE_POLL_VOTE_REMOVE`]
+        ///
+        /// [`MESSAGE_POLL_VOTE_ADD`]: super::event::Event::MessagePollVoteAdd
+        /// [`MESSAGE_POLL_VOTE_REMOVE`]: super::event::Event::MessagePollVoteRemove
+        const GUILD_MESSAGE_POLLS = 1 << 24;
+        /// Direct message polls intent.
+        ///
+        /// Event(s) received:
+        /// - [`MESSAGE_POLL_VOTE_ADD`]
+        /// - [`MESSAGE_POLL_VOTE_REMOVE`]
+        ///
+        /// [`MESSAGE_POLL_VOTE_ADD`]: super::event::Event::MessagePollVoteAdd
+        /// [`MESSAGE_POLL_VOTE_REMOVE`]: super::event::Event::MessagePollVoteRemove
+        const DIRECT_MESSAGE_POLLS = 1 << 25;
     }
 }
 
@@ -342,6 +360,8 @@ mod tests {
     const_assert_eq!(Intents::GUILD_SCHEDULED_EVENTS.bits(), 1 << 16);
     const_assert_eq!(Intents::AUTO_MODERATION_CONFIGURATION.bits(), 1 << 20);
     const_assert_eq!(Intents::AUTO_MODERATION_EXECUTION.bits(), 1 << 21);
+    const_assert_eq!(Intents::GUILD_MESSAGE_POLLS.bits(), 1 << 24);
+    const_assert_eq!(Intents::DIRECT_MESSAGE_POLLS.bits(), 1 << 25);
 
     #[test]
     fn serde() {

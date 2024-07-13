@@ -13,6 +13,7 @@ pub mod guild;
 pub mod http;
 pub mod id;
 pub mod oauth;
+pub mod poll;
 pub mod user;
 pub mod util;
 pub mod voice;

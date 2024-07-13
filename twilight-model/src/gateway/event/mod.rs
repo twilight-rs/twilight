@@ -27,11 +27,11 @@ pub enum Event {
     /// Message was blocked by AutoMod according to a rule.
     AutoModerationActionExecution(AutoModerationActionExecution),
     /// Sent when an auto moderation rule is created.
-    AutoModerationRuleCreate(Box<AutoModerationRuleCreate>),
+    AutoModerationRuleCreate(AutoModerationRuleCreate),
     /// Sent when an auto moderation rule is deleted.
-    AutoModerationRuleDelete(Box<AutoModerationRuleDelete>),
+    AutoModerationRuleDelete(AutoModerationRuleDelete),
     /// Sent when an auto moderation rule is updated.
-    AutoModerationRuleUpdate(Box<AutoModerationRuleUpdate>),
+    AutoModerationRuleUpdate(AutoModerationRuleUpdate),
     /// A user was banned from a guild.
     BanAdd(BanAdd),
     /// A user's ban from a guild was removed.
@@ -46,6 +46,16 @@ pub enum Event {
     ChannelUpdate(Box<ChannelUpdate>),
     /// A command's permissions were updated.
     CommandPermissionsUpdate(CommandPermissionsUpdate),
+    /// A user subscribes to a SKU.
+    EntitlementCreate(EntitlementCreate),
+    /// A user's entitlement is removed.
+    EntitlementDelete(EntitlementDelete),
+    /// A user's subscription renews for the
+    /// next billing period.
+    ///
+    /// The `ends_at` field will have an updated value with
+    /// the new expiration date.
+    EntitlementUpdate(EntitlementUpdate),
     /// Close message with an optional frame including information about the
     /// reason for the close.
     GatewayClose(Option<CloseFrame<'static>>),
@@ -111,6 +121,10 @@ pub enum Event {
     MessageDelete(MessageDelete),
     /// Multiple messages were deleted in a channel.
     MessageDeleteBulk(MessageDeleteBulk),
+    /// A vote was added to a poll.
+    MessagePollVoteAdd(MessagePollVoteAdd),
+    /// A vote was removed from a poll.
+    MessagePollVoteRemove(MessagePollVoteRemove),
     /// A message was updated in a channel.
     MessageUpdate(Box<MessageUpdate>),
     /// A user's active presence (such as game or online status) was updated.
@@ -208,6 +222,8 @@ impl Event {
             Event::MessageDelete(e) => e.guild_id,
             Event::MessageDeleteBulk(e) => e.guild_id,
             Event::MessageUpdate(e) => e.guild_id,
+            Event::MessagePollVoteAdd(e) => e.guild_id,
+            Event::MessagePollVoteRemove(e) => e.guild_id,
             Event::PresenceUpdate(e) => Some(e.0.guild_id),
             Event::ReactionAdd(e) => e.0.guild_id,
             Event::ReactionRemove(e) => e.0.guild_id,
@@ -231,6 +247,9 @@ impl Event {
             Event::VoiceStateUpdate(e) => e.0.guild_id,
             Event::WebhooksUpdate(e) => Some(e.guild_id),
             Event::GatewayClose(_)
+            | Event::EntitlementCreate(_)
+            | Event::EntitlementDelete(_)
+            | Event::EntitlementUpdate(_)
             | Event::GatewayHeartbeat(_)
             | Event::GatewayHeartbeatAck
             | Event::GatewayHello(_)
@@ -255,6 +274,9 @@ impl Event {
             Self::ChannelPinsUpdate(_) => EventType::ChannelPinsUpdate,
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
             Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
+            Self::EntitlementCreate(_) => EventType::EntitlementCreate,
+            Self::EntitlementDelete(_) => EventType::EntitlementDelete,
+            Self::EntitlementUpdate(_) => EventType::EntitlementUpdate,
             Self::GatewayClose(_) => EventType::GatewayClose,
             Self::GatewayHeartbeat(_) => EventType::GatewayHeartbeat,
             Self::GatewayHeartbeatAck => EventType::GatewayHeartbeatAck,
@@ -286,6 +308,8 @@ impl Event {
             Self::MessageCreate(_) => EventType::MessageCreate,
             Self::MessageDelete(_) => EventType::MessageDelete,
             Self::MessageDeleteBulk(_) => EventType::MessageDeleteBulk,
+            Self::MessagePollVoteAdd(_) => EventType::MessagePollVoteAdd,
+            Self::MessagePollVoteRemove(_) => EventType::MessagePollVoteRemove,
             Self::MessageUpdate(_) => EventType::MessageUpdate,
             Self::PresenceUpdate(_) => EventType::PresenceUpdate,
             Self::ReactionAdd(_) => EventType::ReactionAdd,
@@ -332,6 +356,9 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
             DispatchEvent::ChannelUpdate(v) => Self::ChannelUpdate(v),
             DispatchEvent::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
+            DispatchEvent::EntitlementCreate(v) => Self::EntitlementCreate(v),
+            DispatchEvent::EntitlementDelete(v) => Self::EntitlementDelete(v),
+            DispatchEvent::EntitlementUpdate(v) => Self::EntitlementUpdate(v),
             DispatchEvent::GuildAuditLogEntryCreate(v) => Self::GuildAuditLogEntryCreate(v),
             DispatchEvent::GuildCreate(v) => Self::GuildCreate(v),
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),
@@ -362,6 +389,8 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::MessageCreate(v) => Self::MessageCreate(v),
             DispatchEvent::MessageDelete(v) => Self::MessageDelete(v),
             DispatchEvent::MessageDeleteBulk(v) => Self::MessageDeleteBulk(v),
+            DispatchEvent::MessagePollVoteAdd(v) => Self::MessagePollVoteAdd(v),
+            DispatchEvent::MessagePollVoteRemove(v) => Self::MessagePollVoteRemove(v),
             DispatchEvent::MessageUpdate(v) => Self::MessageUpdate(v),
             DispatchEvent::PresenceUpdate(v) => Self::PresenceUpdate(v),
             DispatchEvent::ReactionAdd(v) => Self::ReactionAdd(v),
@@ -457,14 +486,11 @@ mod tests {
     // requires a variable to be used in a function, so this is a false
     // positive.
     #[allow(dead_code)]
-    const EVENT_THRESHOLD: usize = 224;
+    const EVENT_THRESHOLD: usize = 256;
 
     const_assert!(mem::size_of::<Event>() == EVENT_THRESHOLD);
 
     // Boxed events.
-    const_assert!(mem::size_of::<AutoModerationRuleCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<AutoModerationRuleDelete>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<AutoModerationRuleUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelCreate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelDelete>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelUpdate>() > EVENT_THRESHOLD);
@@ -491,6 +517,9 @@ mod tests {
     const_assert!(mem::size_of::<VoiceStateUpdate>() > EVENT_THRESHOLD);
 
     // Unboxed.
+    const_assert!(mem::size_of::<AutoModerationRuleCreate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<AutoModerationRuleDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<AutoModerationRuleUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<AutoModerationActionExecution>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<BanAdd>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<BanRemove>() <= EVENT_THRESHOLD);
@@ -521,4 +550,6 @@ mod tests {
     const_assert!(mem::size_of::<UserUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<VoiceServerUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<WebhooksUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MessagePollVoteAdd>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MessagePollVoteRemove>() <= EVENT_THRESHOLD);
 }
