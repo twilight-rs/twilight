@@ -6,8 +6,8 @@ use twilight_model::{
     channel::{
         message::{
             sticker::MessageSticker, Component, Embed, Message, MessageActivity,
-            MessageApplication, MessageFlags, MessageInteraction, MessageReference, MessageType,
-            Reaction, RoleSubscriptionData,
+            MessageApplication, MessageCall, MessageFlags, MessageInteraction, MessageReference,
+            MessageType, Reaction, RoleSubscriptionData,
         },
         Attachment, ChannelMention,
     },
@@ -99,6 +99,7 @@ pub struct CachedMessage {
     application_id: Option<Id<ApplicationMarker>>,
     pub(crate) attachments: Vec<Attachment>,
     author: Id<UserMarker>,
+    pub(crate) call: Option<MessageCall>,
     channel_id: Id<ChannelMarker>,
     components: Vec<Component>,
     pub(crate) content: String,
@@ -306,6 +307,7 @@ impl From<Message> for CachedMessage {
             application_id,
             attachments,
             author,
+            call,
             channel_id,
             components,
             content,
@@ -341,6 +343,7 @@ impl From<Message> for CachedMessage {
             application_id,
             attachments,
             author: author.id,
+            call,
             channel_id,
             components,
             content,
@@ -377,6 +380,7 @@ impl PartialEq<Message> for CachedMessage {
             && self.application_id == other.application_id
             && self.attachments == other.attachments
             && self.author == other.author.id
+            && self.call == other.call
             && self.channel_id == other.channel_id
             && self.components == other.components
             && self.content == other.content

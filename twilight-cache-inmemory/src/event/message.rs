@@ -137,6 +137,7 @@ mod tests {
                 system: None,
                 verified: None,
             },
+            call: None,
             channel_id: Id::new(2),
             components: Vec::new(),
             content: "ping".to_owned(),

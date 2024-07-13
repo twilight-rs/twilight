@@ -8,6 +8,7 @@ pub mod sticker;
 mod activity;
 mod allowed_mentions;
 mod application;
+mod call;
 mod flags;
 mod interaction;
 mod kind;
@@ -21,6 +22,7 @@ pub use self::{
     activity::{MessageActivity, MessageActivityType},
     allowed_mentions::{AllowedMentions, MentionType},
     application::MessageApplication,
+    call::MessageCall,
     component::Component,
     embed::Embed,
     flags::MessageFlags,
@@ -81,6 +83,8 @@ pub struct Message {
     pub attachments: Vec<Attachment>,
     /// Author of the message.
     pub author: User,
+    /// The call associated with the message.
+    pub call: Option<MessageCall>,
     /// ID of the [`Channel`] the message was sent in.
     pub channel_id: Id<ChannelMarker>,
     /// List of provided components, such as buttons.
@@ -205,7 +209,7 @@ mod tests {
         reaction::ReactionCountDetails,
         sticker::{MessageSticker, StickerFormatType},
         EmojiReactionType, Message, MessageActivity, MessageActivityType, MessageApplication,
-        MessageFlags, MessageReference, MessageType, Reaction,
+        MessageCall, MessageFlags, MessageReference, MessageType, Reaction,
     };
     use crate::{
         channel::{ChannelMention, ChannelType},
@@ -250,6 +254,10 @@ mod tests {
                 system: None,
                 verified: None,
             },
+            call: Some(MessageCall {
+                ended_timestamp: None,
+                participants: Vec::new(),
+            }),
             channel_id: Id::new(2),
             components: Vec::new(),
             content: "ping".to_owned(),
@@ -299,7 +307,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Message",
-                    len: 18,
+                    len: 19,
                 },
                 Token::Str("attachments"),
                 Token::Seq { len: Some(0) },
@@ -332,6 +340,18 @@ mod tests {
                 Token::Str("3"),
                 Token::Str("username"),
                 Token::Str("test"),
+                Token::StructEnd,
+                Token::Str("call"),
+                Token::Some,
+                Token::Struct {
+                    name: "MessageCall",
+                    len: 2,
+                },
+                Token::Str("ended_timestamp"),
+                Token::None,
+                Token::Str("participants"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::StructEnd,
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -457,6 +477,7 @@ mod tests {
                 system: None,
                 verified: None,
             },
+            call: None,
             channel_id: Id::new(2),
             components: Vec::new(),
             content: "ping".to_owned(),
@@ -528,7 +549,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Message",
-                    len: 25,
+                    len: 26,
                 },
                 Token::Str("activity"),
                 Token::Some,
@@ -595,6 +616,8 @@ mod tests {
                 Token::Str("username"),
                 Token::Str("test"),
                 Token::StructEnd,
+                Token::Str("call"),
+                Token::None,
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),

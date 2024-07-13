@@ -1108,6 +1108,7 @@ mod tests {
                 system: None,
                 verified: None,
             },
+            call: None,
             channel_id: Id::new(1),
             components: Vec::new(),
             content: "test".to_owned(),
