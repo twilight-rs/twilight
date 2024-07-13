@@ -804,6 +804,8 @@ pub enum Route<'a> {
         limit: Option<u16>,
         /// The ID of the message.
         message_id: u64,
+        /// The type of reactions to fetch.
+        kind: Option<u8>,
     },
     GetSKUs {
         /// The ID of the application.
@@ -2789,6 +2791,7 @@ impl Display for Route<'_> {
                 emoji,
                 limit,
                 message_id,
+                kind,
             } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
@@ -2800,7 +2803,8 @@ impl Display for Route<'_> {
                 let mut query_formatter = QueryStringFormatter::new(f);
 
                 query_formatter.write_opt_param("after", after.as_ref())?;
-                query_formatter.write_opt_param("limit", limit.as_ref())
+                query_formatter.write_opt_param("limit", limit.as_ref())?;
+                query_formatter.write_opt_param("type", kind.as_ref())
             }
             Route::GetSticker { sticker_id } => {
                 f.write_str("stickers/")?;

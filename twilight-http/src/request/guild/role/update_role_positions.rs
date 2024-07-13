@@ -1,18 +1,16 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
-    guild::Role,
-    id::{
-        marker::{GuildMarker, RoleMarker},
-        Id,
-    },
+    guild::{Role, RolePosition},
+    id::{marker::GuildMarker, Id},
 };
+use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 /// Modify the position of the roles.
 ///
@@ -21,20 +19,30 @@ use twilight_model::{
 pub struct UpdateRolePositions<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    roles: &'a [(Id<RoleMarker>, u64)],
+    roles: &'a [RolePosition],
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateRolePositions<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         guild_id: Id<GuildMarker>,
-        roles: &'a [(Id<RoleMarker>, u64)],
+        roles: &'a [RolePosition],
     ) -> Self {
         Self {
             guild_id,
             http,
             roles,
+            reason: Ok(None),
         }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for UpdateRolePositions<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+
+        self
     }
 }
 
@@ -55,10 +63,15 @@ impl IntoFuture for UpdateRolePositions<'_> {
 
 impl TryIntoRequest for UpdateRolePositions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateRolePositions {
+        let mut request = Request::builder(&Route::UpdateRolePositions {
             guild_id: self.guild_id.get(),
         })
-        .json(&self.roles)
-        .build()
+        .json(&self.roles);
+
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        request.build()
     }
 }

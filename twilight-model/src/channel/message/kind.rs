@@ -70,6 +70,14 @@ pub enum MessageType {
     StageTopic,
     /// System message denoting a guild application premium subscription.
     GuildApplicationPremiumSubscription,
+    /// System message denoting a guild auto moderation incident alerts are enabled.
+    GuildIncidentAlertModeEnabled,
+    /// System message denoting a guild auto moderation incident alerts are disabled.
+    GuildIncidentAlertModeDisabled,
+    /// System message denoting a guild raid incident report.
+    GuildIncidentReportRaid,
+    /// System message denoting a false positive guild raid incident report.
+    GuildIncidentReportRaidFalseAlarm,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -111,6 +119,11 @@ impl MessageType {
                 | Self::StageEnd
                 | Self::StageSpeaker
                 | Self::StageTopic
+                | Self::GuildApplicationPremiumSubscription
+                | Self::GuildIncidentAlertModeEnabled
+                | Self::GuildIncidentAlertModeDisabled
+                | Self::GuildIncidentReportRaid
+                | Self::GuildIncidentReportRaidFalseAlarm
         )
     }
 
@@ -173,6 +186,10 @@ impl From<u8> for MessageType {
             29 => Self::StageSpeaker,
             31 => Self::StageTopic,
             32 => Self::GuildApplicationPremiumSubscription,
+            36 => Self::GuildIncidentAlertModeEnabled,
+            37 => Self::GuildIncidentAlertModeDisabled,
+            38 => Self::GuildIncidentReportRaid,
+            39 => Self::GuildIncidentReportRaidFalseAlarm,
             unknown => Self::Unknown(unknown),
         }
     }
@@ -212,6 +229,10 @@ impl From<MessageType> for u8 {
             MessageType::StageSpeaker => 29,
             MessageType::StageTopic => 31,
             MessageType::GuildApplicationPremiumSubscription => 32,
+            MessageType::GuildIncidentAlertModeEnabled => 36,
+            MessageType::GuildIncidentAlertModeDisabled => 37,
+            MessageType::GuildIncidentReportRaid => 38,
+            MessageType::GuildIncidentReportRaidFalseAlarm => 39,
             MessageType::Unknown(unknown) => unknown,
         }
     }
@@ -280,7 +301,11 @@ mod tests {
             (MessageType::StageEnd, 28, true),
             (MessageType::StageSpeaker, 29, true),
             (MessageType::StageTopic, 31, true),
-            (MessageType::GuildApplicationPremiumSubscription, 32, false),
+            (MessageType::GuildApplicationPremiumSubscription, 32, true),
+            (MessageType::GuildIncidentAlertModeEnabled, 36, true),
+            (MessageType::GuildIncidentAlertModeDisabled, 37, true),
+            (MessageType::GuildIncidentReportRaid, 38, true),
+            (MessageType::GuildIncidentReportRaidFalseAlarm, 39, true),
         ];
 
         for (message_type, number, deletable) in MAP {

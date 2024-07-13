@@ -15,9 +15,9 @@ use serde::{
 #[serde(untagged)]
 pub enum DispatchEvent {
     AutoModerationActionExecution(AutoModerationActionExecution),
-    AutoModerationRuleCreate(Box<AutoModerationRuleCreate>),
-    AutoModerationRuleDelete(Box<AutoModerationRuleDelete>),
-    AutoModerationRuleUpdate(Box<AutoModerationRuleUpdate>),
+    AutoModerationRuleCreate(AutoModerationRuleCreate),
+    AutoModerationRuleDelete(AutoModerationRuleDelete),
+    AutoModerationRuleUpdate(AutoModerationRuleUpdate),
     BanAdd(BanAdd),
     BanRemove(BanRemove),
     ChannelCreate(Box<ChannelCreate>),
@@ -254,15 +254,15 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "AUTO_MODERATION_ACTION_EXECUTION" => DispatchEvent::AutoModerationActionExecution(
                 AutoModerationActionExecution::deserialize(deserializer)?,
             ),
-            "AUTO_MODERATION_RULE_CREATE" => DispatchEvent::AutoModerationRuleCreate(Box::new(
+            "AUTO_MODERATION_RULE_CREATE" => DispatchEvent::AutoModerationRuleCreate(
                 AutoModerationRuleCreate::deserialize(deserializer)?,
-            )),
-            "AUTO_MODERATION_RULE_DELETE" => DispatchEvent::AutoModerationRuleDelete(Box::new(
+            ),
+            "AUTO_MODERATION_RULE_DELETE" => DispatchEvent::AutoModerationRuleDelete(
                 AutoModerationRuleDelete::deserialize(deserializer)?,
-            )),
-            "AUTO_MODERATION_RULE_UPDATE" => DispatchEvent::AutoModerationRuleUpdate(Box::new(
+            ),
+            "AUTO_MODERATION_RULE_UPDATE" => DispatchEvent::AutoModerationRuleUpdate(
                 AutoModerationRuleUpdate::deserialize(deserializer)?,
-            )),
+            ),
             "CHANNEL_CREATE" => {
                 DispatchEvent::ChannelCreate(Box::new(ChannelCreate::deserialize(deserializer)?))
             }

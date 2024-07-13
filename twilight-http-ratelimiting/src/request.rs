@@ -340,7 +340,7 @@ impl FromStr for Path {
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
         Ok(match parts[..] {
-            ["applications", "me"] => ApplicationsMe,
+            ["applications", "@me"] => ApplicationsMe,
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
             ["applications", id, "entitlements"] => ApplicationIdEntitlements(parse_id(id)?),
@@ -401,6 +401,12 @@ impl FromStr for Path {
             ["guilds", "templates", code] => GuildsTemplatesCode(code.to_string()),
             ["guilds", id] => GuildsId(parse_id(id)?),
             ["guilds", id, "audit-logs"] => GuildsIdAuditLogs(parse_id(id)?),
+            ["guilds", id, "auto-moderation", "rules"] => {
+                GuildsIdAutoModerationRules(parse_id(id)?)
+            }
+            ["guilds", id, "auto-moderation", "rules", _] => {
+                GuildsIdAutoModerationRulesId(parse_id(id)?)
+            }
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(parse_id(id)?),
             ["guilds", id, "channels"] => GuildsIdChannels(parse_id(id)?),

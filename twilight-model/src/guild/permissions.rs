@@ -79,6 +79,10 @@ bitflags! {
         const SEND_VOICE_MESSAGES = 1 << 46;
         /// Allows sending polls.
         const SEND_POLLS = 1 << 49;
+        /// Allows user-installed apps to send public responses. When disabled, users will still
+        /// be allowed to use their apps but the responses will be ephemeral. This only applies to
+        /// apps not also installed to the server.
+        const USE_EXTERNAL_APPS = 1 << 50;
     }
 }
 
@@ -207,6 +211,7 @@ mod tests {
     const_assert_eq!(Permissions::USE_EXTERNAL_SOUNDS.bits(), 1 << 45);
     const_assert_eq!(Permissions::SEND_VOICE_MESSAGES.bits(), 1 << 46);
     const_assert_eq!(Permissions::SEND_POLLS.bits(), 1 << 49);
+    const_assert_eq!(Permissions::USE_EXTERNAL_APPS.bits(), 1 << 50);
 
     #[test]
     fn serde() {

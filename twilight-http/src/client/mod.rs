@@ -106,7 +106,10 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::AllowedMentions, ChannelType},
-    guild::{auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel},
+    guild::{
+        auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel,
+        RolePosition,
+    },
     http::{channel_position::Position, permission_overwrite::PermissionOverwrite},
     id::{
         marker::{
@@ -1709,7 +1712,7 @@ impl Client {
     pub const fn update_role_positions<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,
-        roles: &'a [(Id<RoleMarker>, u64)],
+        roles: &'a [RolePosition],
     ) -> UpdateRolePositions<'a> {
         UpdateRolePositions::new(self, guild_id, roles)
     }
