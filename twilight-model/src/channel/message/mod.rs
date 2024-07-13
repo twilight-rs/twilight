@@ -44,6 +44,7 @@ use crate::{
         },
         Id,
     },
+    poll::Poll,
     user::User,
     util::Timestamp,
 };
@@ -161,6 +162,9 @@ pub struct Message {
     pub mentions: Vec<Mention>,
     /// Whether the message is pinned.
     pub pinned: bool,
+    /// The poll associated with the message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub poll: Option<Poll>,
     /// List of reactions to the message.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub reactions: Vec<Reaction>,
@@ -274,6 +278,7 @@ mod tests {
             mention_roles: Vec::new(),
             mentions: Vec::new(),
             pinned: false,
+            poll: None,
             reactions: Vec::new(),
             reference: None,
             role_subscription_data: None,
@@ -485,6 +490,7 @@ mod tests {
             mention_roles: Vec::new(),
             mentions: Vec::new(),
             pinned: false,
+            poll: None,
             reactions: vec![Reaction {
                 burst_colors: Vec::new(),
                 count: 7,

@@ -66,6 +66,7 @@ use crate::{
             UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
             UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
         },
+        poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
             CreateGuildScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
             GetGuildScheduledEventUsers, GetGuildScheduledEvents, UpdateGuildScheduledEvent,
@@ -2621,6 +2622,32 @@ impl Client {
         CreateTestEntitlement::new(self, application_id, sku_id, owner)
     }
 
+    /// Ends a poll in a channel.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let channel_id = Id::new(1);
+    /// let message_id = Id::new(2);
+    ///
+    /// client.end_poll(channel_id, message_id).await?;
+    /// # Ok(()) }
+    /// ```
+    pub const fn end_poll(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
+    ) -> EndPoll<'_> {
+        EndPoll::new(self, channel_id, message_id)
+    }
+
     /// Deletes a currently-active test entitlement. Discord will act as though that user or
     /// guild no longer has entitlement to your premium offering.
     ///
@@ -2649,6 +2676,35 @@ impl Client {
         entitlement_id: Id<EntitlementMarker>,
     ) -> DeleteTestEntitlement<'_> {
         DeleteTestEntitlement::new(self, application_id, entitlement_id)
+    }
+
+    /// /// Get the voters for an answer in a poll.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let channel_id = Id::new(1);
+    /// let message_id = Id::new(2);
+    /// let answer_id = 1;
+    ///
+    /// let voters = client.get_answer_voters(channel_id, message_id, answer_id).await?;
+    ///
+    /// println!("{:?}", voters);
+    /// # Ok(()) }
+    pub const fn get_answer_voters(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
+        answer_id: u8,
+    ) -> GetAnswerVoters<'_> {
+        GetAnswerVoters::new(self, channel_id, message_id, answer_id)
     }
 
     /// Returns all SKUs for a given application.
