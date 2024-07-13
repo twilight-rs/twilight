@@ -96,7 +96,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Attachment",
-                    len: 12,
+                    len: 13,
                 },
                 Token::Str("content_type"),
                 Token::Some,
@@ -123,6 +123,8 @@ mod tests {
                 Token::Str("size"),
                 Token::U64(13_593),
                 Token::Str("title"),
+                Token::Some,
+                Token::Str("a title"),
                 Token::Str("url"),
                 Token::Str("https://example.com/1.png"),
                 Token::Str("waveform"),
