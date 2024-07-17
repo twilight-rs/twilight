@@ -71,6 +71,12 @@ pub const GET_CURRENT_USER_GUILDS_LIMIT_MAX: u16 = 200;
 /// Minimum amount of guilds to get.
 pub const GET_CURRENT_USER_GUILDS_LIMIT_MIN: u16 = 1;
 
+/// Maximum amount of entitlements to get.
+pub const GET_ENTITLEMENTS_LIMIT_MAX: u8 = 100;
+
+/// Minimum amount of entitlements to get.
+pub const GET_ENTITLEMENTS_LIMIT_MIN: u8 = 1;
+
 /// Maximum amount of audit log entries to list.
 pub const GET_GUILD_AUDIT_LOG_LIMIT_MAX: u16 = 100;
 
@@ -344,6 +350,15 @@ impl Display for ValidationError {
 
                 Display::fmt(&GET_CURRENT_USER_GUILDS_LIMIT_MAX, f)
             }
+            ValidationErrorType::GetEntitlements { limit } => {
+                f.write_str("provided get entitlements limit is ")?;
+                Display::fmt(limit, f)?;
+                f.write_str(", but it must be at least ")?;
+                Display::fmt(&GET_ENTITLEMENTS_LIMIT_MIN, f)?;
+                f.write_str(" and at most ")?;
+
+                Display::fmt(&GET_ENTITLEMENTS_LIMIT_MAX, f)
+            }
             ValidationErrorType::GetGuildAuditLog { limit } => {
                 f.write_str("provided get guild audit log limit is ")?;
                 Display::fmt(limit, f)?;
@@ -610,6 +625,11 @@ pub enum ValidationErrorType {
     GetCurrentUserGuilds {
         /// Invalid limit.
         limit: u16,
+    },
+    /// Provided get entitlements limit was invalid.
+    GetEntitlements {
+        /// Invalid limit.
+        limit: u8,
     },
     /// Provided get guild audit log limit was invalid.
     GetGuildAuditLog {
@@ -1194,6 +1214,28 @@ pub const fn get_current_user_guilds_limit(limit: u16) -> Result<(), ValidationE
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::GetCurrentUserGuilds { limit },
+        })
+    }
+}
+
+/// Ensure that the limit for the Get Entitlements endpoint is correct.
+///
+/// The limit must be at least [`GET_ENTITLEMENTS_LIMIT_MIN`] and at most
+/// [`GET_ENTITLEMENTS_LIMIT_MAX`]. This is based on
+/// [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`GetEntitlements`] if the limit is invalid.
+///
+/// [`GetEntitlements`]: ValidationErrorType::GetEntitlements
+/// [this documentation entry]: https://discord.com/developers/docs/monetization/entitlements#list-entitlements
+pub const fn get_entitlements_limit(limit: u8) -> Result<(), ValidationError> {
+    if limit >= GET_ENTITLEMENTS_LIMIT_MIN && limit <= GET_ENTITLEMENTS_LIMIT_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::GetEntitlements { limit },
         })
     }
 }

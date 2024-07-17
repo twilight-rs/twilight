@@ -20,6 +20,7 @@ use twilight_model::{
         marker::{ChannelMarker, MessageMarker, StickerMarker},
         Id,
     },
+    poll::Poll,
 };
 use twilight_validate::message::{
     attachment as validate_attachment, components as validate_components,
@@ -47,6 +48,8 @@ pub(crate) struct CreateMessageFields<'a> {
     nonce: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    poll: Option<&'a Poll>,
     #[serde(skip_serializing_if = "Option::is_none")]
     sticker_ids: Option<&'a [Id<StickerMarker>]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -103,6 +106,7 @@ impl<'a> CreateMessage<'a> {
                 message_reference: None,
                 nonce: None,
                 payload_json: None,
+                poll: None,
                 allowed_mentions: None,
                 sticker_ids: None,
                 tts: None,
@@ -219,6 +223,15 @@ impl<'a> CreateMessage<'a> {
 
             Ok(fields)
         });
+
+        self
+    }
+
+    /// Specify if this message is a poll.
+    pub fn poll(mut self, poll: &'a Poll) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.poll = Some(poll);
+        }
 
         self
     }

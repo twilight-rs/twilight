@@ -1,9 +1,15 @@
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
 
-use crate::request::{channel::reaction::RequestReactionType, Method};
+use crate::{
+    query_formatter::{QueryArray, QueryStringFormatter},
+    request::{channel::reaction::RequestReactionType, Method},
+};
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::{marker::RoleMarker, Id};
+use twilight_model::id::{
+    marker::{RoleMarker, SkuMarker},
+    Id,
+};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
@@ -137,6 +143,10 @@ pub enum Route<'a> {
     CreateTemplate {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    CreateTestEntitlement {
+        /// The ID of the application.
+        application_id: u64,
     },
     /// Route information to create a thread in a channel.
     CreateThread {
@@ -338,6 +348,18 @@ pub enum Route<'a> {
         token: &'a str,
         webhook_id: u64,
     },
+    /// Route information to delete a test entitlement.
+    DeleteTestEntitlement {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the entitlement.
+        entitlement_id: u64,
+    },
+    /// Route information to end a poll.
+    EndPoll {
+        channel_id: u64,
+        message_id: u64,
+    },
     /// Route information to execute a webhook by ID and token.
     ExecuteWebhook {
         /// ID of the thread channel, if there is one.
@@ -358,6 +380,19 @@ pub enum Route<'a> {
     GetActiveThreads {
         /// ID of the guild.
         guild_id: u64,
+    },
+    /// Route information for fetching poll vote information.
+    GetAnswerVoters {
+        /// Get users after this user ID.
+        after: Option<u64>,
+        /// The id of the poll answer.
+        answer_id: u8,
+        /// The ID of the channel the poll is in.
+        channel_id: u64,
+        /// The maximum number of users to return (1-100).
+        limit: Option<u8>,
+        /// The message ID of the poll.
+        message_id: u64,
     },
     /// Route information to get a paginated list of audit logs in a guild.
     GetAuditLogs {
@@ -455,6 +490,24 @@ pub enum Route<'a> {
     GetEmojis {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    GetEntitlements {
+        /// Retrieve entitlements after this time.
+        after: Option<u64>,
+        /// The ID of the application.
+        application_id: u64,
+        /// Retrieve entitlements before this time.
+        before: Option<u64>,
+        /// Whether to exclude ended entitlements.
+        exclude_ended: Option<bool>,
+        /// Guild ID to look up entitlements for.
+        guild_id: Option<u64>,
+        /// Number of entitlements to return. Set to 100 if unspecified.
+        limit: Option<u8>,
+        /// List of SKU IDs to check entitlements for.
+        sku_ids: &'a [Id<SkuMarker>],
+        /// User ID to look up entitlements for.
+        user_id: Option<u64>,
     },
     /// Route to get a followup message for an interaction.
     GetFollowupMessage {
@@ -751,6 +804,12 @@ pub enum Route<'a> {
         limit: Option<u16>,
         /// The ID of the message.
         message_id: u64,
+        /// The type of reactions to fetch.
+        kind: Option<u8>,
+    },
+    GetSKUs {
+        /// The ID of the application.
+        application_id: u64,
     },
     /// Route information to get a stage instance.
     GetStageInstance {
@@ -1137,6 +1196,7 @@ impl<'a> Route<'a> {
             | Self::DeleteGuildIntegration { .. }
             | Self::DeleteGuildScheduledEvent { .. }
             | Self::DeleteGuildSticker { .. }
+            | Self::DeleteTestEntitlement { .. }
             | Self::DeleteInteractionOriginal { .. }
             | Self::DeleteInvite { .. }
             | Self::DeleteMessageReactions { .. }
@@ -1157,6 +1217,7 @@ impl<'a> Route<'a> {
             | Self::RemoveThreadMember { .. }
             | Self::UnpinMessage { .. } => Method::Delete,
             Self::GetActiveThreads { .. }
+            | Self::GetAnswerVoters { .. }
             | Self::GetAuditLogs { .. }
             | Self::GetAutoModerationRule { .. }
             | Self::GetBan { .. }
@@ -1174,6 +1235,7 @@ impl<'a> Route<'a> {
             | Self::GetCurrentUserGuildMember { .. }
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
+            | Self::GetEntitlements { .. }
             | Self::GetGateway
             | Self::GetFollowupMessage { .. }
             | Self::GetGlobalCommand { .. }
@@ -1214,6 +1276,7 @@ impl<'a> Route<'a> {
             | Self::GetPrivateArchivedThreads { .. }
             | Self::GetPublicArchivedThreads { .. }
             | Self::GetReactionUsers { .. }
+            | Self::GetSKUs { .. }
             | Self::GetStageInstance { .. }
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
@@ -1275,10 +1338,12 @@ impl<'a> Route<'a> {
             | Self::CreateRole { .. }
             | Self::CreateStageInstance { .. }
             | Self::CreateTemplate { .. }
+            | Self::CreateTestEntitlement { .. }
             | Self::CreateTypingTrigger { .. }
             | Self::CreateWebhook { .. }
             | Self::CrosspostMessage { .. }
             | Self::DeleteMessages { .. }
+            | Self::EndPoll { .. }
             | Self::ExecuteWebhook { .. }
             | Self::FollowNewsChannel { .. }
             | Self::InteractionCallback { .. }
@@ -1415,6 +1480,11 @@ impl<'a> Route<'a> {
             }
             Self::CreateThreadFromMessage { channel_id, .. } => {
                 Path::ChannelsIdMessagesIdThreads(channel_id)
+            }
+            Self::CreateTestEntitlement { application_id }
+            | Self::GetEntitlements { application_id, .. }
+            | Self::DeleteTestEntitlement { application_id, .. } => {
+                Path::ApplicationIdEntitlements(application_id)
             }
             Self::CreateTypingTrigger { channel_id } => Path::ChannelsIdTyping(channel_id),
             Self::CreateWebhook { channel_id } | Self::GetChannelWebhooks { channel_id } => {
@@ -1591,6 +1661,7 @@ impl<'a> Route<'a> {
             Self::GetPins { channel_id } | Self::PinMessage { channel_id, .. } => {
                 Path::ChannelsIdPins(channel_id)
             }
+            Self::GetSKUs { application_id } => Path::ApplicationIdSKUs(application_id),
             Self::GetSticker { .. } => Path::Stickers,
             Self::GetUserConnections => Path::UsersIdConnections,
             Self::GetVoiceRegions => Path::VoiceRegions,
@@ -1610,6 +1681,9 @@ impl<'a> Route<'a> {
             }
             Self::UpdateNickname { guild_id } => Path::GuildsIdMembersMeNick(guild_id),
             Self::UpdateGuildMfa { guild_id } => Path::GuildsIdMfa(guild_id),
+            Self::EndPoll { channel_id, .. } | Self::GetAnswerVoters { channel_id, .. } => {
+                Path::ChannelsIdPolls(channel_id)
+            }
         }
     }
 }
@@ -1748,6 +1822,25 @@ impl Display for Route<'_> {
 
                 Display::fmt(auto_moderation_rule_id, f)
             }
+            Route::GetAnswerVoters {
+                after,
+                answer_id,
+                channel_id,
+                limit,
+                message_id,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/polls/")?;
+                Display::fmt(message_id, f)?;
+                f.write_str("/answers/")?;
+                Display::fmt(answer_id, f)?;
+                f.write_str("?")?;
+
+                let mut writer = QueryStringFormatter::new(f);
+                writer.write_opt_param("after", after.as_ref())?;
+                writer.write_opt_param("limit", limit.as_ref())
+            }
             Route::GetGlobalCommands {
                 application_id,
                 with_localizations,
@@ -1756,12 +1849,9 @@ impl Display for Route<'_> {
                 Display::fmt(application_id, f)?;
                 f.write_str("/commands")?;
 
-                if let Some(with_localizations) = with_localizations {
-                    f.write_str("?with_localizations=")?;
-                    Display::fmt(with_localizations, f)?;
-                }
+                let mut writer = QueryStringFormatter::new(f);
 
-                Ok(())
+                writer.write_opt_param("with_localizations", with_localizations.as_ref())
             }
             Route::CreateGuild => f.write_str("guilds"),
             Route::CreateGuildCommand {
@@ -1790,18 +1880,20 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
                 f.write_str("/commands")?;
 
-                if let Some(with_localizations) = with_localizations {
-                    f.write_str("?with_localizations=")?;
-                    Display::fmt(with_localizations, f)?;
-                }
-
-                Ok(())
+                let mut writer = QueryStringFormatter::new(f);
+                writer.write_opt_param("with_localizations", with_localizations.as_ref())
             }
             Route::CreateGuildFromTemplate { template_code }
             | Route::GetTemplate { template_code } => {
                 f.write_str("guilds/templates/")?;
 
                 f.write_str(template_code)
+            }
+            Route::CreateTestEntitlement { application_id } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+
+                f.write_str("/entitlements")
             }
             Route::CreateGuildIntegration { guild_id }
             | Route::GetGuildIntegrations { guild_id } => {
@@ -1818,30 +1910,15 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
-                f.write_str("/prune?")?;
+                f.write_str("/prune")?;
 
-                if let Some(compute_prune_count) = compute_prune_count {
-                    f.write_str("compute_prune_count=")?;
-                    Display::fmt(compute_prune_count, f)?;
-                }
+                let mut writer = QueryStringFormatter::new(f);
 
-                if let Some(days) = days {
-                    f.write_str("&days=")?;
-                    Display::fmt(days, f)?;
-                }
+                writer.write_opt_param("compute_prune_count", compute_prune_count.as_ref())?;
+                writer.write_opt_param("days", days.as_ref())?;
 
                 if !include_roles.is_empty() {
-                    let role_count = include_roles.len() - 1;
-
-                    f.write_str("&include_roles=")?;
-
-                    for (idx, role_id) in include_roles.iter().enumerate() {
-                        Display::fmt(role_id, f)?;
-
-                        if idx < role_count {
-                            f.write_str(",")?;
-                        }
-                    }
+                    writer.write_param("include_roles", &QueryArray(*include_roles))?;
                 }
 
                 Ok(())
@@ -1972,6 +2049,68 @@ impl Display for Route<'_> {
                 f.write_str("/emojis/")?;
 
                 Display::fmt(emoji_id, f)
+            }
+            Route::GetEntitlements {
+                after,
+                application_id,
+                before,
+                exclude_ended,
+                guild_id,
+                limit,
+                sku_ids,
+                user_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements")?;
+
+                f.write_str("?")?;
+
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(before) = before {
+                    f.write_str("&before=")?;
+                    Display::fmt(before, f)?;
+                }
+
+                if let Some(exclude_ended) = exclude_ended {
+                    f.write_str("&exclude_ended=")?;
+                    Display::fmt(exclude_ended, f)?;
+                }
+
+                if let Some(guild_id) = guild_id {
+                    f.write_str("&guild_id=")?;
+                    Display::fmt(guild_id, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                if !sku_ids.is_empty() {
+                    let sku_id_count = sku_ids.len() - 1;
+
+                    f.write_str("&sku_ids=")?;
+
+                    for (idx, sku_id) in sku_ids.iter().enumerate() {
+                        Display::fmt(sku_id, f)?;
+
+                        if idx < sku_id_count {
+                            f.write_str(",")?;
+                        }
+                    }
+                }
+
+                if let Some(user_id) = user_id {
+                    f.write_str("&user_id=")?;
+                    Display::fmt(user_id, f)?;
+                }
+
+                Ok(())
             }
             Route::DeleteGlobalCommand {
                 application_id,
@@ -2198,12 +2337,9 @@ impl Display for Route<'_> {
                 f.write_str("/messages/")?;
                 Display::fmt(message_id, f)?;
 
-                if let Some(thread_id) = thread_id {
-                    f.write_str("?thread_id=")?;
-                    Display::fmt(thread_id, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                Ok(())
+                query_formatter.write_opt_param("thread_id", thread_id.as_ref())
             }
             Route::DeleteWebhook { token, webhook_id }
             | Route::GetWebhook { token, webhook_id }
@@ -2218,6 +2354,17 @@ impl Display for Route<'_> {
 
                 Ok(())
             }
+            Route::EndPoll {
+                channel_id,
+                message_id,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/polls/")?;
+                Display::fmt(message_id, f)?;
+
+                f.write_str("/expire")
+            }
             Route::ExecuteWebhook {
                 thread_id,
                 token,
@@ -2228,20 +2375,21 @@ impl Display for Route<'_> {
                 Display::fmt(webhook_id, f)?;
                 f.write_str("/")?;
                 f.write_str(token)?;
-                f.write_str("?")?;
 
-                if let Some(thread_id) = thread_id {
-                    f.write_str("thread_id=")?;
-                    Display::fmt(thread_id, f)?;
-                    f.write_str("&")?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(wait) = wait {
-                    f.write_str("wait=")?;
-                    f.write_str(if *wait { "true" } else { "false" })?;
-                }
+                query_formatter.write_opt_param("thread_id", thread_id.as_ref())?;
+                query_formatter.write_opt_param("wait", wait.as_ref())
+            }
+            Route::DeleteTestEntitlement {
+                application_id,
+                entitlement_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements/")?;
 
-                Ok(())
+                Display::fmt(entitlement_id, f)
             }
             Route::FollowNewsChannel { channel_id } => {
                 f.write_str("channels/")?;
@@ -2265,34 +2413,15 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
-                f.write_str("/audit-logs?")?;
+                f.write_str("/audit-logs")?;
 
-                if let Some(action_type) = action_type {
-                    f.write_str("action_type=")?;
-                    Display::fmt(action_type, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(after) = after {
-                    f.write_str("&after=")?;
-                    Display::fmt(after, f)?;
-                }
-
-                if let Some(before) = before {
-                    f.write_str("&before=")?;
-                    Display::fmt(before, f)?;
-                }
-
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                if let Some(user_id) = user_id {
-                    f.write_str("&user_id=")?;
-                    Display::fmt(user_id, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("action_type", action_type.as_ref())?;
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())?;
+                query_formatter.write_opt_param("user_id", user_id.as_ref())
             }
             Route::GetBans { guild_id } => {
                 f.write_str("guilds/")?;
@@ -2308,24 +2437,13 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
-                f.write_str("/bans?")?;
+                f.write_str("/bans")?;
 
-                if let Some(after) = after {
-                    f.write_str("after=")?;
-                    Display::fmt(after, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(before) = before {
-                    f.write_str("&before=")?;
-                    Display::fmt(before, f)?;
-                }
-
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::GetGatewayBot => f.write_str("gateway/bot"),
             Route::GetCommandPermissions {
@@ -2366,8 +2484,10 @@ impl Display for Route<'_> {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
 
+                let mut query_formatter = QueryStringFormatter::new(f);
+
                 if *with_counts {
-                    f.write_str("?with_counts=true")?;
+                    query_formatter.write_param("with_counts", &true)?;
                 }
 
                 Ok(())
@@ -2396,19 +2516,12 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
-                f.write_str("/members?")?;
+                f.write_str("/members")?;
 
-                if let Some(after) = after {
-                    f.write_str("after=")?;
-                    Display::fmt(after, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::GetGuildOnboarding { guild_id } | Route::UpdateGuildOnboarding { guild_id } => {
                 f.write_str("guilds/")?;
@@ -2429,25 +2542,14 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
-                f.write_str("/prune?")?;
+                f.write_str("/prune")?;
 
-                if let Some(days) = days {
-                    f.write_str("days=")?;
-                    Display::fmt(days, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
+
+                query_formatter.write_opt_param("days", days.as_ref())?;
 
                 if !include_roles.is_empty() {
-                    f.write_str("&include_roles=")?;
-
-                    let role_count = include_roles.len() - 1;
-
-                    for (idx, role_id) in include_roles.iter().enumerate() {
-                        Display::fmt(role_id, f)?;
-
-                        if idx < role_count {
-                            f.write_str(",")?;
-                        }
-                    }
+                    query_formatter.write_param("include_roles", &QueryArray(*include_roles))?;
                 }
 
                 Ok(())
@@ -2462,8 +2564,10 @@ impl Display for Route<'_> {
                 f.write_str("/scheduled-events/")?;
                 Display::fmt(scheduled_event_id, f)?;
 
+                let mut query_formatter = QueryStringFormatter::new(f);
+
                 if *with_user_count {
-                    f.write_str("?with_user_count=true")?;
+                    query_formatter.write_param("with_user_count", &true)?;
                 }
 
                 Ok(())
@@ -2480,25 +2584,16 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
                 f.write_str("/scheduled-events/")?;
                 Display::fmt(scheduled_event_id, f)?;
-                f.write_str("/users?")?;
+                f.write_str("/users")?;
 
-                if let Some(after) = after {
-                    f.write_str("after=")?;
-                    Display::fmt(after, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(before) = before {
-                    f.write_str("&before=")?;
-                    Display::fmt(before, f)?;
-                }
-
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())?;
 
                 if *with_member {
-                    f.write_str("&with_member=true")?;
+                    query_formatter.write_param("with_member", &true)?;
                 }
 
                 Ok(())
@@ -2509,10 +2604,12 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
-                f.write_str("/scheduled-events?")?;
+                f.write_str("/scheduled-events")?;
+
+                let mut query_formatter = QueryStringFormatter::new(f);
 
                 if *with_user_count {
-                    f.write_str("with_user_count=true")?;
+                    query_formatter.write_param("with_user_count", &true)?;
                 }
 
                 Ok(())
@@ -2581,31 +2678,22 @@ impl Display for Route<'_> {
                 before,
                 limit,
             } => {
-                f.write_str("users/@me/guilds?")?;
+                f.write_str("users/@me/guilds")?;
 
-                if let Some(after) = after {
-                    f.write_str("after=")?;
-                    Display::fmt(after, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(before) = before {
-                    f.write_str("&before=")?;
-                    Display::fmt(before, f)?;
-                }
-
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::GetInvite { code, with_counts } => {
                 f.write_str("invites/")?;
                 f.write_str(code)?;
 
+                let mut query_formatter = QueryStringFormatter::new(f);
+
                 if *with_counts {
-                    f.write_str("?with_counts=true")?;
+                    query_formatter.write_param("with_counts", &true)?;
                 }
 
                 Ok(())
@@ -2617,14 +2705,15 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("invites/")?;
                 f.write_str(code)?;
-                f.write_str("?")?;
+
+                let mut query_formatter = QueryStringFormatter::new(f);
 
                 if *with_counts {
-                    f.write_str("with_counts=true")?;
+                    query_formatter.write_param("with_counts", &true)?;
                 }
 
                 if *with_expiration {
-                    f.write_str("&with_expiration=true")?;
+                    query_formatter.write_param("with_expiration", &true)?;
                 }
 
                 Ok(())
@@ -2638,29 +2727,14 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
-                f.write_str("/messages?")?;
+                f.write_str("/messages")?;
 
-                if let Some(after) = after {
-                    f.write_str("after=")?;
-                    Display::fmt(after, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(around) = around {
-                    f.write_str("&around=")?;
-                    Display::fmt(around, f)?;
-                }
-
-                if let Some(before) = before {
-                    f.write_str("&before=")?;
-                    Display::fmt(before, f)?;
-                }
-
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("around", around.as_ref())?;
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::GetNitroStickerPacks { .. } => f.write_str("sticker-packs"),
             Route::GetPins { channel_id } => {
@@ -2676,19 +2750,12 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
-                f.write_str("/users/@me/threads/archived/private?")?;
+                f.write_str("/users/@me/threads/archived/private")?;
 
-                if let Some(before) = before {
-                    f.write_str("before=")?;
-                    Display::fmt(before, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::GetPrivateArchivedThreads {
                 before,
@@ -2697,19 +2764,12 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
-                f.write_str("/threads/archived/private?")?;
+                f.write_str("/threads/archived/private")?;
 
-                if let Some(before) = before {
-                    f.write_str("before=")?;
-                    Display::fmt(before, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::GetPublicArchivedThreads {
                 before,
@@ -2718,19 +2778,12 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
-                f.write_str("/threads/archived/public?")?;
+                f.write_str("/threads/archived/public")?;
 
-                if let Some(before) = before {
-                    f.write_str("before=")?;
-                    Display::fmt(before, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::GetReactionUsers {
                 after,
@@ -2738,6 +2791,7 @@ impl Display for Route<'_> {
                 emoji,
                 limit,
                 message_id,
+                kind,
             } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
@@ -2745,19 +2799,12 @@ impl Display for Route<'_> {
                 Display::fmt(message_id, f)?;
                 f.write_str("/reactions/")?;
                 Display::fmt(&emoji, f)?;
-                f.write_str("?")?;
 
-                if let Some(after) = after {
-                    f.write_str("after=")?;
-                    Display::fmt(after, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())?;
+                query_formatter.write_opt_param("type", kind.as_ref())
             }
             Route::GetSticker { sticker_id } => {
                 f.write_str("stickers/")?;
@@ -2773,24 +2820,12 @@ impl Display for Route<'_> {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
                 f.write_str("/thread-members")?;
-                f.write_str("?")?;
 
-                if let Some(after) = after {
-                    f.write_str("after=")?;
-                    Display::fmt(after, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
-
-                if let Some(with_member) = with_member {
-                    f.write_str("&with_member=")?;
-                    Display::fmt(with_member, f)?;
-                }
-
-                Ok(())
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())?;
+                query_formatter.write_opt_param("with_member", with_member.as_ref())
             }
             Route::GetUserConnections => f.write_str("users/@me/connections"),
             Route::GetUser { user_id } => {
@@ -2842,15 +2877,13 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
-                f.write_str("/members/search?query=")?;
-                Display::fmt(&utf8_percent_encode(query, NON_ALPHANUMERIC), f)?;
+                f.write_str("/members/search")?;
 
-                if let Some(limit) = limit {
-                    f.write_str("&limit=")?;
-                    Display::fmt(limit, f)?;
-                }
+                let mut query_formatter = QueryStringFormatter::new(f);
 
-                Ok(())
+                query_formatter
+                    .write_param("query", &utf8_percent_encode(query, NON_ALPHANUMERIC))?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::SyncGuildIntegration {
                 guild_id,
@@ -2907,6 +2940,12 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/mfa")
+            }
+            Route::GetSKUs { application_id } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+
+                f.write_str("/skus")
             }
         }
     }
@@ -3918,7 +3957,7 @@ mod tests {
             guild_id: GUILD_ID,
             limit: None,
         };
-        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/bans?"));
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/bans"));
 
         let route = Route::GetBansWithParameters {
             after: Some(USER_ID),
@@ -3939,7 +3978,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{GUILD_ID}/bans?&before={USER_ID}")
+            format!("guilds/{GUILD_ID}/bans?before={USER_ID}")
         );
 
         let route = Route::GetBansWithParameters {
@@ -3950,7 +3989,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{GUILD_ID}/bans?&limit={limit}", limit = 100)
+            format!("guilds/{GUILD_ID}/bans?limit={limit}", limit = 100)
         );
 
         let route = Route::GetBansWithParameters {
@@ -3973,6 +4012,32 @@ mod tests {
     fn get_gateway_bot() {
         let route = Route::GetGatewayBot;
         assert_eq!(route.to_string(), "gateway/bot");
+    }
+
+    #[test]
+    fn get_entitlements() {
+        let route = Route::GetEntitlements {
+            after: Some(32),
+            application_id: 1,
+            before: Some(2),
+            exclude_ended: Some(true),
+            guild_id: Some(42),
+            limit: Some(99),
+            sku_ids: &[Id::new(7)],
+            user_id: Some(11),
+        };
+
+        assert_eq!(
+            route.to_string(),
+            "applications/1/entitlements?after=32&before=2&exclude_ended=true&guild_id=42&limit=99&sku_ids=7&user_id=11"
+        );
+    }
+
+    #[test]
+    fn create_test_entitlement() {
+        let route = Route::CreateTestEntitlement { application_id: 1 };
+
+        assert_eq!(route.to_string(), "applications/1/entitlements");
     }
 
     #[test]
@@ -4197,7 +4262,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("channels/{CHANNEL_ID}/thread-members?")
+            format!("channels/{CHANNEL_ID}/thread-members")
         );
 
         let route = Route::GetThreadMembers {
@@ -4374,7 +4439,7 @@ mod tests {
             guild_id: GUILD_ID,
             include_roles: &[],
         };
-        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/prune?"));
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/prune"));
     }
 
     #[test]
@@ -4413,10 +4478,7 @@ mod tests {
             guild_id: GUILD_ID,
             include_roles: &[],
         };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{GUILD_ID}/prune?&days=4")
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/prune?days=4"));
     }
 
     #[test]
@@ -4431,7 +4493,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{GUILD_ID}/prune?&include_roles=1")
+            format!("guilds/{GUILD_ID}/prune?include_roles=1")
         );
     }
 
@@ -4447,7 +4509,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{GUILD_ID}/prune?&include_roles=1,2")
+            format!("guilds/{GUILD_ID}/prune?include_roles=1,2")
         );
     }
 
@@ -4476,7 +4538,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!("guilds/{GUILD_ID}/scheduled-events?")
+            format!("guilds/{GUILD_ID}/scheduled-events")
         );
 
         let route = Route::GetGuildScheduledEvents {
@@ -4565,7 +4627,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{GUILD_ID}/scheduled-events/{SCHEDULED_EVENT_ID}/users?&before={USER_ID}&with_member=true"
+                "guilds/{GUILD_ID}/scheduled-events/{SCHEDULED_EVENT_ID}/users?before={USER_ID}&with_member=true"
             )
         );
 
@@ -4691,5 +4753,11 @@ mod tests {
     fn get_guild_onboarding() {
         let route = Route::GetGuildOnboarding { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/onboarding"));
+    }
+
+    #[test]
+    fn get_skus() {
+        let route = Route::GetSKUs { application_id: 1 };
+        assert_eq!(route.to_string(), format!("applications/1/skus"));
     }
 }

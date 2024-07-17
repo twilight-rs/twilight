@@ -582,7 +582,7 @@ impl Standby {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use tokio_stream::StreamExt;
     /// use twilight_model::{
-    ///     channel::message::ReactionType,
+    ///     channel::message::EmojiReactionType,
     ///     gateway::payload::incoming::ReactionAdd,
     ///     id::Id,
     /// };
@@ -593,7 +593,7 @@ impl Standby {
     /// let message_id = Id::new(123);
     ///
     /// let mut reactions = standby.wait_for_reaction_stream(message_id, |event: &ReactionAdd| {
-    ///     matches!(&event.emoji, ReactionType::Unicode { name } if name == "🤠")
+    ///     matches!(&event.emoji, EmojiReactionType::Unicode { name } if name == "🤠")
     /// });
     ///
     /// while let Some(reaction) = reactions.next().await {
@@ -1066,7 +1066,7 @@ mod tests {
             InteractionType,
         },
         channel::{
-            message::{component::ComponentType, Message, MessageType, ReactionType},
+            message::{component::ComponentType, EmojiReactionType, Message, MessageType},
             Channel, ChannelType,
         },
         gateway::{
@@ -1092,6 +1092,7 @@ mod tests {
                 accent_color: None,
                 avatar: None,
                 avatar_decoration: None,
+                avatar_decoration_data: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,
@@ -1107,6 +1108,7 @@ mod tests {
                 system: None,
                 verified: None,
             },
+            call: None,
             channel_id: Id::new(1),
             components: Vec::new(),
             content: "test".to_owned(),
@@ -1124,6 +1126,7 @@ mod tests {
             mentions: Vec::new(),
             message_snapshots: Vec::new(),
             pinned: false,
+            poll: None,
             reactions: Vec::new(),
             reference: None,
             referenced_message: None,
@@ -1138,8 +1141,10 @@ mod tests {
 
     fn reaction() -> GatewayReaction {
         GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
             channel_id: Id::new(2),
-            emoji: ReactionType::Unicode {
+            emoji: EmojiReactionType::Unicode {
                 name: "🍎".to_owned(),
             },
             guild_id: Some(Id::new(1)),
@@ -1201,6 +1206,7 @@ mod tests {
                     values: Vec::new(),
                 },
             ))),
+            entitlements: Vec::new(),
             guild_id: Some(Id::new(3)),
             guild_locale: None,
             id: Id::new(4),
@@ -1213,6 +1219,7 @@ mod tests {
                 accent_color: None,
                 avatar: None,
                 avatar_decoration: None,
+                avatar_decoration_data: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,

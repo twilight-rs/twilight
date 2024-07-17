@@ -52,6 +52,12 @@ bitflags! {
         ///
         /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
         const AUTO_MODERATION_RULE_UPDATE = 1 << 74;
+        /// An entitlement has been created.
+        const ENTITLEMENT_CREATE = 1 << 76;
+        /// An entitlement has been deleted.
+        const ENTITLEMENT_DELETE = 1 << 77;
+        /// An entitlement has been updated.
+        const ENTITLEMENT_UPDATE = 1 << 78;
         /// User has been banned from a guild.
         const BAN_ADD = 1;
         /// User has been unbanned from a guild.
@@ -132,6 +138,10 @@ bitflags! {
         const MESSAGE_DELETE = 1 << 20;
         /// Multiple messages have been deleted in a channel.
         const MESSAGE_DELETE_BULK = 1 << 21;
+        /// Message poll vote has been added.
+        const MESSAGE_POLL_VOTE_ADD = 1 << 28;
+        /// Message poll vote has been removed.
+        const MESSAGE_POLL_VOTE_REMOVE = 1 << 29;
         /// Message in a channel has been updated.
         const MESSAGE_UPDATE = 1 << 22;
         /// User's presence details are updated.
@@ -276,6 +286,12 @@ bitflags! {
             | Self::MESSAGE_DELETE_BULK.bits()
             | Self::MESSAGE_UPDATE.bits();
 
+         /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_POLLS`] and [`Intents::GUILD_MESSAGE_POLLS`].
+        ///
+        /// [`Intents::DIRECT_MESSAGE_POLLS`]: crate::Intents::DIRECT_MESSAGE_POLLS
+        /// [`Intents::GUILD_MESSAGE_POLLS`]: crate::Intents::GUILD_MESSAGE_POLLS
+        const MESSAGE_POLLS = Self::MESSAGE_POLL_VOTE_ADD.bits() | Self::MESSAGE_POLL_VOTE_REMOVE.bits();
+
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_REACTIONS`].
         ///
         /// [`Intents::GUILD_MESSAGE_REACTIONS`]: crate::Intents::GUILD_MESSAGE_REACTIONS
@@ -330,6 +346,9 @@ impl From<EventType> for EventTypeFlags {
             EventType::ChannelPinsUpdate => Self::CHANNEL_PINS_UPDATE,
             EventType::ChannelUpdate => Self::CHANNEL_UPDATE,
             EventType::CommandPermissionsUpdate => Self::COMMAND_PERMISSIONS_UPDATE,
+            EventType::EntitlementCreate => Self::ENTITLEMENT_CREATE,
+            EventType::EntitlementDelete => Self::ENTITLEMENT_DELETE,
+            EventType::EntitlementUpdate => Self::ENTITLEMENT_UPDATE,
             EventType::GatewayClose => Self::empty(),
             EventType::GatewayHeartbeat => Self::GATEWAY_HEARTBEAT,
             EventType::GatewayHeartbeatAck => Self::GATEWAY_HEARTBEAT_ACK,
@@ -361,6 +380,8 @@ impl From<EventType> for EventTypeFlags {
             EventType::MessageCreate => Self::MESSAGE_CREATE,
             EventType::MessageDelete => Self::MESSAGE_DELETE,
             EventType::MessageDeleteBulk => Self::MESSAGE_DELETE_BULK,
+            EventType::MessagePollVoteAdd => Self::MESSAGE_POLL_VOTE_ADD,
+            EventType::MessagePollVoteRemove => Self::MESSAGE_POLL_VOTE_REMOVE,
             EventType::MessageUpdate => Self::MESSAGE_UPDATE,
             EventType::PresenceUpdate => Self::PRESENCE_UPDATE,
             EventType::ReactionAdd => Self::REACTION_ADD,

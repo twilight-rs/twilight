@@ -18,6 +18,8 @@ pub enum AutoModerationTriggerType {
     KeywordPreset,
     /// Check if content contains more unique mentions than allowed.
     MentionSpam,
+    /// Check if member profile contains words from a user defined list of keywords.
+    MemberProfile,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -29,6 +31,7 @@ impl From<u8> for AutoModerationTriggerType {
             3 => Self::Spam,
             4 => Self::KeywordPreset,
             5 => Self::MentionSpam,
+            6 => Self::MemberProfile,
             _ => Self::Unknown(value),
         }
     }
@@ -41,6 +44,7 @@ impl From<AutoModerationTriggerType> for u8 {
             AutoModerationTriggerType::Spam => 3,
             AutoModerationTriggerType::KeywordPreset => 4,
             AutoModerationTriggerType::MentionSpam => 5,
+            AutoModerationTriggerType::MemberProfile => 6,
             AutoModerationTriggerType::Unknown(unknown) => unknown,
         }
     }
@@ -72,6 +76,7 @@ mod tests {
         assert_eq!(3, u8::from(AutoModerationTriggerType::Spam));
         assert_eq!(4, u8::from(AutoModerationTriggerType::KeywordPreset));
         assert_eq!(5, u8::from(AutoModerationTriggerType::MentionSpam));
+        assert_eq!(6, u8::from(AutoModerationTriggerType::MemberProfile));
         assert_eq!(250, u8::from(AutoModerationTriggerType::Unknown(250)));
     }
 }

@@ -118,6 +118,6 @@ mod tests {
 
         assert!(!days_valid(0));
         assert!(days_valid(1));
-        assert!(!days_valid(u16::max_value()));
+        assert!(!days_valid(u16::MAX));
     }
 }

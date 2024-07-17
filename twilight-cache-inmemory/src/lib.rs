@@ -976,6 +976,9 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::BanAdd(_)
             | Event::BanRemove(_)
             | Event::CommandPermissionsUpdate(_)
+            | Event::EntitlementCreate(_)
+            | Event::EntitlementDelete(_)
+            | Event::EntitlementUpdate(_)
             | Event::GatewayClose(_)
             | Event::GatewayHeartbeat(_)
             | Event::GatewayHeartbeatAck
@@ -991,6 +994,8 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::GuildScheduledEventUserRemove(_)
             | Event::InviteCreate(_)
             | Event::InviteDelete(_)
+            | Event::MessagePollVoteAdd(_)
+            | Event::MessagePollVoteRemove(_)
             | Event::Resumed
             | Event::ThreadMembersUpdate(_)
             | Event::ThreadMemberUpdate(_)
