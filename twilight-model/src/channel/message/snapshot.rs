@@ -57,6 +57,7 @@ mod tests {
                     id: Id::new(1),
                     proxy_url: "https://example.com".to_owned(),
                     size: 1000,
+                    title: None,
                     url: "https://example.com".to_owned(),
                     waveform: None,
                     width: Some(100),
