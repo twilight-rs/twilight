@@ -402,7 +402,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         }
 
         let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
-        
+
         Ok(match kind {
             // Required fields:
             // - components
@@ -934,7 +934,7 @@ mod tests {
             url: Some("https://twilight.rs".to_owned()),
             sku_id: None,
         });
-        
+
         serde_test::assert_tokens(
             &value,
             &[

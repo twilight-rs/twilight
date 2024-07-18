@@ -7,7 +7,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use crate::channel::message::component::ButtonStyle;
 
 /// Interaction response sent to Discord.
 ///
@@ -103,9 +102,11 @@ pub enum InteractionResponseType {
     Modal = 9,
     /// Respond to an interaction with an upgrade button, only available
     /// for apps with monetization enabled
-    #[deprecated(
-        note = "This response type has been deprecated by Discord, please use a [Button] with [ButtonStyle::Premium] instead."
-    )]
+    ///
+    /// Please send a [`InteractionResponseType::ChannelMessageWithSource`]
+    /// with an [`Button`](crate::channel::message::component::Button) with the style [`ButtonStyle::Premium`](crate::channel::message::component::ButtonStyle)
+    /// instead.
+    #[deprecated(note = "This response type has been deprecated by Discord.")]
     PremiumRequired = 10,
 }
 
