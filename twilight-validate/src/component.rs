@@ -1214,6 +1214,7 @@ mod tests {
         ButtonStyle::Success,
         ButtonStyle::Danger,
         ButtonStyle::Link,
+        ButtonStyle::Premium,
     ];
 
     #[test]
@@ -1227,6 +1228,7 @@ mod tests {
             label: Some("Read".into()),
             style: ButtonStyle::Link,
             url: Some("https://abebooks.com".into()),
+            sku_id: None,
         };
 
         let select_menu = SelectMenu {
@@ -1285,6 +1287,7 @@ mod tests {
             label: None,
             style: ButtonStyle::Primary,
             url: Some("https://twilight.rs".to_owned()),
+            sku_id: None,
         };
 
         assert!(matches!(
@@ -1307,6 +1310,7 @@ mod tests {
                 label: Some("some label".to_owned()),
                 style: *style,
                 url: None,
+                sku_id: None,
             };
 
             assert!(matches!(
