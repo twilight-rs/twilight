@@ -103,8 +103,6 @@ pub enum InteractionResponseType {
     Modal = 9,
     /// Respond to an interaction with an upgrade button, only available
     /// for apps with monetization enabled
-    /// 
-    /// Deprecated: This response type has been deprecated by Discord, please use a [Button] with [ButtonStyle::Premium] instead.
     #[deprecated(
         note = "This response type has been deprecated by Discord, please use a [Button] with [ButtonStyle::Premium] instead."
     )]
