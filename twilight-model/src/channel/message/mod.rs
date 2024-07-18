@@ -16,7 +16,9 @@ mod mention;
 mod reaction;
 mod reaction_type;
 mod reference;
+mod reference_type;
 mod role_subscription_data;
+mod snapshot;
 
 pub use self::{
     activity::{MessageActivity, MessageActivityType},
@@ -32,11 +34,12 @@ pub use self::{
     reaction::{EmojiReactionType, Reaction, ReactionCountDetails},
     reaction_type::ReactionType,
     reference::MessageReference,
+    reference_type::MessageReferenceType,
     role_subscription_data::RoleSubscriptionData,
-    sticker::Sticker,
+    snapshot::MessageSnapshot,
+    sticker::{MessageSticker, Sticker},
 };
 
-use self::sticker::MessageSticker;
 use crate::{
     channel::{Attachment, Channel, ChannelMention},
     guild::PartialMember,
@@ -164,6 +167,10 @@ pub struct Message {
     pub mention_roles: Vec<Id<RoleMarker>>,
     /// Users mentioned in the message.
     pub mentions: Vec<Mention>,
+    /// The message associated with the [`MessageReference`]. This is a minimal subset
+    /// of fields in a message (e.g. author is excluded.).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub message_snapshots: Vec<MessageSnapshot>,
     /// Whether the message is pinned.
     pub pinned: bool,
     /// The poll associated with the message.
@@ -207,6 +214,7 @@ pub struct Message {
 mod tests {
     use super::{
         reaction::ReactionCountDetails,
+        reference_type::MessageReferenceType,
         sticker::{MessageSticker, StickerFormatType},
         EmojiReactionType, Message, MessageActivity, MessageActivityType, MessageApplication,
         MessageCall, MessageFlags, MessageReference, MessageType, Reaction,
@@ -285,6 +293,7 @@ mod tests {
             mention_everyone: false,
             mention_roles: Vec::new(),
             mentions: Vec::new(),
+            message_snapshots: Vec::new(),
             pinned: false,
             poll: None,
             reactions: Vec::new(),
@@ -510,6 +519,7 @@ mod tests {
             mention_everyone: false,
             mention_roles: Vec::new(),
             mentions: Vec::new(),
+            message_snapshots: Vec::new(),
             pinned: false,
             poll: None,
             reactions: vec![Reaction {
@@ -528,6 +538,7 @@ mod tests {
             reference: Some(MessageReference {
                 channel_id: Some(Id::new(1)),
                 guild_id: None,
+                kind: MessageReferenceType::Default,
                 message_id: None,
                 fail_if_not_exists: None,
             }),
@@ -734,12 +745,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "MessageReference",
-                    len: 1,
+                    len: 2,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
+                Token::Str("type"),
+                Token::U8(0),
                 Token::StructEnd,
                 Token::Str("sticker_items"),
                 Token::Seq { len: Some(1) },

@@ -1124,6 +1124,7 @@ mod tests {
             mention_everyone: false,
             mention_roles: Vec::new(),
             mentions: Vec::new(),
+            message_snapshots: Vec::new(),
             pinned: false,
             poll: None,
             reactions: Vec::new(),

@@ -89,6 +89,7 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
         mention_everyone: false,
         mention_roles: Vec::new(),
         mentions: Vec::new(),
+        message_snapshots: Vec::new(),
         pinned: false,
         poll: None,
         reactions: Vec::new(),
