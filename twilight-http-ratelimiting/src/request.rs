@@ -123,6 +123,8 @@ pub enum Path {
     ApplicationCommandId(u64),
     /// Operating on application emojis.
     ApplicationEmojis(u64),
+    /// Operating on a specific application emoji.
+    ApplicationEmoji(u64),
     /// Operating on commands in a guild.
     ApplicationGuildCommand(u64),
     /// Operating on a specific command in a guild.
