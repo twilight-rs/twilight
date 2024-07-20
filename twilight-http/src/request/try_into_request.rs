@@ -14,6 +14,7 @@ mod private {
                 GetGuildCommandPermissions, GetGuildCommands, SetGlobalCommands, SetGuildCommands,
                 UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
             },
+            emoji::list_emojis::ListApplicationEmojis,
             interaction::{
                 CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
                 GetResponse, UpdateFollowup, UpdateResponse,
@@ -170,6 +171,7 @@ mod private {
     impl Sealed for ExecuteWebhookAndWait<'_> {}
     impl Sealed for FollowNewsChannel<'_> {}
     impl Sealed for GetActiveThreads<'_> {}
+    impl Sealed for ListApplicationEmojis<'_> {}
     impl Sealed for GetAnswerVoters<'_> {}
     impl Sealed for GetAuditLog<'_> {}
     impl Sealed for GetAutoModerationRule<'_> {}
