@@ -2773,7 +2773,9 @@ impl Client {
     ///
     /// let application_id = Id::new(1);
     ///
-    /// client.add_application_emoji(application_id, "emoji name", "emoji image").await?;
+    /// client
+    ///     .add_application_emoji(application_id, "emoji name", "emoji image")
+    ///     .await?;
     ///
     /// # Ok(()) }
     /// ```
@@ -2801,7 +2803,9 @@ impl Client {
     /// let application_id = Id::new(1);
     /// let emoji_id = Id::new(2);
     ///
-    /// client.update_application_emoji(application_id, emoji_id, "new emoji name").await?;
+    /// client
+    ///     .update_application_emoji(application_id, emoji_id, "new emoji name")
+    ///     .await?;
     ///
     /// # Ok(()) }
     /// ```
@@ -2829,7 +2833,9 @@ impl Client {
     /// let application_id = Id::new(1);
     /// let emoji_id = Id::new(2);
     ///
-    /// client.delete_application_emoji(application_id, emoji_id).await?;
+    /// client
+    ///     .delete_application_emoji(application_id, emoji_id)
+    ///     .await?;
     ///
     /// # Ok(()) }
     /// ```
