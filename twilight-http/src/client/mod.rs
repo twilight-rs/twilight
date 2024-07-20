@@ -5,7 +5,10 @@ mod interaction;
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 use crate::request::application::{
-    emoji::list_emojis::ListApplicationEmojis,
+    emoji::{
+        add_emoji::AddApplicationEmoji, delete_emoji::DeleteApplicationEmoji,
+        list_emojis::ListApplicationEmojis, update_emoji::UpdateApplicationEmoji,
+    },
     monetization::{
         CreateTestEntitlement, CreateTestEntitlementOwner, DeleteTestEntitlement, GetEntitlements,
         GetSKUs,
@@ -2754,6 +2757,88 @@ impl Client {
         application_id: Id<ApplicationMarker>,
     ) -> ListApplicationEmojis<'_> {
         ListApplicationEmojis::new(self, application_id)
+    }
+
+    /// Adds an emoji to an application
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let application_id = Id::new(1);
+    ///
+    /// client.add_application_emoji(application_id, "emoji name", "emoji image").await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    pub const fn add_application_emoji<'a>(
+        &'a self,
+        application_id: Id<ApplicationMarker>,
+        name: &'a str,
+        image: &'a str,
+    ) -> AddApplicationEmoji<'a> {
+        AddApplicationEmoji::new(self, application_id, name, image)
+    }
+
+    /// Updates an emoji associated with an application.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let application_id = Id::new(1);
+    /// let emoji_id = Id::new(2);
+    ///
+    /// client.update_application_emoji(application_id, emoji_id, "new emoji name").await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    pub const fn update_application_emoji<'a>(
+        &'a self,
+        application_id: Id<ApplicationMarker>,
+        emoji_id: Id<EmojiMarker>,
+        name: &'a str,
+    ) -> UpdateApplicationEmoji<'a> {
+        UpdateApplicationEmoji::new(self, application_id, emoji_id, name)
+    }
+
+    /// Deletes an emoji associated with an application.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let application_id = Id::new(1);
+    /// let emoji_id = Id::new(2);
+    ///
+    /// client.delete_application_emoji(application_id, emoji_id).await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    pub const fn delete_application_emoji(
+        &self,
+        application_id: Id<ApplicationMarker>,
+        emoji_id: Id<EmojiMarker>,
+    ) -> DeleteApplicationEmoji<'_> {
+        DeleteApplicationEmoji::new(self, application_id, emoji_id)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].
