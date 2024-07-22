@@ -21,6 +21,8 @@ pub use self::{
 
 use super::EmojiReactionType;
 use crate::channel::ChannelType;
+use crate::id::marker::SkuMarker;
+use crate::id::Id;
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{Error as SerError, SerializeStruct},
@@ -250,7 +252,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut placeholder: Option<Option<String>> = None;
         let mut required: Option<Option<bool>> = None;
         let mut url: Option<Option<String>> = None;
-        let mut sku_id: Option<Option<Value>> = None;
+        let mut sku_id: Option<Id<SkuMarker>> = None;
         let mut value: Option<Option<String>> = None;
 
         loop {
@@ -389,7 +391,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                         return Err(DeError::duplicate_field("sku_id"));
                     }
 
-                    sku_id = Some(map.next_value()?);
+                    sku_id = map.next_value()?;
                 }
                 Field::Value => {
                     if value.is_some() {
@@ -428,12 +430,6 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     .map_err(DeserializerError::into_error)?;
 
                 let custom_id = custom_id
-                    .flatten()
-                    .map(Value::deserialize_into)
-                    .transpose()
-                    .map_err(DeserializerError::into_error)?;
-
-                let sku_id = sku_id
                     .flatten()
                     .map(Value::deserialize_into)
                     .transpose()
