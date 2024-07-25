@@ -694,8 +694,18 @@ impl Drop for Connection {
 const TWILIGHT_CLIENT_NAME: &str = concat!("twilight-lavalink/", env!("CARGO_PKG_VERSION"));
 
 fn connect_request(state: &NodeConfig) -> Result<ClientBuilder, NodeError> {
+    let websocket = if cfg!(any(
+        feature = "native-tls",
+        feature = "rustls-native-roots",
+        feature = "rustls-webpki-roots"
+    )) {
+        "wss"
+    } else {
+        "ws"
+    };
+
     let mut builder = ClientBuilder::new()
-        .uri(&format!("ws://{}/v4/websocket", state.address))
+        .uri(&format!("{}://{}/v4/websocket", websocket, state.address))
         .map_err(|source| NodeError {
             kind: NodeErrorType::BuildingConnectionRequest,
             source: Some(Box::new(source)),
