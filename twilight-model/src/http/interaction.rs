@@ -1,4 +1,5 @@
 //! Models used when responding to interactions over HTTP.
+#![allow(deprecated)]
 
 use super::attachment::Attachment;
 use crate::{
@@ -109,9 +110,6 @@ pub enum InteractionResponseType {
     #[deprecated(note = "This response type has been deprecated by Discord.")]
     PremiumRequired = 10,
 }
-
-#[allow(deprecated, unused_imports)]
-use InteractionResponseType::PremiumRequired;
 
 #[cfg(test)]
 mod tests {
