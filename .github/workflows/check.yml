@@ -36,6 +36,9 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
 
+      - name: Lower Tokio version to keep MSRV at 1.67
+        run: cargo add "tokio@>=1.19.0,<1.39.0" -p twilight-gateway
+
       - name: Output processor info
         run: cat /proc/cpuinfo
 
