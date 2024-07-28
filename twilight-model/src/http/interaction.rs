@@ -107,6 +107,7 @@ pub enum InteractionResponseType {
     /// with an [`Button`](crate::channel::message::component::Button) with the style [`ButtonStyle::Premium`](crate::channel::message::component::ButtonStyle)
     /// instead.
     #[deprecated(note = "This response type has been deprecated by Discord.")]
+    #[allow(deprecated)]
     PremiumRequired = 10,
 }
 
