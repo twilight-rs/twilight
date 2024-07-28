@@ -1045,8 +1045,8 @@ mod tests {
     /// In particular, we want to test that:
     ///
     /// - if a member is timed out they will be limited to the intersection of
-    /// the [`Permissions::READ_MESSAGE_HISTORY`] and
-    /// [`Permissions::VIEW_CHANNEL`] permissions on a [guild level][`root`]
+    ///   the [`Permissions::READ_MESSAGE_HISTORY`] and
+    ///   [`Permissions::VIEW_CHANNEL`] permissions on a [guild level][`root`]
     /// - the same is true on a [channel level][`in_channel`]
     /// - administrators are never timed out
     /// - checking whether the member's communication is disabled is configurable

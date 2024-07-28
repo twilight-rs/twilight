@@ -62,7 +62,7 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     /// # Caveats
     ///
     /// - You are able to set `request_to_speak_timestamp` to any present or
-    /// future time.
+    ///   future time.
     pub const fn request_to_speak_timestamp(mut self, request_to_speak_timestamp: &'a str) -> Self {
         if request_to_speak_timestamp.is_empty() {
             self.fields.request_to_speak_timestamp = Some(Nullable(None));
@@ -79,7 +79,7 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     /// # Caveats
     ///
     /// - You must have the `MUTE_MEMBERS` permission to unsuppress yourself.
-    /// You can always suppress yourself.
+    ///   You can always suppress yourself.
     pub const fn suppress(mut self) -> Self {
         self.fields.suppress = Some(true);
 
