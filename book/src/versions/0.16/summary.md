@@ -218,11 +218,6 @@ We also changed the RNG used by our crates to [fastrand].
 
 All APIs deprecated since 0.14.x were removed.
 
-## MSRV
-
-All twilight ecosystem crates now target a MSRV of rustc 1.70. This was necessary
-due to MSRV increases in our dependencies.
-
 ## Removal of support for undocumented gateway events
 
 Support for the undocumented `GIFT_CODE_UPDATE` and `PRESENCES_REPLACE` events
