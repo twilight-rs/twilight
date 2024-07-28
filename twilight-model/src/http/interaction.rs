@@ -110,7 +110,7 @@ pub enum InteractionResponseType {
     PremiumRequired = 10,
 }
 
-#[allow(deprecated)]
+#[allow(deprecated, unused_imports)]
 use InteractionResponseType::PremiumRequired;
 
 #[cfg(test)]
