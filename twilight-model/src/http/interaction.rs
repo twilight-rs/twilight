@@ -79,7 +79,6 @@ pub struct InteractionResponseData {
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
-#[allow(deprecated)]
 pub enum InteractionResponseType {
     /// Used when responding to a Ping from Discord.
     Pong = 1,
@@ -107,7 +106,6 @@ pub enum InteractionResponseType {
     /// Please send a [`InteractionResponseType::ChannelMessageWithSource`]
     /// with an [`Button`](crate::channel::message::component::Button) with the style [`ButtonStyle::Premium`](crate::channel::message::component::ButtonStyle)
     /// instead.
-    #[deprecated(note = "This response type has been deprecated by Discord.")]
     PremiumRequired = 10,
 }
 
