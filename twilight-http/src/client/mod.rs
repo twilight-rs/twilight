@@ -6,8 +6,7 @@ pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 use crate::request::application::{
     emoji::{
-        add_emoji::AddApplicationEmoji, delete_emoji::DeleteApplicationEmoji,
-        list_emojis::ListApplicationEmojis, update_emoji::UpdateApplicationEmoji,
+        AddApplicationEmoji, DeleteApplicationEmoji, ListApplicationEmojis, UpdateApplicationEmoji,
     },
     monetization::{
         CreateTestEntitlement, CreateTestEntitlementOwner, DeleteTestEntitlement, GetEntitlements,

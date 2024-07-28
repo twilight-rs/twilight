@@ -15,8 +15,8 @@ mod private {
                 UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
             },
             emoji::{
-                add_emoji::AddApplicationEmoji, delete_emoji::DeleteApplicationEmoji,
-                list_emojis::ListApplicationEmojis, update_emoji::UpdateApplicationEmoji,
+                AddApplicationEmoji, DeleteApplicationEmoji, ListApplicationEmojis,
+                UpdateApplicationEmoji,
             },
             interaction::{
                 CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
