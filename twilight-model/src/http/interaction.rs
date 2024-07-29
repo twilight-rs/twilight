@@ -1,4 +1,5 @@
 //! Models used when responding to interactions over HTTP.
+#![allow(deprecated)]
 
 use super::attachment::Attachment;
 use crate::{
@@ -106,7 +107,6 @@ pub enum InteractionResponseType {
     /// Please send a [`InteractionResponseType::ChannelMessageWithSource`]
     /// with an [`Button`](crate::channel::message::component::Button) with the style [`ButtonStyle::Premium`](crate::channel::message::component::ButtonStyle)
     /// instead.
-    #[allow(deprecated)]
     #[deprecated(note = "This response type has been deprecated by Discord.")]
     PremiumRequired = 10,
 }
