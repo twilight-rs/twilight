@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `twilight-gateway/src/shard.rs`."><title>shard.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="twilight_gateway" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (032be6f7b 2024-07-16)" data-channel="nightly" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `twilight-gateway/src/shard.rs`."><title>shard.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-99073656bbb10eb3.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="twilight_gateway" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (612a33f20 2024-07-29)" data-channel="nightly" data-search-js="search-ef54e092fea9c776.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-2a506944c89e7bb4.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -976,8 +976,6 @@
 <a href="#976" id="976">976</a>
 <a href="#977" id="977">977</a>
 <a href="#978" id="978">978</a>
-<a href="#979" id="979">979</a>
-<a href="#980" id="980">980</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Primary logic and implementation details of Discord gateway websocket
 //! connections.
 //!
@@ -1417,8 +1415,7 @@
     /// continue showing the bot as online until its presence times out.
     ///
     /// To read all remaining messages, continue calling [`poll_next`] until it
-    /// returns [`Message::Close`] or a [`ReceiveMessageErrorType::WebSocket`]
-    /// error type.
+    /// returns [`Message::Close`].
     ///
     /// # Example
     ///
@@ -1437,7 +1434,6 @@
     ///     match item {
     ///         Ok(Message::Close(_)) =&gt; break,
     ///         Ok(Message::Text(_)) =&gt; unimplemented!(),
-    ///         Err(source) if matches!(source.kind(), ReceiveMessageErrorType::WebSocket) =&gt; break,
     ///         Err(source) =&gt; unimplemented!(),
     ///     }
     /// }
@@ -1530,19 +1526,16 @@
     }
 
     <span class="doccomment">/// Send and flush the pending message.
-    </span><span class="kw">fn </span>poll_flush_pending(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), ReceiveMessageError&gt;&gt; {
+    </span><span class="kw">fn </span>poll_flush_pending(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), WebsocketError&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.pending.is_none() {
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
         }
 
-        <span class="macro">ready!</span>(Pin::new(<span class="self">self</span>.connection.as_mut().unwrap()).poll_ready(cx)).map_err(|source| {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="macro">ready!</span>(Pin::new(<span class="self">self</span>.connection.as_mut().unwrap()).poll_ready(cx)) {
             <span class="self">self</span>.disconnect(CloseInitiator::Transport);
             <span class="self">self</span>.connection = <span class="prelude-val">None</span>;
-            ReceiveMessageError::from_websocket(source)
-        })<span class="question-mark">?</span>;
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(e));
+        }
 
         <span class="kw">let </span>pending = <span class="self">self</span>.pending.as_mut().unwrap();
 
@@ -1554,18 +1547,17 @@
             }
 
             <span class="kw">let </span>ws_message = pending.gateway_event.take().unwrap().into_websocket_msg();
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(source) = Pin::new(<span class="self">self</span>.connection.as_mut().unwrap()).start_send(ws_message)
-            {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = Pin::new(<span class="self">self</span>.connection.as_mut().unwrap()).start_send(ws_message) {
                 <span class="self">self</span>.disconnect(CloseInitiator::Transport);
                 <span class="self">self</span>.connection = <span class="prelude-val">None</span>;
-                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(ReceiveMessageError::from_websocket(source)));
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(e));
             }
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(source) = <span class="macro">ready!</span>(Pin::new(<span class="self">self</span>.connection.as_mut().unwrap()).poll_flush(cx)) {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="macro">ready!</span>(Pin::new(<span class="self">self</span>.connection.as_mut().unwrap()).poll_flush(cx)) {
             <span class="self">self</span>.disconnect(CloseInitiator::Transport);
             <span class="self">self</span>.connection = <span class="prelude-val">None</span>;
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(ReceiveMessageError::from_websocket(source)));
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(e));
         }
 
         <span class="kw">if </span>pending.is_heartbeat {
@@ -1778,7 +1770,9 @@
                 <span class="kw">_ </span>=&gt; {}
             }
 
-            <span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx))<span class="question-mark">?</span>;
+            <span class="kw">if </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx)).is_err() {
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(Message::ABNORMAL_CLOSE)));
+            }
 
             <span class="kw">if </span>!<span class="self">self</span>.state.is_disconnected() {
                 <span class="kw">if let </span>Poll::Ready(frame) = <span class="self">self</span>.user_channel.close_rx.poll_recv(cx) {
@@ -1787,7 +1781,9 @@
                     <span class="macro">tracing::debug!</span>(<span class="string">"sending close frame from user channel"</span>);
                     <span class="self">self</span>.disconnect(CloseInitiator::Shard(frame));
 
-                    <span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx))<span class="question-mark">?</span>;
+                    <span class="kw">if </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx)).is_err() {
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(Message::ABNORMAL_CLOSE)));
+                    }
                 }
             }
 
@@ -1814,7 +1810,9 @@
                     <span class="self">self</span>.heartbeat_interval_event = <span class="bool-val">false</span>;
                 }
 
-                <span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx))<span class="question-mark">?</span>;
+                <span class="kw">if </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx)).is_err() {
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(Message::ABNORMAL_CLOSE)));
+                }
             }
 
             <span class="kw">let </span>not_ratelimited = <span class="self">self
@@ -1853,7 +1851,9 @@
                     );
                     <span class="self">self</span>.identify_rx = <span class="prelude-val">None</span>;
 
-                    <span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx))<span class="question-mark">?</span>;
+                    <span class="kw">if </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx)).is_err() {
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(Message::ABNORMAL_CLOSE)));
+                    }
                 }
             }
 
@@ -1864,7 +1864,9 @@
                     <span class="macro">tracing::debug!</span>(<span class="string">"sending command from user channel"</span>);
                     <span class="self">self</span>.pending = Pending::text(command, <span class="bool-val">false</span>);
 
-                    <span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx))<span class="question-mark">?</span>;
+                    <span class="kw">if </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_flush_pending(cx)).is_err() {
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(Message::ABNORMAL_CLOSE)));
+                    }
                 }
             }
 
@@ -1901,24 +1903,18 @@
                 {
                     <span class="kw">continue
                 </span>}
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(source)) =&gt; {
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; {
                     <span class="self">self</span>.disconnect(CloseInitiator::Transport);
-
-                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(ReceiveMessageError {
-                        kind: ReceiveMessageErrorType::WebSocket,
-                        source: <span class="prelude-val">Some</span>(Box::new(source)),
-                    })));
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(Message::ABNORMAL_CLOSE)));
                 }
                 <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">let </span>res = <span class="macro">ready!</span>(Pin::new(<span class="self">self</span>.connection.as_mut().unwrap()).poll_close(cx));
+                    <span class="kw">_ </span>= <span class="macro">ready!</span>(Pin::new(<span class="self">self</span>.connection.as_mut().unwrap()).poll_close(cx));
                     <span class="macro">tracing::debug!</span>(<span class="string">"gateway WebSocket connection closed"</span>);
                     <span class="comment">// Unclean closure.
                     </span><span class="kw">if </span>!<span class="self">self</span>.state.is_disconnected() {
                         <span class="self">self</span>.disconnect(CloseInitiator::Transport);
                     }
                     <span class="self">self</span>.connection = <span class="prelude-val">None</span>;
-
-                    res.map_err(ReceiveMessageError::from_websocket)<span class="question-mark">?</span>;
                 }
             }
         };
