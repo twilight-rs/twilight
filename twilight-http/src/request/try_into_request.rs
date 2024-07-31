@@ -14,6 +14,10 @@ mod private {
                 GetGuildCommandPermissions, GetGuildCommands, SetGlobalCommands, SetGuildCommands,
                 UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
             },
+            emoji::{
+                AddApplicationEmoji, DeleteApplicationEmoji, ListApplicationEmojis,
+                UpdateApplicationEmoji,
+            },
             interaction::{
                 CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
                 GetResponse, UpdateFollowup, UpdateResponse,
@@ -99,6 +103,7 @@ mod private {
 
     pub trait Sealed {}
 
+    impl Sealed for AddApplicationEmoji<'_> {}
     impl Sealed for AddGuildMember<'_> {}
     impl Sealed for AddRoleToMember<'_> {}
     impl Sealed for AddThreadMember<'_> {}
@@ -165,11 +170,14 @@ mod private {
     impl Sealed for DeleteWebhook<'_> {}
     impl Sealed for DeleteWebhookMessage<'_> {}
     impl Sealed for DeleteTestEntitlement<'_> {}
+    impl Sealed for DeleteApplicationEmoji<'_> {}
+    impl Sealed for UpdateApplicationEmoji<'_> {}
     impl Sealed for EndPoll<'_> {}
     impl Sealed for ExecuteWebhook<'_> {}
     impl Sealed for ExecuteWebhookAndWait<'_> {}
     impl Sealed for FollowNewsChannel<'_> {}
     impl Sealed for GetActiveThreads<'_> {}
+    impl Sealed for ListApplicationEmojis<'_> {}
     impl Sealed for GetAnswerVoters<'_> {}
     impl Sealed for GetAuditLog<'_> {}
     impl Sealed for GetAutoModerationRule<'_> {}

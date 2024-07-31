@@ -14,6 +14,11 @@ use twilight_model::id::{
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum Route<'a> {
+    /// Route information to add an emoji to an application.
+    AddApplicationEmoji {
+        /// The ID of the application.
+        application_id: u64,
+    },
     /// Route information to add a user to a guild.
     AddGuildMember {
         guild_id: u64,
@@ -176,6 +181,13 @@ pub enum Route<'a> {
         channel_id: u64,
         /// The ID of the message.
         message_id: u64,
+    },
+    /// Route information to delete an application emoji.
+    DeleteApplicationEmoji {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the emoji.
+        emoji_id: u64,
     },
     /// Route information to delete an auto moderation rule for a guild.
     DeleteAutoModerationRule {
@@ -355,6 +367,13 @@ pub enum Route<'a> {
         /// The ID of the entitlement.
         entitlement_id: u64,
     },
+    /// Route information to edit an application emoji.
+    UpdateApplicationEmoji {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the emoji.
+        emoji_id: u64,
+    },
     /// Route information to end a poll.
     EndPoll {
         channel_id: u64,
@@ -380,6 +399,10 @@ pub enum Route<'a> {
     GetActiveThreads {
         /// ID of the guild.
         guild_id: u64,
+    },
+    GetApplicationEmojis {
+        /// The ID of the application.
+        application_id: u64,
     },
     /// Route information for fetching poll vote information.
     GetAnswerVoters {
@@ -1187,6 +1210,7 @@ impl<'a> Route<'a> {
     pub const fn method(&self) -> Method {
         match self {
             Self::DeleteAutoModerationRule { .. }
+            | Self::DeleteApplicationEmoji { .. }
             | Self::DeleteBan { .. }
             | Self::DeleteChannel { .. }
             | Self::DeleteEmoji { .. }
@@ -1217,6 +1241,7 @@ impl<'a> Route<'a> {
             | Self::RemoveThreadMember { .. }
             | Self::UnpinMessage { .. } => Method::Delete,
             Self::GetActiveThreads { .. }
+            | Self::GetApplicationEmojis { .. }
             | Self::GetAnswerVoters { .. }
             | Self::GetAuditLogs { .. }
             | Self::GetAutoModerationRule { .. }
@@ -1317,8 +1342,10 @@ impl<'a> Route<'a> {
             | Self::UpdateUserVoiceState { .. }
             | Self::UpdateWebhookMessage { .. }
             | Self::UpdateCurrentUserApplication
+            | Self::UpdateApplicationEmoji { .. }
             | Self::UpdateWebhook { .. } => Method::Patch,
             Self::CreateChannel { .. }
+            | Self::AddApplicationEmoji { .. }
             | Self::CreateGlobalCommand { .. }
             | Self::CreateGuildCommand { .. }
             | Self::CreateEmoji { .. }
@@ -1595,6 +1622,12 @@ impl<'a> Route<'a> {
             | Self::UpdateWebhook { webhook_id, .. } => Path::WebhooksId(webhook_id),
             Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(channel_id),
             Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(guild_id),
+            Self::GetApplicationEmojis { application_id, .. }
+            | Self::UpdateApplicationEmoji { application_id, .. }
+            | Self::AddApplicationEmoji { application_id }
+            | Self::DeleteApplicationEmoji { application_id, .. } => {
+                Path::ApplicationEmojis(application_id)
+            }
             Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(guild_id),
             Self::GetBan { guild_id, .. } => Path::GuildsIdBansId(guild_id),
             Self::GetBans { guild_id } | Self::GetBansWithParameters { guild_id, .. } => {
@@ -2402,6 +2435,27 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/threads/active")
+            }
+            Route::DeleteApplicationEmoji {
+                application_id,
+                emoji_id,
+            }
+            | Route::UpdateApplicationEmoji {
+                application_id,
+                emoji_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/emojis/")?;
+
+                Display::fmt(emoji_id, f)
+            }
+            Route::GetApplicationEmojis { application_id }
+            | Route::AddApplicationEmoji { application_id } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+
+                f.write_str("/emojis")
             }
             Route::GetAuditLogs {
                 action_type,
