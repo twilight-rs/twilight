@@ -20,7 +20,10 @@ pub use self::{
 };
 
 use super::EmojiReactionType;
-use crate::{channel::ChannelType, id::{Id, marker::SkuMarker}};
+use crate::{
+    channel::ChannelType, 
+    id::{Id, marker::SkuMarker}
+};
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{Error as SerError, SerializeStruct},
