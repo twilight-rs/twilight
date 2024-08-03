@@ -1,6 +1,4 @@
-use crate::channel::message::EmojiReactionType;
-use crate::id::marker::SkuMarker;
-use crate::id::Id;
+use crate::{channel::message::EmojiReactionType, id::{Id, marker::SkuMarker}};
 use serde::{Deserialize, Serialize};
 
 /// Clickable [`Component`] below messages.
