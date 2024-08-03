@@ -1,6 +1,7 @@
 //! Models to deserialize responses into and functions to create `http` crate
 //! requests.
 
+use crate::model::incoming::{Exception, Track};
 use http::{
     header::{HeaderValue, AUTHORIZATION},
     Error as HttpError, Request,
@@ -9,66 +10,13 @@ use percent_encoding::NON_ALPHANUMERIC;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::net::{IpAddr, SocketAddr};
 
-/// The type of search result given.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum LoadType {
-    /// Loading the results failed.
-    LoadFailed,
-    /// There were no matches.
-    NoMatches,
-    /// A playlist was found.
-    PlaylistLoaded,
-    /// Some results were found.
-    SearchResult,
-    /// A single track was found.
-    TrackLoaded,
-}
-
-/// A track within a search result.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(rename_all = "camelCase")]
-pub struct Track {
-    /// Details about a track, such as the author and title.
-    pub info: TrackInfo,
-    /// The base64 track string that you use in the [`Play`] event.
-    ///
-    /// [`Play`]: crate::model::outgoing::Play
-    pub track: String,
-}
-
-/// Additional information about a track, such as the author.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(rename_all = "camelCase")]
-pub struct TrackInfo {
-    /// The name of the author, if provided.
-    pub author: Option<String>,
-    /// The identifier of the source of the track.
-    pub identifier: String,
-    /// Whether the source is seekable.
-    pub is_seekable: bool,
-    /// Whether the source is a stream.
-    pub is_stream: bool,
-    /// The length of the audio in milliseconds.
-    pub length: u64,
-    /// The position of the audio.
-    pub position: u64,
-    /// The title, if provided.
-    pub title: Option<String>,
-    /// The source URI of the track.
-    pub uri: String,
-}
-
 /// Information about a playlist from a search result.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub struct PlaylistInfo {
-    /// The name of the playlist, if available.
-    pub name: Option<String>,
+    /// The name of the playlist
+    pub name: String,
     /// The selected track within the playlist, if available.
     #[serde(default, deserialize_with = "deserialize_selected_track")]
     pub selected_track: Option<u64>,
@@ -85,17 +33,60 @@ where
         .and_then(|selected| u64::try_from(selected).ok()))
 }
 
+/// The type of search result given.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[non_exhaustive]
+#[serde(rename_all = "camelCase")]
+pub enum LoadResultName {
+    /// There has been no matches for your identifier.
+    Empty,
+    /// Loading has failed with an error.
+    Error,
+    /// A playlist has been loaded.
+    Playlist,
+    /// A search result has been loaded.
+    Search,
+    /// A track has been loaded.
+    Track,
+}
+
+/// The type of search result given.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[non_exhaustive]
+#[serde(untagged)]
+pub enum LoadResultData {
+    /// Empty data response.
+    Empty,
+    /// The exception that was thrown when searching.
+    Error(Exception),
+    /// The playlist results with the play list info and tracks in the playlist.
+    Playlist(PlaylistResult),
+    /// The list of tracks based on the search.
+    Search(Vec<Track>),
+    /// Track result with the track info.
+    Track(Track),
+}
+
+/// The playlist with the provided tracks. Currently plugin info isn't supported
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[non_exhaustive]
+#[serde(rename_all = "camelCase")]
+pub struct PlaylistResult {
+    /// The info of the playlist.
+    pub info: PlaylistInfo,
+    /// The tracks of the playlist.
+    pub tracks: Vec<Track>,
+}
+
 /// Possible track results for a query.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub struct LoadedTracks {
+    /// The data of the result.
+    pub data: LoadResultData,
     /// The type of search result, such as a list of tracks or a playlist.
-    pub load_type: LoadType,
-    /// Information about the playlist, if provided.
-    pub playlist_info: PlaylistInfo,
-    /// The list of tracks returned for the search query.
-    pub tracks: Vec<Track>,
+    pub load_type: LoadResultName,
 }
 
 /// A failing IP address within the planner.
@@ -258,7 +249,32 @@ pub fn load_track(
 ) -> Result<Request<&'static [u8]>, HttpError> {
     let identifier =
         percent_encoding::percent_encode(identifier.as_ref().as_bytes(), NON_ALPHANUMERIC);
-    let url = format!("http://{address}/loadtracks?identifier={identifier}");
+    let url = format!("http://{address}/v4/loadtracks?identifier={identifier}");
+
+    let mut req = Request::get(url);
+
+    let auth_value = HeaderValue::from_str(authorization.as_ref())?;
+    req = req.header(AUTHORIZATION, auth_value);
+
+    req.body(b"")
+}
+
+/// Decode a single track into its info
+///
+/// The response will include a body which can be deserialized into a
+/// [`Track`].
+///
+/// # Errors
+///
+/// See the documentation for [`http::Error`].
+pub fn decode_track(
+    address: SocketAddr,
+    encoded: impl AsRef<str>,
+    authorization: impl AsRef<str>,
+) -> Result<Request<&'static [u8]>, HttpError> {
+    let identifier =
+        percent_encoding::percent_encode(encoded.as_ref().as_bytes(), NON_ALPHANUMERIC);
+    let url = format!("http://{address}/v4/decodetrack?encodedTrack={identifier}");
 
     let mut req = Request::get(url);
 
@@ -280,7 +296,7 @@ pub fn get_route_planner(
     address: SocketAddr,
     authorization: impl AsRef<str>,
 ) -> Result<Request<&'static [u8]>, HttpError> {
-    let mut req = Request::get(format!("{address}/routeplanner/status"));
+    let mut req = Request::get(format!("{address}/v4/routeplanner/status"));
 
     let auth_value = HeaderValue::from_str(authorization.as_ref())?;
     req = req.header(AUTHORIZATION, auth_value);
@@ -301,7 +317,7 @@ pub fn unmark_failed_address(
     authorization: impl AsRef<str>,
     route_address: impl Into<IpAddr>,
 ) -> Result<Request<Vec<u8>>, HttpError> {
-    let mut req = Request::post(format!("{}/routeplanner/status", node_address.into()));
+    let mut req = Request::post(format!("{}/v4/routeplanner/status", node_address.into()));
 
     let auth_value = HeaderValue::from_str(authorization.as_ref())?;
     req = req.header(AUTHORIZATION, auth_value);
@@ -317,11 +333,11 @@ pub fn unmark_failed_address(
 #[cfg(test)]
 mod tests {
     use super::{
-        FailingAddress, IpBlock, IpBlockType, LoadType, LoadedTracks, NanoIpDetails,
-        NanoIpRoutePlanner, PlaylistInfo, RotatingIpDetails, RotatingIpRoutePlanner,
-        RotatingNanoIpDetails, RotatingNanoIpRoutePlanner, RoutePlanner, RoutePlannerType, Track,
-        TrackInfo,
+        FailingAddress, IpBlock, IpBlockType, LoadedTracks, NanoIpDetails, NanoIpRoutePlanner,
+        PlaylistInfo, RotatingIpDetails, RotatingIpRoutePlanner, RotatingNanoIpDetails,
+        RotatingNanoIpRoutePlanner, RoutePlanner, RoutePlannerType, Track,
     };
+    use crate::model::incoming::TrackInfo;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -359,17 +375,6 @@ mod tests {
         Serialize,
         Sync,
     );
-    assert_impl_all!(
-        LoadType: Clone,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        PartialEq,
-        Send,
-        Serialize,
-        Sync,
-    );
-    assert_fields!(LoadedTracks: load_type, playlist_info, tracks);
     assert_impl_all!(
         LoadedTracks: Clone,
         Debug,
@@ -512,7 +517,7 @@ mod tests {
         Serialize,
         Sync
     );
-    assert_fields!(Track: info, track);
+    assert_fields!(Track: encoded, info);
     assert_impl_all!(
         Track: Clone,
         Debug,
@@ -527,7 +532,7 @@ mod tests {
     #[test]
     pub fn test_deserialize_playlist_info_negative_selected_track() {
         let value = PlaylistInfo {
-            name: Some("Test Playlist".to_owned()),
+            name: "Test Playlist".to_owned(),
             selected_track: None,
         };
 
@@ -539,7 +544,6 @@ mod tests {
                     len: 13,
                 },
                 Token::Str("name"),
-                Token::Some,
                 Token::Str("Test Playlist"),
                 Token::Str("selectedTrack"),
                 Token::I64(-1),

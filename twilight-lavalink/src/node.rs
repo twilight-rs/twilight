@@ -18,7 +18,7 @@
 //! [`Lavalink`]: crate::client::Lavalink
 
 use crate::{
-    model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
+    model::{incoming, IncomingEvent, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
     player::PlayerManager,
 };
 use futures_util::{
@@ -26,8 +26,15 @@ use futures_util::{
     sink::SinkExt,
     stream::{Stream, StreamExt},
 };
-use http::header::{HeaderName, AUTHORIZATION};
+use http::header::{HeaderName, HeaderValue, AUTHORIZATION};
+use http_body_util::Full;
+use hyper::{body::Bytes, header, Method, Request, Uri};
+use hyper_util::{
+    client::legacy::{connect::HttpConnector, Client as HyperClient},
+    rt::TokioExecutor,
+};
 use std::{
+    borrow::Borrow,
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     net::SocketAddr,
@@ -79,7 +86,13 @@ impl Display for NodeError {
             NodeErrorType::BuildingConnectionRequest { .. } => {
                 f.write_str("failed to build connection request")
             }
+            NodeErrorType::HttpRequestFailed { .. } => {
+                f.write_str("failed to send http request to lavalink server")
+            }
             NodeErrorType::Connecting { .. } => f.write_str("Failed to connect to the node"),
+            NodeErrorType::OutgoingEventHasNoSession { .. } => {
+                f.write_str("No session id found for connection to lavalink api.")
+            }
             NodeErrorType::SerializingMessage { .. } => {
                 f.write_str("failed to serialize outgoing message as json")
             }
@@ -107,8 +120,14 @@ impl Error for NodeError {
 pub enum NodeErrorType {
     /// Building the HTTP request to initialize a connection failed.
     BuildingConnectionRequest,
+    /// The request to send to lavalink has failed,
+    HttpRequestFailed,
     /// Connecting to the Lavalink server failed after several backoff attempts.
     Connecting,
+    /// You can potentially have no valid session before trying to send outgoing
+    /// events. The session id is obtained in the startup sequence of the node.
+    /// If you attempt to send events before connecting you will error out.
+    OutgoingEventHasNoSession,
     /// Serializing a JSON message to be sent to a Lavalink node failed.
     SerializingMessage {
         /// The message that couldn't be serialized.
@@ -361,12 +380,13 @@ impl Node {
         players: PlayerManager,
     ) -> Result<(Self, IncomingEvents), NodeError> {
         let (bilock_left, bilock_right) = BiLock::new(Stats {
+            op: incoming::Opcode::Stats,
             cpu: StatsCpu {
                 cores: 0,
                 lavalink_load: 0f64,
                 system_load: 0f64,
             },
-            frames: None,
+            frame_stats: None,
             memory: StatsMemory {
                 allocated: 0,
                 free: 0,
@@ -375,7 +395,6 @@ impl Node {
             },
             players: 0,
             playing_players: 0,
-            op: Opcode::Stats,
             uptime: 0,
         });
 
@@ -447,13 +466,13 @@ impl Node {
         let cpu = 1.05f64.powf(100f64 * stats.cpu.system_load) * 10f64 - 10f64;
 
         let (deficit_frame, null_frame) = (
-            1.03f64
-                .powf(500f64 * (stats.frames.as_ref().map_or(0, |f| f.deficit) as f64 / 3000f64))
-                * 300f64
+            1.03f64.powf(
+                500f64 * (stats.frame_stats.as_ref().map_or(0, |f| f.deficit) as f64 / 3000f64),
+            ) * 300f64
                 - 300f64,
-            (1.03f64
-                .powf(500f64 * (stats.frames.as_ref().map_or(0, |f| f.nulled) as f64 / 3000f64))
-                * 300f64
+            (1.03f64.powf(
+                500f64 * (stats.frame_stats.as_ref().map_or(0, |f| f.nulled) as f64 / 3000f64),
+            ) * 300f64
                 - 300f64)
                 * 2f64,
         );
@@ -465,10 +484,12 @@ impl Node {
 struct Connection {
     config: NodeConfig,
     stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+    lavalink_http: HyperClient<HttpConnector, Full<Bytes>>,
     node_from: UnboundedReceiver<OutgoingEvent>,
     node_to: UnboundedSender<IncomingEvent>,
     players: PlayerManager,
     stats: BiLock<Stats>,
+    lavalink_session_id: Option<Box<str>>,
 }
 
 impl Connection {
@@ -488,15 +509,18 @@ impl Connection {
 
         let (to_node, from_lavalink) = mpsc::unbounded_channel();
         let (to_lavalink, from_node) = mpsc::unbounded_channel();
+        let lavalink_http = HyperClient::builder(TokioExecutor::new()).build_http();
 
         Ok((
             Self {
                 config,
                 stream,
+                lavalink_http,
                 node_from: from_node,
                 node_to: to_node,
                 players,
                 stats,
+                lavalink_session_id: None,
             },
             to_lavalink,
             from_lavalink,
@@ -516,25 +540,79 @@ impl Connection {
                 }
                 outgoing = self.node_from.recv() => {
                     if let Some(outgoing) = outgoing {
-                        tracing::debug!(
-                            "forwarding event to {}: {outgoing:?}",
-                            self.config.address,
-                        );
-
-                        let payload = serde_json::to_string(&outgoing).map_err(|source| NodeError {
-                            kind: NodeErrorType::SerializingMessage { message: outgoing },
-                            source: Some(Box::new(source)),
-                        })?;
-                        let msg = Message::text(payload);
-                        self.stream.send(msg).await.unwrap();
+                        self.outgoing(outgoing).await?;
                     } else {
                         tracing::debug!("node {} closed, ending connection", self.config.address);
-
                         break;
                     }
                 }
             }
         }
+
+        Ok(())
+    }
+
+    fn get_outgoing_endpoint_based_on_event(
+        &mut self,
+        outgoing: &OutgoingEvent,
+    ) -> Result<(Method, hyper::Uri), NodeError> {
+        let address = self.config.address;
+        tracing::debug!("forwarding event to {address}: {outgoing:?}");
+
+        let guild_id = outgoing.guild_id();
+        let no_replace = outgoing.no_replace();
+
+        if let Some(session) = &self.lavalink_session_id {
+            let mut path = format!("/v4/sessions/{session}/players/{guild_id}");
+            if !matches!(outgoing, OutgoingEvent::Destroy(_)) {
+                path.push_str(&format!("?noReplace={no_replace}"));
+            }
+            let uri = Uri::builder()
+                .scheme("http")
+                .authority(address.to_string())
+                .path_and_query(path)
+                .build()
+                .expect("uri is valid");
+            return if matches!(outgoing, OutgoingEvent::Destroy(_)) {
+                Ok((Method::DELETE, uri))
+            } else {
+                Ok((Method::PATCH, uri))
+            };
+        }
+
+        tracing::error!("no session id is found. Session id should have been provided from the websocket connection already.");
+
+        Err(NodeError {
+            kind: NodeErrorType::OutgoingEventHasNoSession,
+            source: None,
+        })
+    }
+
+    async fn outgoing(&mut self, outgoing: OutgoingEvent) -> Result<(), NodeError> {
+        let (method, url) = self.get_outgoing_endpoint_based_on_event(&outgoing)?;
+        let payload = serde_json::to_string(&outgoing).expect("serialization cannot fail");
+
+        let authority = url.authority().expect("Authority comes from endpoint");
+
+        let req = Request::builder()
+            .uri(url.borrow())
+            .method(method)
+            .header(header::HOST, authority.as_str())
+            .header(header::AUTHORIZATION, self.config.authorization.as_str())
+            .header(header::CONTENT_TYPE, "application/json")
+            .body(Full::from(payload))
+            .map_err(|source| NodeError {
+                kind: NodeErrorType::BuildingConnectionRequest,
+                source: Some(Box::new(source)),
+            })?;
+
+        self.lavalink_http
+            .request(req)
+            .await
+            .map_err(|source| NodeError {
+                kind: NodeErrorType::HttpRequestFailed,
+                source: Some(Box::new(source)),
+            })?;
 
         Ok(())
     }
@@ -565,8 +643,11 @@ impl Connection {
 
         match &event {
             IncomingEvent::PlayerUpdate(update) => self.player_update(update)?,
+            IncomingEvent::Ready(ready) => {
+                self.lavalink_session_id = Some(ready.session_id.clone().into_boxed_str());
+            }
             IncomingEvent::Stats(stats) => self.stats(stats).await?,
-            _ => {}
+            &IncomingEvent::Event(_) => {}
         }
 
         // It's fine if the rx end dropped, often users don't need to care about
@@ -588,7 +669,7 @@ impl Connection {
             return Ok(());
         };
 
-        player.set_position(update.state.position.unwrap_or(0));
+        player.set_position(update.state.position);
         player.set_time(update.state.time);
 
         Ok(())
@@ -610,23 +691,42 @@ impl Drop for Connection {
     }
 }
 
+const TWILIGHT_CLIENT_NAME: &str = concat!("twilight-lavalink/", env!("CARGO_PKG_VERSION"));
+
 fn connect_request(state: &NodeConfig) -> Result<ClientBuilder, NodeError> {
     let mut builder = ClientBuilder::new()
-        .uri(&format!("ws://{}", state.address))
+        .uri(&format!("ws://{}/v4/websocket", state.address))
         .map_err(|source| NodeError {
             kind: NodeErrorType::BuildingConnectionRequest,
             source: Some(Box::new(source)),
         })?
-        .add_header(AUTHORIZATION, state.authorization.parse().unwrap())
+        .add_header(
+            AUTHORIZATION,
+            state.authorization.parse().map_err(|source| NodeError {
+                kind: NodeErrorType::BuildingConnectionRequest,
+                source: Some(Box::new(source)),
+            })?,
+        )
         .add_header(
             HeaderName::from_static("user-id"),
             state.user_id.get().into(),
+        )
+        .add_header(
+            HeaderName::from_static("client-name"),
+            HeaderValue::from_static(TWILIGHT_CLIENT_NAME),
         );
 
     if state.resume.is_some() {
         builder = builder.add_header(
             HeaderName::from_static("resume-key"),
-            state.address.to_string().parse().unwrap(),
+            state
+                .address
+                .to_string()
+                .parse()
+                .map_err(|source| NodeError {
+                    kind: NodeErrorType::BuildingConnectionRequest,
+                    source: Some(Box::new(source)),
+                })?,
         );
     }
 
@@ -652,9 +752,14 @@ async fn reconnect(
                     "key": config.address,
                     "timeout": resume.timeout,
                 });
-                let msg = Message::text(serde_json::to_string(&payload).unwrap());
+                let msg = Message::text(
+                    serde_json::to_string(&payload).expect("Serialize can't panic here."),
+                );
 
-                stream.send(msg).await.unwrap();
+                stream.send(msg).await.map_err(|source| NodeError {
+                    kind: NodeErrorType::Connecting,
+                    source: Some(Box::new(source)),
+                })?;
             } else {
                 tracing::debug!("session to {} resumed", config.address);
             }

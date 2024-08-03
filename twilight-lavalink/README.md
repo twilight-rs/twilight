@@ -13,12 +13,19 @@ handle sending voice channel updates to Lavalink by processing events via
 the [client's `process` method][`Lavalink::process`], which you must call
 with every Voice State Update and Voice Server Update you receive.
 
+Currently some [Filters](crate::model::outgoing::Filters) are not yet supported.
+Some endpoints such as [Lavalink Info] and [Update Session] have also not yet
+been implemented. Please reach out and open an issue for any missing feature you
+would like to use. The Lavalink V4 port did not add support for any new features
+not previously found in V3.
+
 ## Features
 
-### `http-support`
+### `http2`
 
-The `http-support` feature adds support for the `http` module to return
-request types from the [`http`] crate. This is enabled by default.
+The `http2` feature enables support for communicating with the Lavalink server
+over HTTP/2. You will also need to enable http2 support in your Lavalink server
+configuration as it is disabled by default.
 
 ### TLS
 
@@ -104,6 +111,8 @@ There is also an example of a basic bot located in the [root of the
 `twilight` repository][github examples link].
 
 [Lavalink]: https://github.com/freyacodes/Lavalink
+[Lavalink Info]: https://lavalink.dev/api/rest.html#get-lavalink-version
+[Update Session]: https://lavalink.dev/api/rest#update-session
 [`http`]: https://crates.io/crates/http
 [`rustls`]: https://crates.io/crates/rustls
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
