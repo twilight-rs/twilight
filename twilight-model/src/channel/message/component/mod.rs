@@ -21,8 +21,8 @@ pub use self::{
 
 use super::EmojiReactionType;
 use crate::{
-    channel::ChannelType, 
-    id::{Id, marker::SkuMarker}
+    channel::ChannelType,
+    id::{marker::SkuMarker, Id},
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},

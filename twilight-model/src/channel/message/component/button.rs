@@ -1,6 +1,6 @@
 use crate::{
     channel::message::EmojiReactionType,
-    id::{Id, marker::SkuMarker}
+    id::{marker::SkuMarker, Id},
 };
 use serde::{Deserialize, Serialize};
 
