@@ -1,23 +1,26 @@
-use crate::id::{marker::GuildMarker, Id};
+use crate::{
+    id::{marker::GuildMarker, Id},
+    util::mustbe::MustBeBool,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UnavailableGuild {
     pub id: Id<GuildMarker>,
-    pub unavailable: bool,
+    pub unavailable: MustBeBool<true>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::UnavailableGuild;
-    use crate::id::Id;
+    use crate::{id::Id, util::mustbe::MustBeBool};
     use serde_test::Token;
 
     #[test]
     fn unavailable_guild() {
         let value = UnavailableGuild {
             id: Id::new(1),
-            unavailable: true,
+            unavailable: MustBeBool,
         };
 
         serde_test::assert_tokens(

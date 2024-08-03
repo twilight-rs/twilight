@@ -3,6 +3,7 @@
 pub mod datetime;
 pub mod hex_color;
 pub mod image_hash;
+pub mod mustbe;
 
 pub use self::{datetime::Timestamp, hex_color::HexColor, image_hash::ImageHash};
 

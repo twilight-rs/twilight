@@ -4,11 +4,13 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
+// Developer note: Do not change order as we want unavailable to fail
+// first.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum GuildCreate {
-    Available(Guild),
     Unavailable(UnavailableGuild),
+    Available(Guild),
 }
 
 impl GuildCreate {
@@ -25,7 +27,7 @@ impl GuildCreate {
 mod tests {
     use serde_test::Token;
 
-    use crate::{guild::UnavailableGuild, id::Id};
+    use crate::{guild::UnavailableGuild, id::Id, util::mustbe::MustBeBool};
 
     use super::GuildCreate;
 
@@ -33,7 +35,7 @@ mod tests {
     fn unavailable_guild() {
         let expected = GuildCreate::Unavailable(UnavailableGuild {
             id: Id::new(1234),
-            unavailable: true,
+            unavailable: MustBeBool,
         });
 
         // Note: serde(untagged) makes the enum transparent which is
