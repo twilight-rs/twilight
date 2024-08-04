@@ -16,7 +16,7 @@
 //! like:
 //!
 //! - `@everyone` role is allowed the [Embed Links] and [Add Reactions]
-//! permissions; and
+//!   permissions; and
 //! - member is denied the [Send Messages] permission.
 //!
 //! Taking into account the guild root-level permissions and the permission
@@ -230,11 +230,11 @@ impl<'a> PermissionCalculator<'a> {
     /// circumstances:
     ///
     /// - When the permission is denied on the role level and
-    /// isn't enabled on a role or member permission overwrite;
+    ///   isn't enabled on a role or member permission overwrite;
     /// - When the permission is denied on a role permission overwrite but isn't
-    /// enabled on a member permission overwrite; or
+    ///   enabled on a member permission overwrite; or
     /// - When permission isn't enabled on a guild level and isn't enabled via a
-    /// permission overwrite.
+    ///   permission overwrite.
     ///
     /// When the [Send Messages] permission is denied and is not similarly
     /// enabled like above then the [Attach Files], [Embed Links],

@@ -199,7 +199,7 @@ impl BucketQueueTask {
     const WAIT: Duration = Duration::from_secs(10);
 
     /// Create a new task to manage the ratelimit for a [`Bucket`].
-    pub fn new(
+    pub const fn new(
         bucket: Arc<Bucket>,
         buckets: Arc<Mutex<HashMap<Path, Arc<Bucket>>>>,
         global: Arc<GlobalLockPair>,
