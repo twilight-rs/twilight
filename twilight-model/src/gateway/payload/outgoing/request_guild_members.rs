@@ -39,7 +39,7 @@ impl UserIdsError {
         (self.kind, None)
     }
 
-    fn too_many(ids: Vec<Id<UserMarker>>) -> Self {
+    const fn too_many(ids: Vec<Id<UserMarker>>) -> Self {
         Self {
             kind: UserIdsErrorType::TooMany { ids },
         }
