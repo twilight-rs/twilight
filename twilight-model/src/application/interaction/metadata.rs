@@ -33,6 +33,4 @@ pub struct InteractionMetadata {
     // This field cannot be in the nested interaction metadata.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub triggering_interaction_metadata: Option<Box<InteractionMetadata>>,
-    /// ID of the user who triggered the interaction.
-    pub user_id: Id<UserMarker>,
 }
