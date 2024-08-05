@@ -640,7 +640,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Interaction",
-                    len: 13,
+                    len: 14,
                 },
                 Token::Str("app_permissions"),
                 Token::Some,
