@@ -25,21 +25,27 @@ pub struct Application {
     /// Partial user object for the bot user associated with the app.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bot: Option<User>,
+    /// When `false`, only the app owner can add the app to guilds
     pub bot_public: bool,
+    /// When `true`, the app's bot will only join upon completion of the
+    /// full OAuth2 code grant flow
     pub bot_require_code_grant: bool,
     /// Default rich presence invite cover image.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cover_image: Option<ImageHash>,
     /// Application's default custom authorization link, if enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub custom_install_url: Option<String>,
     /// Description of the application.
     pub description: String,
-    pub guild_id: Option<Id<GuildMarker>>,
+    /// Public flags of the application.
+    pub flags: Option<ApplicationFlags>,
     /// Partial object of the associated guild.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild: Option<Guild>,
-    /// Public flags of the application.
-    pub flags: Option<ApplicationFlags>,
+    /// Guild associated with the app. For example, a developer support server.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_id: Option<Id<GuildMarker>>,
     /// Icon of the application.
     pub icon: Option<ImageHash>,
     /// ID of the application.
@@ -47,31 +53,41 @@ pub struct Application {
     /// Settings for the application's default in-app authorization, if enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub install_params: Option<InstallParams>,
-    /// Interactions endpoint URL for the app.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub interactions_endpoint_url: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integration_types_config:
         Option<ApplicationIntegrationMap<ApplicationIntegrationTypeConfig>>,
+    /// Interactions endpoint URL for the app.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub interactions_endpoint_url: Option<String>,
     /// Name of the application.
     pub name: String,
+    /// Partial user object for the owner of the app.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<User>,
+    /// If this app is a game sold on Discord, this field will be the
+    /// id of the "Game SKU" that is created, if exists.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub primary_sku_id: Option<Id<OauthSkuMarker>>,
     /// URL of the application's privacy policy.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privacy_policy_url: Option<String>,
+    /// Redirect URIs for the application.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redirect_uris: Option<Vec<String>>,
     /// Role connection verification URL for the app.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role_connections_verification_url: Option<String>,
     #[serde(default)]
     pub rpc_origins: Vec<String>,
-    /// Redirect URIs for the application.
+    /// If this app is a game sold on Discord, this field will be the
+    /// URL slug that links to the store page.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redirect_uris: Option<Vec<String>>,
     pub slug: Option<String>,
     /// Tags describing the content and functionality of the application.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<Vec<String>>,
+    /// If the app belongs to a team, this will be a list of the
+    /// members of that team.
     pub team: Option<Team>,
     /// URL of the application's terms of service.
     #[serde(skip_serializing_if = "Option::is_none")]
