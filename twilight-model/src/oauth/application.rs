@@ -142,18 +142,20 @@ mod tests {
     fn current_application_info() {
         let value = Application {
             approximate_guild_count: Some(2),
+            approximate_user_install_count: Some(5),
             bot: None,
             bot_public: true,
             bot_require_code_grant: false,
             cover_image: Some(image_hash::COVER),
             custom_install_url: None,
             description: "a pretty cool application".to_owned(),
-            guild_id: Some(Id::new(1)),
-            guild: None,
             flags: Some(ApplicationFlags::EMBEDDED),
+            guild: None,
+            guild_id: Some(Id::new(1)),
             icon: Some(image_hash::ICON),
             id: Id::new(2),
             install_params: None,
+            integration_types_config: None,
             interactions_endpoint_url: Some("https://interactions".into()),
             name: "cool application".to_owned(),
             owner: Some(User {
@@ -197,7 +199,6 @@ mod tests {
             }),
             terms_of_service_url: Some("https://termsofservice".into()),
             verify_key: "key".to_owned(),
-            integration_types_config: None,
         };
 
         serde_test::assert_tokens(
@@ -205,11 +206,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Application",
-                    len: 21,
+                    len: 22,
                 },
                 Token::Str("approximate_guild_count"),
                 Token::Some,
                 Token::U64(2),
+                Token::Str("approximate_user_install_count"),
+                Token::Some,
+                Token::U64(5),
                 Token::Str("bot_public"),
                 Token::Bool(true),
                 Token::Str("bot_require_code_grant"),
@@ -219,13 +223,13 @@ mod tests {
                 Token::Str(image_hash::COVER_INPUT),
                 Token::Str("description"),
                 Token::Str("a pretty cool application"),
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(131_072),
                 Token::Str("guild_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
-                Token::Str("flags"),
-                Token::Some,
-                Token::U64(131_072),
                 Token::Str("icon"),
                 Token::Some,
                 Token::Str(image_hash::ICON_INPUT),
