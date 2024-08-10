@@ -1204,6 +1204,7 @@ mod tests {
                 video_quality_mode: None,
             }),
             channel_id: None,
+            context: None,
             data: Some(InteractionData::MessageComponent(Box::new(
                 MessageComponentInteractionData {
                     custom_id: String::from("Click"),
