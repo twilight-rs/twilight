@@ -19,6 +19,9 @@ pub struct Application {
     /// Approximate count of guilds this app has been added to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_guild_count: Option<u64>,
+    /// Approximate count of users that have installed the app.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub approximate_user_install_count: Option<u64>,
     /// Partial user object for the bot user associated with the app.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bot: Option<User>,
