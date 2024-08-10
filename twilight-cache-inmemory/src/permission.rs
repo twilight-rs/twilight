@@ -562,8 +562,7 @@ impl<'a, CacheModels: CacheableModels> InMemoryCachePermissions<'a, CacheModels>
         self.cache
             .guilds
             .get(&guild_id)
-            .map(|r| r.owner_id() == user_id)
-            .unwrap_or_default()
+            .is_some_and(|r| r.owner_id() == user_id)
     }
 
     /// Retrieve a member's roles' permissions and the guild's `@everyone`
@@ -1045,8 +1044,8 @@ mod tests {
     /// In particular, we want to test that:
     ///
     /// - if a member is timed out they will be limited to the intersection of
-    /// the [`Permissions::READ_MESSAGE_HISTORY`] and
-    /// [`Permissions::VIEW_CHANNEL`] permissions on a [guild level][`root`]
+    ///   the [`Permissions::READ_MESSAGE_HISTORY`] and
+    ///   [`Permissions::VIEW_CHANNEL`] permissions on a [guild level][`root`]
     /// - the same is true on a [channel level][`in_channel`]
     /// - administrators are never timed out
     /// - checking whether the member's communication is disabled is configurable

@@ -354,17 +354,13 @@ impl<T> PartialEq for Id<T> {
 
 impl<T> PartialEq<i64> for Id<T> {
     fn eq(&self, other: &i64) -> bool {
-        u64::try_from(*other)
-            .map(|v| v == self.value.get())
-            .unwrap_or_default()
+        u64::try_from(*other).is_ok_and(|v| v == self.value.get())
     }
 }
 
 impl<T> PartialEq<Id<T>> for i64 {
     fn eq(&self, other: &Id<T>) -> bool {
-        u64::try_from(*self)
-            .map(|v| v == other.value.get())
-            .unwrap_or_default()
+        u64::try_from(*self).is_ok_and(|v| v == other.value.get())
     }
 }
 
