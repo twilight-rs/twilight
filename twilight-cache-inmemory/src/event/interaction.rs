@@ -140,6 +140,7 @@ mod tests {
                 video_quality_mode: None,
             }),
             channel_id: Some(Id::new(2)),
+            context: None,
             data: Some(InteractionData::ApplicationCommand(Box::new(CommandData {
                 guild_id: None,
                 id: Id::new(5),

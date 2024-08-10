@@ -4,8 +4,12 @@ use serde::{Deserialize, Serialize};
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
 pub enum InteractionContextType {
+    /// Interaction can be used within servers.
     Guild,
+    /// Interaction can be used within DMs with the app's bot user.
     BotDm,
+    /// Interaction can be used within Group DMs and DMs other than
+    /// the app's bot user.
     PrivateChannel,
     /// Variant value is unknown to the library.
     Unknown(u8),

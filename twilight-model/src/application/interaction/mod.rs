@@ -76,6 +76,9 @@ pub struct Interaction {
         note = "channel_id is deprecated in the discord API and will no be sent in the future, users should use the channel field instead."
     )]
     pub channel_id: Option<Id<ChannelMarker>>,
+    /// Context where the interaction was triggered from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<InteractionContextType>,
     /// Data from the interaction.
     ///
     /// This field present on [`ApplicationCommand`], [`MessageComponent`],
@@ -185,6 +188,7 @@ impl<'de> Deserialize<'de> for Interaction {
 enum InteractionField {
     AppPermissions,
     ApplicationId,
+    Context,
     Channel,
     ChannelId,
     Data,
@@ -217,6 +221,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut application_id: Option<Id<ApplicationMarker>> = None;
         let mut channel: Option<Channel> = None;
         let mut channel_id: Option<Id<ChannelMarker>> = None;
+        let mut context: Option<InteractionContextType> = None;
         let mut data: Option<Value> = None;
         let mut entitlements: Option<Vec<Entitlement>> = None;
         let mut guild_id: Option<Id<GuildMarker>> = None;
@@ -257,6 +262,13 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     }
 
                     application_id = Some(map.next_value()?);
+                }
+                InteractionField::Context => {
+                    if context.is_some() {
+                        return Err(DeError::duplicate_field("context"));
+                    }
+
+                    context = map.next_value()?;
                 }
                 InteractionField::Channel => {
                     if channel.is_some() {
@@ -426,6 +438,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             message,
             token,
             user,
+            context,
         })
     }
 }
@@ -524,6 +537,7 @@ mod tests {
                 video_quality_mode: None,
             }),
             channel_id: Some(Id::new(200)),
+            context: None,
             data: Some(InteractionData::ApplicationCommand(Box::new(CommandData {
                 guild_id: None,
                 id: Id::new(300),
