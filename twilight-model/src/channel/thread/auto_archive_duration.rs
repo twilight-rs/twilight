@@ -1,11 +1,8 @@
-use crate::visitor::U16EnumVisitor;
-use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer},
-};
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(from = "u16", into = "u16")]
 pub enum AutoArchiveDuration {
     Hour,
     Day,
@@ -47,23 +44,15 @@ impl From<u16> for AutoArchiveDuration {
     }
 }
 
+impl From<AutoArchiveDuration> for u16 {
+    fn from(value: AutoArchiveDuration) -> Self {
+        value.number()
+    }
+}
+
 impl From<AutoArchiveDuration> for Duration {
     fn from(value: AutoArchiveDuration) -> Self {
         Self::from_secs(u64::from(value.number()) * 60)
-    }
-}
-
-impl<'de> Deserialize<'de> for AutoArchiveDuration {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer
-            .deserialize_u16(U16EnumVisitor::new("auto archive duration"))
-            .map(u16::into)
-    }
-}
-
-impl Serialize for AutoArchiveDuration {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_u16(self.number())
     }
 }
 
