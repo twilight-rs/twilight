@@ -149,7 +149,7 @@ pub fn parse(url: &str) -> Result<(Id<WebhookMarker>, Option<&str>), WebhookPars
     let mut token = segments.next();
 
     // Don't return an empty token if the segment is empty.
-    if token.map(str::is_empty).unwrap_or_default() {
+    if token.is_some_and(str::is_empty) {
         token = None;
     }
 
