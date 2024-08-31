@@ -22,6 +22,7 @@ use twilight_model::{
 ///         custom_id: Some("button_id".to_string()),
 ///         url: None,
 ///         disabled: false,
+///         sku_id: None,
 ///     })]),
 /// });
 ///
@@ -202,6 +203,7 @@ mod tests {
             custom_id: Some("test custom id".into()),
             url: None,
             disabled: false,
+            sku_id: None,
         });
 
         let embed = Embed {

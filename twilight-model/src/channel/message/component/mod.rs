@@ -20,7 +20,10 @@ pub use self::{
 };
 
 use super::EmojiReactionType;
-use crate::channel::ChannelType;
+use crate::{
+    channel::ChannelType,
+    id::{marker::SkuMarker, Id},
+};
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{Error as SerError, SerializeStruct},
@@ -48,6 +51,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///         label: Some("Click me!".to_owned()),
 ///         style: ButtonStyle::Primary,
 ///         url: None,
+///         sku_id: None,
 ///     })]),
 /// });
 /// ```
@@ -140,6 +144,7 @@ impl Component {
     ///     label: Some("ping".to_owned()),
     ///     style: ButtonStyle::Primary,
     ///     url: None,
+    ///     sku_id: None,
     /// });
     ///
     /// assert_eq!(ComponentType::Button, component.kind());
@@ -211,6 +216,7 @@ enum Field {
     Style,
     Type,
     Url,
+    SkuId,
     Value,
 }
 
@@ -247,6 +253,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut placeholder: Option<Option<String>> = None;
         let mut required: Option<Option<bool>> = None;
         let mut url: Option<Option<String>> = None;
+        let mut sku_id: Option<Id<SkuMarker>> = None;
         let mut value: Option<Option<String>> = None;
 
         loop {
@@ -380,6 +387,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
                     url = Some(map.next_value()?);
                 }
+                Field::SkuId => {
+                    if sku_id.is_some() {
+                        return Err(DeError::duplicate_field("sku_id"));
+                    }
+
+                    sku_id = map.next_value()?;
+                }
                 Field::Value => {
                     if value.is_some() {
                         return Err(DeError::duplicate_field("value"));
@@ -409,6 +423,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             // - emoji
             // - label
             // - url
+            // - sku_id
             ComponentType::Button => {
                 let style = style
                     .ok_or_else(|| DeError::missing_field("style"))?
@@ -428,6 +443,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     label: label.flatten(),
                     style,
                     url: url.unwrap_or_default(),
+                    sku_id,
                 })
             }
             // Required fields:
@@ -543,12 +559,14 @@ impl Serialize for Component {
             // - emoji
             // - label
             // - url
+            // - sku_id
             Component::Button(button) => {
                 2 + usize::from(button.custom_id.is_some())
                     + usize::from(button.disabled)
                     + usize::from(button.emoji.is_some())
                     + usize::from(button.label.is_some())
                     + usize::from(button.url.is_some())
+                    + usize::from(button.sku_id.is_some())
             }
             // Required fields:
             // - custom_id
@@ -628,6 +646,10 @@ impl Serialize for Component {
 
                 if button.url.is_some() {
                     state.serialize_field("url", &button.url)?;
+                }
+
+                if button.sku_id.is_some() {
+                    state.serialize_field("sku_id", &button.sku_id)?;
                 }
             }
             Component::SelectMenu(select_menu) => {
@@ -751,6 +773,7 @@ mod tests {
                     label: Some("test label".into()),
                     style: ButtonStyle::Primary,
                     url: None,
+                    sku_id: None,
                 }),
                 Component::SelectMenu(SelectMenu {
                     channel_types: None,
@@ -854,6 +877,7 @@ mod tests {
                 style: ButtonStyle::Primary,
                 label: Some("Button".to_owned()),
                 url: None,
+                sku_id: None,
             })]),
         });
 
@@ -905,6 +929,7 @@ mod tests {
             label: Some("Test".to_owned()),
             style: ButtonStyle::Link,
             url: Some("https://twilight.rs".to_owned()),
+            sku_id: None,
         });
 
         serde_test::assert_tokens(
@@ -1059,6 +1084,38 @@ mod tests {
                 Token::String("value"),
                 Token::Some,
                 Token::String("Hello World!"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn premium_button() {
+        let value = Component::Button(Button {
+            custom_id: None,
+            disabled: false,
+            emoji: None,
+            label: None,
+            style: ButtonStyle::Premium,
+            url: None,
+            sku_id: Some(Id::new(114_941_315_417_899_012)),
+        });
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Component",
+                    len: 3,
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::Button.into()),
+                Token::String("style"),
+                Token::U8(ButtonStyle::Premium.into()),
+                Token::String("sku_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("114941315417899012"),
                 Token::StructEnd,
             ],
         );

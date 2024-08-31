@@ -1,4 +1,5 @@
 //! Models used when responding to interactions over HTTP.
+#![allow(deprecated)]
 
 use super::attachment::Attachment;
 use crate::{
@@ -102,6 +103,11 @@ pub enum InteractionResponseType {
     Modal = 9,
     /// Respond to an interaction with an upgrade button, only available
     /// for apps with monetization enabled
+    ///
+    /// Deprecated: Please send a [`InteractionResponseType::ChannelMessageWithSource`]
+    /// with an [`Button`](crate::channel::message::component::Button) with the style [`ButtonStyle::Premium`](crate::channel::message::component::ButtonStyle)
+    /// instead.
+    #[deprecated(note = "Deprecated by Discord in favor of Premium Buttons")]
     PremiumRequired = 10,
 }
 
