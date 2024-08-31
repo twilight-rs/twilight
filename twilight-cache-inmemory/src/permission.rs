@@ -562,8 +562,7 @@ impl<'a, CacheModels: CacheableModels> InMemoryCachePermissions<'a, CacheModels>
         self.cache
             .guilds
             .get(&guild_id)
-            .map(|r| r.owner_id() == user_id)
-            .unwrap_or_default()
+            .is_some_and(|r| r.owner_id() == user_id)
     }
 
     /// Retrieve a member's roles' permissions and the guild's `@everyone`

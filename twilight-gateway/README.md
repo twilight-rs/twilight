@@ -87,12 +87,6 @@ async fn runner(mut shard: Shard) {
         let event = match item {
             Ok(Event::GatewayClose(_)) if SHUTDOWN.load(Ordering::Relaxed) => break,
             Ok(event) => event,
-            Err(source)
-                if SHUTDOWN.load(Ordering::Relaxed)
-                    && matches!(source.kind(), ReceiveMessageErrorType::WebSocket) =>
-            {
-                break
-            }
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
 
@@ -126,4 +120,4 @@ There are a few additional examples located in the
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.67+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.79+-93450a.svg?style=for-the-badge&logo=rust

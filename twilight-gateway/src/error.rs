@@ -175,14 +175,6 @@ impl ReceiveMessageError {
             source: Some(Box::new(source)),
         }
     }
-
-    /// Shortcut to create a new error for a websocket error.
-    pub(crate) fn from_websocket(source: tokio_websockets::Error) -> Self {
-        Self {
-            kind: ReceiveMessageErrorType::WebSocket,
-            source: Some(Box::new(source)),
-        }
-    }
 }
 
 impl Display for ReceiveMessageError {
@@ -197,7 +189,6 @@ impl Display for ReceiveMessageError {
                 f.write_str(event)
             }
             ReceiveMessageErrorType::Reconnect => f.write_str("failed to reconnect to the gateway"),
-            ReceiveMessageErrorType::WebSocket => f.write_str("websocket connection error"),
         }
     }
 }
@@ -228,8 +219,6 @@ pub enum ReceiveMessageErrorType {
     },
     /// Shard failed to reconnect to the gateway.
     Reconnect,
-    /// WebSocket connection error.
-    WebSocket,
 }
 
 #[cfg(test)]
@@ -243,7 +232,7 @@ mod tests {
 
     #[test]
     fn receive_message_error_display() {
-        let messages: [(ReceiveMessageErrorType, &str); 4] = [
+        let messages: [(ReceiveMessageErrorType, &str); 3] = [
             (
                 ReceiveMessageErrorType::Compression,
                 "binary message could not be decompressed",
@@ -258,7 +247,6 @@ mod tests {
                 ReceiveMessageErrorType::Reconnect,
                 "failed to reconnect to the gateway",
             ),
-            (ReceiveMessageErrorType::WebSocket, "websocket connection error"),
         ];
 
         for (kind, message) in messages {

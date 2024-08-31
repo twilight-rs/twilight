@@ -23,12 +23,11 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
             let remove_channel_mapping = self
                 .voice_state_channels
                 .get_mut(&voice_state.channel_id())
-                .map(|mut channel_voice_states| {
+                .is_some_and(|mut channel_voice_states| {
                     channel_voice_states.remove(&(guild_id, user_id));
 
                     channel_voice_states.is_empty()
-                })
-                .unwrap_or_default();
+                });
 
             if remove_channel_mapping {
                 self.voice_state_channels.remove(&voice_state.channel_id());
@@ -54,15 +53,14 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         } else {
             // voice channel_id does not exist, signifying that the user has left
             {
-                let remove_guild = self
-                    .voice_state_guilds
-                    .get_mut(&guild_id)
-                    .map(|mut guild_users| {
-                        guild_users.remove(&user_id);
+                let remove_guild =
+                    self.voice_state_guilds
+                        .get_mut(&guild_id)
+                        .is_some_and(|mut guild_users| {
+                            guild_users.remove(&user_id);
 
-                        guild_users.is_empty()
-                    })
-                    .unwrap_or_default();
+                            guild_users.is_empty()
+                        });
 
                 if remove_guild {
                     self.voice_state_guilds.remove(&guild_id);

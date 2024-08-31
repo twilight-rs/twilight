@@ -79,7 +79,7 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     /// # Caveats
     ///
     /// - You must have the `MUTE_MEMBERS` permission to unsuppress yourself.
-    ///   You can always suppress yourself.
+    /// - You can always suppress yourself.
     pub const fn suppress(mut self) -> Self {
         self.fields.suppress = Some(true);
 

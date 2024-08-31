@@ -112,13 +112,11 @@ mod tests {
         assert!(cache
             .stickers
             .get(&STICKER_ONE_ID)
-            .map(|r| r.id == STICKER_ONE_ID)
-            .unwrap_or_default());
+            .is_some_and(|r| r.id == STICKER_ONE_ID));
         assert!(cache
             .stickers
             .get(&STICKER_TWO_ID)
-            .map(|r| r.id == STICKER_TWO_ID)
-            .unwrap_or_default());
+            .is_some_and(|r| r.id == STICKER_TWO_ID));
 
         let guild_stickers = cache
             .guild_stickers
@@ -145,8 +143,7 @@ mod tests {
         assert!(cache
             .stickers
             .get(&STICKER_ONE_ID)
-            .map(|r| r.id == STICKER_ONE_ID)
-            .unwrap_or_default());
+            .is_some_and(|r| r.id == STICKER_ONE_ID));
         let guild_stickers = cache
             .guild_stickers
             .get(&GUILD_ID)

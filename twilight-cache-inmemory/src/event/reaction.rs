@@ -39,8 +39,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ReactionAdd {
         } else {
             let me = cache
                 .current_user()
-                .map(|user| user.id() == self.0.user_id)
-                .unwrap_or_default();
+                .is_some_and(|user| user.id() == self.0.user_id);
 
             message.add_reaction(Reaction {
                 burst_colors: Vec::new(),
