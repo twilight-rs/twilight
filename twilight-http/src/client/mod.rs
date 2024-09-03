@@ -1873,7 +1873,7 @@ impl Client {
         &'a self,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
-    ) -> CreateForumThread<'_> {
+    ) -> CreateForumThread<'a> {
         CreateForumThread::new(self, channel_id, name)
     }
 
@@ -1900,7 +1900,7 @@ impl Client {
         channel_id: Id<ChannelMarker>,
         name: &'a str,
         kind: ChannelType,
-    ) -> CreateThread<'_> {
+    ) -> CreateThread<'a> {
         CreateThread::new(self, channel_id, name, kind)
     }
 
@@ -1936,7 +1936,7 @@ impl Client {
         channel_id: Id<ChannelMarker>,
         message_id: Id<MessageMarker>,
         name: &'a str,
-    ) -> CreateThreadFromMessage<'_> {
+    ) -> CreateThreadFromMessage<'a> {
         CreateThreadFromMessage::new(self, channel_id, message_id, name)
     }
 
@@ -2527,7 +2527,7 @@ impl Client {
         description: &'a str,
         tags: &'a str,
         file: &'a [u8],
-    ) -> CreateGuildSticker<'_> {
+    ) -> CreateGuildSticker<'a> {
         CreateGuildSticker::new(self, guild_id, name, description, tags, file)
     }
 
