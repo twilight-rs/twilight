@@ -4,23 +4,44 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct UnavailableGuild {
     pub id: Id<GuildMarker>,
-    pub unavailable: MustBeBool<true>,
+    pub unavailable: bool,
+}
+
+impl<'de> Deserialize<'de> for UnavailableGuild {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(rename = "UnavailableGuild")] // Tests expect this struct name
+        struct UnavailableGuildIntermediate {
+            id: Id<GuildMarker>,
+            unavailable: MustBeBool<true>,
+        }
+
+        let intermediate = UnavailableGuildIntermediate::deserialize(deserializer)?;
+
+        Ok(Self {
+            id: intermediate.id,
+            unavailable: intermediate.unavailable.get(),
+        })
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::UnavailableGuild;
-    use crate::{id::Id, util::mustbe::MustBeBool};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn unavailable_guild() {
         let value = UnavailableGuild {
             id: Id::new(1),
-            unavailable: MustBeBool,
+            unavailable: true,
         };
 
         serde_test::assert_tokens(

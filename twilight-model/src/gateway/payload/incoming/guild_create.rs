@@ -27,7 +27,7 @@ impl GuildCreate {
 mod tests {
     use serde_test::Token;
 
-    use crate::{guild::UnavailableGuild, id::Id, util::mustbe::MustBeBool};
+    use crate::{guild::UnavailableGuild, id::Id};
 
     use super::GuildCreate;
 
@@ -35,7 +35,7 @@ mod tests {
     fn unavailable_guild() {
         let expected = GuildCreate::Unavailable(UnavailableGuild {
             id: Id::new(1234),
-            unavailable: MustBeBool,
+            unavailable: true,
         });
 
         // Note: serde(untagged) makes the enum transparent which is

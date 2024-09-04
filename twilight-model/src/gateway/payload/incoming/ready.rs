@@ -25,7 +25,6 @@ mod tests {
         id::Id,
         oauth::{ApplicationFlags, PartialApplication},
         user::CurrentUser,
-        util::mustbe::MustBeBool,
     };
     use serde_test::Token;
 
@@ -35,11 +34,11 @@ mod tests {
         let guilds = vec![
             UnavailableGuild {
                 id: Id::new(1),
-                unavailable: MustBeBool,
+                unavailable: true,
             },
             UnavailableGuild {
                 id: Id::new(2),
-                unavailable: MustBeBool,
+                unavailable: true,
             },
         ];
 
