@@ -19,6 +19,7 @@ impl<'de> Deserialize<'de> for UnavailableGuild {
         #[serde(rename = "UnavailableGuild")] // Tests expect this struct name
         struct UnavailableGuildIntermediate {
             id: Id<GuildMarker>,
+            #[allow(unused)] // Only used in the derived impl
             unavailable: MustBeBool<true>,
         }
 
@@ -26,7 +27,7 @@ impl<'de> Deserialize<'de> for UnavailableGuild {
 
         Ok(Self {
             id: intermediate.id,
-            unavailable: intermediate.unavailable.get(),
+            unavailable: true,
         })
     }
 }

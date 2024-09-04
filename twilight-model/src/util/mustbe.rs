@@ -17,13 +17,6 @@ use serde::{
 #[derive(Clone, Copy, Default)]
 pub struct MustBeBool<const T: bool>;
 
-impl<const T: bool> MustBeBool<T> {
-    /// Get the expected boolean
-    pub const fn get(self) -> bool {
-        T
-    }
-}
-
 impl<const T: bool, const U: bool> PartialEq<MustBeBool<U>> for MustBeBool<T> {
     fn eq(&self, _: &MustBeBool<U>) -> bool {
         T.eq(&U)
