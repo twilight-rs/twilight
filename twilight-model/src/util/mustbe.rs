@@ -128,7 +128,7 @@ mod tests {
             m: MustBeBool<false>,
         }
 
-        let json_1 = r#"{}"#;
+        let json_1 = r"{}";
         serde_json::from_str::<MFalse>(json_1).unwrap();
     }
 
