@@ -3,39 +3,15 @@
 //! This module is heavily based upon
 //! <https://github.com/dtolnay/monostate>.
 
-use std::{
-    fmt::{self, Debug},
-    hash::Hash,
-};
+use std::fmt;
 
 use serde::{
     de::{Error, Unexpected, Visitor},
-    Deserialize, Serialize,
+    Deserialize,
 };
 
 /// Struct that will only serialize from the bool specified as `T`.
-#[derive(Clone, Copy, Default)]
 pub struct MustBeBool<const T: bool>;
-
-impl<const T: bool, const U: bool> PartialEq<MustBeBool<U>> for MustBeBool<T> {
-    fn eq(&self, _: &MustBeBool<U>) -> bool {
-        T.eq(&U)
-    }
-}
-
-impl<const T: bool> Eq for MustBeBool<T> {}
-
-impl<const T: bool> Debug for MustBeBool<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("MustBeBool").field(&T).finish()
-    }
-}
-
-impl<const T: bool> Hash for MustBeBool<T> {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        T.hash(state)
-    }
-}
 
 impl<'de, const T: bool> Deserialize<'de> for MustBeBool<T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -69,32 +45,25 @@ impl<'de, const T: bool> Deserialize<'de> for MustBeBool<T> {
     }
 }
 
-impl<const T: bool> Serialize for MustBeBool<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_bool(T)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::MustBeBool;
 
-    use serde::{Deserialize, Serialize};
+    use serde::Deserialize;
 
-    #[derive(Deserialize, Serialize)]
+    #[derive(Deserialize)]
     struct MTrue {
+        #[allow(unused)]
         m: MustBeBool<true>,
     }
 
-    #[derive(Deserialize, Serialize)]
+    #[derive(Deserialize)]
     struct MFalse {
+        #[allow(unused)]
         m: MustBeBool<false>,
     }
 
-    #[derive(Deserialize, Serialize)]
+    #[derive(Deserialize)]
     #[serde(untagged)]
     enum TestEnum {
         VariantTrue(MTrue),
@@ -111,35 +80,5 @@ mod tests {
         let json_2 = r#"{ "m": true }"#;
         let result_2 = serde_json::from_str::<TestEnum>(json_2).unwrap();
         assert!(matches!(result_2, TestEnum::VariantTrue(_)));
-    }
-
-    #[test]
-    fn default_value() {
-        #[derive(Deserialize, Serialize)]
-        struct MFalse {
-            #[serde(default)]
-            m: MustBeBool<false>,
-        }
-
-        let json_1 = r"{}";
-        serde_json::from_str::<MFalse>(json_1).unwrap();
-    }
-
-    #[test]
-    fn ser() {
-        let val = TestEnum::VariantTrue(MTrue { m: MustBeBool });
-        let result = serde_json::to_string(&val).unwrap();
-        assert_eq!(r#"{"m":true}"#, result);
-
-        let val = TestEnum::VariantFalse(MFalse { m: MustBeBool });
-        let result = serde_json::to_string(&val).unwrap();
-        assert_eq!(r#"{"m":false}"#, result);
-    }
-
-    #[test]
-    fn equality() {
-        assert_ne!(MustBeBool::<false>, MustBeBool::<true>);
-        assert_eq!(MustBeBool::<false>, MustBeBool::<false>);
-        assert_eq!(MustBeBool::<true>, MustBeBool::<true>);
     }
 }
