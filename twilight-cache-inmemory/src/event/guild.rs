@@ -181,10 +181,7 @@ mod tests {
             VerificationLevel,
         },
         id::Id,
-        util::{
-            datetime::{Timestamp, TimestampParseError},
-            mustbe::MustBeBool,
-        },
+        util::datetime::{Timestamp, TimestampParseError},
     };
 
     #[allow(clippy::too_many_lines)]
@@ -361,7 +358,7 @@ mod tests {
         cache.update(&GuildCreate::Unavailable(
             twilight_model::guild::UnavailableGuild {
                 id: guild.id,
-                unavailable: MustBeBool,
+                unavailable: true,
             },
         ));
         assert!(cache.unavailable_guilds.get(&guild.id).is_some());
@@ -373,7 +370,7 @@ mod tests {
         cache.update(&GuildCreate::Unavailable(
             twilight_model::guild::UnavailableGuild {
                 id: guild.id,
-                unavailable: MustBeBool,
+                unavailable: true,
             },
         ));
         assert!(cache.unavailable_guilds.get(&guild.id).is_some());
