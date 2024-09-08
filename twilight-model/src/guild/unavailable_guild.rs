@@ -1,10 +1,35 @@
-use crate::id::{marker::GuildMarker, Id};
+use crate::{
+    id::{marker::GuildMarker, Id},
+    util::mustbe::MustBeBool,
+};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct UnavailableGuild {
     pub id: Id<GuildMarker>,
     pub unavailable: bool,
+}
+
+impl<'de> Deserialize<'de> for UnavailableGuild {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(rename = "UnavailableGuild")] // Tests expect this struct name
+        struct UnavailableGuildIntermediate {
+            id: Id<GuildMarker>,
+            #[allow(unused)] // Only used in the derived impl
+            unavailable: MustBeBool<true>,
+        }
+
+        let intermediate = UnavailableGuildIntermediate::deserialize(deserializer)?;
+
+        Ok(Self {
+            id: intermediate.id,
+            unavailable: true,
+        })
+    }
 }
 
 #[cfg(test)]

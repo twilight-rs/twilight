@@ -4,11 +4,13 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
+// Developer note: Do not change order as we want unavailable to fail
+// first.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum GuildCreate {
-    Available(Guild),
     Unavailable(UnavailableGuild),
+    Available(Guild),
 }
 
 impl GuildCreate {
