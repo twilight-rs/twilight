@@ -215,7 +215,8 @@ pub struct InMemoryCache<CacheModels: CacheableModels = DefaultCacheModels> {
     messages: DashMap<Id<MessageMarker>, CacheModels::Message>,
     presences: DashMap<(Id<GuildMarker>, Id<UserMarker>), CacheModels::Presence>,
     roles: DashMap<Id<RoleMarker>, GuildResource<CacheModels::Role>>,
-    scheduled_events: DashMap<Id<ScheduledEventMarker>, CacheModels::GuildScheduledEvent>,
+    scheduled_events:
+        DashMap<Id<ScheduledEventMarker>, GuildResource<CacheModels::GuildScheduledEvent>>,
     stage_instances: DashMap<Id<StageMarker>, GuildResource<CacheModels::StageInstance>>,
     stickers: DashMap<Id<StickerMarker>, GuildResource<CacheModels::Sticker>>,
     unavailable_guilds: DashSet<Id<GuildMarker>>,
@@ -538,6 +539,20 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         self.guild_roles.get(&guild_id).map(Reference::new)
     }
 
+    /// Gets the scheduled events in a guild.
+    ///
+    /// This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    pub fn scheduled_events(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<ScheduledEventMarker>>>> {
+        self.guild_scheduled_events
+            .get(&guild_id)
+            .map(Reference::new)
+    }
+
     /// Gets the set of stage instances in a guild.
     ///
     /// This requires the [`GUILDS`] intent.
@@ -656,6 +671,20 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         role_id: Id<RoleMarker>,
     ) -> Option<Reference<'_, Id<RoleMarker>, GuildResource<CacheModels::Role>>> {
         self.roles.get(&role_id).map(Reference::new)
+    }
+
+    /// Gets a scheduled event by ID.
+    ///
+    /// This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    pub fn scheduled_event(
+        &self,
+        event_id: Id<ScheduledEventMarker>,
+    ) -> Option<
+        Reference<'_, Id<ScheduledEventMarker>, GuildResource<CacheModels::GuildScheduledEvent>>,
+    > {
+        self.scheduled_events.get(&event_id).map(Reference::new)
     }
 
     /// Gets a stage instance by ID.

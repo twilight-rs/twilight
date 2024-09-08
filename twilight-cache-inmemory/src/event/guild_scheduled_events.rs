@@ -32,7 +32,9 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
             .or_default()
             .insert(guild_scheduled_event.id);
 
-        self.scheduled_events.insert(
+        crate::upsert_guild_item(
+            &self.scheduled_events,
+            guild_id,
             guild_scheduled_event.id,
             CacheModels::GuildScheduledEvent::from(guild_scheduled_event),
         );
@@ -79,7 +81,9 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildScheduledEv
             .scheduled_events
             .entry(self.guild_scheduled_event_id)
             .and_modify(|event| {
-                event.add_user(self.guild_id, self.guild_scheduled_event_id, self.user_id);
+                event
+                    .value
+                    .add_user(self.guild_id, self.guild_scheduled_event_id, self.user_id);
             });
     }
 }
@@ -90,7 +94,9 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildScheduledEv
             .scheduled_events
             .entry(self.guild_scheduled_event_id)
             .and_modify(|event| {
-                event.remove_user(self.guild_id, self.guild_scheduled_event_id, self.user_id);
+                event
+                    .value
+                    .remove_user(self.guild_id, self.guild_scheduled_event_id, self.user_id);
             });
     }
 }
