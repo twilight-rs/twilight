@@ -121,6 +121,10 @@ pub enum Path {
     ApplicationCommand(u64),
     /// Operating on a specific command.
     ApplicationCommandId(u64),
+    /// Operating on application emojis.
+    ApplicationEmojis(u64),
+    /// Operating on a specific application emoji.
+    ApplicationEmoji(u64),
     /// Operating on commands in a guild.
     ApplicationGuildCommand(u64),
     /// Operating on a specific command in a guild.
@@ -344,6 +348,7 @@ impl FromStr for Path {
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
             ["applications", id, "entitlements"] => ApplicationIdEntitlements(parse_id(id)?),
+            ["applications", id, "emojis"] => ApplicationEmojis(parse_id(id)?),
             ["applications", id, "guilds", _, "commands"]
             | ["applications", id, "guilds", _, "commands", "permissions"] => {
                 ApplicationGuildCommand(parse_id(id)?)
