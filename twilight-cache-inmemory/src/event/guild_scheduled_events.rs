@@ -119,7 +119,7 @@ mod tests {
         let guild_id = Id::new(2);
         let user_id = Id::new(3);
 
-        cache.update(&GuildScheduledEventCreate(test::guild_schduled_event(
+        cache.update(&GuildScheduledEventCreate(test::guild_scheduled_event(
             id,
             guild_id,
             Some(41),

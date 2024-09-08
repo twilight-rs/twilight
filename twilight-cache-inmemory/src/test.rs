@@ -443,7 +443,7 @@ pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
     }
 }
 
-pub fn guild_schduled_event(
+pub fn guild_scheduled_event(
     id: Id<ScheduledEventMarker>,
     guild_id: Id<GuildMarker>,
     user_count: Option<u64>,
