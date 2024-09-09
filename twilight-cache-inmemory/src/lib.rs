@@ -57,11 +57,11 @@ use std::{
 use twilight_model::{
     channel::{Channel, StageInstance},
     gateway::event::Event,
-    guild::{GuildIntegration, Role},
+    guild::{scheduled_event::GuildScheduledEvent, GuildIntegration, Role},
     id::{
         marker::{
             ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            StageMarker, StickerMarker, UserMarker,
+            ScheduledEventMarker, StageMarker, StickerMarker, UserMarker,
         },
         Id,
     },
@@ -204,6 +204,7 @@ pub struct InMemoryCache<CacheModels: CacheableModels = DefaultCacheModels> {
     guild_members: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
     guild_presences: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
     guild_roles: DashMap<Id<GuildMarker>, HashSet<Id<RoleMarker>>>,
+    guild_scheduled_events: DashMap<Id<GuildMarker>, HashSet<Id<ScheduledEventMarker>>>,
     guild_stage_instances: DashMap<Id<GuildMarker>, HashSet<Id<StageMarker>>>,
     guild_stickers: DashMap<Id<GuildMarker>, HashSet<Id<StickerMarker>>>,
     integrations: DashMap<
@@ -214,6 +215,8 @@ pub struct InMemoryCache<CacheModels: CacheableModels = DefaultCacheModels> {
     messages: DashMap<Id<MessageMarker>, CacheModels::Message>,
     presences: DashMap<(Id<GuildMarker>, Id<UserMarker>), CacheModels::Presence>,
     roles: DashMap<Id<RoleMarker>, GuildResource<CacheModels::Role>>,
+    scheduled_events:
+        DashMap<Id<ScheduledEventMarker>, GuildResource<CacheModels::GuildScheduledEvent>>,
     stage_instances: DashMap<Id<StageMarker>, GuildResource<CacheModels::StageInstance>>,
     stickers: DashMap<Id<StickerMarker>, GuildResource<CacheModels::Sticker>>,
     unavailable_guilds: DashSet<Id<GuildMarker>>,
@@ -246,6 +249,7 @@ impl CacheableModels for DefaultCacheModels {
     type Sticker = model::CachedSticker;
     type User = User;
     type VoiceState = model::CachedVoiceState;
+    type GuildScheduledEvent = GuildScheduledEvent;
 }
 
 /// The default implementation of [`InMemoryCache`].
@@ -535,6 +539,20 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         self.guild_roles.get(&guild_id).map(Reference::new)
     }
 
+    /// Gets the scheduled events in a guild.
+    ///
+    /// This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    pub fn scheduled_events(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<ScheduledEventMarker>>>> {
+        self.guild_scheduled_events
+            .get(&guild_id)
+            .map(Reference::new)
+    }
+
     /// Gets the set of stage instances in a guild.
     ///
     /// This requires the [`GUILDS`] intent.
@@ -653,6 +671,20 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         role_id: Id<RoleMarker>,
     ) -> Option<Reference<'_, Id<RoleMarker>, GuildResource<CacheModels::Role>>> {
         self.roles.get(&role_id).map(Reference::new)
+    }
+
+    /// Gets a scheduled event by ID.
+    ///
+    /// This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    pub fn scheduled_event(
+        &self,
+        event_id: Id<ScheduledEventMarker>,
+    ) -> Option<
+        Reference<'_, Id<ScheduledEventMarker>, GuildResource<CacheModels::GuildScheduledEvent>>,
+    > {
+        self.scheduled_events.get(&event_id).map(Reference::new)
     }
 
     /// Gets a stage instance by ID.
@@ -798,30 +830,32 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 impl<CacheModels: CacheableModels> Default for InMemoryCache<CacheModels> {
     fn default() -> Self {
         Self {
-            config: Config::default(),
-            channels: DashMap::new(),
             channel_messages: DashMap::new(),
+            channels: DashMap::new(),
+            config: Config::default(),
             current_user: Mutex::new(None),
             emojis: DashMap::new(),
-            guilds: DashMap::new(),
             guild_channels: DashMap::new(),
             guild_emojis: DashMap::new(),
             guild_integrations: DashMap::new(),
             guild_members: DashMap::new(),
             guild_presences: DashMap::new(),
             guild_roles: DashMap::new(),
+            guild_scheduled_events: DashMap::new(),
             guild_stage_instances: DashMap::new(),
             guild_stickers: DashMap::new(),
+            guilds: DashMap::new(),
             integrations: DashMap::new(),
             members: DashMap::new(),
             messages: DashMap::new(),
             presences: DashMap::new(),
             roles: DashMap::new(),
+            scheduled_events: DashMap::new(),
             stage_instances: DashMap::new(),
             stickers: DashMap::new(),
             unavailable_guilds: DashSet::new(),
-            users: DashMap::new(),
             user_guilds: DashMap::new(),
+            users: DashMap::new(),
             voice_state_channels: DashMap::new(),
             voice_state_guilds: DashMap::new(),
             voice_states: DashMap::new(),
@@ -834,13 +868,15 @@ mod private {
         event::Event,
         payload::incoming::{
             ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate, GuildCreate,
-            GuildDelete, GuildEmojisUpdate, GuildStickersUpdate, GuildUpdate, IntegrationCreate,
-            IntegrationDelete, IntegrationUpdate, InteractionCreate, MemberAdd, MemberChunk,
-            MemberRemove, MemberUpdate, MessageCreate, MessageDelete, MessageDeleteBulk,
-            MessageUpdate, PresenceUpdate, ReactionAdd, ReactionRemove, ReactionRemoveAll,
-            ReactionRemoveEmoji, Ready, RoleCreate, RoleDelete, RoleUpdate, StageInstanceCreate,
-            StageInstanceDelete, StageInstanceUpdate, ThreadCreate, ThreadDelete, ThreadListSync,
-            ThreadUpdate, UnavailableGuild, UserUpdate, VoiceStateUpdate,
+            GuildDelete, GuildEmojisUpdate, GuildScheduledEventCreate, GuildScheduledEventDelete,
+            GuildScheduledEventUpdate, GuildScheduledEventUserAdd, GuildScheduledEventUserRemove,
+            GuildStickersUpdate, GuildUpdate, IntegrationCreate, IntegrationDelete,
+            IntegrationUpdate, InteractionCreate, MemberAdd, MemberChunk, MemberRemove,
+            MemberUpdate, MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
+            PresenceUpdate, ReactionAdd, ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji,
+            Ready, RoleCreate, RoleDelete, RoleUpdate, StageInstanceCreate, StageInstanceDelete,
+            StageInstanceUpdate, ThreadCreate, ThreadDelete, ThreadListSync, ThreadUpdate,
+            UnavailableGuild, UserUpdate, VoiceStateUpdate,
         },
     };
 
@@ -887,6 +923,11 @@ mod private {
     impl Sealed for UnavailableGuild {}
     impl Sealed for UserUpdate {}
     impl Sealed for VoiceStateUpdate {}
+    impl Sealed for GuildScheduledEventCreate {}
+    impl Sealed for GuildScheduledEventDelete {}
+    impl Sealed for GuildScheduledEventUpdate {}
+    impl Sealed for GuildScheduledEventUserAdd {}
+    impl Sealed for GuildScheduledEventUserRemove {}
 }
 
 /// Implemented for dispatch events.
@@ -935,6 +976,11 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             Event::GuildCreate(v) => cache.update(v.deref()),
             Event::GuildDelete(v) => cache.update(v),
             Event::GuildEmojisUpdate(v) => cache.update(v),
+            Event::GuildScheduledEventCreate(v) => cache.update(v.deref()),
+            Event::GuildScheduledEventDelete(v) => cache.update(v.deref()),
+            Event::GuildScheduledEventUpdate(v) => cache.update(v.deref()),
+            Event::GuildScheduledEventUserAdd(v) => cache.update(v),
+            Event::GuildScheduledEventUserRemove(v) => cache.update(v),
             Event::GuildStickersUpdate(v) => cache.update(v),
             Event::GuildUpdate(v) => cache.update(v.deref()),
             Event::IntegrationCreate(v) => cache.update(v.deref()),
@@ -942,9 +988,9 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             Event::IntegrationUpdate(v) => cache.update(v.deref()),
             Event::InteractionCreate(v) => cache.update(v.deref()),
             Event::MemberAdd(v) => cache.update(v.deref()),
+            Event::MemberChunk(v) => cache.update(v),
             Event::MemberRemove(v) => cache.update(v),
             Event::MemberUpdate(v) => cache.update(v.deref()),
-            Event::MemberChunk(v) => cache.update(v),
             Event::MessageCreate(v) => cache.update(v.deref()),
             Event::MessageDelete(v) => cache.update(v),
             Event::MessageDeleteBulk(v) => cache.update(v),
@@ -962,12 +1008,13 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             Event::StageInstanceDelete(v) => cache.update(v),
             Event::StageInstanceUpdate(v) => cache.update(v),
             Event::ThreadCreate(v) => cache.update(v.deref()),
-            Event::ThreadUpdate(v) => cache.update(v.deref()),
             Event::ThreadDelete(v) => cache.update(v),
             Event::ThreadListSync(v) => cache.update(v),
+            Event::ThreadUpdate(v) => cache.update(v.deref()),
             Event::UnavailableGuild(v) => cache.update(v),
             Event::UserUpdate(v) => cache.update(v),
             Event::VoiceStateUpdate(v) => cache.update(v.deref()),
+
             // Ignored events.
             Event::AutoModerationActionExecution(_)
             | Event::AutoModerationRuleCreate(_)
@@ -987,11 +1034,6 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::GatewayReconnect
             | Event::GuildAuditLogEntryCreate(_)
             | Event::GuildIntegrationsUpdate(_)
-            | Event::GuildScheduledEventCreate(_)
-            | Event::GuildScheduledEventDelete(_)
-            | Event::GuildScheduledEventUpdate(_)
-            | Event::GuildScheduledEventUserAdd(_)
-            | Event::GuildScheduledEventUserRemove(_)
             | Event::InviteCreate(_)
             | Event::InviteDelete(_)
             | Event::MessagePollVoteAdd(_)

@@ -51,7 +51,7 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         }
 
         if self.wants(ResourceType::STICKER) {
-            self.guild_stage_instances.insert(guild.id, HashSet::new());
+            self.guild_stickers.insert(guild.id, HashSet::new());
             self.cache_stickers(guild.id, mem::take(&mut guild.stickers));
         }
 
@@ -63,6 +63,14 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         if self.wants(ResourceType::STAGE_INSTANCE) {
             self.guild_stage_instances.insert(guild.id, HashSet::new());
             self.cache_stage_instances(guild.id, mem::take(&mut guild.stage_instances));
+        }
+
+        if self.wants(ResourceType::GUILD_SCHEDULED_EVENT) {
+            self.guild_scheduled_events.insert(guild.id, HashSet::new());
+            self.cache_guild_scheduled_events(
+                guild.id,
+                mem::take(&mut guild.guild_scheduled_events),
+            );
         }
 
         if self.wants(ResourceType::GUILD) {
@@ -295,6 +303,7 @@ mod tests {
             emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::AllMembers,
             features: vec![],
+            guild_scheduled_events: Vec::new(),
             icon: None,
             id: Id::new(123),
             joined_at: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),

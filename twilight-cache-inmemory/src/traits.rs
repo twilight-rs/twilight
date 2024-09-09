@@ -34,9 +34,14 @@ use twilight_model::{
         payload::incoming::{GuildUpdate, MemberUpdate, MessageUpdate},
         presence::Presence,
     },
-    guild::{Emoji, Guild, GuildIntegration, Member, PartialMember, Role},
+    guild::{
+        scheduled_event::GuildScheduledEvent, Emoji, Guild, GuildIntegration, Member,
+        PartialMember, Role,
+    },
     id::{
-        marker::{ChannelMarker, GuildMarker, RoleMarker, StickerMarker, UserMarker},
+        marker::{
+            ChannelMarker, GuildMarker, RoleMarker, ScheduledEventMarker, StickerMarker, UserMarker,
+        },
         Id,
     },
     user::{CurrentUser, User},
@@ -48,32 +53,34 @@ use twilight_model::{channel::permission_overwrite::PermissionOverwrite, guild::
 
 /// Super-trait for the generic cached representations of Discord API models.
 pub trait CacheableModels: Clone + Debug {
-    /// The cached [`Member`] model representation.
-    type Member: CacheableMember;
-    /// The cached [`Role`] model representation.
-    type Role: CacheableRole;
     /// The cached [`Channel`] model representation.
     type Channel: CacheableChannel;
-    /// The cached [`Guild`] model representation.
-    type Guild: CacheableGuild;
-    /// The cached [`VoiceState`] model representation.
-    type VoiceState: CacheableVoiceState;
-    /// The cached [`Message`] model representation.
-    type Message: CacheableMessage;
     /// The cached [`CurrentUser`] model representation.
     type CurrentUser: CacheableCurrentUser;
-    /// The cached [`Sticker`] model representation.
-    type Sticker: CacheableSticker;
     /// The cached [`Emoji`] model representation.
     type Emoji: CacheableEmoji;
+    /// The cached [`Guild`] model representation.
+    type Guild: CacheableGuild;
     /// The cached [`GuildIntegration`] model representation.
     type GuildIntegration: CacheableGuildIntegration;
+    /// The cached [`GuildScheduledEvent` model representation.
+    type GuildScheduledEvent: CacheableGuildScheduledEvent;
+    /// The cached [`Member`] model representation.
+    type Member: CacheableMember;
+    /// The cached [`Message`] model representation.
+    type Message: CacheableMessage;
     /// The cached [`Presence`] model representation.
     type Presence: CacheablePresence;
+    /// The cached [`Role`] model representation.
+    type Role: CacheableRole;
     /// The cached [`StageInstance`] model representation.
     type StageInstance: CacheableStageInstance;
+    /// The cached [`Sticker`] model representation.
+    type Sticker: CacheableSticker;
     /// The cached [`User`] model representation.
     type User: CacheableUser;
+    /// The cached [`VoiceState`] model representation.
+    type VoiceState: CacheableVoiceState;
 }
 
 /// Trait for a generic cached representation of a [`Member`].
@@ -301,3 +308,44 @@ impl CacheableStageInstance for StageInstance {}
 pub trait CacheableUser: From<User> + PartialEq<User> + PartialEq<Self> + Clone + Debug {}
 
 impl CacheableUser for User {}
+
+/// Trait for a generic cached representation of a [`GuildScheduledEvent`].
+pub trait CacheableGuildScheduledEvent:
+    From<GuildScheduledEvent> + PartialEq<GuildScheduledEvent> + PartialEq<Self> + Clone + Debug
+{
+    /// Add a user to an event.
+    fn add_user(
+        &mut self,
+        guild_id: Id<GuildMarker>,
+        event_id: Id<ScheduledEventMarker>,
+        user_id: Id<UserMarker>,
+    );
+
+    /// Remove a user from an event.
+    fn remove_user(
+        &mut self,
+        guild_id: Id<GuildMarker>,
+        event_id: Id<ScheduledEventMarker>,
+        user_id: Id<UserMarker>,
+    );
+}
+
+impl CacheableGuildScheduledEvent for GuildScheduledEvent {
+    fn add_user(
+        &mut self,
+        _guild_id: Id<GuildMarker>,
+        _event_id: Id<ScheduledEventMarker>,
+        _user_id: Id<UserMarker>,
+    ) {
+        self.user_count = self.user_count.map(|count| count.saturating_add(1));
+    }
+
+    fn remove_user(
+        &mut self,
+        _guild_id: Id<GuildMarker>,
+        _event_id: Id<ScheduledEventMarker>,
+        _user_id: Id<UserMarker>,
+    ) {
+        self.user_count = self.user_count.map(|count| count.saturating_sub(1));
+    }
+}
