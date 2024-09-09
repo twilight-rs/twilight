@@ -930,7 +930,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 47,
+                    len: 48,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
