@@ -109,6 +109,9 @@ pub struct Guild {
     pub max_members: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_presences: Option<u64>,
+    /// Maximum number of users in a stage video channel.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_stage_video_channel_users: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_video_channel_users: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -187,6 +190,7 @@ impl<'de> Deserialize<'de> for Guild {
             Large,
             MaxMembers,
             MaxPresences,
+            MaxStageVideoChannelUsers,
             MaxVideoChannelUsers,
             MemberCount,
             Members,
@@ -250,6 +254,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut large = None;
                 let mut max_members = None::<Option<_>>;
                 let mut max_presences = None::<Option<_>>;
+                let mut max_stage_video_channel_users = None::<Option<_>>;
                 let mut max_video_channel_users = None::<Option<_>>;
                 let mut member_count = None::<Option<_>>;
                 let mut members = None;
@@ -434,6 +439,15 @@ impl<'de> Deserialize<'de> for Guild {
                             }
 
                             max_presences = Some(map.next_value()?);
+                        }
+                        Field::MaxStageVideoChannelUsers => {
+                            if max_stage_video_channel_users.is_some() {
+                                return Err(DeError::duplicate_field(
+                                    "max_stage_video_channel_users",
+                                ));
+                            }
+
+                            max_stage_video_channel_users = Some(map.next_value()?);
                         }
                         Field::MaxVideoChannelUsers => {
                             if max_video_channel_users.is_some() {
@@ -688,6 +702,8 @@ impl<'de> Deserialize<'de> for Guild {
                 let joined_at = joined_at.unwrap_or_default();
                 let max_members = max_members.unwrap_or_default();
                 let max_presences = max_presences.unwrap_or_default();
+                let max_stage_video_channel_users =
+                    max_stage_video_channel_users.unwrap_or_default();
                 let max_video_channel_users = max_video_channel_users.unwrap_or_default();
                 let member_count = member_count.unwrap_or_default();
                 let members = members.unwrap_or_default();
@@ -748,6 +764,7 @@ impl<'de> Deserialize<'de> for Guild {
                     large,
                     max_members,
                     max_presences,
+                    max_stage_video_channel_users,
                     max_video_channel_users,
                     member_count,
                     members,
@@ -875,6 +892,7 @@ mod tests {
             large: true,
             max_members: Some(25_000),
             max_presences: Some(10_000),
+            max_stage_video_channel_users: Some(10),
             max_video_channel_users: Some(10),
             member_count: Some(12_000),
             members: Vec::new(),
@@ -912,7 +930,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 47,
+                    len: 48,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -971,6 +989,9 @@ mod tests {
                 Token::Str("max_presences"),
                 Token::Some,
                 Token::U64(10_000),
+                Token::Str("max_stage_video_channel_users"),
+                Token::Some,
+                Token::U64(10),
                 Token::Str("max_video_channel_users"),
                 Token::Some,
                 Token::U64(10),
