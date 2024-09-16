@@ -427,6 +427,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             authorizing_integration_owners,
             channel,
             channel_id,
+            context,
             data,
             entitlements,
             guild_id,
@@ -438,7 +439,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             message,
             token,
             user,
-            context,
         })
     }
 }
