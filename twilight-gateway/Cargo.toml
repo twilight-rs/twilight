@@ -21,7 +21,7 @@ futures-sink = { default-features = false, features = ["std"], version = "0.3" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.19" }
-tokio-websockets = { default-features = false, features = ["client", "fastrand", "sha1_smol", "simd"], version = "0.7" }
+tokio-websockets = { default-features = false, features = ["client", "fastrand", "sha1_smol", "simd"], version = "0.10" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.16.0-rc.1" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.16.0-rc.1" }
@@ -44,10 +44,14 @@ tokio-stream = { default-features = false, version = "0.1" }
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 
 [features]
-default = ["rustls-native-roots", "twilight-http", "zlib-stock"]
+default = ["rustls-platform-verifier", "rustls-ring", "twilight-http", "zlib-stock"]
 native-tls = ["tokio-websockets/native-tls", "tokio-websockets/openssl"]
-rustls-native-roots = ["tokio-websockets/ring", "tokio-websockets/rustls-native-roots"]
-rustls-webpki-roots = ["tokio-websockets/ring", "tokio-websockets/rustls-webpki-roots"]
+rustls-platform-verifier = ["tokio-websockets/rustls-platform-verifier"]
+rustls-native-roots = ["tokio-websockets/rustls-native-roots"]
+rustls-webpki-roots = ["tokio-websockets/rustls-webpki-roots"]
+rustls-ring = ["tokio-websockets/ring"]
+rustls-aws_lc_rs = ["tokio-websockets/aws_lc_rs"]
+rustls-aws-lc-rs = ["rustls-aws_lc_rs"] # Alias for convenience, underscores are preferred in the rustls stack
 zlib-simd = ["dep:flate2", "flate2?/zlib-ng"]
 zlib-stock = ["dep:flate2", "flate2?/zlib"]
 

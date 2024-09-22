@@ -23,9 +23,17 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
   events
 * TLS (mutually exclusive)
   * `native-tls`: platform's native TLS implementation via [`native-tls`]
-  * `rustls-native-roots` (*default*): [`rustls`] using native root certificates
+  * `rustls-native-roots`: [`rustls`] using native root certificates
+  * `rustls-platform-verifier` (*default*): [`rustls`] using operating system's
+    certificate facilities via [`rustls-platform-verifier`]
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
+* Crypto providers (required with [`rustls`])
+  * `rustls-ring` (*default*): [`ring`] as the crypto provider, recommended for
+    compatibility
+  * `rustls-aws_lc_rs`: [`aws-lc-rs`] as the crypto provider, recommended for
+    performance and widely used platforms
+  * none of the above: install your own via [`CryptoProvider::install_default`]
 * `twilight-http` (*default*): enable the `stream::create_recommended` function
 * Zlib (mutually exclusive)
   * `zlib-stock` (*default*): [`flate2`]'s stock zlib implementation
@@ -104,9 +112,13 @@ async fn runner(mut shard: Shard) {
 There are a few additional examples located in the
 [repository][github examples link].
 
+[`CryptoProvider::install_default`]: https://docs.rs/rustls/latest/rustls/crypto/struct.CryptoProvider.html#method.install_default
+[`aws-lc-rs`]: https://crates.io/crates/aws-lc-rs
 [`flate2`]: https://crates.io/crates/flate2
 [`native-tls`]: https://crates.io/crates/native-tls
+[`ring`]: https://crates.io/crates/ring
 [`rustls`]: https://crates.io/crates/rustls
+[`rustls-platform-verifier`]: https://crates.io/crates/rustls-platform-verifier
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
