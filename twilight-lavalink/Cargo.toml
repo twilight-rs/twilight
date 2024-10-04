@@ -14,7 +14,7 @@ repository.workspace = true
 version = "0.16.0-rc.1"
 
 [dependencies]
-dashmap = { default-features = false, version = "5.3" }
+dashmap = { default-features = false, version = ">= 5.3, < 7" }
 futures-util = { default-features = false, features = ["bilock", "sink", "std", "unstable"], version = "0.3" }
 http = { default-features = false, version = "1" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
