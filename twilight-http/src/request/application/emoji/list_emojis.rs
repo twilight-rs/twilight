@@ -2,12 +2,12 @@ use std::future::IntoFuture;
 
 use crate::{
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::ResponseFuture,
     routing::Route,
     Client, Error, Response,
 };
 use twilight_model::{
-    guild::Emoji,
+    application::EmojiList,
     id::{marker::ApplicationMarker, Id},
 };
 
@@ -27,9 +27,9 @@ impl<'a> ListApplicationEmojis<'a> {
 }
 
 impl IntoFuture for ListApplicationEmojis<'_> {
-    type Output = Result<Response<ListBody<Emoji>>, Error>;
+    type Output = Result<Response<EmojiList>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<Emoji>>;
+    type IntoFuture = ResponseFuture<EmojiList>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
