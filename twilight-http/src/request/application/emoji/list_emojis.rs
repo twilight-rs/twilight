@@ -7,7 +7,7 @@ use crate::{
     Client, Error, Response,
 };
 use twilight_model::{
-    application::emoji::EmojiList,
+    application::EmojiList,
     id::{marker::ApplicationMarker, Id},
 };
 

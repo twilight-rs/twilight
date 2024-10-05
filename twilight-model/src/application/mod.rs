@@ -1,4 +1,6 @@
 pub mod command;
-pub mod emoji;
+mod emoji;
 pub mod interaction;
 pub mod monetization;
+
+pub use emoji::EmojiList;
