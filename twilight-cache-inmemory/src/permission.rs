@@ -763,7 +763,7 @@ mod tests {
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
             threads: Vec::new(),
             rules_channel_id: None,
-            unavailable: false,
+            unavailable: Some(false),
             verification_level: VerificationLevel::VeryHigh,
             voice_states: Vec::new(),
             vanity_url_code: None,

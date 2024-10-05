@@ -206,7 +206,7 @@ pub trait CacheableGuild: From<Guild> + PartialEq<Guild> + PartialEq<Self> + Clo
     fn owner_id(&self) -> Id<UserMarker>;
 
     /// Set the guild's unavailable flag.
-    fn set_unavailable(&mut self, unavailable: bool);
+    fn set_unavailable(&mut self, unavailable: Option<bool>);
 
     /// Update the cached data with a [`GuildUpdate`] event. Fields containing other
     /// cached structures such as channels are cleared prior.
