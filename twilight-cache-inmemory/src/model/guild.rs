@@ -57,7 +57,7 @@ pub struct CachedGuild {
     pub(crate) splash: Option<ImageHash>,
     pub(crate) system_channel_flags: SystemChannelFlags,
     pub(crate) system_channel_id: Option<Id<ChannelMarker>>,
-    pub(crate) unavailable: bool,
+    pub(crate) unavailable: Option<bool>,
     pub(crate) vanity_url_code: Option<String>,
     pub(crate) verification_level: VerificationLevel,
     pub(crate) widget_channel_id: Option<Id<ChannelMarker>>,
@@ -266,7 +266,7 @@ impl CachedGuild {
     }
 
     /// Whether the guild is unavailable due to an outage.
-    pub const fn unavailable(&self) -> bool {
+    pub const fn unavailable(&self) -> Option<bool> {
         self.unavailable
     }
 
@@ -436,7 +436,7 @@ impl CacheableGuild for CachedGuild {
         self.owner_id
     }
 
-    fn set_unavailable(&mut self, unavailable: bool) {
+    fn set_unavailable(&mut self, unavailable: Option<bool>) {
         self.unavailable = unavailable;
     }
 

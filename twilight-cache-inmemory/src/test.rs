@@ -435,7 +435,7 @@ pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
         system_channel_flags: SystemChannelFlags::empty(),
         system_channel_id: None,
         threads: Vec::new(),
-        unavailable: false,
+        unavailable: Some(false),
         vanity_url_code: None,
         verification_level: VerificationLevel::VeryHigh,
         voice_states: Vec::new(),
