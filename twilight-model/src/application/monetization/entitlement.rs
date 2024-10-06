@@ -16,12 +16,15 @@ pub struct Entitlement {
     /// ID of the parent application.
     pub application_id: Id<ApplicationMarker>,
     /// Not applicable for App Subscriptions. Subscriptions are not consumed and will be `false`
-    pub consumed: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub consumed: Option<bool>,
     /// Entitlement was deleted.
     pub deleted: bool,
     /// Date at which the entitlement is no longer valid. Not present when using test entitlements.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ends_at: Option<Timestamp>,
     /// ID of the guild that is granted access to the entitlement's sku.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the entitlement.
     pub id: Id<EntitlementMarker>,
@@ -31,8 +34,10 @@ pub struct Entitlement {
     /// ID of the SKU.
     pub sku_id: Id<SkuMarker>,
     /// Start date at which the entitlement is valid. Not present when using test entitlements.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub starts_at: Option<Timestamp>,
     /// ID of the user that is granted access to the entitlement's sku.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub user_id: Option<Id<UserMarker>>,
 }
 
@@ -56,7 +61,7 @@ mod tests {
 
         let value = Entitlement {
             application_id: Id::new(1),
-            consumed: false,
+            consumed: Some(false),
             deleted: false,
             ends_at: ends_at.into(),
             guild_id: Some(Id::new(10)),
@@ -78,6 +83,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("consumed"),
+                Token::Some,
                 Token::Bool(false),
                 Token::Str("deleted"),
                 Token::Bool(false),
