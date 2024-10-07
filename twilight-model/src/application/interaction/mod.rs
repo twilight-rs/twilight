@@ -8,11 +8,15 @@ pub mod application_command;
 pub mod message_component;
 pub mod modal;
 
+mod context_type;
 mod interaction_type;
+mod metadata;
 mod resolved;
 
 pub use self::{
+    context_type::InteractionContextType,
     interaction_type::InteractionType,
+    metadata::InteractionMetadata,
     resolved::{InteractionChannel, InteractionDataResolved, InteractionMember},
 };
 
@@ -25,8 +29,9 @@ use crate::{
     guild::{PartialMember, Permissions},
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
-        Id,
+        AnonymizableId, Id,
     },
+    oauth::ApplicationIntegrationMap,
     user::User,
 };
 use serde::{
@@ -46,12 +51,14 @@ use super::monetization::Entitlement;
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Interaction {
     /// App's permissions in the channel the interaction was sent from.
-    ///
-    /// Present when the interaction is invoked in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
+    /// Mapping of installation contexts that the interaction was
+    /// authorized for to related user or guild IDs.
+    pub authorizing_integration_owners:
+        ApplicationIntegrationMap<AnonymizableId<GuildMarker>, Id<UserMarker>>,
     /// The channel the interaction was invoked in.
     ///
     /// Present on all interactions types, except [`Ping`].
@@ -69,6 +76,9 @@ pub struct Interaction {
         note = "channel_id is deprecated in the discord API and will no be sent in the future, users should use the channel field instead."
     )]
     pub channel_id: Option<Id<ChannelMarker>>,
+    /// Context where the interaction was triggered from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<InteractionContextType>,
     /// Data from the interaction.
     ///
     /// This field present on [`ApplicationCommand`], [`MessageComponent`],
@@ -178,6 +188,7 @@ impl<'de> Deserialize<'de> for Interaction {
 enum InteractionField {
     AppPermissions,
     ApplicationId,
+    Context,
     Channel,
     ChannelId,
     Data,
@@ -192,6 +203,7 @@ enum InteractionField {
     Type,
     User,
     Version,
+    AuthorizingIntegrationOwners,
 }
 
 struct InteractionVisitor;
@@ -209,6 +221,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut application_id: Option<Id<ApplicationMarker>> = None;
         let mut channel: Option<Channel> = None;
         let mut channel_id: Option<Id<ChannelMarker>> = None;
+        let mut context: Option<InteractionContextType> = None;
         let mut data: Option<Value> = None;
         let mut entitlements: Option<Vec<Entitlement>> = None;
         let mut guild_id: Option<Id<GuildMarker>> = None;
@@ -220,6 +233,9 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut message: Option<Message> = None;
         let mut token: Option<String> = None;
         let mut user: Option<User> = None;
+        let mut authorizing_integration_owners: Option<
+            ApplicationIntegrationMap<AnonymizableId<GuildMarker>, Id<UserMarker>>,
+        > = None;
 
         loop {
             let key = match map.next_key() {
@@ -246,6 +262,13 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     }
 
                     application_id = Some(map.next_value()?);
+                }
+                InteractionField::Context => {
+                    if context.is_some() {
+                        return Err(DeError::duplicate_field("context"));
+                    }
+
+                    context = map.next_value()?;
                 }
                 InteractionField::Channel => {
                     if channel.is_some() {
@@ -342,11 +365,20 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     // Ignoring the version field.
                     map.next_value::<IgnoredAny>()?;
                 }
+                InteractionField::AuthorizingIntegrationOwners => {
+                    if authorizing_integration_owners.is_some() {
+                        return Err(DeError::duplicate_field("authorizing_integration_owners"));
+                    }
+
+                    authorizing_integration_owners = map.next_value()?;
+                }
             }
         }
 
         let application_id =
             application_id.ok_or_else(|| DeError::missing_field("application_id"))?;
+        let authorizing_integration_owners = authorizing_integration_owners
+            .ok_or_else(|| DeError::missing_field("authorizing_integration_owners"))?;
         let id = id.ok_or_else(|| DeError::missing_field("id"))?;
         let token = token.ok_or_else(|| DeError::missing_field("token"))?;
         let kind = kind.ok_or_else(|| DeError::missing_field("kind"))?;
@@ -392,8 +424,10 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         Ok(Self::Value {
             app_permissions,
             application_id,
+            authorizing_integration_owners,
             channel,
             channel_id,
+            context,
             data,
             entitlements,
             guild_id,
@@ -444,6 +478,7 @@ mod tests {
         channel::Channel,
         guild::{MemberFlags, PartialMember, Permissions},
         id::Id,
+        oauth::ApplicationIntegrationMap,
         test::image_hash,
         user::User,
         util::datetime::{Timestamp, TimestampParseError},
@@ -460,6 +495,10 @@ mod tests {
         let value = Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(100),
+            authorizing_integration_owners: ApplicationIntegrationMap {
+                guild: None,
+                user: None,
+            },
             channel: Some(Channel {
                 bitrate: None,
                 guild_id: None,
@@ -498,6 +537,7 @@ mod tests {
                 video_quality_mode: None,
             }),
             channel_id: Some(Id::new(200)),
+            context: None,
             data: Some(InteractionData::ApplicationCommand(Box::new(CommandData {
                 guild_id: None,
                 id: Id::new(300),
@@ -614,7 +654,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Interaction",
-                    len: 13,
+                    len: 14,
                 },
                 Token::Str("app_permissions"),
                 Token::Some,
@@ -622,6 +662,12 @@ mod tests {
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
+                Token::Str("authorizing_integration_owners"),
+                Token::Struct {
+                    name: "ApplicationIntegrationMap",
+                    len: 0,
+                },
+                Token::StructEnd,
                 Token::Str("channel"),
                 Token::Some,
                 Token::Struct {
