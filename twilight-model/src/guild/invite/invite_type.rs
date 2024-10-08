@@ -59,7 +59,7 @@ mod tests {
     #[test]
     fn names() {
         assert_eq!(InviteType::Guild.name(), "Guild");
-        assert_eq!(InviteType::GroupDm.name(), "Group DM");
+        assert_eq!(InviteType::GroupDm.name(), "Group");
         assert_eq!(InviteType::Friend.name(), "Friend");
         assert_eq!(InviteType::Unknown(99).name(), "Unknown");
     }
