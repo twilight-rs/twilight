@@ -1,17 +1,11 @@
 use crate::id::{marker::GuildMarker, Id};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GuildDelete {
     pub id: Id<GuildMarker>,
-    // If `unavailable` is `None` the user was removed from the guild.
-    #[serde(default, deserialize_with = "nullable_unavailable")]
-    pub unavailable: bool,
-}
-
-#[allow(clippy::unnecessary_wraps)]
-fn nullable_unavailable<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
-    Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
+    /// If `None` the user was removed from the guild.
+    pub unavailable: Option<bool>,
 }
 
 #[cfg(test)]
@@ -24,7 +18,7 @@ mod tests {
     fn guild_delete_available() {
         let expected = GuildDelete {
             id: Id::new(123),
-            unavailable: true,
+            unavailable: Some(true),
         };
 
         serde_test::assert_de_tokens(
@@ -38,6 +32,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("unavailable"),
+                Token::Some,
                 Token::Bool(true),
                 Token::StructEnd,
             ],
@@ -53,6 +48,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("unavailable"),
+                Token::Some,
                 Token::Bool(true),
                 Token::StructEnd,
             ],
@@ -63,7 +59,7 @@ mod tests {
     fn guild_delete_unavailable() {
         let expected = GuildDelete {
             id: Id::new(123),
-            unavailable: false,
+            unavailable: Some(false),
         };
 
         serde_test::assert_de_tokens(
@@ -77,6 +73,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("unavailable"),
+                Token::Some,
                 Token::Bool(false),
                 Token::StructEnd,
             ],
@@ -92,6 +89,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("unavailable"),
+                Token::Some,
                 Token::Bool(false),
                 Token::StructEnd,
             ],
@@ -102,7 +100,7 @@ mod tests {
     fn guild_delete_unavailable_null_default() {
         let expected = GuildDelete {
             id: Id::new(123),
-            unavailable: false,
+            unavailable: None,
         };
 
         serde_test::assert_de_tokens(
@@ -110,13 +108,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GuildDelete",
-                    len: 2,
+                    len: 1,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
-                Token::Str("unavailable"),
-                Token::None,
                 Token::StructEnd,
             ],
         );
