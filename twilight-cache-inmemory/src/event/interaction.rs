@@ -79,6 +79,7 @@ mod tests {
         gateway::payload::incoming::InteractionCreate,
         guild::{MemberFlags, PartialMember, Permissions, Role, RoleFlags},
         id::Id,
+        oauth::ApplicationIntegrationMap,
         user::User,
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
@@ -97,6 +98,10 @@ mod tests {
         cache.update(&InteractionCreate(Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
+            authorizing_integration_owners: ApplicationIntegrationMap {
+                guild: None,
+                user: None,
+            },
             channel: Some(Channel {
                 bitrate: None,
                 guild_id: None,
@@ -135,6 +140,7 @@ mod tests {
                 video_quality_mode: None,
             }),
             channel_id: Some(Id::new(2)),
+            context: None,
             data: Some(InteractionData::ApplicationCommand(Box::new(CommandData {
                 guild_id: None,
                 id: Id::new(5),
@@ -195,6 +201,7 @@ mod tests {
                             guild_id: Some(Id::new(1)),
                             id: Id::new(4),
                             interaction: None,
+                            interaction_metadata: None,
                             kind: MessageType::Regular,
                             member: Some(PartialMember {
                                 avatar: None,
@@ -218,15 +225,15 @@ mod tests {
                             poll: None,
                             reactions: Vec::new(),
                             reference: None,
+                            referenced_message: None,
                             role_subscription_data: None,
                             sticker_items: vec![MessageSticker {
                                 format_type: StickerFormatType::Png,
                                 id: Id::new(1),
                                 name: "sticker name".to_owned(),
                             }],
-                            referenced_message: None,
-                            thread: None,
                             timestamp,
+                            thread: None,
                             tts: false,
                             webhook_id: None,
                         },
