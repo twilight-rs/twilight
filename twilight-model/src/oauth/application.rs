@@ -1,4 +1,8 @@
-use super::{team::Team, ApplicationFlags, InstallParams};
+use super::{
+    application_integration_type::{ApplicationIntegrationMap, ApplicationIntegrationTypeConfig},
+    team::Team,
+    ApplicationFlags, InstallParams,
+};
 use crate::{
     guild::Guild,
     id::{
@@ -15,24 +19,33 @@ pub struct Application {
     /// Approximate count of guilds this app has been added to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_guild_count: Option<u64>,
+    /// Approximate count of users that have installed the app.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub approximate_user_install_count: Option<u64>,
     /// Partial user object for the bot user associated with the app.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bot: Option<User>,
+    /// When `false`, only the app owner can add the app to guilds
     pub bot_public: bool,
+    /// When `true`, the app's bot will only join upon completion of the
+    /// full OAuth2 code grant flow
     pub bot_require_code_grant: bool,
     /// Default rich presence invite cover image.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cover_image: Option<ImageHash>,
     /// Application's default custom authorization link, if enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub custom_install_url: Option<String>,
     /// Description of the application.
     pub description: String,
-    pub guild_id: Option<Id<GuildMarker>>,
+    /// Public flags of the application.
+    pub flags: Option<ApplicationFlags>,
     /// Partial object of the associated guild.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild: Option<Guild>,
-    /// Public flags of the application.
-    pub flags: Option<ApplicationFlags>,
+    /// Guild associated with the app. For example, a developer support server.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_id: Option<Id<GuildMarker>>,
     /// Icon of the application.
     pub icon: Option<ImageHash>,
     /// ID of the application.
@@ -40,28 +53,41 @@ pub struct Application {
     /// Settings for the application's default in-app authorization, if enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub install_params: Option<InstallParams>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub integration_types_config:
+        Option<ApplicationIntegrationMap<ApplicationIntegrationTypeConfig>>,
     /// Interactions endpoint URL for the app.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interactions_endpoint_url: Option<String>,
     /// Name of the application.
     pub name: String,
+    /// Partial user object for the owner of the app.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<User>,
+    /// If this app is a game sold on Discord, this field will be the
+    /// id of the "Game SKU" that is created, if exists.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub primary_sku_id: Option<Id<OauthSkuMarker>>,
     /// URL of the application's privacy policy.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privacy_policy_url: Option<String>,
+    /// Redirect URIs for the application.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redirect_uris: Option<Vec<String>>,
     /// Role connection verification URL for the app.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role_connections_verification_url: Option<String>,
     #[serde(default)]
     pub rpc_origins: Vec<String>,
-    /// Redirect URIs for the application.
+    /// If this app is a game sold on Discord, this field will be the
+    /// URL slug that links to the store page.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redirect_uris: Option<Vec<String>>,
     pub slug: Option<String>,
     /// Tags describing the content and functionality of the application.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<Vec<String>>,
+    /// If the app belongs to a team, this will be a list of the
+    /// members of that team.
     pub team: Option<Team>,
     /// URL of the application's terms of service.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -116,18 +142,20 @@ mod tests {
     fn current_application_info() {
         let value = Application {
             approximate_guild_count: Some(2),
+            approximate_user_install_count: Some(5),
             bot: None,
             bot_public: true,
             bot_require_code_grant: false,
             cover_image: Some(image_hash::COVER),
             custom_install_url: None,
             description: "a pretty cool application".to_owned(),
-            guild_id: Some(Id::new(1)),
-            guild: None,
             flags: Some(ApplicationFlags::EMBEDDED),
+            guild: None,
+            guild_id: Some(Id::new(1)),
             icon: Some(image_hash::ICON),
             id: Id::new(2),
             install_params: None,
+            integration_types_config: None,
             interactions_endpoint_url: Some("https://interactions".into()),
             name: "cool application".to_owned(),
             owner: Some(User {
@@ -178,11 +206,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Application",
-                    len: 21,
+                    len: 22,
                 },
                 Token::Str("approximate_guild_count"),
                 Token::Some,
                 Token::U64(2),
+                Token::Str("approximate_user_install_count"),
+                Token::Some,
+                Token::U64(5),
                 Token::Str("bot_public"),
                 Token::Bool(true),
                 Token::Str("bot_require_code_grant"),
@@ -192,13 +223,13 @@ mod tests {
                 Token::Str(image_hash::COVER_INPUT),
                 Token::Str("description"),
                 Token::Str("a pretty cool application"),
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(131_072),
                 Token::Str("guild_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
-                Token::Str("flags"),
-                Token::Some,
-                Token::U64(131_072),
                 Token::Str("icon"),
                 Token::Some,
                 Token::Str(image_hash::ICON_INPUT),

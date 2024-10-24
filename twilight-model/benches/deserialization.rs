@@ -34,6 +34,7 @@ fn member_chunk() {
         "members": [{
             "deaf": false,
             "hoisted_role": "6",
+            "flags": 0,
             "joined_at": "2020-04-04T04:04:04.000000+00:00",
             "mute": false,
             "nick": "chunk",
@@ -48,6 +49,7 @@ fn member_chunk() {
         }, {
             "deaf": false,
             "hoisted_role": "6",
+            "flags": 0,
             "joined_at": "2020-04-04T04:04:04.000000+00:00",
             "mute": false,
             "nick": "chunk",
@@ -61,6 +63,7 @@ fn member_chunk() {
         }, {
             "deaf": false,
             "hoisted_role": "6",
+            "flags": 0,
             "joined_at": "2020-04-04T04:04:04.000000+00:00",
             "mute": false,
             "nick": "chunk",
@@ -75,6 +78,7 @@ fn member_chunk() {
         }, {
             "deaf": false,
             "hoisted_role": "6",
+            "flags": 0,
             "joined_at": "2020-04-04T04:04:04.000000+00:00",
             "mute": false,
             "nick": "chunk",
@@ -134,6 +138,7 @@ fn reaction() {
         "member": {
             "deaf": false,
             "hoisted_role": "5",
+            "flags": 0,
             "joined_at": "2020-01-01T00:00:00.000000+00:00",
             "mute": false,
             "nick": "typing",
@@ -159,6 +164,7 @@ fn typing_start() {
         "member": {
             "deaf": false,
             "hoisted_role": "4",
+            "flags": 0,
             "joined_at": "2020-01-01T00:00:00.000000+00:00",
             "mute": false,
             "nick": "typing",

@@ -33,7 +33,7 @@ pub fn cache() -> DefaultInMemoryCache {
     DefaultInMemoryCache::new()
 }
 
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, deprecated)]
 pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
     let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
     let cache = DefaultInMemoryCache::new();
@@ -75,6 +75,7 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
         guild_id: Some(Id::new(1)),
         id: Id::new(4),
         interaction: None,
+        interaction_metadata: None,
         kind: MessageType::Regular,
         member: Some(PartialMember {
             avatar: None,
@@ -98,11 +99,11 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
         poll: None,
         reactions: Vec::new(),
         reference: None,
+        referenced_message: None,
         role_subscription_data: None,
         sticker_items: Vec::new(),
-        thread: None,
-        referenced_message: None,
         timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
+        thread: None,
         tts: false,
         webhook_id: None,
     };
