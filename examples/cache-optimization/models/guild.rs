@@ -42,7 +42,7 @@ impl CacheableGuild for MinimalCachedGuild {
         self.owner_id
     }
 
-    fn set_unavailable(&mut self, _unavailable: bool) {
+    fn set_unavailable(&mut self, _unavailable: Option<bool>) {
         // We don't store this information, so this is a no-op
     }
 
