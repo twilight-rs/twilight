@@ -635,6 +635,7 @@ mod tests {
                 starts_at: None,
                 user_id: None,
             }],
+            guild: None,
             guild_id: Some(Id::new(400)),
             guild_locale: Some("de".to_owned()),
             id: Id::new(500),
