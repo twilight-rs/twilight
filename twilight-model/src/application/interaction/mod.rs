@@ -26,7 +26,7 @@ use self::{
 };
 use crate::{
     channel::{Channel, Message},
-    guild::{PartialMember, Permissions},
+    guild::{GuildFeature, PartialMember, Permissions},
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         AnonymizableId, Id,
@@ -93,6 +93,9 @@ pub struct Interaction {
     pub data: Option<InteractionData>,
     /// For monetized apps, any entitlements for the invoking user, representing access to premium SKUs
     pub entitlements: Vec<Entitlement>,
+    /// Guild that the interaction was sent from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild: Option<InteractionPartialGuild>,
     /// ID of the guild the interaction was invoked in.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -193,6 +196,7 @@ enum InteractionField {
     ChannelId,
     Data,
     Entitlements,
+    Guild,
     GuildId,
     GuildLocale,
     Id,
@@ -224,6 +228,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut context: Option<InteractionContextType> = None;
         let mut data: Option<Value> = None;
         let mut entitlements: Option<Vec<Entitlement>> = None;
+        let mut guild: Option<InteractionPartialGuild> = None;
         let mut guild_id: Option<Id<GuildMarker>> = None;
         let mut guild_locale: Option<String> = None;
         let mut id: Option<Id<InteractionMarker>> = None;
@@ -297,6 +302,13 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     }
 
                     entitlements = map.next_value()?;
+                }
+                InteractionField::Guild => {
+                    if guild.is_some() {
+                        return Err(DeError::duplicate_field("guild"));
+                    }
+
+                    guild = map.next_value()?;
                 }
                 InteractionField::GuildId => {
                     if guild_id.is_some() {
@@ -430,6 +442,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             context,
             data,
             entitlements,
+            guild,
             guild_id,
             guild_locale,
             id,
@@ -462,6 +475,22 @@ pub enum InteractionData {
     ///
     /// [`ModalSubmit`]: InteractionType::ModalSubmit
     ModalSubmit(ModalInteractionData),
+}
+
+/// Partial guild containing only the fields sent in the partial guild
+/// in interactions.
+///
+/// # Note that the field `locale` does not exists on the full guild
+/// object, and is only found here. See
+/// <https://github.com/discord/discord-api-docs/issues/6938> for more
+/// info.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize, Hash)]
+pub struct InteractionPartialGuild {
+    /// Id of the guild.
+    pub id: Option<Id<GuildMarker>>,
+    /// Enabled guild features
+    pub features: Option<Vec<GuildFeature>>,
+    pub locale: Option<String>,
 }
 
 #[cfg(test)]
