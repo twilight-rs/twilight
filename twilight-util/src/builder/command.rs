@@ -55,6 +55,7 @@ use twilight_model::{
     channel::ChannelType,
     guild::Permissions,
     id::{marker::GuildMarker, Id},
+    oauth::ApplicationIntegrationType,
 };
 use twilight_validate::command::{command as validate_command, CommandValidationError};
 
@@ -160,6 +161,18 @@ impl CommandBuilder {
                 .map(|(a, b)| (a.into(), b.into()))
                 .collect(),
         );
+
+        self
+    }
+
+    /// Set the integration types for the command.
+    ///
+    /// Defaults to `None`.
+    pub fn integration_types(
+        mut self,
+        integration_types: impl IntoIterator<Item = ApplicationIntegrationType>,
+    ) -> Self {
+        self.0.integration_types = Some(integration_types.into_iter().collect());
 
         self
     }
