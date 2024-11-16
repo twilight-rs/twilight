@@ -45,9 +45,12 @@
 //! ```
 
 use twilight_model::{
-    application::command::{
-        Command, CommandOption, CommandOptionChoice, CommandOptionChoiceValue, CommandOptionType,
-        CommandOptionValue, CommandType,
+    application::{
+        command::{
+            Command, CommandOption, CommandOptionChoice, CommandOptionChoiceValue,
+            CommandOptionType, CommandOptionValue, CommandType,
+        },
+        interaction::InteractionContextType,
     },
     channel::ChannelType,
     guild::Permissions,
@@ -112,6 +115,15 @@ impl CommandBuilder {
         self
     }
 
+    /// Set the contexts of the command.
+    ///
+    /// Defaults to nothing.
+    pub fn contexts(mut self, contexts: impl IntoIterator<Item = InteractionContextType>) -> Self {
+        self.0.contexts = Some(contexts.into_iter().collect());
+
+        self
+    }
+
     /// Set the default member permission required to run the command.
     ///
     /// Defaults to [`None`].
@@ -127,6 +139,7 @@ impl CommandBuilder {
     /// Set whether the command is available in DMs.
     ///
     /// Defaults to [`None`].
+    #[deprecated(note = "use contexts instead")]
     #[allow(deprecated)]
     pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
         self.0.dm_permission = Some(dm_permission);
