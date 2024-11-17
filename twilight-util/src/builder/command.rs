@@ -45,13 +45,17 @@
 //! ```
 
 use twilight_model::{
-    application::command::{
-        Command, CommandOption, CommandOptionChoice, CommandOptionChoiceValue, CommandOptionType,
-        CommandOptionValue, CommandType,
+    application::{
+        command::{
+            Command, CommandOption, CommandOptionChoice, CommandOptionChoiceValue,
+            CommandOptionType, CommandOptionValue, CommandType,
+        },
+        interaction::InteractionContextType,
     },
     channel::ChannelType,
     guild::Permissions,
     id::{marker::GuildMarker, Id},
+    oauth::ApplicationIntegrationType,
 };
 use twilight_validate::command::{command as validate_command, CommandValidationError};
 
@@ -112,6 +116,15 @@ impl CommandBuilder {
         self
     }
 
+    /// Set the contexts of the command.
+    ///
+    /// Defaults to nothing.
+    pub fn contexts(mut self, contexts: impl IntoIterator<Item = InteractionContextType>) -> Self {
+        self.0.contexts = Some(contexts.into_iter().collect());
+
+        self
+    }
+
     /// Set the default member permission required to run the command.
     ///
     /// Defaults to [`None`].
@@ -127,6 +140,7 @@ impl CommandBuilder {
     /// Set whether the command is available in DMs.
     ///
     /// Defaults to [`None`].
+    #[deprecated(note = "use contexts instead")]
     #[allow(deprecated)]
     pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
         self.0.dm_permission = Some(dm_permission);
@@ -147,6 +161,18 @@ impl CommandBuilder {
                 .map(|(a, b)| (a.into(), b.into()))
                 .collect(),
         );
+
+        self
+    }
+
+    /// Set the integration types for the command.
+    ///
+    /// Defaults to `None`.
+    pub fn integration_types(
+        mut self,
+        integration_types: impl IntoIterator<Item = ApplicationIntegrationType>,
+    ) -> Self {
+        self.0.integration_types = Some(integration_types.into_iter().collect());
 
         self
     }
