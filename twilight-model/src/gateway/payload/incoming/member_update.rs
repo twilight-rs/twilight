@@ -15,6 +15,7 @@ pub struct MemberUpdate {
     pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub guild_id: Id<GuildMarker>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MemberFlags>,
     pub deaf: Option<bool>,
     pub joined_at: Option<Timestamp>,
