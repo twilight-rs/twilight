@@ -1,4 +1,5 @@
 use crate::{
+    guild::MemberFlags,
     id::{
         marker::{GuildMarker, RoleMarker},
         Id,
@@ -14,6 +15,8 @@ pub struct MemberUpdate {
     pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub guild_id: Id<GuildMarker>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flags: Option<MemberFlags>,
     pub deaf: Option<bool>,
     pub joined_at: Option<Timestamp>,
     pub mute: Option<bool>,
@@ -37,7 +40,7 @@ pub struct MemberUpdate {
 #[cfg(test)]
 mod tests {
     use super::MemberUpdate;
-    use crate::{id::Id, test::image_hash, user::User, util::Timestamp};
+    use crate::{guild::MemberFlags, id::Id, test::image_hash, user::User, util::Timestamp};
     use serde_test::Token;
 
     #[test]
@@ -51,6 +54,7 @@ mod tests {
             avatar: None,
             communication_disabled_until: Some(communication_disabled_until),
             guild_id: Id::new(1_234),
+            flags: Some(MemberFlags::empty()),
             deaf: Some(false),
             joined_at,
             mute: Some(false),
@@ -85,7 +89,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MemberUpdate",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("avatar"),
                 Token::None,
@@ -95,6 +99,9 @@ mod tests {
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1234"),
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(0),
                 Token::Str("deaf"),
                 Token::Some,
                 Token::Bool(false),
