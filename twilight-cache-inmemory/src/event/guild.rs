@@ -96,7 +96,7 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         if self.wants(ResourceType::GUILD) {
             if unavailable {
                 if let Some(mut guild) = self.guilds.get_mut(&id) {
-                    guild.set_unavailable(true);
+                    guild.set_unavailable(Some(true));
                 }
             } else {
                 self.guilds.remove(&id);
@@ -335,7 +335,7 @@ mod tests {
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
             system_channel_id: None,
             threads,
-            unavailable: false,
+            unavailable: Some(false),
             vanity_url_code: None,
             verification_level: VerificationLevel::VeryHigh,
             voice_states: Vec::new(),
@@ -384,10 +384,15 @@ mod tests {
             },
         ));
         assert!(cache.unavailable_guilds.get(&guild.id).is_some());
-        assert!(cache.guilds.get(&guild.id).unwrap().unavailable);
+        assert!(cache.guilds.get(&guild.id).unwrap().unavailable.unwrap());
 
         cache.update(&GuildCreate::Available(guild.clone()));
-        assert!(!cache.guilds.get(&guild.id).unwrap().unavailable);
+        assert!(!cache
+            .guilds
+            .get(&guild.id)
+            .unwrap()
+            .unavailable
+            .unwrap_or(false));
         assert!(cache.unavailable_guilds.get(&guild.id).is_none());
     }
 
@@ -490,7 +495,7 @@ mod tests {
                 .map(|members| members.len())
                 .unwrap_or_default()
         );
-        assert!(cache.guild(guild_id).unwrap().unavailable);
+        assert!(cache.guild(guild_id).unwrap().unavailable.unwrap());
 
         cache.update(&GuildCreate::Available(guild));
 
@@ -501,6 +506,6 @@ mod tests {
                 .map(|members| members.len())
                 .unwrap_or_default()
         );
-        assert!(!cache.guild(guild_id).unwrap().unavailable);
+        assert!(!cache.guild(guild_id).unwrap().unavailable.unwrap_or(false));
     }
 }
