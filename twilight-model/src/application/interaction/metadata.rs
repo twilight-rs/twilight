@@ -6,6 +6,7 @@ use crate::{
         AnonymizableId, Id,
     },
     oauth::ApplicationIntegrationMap,
+    user::User,
 };
 
 use super::InteractionType;
@@ -28,9 +29,19 @@ pub struct InteractionMetadata {
     /// ID of the original response message, present only on follow-up messages.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub original_response_message_id: Option<Id<MessageMarker>>,
+    /// ID of the message the command was run on, present only on
+    /// message command interactions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_message_id: Option<Id<MessageMarker>>,
+    /// User the command was run on, present only on user command
+    /// interactions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_user: Option<User>,
     /// Metadata for the interaction that was used to open the modal,
     /// present only on modal submit interactions
     // This field cannot be in the nested interaction metadata.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub triggering_interaction_metadata: Option<Box<InteractionMetadata>>,
+    /// User who triggered the interaction.
+    pub user: User,
 }
