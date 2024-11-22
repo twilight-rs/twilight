@@ -1,4 +1,5 @@
-use crate::{config::ResourceType, CacheableMessage, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use dashmap::Entry;
 use std::borrow::Cow;
 use twilight_model::gateway::payload::incoming::{
     MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
@@ -80,12 +81,46 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MessageDeleteBul
 
 impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MessageUpdate {
     fn update(&self, cache: &InMemoryCache<CacheModels>) {
+        if cache.wants(ResourceType::USER) {
+            cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
+        }
+
+        if let (Some(member), Some(guild_id), true) = (
+            &self.member,
+            self.guild_id,
+            cache.wants(ResourceType::MEMBER),
+        ) {
+            cache.cache_borrowed_partial_member(guild_id, member, self.author.id);
+        }
+
         if !cache.wants(ResourceType::MESSAGE) {
             return;
         }
 
-        if let Some(mut message) = cache.messages.get_mut(&self.id) {
-            message.update_with_message_update(self);
+        let message = CacheModels::Message::from(self.0.clone());
+
+        match cache.messages.entry(self.id) {
+            // If this message exists in message cache, we update it.
+            Entry::Occupied(mut occupied) => {
+                occupied.insert(message);
+            }
+            // If we miss the MessageCreate event of this message,
+            // this is the chance for us to cache it.
+            Entry::Vacant(vacant) => {
+                let mut channel_messages =
+                    cache.channel_messages.entry(self.0.channel_id).or_default();
+
+                // If this channel cache is full, we pop an message ID out of
+                // the channel cache and also remove it from the message cache.
+                if channel_messages.len() >= cache.config.message_cache_size() {
+                    if let Some(popped_id) = channel_messages.pop_back() {
+                        cache.messages.remove(&popped_id);
+                    }
+                }
+
+                channel_messages.push_front(self.0.id);
+                vacant.insert(message);
+            }
         }
     }
 }
