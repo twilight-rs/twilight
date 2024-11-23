@@ -1,5 +1,5 @@
 use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
-use dashmap::Entry;
+use dashmap::mapref::entry::Entry;
 use std::borrow::Cow;
 use twilight_model::gateway::payload::incoming::{
     MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
