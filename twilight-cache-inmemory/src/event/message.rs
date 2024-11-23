@@ -100,24 +100,25 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MessageUpdate {
         // of the message cache capacity, or its Event::MessageCreate was missed.
         // If that is the case, we does not only add it to the message cache but
         // also add its ID to the channel messages cache.
-        let exists = cache
+        if cache
             .messages
             .insert(self.id, CacheModels::Message::from(self.0.clone()))
-            .is_some();
-
-        if !exists {
-            let mut channel_messages = cache.channel_messages.entry(self.0.channel_id).or_default();
-
-            // If this channel cache is full, we pop an message ID out of
-            // the channel cache and also remove it from the message cache.
-            if channel_messages.len() >= cache.config.message_cache_size() {
-                if let Some(popped_id) = channel_messages.pop_back() {
-                    cache.messages.remove(&popped_id);
-                }
-            }
-
-            channel_messages.push_front(self.0.id);
+            .is_some()
+        {
+            return;
         }
+
+        let mut channel_messages = cache.channel_messages.entry(self.0.channel_id).or_default();
+
+        // If this channel cache is full, we pop an message ID out of
+        // the channel cache and also remove it from the message cache.
+        if channel_messages.len() >= cache.config.message_cache_size() {
+            if let Some(popped_id) = channel_messages.pop_back() {
+                cache.messages.remove(&popped_id);
+            }
+        }
+
+        channel_messages.push_front(self.0.id);
     }
 }
 
