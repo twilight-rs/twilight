@@ -1,5 +1,4 @@
 use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
-use dashmap::mapref::entry::Entry;
 use std::borrow::Cow;
 use twilight_model::gateway::payload::incoming::{
     MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
@@ -97,30 +96,27 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MessageUpdate {
             return;
         }
 
-        let message = CacheModels::Message::from(self.0.clone());
+        // In special cases, this message was popped out due to the limitation
+        // of the message cache capacity, or its Event::MessageCreate was missed.
+        // If that is the case, we does not only add it to the message cache but
+        // also add its ID to the channel messages cache.
+        let exists = cache
+            .messages
+            .insert(self.id, CacheModels::Message::from(self.0.clone()))
+            .is_some();
 
-        match cache.messages.entry(self.id) {
-            // If this message exists in message cache, we update it.
-            Entry::Occupied(mut occupied) => {
-                occupied.insert(message);
-            }
-            // If we miss the MessageCreate event of this message,
-            // this is the chance for us to cache it.
-            Entry::Vacant(vacant) => {
-                let mut channel_messages =
-                    cache.channel_messages.entry(self.0.channel_id).or_default();
+        if !exists {
+            let mut channel_messages = cache.channel_messages.entry(self.0.channel_id).or_default();
 
-                // If this channel cache is full, we pop an message ID out of
-                // the channel cache and also remove it from the message cache.
-                if channel_messages.len() >= cache.config.message_cache_size() {
-                    if let Some(popped_id) = channel_messages.pop_back() {
-                        cache.messages.remove(&popped_id);
-                    }
+            // If this channel cache is full, we pop an message ID out of
+            // the channel cache and also remove it from the message cache.
+            if channel_messages.len() >= cache.config.message_cache_size() {
+                if let Some(popped_id) = channel_messages.pop_back() {
+                    cache.messages.remove(&popped_id);
                 }
-
-                channel_messages.push_front(self.0.id);
-                vacant.insert(message);
             }
+
+            channel_messages.push_front(self.0.id);
         }
     }
 }
