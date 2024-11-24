@@ -23,7 +23,7 @@ struct UpdateRoleFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    icon: Option<&'a [u8]>,
+    icon: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     mentionable: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -31,7 +31,7 @@ struct UpdateRoleFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    unicode_emoji: Option<&'a str>,
+    unicode_emoji: Option<Nullable<&'a str>>,
 }
 
 /// Update a role by guild id and its id.
@@ -94,8 +94,8 @@ impl<'a> UpdateRole<'a> {
     /// See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn icon(mut self, icon: &'a [u8]) -> Self {
-        self.fields.icon = Some(icon);
+    pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
+        self.fields.icon = Some(Nullable(icon));
 
         self
     }
@@ -122,8 +122,8 @@ impl<'a> UpdateRole<'a> {
     }
 
     /// Set the unicode emoji of a role.
-    pub const fn unicode_emoji(mut self, unicode_emoji: &'a str) -> Self {
-        self.fields.unicode_emoji = Some(unicode_emoji);
+    pub const fn unicode_emoji(mut self, unicode_emoji: Option<&'a str>) -> Self {
+        self.fields.unicode_emoji = Some(Nullable(unicode_emoji));
 
         self
     }
