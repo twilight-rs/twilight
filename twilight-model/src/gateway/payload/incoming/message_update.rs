@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(transparent)] 
 pub struct MessageUpdate(pub Message);
 
 impl Deref for MessageUpdate {
