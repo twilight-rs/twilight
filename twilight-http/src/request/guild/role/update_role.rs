@@ -100,7 +100,7 @@ impl<'a> UpdateRole<'a> {
     /// Pass [`None`] to clear the existing icon.
     ///
     /// **Warning**: If the existing unicode emoji isn't cleared when setting the icon, it might
-    /// cause undefined behavior.
+    /// cause incorrect behavior.
     ///
     /// # Examples
     ///
@@ -160,7 +160,7 @@ impl<'a> UpdateRole<'a> {
     /// Pass [`None`] to clear the existing unicode emoji.
     ///
     /// **Warning**: If the existing icon isn't cleared when setting the unicode emoji, it might
-    /// cause undefined behavior.
+    /// cause incorrect behavior.
     ///
     /// # Examples
     ///
