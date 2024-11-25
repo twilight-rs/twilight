@@ -221,7 +221,7 @@ impl Event {
             Event::MessageCreate(e) => e.0.guild_id,
             Event::MessageDelete(e) => e.guild_id,
             Event::MessageDeleteBulk(e) => e.guild_id,
-            Event::MessageUpdate(e) => e.guild_id,
+            Event::MessageUpdate(e) => e.0.guild_id,
             Event::MessagePollVoteAdd(e) => e.guild_id,
             Event::MessagePollVoteRemove(e) => e.guild_id,
             Event::PresenceUpdate(e) => Some(e.0.guild_id),

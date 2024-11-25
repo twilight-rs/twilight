@@ -31,7 +31,7 @@ use twilight_model::{
         Channel, ChannelType, Message, StageInstance,
     },
     gateway::{
-        payload::incoming::{GuildUpdate, MemberUpdate, MessageUpdate},
+        payload::incoming::{GuildUpdate, MemberUpdate},
         presence::Presence,
     },
     guild::{
@@ -235,9 +235,6 @@ pub trait CacheableVoiceState:
 pub trait CacheableMessage:
     From<Message> + PartialEq<Message> + PartialEq<Self> + Clone + Debug
 {
-    /// Update the cached data with a [`MessageUpdate`] event.
-    fn update_with_message_update(&mut self, message_update: &MessageUpdate);
-
     /// Reactions added to this message.
     fn reactions(&self) -> &[Reaction];
 

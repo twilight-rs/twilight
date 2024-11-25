@@ -11,7 +11,6 @@ use twilight_model::{
         },
         Attachment, ChannelMention,
     },
-    gateway::payload::incoming::MessageUpdate,
     guild::PartialMember,
     id::{
         marker::{
@@ -427,48 +426,6 @@ impl PartialEq<Message> for CachedMessage {
 }
 
 impl CacheableMessage for CachedMessage {
-    fn update_with_message_update(&mut self, message_update: &MessageUpdate) {
-        if let Some(attachments) = &message_update.attachments {
-            self.attachments.clone_from(attachments);
-        }
-
-        if let Some(content) = &message_update.content {
-            self.content.clone_from(content);
-        }
-
-        if let Some(edited_timestamp) = message_update.edited_timestamp {
-            self.edited_timestamp.replace(edited_timestamp);
-        }
-
-        if let Some(embeds) = &message_update.embeds {
-            self.embeds.clone_from(embeds);
-        }
-
-        if let Some(mention_everyone) = message_update.mention_everyone {
-            self.mention_everyone = mention_everyone;
-        }
-
-        if let Some(mention_roles) = &message_update.mention_roles {
-            self.mention_roles.clone_from(mention_roles);
-        }
-
-        if let Some(mentions) = &message_update.mentions {
-            self.mentions = mentions.iter().map(|x| x.id).collect::<Vec<_>>();
-        }
-
-        if let Some(pinned) = message_update.pinned {
-            self.pinned = pinned;
-        }
-
-        if let Some(timestamp) = message_update.timestamp {
-            self.timestamp = timestamp;
-        }
-
-        if let Some(tts) = message_update.tts {
-            self.tts = tts;
-        }
-    }
-
     fn reactions(&self) -> &[Reaction] {
         &self.reactions
     }
