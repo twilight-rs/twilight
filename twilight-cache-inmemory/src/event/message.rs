@@ -98,7 +98,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MessageUpdate {
 
         // In special cases, this message was popped out due to the limitation
         // of the message cache capacity, or its Event::MessageCreate was missed.
-        // If that is the case, we does not only add it to the message cache but
+        // If that is the case, we do not only add it to the message cache but
         // also add its ID to the channel messages cache.
         if cache
             .messages
