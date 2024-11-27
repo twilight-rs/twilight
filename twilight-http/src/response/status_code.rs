@@ -85,7 +85,7 @@ impl StatusCode {
     pub const NO_CONTENT: StatusCode = StatusCode::new(204);
 
     /// 304 (NOT MODIFIED) The entity was not modified (no action was taken).
-    pub const NOT_MODIFIED: StatusCode = StatusCode::new(204);
+    pub const NOT_MODIFIED: StatusCode = StatusCode::new(304);
 
     /// 400 (BAD REQUEST) The request was improperly formatted, or the server couldn't understand it.
     pub const BAD_REQUEST: StatusCode = StatusCode::new(400);
