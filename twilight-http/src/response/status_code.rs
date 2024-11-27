@@ -2,11 +2,15 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Status code of a response.
 ///
+/// Constants are defined for the response codes that Discord defines in their [response code table].
+///
 /// # Comparing the status code
 ///
 /// Status codes can easily be compared with status code integers due to
 /// implementing `PartialEq<u16>`. This is equivalent to checking against the
 /// value returned by [`StatusCode::get`].
+///
+/// [response code table]: https://discord.com/developers/docs/topics/opcodes-and-status-codes#http-http-response-codes
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct StatusCode(u16);
 
@@ -70,6 +74,39 @@ impl StatusCode {
     const fn in_range(self, min: u16, max: u16) -> bool {
         self.0 >= min && self.0 < max
     }
+
+    /// 200 (OK) The request completed successfully.
+    pub const OK: StatusCode = StatusCode::new(200);
+
+    /// 201 (CREATED) The entity was created successfully.
+    pub const CREATED: StatusCode = StatusCode::new(201);
+
+    /// 204 (NO CONTENT) The request completed successfully but returned no content.
+    pub const NO_CONTENT: StatusCode = StatusCode::new(204);
+
+    /// 304 (NOT MODIFIED) The entity was not modified (no action was taken).
+    pub const NOT_MODIFIED: StatusCode = StatusCode::new(204);
+
+    /// 400 (BAD REQUEST) The request was improperly formatted, or the server couldn't understand it.
+    pub const BAD_REQUEST: StatusCode = StatusCode::new(400);
+
+    /// 401 (UNAUTHORIZED) The Authorization header was missing or invalid.
+    pub const UNAUTHORIZED: StatusCode = StatusCode::new(401);
+
+    /// 403 (FORBIDDEN) The Authorization token you passed did not have permission to the resource.
+    pub const FORBIDDEN: StatusCode = StatusCode::new(403);
+
+    /// 404 (NOT FOUND) The resource at the location specified doesn't exist.
+    pub const NOT_FOUND: StatusCode = StatusCode::new(404);
+
+    /// 405 (METHOD NOT ALLOWED) The HTTP method used is not valid for the location specified.
+    pub const METHOD_NOT_ALLOWED: StatusCode = StatusCode::new(405);
+
+    /// 429 (TOO MANY REQUESTS) You are being rate limited, see Rate Limits.
+    pub const TOO_MANY_REQUESTS: StatusCode = StatusCode::new(429);
+
+    /// 502 (GATEWAY UNAVAILABLE) There was not a gateway available to process your request. Wait a bit and retry.
+    pub const GATEWAY_UNAVAILABLE: StatusCode = StatusCode::new(502);
 }
 
 impl Display for StatusCode {
