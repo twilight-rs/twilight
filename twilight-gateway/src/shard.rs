@@ -604,7 +604,7 @@ impl<Q: Queue> Shard<Q> {
     fn process(&mut self, event: &str) -> Result<(), ReceiveMessageError> {
         let (raw_opcode, maybe_sequence, maybe_event_type) =
             GatewayEventDeserializer::from_json(event)
-                .ok_or(ReceiveMessageError {
+                .ok_or_else(|| ReceiveMessageError {
                     kind: ReceiveMessageErrorType::Deserializing {
                         event: event.to_owned(),
                     },
@@ -618,13 +618,13 @@ impl<Q: Queue> Shard<Q> {
 
         match OpCode::from(raw_opcode) {
             Some(OpCode::Dispatch) => {
-                let event_type = maybe_event_type.ok_or(ReceiveMessageError {
+                let event_type = maybe_event_type.ok_or_else(|| ReceiveMessageError {
                     kind: ReceiveMessageErrorType::Deserializing {
                         event: event.to_owned(),
                     },
                     source: Some("missing dispatch event type".into()),
                 })?;
-                let sequence = maybe_sequence.ok_or(ReceiveMessageError {
+                let sequence = maybe_sequence.ok_or_else(|| ReceiveMessageError {
                     kind: ReceiveMessageErrorType::Deserializing {
                         event: event.to_owned(),
                     },
