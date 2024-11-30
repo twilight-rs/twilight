@@ -9,7 +9,8 @@
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::unnecessary_wraps
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_items
 )]
 
 #[cfg(feature = "builder")]
