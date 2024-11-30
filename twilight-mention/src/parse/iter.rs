@@ -51,7 +51,7 @@ impl<'a, T> MentionIter<'a, T> {
     }
 }
 
-impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
+impl<T: ParseMention> Iterator for MentionIter<'_, T> {
     /// Found mention followed by the start and ending indexes in the source
     /// string returned by [`as_str`].
     ///

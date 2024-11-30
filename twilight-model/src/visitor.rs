@@ -14,7 +14,7 @@ pub mod null_boolean {
 
     struct NullBooleanVisitor;
 
-    impl<'de> Visitor<'de> for NullBooleanVisitor {
+    impl Visitor<'_> for NullBooleanVisitor {
         type Value = bool;
 
         fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -111,7 +111,7 @@ pub mod zeroable_id {
 
     // Clippy will say this bool can be taken by value, but we need it to be
     // passed by reference because that's what serde does.
-    #[allow(clippy::trivially_copy_pass_by_ref)]
+    #[allow(clippy::ref_option, clippy::trivially_copy_pass_by_ref)]
     pub fn serialize<S: Serializer, T>(
         value: &Option<Id<T>>,
         serializer: S,

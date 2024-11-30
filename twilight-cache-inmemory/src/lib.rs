@@ -131,7 +131,7 @@ impl<K: Eq + Hash, V: Debug> Debug for Reference<'_, K, V> {
     }
 }
 
-impl<'a, K: Eq + Hash, V> Deref for Reference<'a, K, V> {
+impl<K: Eq + Hash, V> Deref for Reference<'_, K, V> {
     type Target = V;
 
     fn deref(&self) -> &Self::Target {

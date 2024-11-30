@@ -245,7 +245,7 @@ impl<'a> DispatchEventWithTypeDeserializer<'a> {
     }
 }
 
-impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
+impl<'de> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'_> {
     type Value = DispatchEvent;
 
     #[allow(clippy::too_many_lines)]

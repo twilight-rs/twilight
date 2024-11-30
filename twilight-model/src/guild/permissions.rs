@@ -89,7 +89,7 @@ bitflags! {
 
 struct PermissionsVisitor;
 
-impl<'de> Visitor<'de> for PermissionsVisitor {
+impl Visitor<'_> for PermissionsVisitor {
     type Value = Permissions;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
