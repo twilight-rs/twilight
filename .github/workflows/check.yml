@@ -148,6 +148,9 @@ jobs:
       - name: Install cargo-minimal-versions
         uses: taiki-e/install-action@cargo-minimal-versions
 
+      - name: Work around old serde_derive version error
+        run: cargo add -p twilight-model serde_derive@1.0.113
+
       - name: Check minimal versions
         run: cargo minimal-versions check
 
