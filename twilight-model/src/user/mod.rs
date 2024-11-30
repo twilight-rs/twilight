@@ -29,7 +29,7 @@ pub(crate) mod discriminator {
 
     struct DiscriminatorVisitor;
 
-    impl<'de> Visitor<'de> for DiscriminatorVisitor {
+    impl Visitor<'_> for DiscriminatorVisitor {
         type Value = u16;
 
         fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {

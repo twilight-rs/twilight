@@ -104,8 +104,8 @@ mod private {
         }
     }
 
-    impl<'a, St: ?Sized + Stream<Item = Result<Message, ReceiveMessageError>> + Unpin> Future
-        for NextEvent<'a, St>
+    impl<St: ?Sized + Stream<Item = Result<Message, ReceiveMessageError>> + Unpin> Future
+        for NextEvent<'_, St>
     {
         type Output = Option<Result<Event, ReceiveMessageError>>;
 

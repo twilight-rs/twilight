@@ -72,7 +72,7 @@ impl FromStr for HexColor {
 
 struct HexColorVisitor;
 
-impl<'de> Visitor<'de> for HexColorVisitor {
+impl Visitor<'_> for HexColorVisitor {
     type Value = HexColor;
 
     fn expecting(&self, formatter: &mut Formatter) -> FmtResult {

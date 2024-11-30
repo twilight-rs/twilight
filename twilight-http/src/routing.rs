@@ -1187,7 +1187,7 @@ pub enum Route<'a> {
     UpdateCurrentUserApplication,
 }
 
-impl<'a> Route<'a> {
+impl Route<'_> {
     /// HTTP method of the route.
     ///
     /// # Examples
