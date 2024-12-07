@@ -14,7 +14,7 @@ use twilight_model::{
     },
 };
 
-/// Get the roles of a guild.
+/// Get a role of a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetRole<'a> {
     guild_id: Id<GuildMarker>,
