@@ -2,13 +2,16 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     guild::Role,
-    id::{marker::{GuildMarker, RoleMarker}, Id},
+    id::{
+        marker::{GuildMarker, RoleMarker},
+        Id,
+    },
 };
 
 /// Get the roles of a guild.
@@ -20,15 +23,23 @@ pub struct GetRole<'a> {
 }
 
 impl<'a> GetRole<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, role_id: Id<RoleMarker>) -> Self {
-        Self { guild_id, role_id, http }
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        role_id: Id<RoleMarker>,
+    ) -> Self {
+        Self {
+            guild_id,
+            role_id,
+            http,
+        }
     }
 }
 
 impl IntoFuture for GetRole<'_> {
-    type Output = Result<Response<ListBody<Role>>, Error>;
+    type Output = Result<Response<Role>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<Role>>;
+    type IntoFuture = ResponseFuture<Role>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
