@@ -66,7 +66,9 @@ mod private {
                 AddGuildMember, AddRoleToMember, GetGuildMembers, GetMember, RemoveMember,
                 RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
             },
-            role::{CreateRole, DeleteRole, GetGuildRoles, UpdateRole, UpdateRolePositions},
+            role::{
+                CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
+            },
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
@@ -236,6 +238,7 @@ mod private {
     impl Sealed for GetPublicArchivedThreads<'_> {}
     impl Sealed for GetReactions<'_> {}
     impl Sealed for GetResponse<'_> {}
+    impl Sealed for GetRole<'_> {}
     impl Sealed for GetSKUs<'_> {}
     impl Sealed for GetStageInstance<'_> {}
     impl Sealed for GetSticker<'_> {}
