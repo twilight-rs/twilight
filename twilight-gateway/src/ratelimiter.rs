@@ -15,21 +15,22 @@ use std::{
     pin::Pin,
     task::{ready, Context, Poll},
 };
-use tokio::time::{sleep_until, Duration, Instant, Sleep};
+use tokio::time::{Duration, Instant, Sleep};
 
 /// Number of commands allowed in a [`PERIOD`].
 const COMMANDS_PER_PERIOD: u8 = 120;
 
-/// Gateway ratelimiter period duration.
+/// Duration until an acquired permit is released.
 const PERIOD: Duration = Duration::from_secs(60);
 
 /// Ratelimiter for sending commands over the gateway to Discord.
 #[derive(Debug)]
 pub struct CommandRatelimiter {
-    /// Future that completes the next time the ratelimiter allows a permit.
+    /// Future that completes when a permit is released.
     delay: Pin<Box<Sleep>>,
-    /// Ordered queue of instants when a permit elapses.
-    instants: Vec<Instant>,
+    /// Milliseconds after delay elapses.
+    /// Ordered queue of instants when permits release.
+    pending: Vec<u16>,
 }
 
 impl CommandRatelimiter {
@@ -37,15 +38,12 @@ impl CommandRatelimiter {
     pub(crate) fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
 
-        let now = Instant::now();
-        let mut delay = Box::pin(sleep_until(now));
-
-        // Hack to register the timer.
-        delay.as_mut().reset(now);
-
         Self {
-            delay,
-            instants: Vec::with_capacity(allotted.into()),
+            // Delay must be < now for algorithm correctness (relevant for tests).
+            delay: Box::pin(tokio::time::sleep_until(
+                Instant::now() - Duration::from_secs(1),
+            )),
+            pending: Vec::with_capacity(usize::from(allotted) - 1),
         }
     }
 
@@ -53,74 +51,100 @@ impl CommandRatelimiter {
     #[allow(clippy::cast_possible_truncation)]
     pub fn available(&self) -> u8 {
         let now = Instant::now();
-        let elapsed_permits = self.instants.partition_point(|&elapsed| elapsed <= now);
-        let used_permits = self.instants.len() - elapsed_permits;
+        let then = self.delay.deadline();
+        if now >= then {
+            let released = self
+                .pending
+                .iter()
+                .map(|&milli| then + Duration::from_millis(milli.into()))
+                .position(|deadline| deadline > now)
+                .unwrap_or_else(|| self.pending.len());
+            let acquired = self.pending.len() - released;
 
-        self.max() - used_permits as u8
+            self.max() - acquired as u8
+        } else {
+            (self.pending.capacity() - self.pending.len()) as u8
+        }
     }
 
     /// Maximum number of available permits.
     #[allow(clippy::cast_possible_truncation)]
     pub fn max(&self) -> u8 {
-        self.instants.capacity() as u8
+        self.pending.capacity() as u8 + 1
     }
 
     /// Duration until the next permit is available.
     pub fn next_available(&self) -> Duration {
-        self.instants.first().map_or(Duration::ZERO, |elapsed| {
-            elapsed.saturating_duration_since(Instant::now())
-        })
+        self.delay
+            .deadline()
+            .saturating_duration_since(Instant::now())
     }
 
-    /// Polls for a permit.
+    /// Attempts to acquire a permit.
     ///
     /// # Return value
     ///
     /// The function returns:
     ///
-    /// * `Poll::Pending` if the ratelimiter is full
-    /// * `Poll::Ready` if a permit was granted.
+    /// * `Poll::Pending` if no permit is available
+    /// * `Poll::Ready` if a permit was acquired.
     pub(crate) fn poll_acquire(&mut self, cx: &mut Context<'_>) -> Poll<()> {
-        let now = ready!(self.poll_ready(cx)).unwrap_or_else(Instant::now);
-        self.instants.push(now + PERIOD);
+        ready!(self.poll_available(cx));
+
+        let now = Instant::now();
+        let then = self.delay.deadline();
+        if now >= then {
+            // Use linear search due to:
+            // 1. Easier implementation, especially since binary_search's returned index is unstable for equal elements
+            // 2. Searched for element is up front if called frequently, so "optimize" for that.
+            if let Some(released) = self
+                .pending
+                .iter()
+                .map(|&milli| then + Duration::from_millis(milli.into()))
+                .position(|deadline| deadline > now)
+            {
+                let new_delay = self.pending[released];
+                let acquired = self.pending.len() - released;
+                let new_delay = then + Duration::from_millis(new_delay.into());
+
+                // drop new_delay too.
+                self.pending.rotate_left(released + 1);
+                self.pending.truncate(acquired - 1);
+                self.delay.as_mut().reset(new_delay);
+            } else {
+                // All pending values are less than `now`.
+                self.pending.clear();
+
+                self.delay.as_mut().reset(now + PERIOD);
+
+                return Poll::Ready(());
+            }
+        }
+
+        let pending = PERIOD - self.delay.deadline().saturating_duration_since(now);
+
+        // pending.as_millis() <= 60_000 < u16::MAX
+        self.pending.push(pending.as_millis() as u16);
+
+        if self.pending.len() == self.pending.capacity() {
+            tracing::debug!(duration = ?(self.delay.deadline() - now), "ratelimited");
+        }
 
         Poll::Ready(())
     }
 
-    /// Polls for readiness.
+    /// Checks whether a permit is available.
     ///
-    /// # Return value
+    /// # Returns
     ///
-    /// The function returns:
-    ///
-    /// * `Poll::Pending` if the ratelimiter is full
-    /// * `Poll::Ready<Option(now)>` if the ratelimiter has spare capacity.
-    pub(crate) fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Option<Instant>> {
-        if self.instants.len() != self.instants.capacity() {
-            return Poll::Ready(None);
+    /// * `Poll::Pending` if no permit is available
+    /// * `Poll::Ready` if a permit is available.
+    pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
+        if self.pending.len() < self.pending.capacity() {
+            return Poll::Ready(());
         }
 
-        if !self.delay.is_elapsed() {
-            return Poll::Pending;
-        }
-
-        let new_deadline = self.instants[0];
-        let now = Instant::now();
-        if new_deadline > now {
-            tracing::debug!(duration = ?(new_deadline - now), "ratelimited");
-            self.delay.as_mut().reset(new_deadline);
-            _ = self.delay.as_mut().poll(cx);
-
-            Poll::Pending
-        } else {
-            let elapsed_permits = self.instants.partition_point(|&elapsed| elapsed <= now);
-            let used_permits = self.instants.len() - elapsed_permits;
-
-            self.instants.rotate_right(used_permits);
-            self.instants.truncate(used_permits);
-
-            Poll::Ready(Some(now))
-        }
+        self.delay.as_mut().poll(cx)
     }
 }
 
@@ -256,11 +280,11 @@ mod tests {
         // Spuriously poll after registering the waker but before the timer has
         // fired.
         poll_fn(|cx| {
-            if ratelimiter.poll_ready(cx).is_ready() {
+            if ratelimiter.poll_available(cx).is_ready() {
                 return Poll::Ready(());
             };
             let deadline = ratelimiter.delay.deadline();
-            assert!(ratelimiter.poll_ready(cx).is_pending());
+            assert!(ratelimiter.poll_available(cx).is_pending());
             assert_eq!(deadline, ratelimiter.delay.deadline(), "deadline was reset");
             Poll::Pending
         })
