@@ -7,9 +7,14 @@
 
 mod action_row;
 mod button;
+mod file_display;
 mod kind;
+mod media_gallery;
 mod select_menu;
+mod seperator;
+mod text_display;
 mod text_input;
+mod unfurled_media;
 
 pub use self::{
     action_row::ActionRow,
@@ -24,6 +29,9 @@ use crate::{
     channel::ChannelType,
     id::{marker::SkuMarker, Id},
 };
+use file_display::FileDisplay;
+use media_gallery::{MediaGallery, MediaGalleryItems};
+use seperator::{Seperator, SeperatorSpacingSize};
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{Error as SerError, SerializeStruct},
@@ -31,6 +39,8 @@ use serde::{
 };
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
+use text_display::TextDisplay;
+use unfurled_media::UnfurledMediaItem;
 
 /// Interactive message element.
 ///
@@ -125,6 +135,10 @@ pub enum Component {
     SelectMenu(SelectMenu),
     /// Pop-up item that renders on modals.
     TextInput(TextInput),
+    TextDisplay(TextDisplay),
+    MediaGallery(MediaGallery),
+    Seperator(Seperator),
+    FileDisplay(FileDisplay),
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -161,7 +175,11 @@ impl Component {
                 SelectMenuType::Channel => ComponentType::ChannelSelectMenu,
             },
             Self::TextInput(_) => ComponentType::TextInput,
-            Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
+            Self::TextDisplay(_) => ComponentType::TextDisplay,
+            Self::MediaGallery(_) => ComponentType::MediaGallery,
+            Self::Seperator(_) => ComponentType::Seperator,
+            Self::FileDisplay(_) => ComponentType::File,
+            Self::Unknown(unknown) => ComponentType::Unknown(*unknown),
         }
     }
 }
@@ -218,6 +236,13 @@ enum Field {
     Url,
     SkuId,
     Value,
+    Id,
+    Content,
+    Items,
+    Divider,
+    Spacing,
+    File,
+    Spoiler,
 }
 
 struct ComponentVisitor;
@@ -255,6 +280,14 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut url: Option<Option<String>> = None;
         let mut sku_id: Option<Id<SkuMarker>> = None;
         let mut value: Option<Option<String>> = None;
+
+        let mut id: Option<i32> = None;
+        let mut content: Option<String> = None;
+        let mut items: Option<Vec<MediaGalleryItems>> = None;
+        let mut divider: Option<bool> = None;
+        let mut spacing: Option<SeperatorSpacingSize> = None;
+        let mut file: Option<UnfurledMediaItem> = None;
+        let mut spoiler: Option<bool> = None;
 
         loop {
             let key = match map.next_key() {
@@ -401,6 +434,55 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
                     value = Some(map.next_value()?);
                 }
+                Field::Id => {
+                    if id.is_some() {
+                        return Err(DeError::duplicate_field("id"));
+                    }
+
+                    id = Some(map.next_value()?);
+                }
+                Field::Content => {
+                    if content.is_some() {
+                        return Err(DeError::duplicate_field("content"));
+                    }
+
+                    content = Some(map.next_value()?);
+                }
+                Field::Items => {
+                    if items.is_some() {
+                        return Err(DeError::duplicate_field("items"));
+                    }
+
+                    items = Some(map.next_value()?);
+                }
+                Field::Divider => {
+                    if divider.is_some() {
+                        return Err(DeError::duplicate_field("divider"));
+                    }
+
+                    divider = Some(map.next_value()?);
+                }
+                Field::Spacing => {
+                    if spacing.is_some() {
+                        return Err(DeError::duplicate_field("spacing"));
+                    }
+
+                    spacing = Some(map.next_value()?);
+                }
+                Field::File => {
+                    if file.is_some() {
+                        return Err(DeError::duplicate_field("file"));
+                    }
+
+                    file = Some(map.next_value()?);
+                }
+                Field::Spoiler => {
+                    if spoiler.is_some() {
+                        return Err(DeError::duplicate_field("value"));
+                    }
+
+                    spoiler = Some(map.next_value()?);
+                }
             }
         }
 
@@ -536,6 +618,26 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     value: value.unwrap_or_default(),
                 })
             }
+            ComponentType::TextDisplay => {
+                let content = content.ok_or_else(|| DeError::missing_field("content"))?;
+
+                Self::Value::TextDisplay(TextDisplay { id, content })
+            }
+            ComponentType::MediaGallery => {
+                let items = items.ok_or_else(|| DeError::missing_field("items"))?;
+
+                Self::Value::MediaGallery(MediaGallery { id, items })
+            }
+            ComponentType::Seperator => Self::Value::Seperator(Seperator {
+                id,
+                divider,
+                spacing,
+            }),
+            ComponentType::File => {
+                let file = file.ok_or_else(|| DeError::missing_field("file"))?;
+
+                Self::Value::FileDisplay(FileDisplay { file, spoiler, id })
+            }
             ComponentType::Unknown(unknown) => Self::Value::Unknown(unknown),
         })
     }
@@ -610,6 +712,13 @@ impl Serialize for Component {
                     + usize::from(text_input.required.is_some())
                     + usize::from(text_input.value.is_some())
             }
+            Component::TextDisplay(text_display) => 2 + usize::from(text_display.id.is_some()),
+            Component::MediaGallery(media_gallery) => 2 + usize::from(media_gallery.id.is_some()),
+            Component::Seperator(seperator) => {
+                2 + usize::from(seperator.divider.is_some())
+                    + usize::from(seperator.spacing.is_some())
+            }
+            Component::FileDisplay(file) => 3 + usize::from(file.spoiler.is_some()),
             // We are dropping fields here but nothing we can do about that for
             // the time being.
             Component::Unknown(_) => 1,
@@ -732,6 +841,32 @@ impl Serialize for Component {
                     state.serialize_field("value", &text_input.value)?;
                 }
             }
+            Component::TextDisplay(text_display) => {
+                state.serialize_field("type", &ComponentType::TextDisplay)?;
+                state.serialize_field("id", &text_display.id)?;
+
+                state.serialize_field("content", &text_display.content)?;
+            },
+            Component::MediaGallery(media_gallery) => {
+                state.serialize_field("type", &ComponentType::MediaGallery)?;
+                state.serialize_field("id", &media_gallery.id)?;
+
+                state.serialize_field("items", &media_gallery.items)?;
+            },
+            Component::Seperator(seperator) => {
+                state.serialize_field("type", &ComponentType::Seperator)?;
+                state.serialize_field("id", &seperator.id)?;
+
+                state.serialize_field("divider", &seperator.divider)?;
+                state.serialize_field("spacing", &seperator.spacing)?;
+            },
+            Component::FileDisplay(file) => {
+                state.serialize_field("type", &ComponentType::File)?;
+                state.serialize_field("id", &file.id)?;
+
+                state.serialize_field("file", &file.file)?;
+                state.serialize_field("spoiler", &file.spoiler)?;
+            },
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing
             // incoming messages at this time.

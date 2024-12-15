@@ -40,6 +40,10 @@ pub enum ComponentType {
     ///
     /// [`SelectMenu`]: super::SelectMenu
     ChannelSelectMenu,
+    TextDisplay,
+    MediaGallery,
+    File,
+    Seperator,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -55,6 +59,10 @@ impl From<u8> for ComponentType {
             6 => ComponentType::RoleSelectMenu,
             7 => ComponentType::MentionableSelectMenu,
             8 => ComponentType::ChannelSelectMenu,
+            10 => ComponentType::TextDisplay,
+            12 => ComponentType::MediaGallery,
+            13 => ComponentType::File,
+            14 => ComponentType::Seperator,
             unknown => ComponentType::Unknown(unknown),
         }
     }
@@ -71,6 +79,10 @@ impl From<ComponentType> for u8 {
             ComponentType::RoleSelectMenu => 6,
             ComponentType::MentionableSelectMenu => 7,
             ComponentType::ChannelSelectMenu => 8,
+            ComponentType::TextDisplay => 10,
+            ComponentType::MediaGallery => 12,
+            ComponentType::File => 13,
+            ComponentType::Seperator => 14,
             ComponentType::Unknown(unknown) => unknown,
         }
     }
@@ -102,6 +114,10 @@ impl ComponentType {
             | Self::MentionableSelectMenu
             | Self::ChannelSelectMenu => "SelectMenu",
             Self::TextInput => "TextInput",
+            Self::TextDisplay => "TextDisplay",
+            Self::MediaGallery => "MediaGallery",
+            Self::File => "File",
+            Self::Seperator => "Seperator",
             Self::Unknown(_) => "Unknown",
         }
     }

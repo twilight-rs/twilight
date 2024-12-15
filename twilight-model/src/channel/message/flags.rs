@@ -36,6 +36,8 @@ bitflags! {
         const SUPPRESS_NOTIFICATIONS = 1 << 12;
         /// This message is a voice message.
         const IS_VOICE_MESSAGE = 1 << 13;
+        /// TMP NAME!!
+        const IS_UIKIT_COMPONENTS = 1 << 15;
     }
 }
 
