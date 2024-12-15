@@ -22,6 +22,11 @@ pub use self::{
     kind::ComponentType,
     select_menu::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
     text_input::{TextInput, TextInputStyle},
+    seperator::{Seperator, SeperatorSpacingSize},
+    text_display::TextDisplay,
+    media_gallery::{MediaGallery, MediaGalleryItems},
+    unfurled_media::UnfurledMediaItem,
+    file_display::FileDisplay,
 };
 
 use super::EmojiReactionType;
@@ -29,9 +34,6 @@ use crate::{
     channel::ChannelType,
     id::{marker::SkuMarker, Id},
 };
-use file_display::FileDisplay;
-use media_gallery::{MediaGallery, MediaGalleryItems};
-use seperator::{Seperator, SeperatorSpacingSize};
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{Error as SerError, SerializeStruct},
@@ -39,8 +41,6 @@ use serde::{
 };
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
-use text_display::TextDisplay;
-use unfurled_media::UnfurledMediaItem;
 
 /// Interactive message element.
 ///
