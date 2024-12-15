@@ -521,14 +521,15 @@ pub enum ComponentValidationErrorType {
 ///
 /// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
 pub fn component(component: &Component) -> Result<(), ComponentValidationError> {
-    match component {
-        Component::ActionRow(action_row) => self::action_row(action_row)?,
-        other => {
-            return Err(ComponentValidationError {
-                kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
-            });
-        }
-    }
+
+    // match component {
+    //     Component::ActionRow(action_row) => self::action_row(action_row)?,
+    //     other => {
+    //         return Err(ComponentValidationError {
+    //             kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
+    //         });
+    //     }
+    // }
 
     Ok(())
 }
@@ -556,34 +557,36 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 /// [`ActionRowComponentCount`]: ComponentValidationErrorType::ActionRowComponentCount
 /// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
 pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError> {
-    self::component_action_row_components(&action_row.components)?;
+    // TODO(fix this)
 
-    for component in &action_row.components {
-        match component {
-            Component::ActionRow(_) => {
-                return Err(ComponentValidationError {
-                    kind: ComponentValidationErrorType::InvalidChildComponent {
-                        kind: ComponentType::ActionRow,
-                    },
-                });
-            }
-            Component::Button(button) => self::button(button)?,
-            Component::SelectMenu(select_menu) => self::select_menu(select_menu)?,
-            Component::TextInput(text_input) => self::text_input(text_input)?,
-            Component::Unknown(unknown) => {
-                return Err(ComponentValidationError {
-                    kind: ComponentValidationErrorType::InvalidChildComponent {
-                        kind: ComponentType::Unknown(*unknown),
-                    },
-                })
-            }
+    // self::component_action_row_components(&action_row.components)?;
 
-            Component::TextDisplay(_) |
-            Component::MediaGallery(_) |
-            Component::Seperator(_) |
-            Component::FileDisplay(_) => return Ok(()),
-        }
-    }
+    // for component in &action_row.components {
+    //     match component {
+    //         Component::ActionRow(_) => {
+    //             return Err(ComponentValidationError {
+    //                 kind: ComponentValidationErrorType::InvalidChildComponent {
+    //                     kind: ComponentType::ActionRow,
+    //                 },
+    //             });
+    //         }
+    //         Component::Button(button) => self::button(button)?,
+    //         Component::SelectMenu(select_menu) => self::select_menu(select_menu)?,
+    //         Component::TextInput(text_input) => self::text_input(text_input)?,
+    //         Component::Unknown(unknown) => {
+    //             return Err(ComponentValidationError {
+    //                 kind: ComponentValidationErrorType::InvalidChildComponent {
+    //                     kind: ComponentType::Unknown(*unknown),
+    //                 },
+    //             })
+    //         }
+
+    //         Component::TextDisplay(_) |
+    //         Component::MediaGallery(_) |
+    //         Component::Seperator(_) |
+    //         Component::FileDisplay(_) => return Ok(()),
+    //     }
+    // }
 
     Ok(())
 }
