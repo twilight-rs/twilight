@@ -577,6 +577,11 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
                     },
                 })
             }
+
+            Component::TextDisplay(_) |
+            Component::MediaGallery(_) |
+            Component::Seperator(_) |
+            Component::FileDisplay(_) => return Ok(()),
         }
     }
 
