@@ -10,6 +10,8 @@
 //! <https://hechao.li/posts/Rate-Limiter-Part1/> for an overview of it and
 //! other alternative algorithms.
 
+#![allow(clippy::cast_possible_truncation)]
+
 use std::{
     future::Future,
     pin::Pin,
@@ -28,7 +30,7 @@ const PERMITS: u8 = 120;
 pub struct CommandRatelimiter {
     /// Future that completes when the next permit is released.
     ///
-    /// Counts as an aquired permit if pending.
+    /// Counts as an acquired permit if pending.
     delay: Pin<Box<Sleep>>,
     /// Ordered queue of timestamps relative to [`Self::delay`] in milliseconds
     /// when permits release.
@@ -39,34 +41,27 @@ impl CommandRatelimiter {
     /// Create a new ratelimiter with some capacity reserved for heartbeating.
     pub(crate) fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
-        // Required by algorithm, explanation pending.
-        let elapsed = Instant::now() - Duration::from_secs(1);
 
         Self {
-            delay: Box::pin(tokio::time::sleep_until(elapsed)),
+            delay: Box::pin(tokio::time::sleep_until(Instant::now())),
             queue: Vec::with_capacity(usize::from(allotted) - 1),
         }
     }
 
     /// Number of available permits.
-    #[allow(clippy::cast_possible_truncation)]
     pub fn available(&self) -> u8 {
         let now = Instant::now();
-        if now >= self.delay.deadline() {
-            let Some(released) = self.next_acquired_position(now) else {
-                return self.max();
-            };
-            let acquired = self.queue.len() - released;
-
-            self.max() - acquired as u8
+        let acquired = if now >= self.delay.deadline() {
+            self.next_acquired_position(now)
+                .map_or(0, |released_count| self.queue.len() - released_count)
         } else {
-            let aquired = self.queue.len() + 1;
-            self.max() - aquired as u8
-        }
+            self.queue.len() + 1
+        };
+
+        self.max() - acquired as u8
     }
 
     /// Maximum number of available permits.
-    #[allow(clippy::cast_possible_truncation)]
     pub fn max(&self) -> u8 {
         self.queue.capacity() as u8 + 1
     }
@@ -80,12 +75,10 @@ impl CommandRatelimiter {
 
     /// Attempts to acquire a permit.
     ///
-    /// # Return value
-    ///
-    /// The function returns:
+    /// # Returns
     ///
     /// * `Poll::Pending` if no permit is available
-    /// * `Poll::Ready` if a permit was acquired.
+    /// * `Poll::Ready` if a permit is acquired.
     pub(crate) fn poll_acquire(&mut self, cx: &mut Context<'_>) -> Poll<()> {
         ready!(self.poll_available(cx));
 
@@ -102,8 +95,6 @@ impl CommandRatelimiter {
         }
 
         let releases = (now + PERIOD) - self.delay.deadline();
-        debug_assert!(releases.as_millis() <= 60_000);
-        #[allow(clippy::cast_possible_truncation)]
         self.queue.push(releases.as_millis() as u16);
 
         if self.queue.len() == self.queue.capacity() {
@@ -131,9 +122,8 @@ impl CommandRatelimiter {
     ///
     /// If every timestamp is released, it returns `None`.
     fn next_acquired_position(&self, now: Instant) -> Option<usize> {
-        // Use linear search due to:
-        // 1. Easier implementation, especially since binary_search's returned index is unstable for equal elements
-        // 2. Searched for element is up front if called frequently, so "optimize" for that.
+        // Avoid [`slice::partition_point`] as it may return any matching index,
+        // but we require the first one.
         self.queue
             .iter()
             .map(|&m| self.delay.deadline() + Duration::from_millis(m.into()))
@@ -142,7 +132,6 @@ impl CommandRatelimiter {
 
     /// Resets delay to a new deadline and updates acquired permits relative
     /// release timestamps.
-    #[allow(clippy::cast_possible_truncation)]
     fn rebase(&mut self, new_deadline_index: usize) {
         let duration = Duration::from_millis(self.queue[new_deadline_index].into());
         let new_deadline = self.delay.deadline() + duration;
@@ -178,7 +167,7 @@ fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u8 {
     let heartbeats_per_reset = PERIOD.as_secs_f32() / heartbeat_interval.as_secs_f32();
 
     // Round up to be on the safe side.
-    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     let heartbeats_per_reset = heartbeats_per_reset.ceil() as u8;
 
     // Reserve an extra heartbeat just in case.
@@ -302,5 +291,25 @@ mod tests {
             Poll::Pending
         })
         .await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn rebase() {
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
+
+        for _ in 0..5 {
+            time::advance(Duration::from_millis(20)).await;
+            poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
+        }
+        assert_eq!(ratelimiter.available(), ratelimiter.max() - 5);
+
+        time::advance(PERIOD - Duration::from_millis(80)).await;
+        assert_eq!(ratelimiter.available(), ratelimiter.max() - 4);
+
+        for _ in 0..4 {
+            poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
+            time::advance(Duration::from_millis(20)).await;
+            assert_eq!(ratelimiter.available(), ratelimiter.max() - 4);
+        }
     }
 }
