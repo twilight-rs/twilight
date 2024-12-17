@@ -130,8 +130,7 @@ impl CommandRatelimiter {
             .position(|deadline| deadline > now)
     }
 
-    /// Resets delay to a new deadline and updates acquired permits relative
-    /// release timestamps.
+    /// Resets to a new deadline and updates acquired permits' relative timestamp.
     fn rebase(&mut self, new_deadline_index: usize) {
         let duration = Duration::from_millis(self.queue[new_deadline_index].into());
         let new_deadline = self.delay.deadline() + duration;
