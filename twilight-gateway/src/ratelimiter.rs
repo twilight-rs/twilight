@@ -7,7 +7,7 @@
 //! [`CommandRatelimiter`] is implemented as a sliding window log. This is the
 //! only ratelimit algorithm that supports burst requests and guarantees that
 //! the (t - [`PERIOD`], t] window is never exceeded. See
-//! <https://hechao.li/2018/06/25/Rate-Limiter-Part1> for an overview of it and
+//! <https://hechao.li/posts/Rate-Limiter-Part1/> for an overview of it and
 //! other alternative algorithms.
 
 use std::{
@@ -17,33 +17,34 @@ use std::{
 };
 use tokio::time::{Duration, Instant, Sleep};
 
-/// Number of commands allowed in a [`PERIOD`].
-const COMMANDS_PER_PERIOD: u8 = 120;
-
 /// Duration until an acquired permit is released.
 const PERIOD: Duration = Duration::from_secs(60);
+
+/// Number of permits per [`PERIOD`].
+const PERMITS: u8 = 120;
 
 /// Ratelimiter for sending commands over the gateway to Discord.
 #[derive(Debug)]
 pub struct CommandRatelimiter {
-    /// Future that completes when a permit is released.
+    /// Future that completes when the next permit is released.
+    ///
+    /// Counts as an aquired permit if pending.
     delay: Pin<Box<Sleep>>,
-    /// Milliseconds after delay elapses.
-    /// Ordered queue of instants when permits release.
-    pending: Vec<u16>,
+    /// Ordered queue of timestamps relative to [`Self::delay`] in milliseconds
+    /// when permits release.
+    queue: Vec<u16>,
 }
 
 impl CommandRatelimiter {
     /// Create a new ratelimiter with some capacity reserved for heartbeating.
     pub(crate) fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
+        // Required by algorithm, explanation pending.
+        let elapsed = Instant::now() - Duration::from_secs(1);
 
         Self {
-            // Delay must be < now for algorithm correctness (relevant for tests).
-            delay: Box::pin(tokio::time::sleep_until(
-                Instant::now() - Duration::from_secs(1),
-            )),
-            pending: Vec::with_capacity(usize::from(allotted) - 1),
+            delay: Box::pin(tokio::time::sleep_until(elapsed)),
+            queue: Vec::with_capacity(usize::from(allotted) - 1),
         }
     }
 
@@ -51,26 +52,23 @@ impl CommandRatelimiter {
     #[allow(clippy::cast_possible_truncation)]
     pub fn available(&self) -> u8 {
         let now = Instant::now();
-        let then = self.delay.deadline();
-        if now >= then {
-            let released = self
-                .pending
-                .iter()
-                .map(|&milli| then + Duration::from_millis(milli.into()))
-                .position(|deadline| deadline > now)
-                .unwrap_or_else(|| self.pending.len());
-            let acquired = self.pending.len() - released;
+        if now >= self.delay.deadline() {
+            let Some(released) = self.next_acquired_position(now) else {
+                return self.max();
+            };
+            let acquired = self.queue.len() - released;
 
             self.max() - acquired as u8
         } else {
-            (self.pending.capacity() - self.pending.len()) as u8
+            let aquired = self.queue.len() + 1;
+            self.max() - aquired as u8
         }
     }
 
     /// Maximum number of available permits.
     #[allow(clippy::cast_possible_truncation)]
     pub fn max(&self) -> u8 {
-        self.pending.capacity() as u8 + 1
+        self.queue.capacity() as u8 + 1
     }
 
     /// Duration until the next permit is available.
@@ -92,41 +90,23 @@ impl CommandRatelimiter {
         ready!(self.poll_available(cx));
 
         let now = Instant::now();
-        let then = self.delay.deadline();
-        if now >= then {
-            // Use linear search due to:
-            // 1. Easier implementation, especially since binary_search's returned index is unstable for equal elements
-            // 2. Searched for element is up front if called frequently, so "optimize" for that.
-            if let Some(released) = self
-                .pending
-                .iter()
-                .map(|&milli| then + Duration::from_millis(milli.into()))
-                .position(|deadline| deadline > now)
-            {
-                let new_delay = self.pending[released];
-                let acquired = self.pending.len() - released;
-                let new_delay = then + Duration::from_millis(new_delay.into());
-
-                // drop new_delay too.
-                self.pending.rotate_left(released + 1);
-                self.pending.truncate(acquired - 1);
-                self.delay.as_mut().reset(new_delay);
+        if now >= self.delay.deadline() {
+            if let Some(new_deadline_index) = self.next_acquired_position(now) {
+                self.rebase(new_deadline_index);
             } else {
-                // All pending values are less than `now`.
-                self.pending.clear();
-
+                self.queue.clear();
                 self.delay.as_mut().reset(now + PERIOD);
 
                 return Poll::Ready(());
             }
         }
 
-        let pending = PERIOD - self.delay.deadline().saturating_duration_since(now);
+        let releases = (now + PERIOD) - self.delay.deadline();
+        debug_assert!(releases.as_millis() <= 60_000);
+        #[allow(clippy::cast_possible_truncation)]
+        self.queue.push(releases.as_millis() as u16);
 
-        // pending.as_millis() <= 60_000 < u16::MAX
-        self.pending.push(pending.as_millis() as u16);
-
-        if self.pending.len() == self.pending.capacity() {
+        if self.queue.len() == self.queue.capacity() {
             tracing::debug!(duration = ?(self.delay.deadline() - now), "ratelimited");
         }
 
@@ -140,11 +120,44 @@ impl CommandRatelimiter {
     /// * `Poll::Pending` if no permit is available
     /// * `Poll::Ready` if a permit is available.
     pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
-        if self.pending.len() < self.pending.capacity() {
+        if self.queue.len() < self.queue.capacity() {
             return Poll::Ready(());
         }
 
         self.delay.as_mut().poll(cx)
+    }
+
+    /// Searches for the first acquired timestamp, returning its index.
+    ///
+    /// If every timestamp is released, it returns `None`.
+    fn next_acquired_position(&self, now: Instant) -> Option<usize> {
+        // Use linear search due to:
+        // 1. Easier implementation, especially since binary_search's returned index is unstable for equal elements
+        // 2. Searched for element is up front if called frequently, so "optimize" for that.
+        self.queue
+            .iter()
+            .map(|&m| self.delay.deadline() + Duration::from_millis(m.into()))
+            .position(|deadline| deadline > now)
+    }
+
+    /// Resets delay to a new deadline and updates acquired permits relative
+    /// release timestamps.
+    #[allow(clippy::cast_possible_truncation)]
+    fn rebase(&mut self, new_deadline_index: usize) {
+        let duration = Duration::from_millis(self.queue[new_deadline_index].into());
+        let new_deadline = self.delay.deadline() + duration;
+
+        // Rotate to [acquired, ..., released, ..., new_deadline]
+        self.queue.rotate_left(new_deadline_index + 1);
+        let new_acquired = self.queue.len() - (new_deadline_index + 1);
+        self.queue.truncate(new_acquired);
+
+        for timestamp in &mut self.queue {
+            let deadline = self.delay.deadline() + Duration::from_millis((*timestamp).into());
+            *timestamp = (deadline - new_deadline).as_millis() as u16;
+        }
+
+        self.delay.as_mut().reset(new_deadline);
     }
 }
 
@@ -159,7 +172,7 @@ impl CommandRatelimiter {
 fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u8 {
     /// Guard against faulty gateways specifying low heartbeat intervals by
     /// maximally reserving this many heartbeats per [`PERIOD`].
-    const MAX_NONRESERVED_COMMANDS_PER_PERIOD: u8 = COMMANDS_PER_PERIOD - 10;
+    const MAX_NONRESERVED_COMMANDS_PER_PERIOD: u8 = PERMITS - 10;
 
     // Calculate the amount of heartbeats per heartbeat interval.
     let heartbeats_per_reset = PERIOD.as_secs_f32() / heartbeat_interval.as_secs_f32();
@@ -172,7 +185,7 @@ fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u8 {
     let heartbeats_per_reset = heartbeats_per_reset.saturating_add(1);
 
     // Subtract the reserved heartbeats from the total available events.
-    let nonreserved_commands_per_reset = COMMANDS_PER_PERIOD.saturating_sub(heartbeats_per_reset);
+    let nonreserved_commands_per_reset = PERMITS.saturating_sub(heartbeats_per_reset);
 
     // Take the larger value between this and the guard value.
     nonreserved_commands_per_reset.max(MAX_NONRESERVED_COMMANDS_PER_PERIOD)
