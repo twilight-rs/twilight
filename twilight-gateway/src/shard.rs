@@ -547,52 +547,136 @@ impl<Q> Shard<Q> {
             source: Some(Box::new(source)),
         })
     }
-
-    /// Send and flush the pending message.
-    fn poll_flush_pending(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), WebsocketError>> {
-        if self.pending.is_none() {
-            return Poll::Ready(Ok(()));
-        }
-
-        if let Err(e) = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_ready(cx)) {
-            self.disconnect(CloseInitiator::Transport);
-            self.connection = None;
-            return Poll::Ready(Err(e));
-        }
-
-        let pending = self.pending.as_mut().unwrap();
-
-        if let Some(message) = &pending.gateway_event {
-            if let Some(ratelimiter) = self.ratelimiter.as_mut() {
-                if message.is_text() && !pending.is_heartbeat {
-                    ready!(ratelimiter.poll_acquire(cx));
-                }
-            }
-
-            let ws_message = pending.gateway_event.take().unwrap().into_websocket_msg();
-            if let Err(e) = Pin::new(self.connection.as_mut().unwrap()).start_send(ws_message) {
-                self.disconnect(CloseInitiator::Transport);
-                self.connection = None;
-                return Poll::Ready(Err(e));
-            }
-        }
-
-        if let Err(e) = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_flush(cx)) {
-            self.disconnect(CloseInitiator::Transport);
-            self.connection = None;
-            return Poll::Ready(Err(e));
-        }
-
-        if pending.is_heartbeat {
-            self.latency.record_sent();
-        }
-        self.pending = None;
-
-        Poll::Ready(Ok(()))
-    }
 }
 
 impl<Q: Queue> Shard<Q> {
+    /// Attempts to send due commands to the gateway.
+    ///
+    /// # Returns
+    ///
+    /// * `Poll::Pending` if sending is in progress
+    /// * `Poll::Ready(Ok)` if no more scheduled commands remain
+    /// * `Poll::Ready(Err)` if sending a command failed.
+    fn poll_send(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), WebsocketError>> {
+        loop {
+            if let Some(pending) = self.pending.as_mut() {
+                ready!(Pin::new(self.connection.as_mut().unwrap()).poll_ready(cx))?;
+
+                if let Some(message) = &pending.gateway_event {
+                    if let Some(ratelimiter) = self.ratelimiter.as_mut() {
+                        if message.is_text() && !pending.is_heartbeat {
+                            ready!(ratelimiter.poll_acquire(cx));
+                        }
+                    }
+
+                    let ws_message = pending.gateway_event.take().unwrap().into_websocket_msg();
+                    Pin::new(self.connection.as_mut().unwrap()).start_send(ws_message)?;
+                }
+
+                ready!(Pin::new(self.connection.as_mut().unwrap()).poll_flush(cx))?;
+
+                if pending.is_heartbeat {
+                    self.latency.record_sent();
+                }
+                self.pending = None;
+            }
+
+            if !self.state.is_disconnected() {
+                if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
+                    let frame = frame.expect("shard owns channel");
+
+                    tracing::debug!("sending close frame from user channel");
+                    self.disconnect(CloseInitiator::Shard(frame));
+
+                    continue;
+                }
+            }
+
+            if self
+                .heartbeat_interval
+                .as_mut()
+                .map_or(false, |heartbeater| heartbeater.poll_tick(cx).is_ready())
+            {
+                // Discord never responded after the last heartbeat, connection
+                // is failed or "zombied", see
+                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
+                // Note that unlike documented *any* event is okay; it does not
+                // have to be a heartbeat ACK.
+                if self.latency.sent().is_some() && !self.heartbeat_interval_event {
+                    tracing::info!("connection is failed or \"zombied\"");
+                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
+                } else {
+                    tracing::debug!("sending heartbeat");
+                    self.pending = Pending::text(
+                        json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
+                            .expect("serialization cannot fail"),
+                        true,
+                    );
+                    self.heartbeat_interval_event = false;
+                }
+
+                continue;
+            }
+
+            let not_ratelimited = self
+                .ratelimiter
+                .as_mut()
+                .map_or(true, |ratelimiter| ratelimiter.poll_ready(cx).is_ready());
+
+            if not_ratelimited {
+                if let Some(Poll::Ready(canceled)) = self
+                    .identify_rx
+                    .as_mut()
+                    .map(|rx| Pin::new(rx).poll(cx).map(|r| r.is_err()))
+                {
+                    if canceled {
+                        self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
+                        continue;
+                    }
+
+                    tracing::debug!("sending identify");
+
+                    self.pending = Pending::text(
+                        json::to_string(&Identify::new(IdentifyInfo {
+                            compress: false,
+                            intents: self.config.intents(),
+                            large_threshold: self.config.large_threshold(),
+                            presence: self.config.presence().cloned(),
+                            properties: self
+                                .config
+                                .identify_properties()
+                                .cloned()
+                                .unwrap_or_else(default_identify_properties),
+                            shard: Some(self.id),
+                            token: self.config.token().to_owned(),
+                        }))
+                        .expect("serialization cannot fail"),
+                        false,
+                    );
+                    self.identify_rx = None;
+
+                    continue;
+                }
+            }
+
+            if not_ratelimited && self.state.is_identified() {
+                if let Poll::Ready(command) = self.user_channel.command_rx.poll_recv(cx) {
+                    let command = command.expect("shard owns channel");
+
+                    tracing::debug!("sending command from user channel");
+                    self.pending = Some(Pending {
+                        gateway_event: Some(Message::Text(command)),
+                        is_heartbeat: false,
+                    });
+
+                    continue;
+                }
+            }
+
+            return Poll::Ready(Ok(()));
+        }
+    }
+
     /// Updates the shard's internal state from a gateway event by recording
     /// and/or responding to certain Discord events.
     ///
@@ -723,7 +807,6 @@ impl<Q: Queue> Shard<Q> {
 impl<Q: Queue + Unpin> Stream for Shard<Q> {
     type Item = Result<Message, ReceiveMessageError>;
 
-    #[allow(clippy::too_many_lines)]
     #[tracing::instrument(fields(id = %self.id), name = "shard", skip_all)]
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let message = loop {
@@ -793,104 +876,11 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                 _ => {}
             }
 
-            if ready!(self.poll_flush_pending(cx)).is_err() {
+            if ready!(self.poll_send(cx)).is_err() {
+                self.disconnect(CloseInitiator::Transport);
+                self.connection = None;
+
                 return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
-            }
-
-            if !self.state.is_disconnected() {
-                if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
-                    let frame = frame.expect("shard owns channel");
-
-                    tracing::debug!("sending close frame from user channel");
-                    self.disconnect(CloseInitiator::Shard(frame));
-
-                    if ready!(self.poll_flush_pending(cx)).is_err() {
-                        return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
-                    }
-                }
-            }
-
-            if self
-                .heartbeat_interval
-                .as_mut()
-                .map_or(false, |heartbeater| heartbeater.poll_tick(cx).is_ready())
-            {
-                // Discord never responded after the last heartbeat, connection
-                // is failed or "zombied", see
-                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
-                // Note that unlike documented *any* event is okay; it does not
-                // have to be a heartbeat ACK.
-                if self.latency.sent().is_some() && !self.heartbeat_interval_event {
-                    tracing::info!("connection is failed or \"zombied\"");
-                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
-                } else {
-                    tracing::debug!("sending heartbeat");
-                    self.pending = Pending::text(
-                        json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                            .expect("serialization cannot fail"),
-                        true,
-                    );
-                    self.heartbeat_interval_event = false;
-                }
-
-                if ready!(self.poll_flush_pending(cx)).is_err() {
-                    return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
-                }
-            }
-
-            let not_ratelimited = self
-                .ratelimiter
-                .as_mut()
-                .map_or(true, |ratelimiter| ratelimiter.poll_ready(cx).is_ready());
-
-            if not_ratelimited {
-                if let Some(Poll::Ready(canceled)) = self
-                    .identify_rx
-                    .as_mut()
-                    .map(|rx| Pin::new(rx).poll(cx).map(|r| r.is_err()))
-                {
-                    if canceled {
-                        self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
-                        continue;
-                    }
-
-                    tracing::debug!("sending identify");
-                    self.pending = Pending::text(
-                        json::to_string(&Identify::new(IdentifyInfo {
-                            compress: false,
-                            intents: self.config.intents(),
-                            large_threshold: self.config.large_threshold(),
-                            presence: self.config.presence().cloned(),
-                            properties: self
-                                .config
-                                .identify_properties()
-                                .cloned()
-                                .unwrap_or_else(default_identify_properties),
-                            shard: Some(self.id),
-                            token: self.config.token().to_owned(),
-                        }))
-                        .expect("serialization cannot fail"),
-                        false,
-                    );
-                    self.identify_rx = None;
-
-                    if ready!(self.poll_flush_pending(cx)).is_err() {
-                        return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
-                    }
-                }
-            }
-
-            if not_ratelimited && self.state.is_identified() {
-                if let Poll::Ready(command) = self.user_channel.command_rx.poll_recv(cx) {
-                    let command = command.expect("shard owns channel");
-
-                    tracing::debug!("sending command from user channel");
-                    self.pending = Pending::text(command, false);
-
-                    if ready!(self.poll_flush_pending(cx)).is_err() {
-                        return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
-                    }
-                }
             }
 
             match ready!(Pin::new(self.connection.as_mut().unwrap()).poll_next(cx)) {
