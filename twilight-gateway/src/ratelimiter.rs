@@ -135,10 +135,7 @@ impl CommandRatelimiter {
         let duration = Duration::from_millis(self.queue[new_deadline_index].into());
         let new_deadline = self.delay.deadline() + duration;
 
-        // Rotate to [acquired, ..., released, ..., new_deadline]
-        self.queue.rotate_left(new_deadline_index + 1);
-        let new_acquired = self.queue.len() - (new_deadline_index + 1);
-        self.queue.truncate(new_acquired);
+        self.queue.drain(..=new_deadline_index);
 
         for timestamp in &mut self.queue {
             let deadline = self.delay.deadline() + Duration::from_millis((*timestamp).into());
