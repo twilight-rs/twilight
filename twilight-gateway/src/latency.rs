@@ -100,7 +100,7 @@ impl Latency {
         self.periods += 1;
 
         self.latency_sum += period_latency;
-        self.recent.rotate_right(1);
+        self.recent.copy_within(..Self::RECENT_LEN - 1, 1);
         self.recent[0] = period_latency;
     }
 
