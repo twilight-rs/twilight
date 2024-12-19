@@ -83,7 +83,7 @@ impl CommandRatelimiter {
         ready!(self.poll_available(cx));
 
         let now = Instant::now();
-        if now >= self.delay.deadline() {
+        if self.queue.len() == self.queue.capacity() {
             if let Some(new_deadline_index) = self.next_acquired_position(now) {
                 self.rebase(new_deadline_index);
             } else {
