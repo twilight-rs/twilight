@@ -41,10 +41,12 @@ impl CommandRatelimiter {
     /// Create a new ratelimiter with some capacity reserved for heartbeating.
     pub(crate) fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
+        let mut queue = Vec::new();
+        queue.reserve_exact(usize::from(allotted) - 1);
 
         Self {
             delay: Box::pin(tokio::time::sleep_until(Instant::now())),
-            queue: Vec::with_capacity(usize::from(allotted) - 1),
+            queue,
         }
     }
 
