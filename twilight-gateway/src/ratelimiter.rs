@@ -13,6 +13,7 @@
 #![allow(clippy::cast_possible_truncation)]
 
 use std::{
+    collections::VecDeque,
     future::Future,
     pin::Pin,
     task::{ready, Context, Poll},
@@ -34,14 +35,14 @@ pub struct CommandRatelimiter {
     delay: Pin<Box<Sleep>>,
     /// Ordered queue of timestamps relative to [`Self::delay`] in milliseconds
     /// when permits release.
-    queue: Vec<u16>,
+    queue: VecDeque<u16>,
 }
 
 impl CommandRatelimiter {
     /// Create a new ratelimiter with some capacity reserved for heartbeating.
     pub(crate) fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
-        let mut queue = Vec::new();
+        let mut queue = VecDeque::new();
         queue.reserve_exact(usize::from(allotted) - 1);
 
         Self {
@@ -86,8 +87,8 @@ impl CommandRatelimiter {
 
         let now = Instant::now();
         if now >= self.delay.deadline() {
-            if let Some(new_deadline_index) = self.next_acquired_position(now) {
-                self.rebase(new_deadline_index);
+            if let Some(new_deadline_idx) = self.next_acquired_position(now) {
+                self.rebase(new_deadline_idx);
             } else {
                 self.queue.clear();
                 self.delay.as_mut().reset(now + PERIOD);
@@ -97,7 +98,7 @@ impl CommandRatelimiter {
         }
 
         let releases = (now + PERIOD) - self.delay.deadline();
-        self.queue.push(releases.as_millis() as u16);
+        self.queue.push_back(releases.as_millis() as u16);
 
         if self.queue.len() == self.queue.capacity() {
             tracing::debug!(duration = ?(self.delay.deadline() - now), "ratelimited");
@@ -124,8 +125,6 @@ impl CommandRatelimiter {
     ///
     /// If every timestamp is released, it returns `None`.
     fn next_acquired_position(&self, now: Instant) -> Option<usize> {
-        // Avoid [`slice::partition_point`] as it may return any matching index,
-        // but we require the first one.
         self.queue
             .iter()
             .map(|&m| self.delay.deadline() + Duration::from_millis(m.into()))
@@ -133,11 +132,11 @@ impl CommandRatelimiter {
     }
 
     /// Resets to a new deadline and updates acquired permits' relative timestamp.
-    fn rebase(&mut self, new_deadline_index: usize) {
-        let duration = Duration::from_millis(self.queue[new_deadline_index].into());
+    fn rebase(&mut self, new_deadline_idx: usize) {
+        let duration = Duration::from_millis(self.queue[new_deadline_idx].into());
         let new_deadline = self.delay.deadline() + duration;
 
-        self.queue.drain(..=new_deadline_index);
+        self.queue.drain(..=new_deadline_idx);
 
         for timestamp in &mut self.queue {
             let deadline = self.delay.deadline() + Duration::from_millis((*timestamp).into());
