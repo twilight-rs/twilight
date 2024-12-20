@@ -100,6 +100,7 @@ impl CommandRatelimiter {
         }
 
         let releases = (now + PERIOD) - self.delay.deadline();
+        debug_assert_ne!(self.queue.capacity(), self.queue.len());
         self.queue.push_back(releases.as_millis() as u16);
 
         if self.queue.len() == self.queue.capacity() {
