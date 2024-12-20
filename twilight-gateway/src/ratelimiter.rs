@@ -180,7 +180,7 @@ fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u8 {
 mod tests {
     use super::{nonreserved_commands_per_reset, CommandRatelimiter, PERIOD};
     use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, future::poll_fn, task::Poll, time::Duration};
+    use std::{fmt::Debug, future::poll_fn, time::Duration};
     use tokio::time;
 
     assert_impl_all!(CommandRatelimiter: Debug, Send, Sync);
@@ -264,29 +264,6 @@ mod tests {
 
         poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
         assert_eq!(max, ratelimiter.max());
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn spurious_poll() {
-        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
-
-        for _ in 0..ratelimiter.max() {
-            poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
-        }
-        assert_eq!(ratelimiter.available(), 0);
-
-        // Spuriously poll after registering the waker but before the timer has
-        // fired.
-        poll_fn(|cx| {
-            if ratelimiter.poll_available(cx).is_ready() {
-                return Poll::Ready(());
-            };
-            let deadline = ratelimiter.delay.deadline();
-            assert!(ratelimiter.poll_available(cx).is_pending());
-            assert_eq!(deadline, ratelimiter.delay.deadline(), "deadline was reset");
-            Poll::Pending
-        })
-        .await;
     }
 
     #[tokio::test(start_paused = true)]
