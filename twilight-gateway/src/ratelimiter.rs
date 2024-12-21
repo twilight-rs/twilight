@@ -41,10 +41,16 @@ pub struct CommandRatelimiter {
 impl CommandRatelimiter {
     /// Create a new ratelimiter with some capacity reserved for heartbeating.
     pub(crate) fn new(heartbeat_interval: Duration) -> Self {
-        let allotted = nonreserved_commands_per_reset(heartbeat_interval);
-        let queue = VecDeque::with_capacity(usize::from(allotted) - 1);
-        if queue.capacity() != usize::from(allotted) - 1 {
-            unreachable!("Global allocator should always be exact")
+        let capacity = usize::from(nonreserved_commands_per_reset(heartbeat_interval)) - 1;
+
+        let mut queue = VecDeque::with_capacity(capacity);
+        if queue.capacity() != capacity {
+            queue.resize(capacity, 0);
+            // `into_boxed_slice().into_vec()` guarantees len == capacity.
+            let vec = Vec::from(queue).into_boxed_slice().into_vec();
+            // This is guaranteed to not allocate.
+            queue = VecDeque::from(vec);
+            queue.clear();
         }
 
         Self {
