@@ -121,12 +121,12 @@ pub struct MarkdownDisplay<'a> {
 }
 
 impl<'a> MarkdownDisplay<'a> {
-    pub(self) fn new(content: &'a str, flavour: MarkdownFlavour<'a>) -> Self {
+    const fn new(content: &'a str, flavour: MarkdownFlavour<'a>) -> Self {
         Self { content, flavour }
     }
 }
 
-impl<'a> Display for MarkdownDisplay<'a> {
+impl Display for MarkdownDisplay<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.flavour {
             MarkdownFlavour::BlockQuote => f.write_str(">>> ")?,
@@ -171,7 +171,7 @@ impl<'a> Display for MarkdownDisplay<'a> {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(self) enum MarkdownFlavour<'a> {
+enum MarkdownFlavour<'a> {
     BlockQuote,
     Bold,
     Codeblock { language: Option<&'a str> },
