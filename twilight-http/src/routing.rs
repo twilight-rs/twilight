@@ -642,7 +642,7 @@ pub enum Route<'a> {
         /// pruned.
         include_roles: &'a [Id<RoleMarker>],
     },
-    /// Route information to get a guild's roles.
+    /// Route information to get guild's roles.
     GetGuildRoles {
         /// The ID of the guild.
         guild_id: u64,
@@ -829,6 +829,13 @@ pub enum Route<'a> {
         message_id: u64,
         /// The type of reactions to fetch.
         kind: Option<u8>,
+    },
+    /// Route information to get a guild's role.
+    GetRole {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the role.
+        role_id: u64,
     },
     GetSKUs {
         /// The ID of the application.
@@ -1301,6 +1308,7 @@ impl Route<'_> {
             | Self::GetPrivateArchivedThreads { .. }
             | Self::GetPublicArchivedThreads { .. }
             | Self::GetReactionUsers { .. }
+            | Self::GetRole { .. }
             | Self::GetSKUs { .. }
             | Self::GetStageInstance { .. }
             | Self::GetSticker { .. }
@@ -1574,6 +1582,7 @@ impl Route<'_> {
                 Path::ChannelsIdPermissionsOverwriteId(channel_id)
             }
             Self::DeleteRole { guild_id, .. }
+            | Self::GetRole { guild_id, .. }
             | Self::UpdateRole { guild_id, .. }
             | Self::UpdateRolePositions { guild_id } => Path::GuildsIdRolesId(guild_id),
             Self::DeleteTemplate {
@@ -2307,7 +2316,9 @@ impl Display for Route<'_> {
 
                 Display::fmt(user_id, f)
             }
-            Route::DeleteRole { guild_id, role_id } | Route::UpdateRole { guild_id, role_id } => {
+            Route::DeleteRole { guild_id, role_id }
+            | Route::GetRole { guild_id, role_id }
+            | Route::UpdateRole { guild_id, role_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
                 f.write_str("/roles/")?;
