@@ -14,7 +14,7 @@ use twilight_model::{
     voice::VoiceState,
 };
 
-/// Get a user's information by id.
+/// Get voice state of a user by guild and user ids.
 #[must_use = "requests must be configured and executed"]
 pub struct GetUserVoiceState<'a> {
     http: &'a Client,
