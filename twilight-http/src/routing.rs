@@ -4464,6 +4464,15 @@ mod tests {
     }
 
     #[test]
+    fn get_current_user_voice_state() {
+        let route = Route::GetCurrentUserVoiceState { guild_id: GUILD_ID };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/voice-states/@me")
+        );
+    }
+
+    #[test]
     fn update_current_user_voice_state() {
         let route = Route::UpdateCurrentUserVoiceState { guild_id: GUILD_ID };
         assert_eq!(
@@ -4478,6 +4487,18 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("guilds/{GUILD_ID}/members/@me/nick")
+        );
+    }
+
+    #[test]
+    fn get_user_voice_state() {
+        let route = Route::GetUserVoiceState {
+            guild_id: GUILD_ID,
+            user_id: USER_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/voice-states/{USER_ID}")
         );
     }
 
