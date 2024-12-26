@@ -16,7 +16,7 @@
 pub mod builder;
 
 #[cfg(feature = "format")]
-pub mod format;
+pub mod fmt;
 
 #[cfg(feature = "link")]
 pub mod link;

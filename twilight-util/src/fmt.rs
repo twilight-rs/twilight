@@ -44,10 +44,6 @@ pub trait Format {
     #[must_use]
     fn masked_links(self, text: &str) -> Self;
 
-    /// Returns the relative timestamp formatting for a string.
-    #[must_use]
-    fn relative_timestamp(self) -> Self;
-
     /// Returns the underline formatting for a string.
     #[must_use]
     fn underline(self) -> Self;
@@ -100,10 +96,6 @@ impl Format for String {
 
     fn masked_links(self, text: &str) -> Self {
         format!("[{text}]({self})")
-    }
-
-    fn relative_timestamp(self) -> Self {
-        format!("<t:{self}:R>")
     }
 
     fn underline(self) -> Self {
