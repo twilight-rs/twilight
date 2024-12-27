@@ -74,7 +74,10 @@ mod private {
                 UpdateGuildSticker,
             },
             update_guild_onboarding::UpdateGuildOnboarding,
-            user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
+            user::{
+                GetCurrentUserVoiceState, GetUserVoiceState, UpdateCurrentUserVoiceState,
+                UpdateUserVoiceState,
+            },
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
             GetGuildPreview, GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions,
@@ -196,6 +199,7 @@ mod private {
     impl Sealed for GetCurrentUserConnections<'_> {}
     impl Sealed for GetCurrentUserGuildMember<'_> {}
     impl Sealed for GetCurrentUserGuilds<'_> {}
+    impl Sealed for GetCurrentUserVoiceState<'_> {}
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
     impl Sealed for GetEntitlements<'_> {}
@@ -248,6 +252,7 @@ mod private {
     impl Sealed for GetThreadMembers<'_> {}
     impl Sealed for GetUser<'_> {}
     impl Sealed for GetUserApplicationInfo<'_> {}
+    impl Sealed for GetUserVoiceState<'_> {}
     impl Sealed for GetVoiceRegions<'_> {}
     impl Sealed for GetWebhook<'_> {}
     impl Sealed for GetWebhookMessage<'_> {}

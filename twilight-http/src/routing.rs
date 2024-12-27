@@ -502,6 +502,11 @@ pub enum Route<'a> {
         /// ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get the current user's voice state.
+    GetCurrentUserVoiceState {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get an emoji by ID within a guild.
     GetEmoji {
         /// The ID of the emoji.
@@ -890,6 +895,13 @@ pub enum Route<'a> {
     GetUserConnections,
     /// Route information to get the current user's private channels and groups.
     GetUserPrivateChannels,
+    /// Route information to get a user's voice state.
+    GetUserVoiceState {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// ID of the target user.
+        user_id: u64,
+    },
     /// Route information to get a list of the voice regions.
     GetVoiceRegions,
     /// Route information to get a webhook by ID, optionally with a token if the
@@ -1265,6 +1277,7 @@ impl Route<'_> {
             | Self::GetCurrentUserApplicationInfo
             | Self::GetCurrentUser
             | Self::GetCurrentUserGuildMember { .. }
+            | Self::GetCurrentUserVoiceState { .. }
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetEntitlements { .. }
@@ -1316,9 +1329,10 @@ impl Route<'_> {
             | Self::GetTemplates { .. }
             | Self::GetThreadMember { .. }
             | Self::GetThreadMembers { .. }
+            | Self::GetUser { .. }
             | Self::GetUserConnections
             | Self::GetUserPrivateChannels
-            | Self::GetUser { .. }
+            | Self::GetUserVoiceState { .. }
             | Self::GetVoiceRegions
             | Self::GetWebhook { .. }
             | Self::GetWebhookMessage { .. }
@@ -1716,7 +1730,9 @@ impl Route<'_> {
                 Path::GuildsIdIntegrationsIdSync(guild_id)
             }
             Self::UnpinMessage { channel_id, .. } => Path::ChannelsIdPinsMessageId(channel_id),
-            Self::UpdateCurrentUserVoiceState { guild_id }
+            Self::GetCurrentUserVoiceState { guild_id, .. }
+            | Self::GetUserVoiceState { guild_id, .. }
+            | Self::UpdateCurrentUserVoiceState { guild_id }
             | Self::UpdateUserVoiceState { guild_id, .. } => Path::GuildsIdVoiceStates(guild_id),
             Self::UpdateMessage { channel_id, .. } => {
                 Path::ChannelsIdMessagesId(Method::Patch, channel_id)
@@ -2967,7 +2983,8 @@ impl Display for Route<'_> {
 
                 f.write_str("/members/@me")
             }
-            Route::UpdateCurrentUserVoiceState { guild_id } => {
+            Route::GetCurrentUserVoiceState { guild_id }
+            | Route::UpdateCurrentUserVoiceState { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
 
@@ -2993,7 +3010,8 @@ impl Display for Route<'_> {
 
                 f.write_str("/members/@me/nick")
             }
-            Route::UpdateUserVoiceState { guild_id, user_id } => {
+            Route::GetUserVoiceState { guild_id, user_id }
+            | Route::UpdateUserVoiceState { guild_id, user_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
                 f.write_str("/voice-states/")?;
@@ -4446,6 +4464,15 @@ mod tests {
     }
 
     #[test]
+    fn get_current_user_voice_state() {
+        let route = Route::GetCurrentUserVoiceState { guild_id: GUILD_ID };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/voice-states/@me")
+        );
+    }
+
+    #[test]
     fn update_current_user_voice_state() {
         let route = Route::UpdateCurrentUserVoiceState { guild_id: GUILD_ID };
         assert_eq!(
@@ -4460,6 +4487,18 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("guilds/{GUILD_ID}/members/@me/nick")
+        );
+    }
+
+    #[test]
+    fn get_user_voice_state() {
+        let route = Route::GetUserVoiceState {
+            guild_id: GUILD_ID,
+            user_id: USER_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/voice-states/{USER_ID}")
         );
     }
 

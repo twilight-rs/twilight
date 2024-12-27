@@ -4,14 +4,18 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
-use crate::request::application::{
-    emoji::{
-        AddApplicationEmoji, DeleteApplicationEmoji, ListApplicationEmojis, UpdateApplicationEmoji,
+use crate::request::{
+    application::{
+        emoji::{
+            AddApplicationEmoji, DeleteApplicationEmoji, ListApplicationEmojis,
+            UpdateApplicationEmoji,
+        },
+        monetization::{
+            CreateTestEntitlement, CreateTestEntitlementOwner, DeleteTestEntitlement,
+            GetEntitlements, GetSKUs,
+        },
     },
-    monetization::{
-        CreateTestEntitlement, CreateTestEntitlementOwner, DeleteTestEntitlement, GetEntitlements,
-        GetSKUs,
-    },
+    guild::user::{GetCurrentUserVoiceState, GetUserVoiceState},
 };
 #[allow(deprecated)]
 use crate::{
@@ -715,6 +719,18 @@ impl Client {
     /// be randomized.
     pub const fn update_current_user(&self) -> UpdateCurrentUser<'_> {
         UpdateCurrentUser::new(self)
+    }
+
+    /// Get voice state of the current user in a guild.
+    ///
+    /// # Caveats
+    ///
+    /// - Current user must already have joined a voice/stage channel in this guild.
+    pub const fn current_user_voice_state(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetCurrentUserVoiceState<'_> {
+        GetCurrentUserVoiceState::new(self, guild_id)
     }
 
     /// Update the current user's voice state.
@@ -2058,6 +2074,19 @@ impl Client {
     /// Get a user's information by id.
     pub const fn user(&self, user_id: Id<UserMarker>) -> GetUser<'_> {
         GetUser::new(self, user_id)
+    }
+
+    /// Get voice state of a user in a guild.
+    ///
+    /// # Caveats
+    ///
+    /// - User must already have joined a voice/stage channel in this guild.
+    pub const fn user_voice_state(
+        &self,
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
+    ) -> GetUserVoiceState<'_> {
+        GetUserVoiceState::new(self, guild_id, user_id)
     }
 
     /// Update another user's voice state.
