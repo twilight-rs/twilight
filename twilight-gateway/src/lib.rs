@@ -19,7 +19,7 @@ mod channel;
 mod command;
 mod config;
 mod event;
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+#[cfg(feature = "zstd")]
 mod inflater;
 mod json;
 mod latency;
@@ -29,7 +29,7 @@ mod session;
 mod shard;
 mod stream;
 
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+#[cfg(feature = "zstd")]
 pub use self::inflater::Inflater;
 pub use self::{
     channel::MessageSender,

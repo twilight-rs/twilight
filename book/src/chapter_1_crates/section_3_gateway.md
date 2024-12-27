@@ -58,21 +58,10 @@ This is enabled by default.
 The `rustls-webpki-roots` feature enables [`tokio-websockets`]'
 `rustls-webpki-roots` feature.
 
-### Zlib
+### Zstd
 
-#### Stock
-
-The `zlib-stock` feature makes [flate2] use of the stock Zlib which is either
-upstream or the one included with the operating system.
-
-#### SIMD
-
-`zlib-simd` enables the use of [zlib-ng] which is a modern fork of zlib that in
-most cases will be more effective. However, this will add an external dependency
-on [cmake].
-
-If both are enabled or if the `zlib` feature of [flate2] is enabled anywhere in
-the dependency tree it will make use of that instead of [zlib-ng].
+The `zstd` feature toggles zstd transport compression backed by Facebook's zstd
+library.
 
 ## Example
 
@@ -117,8 +106,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 [img:shard]: ./section_3_shard.png
 [RusTLS]: https://crates.io/crates/rustls
 [cmake]: https://cmake.org/
-[flate2]: https://github.com/alexcrichton/flate2-rs
-[zlib-ng]: https://github.com/zlib-ng/zlib-ng
 [`hyper-rustls`]: https://crates.io/crates/hyper-rustls
 [`hyper-tls`]: https://crates.io/crates/hyper-tls
 [`serde_json`]: https://crates.io/crates/serde_json

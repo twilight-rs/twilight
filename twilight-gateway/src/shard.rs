@@ -6,7 +6,7 @@
 //! information about what a shard is in the context of Discord's gateway API,
 //! refer to the documentation for [`Shard`].
 
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+#[cfg(feature = "zstd")]
 use crate::inflater::Inflater;
 use crate::{
     channel::{MessageChannel, MessageSender},
@@ -57,12 +57,12 @@ use twilight_model::gateway::{
 /// URL of the Discord gateway.
 const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 
-/// Query argument with zlib-stream enabled.
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-const COMPRESSION_FEATURES: &str = "&compress=zlib-stream";
+/// Query argument with zstd-stream enabled.
+#[cfg(feature = "zstd")]
+const COMPRESSION_FEATURES: &str = "&compress=zstd-stream";
 
 /// No query arguments due to compression being disabled.
-#[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
+#[cfg(not(feature = "zstd"))]
 const COMPRESSION_FEATURES: &str = "";
 
 /// [`tokio_websockets`] library Websocket connection.
@@ -286,8 +286,8 @@ pub struct Shard<Q = InMemoryQueue> {
     id: ShardId,
     /// Identify queue receiver.
     identify_rx: Option<oneshot::Receiver<()>>,
-    /// Zlib decompressor.
-    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+    /// Zstd decompressor.
+    #[cfg(feature = "zstd")]
     inflater: Inflater,
     /// Potentially pending outgoing message.
     pending: Option<Pending>,
@@ -340,7 +340,7 @@ impl<Q> Shard<Q> {
             heartbeat_interval_event: false,
             id: shard_id,
             identify_rx: None,
-            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+            #[cfg(feature = "zstd")]
             inflater: Inflater::new(),
             pending: None,
             latency: Latency::new(),
@@ -364,10 +364,10 @@ impl<Q> Shard<Q> {
         self.id
     }
 
-    /// Zlib decompressor statistics.
+    /// Zstd decompressor statistics.
     ///
     /// Reset when reconnecting to the gateway.
-    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+    #[cfg(feature = "zstd")]
     pub const fn inflater(&self) -> &Inflater {
         &self.inflater
     }
@@ -856,7 +856,7 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                         Ok(connection) => {
                             self.connection = Some(connection);
                             self.state = ShardState::Identifying;
-                            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+                            #[cfg(feature = "zstd")]
                             self.inflater.reset();
                         }
                         Err(source) => {
@@ -884,15 +884,17 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
 
             match ready!(Pin::new(self.connection.as_mut().unwrap()).poll_next(cx)) {
                 Some(Ok(message)) => {
-                    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+                    #[cfg(feature = "zstd")]
                     if message.is_binary() {
-                        if let Some(decompressed) = self
-                            .inflater
-                            .inflate(message.as_payload())
-                            .map_err(ReceiveMessageError::from_compression)?
-                        {
-                            break Message::Text(decompressed);
-                        };
+                        match self.inflater.inflate(message.as_payload()) {
+                            Ok(message) => break Message::Text(message),
+                            Err(source) => {
+                                self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
+                                return Poll::Ready(Some(Err(
+                                    ReceiveMessageError::from_compression(source),
+                                )));
+                            }
+                        }
                     }
                     if let Some(message) = Message::from_websocket_msg(&message) {
                         break message;

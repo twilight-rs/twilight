@@ -1,6 +1,6 @@
 //! Errors returned by gateway operations.
 
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+#[cfg(feature = "zstd")]
 pub use crate::inflater::{CompressionError, CompressionErrorType};
 
 use std::{
@@ -168,7 +168,7 @@ impl ReceiveMessageError {
     }
 
     /// Shortcut to create a new error for a message compression error.
-    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+    #[cfg(feature = "zstd")]
     pub(crate) fn from_compression(source: CompressionError) -> Self {
         Self {
             kind: ReceiveMessageErrorType::Compression,
@@ -180,7 +180,7 @@ impl ReceiveMessageError {
 impl Display for ReceiveMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+            #[cfg(feature = "zstd")]
             ReceiveMessageErrorType::Compression => {
                 f.write_str("binary message could not be decompressed")
             }
@@ -208,7 +208,7 @@ pub enum ReceiveMessageErrorType {
     /// Binary message could not be decompressed.
     ///
     /// The associated error downcasts to [`CompressionError`].
-    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+    #[cfg(feature = "zstd")]
     Compression,
     /// Gateway event could not be deserialized.
     Deserializing {
