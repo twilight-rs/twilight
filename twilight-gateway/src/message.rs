@@ -43,7 +43,7 @@ impl Message {
         if msg.is_close() {
             let (code, reason) = msg.as_close().unwrap();
 
-            let frame = (code == CloseCode::NO_STATUS_RECEIVED).then(|| CloseFrame {
+            let frame = (code != CloseCode::NO_STATUS_RECEIVED).then(|| CloseFrame {
                 code: code.into(),
                 reason: Cow::Owned(reason.to_string()),
             });
