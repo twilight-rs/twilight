@@ -618,10 +618,9 @@ impl<Q: Queue> Shard<Q> {
                 continue;
             }
 
-            let not_ratelimited = self
-                .ratelimiter
-                .as_mut()
-                .map_or(true, |ratelimiter| ratelimiter.poll_ready(cx).is_ready());
+            let not_ratelimited = self.ratelimiter.as_mut().map_or(true, |ratelimiter| {
+                ratelimiter.poll_available(cx).is_ready()
+            });
 
             if not_ratelimited {
                 if let Some(Poll::Ready(canceled)) = self
