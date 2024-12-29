@@ -90,6 +90,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[tracing::instrument(fields(shard = %shard.id()), skip_all)]
 async fn runner(mut shard: Shard) {
     while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
         let event = match item {
