@@ -2,6 +2,13 @@
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Resolved some warnings when building docs. ([#2331](https://github.com/twilight-rs/twilight/issues/2331))
+- clippy 1.79 lints ([#2355](https://github.com/twilight-rs/twilight/issues/2355))
+- Add missing automoderation paths. ([#2356](https://github.com/twilight-rs/twilight/issues/2356))
+- Add missing @ symbol in REST path ([#2357](https://github.com/twilight-rs/twilight/issues/2357))
+
 ### Build
 
 - Remove dependency on futures-util ([#2309](https://github.com/twilight-rs/twilight/issues/2309))
@@ -10,6 +17,9 @@
 
 - [**breaking**] Hide `http` dependency ([#2163](https://github.com/twilight-rs/twilight/issues/2163))
 - Add support for application editing and new application fields ([#2284](https://github.com/twilight-rs/twilight/issues/2284))
+- Add support for premium apps ([#2282](https://github.com/twilight-rs/twilight/issues/2282))
+- add support for polls ([#2341](https://github.com/twilight-rs/twilight/issues/2341))
+- Add support for application emojis ([#2364](https://github.com/twilight-rs/twilight/issues/2364))
 
 ## [0.15.2] - 2023-09-10
 

@@ -14,6 +14,10 @@
 
 - Remove redundant imports ([#2316](https://github.com/twilight-rs/twilight/issues/2316))
 
+### Chore
+
+- resolve rust 1.83 issues ([#2391](https://github.com/twilight-rs/twilight/issues/2391))
+
 ## [0.15.2] - 2023-09-10
 
 ### Build
