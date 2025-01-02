@@ -18,6 +18,11 @@
 
 - Switch to fastrand and tokio-websockets ([#2239](https://github.com/twilight-rs/twilight/issues/2239))
 
+### Chore
+
+- resolve rust 1.83 issues ([#2391](https://github.com/twilight-rs/twilight/issues/2391))
+- Update tokio-websockets to 0.11 ([#2404](https://github.com/twilight-rs/twilight/issues/2404))
+
 ## [0.15.2] - 2023-09-10
 
 ### Bug Fixes

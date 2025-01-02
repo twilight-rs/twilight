@@ -6,22 +6,42 @@
 
 - Use `default_message_seconds` as a JSON field for `create_ban` ([#2280](https://github.com/twilight-rs/twilight/issues/2280))
 - Fix docs deploy ([#2295](https://github.com/twilight-rs/twilight/issues/2295))
+- clippy 1.78 lints ([#2336](https://github.com/twilight-rs/twilight/issues/2336))
+- clippy 1.79 lints ([#2355](https://github.com/twilight-rs/twilight/issues/2355))
+- [**breaking**] fix role position update payload and allow audit log reason ([#2342](https://github.com/twilight-rs/twilight/issues/2342))
+- Fix nightly compiler and rustdoc warnings ([#2368](https://github.com/twilight-rs/twilight/issues/2368))
+- List application emojis does not return a raw list ([#2376](https://github.com/twilight-rs/twilight/issues/2376))
+- update role icon and unicode_emoji using nullable strings ([#2388](https://github.com/twilight-rs/twilight/issues/2388))
 
 ### Build
 
 - [**breaking**] Update trust-dns (now hickory) ([#2287](https://github.com/twilight-rs/twilight/issues/2287))
 - Update to rustls 0.22, hyper 1.x ([#2302](https://github.com/twilight-rs/twilight/issues/2302))
 - [**breaking**] Rename native feature to native-tls ([#2308](https://github.com/twilight-rs/twilight/issues/2308))
+- Update to brotli-decompressor 4.0 ([#2337](https://github.com/twilight-rs/twilight/issues/2337))
+- Update to rustls 0.23 ([#2367](https://github.com/twilight-rs/twilight/issues/2367))
 
 ### Features
 
 - [**breaking**] Hide `http` dependency ([#2163](https://github.com/twilight-rs/twilight/issues/2163))
 - [**breaking**] Return errors at finalization ([#2171](https://github.com/twilight-rs/twilight/issues/2171))
-- [**breaking**] Add `regex_patterns` and `allow_list` ([#2189](https://github.com/twilight-rs/twilight/issues/2189))
+- Add `regex_patterns` and `allow_list` ([#2189](https://github.com/twilight-rs/twilight/issues/2189))
 - Support default thread timeout for channel creation ([#2274](https://github.com/twilight-rs/twilight/issues/2274))
 - Add new onboarding mode and support for modifying onboarding ([#2291](https://github.com/twilight-rs/twilight/issues/2291))
 - Add `guild_scheduled_event_id` to `create_stage_instance` ([#2283](https://github.com/twilight-rs/twilight/issues/2283))
 - Add support for application editing and new application fields ([#2284](https://github.com/twilight-rs/twilight/issues/2284))
+- Make positions possible to create ([#2328](https://github.com/twilight-rs/twilight/issues/2328))
+- allow editing app banner ([#2345](https://github.com/twilight-rs/twilight/issues/2345))
+- Add support for premium apps ([#2282](https://github.com/twilight-rs/twilight/issues/2282))
+- [**breaking**] Add support for super reaction types ([#2347](https://github.com/twilight-rs/twilight/issues/2347))
+- add support for polls ([#2341](https://github.com/twilight-rs/twilight/issues/2341))
+- Add support for message forwarding ([#2340](https://github.com/twilight-rs/twilight/issues/2340))
+- Add support for application emojis ([#2364](https://github.com/twilight-rs/twilight/issues/2364))
+- add invite type ([#2346](https://github.com/twilight-rs/twilight/issues/2346))
+- Implement user applications ([#2323](https://github.com/twilight-rs/twilight/issues/2323))
+- Add Discord defined status codes as constants ([#2389](https://github.com/twilight-rs/twilight/issues/2389))
+- add get guild role endpoint ([#2394](https://github.com/twilight-rs/twilight/issues/2394))
+- Add get voice state endpoints ([#2398](https://github.com/twilight-rs/twilight/issues/2398))
 
 ### Performance
 
@@ -33,6 +53,12 @@
 - Switch to fastrand ([#2239](https://github.com/twilight-rs/twilight/issues/2239))
 - Remove unnecessary conversion  ([#2294](https://github.com/twilight-rs/twilight/issues/2294))
 - [**breaking**] Avoid copying the response body on utf8 error ([#2299](https://github.com/twilight-rs/twilight/issues/2299))
+- Use query string helper ([#2348](https://github.com/twilight-rs/twilight/issues/2348))
+
+### Chore
+
+- Bump MSRV to 1.79 and resolve Clippy 1.80 lints ([#2366](https://github.com/twilight-rs/twilight/issues/2366))
+- resolve rust 1.83 issues ([#2391](https://github.com/twilight-rs/twilight/issues/2391))
 
 ## [0.15.3] - 2023-09-10
 
