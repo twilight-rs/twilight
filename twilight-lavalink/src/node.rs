@@ -618,16 +618,20 @@ fn connect_request(state: &NodeConfig) -> Result<ClientBuilder, NodeError> {
             source: Some(Box::new(source)),
         })?
         .add_header(AUTHORIZATION, state.authorization.parse().unwrap())
+        .expect("allowed header")
         .add_header(
             HeaderName::from_static("user-id"),
             state.user_id.get().into(),
-        );
+        )
+        .expect("allowed header");
 
     if state.resume.is_some() {
-        builder = builder.add_header(
-            HeaderName::from_static("resume-key"),
-            state.address.to_string().parse().unwrap(),
-        );
+        builder = builder
+            .add_header(
+                HeaderName::from_static("resume-key"),
+                state.address.to_string().parse().unwrap(),
+            )
+            .expect("allowed header");
     }
 
     Ok(builder)
