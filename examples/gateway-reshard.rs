@@ -25,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
         .collect::<Vec<_>>();
 
     loop {
-        // Dopping `JoinSet` aborts all its tasks.
+        // Dropping `JoinSet` aborts all its tasks.
         let mut set = JoinSet::new();
         for mut shard in shards {
             set.spawn(async move {
