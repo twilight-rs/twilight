@@ -412,7 +412,7 @@ fn parse_mention<'a>(
 
     let c = chars.next();
 
-    if c.map_or(true, |c| c != '<') {
+    if c != Some('<') {
         return Err(ParseMentionError {
             kind: ParseMentionErrorType::LeadingArrow { found: c },
             source: None,

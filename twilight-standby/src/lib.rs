@@ -1414,7 +1414,7 @@ mod tests {
 
         let standby = Standby::new();
         let wait = standby.wait_for_event(|event: &Event| match event {
-            Event::Ready(ready) => ready.shard.map_or(false, |id| id.number() == 5),
+            Event::Ready(ready) => ready.shard.is_some_and(|id| id.number() == 5),
             _ => false,
         });
         assert!(!standby.events.is_empty());

@@ -58,7 +58,7 @@ impl PartialEq<PartialMember> for MinimalCachedMember {
         other
             .user
             .as_ref()
-            .map_or(false, |user| user.id == self.user_id)
+            .is_some_and(|user| user.id == self.user_id)
             && self.roles == other.roles
             && self.avatar == other.avatar
     }
