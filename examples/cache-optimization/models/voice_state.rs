@@ -20,9 +20,7 @@ impl From<(Id<ChannelMarker>, Id<GuildMarker>, VoiceState)> for MinimalCachedVoi
 
 impl PartialEq<VoiceState> for MinimalCachedVoiceState {
     fn eq(&self, other: &VoiceState) -> bool {
-        other
-            .channel_id
-            .map_or(false, |channel_id| channel_id == self.channel_id)
+        other.channel_id == Some(self.channel_id)
     }
 }
 

@@ -400,7 +400,7 @@ impl PartialEq<Message> for CachedMessage {
                     other
                         .interaction
                         .as_ref()
-                        .map_or(false, |other_interaction| interaction == other_interaction)
+                        .is_some_and(|other_interaction| interaction == other_interaction)
                 })
             && self.kind == other.kind
             && self.member == other.member

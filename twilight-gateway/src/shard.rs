@@ -595,7 +595,7 @@ impl<Q: Queue> Shard<Q> {
             if self
                 .heartbeat_interval
                 .as_mut()
-                .map_or(false, |heartbeater| heartbeater.poll_tick(cx).is_ready())
+                .is_some_and(|heartbeater| heartbeater.poll_tick(cx).is_ready())
             {
                 // Discord never responded after the last heartbeat, connection
                 // is failed or "zombied", see
