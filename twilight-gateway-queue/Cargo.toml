@@ -10,7 +10,7 @@ name = "twilight-gateway-queue"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.16.0-rc.1"
+version = "0.16.0"
 
 [dependencies]
 tokio = { default-features = false, features = ["macros", "rt", "sync", "time"], version = "1.15" }
@@ -19,4 +19,4 @@ tracing = { default-features = false, features = ["std"], version = "0.1" }
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["test-util"], version = "1.0" }
-twilight-http = { default-features = false, path = "../twilight-http", version = "0.16.0-rc.1" }
+twilight-http = { default-features = false, path = "../twilight-http", version = "0.16.0" }

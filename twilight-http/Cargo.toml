@@ -11,7 +11,7 @@ name = "twilight-http"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.16.0-rc.1"
+version = "0.16.0"
 
 [dependencies]
 fastrand = { default-features = false, features = ["std"], version = "2" }
@@ -28,9 +28,9 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.16.0-rc.1" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.16.0-rc.1" }
-twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.16.0-rc.1" }
+twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.16.0" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.16.0" }
+twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.16.0" }
 
 # Optional dependencies.
 brotli-decompressor = { default-features = false, features = ["std"], optional = true, version = "4" }
@@ -51,5 +51,5 @@ rustls-aws-lc-rs = ["rustls-aws_lc_rs"] # Alias for convenience, underscores are
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.16.0-rc.1" }
+twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.16.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
