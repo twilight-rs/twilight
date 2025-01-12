@@ -1,3 +1,3 @@
-#!/bin/sh 
+#!/bin/sh
 
-cargo release --workspace --exclude book --exclude examples $@
+cargo release --workspace --exclude book --exclude examples --exclude twilight-lavalink $@

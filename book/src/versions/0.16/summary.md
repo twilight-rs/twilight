@@ -1,7 +1,4 @@
-# Version 0.16 - 2024-??-??
-
-| ❗  This is a pre-release version  |
-|------------------------------------|
+# Version 0.16 - 2025-01-12
 
 Version 0.16 of the Twilight ecosystem brings a lot of internal changes and
 refactors, the latest versions of all dependencies and catches up with new API
