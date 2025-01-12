@@ -15,6 +15,10 @@
 
 - [**breaking**] Rewrite crate ([#2228](https://github.com/twilight-rs/twilight/issues/2228))
 
+### Chore
+
+- Clarify that MSRV may change in semver-compatible releases ([#2408](https://github.com/twilight-rs/twilight/issues/2408))
+
 ## [0.15.3] - 2023-09-10
 
 ### Bug Fixes

@@ -68,6 +68,8 @@
 
 - Bump MSRV to 1.79 and resolve Clippy 1.80 lints ([#2366](https://github.com/twilight-rs/twilight/issues/2366))
 - resolve rust 1.83 issues ([#2391](https://github.com/twilight-rs/twilight/issues/2391))
+- Clarify that MSRV may change in semver-compatible releases ([#2408](https://github.com/twilight-rs/twilight/issues/2408))
+- Clarify that MSRV may change in semver-compatible releases ([#2408](https://github.com/twilight-rs/twilight/issues/2408))
 
 ## [0.15.4] - 2023-09-10
 

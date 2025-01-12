@@ -21,6 +21,11 @@
 - Implement user applications ([#2323](https://github.com/twilight-rs/twilight/issues/2323))
 - Add guild field to interaction. ([#2383](https://github.com/twilight-rs/twilight/issues/2383))
 
+### Chore
+
+- Clarify that MSRV may change in semver-compatible releases ([#2408](https://github.com/twilight-rs/twilight/issues/2408))
+- Fix clippy 1.84 lints ([#2409](https://github.com/twilight-rs/twilight/issues/2409))
+
 ## [0.15.3] - 2023-09-10
 
 ### Bug Fixes
