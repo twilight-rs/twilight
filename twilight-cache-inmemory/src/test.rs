@@ -229,6 +229,7 @@ pub fn current_user(id: u64) -> CurrentUser {
         public_flags: None,
         flags: None,
         locale: None,
+        global_name: None,
     }
 }
 
