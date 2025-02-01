@@ -1407,6 +1407,7 @@ mod tests {
                 public_flags: None,
                 flags: None,
                 locale: None,
+                global_name: None,
             },
             version: 6,
         };

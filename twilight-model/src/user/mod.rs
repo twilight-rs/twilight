@@ -158,7 +158,7 @@ pub struct User {
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
-    /// User's global display name, if set. For bots, this is the application name
+    /// User's global display name, if set. For bots, this is the application name.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub global_name: Option<String>,
     pub id: Id<UserMarker>,

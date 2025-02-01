@@ -50,6 +50,9 @@ pub struct CurrentUser {
     /// All flags on a user's account.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
+    /// User's global display name, if set. For bots, this is the application name.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub global_name: Option<String>,
     /// User's id.
     pub id: Id<UserMarker>,
     /// User's chosen language option.
@@ -136,7 +139,7 @@ mod tests {
         vec![
             Token::Struct {
                 name: "CurrentUser",
-                len: 14,
+                len: 15,
             },
             Token::Str("accent_color"),
             Token::None,
@@ -156,6 +159,9 @@ mod tests {
             Token::Str("flags"),
             Token::Some,
             Token::U64(1),
+            Token::Str("global_name"),
+            Token::Some,
+            Token::Str("twilight sparkle"),
             Token::Str("id"),
             Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
@@ -196,6 +202,7 @@ mod tests {
             public_flags: Some(UserFlags::STAFF),
             flags: None,
             locale: Some("test locale".to_owned()),
+            global_name: None,
         };
 
         // Deserializing a current user with a string discriminator (which
@@ -217,14 +224,15 @@ mod tests {
             bot: true,
             discriminator: 9999,
             email: Some("test@example.com".to_owned()),
+            flags: Some(UserFlags::STAFF),
+            global_name: Some("twilight sparkle".to_owned()),
             id: Id::new(1),
+            locale: Some("test locale".to_owned()),
             mfa_enabled: true,
             name: "test name".to_owned(),
-            verified: Some(true),
             premium_type: Some(PremiumType::NitroClassic),
             public_flags: Some(UserFlags::STAFF),
-            flags: Some(UserFlags::STAFF),
-            locale: Some("test locale".to_owned()),
+            verified: Some(true),
         };
 
         // Deserializing a current user with a string discriminator (which
