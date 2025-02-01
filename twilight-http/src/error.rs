@@ -68,7 +68,6 @@ impl Display for Error {
                     Debug::fmt(body, f)
                 }
             }
-            ErrorType::RatelimiterTicket => f.write_str("Failed to get ratelimiter ticket"),
             ErrorType::RequestCanceled => {
                 f.write_str("Request was canceled either before or while being sent")
             }
@@ -112,7 +111,6 @@ pub enum ErrorType {
     Parsing {
         body: Vec<u8>,
     },
-    RatelimiterTicket,
     RequestCanceled,
     RequestError,
     RequestTimedOut,
@@ -211,7 +209,6 @@ impl Debug for ErrorType {
 
                 debug.field("body", body).finish()
             }
-            Self::RatelimiterTicket => f.write_str("RatelimiterTicket"),
             Self::RequestCanceled => f.write_str("RequestCanceled"),
             Self::RequestError => f.write_str("RequestError"),
             Self::RequestTimedOut => f.write_str("RequestTimedOut"),

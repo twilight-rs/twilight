@@ -14,7 +14,9 @@ rust-version.workspace = true
 version = "0.16.0"
 
 [dependencies]
-tokio = { version = "1", default-features = false, features = ["rt", "sync", "time"] }
+hashbrown = { default-features = false, version = "0.15"}
+tokio = { default-features = false, features = ["macros", "rt", "sync", "time"], version = "1.29" }
+tokio-util = { default-features = false, features = ["time"], version = "0.7.11" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1.23" }
 
 [dev-dependencies]
@@ -22,8 +24,3 @@ criterion = { default-features = false, version = "0.5" }
 http = { version = "1", default-features = false }
 static_assertions = { default-features = false, version = "1.1.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-
-[[bench]]
-name = "headers"
-harness = false
-path = "benches/headers.rs"

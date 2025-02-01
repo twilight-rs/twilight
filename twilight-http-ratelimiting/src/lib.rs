@@ -6,171 +6,233 @@
     missing_docs,
     unsafe_code
 )]
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    clippy::unnecessary_wraps
-)]
+#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
-pub mod headers;
-pub mod in_memory;
-pub mod request;
-pub mod ticket;
+mod actor;
+mod request;
 
-pub use self::{
-    headers::RatelimitHeaders,
-    in_memory::InMemoryRatelimiter,
-    request::{Method, Path},
-};
-
-use self::ticket::{TicketReceiver, TicketSender};
 use std::{
-    error::Error,
-    fmt::Debug,
     future::Future,
     pin::Pin,
-    time::{Duration, Instant},
+    task::{Context, Poll},
+    time::Duration,
+};
+use tokio::{
+    sync::{mpsc, oneshot},
+    time::Instant,
 };
 
-/// A bucket containing ratelimiting information for a [`Path`].
-pub struct Bucket {
-    /// Total number of tickets allotted in a cycle.
-    limit: u64,
-    /// Number of tickets remaining.
-    remaining: u64,
-    /// Duration after [`Self::started_at`] time the bucket will refresh.
-    reset_after: Duration,
-    /// When the bucket's ratelimit refresh countdown started.
-    started_at: Option<Instant>,
+pub use crate::request::{Method, Path, PathParseError, PathParseErrorType};
+
+/// Parsed user response rate limit headers.
+///
+/// A `limit` of zero marks the [`Bucket`] as exhausted until `reset_at` elapses.
+///
+/// # Global limits
+///
+/// Please open an issue if the [`RateLimiter`] exceeded the global limit.
+///
+/// # Shared limits
+///
+/// You may preemptively exhaust the bucket until `Reset-After` by completing
+/// the [`Permit`] with [`RateLimitHeaders::shared`], but are not required to
+/// since these limits do not count towards the invalid request limit.
+#[derive(Debug)]
+pub struct RateLimitHeaders {
+    /// Bucket identifier.
+    pub bucket: Vec<u8>,
+    /// Total number of requests until the bucket becomes exhausted.
+    pub limit: u16,
+    /// Number of remaining requests until the bucket becomes exhausted.
+    pub remaining: u16,
+    /// Time at which the bucket resets.
+    pub reset_at: Instant,
 }
 
-impl Bucket {
-    /// Create a representation of a ratelimiter bucket.
-    ///
-    /// Buckets are returned by ratelimiters via [`Ratelimiter::bucket`] method.
-    /// Its primary use is for informational purposes, including information
-    /// such as the [number of remaining tickets][`Self::limit`] or determining
-    /// how much time remains
-    /// [until the bucket interval resets][`Self::time_remaining`].
-    #[must_use]
-    pub const fn new(
-        limit: u64,
-        remaining: u64,
-        reset_after: Duration,
-        started_at: Option<Instant>,
-    ) -> Self {
+impl RateLimitHeaders {
+    /// Lowercased name for the bucket header.
+    pub const BUCKET: &'static str = "x-ratelimit-bucket";
+
+    /// Lowercased name for the limit header.
+    pub const LIMIT: &'static str = "x-ratelimit-limit";
+
+    /// Lowercased name for the remaining header.
+    pub const REMAINING: &'static str = "x-ratelimit-remaining";
+
+    /// Lowercased name for the reset-after header.
+    pub const RESET_AFTER: &'static str = "x-ratelimit-reset-after";
+
+    /// Emulates a shared resource limit as a user limit by setting `limit` and
+    /// `remaining` to zero.
+    pub fn shared(bucket: Vec<u8>, retry_after: u16) -> Self {
         Self {
-            limit,
-            remaining,
-            reset_after,
-            started_at,
+            bucket,
+            limit: 0,
+            remaining: 0,
+            reset_at: Instant::now() + Duration::from_secs(retry_after.into()),
         }
     }
+}
 
-    /// Total number of tickets allotted in a cycle.
-    #[must_use]
-    pub const fn limit(&self) -> u64 {
-        self.limit
-    }
+/// Permit to send a Discord HTTP API request to the acquired path.
+#[derive(Debug)]
+#[must_use = "dropping the permit immediately cancels itself"]
+pub struct Permit(oneshot::Sender<Option<RateLimitHeaders>>);
 
-    /// Number of tickets remaining.
-    #[must_use]
-    pub const fn remaining(&self) -> u64 {
-        self.remaining
-    }
-
-    /// Duration after the [`Self::started_at`] time the bucket will
-    /// refresh.
-    #[must_use]
-    pub const fn reset_after(&self) -> Duration {
-        self.reset_after
-    }
-
-    /// When the bucket's ratelimit refresh countdown started.
-    #[must_use]
-    pub const fn started_at(&self) -> Option<Instant> {
-        self.started_at
-    }
-
-    /// How long until the bucket will refresh.
+impl Permit {
+    /// Update the [`RateLimiter`] based on the response headers.
     ///
-    /// May return `None` if the refresh timer has not been started yet or
-    /// the bucket has already refreshed.
-    #[must_use]
-    pub fn time_remaining(&self) -> Option<Duration> {
-        let reset_at = self.started_at? + self.reset_after;
-
-        reset_at.checked_duration_since(Instant::now())
+    /// Non-completed permits are regarded as cancelled, so only call this
+    /// on receiving a response.
+    #[allow(clippy::missing_panics_doc)]
+    pub fn complete(self, headers: Option<RateLimitHeaders>) {
+        self.0.send(headers).expect("actor is alive");
     }
 }
 
-/// A generic error type that implements [`Error`].
-pub type GenericError = Box<dyn Error + Send + Sync>;
+/// Future that completes when a permit is ready.
+#[derive(Debug)]
+pub struct PermitFuture(oneshot::Receiver<oneshot::Sender<Option<RateLimitHeaders>>>);
 
-/// Future returned by [`Ratelimiter::bucket`].
-pub type GetBucketFuture =
-    Pin<Box<dyn Future<Output = Result<Option<Bucket>, GenericError>> + Send + 'static>>;
+impl Future for PermitFuture {
+    type Output = Permit;
 
-/// Future returned by [`Ratelimiter::is_globally_locked`].
-pub type IsGloballyLockedFuture =
-    Pin<Box<dyn Future<Output = Result<bool, GenericError>> + Send + 'static>>;
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        Pin::new(&mut self.0)
+            .poll(cx)
+            .map(|r| Permit(r.expect("actor is alive")))
+    }
+}
 
-/// Future returned by [`Ratelimiter::has`].
-pub type HasBucketFuture =
-    Pin<Box<dyn Future<Output = Result<bool, GenericError>> + Send + 'static>>;
+/// Future that completes when a permit is ready or cancelled.
+#[derive(Debug)]
+pub struct MaybePermitFuture(oneshot::Receiver<oneshot::Sender<Option<RateLimitHeaders>>>);
 
-/// Future returned by [`Ratelimiter::ticket`].
-pub type GetTicketFuture =
-    Pin<Box<dyn Future<Output = Result<TicketReceiver, GenericError>> + Send + 'static>>;
+impl Future for MaybePermitFuture {
+    type Output = Option<Permit>;
 
-/// Future returned by [`Ratelimiter::wait_for_ticket`].
-pub type WaitForTicketFuture =
-    Pin<Box<dyn Future<Output = Result<TicketSender, GenericError>> + Send + 'static>>;
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        Pin::new(&mut self.0).poll(cx).map(|r| r.ok().map(Permit))
+    }
+}
 
-/// An implementation of a ratelimiter for the Discord REST API.
+/// Rate limit information for one or more paths from previous
+/// [`RateLimitHeaders`].
+#[non_exhaustive]
+#[derive(Debug)]
+pub struct Bucket {
+    /// Total number of permits until the bucket becomes exhausted.
+    pub limit: u16,
+    /// Number of remaining permits until the bucket becomes exhausted.
+    pub remaining: u16,
+    /// Time at which the bucket resets.
+    pub reset_at: Instant,
+}
+
+/// Pending permit state.
+#[derive(Debug)]
+struct Request {
+    /// Completion handle for the associated [`PermitFuture`].
+    notifier: oneshot::Sender<oneshot::Sender<Option<RateLimitHeaders>>>,
+    /// Path the permit is for, mapping to a [`Queue`].
+    path: Path,
+}
+
+/// Actor run closure pre-enqueue for early [`MaybePermitFuture`] cancellation.
+type Predicate = Box<dyn FnOnce(Option<Bucket>) -> bool + Send>;
+
+/// Discord HTTP client API rate limiter.
 ///
-/// A default implementation can be found in [`InMemoryRatelimiter`].
+/// The [`RateLimiter`] runs an associated actor task to concurrently handle permit
+/// requests and responses.
 ///
-/// All operations are asynchronous to allow for custom implementations to
-/// use different storage backends, for example databases.
-///
-/// Ratelimiters should keep track of two kids of ratelimits:
-/// * The global ratelimit status
-/// * [`Path`]-specific ratelimits
-///
-/// To do this, clients utilizing a ratelimiter will send back response
-/// ratelimit headers via a [`TicketSender`].
-///
-/// The ratelimiter itself will hand a [`TicketReceiver`] to the caller
-/// when a ticket is being requested.
-pub trait Ratelimiter: Debug + Send + Sync {
-    /// Retrieve the basic information of the bucket for a given path.
-    fn bucket(&self, path: &Path) -> GetBucketFuture;
+/// Cloning a [`RateLimiter`] increments just the amount of senders for the actor.
+/// The actor completes when there are no senders and non-completed permits left.
+#[derive(Clone, Debug)]
+pub struct RateLimiter {
+    /// Actor message sender.
+    tx: mpsc::UnboundedSender<(Request, Option<Predicate>)>,
+}
 
-    /// Whether the ratelimiter is currently globally locked.
-    fn is_globally_locked(&self) -> IsGloballyLockedFuture;
+impl RateLimiter {
+    /// Create a new [`RateLimiter`] with a custom global limit.
+    pub fn new(global_limit: u16) -> Self {
+        let (tx, rx) = mpsc::unbounded_channel();
+        tokio::spawn(actor::runner(global_limit, rx));
 
-    /// Determine if the ratelimiter has a bucket for the given path.
-    fn has(&self, path: &Path) -> HasBucketFuture;
+        Self { tx }
+    }
 
-    /// Retrieve a ticket to know when to send a request.
-    /// The provided future will be ready when a ticket in the bucket is
-    /// available. Tickets are ready in order of retrieval.
-    fn ticket(&self, path: Path) -> GetTicketFuture;
-
-    /// Retrieve a ticket to send a request.
-    /// Other than [`Self::ticket`], this method will return
-    /// a [`TicketSender`].
+    /// Await a single permit for this path.
     ///
-    /// This is identical to calling [`Self::ticket`] and then
-    /// awaiting the [`TicketReceiver`].
-    fn wait_for_ticket(&self, path: Path) -> WaitForTicketFuture {
-        let get_ticket = self.ticket(path);
-        Box::pin(async move {
-            match get_ticket.await {
-                Ok(rx) => rx.await.map_err(From::from),
-                Err(e) => Err(e),
-            }
+    /// Permits are queued per path in the order they were requested.
+    #[allow(clippy::missing_panics_doc)]
+    pub fn acquire(&self, path: Path) -> PermitFuture {
+        let (tx, rx) = oneshot::channel();
+        self.tx
+            .send((Request { path, notifier: tx }, None))
+            .expect("actor is alive");
+
+        PermitFuture(rx)
+    }
+
+    /// Await a single permit for this path, but only if the predicate evaluates
+    /// to `true`.
+    ///
+    /// Permits are queued per path in the order they were requested.
+    ///
+    /// Note that the predicate is asynchronously called in the actor task.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() {
+    /// # let rate_limiter = twilight_http_ratelimiting::RateLimiter::default();
+    /// use twilight_http_ratelimiting::Path;
+    ///
+    /// if let Some(permit) = rate_limiter
+    ///     .acquire_if(Path::ApplicationsMe, |b| b.is_none_or(|b| b.remaining > 10))
+    ///     .await
+    /// {
+    ///     let headers = unimplemented!("send /applications/@me request");
+    ///     permit.complete(headers);
+    /// }
+    /// # }
+    /// ```
+    #[allow(clippy::missing_panics_doc)]
+    pub fn acquire_if<P>(&self, path: Path, predicate: P) -> MaybePermitFuture
+    where
+        P: FnOnce(Option<Bucket>) -> bool + Send + 'static,
+    {
+        let (tx, rx) = oneshot::channel();
+        self.tx
+            .send((Request { path, notifier: tx }, Some(Box::new(predicate))))
+            .expect("actor is alive");
+
+        MaybePermitFuture(rx)
+    }
+
+    /// Retrieve the [`Bucket`] for this path.
+    ///
+    /// The bucket is internally retrieved via [`acquire_if`][Self::acquire_if].
+    #[allow(clippy::missing_panics_doc)]
+    pub async fn bucket(&self, path: Path) -> Option<Bucket> {
+        let (tx, rx) = oneshot::channel();
+        self.acquire_if(path, |bucket| {
+            _ = tx.send(bucket);
+            false
         })
+        .await;
+
+        rx.await.expect("actor is alive")
+    }
+}
+
+impl Default for RateLimiter {
+    /// Create a new [`RateLimiter`] with Discord's default global limit.
+    ///
+    /// Currently this is `50`.
+    fn default() -> Self {
+        Self::new(50)
     }
 }

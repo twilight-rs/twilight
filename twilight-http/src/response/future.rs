@@ -3,7 +3,7 @@ use crate::{
     api_error::ApiError,
     error::{Error, ErrorType},
 };
-use http::StatusCode as HyperStatusCode;
+use http::{HeaderMap, StatusCode as HyperStatusCode};
 use hyper_util::client::legacy::ResponseFuture as HyperResponseFuture;
 use std::{
     future::Future,
@@ -15,10 +15,9 @@ use std::{
         Arc,
     },
     task::{Context, Poll},
-    time::Duration,
 };
-use tokio::time::{self, Timeout};
-use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
+use tokio::time::{self, Duration, Instant, Timeout};
+use twilight_http_ratelimiting::{Permit, PermitFuture, RateLimitHeaders};
 
 type Output<T> = Result<Response<T>, Error>;
 
@@ -75,11 +74,49 @@ impl Failed {
 struct InFlight {
     future: Pin<Box<Timeout<HyperResponseFuture>>>,
     invalid_token: Option<Arc<AtomicBool>>,
-    tx: Option<TicketSender>,
+    tx: Option<Permit>,
 }
 
 impl InFlight {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
+        fn headers(
+            headers: &HeaderMap,
+            on_err: impl Fn(&dyn std::error::Error),
+        ) -> Option<RateLimitHeaders> {
+            let bucket = headers.get(RateLimitHeaders::BUCKET)?.as_bytes().to_vec();
+            let limit = headers
+                .get(RateLimitHeaders::LIMIT)?
+                .to_str()
+                .inspect_err(|e| on_err(e))
+                .ok()?
+                .parse()
+                .inspect_err(|e| on_err(e))
+                .ok()?;
+            let remaining = headers
+                .get(RateLimitHeaders::REMAINING)?
+                .to_str()
+                .inspect_err(|e| on_err(e))
+                .ok()?
+                .parse()
+                .inspect_err(|e| on_err(e))
+                .ok()?;
+            let reset = headers
+                .get(RateLimitHeaders::RESET_AFTER)?
+                .to_str()
+                .inspect_err(|e| on_err(e))
+                .ok()?
+                .parse()
+                .inspect_err(|e| on_err(e))
+                .ok()?;
+
+            Some(RateLimitHeaders {
+                bucket,
+                limit,
+                remaining,
+                reset_at: Instant::now() + Duration::from_secs_f32(reset),
+            })
+        }
+
         let resp = match Pin::new(&mut self.future).poll(cx) {
             Poll::Ready(Ok(Ok(resp))) => resp,
             Poll::Ready(Ok(Err(source))) => {
@@ -107,21 +144,9 @@ impl InFlight {
         }
 
         if let Some(tx) = self.tx {
-            let headers = resp
-                .headers()
-                .iter()
-                .map(|(key, value)| (key.as_str(), value.as_bytes()));
-
-            match RatelimitHeaders::from_pairs(headers) {
-                Ok(v) => {
-                    let _res = tx.headers(Some(v));
-                }
-                Err(source) => {
-                    tracing::warn!("header parsing failed: {source:?}; {resp:?}");
-
-                    let _res = tx.headers(None);
-                }
-            }
+            tx.complete(headers(resp.headers(), |e| {
+                tracing::warn!("header parsing failed: {e}; {resp:?}");
+            }));
         }
 
         let status = resp.status();
@@ -171,20 +196,13 @@ struct RatelimitQueue {
     response_future: HyperResponseFuture,
     timeout: Duration,
     pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
-    wait_for_sender: WaitForTicketFuture,
+    rx: PermitFuture,
 }
 
 impl RatelimitQueue {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let tx = match Pin::new(&mut self.wait_for_sender).poll(cx) {
-            Poll::Ready(Ok(tx)) => tx,
-            Poll::Ready(Err(source)) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RatelimiterTicket,
-                    source: Some(source),
-                }))
-            }
-            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(self)),
+        let Poll::Ready(tx) = Pin::new(&mut self.rx).poll(cx) else {
+            return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(self));
         };
 
         if let Some(pre_flight_check) = self.pre_flight_check {
@@ -351,7 +369,7 @@ impl<T> ResponseFuture<T> {
         invalid_token: Option<Arc<AtomicBool>>,
         response_future: HyperResponseFuture,
         timeout: Duration,
-        wait_for_sender: WaitForTicketFuture,
+        wait_for_sender: PermitFuture,
     ) -> Self {
         Self {
             phantom: PhantomData,
@@ -360,7 +378,7 @@ impl<T> ResponseFuture<T> {
                 response_future,
                 timeout,
                 pre_flight_check: None,
-                wait_for_sender,
+                rx: wait_for_sender,
             }),
         }
     }
