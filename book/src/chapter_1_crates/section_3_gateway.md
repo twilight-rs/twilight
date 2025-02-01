@@ -84,7 +84,7 @@ the dependency tree it will make use of that instead of [zlib-ng].
 
 The `zstd` feature uses Facebook's zstd library to decompresses incoming messages.
 
-This feature is mutually exclusive with the zlib features.
+This feature takes precedence over the zlib features.
 
 ## Example
 

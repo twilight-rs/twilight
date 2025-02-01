@@ -89,7 +89,7 @@ impl Decompressor {
     /// [`Self::buffer`]'s size.
     const BUFFER_SIZE: usize = 32 * 1024;
 
-    /// Create a new inflator for a shard.
+    /// Create a new decompressor for a shard.
     pub fn new() -> Self {
         Self {
             buffer: vec![0; Decompressor::BUFFER_SIZE].into_boxed_slice(),
