@@ -38,8 +38,8 @@ impl CompressionError {
         }
     }
 
-    #[cfg(feature = "zstd")]
     /// Shortcut to create a new error for an erroneous status code.
+    #[cfg(feature = "zstd")]
     pub(crate) fn from_code(code: usize) -> Self {
         Self {
             kind: CompressionErrorType::Decompressing,
@@ -75,6 +75,7 @@ pub enum CompressionErrorType {
     NotUtf8,
 }
 
+/// Gateway event decompressor.
 #[cfg(feature = "zstd")]
 pub struct Decompressor {
     /// Common decompressed message buffer.
@@ -83,7 +84,6 @@ pub struct Decompressor {
     ctx: zstd_safe::DCtx<'static>,
 }
 
-/// Gateway event decompressor.
 #[cfg(feature = "zstd")]
 impl Decompressor {
     /// [`Self::buffer`]'s size.

@@ -62,7 +62,7 @@ The `rustls-webpki-roots` feature enables [`tokio-websockets`]'
 
 `twilight-gateway` supports both Zlib and Zstandard transport compression.
 
-#### Zlib
+#### Zlib (deprecated)
 
 Zlib allows specifying two different backends.
 

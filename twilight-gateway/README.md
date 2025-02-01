@@ -36,8 +36,8 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
   * none of the above: install your own via [`CryptoProvider::install_default`]
 * `twilight-http` (*default*): enable the `stream::create_recommended` function
 * Compression (mutually exclusive)
-  * `zlib-stock`: [`flate2`]'s stock zlib implementation
-  * `zlib-simd`: use [`zlib-ng`] for zlib, may have better performance
+  * `zlib-stock`: [`flate2`]'s stock zlib implementation (*deprecated*)
+  * `zlib-simd`: use [`zlib-ng`] for zlib, may have better performance (*deprecated*)
   * `zstd` (*default*): enable zstd transport compression
 
 ## Example
@@ -115,6 +115,7 @@ There are a few additional examples located in the
 
 [`CryptoProvider::install_default`]: https://docs.rs/rustls/latest/rustls/crypto/struct.CryptoProvider.html#method.install_default
 [`aws-lc-rs`]: https://crates.io/crates/aws-lc-rs
+[`flate2`]: https://crates.io/crates/flate2
 [`native-tls`]: https://crates.io/crates/native-tls
 [`ring`]: https://crates.io/crates/ring
 [`rustls`]: https://crates.io/crates/rustls
@@ -122,6 +123,7 @@ There are a few additional examples located in the
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
+[`zlib-ng`]: https://github.com/zlib-ng/zlib-ng
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
