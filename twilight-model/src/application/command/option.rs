@@ -216,8 +216,8 @@ impl CommandOptionValue {
     /// Request`.
     pub const INTEGER_RANGE: Range<i64> =
         -(2_i64.pow(f64::MANTISSA_DIGITS) - 1)..(2_i64.pow(f64::MANTISSA_DIGITS));
-    /// Within this floating point range f64 can represent all integer
-    /// values exactly, outside this range it might not be possible.
+    /// This range contains all floating point values that can be
+    /// safely used as Discord Number values.
     ///
     /// Values outside of this range will result in a `400 Bad
     /// Request`.
