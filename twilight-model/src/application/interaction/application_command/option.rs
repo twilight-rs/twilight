@@ -384,12 +384,6 @@ impl From<i64> for CommandOptionValue {
     }
 }
 
-impl From<Id<GenericMarker>> for CommandOptionValue {
-    fn from(value: Id<GenericMarker>) -> Self {
-        CommandOptionValue::Mentionable(value)
-    }
-}
-
 impl From<f64> for CommandOptionValue {
     fn from(value: f64) -> Self {
         CommandOptionValue::Number(value)
