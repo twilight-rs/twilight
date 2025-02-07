@@ -174,6 +174,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberUpdate {
 
         if let Some(mut member) = cache.members.get_mut(&key) {
             member.update_with_member_update(self);
+            cache.cache_user(Cow::Borrowed(&self.user), Some(self.guild_id));
         }
     }
 }
@@ -182,7 +183,11 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberUpdate {
 mod tests {
     use crate::{test, DefaultInMemoryCache};
     use std::borrow::Cow;
-    use twilight_model::{gateway::payload::incoming::MemberRemove, id::Id};
+    use twilight_model::{
+        gateway::payload::incoming::{MemberRemove, MemberUpdate},
+        guild::{Member, MemberFlags},
+        id::Id,
+    };
 
     #[test]
     fn cache_guild_member() {
@@ -283,5 +288,50 @@ mod tests {
             user: test::user(user_id),
         });
         assert!(!cache.users.contains_key(&user_id));
+    }
+
+    #[test]
+    fn member_update_updates_user() {
+        let user_id = Id::new(2);
+        let guild_id = Id::new(3);
+        let cache = DefaultInMemoryCache::new();
+
+        let member = Member {
+            avatar: None,
+            communication_disabled_until: None,
+            deaf: false,
+            flags: MemberFlags::empty(),
+            joined_at: None,
+            mute: false,
+            nick: None,
+            pending: false,
+            premium_since: None,
+            roles: Vec::new(),
+            user: test::user(user_id),
+        };
+
+        cache.cache_member(guild_id, member);
+
+        let mut updated_user = test::user(user_id);
+        updated_user.name = String::from("updated_username");
+
+        // Test that a member update also updates the user.
+        cache.update(&MemberUpdate {
+            avatar: None,
+            communication_disabled_until: None,
+            guild_id,
+            flags: None,
+            deaf: None,
+            joined_at: None,
+            mute: None,
+            nick: None,
+            pending: false,
+            premium_since: None,
+            roles: Vec::new(),
+            user: updated_user.clone(),
+        });
+
+        let cached_user = cache.user(user_id).unwrap();
+        assert_eq!(cached_user.value(), &updated_user);
     }
 }
