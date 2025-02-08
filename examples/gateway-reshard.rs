@@ -1,11 +1,14 @@
 use std::{
     env,
-    future::{poll_fn, Future},
-    task::Poll,
-    time::Duration,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::{Duration, Instant},
 };
 use tokio::{task::JoinSet, time};
-use tokio_stream::{StreamExt as _, StreamMap};
+use tokio_stream::StreamExt as _;
+use tokio_util::sync::CancellationToken;
 use twilight_gateway::{
     Config, ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _,
 };
@@ -27,28 +30,30 @@ async fn main() -> anyhow::Result<()> {
     loop {
         // Dropping `JoinSet` aborts all its tasks.
         let mut set = JoinSet::new();
-        for mut shard in shards {
-            set.spawn(async move {
-                while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
-                    let Ok(event) = item else {
-                        tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
-
-                        continue;
-                    };
-
-                    // You'd normally want to spawn a new tokio task for each event and
-                    // handle the event there to not block the shard.
-                    tracing::debug!(?event, shard = ?shard.id(), "received event");
-                }
-            });
+        for shard in shards {
+            set.spawn(runner(shard));
         }
 
         shards = reshard(&client, config.clone(), config_callback).await?;
     }
 }
 
+#[tracing::instrument(fields(shard = %shard.id()), skip_all)]
+async fn runner(mut shard: Shard) {
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+        let Ok(event) = item else {
+            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
+
+            continue;
+        };
+
+        // You'd normally want to spawn a new tokio task for each event and
+        // handle the event there to not block the shard.
+        tracing::debug!(?event, "received event");
+    }
+}
+
 // Instrument to differentiate between the logs produced here and in `runner`.
-#[tracing::instrument(skip_all)]
 async fn reshard(
     client: &Client,
     config: Config,
@@ -61,7 +66,7 @@ async fn reshard(
 
     let info = client.gateway().authed().await?.model().await?;
 
-    let mut shards =
+    let shards =
         twilight_gateway::create_iterator(0..info.shards, info.shards, config, config_callback)
             .collect::<Vec<_>>();
 
@@ -72,42 +77,66 @@ async fn reshard(
         Duration::from_millis(info.session_start_limit.reset_after),
         info.session_start_limit.total,
     );
-    let timeout = time::sleep(expected_duration);
-    tokio::pin!(timeout);
-    // Register timer.
-    poll_fn(|cx| {
-        _ = timeout.as_mut().poll(cx);
-        Poll::Ready(())
-    })
-    .await;
+    let timeout = Instant::now() + expected_duration;
 
     // Before swapping the old and new list of shards, try to identify them.
     // Don't try too hard, however, as large bots may never have all shards
     // identified at the same time.
-    let mut identified = vec![false; shards.len()];
-    let mut stream = StreamMap::from_iter(shards.iter_mut().map(|s| (s.id(), s)));
+    let mut identified = Arc::new(Vec::with_capacity(shards.len()));
+    Arc::get_mut(&mut identified)
+        .unwrap()
+        .fill_with(|| AtomicBool::new(false));
+    let ct = CancellationToken::new();
+    let tasks = shards
+        .into_iter()
+        .map(|s| {
+            let identified = identified.clone();
+            let ct = ct.clone();
+            tokio::spawn(identify(s, identified, timeout, ct))
+        })
+        .collect::<Vec<_>>();
+
+    let mut shards = Vec::with_capacity(tasks.len());
+    for jh in tasks {
+        shards.push(jh.await?);
+    }
+
+    Ok(shards)
+}
+
+#[tracing::instrument(fields(shard = %shard.id()), skip_all)]
+async fn identify(
+    mut shard: Shard,
+    identified: Arc<Vec<AtomicBool>>,
+    deadline: Instant,
+    ct: CancellationToken,
+) -> Shard {
+    let timeout = time::sleep_until(deadline.into());
+    tokio::pin!(timeout);
+    // Register timer.
+    timeout.as_mut().reset(deadline.into());
 
     loop {
-        let identified_count = identified.iter().map(|&i| i as usize).sum::<usize>();
+        let identified_count = identified
+            .iter()
+            .fold(0, |acc, i| acc + i.load(Ordering::Relaxed) as usize);
         tokio::select! {
-            _ = &mut timeout, if identified_count >= (identified.len() * 3) / 4 => break,
-            Some(item) = stream.next() => {
-                match item {
-                    (_, Err(source)) => tracing::warn!(?source, "error receiving message"),
-                    (shard_id, _) => {
-                        identified[shard_id.number() as usize] = stream
-                            .values()
-                            .find(|shard| shard.id() == shard_id)
-                            .unwrap()
-                            .state()
-                            .is_identified();
-                    }
+            biased;
+            _ = ct.cancelled() => return shard,
+            _ = &mut timeout, if identified_count >= (identified.len() * 3) / 4 => {
+                ct.cancel();
+                return shard;
+            },
+            Some(item) = shard.next() => {
+                if let Err(source) = item {
+                    tracing::warn!(?source, "error receiving message");
+                } else {
+                    let is_identified = shard.state().is_identified();
+                    identified[shard.id().number() as usize].store(is_identified, Ordering::Relaxed);
                 }
             }
         }
     }
-
-    Ok(shards)
 }
 
 fn estimate_identifed(

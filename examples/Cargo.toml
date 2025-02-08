@@ -19,6 +19,7 @@ once_cell = "1.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 tokio = { default-features = false, features = ["macros", "signal", "rt-multi-thread"], version = "1.0" }
+tokio-util = "0.7"
 tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 twilight-cache-inmemory = { path = "../twilight-cache-inmemory", features = ["permission-calculator"] }
