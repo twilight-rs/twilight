@@ -1,7 +1,11 @@
 use crate::channel::ChannelType;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{cmp::Eq, collections::HashMap};
+use std::{
+    cmp::Eq,
+    collections::HashMap,
+    ops::{Range, RangeInclusive},
+};
 
 /// Option for a [`Command`].
 ///
@@ -151,6 +155,11 @@ pub struct CommandOption {
     pub required: Option<bool>,
 }
 
+impl CommandOption {
+    /// This range is the length a string may be.
+    pub const STRING_LENGTH_RANGE: RangeInclusive<u16> = 0..=6000;
+}
+
 /// A predetermined choice users can select.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CommandOptionChoice {
@@ -197,6 +206,27 @@ pub enum CommandOptionValue {
     Integer(i64),
     /// Number type.
     Number(f64),
+}
+
+impl CommandOptionValue {
+    /// This range contains integer values that safely can be
+    /// represented as a 64-bit floating point value.
+    ///
+    /// Values outside of this range will result in a `400 Bad
+    /// Request`.
+    pub const INTEGER_RANGE: Range<i64> =
+        -(2_i64.pow(f64::MANTISSA_DIGITS) - 1)..(2_i64.pow(f64::MANTISSA_DIGITS));
+    /// This range contains all floating point values that can be
+    /// safely used as Discord Number values.
+    ///
+    /// Values outside of this range will result in a `400 Bad
+    /// Request`.
+    // As we can see above we are within 52 bits on the left, but uses
+    // 53 bits on the right.  We ensure to be within 52 bits on the
+    // right below by subtracting 1 first and using RangeInclusive.
+    #[allow(clippy::cast_precision_loss)]
+    pub const NUMBER_RANGE: RangeInclusive<f64> =
+        (Self::INTEGER_RANGE.start as f64)..=((Self::INTEGER_RANGE.end - 1) as f64);
 }
 
 /// Type of a [`CommandOption`].
