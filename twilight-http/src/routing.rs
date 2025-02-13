@@ -5,7 +5,7 @@ use crate::{
     query_formatter::{QueryArray, QueryStringFormatter},
     request::{channel::reaction::RequestReactionType, Method},
 };
-use std::fmt::{Display, Formatter, Result as FmtResult, Write};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{
     marker::{RoleMarker, SkuMarker},
     Id,
