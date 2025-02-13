@@ -230,6 +230,10 @@ pub enum AuditLogEventType {
     CreatorMonetizationRequestCreated,
     /// Creator monetization terms were accepted.
     CreatorMonetizationTermsAccepted,
+    /// A voice channel status was updated by a user.
+    VoiceChannelStatusUpdate,
+    /// A voice channel status was deleted by a user.
+    VoiceChannelStatusDelete,
     /// Variant value is unknown to the library.
     Unknown(u16),
 }
@@ -293,6 +297,8 @@ impl From<u16> for AuditLogEventType {
             145 => AuditLogEventType::AutoModerationUserCommunicationDisabled,
             150 => AuditLogEventType::CreatorMonetizationRequestCreated,
             151 => AuditLogEventType::CreatorMonetizationTermsAccepted,
+            192 => AuditLogEventType::VoiceChannelStatusUpdate,
+            193 => AuditLogEventType::VoiceChannelStatusDelete,
             unknown => AuditLogEventType::Unknown(unknown),
         }
     }
@@ -357,6 +363,8 @@ impl From<AuditLogEventType> for u16 {
             AuditLogEventType::AutoModerationUserCommunicationDisabled => 145,
             AuditLogEventType::CreatorMonetizationRequestCreated => 150,
             AuditLogEventType::CreatorMonetizationTermsAccepted => 151,
+            AuditLogEventType::VoiceChannelStatusUpdate => 192,
+            AuditLogEventType::VoiceChannelStatusDelete => 193,
             AuditLogEventType::Unknown(unknown) => unknown,
         }
     }
@@ -456,6 +464,14 @@ mod tests {
         assert_eq!(
             151,
             u16::from(AuditLogEventType::CreatorMonetizationTermsAccepted)
+        );
+        assert_eq!(
+            192,
+            u16::from(AuditLogEventType::VoiceChannelStatusUpdate)
+        );
+        assert_eq!(
+            193,
+            u16::from(AuditLogEventType::VoiceChannelStatusDelete)
         );
         assert_eq!(250, u16::from(AuditLogEventType::Unknown(250)));
     }
