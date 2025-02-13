@@ -465,14 +465,8 @@ mod tests {
             151,
             u16::from(AuditLogEventType::CreatorMonetizationTermsAccepted)
         );
-        assert_eq!(
-            192,
-            u16::from(AuditLogEventType::VoiceChannelStatusUpdate)
-        );
-        assert_eq!(
-            193,
-            u16::from(AuditLogEventType::VoiceChannelStatusDelete)
-        );
+        assert_eq!(192, u16::from(AuditLogEventType::VoiceChannelStatusUpdate));
+        assert_eq!(193, u16::from(AuditLogEventType::VoiceChannelStatusDelete));
         assert_eq!(250, u16::from(AuditLogEventType::Unknown(250)));
     }
 }

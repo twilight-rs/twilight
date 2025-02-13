@@ -376,7 +376,10 @@ mod tests {
         assert_variant(EventType::TypingStart, "TYPING_START");
         assert_variant(EventType::UnavailableGuild, "UNAVAILABLE_GUILD");
         assert_variant(EventType::UserUpdate, "USER_UPDATE");
-        assert_variant(EventType::VoiceChannelStatusUpdate, "VOICE_CHANNEL_STATUS_UPDATE");
+        assert_variant(
+            EventType::VoiceChannelStatusUpdate,
+            "VOICE_CHANNEL_STATUS_UPDATE",
+        );
         assert_variant(EventType::VoiceServerUpdate, "VOICE_SERVER_UPDATE");
         assert_variant(EventType::VoiceStateUpdate, "VOICE_STATE_UPDATE");
         assert_variant(EventType::WebhooksUpdate, "WEBHOOKS_UPDATE");

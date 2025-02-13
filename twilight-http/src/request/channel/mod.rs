@@ -14,9 +14,9 @@ mod delete_pin;
 mod follow_news_channel;
 mod get_channel;
 mod get_pins;
+mod set_voice_channel_status;
 mod update_channel;
 mod update_channel_permission;
-mod set_voice_channel_status;
 
 pub use self::{
     create_pin::CreatePin, create_typing_trigger::CreateTypingTrigger,

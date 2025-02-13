@@ -4880,7 +4880,12 @@ mod tests {
 
     #[test]
     fn set_voice_channel_status() {
-        let route = Route::SetVoiceChannelStatus { channel_id: CHANNEL_ID };
-        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/voice-status"));
+        let route = Route::SetVoiceChannelStatus {
+            channel_id: CHANNEL_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("channels/{CHANNEL_ID}/voice-status")
+        );
     }
 }

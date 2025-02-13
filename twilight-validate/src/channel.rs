@@ -27,6 +27,9 @@ pub const CHANNEL_NAME_LENGTH_MIN: usize = 1;
 /// Maximum length of a channel's rate limit per user.
 pub const CHANNEL_RATE_LIMIT_PER_USER_MAX: u16 = 21_600;
 
+/// Maximum length of a (voice) channel's status.
+pub const CHANNEL_STATUS_LENGTH_MAX: usize = 500;
+
 /// Maximum number of members that can be returned in a thread.
 pub const CHANNEL_THREAD_GET_MEMBERS_LIMIT_MAX: u32 = 100;
 
@@ -95,6 +98,9 @@ impl Display for ChannelValidationError {
             ChannelValidationErrorType::RateLimitPerUserInvalid { .. } => {
                 f.write_str("the rate limit per user is invalid")
             }
+            ChannelValidationErrorType::StatusInvalid => {
+                f.write_str("the length of status is invalid")
+            }
             ChannelValidationErrorType::ThreadMemberLimitInvalid => {
                 f.write_str("number of members to return is less than ")?;
                 Display::fmt(&CHANNEL_THREAD_GET_MEMBERS_LIMIT_MIN, f)?;
@@ -137,6 +143,8 @@ pub enum ChannelValidationErrorType {
         /// Provided ratelimit is invalid.
         rate_limit_per_user: u16,
     },
+    /// The length of the status is more than 500 UTF-16 characters.
+    StatusInvalid,
     /// The number of members to return is less than 1 or greater than 100.
     ThreadMemberLimitInvalid,
     /// The length of the topic is more than 1024 UTF-16 characters.
@@ -272,6 +280,23 @@ pub const fn rate_limit_per_user(value: u16) -> Result<(), ChannelValidationErro
             kind: ChannelValidationErrorType::RateLimitPerUserInvalid {
                 rate_limit_per_user: value,
             },
+        })
+    }
+}
+
+/// Ensures a channel's status length is correct.
+///
+/// The length of the status must be at most [`CHANNEL_STATUS_LENGTH_MAX`].
+///
+/// # Errors
+///
+/// Returns an error of type [`StatusInvalid`] if the status is of invalid length.
+pub fn status(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
+    if value.as_ref().chars().count() <= CHANNEL_STATUS_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ChannelValidationError {
+            kind: ChannelValidationErrorType::StatusInvalid,
         })
     }
 }

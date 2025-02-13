@@ -428,9 +428,9 @@ impl<'de> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'_> {
                 DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))
             }
             "USER_UPDATE" => DispatchEvent::UserUpdate(UserUpdate::deserialize(deserializer)?),
-            "VOICE_CHANNEL_STATUS_UPDATE" => {
-                DispatchEvent::VoiceChannelStatusUpdate(VoiceChannelStatusUpdate::deserialize(deserializer)?)
-            }
+            "VOICE_CHANNEL_STATUS_UPDATE" => DispatchEvent::VoiceChannelStatusUpdate(
+                VoiceChannelStatusUpdate::deserialize(deserializer)?,
+            ),
             "VOICE_SERVER_UPDATE" => {
                 DispatchEvent::VoiceServerUpdate(VoiceServerUpdate::deserialize(deserializer)?)
             }
