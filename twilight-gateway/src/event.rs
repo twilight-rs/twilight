@@ -189,6 +189,8 @@ bitflags! {
         const UNAVAILABLE_GUILD = 1 << 40;
         /// Current user's profile has been updated.
         const USER_UPDATE = 1 << 41;
+        /// A voice channel status has been updated.
+        const VOICE_CHANNEL_STATUS_UPDATE = 1 << 79;
         /// Voice server has provided an update with voice session details.
         const VOICE_SERVER_UPDATE = 1 << 42;
         /// User's state in a voice channel has been updated.
@@ -405,6 +407,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::TypingStart => Self::TYPING_START,
             EventType::UnavailableGuild => Self::UNAVAILABLE_GUILD,
             EventType::UserUpdate => Self::USER_UPDATE,
+            EventType::VoiceChannelStatusUpdate => Self::VOICE_CHANNEL_STATUS_UPDATE,
             EventType::VoiceServerUpdate => Self::VOICE_SERVER_UPDATE,
             EventType::VoiceStateUpdate => Self::VOICE_STATE_UPDATE,
             EventType::WebhooksUpdate => Self::WEBHOOKS_UPDATE,
