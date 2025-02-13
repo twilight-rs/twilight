@@ -1182,6 +1182,7 @@ mod tests {
                 rate_limit_per_user: None,
                 recipients: None,
                 rtc_region: None,
+                status: None,
                 topic: None,
                 user_limit: None,
                 application_id: None,

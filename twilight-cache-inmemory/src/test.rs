@@ -281,6 +281,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         rate_limit_per_user: None,
         recipients: None,
         rtc_region: None,
+        status: None,
         thread_metadata: None,
         topic: None,
         user_limit: None,
