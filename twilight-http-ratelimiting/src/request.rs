@@ -170,6 +170,8 @@ pub enum Path {
     ChannelsIdThreads(u64),
     /// Operating on a channel's typing indicator.
     ChannelsIdTyping(u64),
+    /// Operating on a channel's voice status.
+    ChannelsIdVoiceStatus(u64),
     /// Operating on a channel's webhooks.
     ChannelsIdWebhooks(u64),
     /// Operating on an application's entitlements.
@@ -397,6 +399,7 @@ impl FromStr for Path {
             ["channels", id, "thread-members", _] => ChannelsIdThreadMembersId(parse_id(id)?),
             ["channels", id, "threads"] => ChannelsIdThreads(parse_id(id)?),
             ["channels", id, "typing"] => ChannelsIdTyping(parse_id(id)?),
+            ["channels", id, "voice-status"] => ChannelsIdVoiceStatus(parse_id(id)?),
             ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {
                 ChannelsIdWebhooks(parse_id(id)?)
             }
