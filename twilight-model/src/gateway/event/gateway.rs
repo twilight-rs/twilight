@@ -21,7 +21,7 @@ use std::{
 #[derive(Clone, Debug)]
 pub enum GatewayEvent {
     Dispatch(u64, DispatchEvent),
-    Heartbeat(u64),
+    Heartbeat,
     HeartbeatAck,
     Hello(Hello),
     InvalidateSession(bool),
@@ -33,7 +33,7 @@ impl TryFrom<Event> for GatewayEvent {
 
     fn try_from(event: Event) -> Result<Self, Self::Error> {
         Ok(match event {
-            Event::GatewayHeartbeat(v) => Self::Heartbeat(v),
+            Event::GatewayHeartbeat => Self::Heartbeat,
             Event::GatewayHeartbeatAck => Self::HeartbeatAck,
             Event::GatewayHello(v) => Self::Hello(v),
             Event::GatewayInvalidateSession(v) => Self::InvalidateSession(v),
@@ -298,11 +298,9 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::Dispatch(s, d)
             }
             OpCode::Heartbeat => {
-                let seq = Self::field(&mut map, Field::D)?;
-
                 Self::ignore_all(&mut map)?;
 
-                GatewayEvent::Heartbeat(seq)
+                GatewayEvent::Heartbeat
             }
             OpCode::HeartbeatAck => {
                 Self::ignore_all(&mut map)?;
@@ -365,7 +363,7 @@ impl Serialize for GatewayEvent {
         const fn opcode(gateway_event: &GatewayEvent) -> OpCode {
             match gateway_event {
                 GatewayEvent::Dispatch(_, _) => OpCode::Dispatch,
-                GatewayEvent::Heartbeat(_) => OpCode::Heartbeat,
+                GatewayEvent::Heartbeat => OpCode::Heartbeat,
                 GatewayEvent::HeartbeatAck => OpCode::HeartbeatAck,
                 GatewayEvent::Hello(_) => OpCode::Hello,
                 GatewayEvent::InvalidateSession(_) => OpCode::InvalidSession,
@@ -391,16 +389,13 @@ impl Serialize for GatewayEvent {
 
         match self {
             Self::Dispatch(_, _) => unreachable!("dispatch already handled"),
-            Self::Heartbeat(sequence) => {
-                s.serialize_field("d", &sequence)?;
-            }
             Self::Hello(hello) => {
                 s.serialize_field("d", &hello)?;
             }
             Self::InvalidateSession(invalidate) => {
                 s.serialize_field("d", &invalidate)?;
             }
-            Self::HeartbeatAck | Self::Reconnect => {
+            Self::Heartbeat | Self::HeartbeatAck | Self::Reconnect => {
                 s.serialize_field("d", &None::<u64>)?;
             }
         }
@@ -621,14 +616,14 @@ mod tests {
             "t": null,
             "s": null,
             "op": 1,
-            "d": 123
+            "d": null
         }"#;
 
         let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
         let mut json_deserializer = Deserializer::from_str(input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
-        assert!(matches!(event, GatewayEvent::Heartbeat(123)));
+        assert!(matches!(event, GatewayEvent::Heartbeat));
     }
 
     #[test]
@@ -781,7 +776,7 @@ mod tests {
     #[test]
     fn serialize_heartbeat() {
         serde_test::assert_ser_tokens(
-            &GatewayEvent::Heartbeat(1024),
+            &GatewayEvent::Heartbeat,
             &[
                 Token::Struct {
                     name: "GatewayEvent",
@@ -794,7 +789,7 @@ mod tests {
                 Token::Str("op"),
                 Token::U8(OpCode::Heartbeat as u8),
                 Token::Str("d"),
-                Token::U64(1024),
+                Token::None,
                 Token::StructEnd,
             ],
         );
