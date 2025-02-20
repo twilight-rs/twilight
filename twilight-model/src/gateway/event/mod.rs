@@ -59,8 +59,8 @@ pub enum Event {
     /// Close message with an optional frame including information about the
     /// reason for the close.
     GatewayClose(Option<CloseFrame<'static>>),
-    /// A heartbeat was sent to or received from the gateway.
-    GatewayHeartbeat(u64),
+    /// A heartbeat was received from the gateway.
+    GatewayHeartbeat,
     /// A heartbeat acknowledgement was received from the gateway.
     GatewayHeartbeatAck,
     /// A "hello" packet was received from the gateway.
@@ -250,7 +250,7 @@ impl Event {
             | Event::EntitlementCreate(_)
             | Event::EntitlementDelete(_)
             | Event::EntitlementUpdate(_)
-            | Event::GatewayHeartbeat(_)
+            | Event::GatewayHeartbeat
             | Event::GatewayHeartbeatAck
             | Event::GatewayHello(_)
             | Event::GatewayInvalidateSession(_)
@@ -278,7 +278,7 @@ impl Event {
             Self::EntitlementDelete(_) => EventType::EntitlementDelete,
             Self::EntitlementUpdate(_) => EventType::EntitlementUpdate,
             Self::GatewayClose(_) => EventType::GatewayClose,
-            Self::GatewayHeartbeat(_) => EventType::GatewayHeartbeat,
+            Self::GatewayHeartbeat => EventType::GatewayHeartbeat,
             Self::GatewayHeartbeatAck => EventType::GatewayHeartbeatAck,
             Self::GatewayHello(_) => EventType::GatewayHello,
             Self::GatewayInvalidateSession(_) => EventType::GatewayInvalidateSession,
@@ -422,7 +422,7 @@ impl From<GatewayEvent> for Event {
     fn from(event: GatewayEvent) -> Self {
         match event {
             GatewayEvent::Dispatch(_, e) => Self::from(e),
-            GatewayEvent::Heartbeat(interval) => Self::GatewayHeartbeat(interval),
+            GatewayEvent::Heartbeat => Self::GatewayHeartbeat,
             GatewayEvent::HeartbeatAck => Self::GatewayHeartbeatAck,
             GatewayEvent::Hello(interval) => Self::GatewayHello(interval),
             GatewayEvent::InvalidateSession(r) => Self::GatewayInvalidateSession(r),
