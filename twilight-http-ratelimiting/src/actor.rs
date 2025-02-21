@@ -39,9 +39,8 @@ struct Queue {
     remaining: u16,
 }
 
-impl Queue {
-    /// Create a new non rate limited queue.
-    const fn new() -> Self {
+impl Default for Queue {
+    fn default() -> Self {
         Self {
             idle: true,
             inner: VecDeque::new(),
@@ -50,7 +49,9 @@ impl Queue {
             remaining: 0,
         }
     }
+}
 
+impl Queue {
     /// Completes and returns the first queued permit, unless the queue is
     /// globally exhausted.
     fn pop(
@@ -65,7 +66,10 @@ impl Queue {
         {
             let req = self.inner.pop_front().unwrap();
             match req.notifier.send(tx) {
-                Ok(()) => return Some((req.path, rx)),
+                Ok(()) => {
+                    self.idle = false;
+                    return Some((req.path, rx));
+                }
                 Err(recover) => tx = recover,
             }
         }
@@ -89,6 +93,7 @@ pub async fn runner(
     let mut global_timer = pin::pin!(sleep(Duration::ZERO));
 
     let mut buckets = HashMap::<Path, Vec<u8>>::new();
+    // Invariants: may never contain more than one task per path at once.
     let mut in_flight = JoinSet::<(
         Path,
         Result<Option<RateLimitHeaders>, oneshot::error::RecvError>,
@@ -98,7 +103,7 @@ pub async fn runner(
     let mut queues = hashbrown::HashTable::<(u64, Queue)>::new();
     let hasher = RandomState::new();
 
-    macro_rules! on_permit {
+    macro_rules! on_global {
         () => {
             // Global must be decremented before sending the message as, unlike the bucket,
             // it is not blocked until this request receives response headers.
@@ -120,35 +125,37 @@ pub async fn runner(
         };
     }
 
-    #[allow(clippy::ignored_unit_patterns)]
+    macro_rules! on_pop {
+        ($queue:ident) => {
+            if let Some((path, rx)) = $queue.pop(global_remaining == 0) {
+                tracing::debug!(?path, "permitted");
+                if !path.is_interaction() {
+                    on_global!();
+                }
+                in_flight.spawn(async move { (path, rx.await) });
+            }
+        };
+    }
+
     loop {
         tokio::select! {
             biased;
-            _ = &mut global_timer, if global_remaining == 0 => {
+            () = &mut global_timer, if global_remaining == 0 => {
                 global_remaining = global_limit;
                 for (_, queue) in queues.iter_mut().filter(|(_, queue)| queue.idle) {
-                    if let Some((path, rx)) = queue.pop(global_remaining == 0) {
-                        queue.idle = false;
-                        tracing::debug!(?path, "permitted");
-                        on_permit!();
-                        in_flight.spawn(async move { (path, rx.await) });
-                    }
+                    on_pop!(queue);
                 }
             }
             Some(hash) = poll_fn(|cx| reset.poll_expired(cx)) => {
                 let hash = hash.into_inner();
                 let (_, queue) = queues.find_mut(hash, |val| val.0 == hash).expect("hash is unchanged");
-                //
-                queue.reset = None;
-                let maybe_in_flight = queue.remaining != 0;
-                if maybe_in_flight { continue; }
 
-                if let Some((path, rx)) = queue.pop(global_remaining == 0) {
-                    tracing::debug!(?path, "permitted");
-                    if !path.is_interaction() {
-                        on_permit!();
-                    }
-                    in_flight.spawn(async move { (path, rx.await) });
+                queue.reset = None;
+
+                // An active permit may be in flight if the rate limit expired
+                // with the queue not exhausted.
+                if queue.remaining == 0 {
+                    on_pop!(queue);
                 }
             }
             Some(response) = in_flight.join_next() => {
@@ -178,8 +185,8 @@ pub async fn runner(
                                 let path = entry.key();
 
                                 let mut entry = queues.find_entry(old_hash, |a| a.0 == old_hash).expect("hash is unchanged");
-                                let shared = entry.get().1.inner.iter().any(|req| req.path != *path);
-                                let queue = if shared {
+                                let unmerge = entry.get().1.inner.iter().any(|req| req.path != *path);
+                                let queue = if unmerge {
                                     let mut inner = VecDeque::new();
                                     for req in mem::take(&mut entry.get_mut().1.inner) {
                                         if req.path == *path {
@@ -190,13 +197,7 @@ pub async fn runner(
                                     }
 
                                     let old_queue = &mut entry.get_mut().1;
-                                    if let Some((path, rx)) = old_queue.pop(global_remaining == 0) {
-                                        tracing::debug!(?path, "permitted");
-                                        if !path.is_interaction() {
-                                            on_permit!();
-                                        }
-                                        in_flight.spawn(async move { (path, rx.await) });
-                                    }
+                                    on_pop!(old_queue);
 
                                     Queue {
                                         idle: false,
@@ -210,9 +211,16 @@ pub async fn runner(
                                 };
 
                                 match queues.entry(hash, |a| a.0 == hash, |a| a.0) {
-                                    hash_table::Entry::Occupied(mut entry) => {
-                                        entry.get_mut().1.inner.extend(queue.inner);
-                                        &mut entry.into_mut().1
+                                    hash_table::Entry::Occupied(entry) => {
+                                        let incoming = &mut entry.into_mut().1;
+                                        incoming.inner.extend(queue.inner);
+
+                                        // Avoid spawning another task if the incoming queue already has one.
+                                        if !incoming.idle {
+                                            continue;
+                                        }
+
+                                        incoming
                                     }
                                     hash_table::Entry::Vacant(entry) => &mut entry.insert((hash, queue)).into_mut().1,
                                 }
@@ -241,7 +249,6 @@ pub async fn runner(
                         if queue.remaining == 0 {
                             let reset_after = Instant::now().saturating_duration_since(headers.reset_at);
                             tracing::info!(?reset_after, "exhausted");
-                            queue.idle = true;
                             continue;
                         }
 
@@ -269,14 +276,7 @@ pub async fn runner(
                         &mut queues.find_mut(hash, |a| a.0 == hash).expect("hash is unchanged").1
                     }
                 };
-
-                if let Some((path, rx)) = queue.pop(global_remaining == 0) {
-                    tracing::debug!(?path, "permitted");
-                    if !path.is_interaction() {
-                        on_permit!();
-                    }
-                    in_flight.spawn(async move { (path, rx.await) });
-                }
+                on_pop!(queue);
             }
             Some((msg, predicate)) = rx.recv() => {
                 let mut builder = hasher.build_hasher();
@@ -288,7 +288,7 @@ pub async fn runner(
                     queues.find_mut(hash, |a| a.0 == hash).unwrap()
                 } else {
                     let hash = builder.finish();
-                    queues.entry(hash, |a| a.0 == hash, |a| a.0).or_insert_with(|| (hash, Queue::new())).into_mut()
+                    queues.entry(hash, |a| a.0 == hash, |a| a.0).or_insert((hash, Queue::default())).into_mut()
                 };
 
                 let bucket = queue.reset.map(|key| Bucket {
@@ -307,7 +307,7 @@ pub async fn runner(
                         queue.idle = false;
                         tracing::debug!(path = ?msg.path, "permitted");
                         if !msg.path.is_interaction() {
-                            on_permit!();
+                            on_global!();
                         }
                         in_flight.spawn(async move { (msg.path, rx.await) });
                     }
