@@ -11,6 +11,8 @@
 mod actor;
 mod request;
 
+pub use crate::request::{Method, Path, PathParseError, PathParseErrorType};
+
 use std::{
     future::Future,
     pin::Pin,
@@ -22,7 +24,9 @@ use tokio::{
     time::Instant,
 };
 
-pub use crate::request::{Method, Path, PathParseError, PathParseErrorType};
+/// Duration from the first globally limited request until the remaining count
+/// resets to the global limit count.
+pub const GLOBAL_LIMIT_PERIOD: Duration = Duration::from_secs(1);
 
 /// Parsed user response rate limit headers.
 ///
@@ -37,7 +41,7 @@ pub use crate::request::{Method, Path, PathParseError, PathParseErrorType};
 /// You may preemptively exhaust the bucket until `Reset-After` by completing
 /// the [`Permit`] with [`RateLimitHeaders::shared`], but are not required to
 /// since these limits do not count towards the invalid request limit.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct RateLimitHeaders {
     /// Bucket identifier.
     pub bucket: Vec<u8>,
@@ -92,6 +96,7 @@ impl Permit {
 
 /// Future that completes when a permit is ready.
 #[derive(Debug)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct PermitFuture(oneshot::Receiver<oneshot::Sender<Option<RateLimitHeaders>>>);
 
 impl Future for PermitFuture {
@@ -106,6 +111,7 @@ impl Future for PermitFuture {
 
 /// Future that completes when a permit is ready or cancelled.
 #[derive(Debug)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct MaybePermitFuture(oneshot::Receiver<oneshot::Sender<Option<RateLimitHeaders>>>);
 
 impl Future for MaybePermitFuture {
@@ -119,7 +125,7 @@ impl Future for MaybePermitFuture {
 /// Rate limit information for one or more paths from previous
 /// [`RateLimitHeaders`].
 #[non_exhaustive]
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Bucket {
     /// Total number of permits until the bucket becomes exhausted.
     pub limit: u16,

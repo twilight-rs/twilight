@@ -1,6 +1,6 @@
 //! Rate limiting state manager.
 
-use crate::{Bucket, Path, Predicate, RateLimitHeaders, Request};
+use crate::{Bucket, Path, Predicate, RateLimitHeaders, Request, GLOBAL_LIMIT_PERIOD};
 use hashbrown::hash_table;
 use std::{
     collections::{hash_map::Entry, HashMap, VecDeque},
@@ -78,10 +78,6 @@ impl Queue {
         None
     }
 }
-
-/// Duration from the first globally limited request until the remaining count
-/// resets to the global limit count.
-const GLOBAL_LIMIT_PERIOD: Duration = Duration::from_secs(1);
 
 /// Rate limiter actor runner.
 #[allow(clippy::too_many_lines)]
@@ -292,9 +288,9 @@ pub async fn runner(
                 };
 
                 let bucket = queue.reset.map(|key| Bucket {
-                    reset_at: reset.deadline(&key),
                     limit: queue.limit,
                     remaining: queue.remaining,
+                    reset_at: reset.deadline(&key),
                 });
 
                 if predicate.is_some_and(|p| !p(bucket)) {
