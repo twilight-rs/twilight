@@ -36,11 +36,11 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Output processor info
-        run: cat /proc/cpuinfo
-
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
+
+      - name: Work around newer native-tls version msrv
+        run: cargo update native-tls --precise 0.2.13
 
       - run: cargo check --all-features --workspace --exclude book
 

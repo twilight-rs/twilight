@@ -1027,7 +1027,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::EntitlementDelete(_)
             | Event::EntitlementUpdate(_)
             | Event::GatewayClose(_)
-            | Event::GatewayHeartbeat(_)
+            | Event::GatewayHeartbeat
             | Event::GatewayHeartbeatAck
             | Event::GatewayHello(_)
             | Event::GatewayInvalidateSession(_)
