@@ -110,7 +110,7 @@ pub async fn runner(
                     .reset(Instant::now() + GLOBAL_LIMIT_PERIOD);
             } else if global_remaining == 0 {
                 let now = Instant::now();
-                let reset_after = now.saturating_duration_since(global_timer.deadline());
+                let reset_after = global_timer.deadline().saturating_duration_since(now);
                 if reset_after.is_zero() {
                     global_remaining = global_limit - 1;
                     global_timer.as_mut().reset(now + GLOBAL_LIMIT_PERIOD);

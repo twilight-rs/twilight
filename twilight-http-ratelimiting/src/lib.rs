@@ -192,7 +192,11 @@ impl RateLimiter {
     /// # Example
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() {
+    /// # let rt = tokio::runtime::Builder::new_current_thread()
+    /// #     .enable_time()
+    /// #     .build()
+    /// #     .unwrap();
+    /// # rt.block_on(async {
     /// # let rate_limiter = twilight_http_ratelimiting::RateLimiter::default();
     /// use twilight_http_ratelimiting::Path;
     ///
@@ -203,7 +207,7 @@ impl RateLimiter {
     ///     let headers = unimplemented!("send /applications/@me request");
     ///     permit.complete(headers);
     /// }
-    /// # }
+    /// # });
     /// ```
     #[allow(clippy::missing_panics_doc)]
     pub fn acquire_if<P>(&self, path: Path, predicate: P) -> MaybePermitFuture
