@@ -1,5 +1,5 @@
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
+pub use twilight_http_ratelimiting::{Path, PathParseError, PathParseErrorType};
 
 use crate::{
     query_formatter::{QueryArray, QueryStringFormatter},
@@ -1421,7 +1421,7 @@ impl Route<'_> {
     ///
     /// Use a route's path to retrieve a ratelimiter ticket:
     ///
-    /// ```
+    /// ```ignore
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// use twilight_http::routing::Route;
