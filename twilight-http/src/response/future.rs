@@ -21,6 +21,43 @@ use twilight_http_ratelimiting::{Permit, PermitFuture, RateLimitHeaders};
 
 type Output<T> = Result<Response<T>, Error>;
 
+/// Parse ratelimit headers from a map of headers.
+///
+/// # Errors
+///
+/// Errors if a required header is missing or if a header value is of an
+/// invalid type.
+fn parse_ratelimit_headers(
+    headers: &HeaderMap,
+) -> Result<Option<RateLimitHeaders>, Box<dyn std::error::Error>> {
+    let bucket = headers.get(RateLimitHeaders::BUCKET);
+    let limit = headers.get(RateLimitHeaders::LIMIT);
+    let remaining = headers.get(RateLimitHeaders::REMAINING);
+    let reset_after = headers.get(RateLimitHeaders::RESET_AFTER);
+
+    if bucket.is_none() && limit.is_none() && remaining.is_none() && reset_after.is_none() {
+        return Ok(None);
+    }
+
+    let bucket = bucket.ok_or("missing bucket header")?.as_bytes().to_vec();
+    let limit = limit.ok_or("missing limit header")?.to_str()?.parse()?;
+    let remaining = remaining
+        .ok_or("missing remaining header")?
+        .to_str()?
+        .parse()?;
+    let reset_after = reset_after
+        .ok_or("missing reset-after header")?
+        .to_str()?
+        .parse()?;
+
+    Ok(Some(RateLimitHeaders {
+        bucket,
+        limit,
+        remaining,
+        reset_at: Instant::now() + Duration::from_secs_f32(reset_after),
+    }))
+}
+
 enum InnerPoll<T> {
     Advance(ResponseFutureStage),
     Pending(ResponseFutureStage),
@@ -74,49 +111,11 @@ impl Failed {
 struct InFlight {
     future: Pin<Box<Timeout<HyperResponseFuture>>>,
     invalid_token: Option<Arc<AtomicBool>>,
-    tx: Option<Permit>,
+    permit: Option<Permit>,
 }
 
 impl InFlight {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        fn headers(
-            headers: &HeaderMap,
-            on_err: impl Fn(&dyn std::error::Error),
-        ) -> Option<RateLimitHeaders> {
-            let bucket = headers.get(RateLimitHeaders::BUCKET)?.as_bytes().to_vec();
-            let limit = headers
-                .get(RateLimitHeaders::LIMIT)?
-                .to_str()
-                .inspect_err(|e| on_err(e))
-                .ok()?
-                .parse()
-                .inspect_err(|e| on_err(e))
-                .ok()?;
-            let remaining = headers
-                .get(RateLimitHeaders::REMAINING)?
-                .to_str()
-                .inspect_err(|e| on_err(e))
-                .ok()?
-                .parse()
-                .inspect_err(|e| on_err(e))
-                .ok()?;
-            let reset = headers
-                .get(RateLimitHeaders::RESET_AFTER)?
-                .to_str()
-                .inspect_err(|e| on_err(e))
-                .ok()?
-                .parse()
-                .inspect_err(|e| on_err(e))
-                .ok()?;
-
-            Some(RateLimitHeaders {
-                bucket,
-                limit,
-                remaining,
-                reset_at: Instant::now() + Duration::from_secs_f32(reset),
-            })
-        }
-
         let resp = match Pin::new(&mut self.future).poll(cx) {
             Poll::Ready(Ok(Ok(resp))) => resp,
             Poll::Ready(Ok(Err(source))) => {
@@ -143,10 +142,15 @@ impl InFlight {
             }
         }
 
-        if let Some(tx) = self.tx {
-            tx.complete(headers(resp.headers(), |e| {
-                tracing::warn!("header parsing failed: {e}; {resp:?}");
-            }));
+        if let Some(permit) = self.permit {
+            match parse_ratelimit_headers(resp.headers()) {
+                Ok(v) => permit.complete(v),
+                Err(source) => {
+                    tracing::warn!("header parsing failed: {source}; {resp:?}");
+
+                    permit.complete(None);
+                }
+            }
         }
 
         let status = resp.status();
@@ -196,12 +200,12 @@ struct RatelimitQueue {
     response_future: HyperResponseFuture,
     timeout: Duration,
     pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
-    rx: PermitFuture,
+    permit_future: PermitFuture,
 }
 
 impl RatelimitQueue {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let Poll::Ready(tx) = Pin::new(&mut self.rx).poll(cx) else {
+        let Poll::Ready(permit) = Pin::new(&mut self.permit_future).poll(cx) else {
             return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(self));
         };
 
@@ -217,7 +221,7 @@ impl RatelimitQueue {
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
             future: Box::pin(time::timeout(self.timeout, self.response_future)),
             invalid_token: self.invalid_token,
-            tx: Some(tx),
+            permit: Some(permit),
         }))
     }
 }
@@ -287,7 +291,7 @@ impl<T> ResponseFuture<T> {
             stage: ResponseFutureStage::InFlight(InFlight {
                 future,
                 invalid_token,
-                tx: None,
+                permit: None,
             }),
         }
     }
@@ -369,7 +373,7 @@ impl<T> ResponseFuture<T> {
         invalid_token: Option<Arc<AtomicBool>>,
         response_future: HyperResponseFuture,
         timeout: Duration,
-        wait_for_sender: PermitFuture,
+        permit_future: PermitFuture,
     ) -> Self {
         Self {
             phantom: PhantomData,
@@ -378,7 +382,7 @@ impl<T> ResponseFuture<T> {
                 response_future,
                 timeout,
                 pre_flight_check: None,
-                rx: wait_for_sender,
+                permit_future,
             }),
         }
     }

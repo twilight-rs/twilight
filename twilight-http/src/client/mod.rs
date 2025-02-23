@@ -2999,9 +2999,9 @@ impl Client {
             .flatten();
 
         Ok(if let Some(ratelimiter) = &self.ratelimiter {
-            let rx = ratelimiter.acquire(ratelimit_path);
+            let permit_future = ratelimiter.acquire(ratelimit_path);
 
-            ResponseFuture::ratelimit(invalid_token, inner, self.timeout, rx)
+            ResponseFuture::ratelimit(invalid_token, inner, self.timeout, permit_future)
         } else {
             ResponseFuture::new(Box::pin(time::timeout(self.timeout, inner)), invalid_token)
         })
