@@ -246,3 +246,59 @@ impl Default for RateLimiter {
         Self::new(50)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        Bucket, MaybePermitFuture, Path, Permit, PermitFuture, RateLimitHeaders, RateLimiter,
+    };
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, future::Future, hash::Hash};
+    use tokio::{
+        task,
+        time::{Duration, Instant},
+    };
+
+    assert_impl_all!(Bucket: Clone, Copy, Debug, Eq, Hash, PartialEq, Send, Sync);
+    assert_impl_all!(MaybePermitFuture: Debug, Future<Output = Option<Permit>>);
+    assert_impl_all!(Permit: Debug, Send, Sync);
+    assert_impl_all!(PermitFuture: Debug, Future<Output = Permit>);
+    assert_impl_all!(RateLimitHeaders: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
+    assert_impl_all!(RateLimiter: Clone, Debug, Default, Send, Sync);
+
+    const PATH: Path = Path::ApplicationsMe;
+
+    #[tokio::test]
+    async fn acquire_if() {
+        let rate_limiter = RateLimiter::default();
+
+        assert!(rate_limiter.acquire_if(PATH, |_| false).await.is_none());
+        assert!(rate_limiter.acquire_if(PATH, |_| true).await.is_some());
+    }
+
+    #[tokio::test]
+    async fn bucket() {
+        let rate_limiter = RateLimiter::default();
+
+        let limit = 2;
+        let remaining = 1;
+        let reset_at = Instant::now() + Duration::from_secs(1);
+        let headers = RateLimitHeaders {
+            bucket: vec![1, 2, 3],
+            limit,
+            remaining,
+            reset_at,
+        };
+
+        rate_limiter.acquire(PATH).await.complete(Some(headers));
+        task::yield_now().await;
+
+        let bucket = rate_limiter.bucket(PATH).await.unwrap();
+        assert_eq!(bucket.limit, limit);
+        assert_eq!(bucket.remaining, remaining);
+        assert!(
+            bucket.reset_at.saturating_duration_since(reset_at) < Duration::from_millis(1)
+                && reset_at.saturating_duration_since(bucket.reset_at) < Duration::from_millis(1)
+        );
+    }
+}

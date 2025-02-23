@@ -6,7 +6,8 @@ use std::{
     collections::{hash_map::Entry, HashMap, VecDeque},
     future::poll_fn,
     hash::{BuildHasher, Hash, Hasher, RandomState},
-    mem, pin,
+    mem,
+    pin::pin,
 };
 use tokio::{
     sync::{mpsc, oneshot},
@@ -79,6 +80,9 @@ impl Queue {
     }
 }
 
+/// Interval at which to prune stale queues.
+const GC_INTERVAL: Duration = Duration::from_secs(60 * 60 * 6);
+
 /// Rate limiter actor runner.
 #[allow(clippy::too_many_lines)]
 pub async fn runner(
@@ -86,7 +90,7 @@ pub async fn runner(
     mut rx: mpsc::UnboundedReceiver<(Request, Option<Predicate>)>,
 ) {
     let mut global_remaining = global_limit;
-    let mut global_timer = pin::pin!(sleep(Duration::ZERO));
+    let mut global_timer = pin!(sleep(Duration::ZERO));
 
     let mut buckets = HashMap::<Path, Vec<u8>>::new();
     // Invariants: may never contain more than one task per path at once.
@@ -95,6 +99,7 @@ pub async fn runner(
         Result<Option<RateLimitHeaders>, oneshot::error::RecvError>,
     )>::new();
 
+    let mut gc_interval = pin!(sleep(GC_INTERVAL));
     let mut reset = DelayQueue::<u64>::new();
     let mut queues = hashbrown::HashTable::<(u64, Queue)>::new();
     let hasher = RandomState::new();
@@ -136,6 +141,23 @@ pub async fn runner(
     loop {
         tokio::select! {
             biased;
+            () = &mut gc_interval => {
+                let _span = tracing::debug_span!("garbage collection").entered();
+                for (path, bucket) in &buckets {
+                    let mut builder = hasher.build_hasher();
+                    path.hash_components(&mut builder);
+                    bucket.hash(&mut builder);
+                    let hash = builder.finish();
+
+                    let entry = queues.find_entry(hash, |a| a.0 == hash).unwrap();
+                    let queue = &entry.get().1;
+                    if queue.idle && queue.inner.is_empty() {
+                        entry.remove();
+                        tracing::debug!(hash, "removed");
+                    }
+                }
+                gc_interval.as_mut().reset(Instant::now() + GC_INTERVAL);
+            }
             () = &mut global_timer, if global_remaining == 0 => {
                 global_remaining = global_limit;
                 for (_, queue) in queues.iter_mut().filter(|(_, queue)| queue.idle) {
@@ -181,29 +203,26 @@ pub async fn runner(
                                 let path = entry.key();
 
                                 let mut entry = queues.find_entry(old_hash, |a| a.0 == old_hash).expect("hash is unchanged");
-                                let unmerge = entry.get().1.inner.iter().any(|req| req.path != *path);
-                                let queue = if unmerge {
-                                    let mut inner = VecDeque::new();
-                                    for req in mem::take(&mut entry.get_mut().1.inner) {
-                                        if req.path == *path {
-                                            inner.push_back(req);
-                                        } else {
-                                            entry.get_mut().1.inner.push_back(req);
-                                        }
-                                    }
 
-                                    let old_queue = &mut entry.get_mut().1;
-                                    on_pop!(old_queue);
-
-                                    Queue {
-                                        idle: false,
-                                        inner,
-                                        limit: 0,
-                                        reset: None,
-                                        remaining: 0,
+                                // Retain the queue as another path may map to it.
+                                let mut inner = VecDeque::new();
+                                for req in mem::take(&mut entry.get_mut().1.inner) {
+                                    if req.path == *path {
+                                        inner.push_back(req);
+                                    } else {
+                                        entry.get_mut().1.inner.push_back(req);
                                     }
-                                } else {
-                                    entry.remove().0.1
+                                }
+
+                                let old_queue = &mut entry.get_mut().1;
+                                on_pop!(old_queue);
+
+                                let queue = Queue {
+                                    idle: false,
+                                    inner,
+                                    limit: 0,
+                                    reset: None,
+                                    remaining: 0,
                                 };
 
                                 match queues.entry(hash, |a| a.0 == hash, |a| a.0) {
@@ -231,7 +250,7 @@ pub async fn runner(
                                 entry.insert(bucket);
 
                                 let ((_, queue), _) = queues.find_entry(old_hash, |a| a.0 == old_hash).expect("hash is unchanged").remove();
-                                &mut queues.insert_unique(hash, (hash, queue), |a| a.0).into_mut().1
+                                &mut queues.entry(hash, |a| a.0 == hash, |a| a.0).or_insert((hash, queue)).into_mut().1
                             },
                         };
 
