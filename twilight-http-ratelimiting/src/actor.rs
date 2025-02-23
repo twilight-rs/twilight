@@ -3,7 +3,7 @@
 use crate::{Bucket, Path, Predicate, RateLimitHeaders, Request, GLOBAL_LIMIT_PERIOD};
 use hashbrown::hash_table;
 use std::{
-    collections::{hash_map::Entry, HashMap, VecDeque},
+    collections::{hash_map::Entry, HashMap, HashSet, VecDeque},
     future::poll_fn,
     hash::{BuildHasher, Hash, Hasher, RandomState},
     mem,
@@ -143,19 +143,29 @@ pub async fn runner(
             biased;
             () = &mut gc_interval => {
                 let _span = tracing::debug_span!("garbage collection").entered();
-                for (path, bucket) in &buckets {
+                let keep = buckets
+                .iter()
+                .map(|(path, bucket)| {
                     let mut builder = hasher.build_hasher();
                     path.hash_components(&mut builder);
                     bucket.hash(&mut builder);
-                    let hash = builder.finish();
-
+                    builder.finish()
+                })
+                .filter(|&hash| {
                     let entry = queues.find_entry(hash, |a| a.0 == hash).unwrap();
                     let queue = &entry.get().1;
-                    if queue.idle && queue.inner.is_empty() {
-                        entry.remove();
+
+                    !queue.idle || !queue.inner.is_empty() || queue.reset.is_some()
+                })
+                .collect::<HashSet<_>>();
+                queues.retain(|(hash, _)| {
+                    let contained = keep.contains(hash);
+                    if !contained {
                         tracing::debug!(hash, "removed");
                     }
-                }
+
+                    contained
+                });
                 gc_interval.as_mut().reset(Instant::now() + GC_INTERVAL);
             }
             () = &mut global_timer, if global_remaining == 0 => {
