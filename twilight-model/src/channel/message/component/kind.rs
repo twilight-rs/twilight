@@ -40,10 +40,13 @@ pub enum ComponentType {
     ///
     /// [`SelectMenu`]: super::SelectMenu
     ChannelSelectMenu,
+    Section,
     TextDisplay,
+    Thumbnail,
     MediaGallery,
     File,
-    Seperator,
+    Separator,
+    Container,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -59,10 +62,13 @@ impl From<u8> for ComponentType {
             6 => ComponentType::RoleSelectMenu,
             7 => ComponentType::MentionableSelectMenu,
             8 => ComponentType::ChannelSelectMenu,
+            9 => ComponentType::Section,
             10 => ComponentType::TextDisplay,
+            11 => ComponentType::Thumbnail,
             12 => ComponentType::MediaGallery,
             13 => ComponentType::File,
-            14 => ComponentType::Seperator,
+            14 => ComponentType::Separator,
+            17 => ComponentType::Container,
             unknown => ComponentType::Unknown(unknown),
         }
     }
@@ -79,10 +85,13 @@ impl From<ComponentType> for u8 {
             ComponentType::RoleSelectMenu => 6,
             ComponentType::MentionableSelectMenu => 7,
             ComponentType::ChannelSelectMenu => 8,
+            ComponentType::Section => 9,
             ComponentType::TextDisplay => 10,
+            ComponentType::Thumbnail => 11,
             ComponentType::MediaGallery => 12,
             ComponentType::File => 13,
-            ComponentType::Seperator => 14,
+            ComponentType::Separator => 14,
+            ComponentType::Container => 17,
             ComponentType::Unknown(unknown) => unknown,
         }
     }
@@ -106,19 +115,22 @@ impl ComponentType {
     /// [`ActionRow`]: Self::ActionRow
     pub const fn name(self) -> &'static str {
         match self {
-            Self::ActionRow => "ActionRow",
-            Self::Button => "Button",
-            Self::TextSelectMenu
-            | Self::UserSelectMenu
-            | Self::RoleSelectMenu
-            | Self::MentionableSelectMenu
-            | Self::ChannelSelectMenu => "SelectMenu",
-            Self::TextInput => "TextInput",
-            Self::TextDisplay => "TextDisplay",
-            Self::MediaGallery => "MediaGallery",
-            Self::File => "File",
-            Self::Seperator => "Seperator",
-            Self::Unknown(_) => "Unknown",
+            ComponentType::ActionRow => "ActionRow",
+            ComponentType::Button => "Button",
+            ComponentType::TextSelectMenu
+            | ComponentType::UserSelectMenu
+            | ComponentType::RoleSelectMenu
+            | ComponentType::MentionableSelectMenu
+            | ComponentType::ChannelSelectMenu => "SelectMenu",
+            ComponentType::TextInput => "TextInput",
+            ComponentType::Section => "Section",
+            ComponentType::TextDisplay => "TextDisplay",
+            ComponentType::Thumbnail => "Thumbnail",
+            ComponentType::MediaGallery => "MediaGallery",
+            ComponentType::File => "File",
+            ComponentType::Separator => "Separator",
+            ComponentType::Container => "Container",
+            ComponentType::Unknown(_) => "Unknown",
         }
     }
 }

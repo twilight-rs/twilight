@@ -7,26 +7,32 @@
 
 mod action_row;
 mod button;
+mod container;
 mod file_display;
 mod kind;
 mod media_gallery;
+mod section;
 mod select_menu;
 mod seperator;
 mod text_display;
 mod text_input;
+mod thumbnail;
 mod unfurled_media;
 
 pub use self::{
     action_row::ActionRow,
     button::{Button, ButtonStyle},
-    kind::ComponentType,
-    select_menu::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
-    text_input::{TextInput, TextInputStyle},
-    seperator::{Seperator, SeperatorSpacingSize},
-    text_display::TextDisplay,
-    media_gallery::{MediaGallery, MediaGalleryItems},
-    unfurled_media::UnfurledMediaItem,
+    container::Container,
     file_display::FileDisplay,
+    kind::ComponentType,
+    media_gallery::{MediaGallery, MediaGalleryItems},
+    section::Section,
+    select_menu::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
+    seperator::{Separator, SeperatorSpacingSize},
+    text_display::TextDisplay,
+    text_input::{TextInput, TextInputStyle},
+    thumbnail::Thumbnail,
+    unfurled_media::UnfurledMediaItem,
 };
 
 use super::EmojiReactionType;
@@ -137,8 +143,11 @@ pub enum Component {
     TextInput(TextInput),
     TextDisplay(TextDisplay),
     MediaGallery(MediaGallery),
-    Seperator(Seperator),
-    FileDisplay(FileDisplay),
+    Separator(Separator),
+    File(FileDisplay),
+    Section(Section),
+    Container(Container),
+    Thumbnail(Thumbnail),
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -165,21 +174,24 @@ impl Component {
     /// ```
     pub const fn kind(&self) -> ComponentType {
         match self {
-            Self::ActionRow(_) => ComponentType::ActionRow,
-            Self::Button(_) => ComponentType::Button,
-            Self::SelectMenu(SelectMenu { kind, .. }) => match kind {
+            Component::ActionRow(_) => ComponentType::ActionRow,
+            Component::Button(_) => ComponentType::Button,
+            Component::SelectMenu(SelectMenu { kind, .. }) => match kind {
                 SelectMenuType::Text => ComponentType::TextSelectMenu,
                 SelectMenuType::User => ComponentType::UserSelectMenu,
                 SelectMenuType::Role => ComponentType::RoleSelectMenu,
                 SelectMenuType::Mentionable => ComponentType::MentionableSelectMenu,
                 SelectMenuType::Channel => ComponentType::ChannelSelectMenu,
             },
-            Self::TextInput(_) => ComponentType::TextInput,
-            Self::TextDisplay(_) => ComponentType::TextDisplay,
-            Self::MediaGallery(_) => ComponentType::MediaGallery,
-            Self::Seperator(_) => ComponentType::Seperator,
-            Self::FileDisplay(_) => ComponentType::File,
-            Self::Unknown(unknown) => ComponentType::Unknown(*unknown),
+            Component::TextInput(_) => ComponentType::TextInput,
+            Component::TextDisplay(_) => ComponentType::TextDisplay,
+            Component::MediaGallery(_) => ComponentType::MediaGallery,
+            Component::Separator(_) => ComponentType::Separator,
+            Component::File(_) => ComponentType::File,
+            Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
+            Component::Section(_) => ComponentType::Section,
+            Component::Container(_) => ComponentType::Container,
+            Component::Thumbnail(_) => ComponentType::Thumbnail,
         }
     }
 }
@@ -243,6 +255,10 @@ enum Field {
     Spacing,
     File,
     Spoiler,
+    Accessory,
+    Media,
+    Description,
+    AccentColor,
 }
 
 struct ComponentVisitor;
@@ -288,6 +304,10 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut spacing: Option<SeperatorSpacingSize> = None;
         let mut file: Option<UnfurledMediaItem> = None;
         let mut spoiler: Option<bool> = None;
+        let mut accessory: Option<Component> = None;
+        let mut media: Option<UnfurledMediaItem> = None;
+        let mut description: Option<String> = None;
+        let mut accent_color: Option<u32> = None;
 
         loop {
             let key = match map.next_key() {
@@ -478,10 +498,38 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                 }
                 Field::Spoiler => {
                     if spoiler.is_some() {
-                        return Err(DeError::duplicate_field("value"));
+                        return Err(DeError::duplicate_field("spoiler"));
                     }
 
                     spoiler = Some(map.next_value()?);
+                }
+                Field::Accessory => {
+                    if accessory.is_some() {
+                        return Err(DeError::duplicate_field("accessory"));
+                    }
+
+                    accessory = Some(map.next_value()?);
+                }
+                Field::Media => {
+                    if media.is_some() {
+                        return Err(DeError::duplicate_field("media"));
+                    }
+
+                    media = Some(map.next_value()?);
+                }
+                Field::Description => {
+                    if description.is_some() {
+                        return Err(DeError::duplicate_field("description"));
+                    }
+
+                    description = Some(map.next_value()?);
+                }
+                Field::AccentColor => {
+                    if accent_color.is_some() {
+                        return Err(DeError::duplicate_field("accent_color"));
+                    }
+
+                    accent_color = Some(map.next_value()?);
                 }
             }
         }
@@ -494,7 +542,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             ComponentType::ActionRow => {
                 let components = components.ok_or_else(|| DeError::missing_field("components"))?;
 
-                Self::Value::ActionRow(ActionRow { components })
+                Self::Value::ActionRow(ActionRow { components, id })
             }
             // Required fields:
             // - style
@@ -526,6 +574,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     style,
                     url: url.unwrap_or_default(),
                     sku_id,
+                    id,
                 })
             }
             // Required fields:
@@ -578,6 +627,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     min_values: min_values.unwrap_or_default(),
                     options,
                     placeholder: placeholder.unwrap_or_default(),
+                    id,
                 })
             }
             // Required fields:
@@ -616,6 +666,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     required: required.unwrap_or_default(),
                     style,
                     value: value.unwrap_or_default(),
+                    id,
                 })
             }
             ComponentType::TextDisplay => {
@@ -628,7 +679,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
                 Self::Value::MediaGallery(MediaGallery { id, items })
             }
-            ComponentType::Seperator => Self::Value::Seperator(Seperator {
+            ComponentType::Separator => Self::Value::Separator(Separator {
                 id,
                 divider,
                 spacing,
@@ -636,9 +687,36 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             ComponentType::File => {
                 let file = file.ok_or_else(|| DeError::missing_field("file"))?;
 
-                Self::Value::FileDisplay(FileDisplay { file, spoiler, id })
+                Self::Value::File(FileDisplay { file, spoiler, id })
             }
             ComponentType::Unknown(unknown) => Self::Value::Unknown(unknown),
+            ComponentType::Section => {
+                let components = components.ok_or_else(|| DeError::missing_field("components"))?;
+                let accessory = accessory.ok_or_else(|| DeError::missing_field("accessory"))?;
+                Self::Value::Section(Section {
+                    id,
+                    components,
+                    accessory: Box::new(accessory),
+                })
+            }
+            ComponentType::Thumbnail => {
+                let media = media.ok_or_else(|| DeError::missing_field("media"))?;
+                Self::Value::Thumbnail(Thumbnail {
+                    id,
+                    media,
+                    description,
+                    spoiler,
+                })
+            }
+            ComponentType::Container => {
+                let components = components.ok_or_else(|| DeError::missing_field("components"))?;
+                Self::Value::Container(Container {
+                    id,
+                    accent_color,
+                    spoiler,
+                    components,
+                })
+            }
         })
     }
 }
@@ -650,7 +728,7 @@ impl Serialize for Component {
             // Required fields:
             // - type
             // - components
-            Component::ActionRow(_) => 2,
+            Component::ActionRow(row) => 2 + usize::from(row.id.is_some()),
             // Required fields:
             // - type
             // - style
@@ -669,6 +747,7 @@ impl Serialize for Component {
                     + usize::from(button.label.is_some())
                     + usize::from(button.url.is_some())
                     + usize::from(button.sku_id.is_some())
+                    + usize::from(button.id.is_some())
             }
             // Required fields:
             // - custom_id
@@ -692,6 +771,7 @@ impl Serialize for Component {
                     + usize::from(select_menu.min_values.is_some())
                     + usize::from(select_menu.options.is_some())
                     + usize::from(select_menu.placeholder.is_some())
+                    + usize::from(select_menu.id.is_some())
             }
             // Required fields:
             // - custom_id
@@ -711,17 +791,30 @@ impl Serialize for Component {
                     + usize::from(text_input.placeholder.is_some())
                     + usize::from(text_input.required.is_some())
                     + usize::from(text_input.value.is_some())
+                    + usize::from(text_input.id.is_some())
             }
             Component::TextDisplay(text_display) => 2 + usize::from(text_display.id.is_some()),
             Component::MediaGallery(media_gallery) => 2 + usize::from(media_gallery.id.is_some()),
-            Component::Seperator(seperator) => {
-                2 + usize::from(seperator.divider.is_some())
-                    + usize::from(seperator.spacing.is_some())
+            Component::Separator(separator) => {
+                2 + usize::from(separator.divider.is_some())
+                    + usize::from(separator.spacing.is_some())
+                    + usize::from(separator.id.is_some())
             }
-            Component::FileDisplay(file) => 3 + usize::from(file.spoiler.is_some()),
+            Component::File(file) => {
+                3 + usize::from(file.spoiler.is_some()) + usize::from(file.id.is_some())
+            }
             // We are dropping fields here but nothing we can do about that for
             // the time being.
             Component::Unknown(_) => 1,
+            Component::Section(section) => 3 + usize::from(section.id.is_some()),
+            Component::Container(container) => {
+                2 + usize::from(container.accent_color.is_some())
+                    + usize::from(container.spoiler.is_some())
+                    + usize::from(container.id.is_some())
+            }
+            Component::Thumbnail(thumbnail) => {
+                2 + usize::from(thumbnail.spoiler.is_some()) + usize::from(thumbnail.id.is_some())
+            }
         };
 
         let mut state = serializer.serialize_struct("Component", len)?;
@@ -846,27 +939,50 @@ impl Serialize for Component {
                 state.serialize_field("id", &text_display.id)?;
 
                 state.serialize_field("content", &text_display.content)?;
-            },
+            }
             Component::MediaGallery(media_gallery) => {
                 state.serialize_field("type", &ComponentType::MediaGallery)?;
                 state.serialize_field("id", &media_gallery.id)?;
 
                 state.serialize_field("items", &media_gallery.items)?;
-            },
-            Component::Seperator(seperator) => {
-                state.serialize_field("type", &ComponentType::Seperator)?;
+            }
+            Component::Separator(seperator) => {
+                state.serialize_field("type", &ComponentType::Separator)?;
                 state.serialize_field("id", &seperator.id)?;
 
                 state.serialize_field("divider", &seperator.divider)?;
                 state.serialize_field("spacing", &seperator.spacing)?;
-            },
-            Component::FileDisplay(file) => {
+            }
+            Component::File(file) => {
                 state.serialize_field("type", &ComponentType::File)?;
                 state.serialize_field("id", &file.id)?;
 
                 state.serialize_field("file", &file.file)?;
                 state.serialize_field("spoiler", &file.spoiler)?;
-            },
+            }
+            Component::Section(section) => {
+                state.serialize_field("type", &ComponentType::Section)?;
+                state.serialize_field("id", &section.id)?;
+
+                state.serialize_field("components", &section.components)?;
+                state.serialize_field("accessory", &section.accessory)?;
+            }
+            Component::Container(container) => {
+                state.serialize_field("type", &ComponentType::Container)?;
+                state.serialize_field("id", &container.id)?;
+
+                state.serialize_field("accent_color", &container.accent_color)?;
+                state.serialize_field("spoiler", &container.spoiler)?;
+                state.serialize_field("components", &container.components)?;
+            }
+            Component::Thumbnail(thumbnail) => {
+                state.serialize_field("type", &ComponentType::Thumbnail)?;
+                state.serialize_field("id", &thumbnail.id)?;
+
+                state.serialize_field("media", &thumbnail.media)?;
+                state.serialize_field("description", &thumbnail.description)?;
+                state.serialize_field("spoiler", &thumbnail.spoiler)?;
+            }
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing
             // incoming messages at this time.
@@ -909,6 +1025,7 @@ mod tests {
                     style: ButtonStyle::Primary,
                     url: None,
                     sku_id: None,
+                    id: None,
                 }),
                 Component::SelectMenu(SelectMenu {
                     channel_types: None,
@@ -926,8 +1043,10 @@ mod tests {
                         default: false,
                     }])),
                     placeholder: Some("test placeholder".into()),
+                    id: None,
                 }),
             ]),
+            id: None,
         });
 
         serde_test::assert_tokens(
@@ -1013,7 +1132,9 @@ mod tests {
                 label: Some("Button".to_owned()),
                 url: None,
                 sku_id: None,
+                id: None,
             })]),
+            id: None,
         });
 
         serde_test::assert_tokens(
@@ -1065,6 +1186,7 @@ mod tests {
             style: ButtonStyle::Link,
             url: Some("https://twilight.rs".to_owned()),
             sku_id: None,
+            id: None,
         });
 
         serde_test::assert_tokens(
@@ -1116,6 +1238,7 @@ mod tests {
                 min_values: None,
                 options: None,
                 placeholder: None,
+                id: None,
             });
             let mut tokens = vec![
                 Token::Struct {
@@ -1185,6 +1308,7 @@ mod tests {
             required: Some(true),
             style: TextInputStyle::Short,
             value: Some("Hello World!".to_owned()),
+            id: None,
         });
 
         serde_test::assert_tokens(
@@ -1234,6 +1358,7 @@ mod tests {
             style: ButtonStyle::Premium,
             url: None,
             sku_id: Some(Id::new(114_941_315_417_899_012)),
+            id: None,
         });
 
         serde_test::assert_tokens(

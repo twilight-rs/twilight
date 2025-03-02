@@ -6,7 +6,6 @@ use super::unfurled_media::UnfurledMediaItem;
 pub struct MediaGallery {
     pub id: Option<i32>,
     pub items: Vec<MediaGalleryItems>,
-
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]

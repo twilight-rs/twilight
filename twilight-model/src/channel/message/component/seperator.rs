@@ -1,15 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Seperator {
+pub struct Separator {
     pub id: Option<i32>,
     pub divider: Option<bool>,
     pub spacing: Option<SeperatorSpacingSize>,
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
-#[serde(from = "u8")]
-#[serde(into = "u8")]
+#[serde(from = "u8", into = "u8")]
 pub enum SeperatorSpacingSize {
     Small,
     Large,
