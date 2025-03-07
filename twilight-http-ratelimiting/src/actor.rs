@@ -122,12 +122,13 @@ pub async fn runner(
         ($queue:ident) => {
             (|queue: &mut Queue| {
                 let (mut tx, rx) = oneshot::channel();
-                while queue
+                while let Some(req) = queue
                     .inner
                     .front()
                     .is_some_and(|req| req.path.is_interaction() || global_remaining != 0)
+                    .then(|| queue.inner.pop_front())
+                    .flatten()
                 {
-                    let req = queue.inner.pop_front().unwrap();
                     match req.notifier.send(tx) {
                         Ok(()) => {
                             queue.idle = false;
