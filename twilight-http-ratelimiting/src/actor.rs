@@ -75,34 +75,6 @@ impl Default for Queue {
     }
 }
 
-impl Queue {
-    /// Completes and returns the first queued permit, unless the queue is
-    /// globally exhausted.
-    fn pop(
-        &mut self,
-        globally_exhausted: bool,
-    ) -> Option<(Path, oneshot::Receiver<Option<RateLimitHeaders>>)> {
-        let (mut tx, rx) = oneshot::channel();
-        while self
-            .inner
-            .front()
-            .is_some_and(|req| req.path.is_interaction() || !globally_exhausted)
-        {
-            let req = self.inner.pop_front().unwrap();
-            match req.notifier.send(tx) {
-                Ok(()) => {
-                    self.idle = false;
-                    return Some((req.path, rx));
-                }
-                Err(recover) => tx = recover,
-            }
-        }
-        self.idle = true;
-
-        None
-    }
-}
-
 /// Interval at which to prune stale queues.
 const GC_INTERVAL: Duration = Duration::from_secs(60 * 60 * 6);
 
@@ -146,15 +118,31 @@ pub async fn runner(
         };
     }
 
-    macro_rules! on_pop {
+    macro_rules! pop {
         ($queue:ident) => {
-            if let Some((path, rx)) = $queue.pop(global_remaining == 0) {
-                tracing::debug!(?path, "permitted");
-                if !path.is_interaction() {
-                    on_global!();
+            (|queue: &mut Queue| {
+                let (mut tx, rx) = oneshot::channel();
+                while queue
+                    .inner
+                    .front()
+                    .is_some_and(|req| req.path.is_interaction() || global_remaining != 0)
+                {
+                    let req = queue.inner.pop_front().unwrap();
+                    match req.notifier.send(tx) {
+                        Ok(()) => {
+                            queue.idle = false;
+                            tracing::debug!(path = ?req.path, "permitted");
+                            if !req.path.is_interaction() {
+                                on_global!();
+                            }
+                            in_flight.spawn(async move { (req.path, rx.await) });
+                            return;
+                        }
+                        Err(recover) => tx = recover,
+                    }
                 }
-                in_flight.spawn(async move { (path, rx.await) });
-            }
+                queue.idle = true;
+            })($queue);
         };
     }
 
@@ -174,19 +162,19 @@ pub async fn runner(
                 })
                 .collect::<HashSet<_>>();
                 queues.retain(|(hash, _)| {
-                    let contained = keep.contains(hash);
-                    if !contained {
+                    let keep = keep.contains(hash);
+                    if !keep {
                         tracing::debug!(hash, "removed");
                     }
 
-                    contained
+                    keep
                 });
                 gc_interval.as_mut().reset(Instant::now() + GC_INTERVAL);
             }
             () = &mut global_timer, if global_remaining == 0 => {
                 global_remaining = global_limit;
                 for (_, queue) in queues.iter_mut().filter(|(_, queue)| queue.idle) {
-                    on_pop!(queue);
+                    pop!(queue);
                 }
             }
             Some(hash) = poll_fn(|cx| reset.poll_expired(cx)) => {
@@ -198,7 +186,7 @@ pub async fn runner(
                 // An active permit may be in flight if the rate limit expired
                 // with the queue not exhausted.
                 if queue.remaining == 0 {
-                    on_pop!(queue);
+                    pop!(queue);
                 }
             }
             Some(response) = in_flight.join_next() => {
@@ -232,7 +220,7 @@ pub async fn runner(
                                 }
 
                                 let old_queue = &mut entry.get_mut().1;
-                                on_pop!(old_queue);
+                                pop!(old_queue);
 
                                 let queue = Queue {
                                     idle: false,
@@ -297,7 +285,7 @@ pub async fn runner(
                         &mut queues.find_mut(hash, |a| a.0 == hash).expect("hash is unchanged").1
                     }
                 };
-                on_pop!(queue);
+                pop!(queue);
             }
             Some((msg, predicate)) = rx.recv() => {
                 let (_, queue) = if let Some(bucket) = buckets.get(&msg.path) {
@@ -308,13 +296,13 @@ pub async fn runner(
                     queues.entry(hash, |a| a.0 == hash, |a| a.0).or_insert((hash, Queue::default())).into_mut()
                 };
 
-                let bucket = queue.reset.map(|key| Bucket {
+                let cancel = predicate.is_some_and(|p| !p(queue.reset.map(|key| Bucket {
                     limit: queue.limit,
                     remaining: queue.remaining,
                     reset_at: reset.deadline(&key),
-                });
+                })));
 
-                if predicate.is_some_and(|p| !p(bucket)) {
+                if cancel {
                     drop(msg);
                 } else if !queue.idle || (!msg.path.is_interaction() && global_remaining == 0) {
                     queue.inner.push_back(msg);
