@@ -1,20 +1,43 @@
 //! Rate limiting state manager.
 
 use crate::{Bucket, Path, Predicate, RateLimitHeaders, Request, GLOBAL_LIMIT_PERIOD};
-use hashbrown::hash_table;
+use hashbrown::{hash_table::Entry as TableEntry, HashTable};
 use std::{
-    collections::{hash_map::Entry, HashMap, HashSet, VecDeque},
+    collections::{hash_map::Entry as MapEntry, HashMap, HashSet, VecDeque},
     future::poll_fn,
-    hash::{BuildHasher, Hash, Hasher, RandomState},
+    hash::{BuildHasher, Hash, Hasher as _, RandomState},
     mem,
     pin::pin,
 };
 use tokio::{
-    sync::{mpsc, oneshot},
+    sync::{
+        mpsc,
+        oneshot::{self, error::RecvError},
+    },
     task::JoinSet,
     time::{sleep, Duration, Instant},
 };
 use tokio_util::time::delay_queue::{DelayQueue, Key};
+
+/// Rate limiter hasher.
+#[derive(Debug)]
+struct Hasher(RandomState);
+
+impl Hasher {
+    /// Hashes a path.
+    fn hash(&self, path: &Path) -> u64 {
+        let mut hasher = self.0.build_hasher();
+        path.hash_components(&mut hasher);
+        hasher.finish()
+    }
+    /// Hashes a bucket and a path.
+    fn hash_bucket(&self, bucket: &[u8], path: &Path) -> u64 {
+        let mut hasher = self.0.build_hasher();
+        path.hash_components(&mut hasher);
+        bucket.hash(&mut hasher);
+        hasher.finish()
+    }
+}
 
 /// Grouped pending permits holder.
 ///
@@ -94,15 +117,12 @@ pub async fn runner(
 
     let mut buckets = HashMap::<Path, Vec<u8>>::new();
     // Invariants: may never contain more than one task per path at once.
-    let mut in_flight = JoinSet::<(
-        Path,
-        Result<Option<RateLimitHeaders>, oneshot::error::RecvError>,
-    )>::new();
+    let mut in_flight = JoinSet::<(Path, Result<Option<RateLimitHeaders>, RecvError>)>::new();
 
     let mut gc_interval = pin!(sleep(GC_INTERVAL));
     let mut reset = DelayQueue::<u64>::new();
-    let mut queues = hashbrown::HashTable::<(u64, Queue)>::new();
-    let hasher = RandomState::new();
+    let mut queues = HashTable::<(u64, Queue)>::new();
+    let hasher = Hasher(RandomState::new());
 
     macro_rules! on_global {
         () => {
@@ -145,12 +165,7 @@ pub async fn runner(
                 let _span = tracing::debug_span!("garbage collection").entered();
                 let keep = buckets
                 .iter()
-                .map(|(path, bucket)| {
-                    let mut builder = hasher.build_hasher();
-                    path.hash_components(&mut builder);
-                    bucket.hash(&mut builder);
-                    builder.finish()
-                })
+                .map(|(path, bucket)| hasher.hash_bucket(bucket, path))
                 .filter(|&hash| {
                     let entry = queues.find_entry(hash, |a| a.0 == hash).unwrap();
                     let queue = &entry.get().1;
@@ -189,24 +204,16 @@ pub async fn runner(
             Some(response) = in_flight.join_next() => {
                 let (path, headers) = response.expect("task should not fail");
 
-                let mut builder = hasher.build_hasher();
-                path.hash_components(&mut builder);
-
                 let queue = match headers {
                     Ok(Some(headers)) => {
                         let _span = tracing::info_span!("headers", ?path).entered();
                         tracing::trace!(?headers);
                         let bucket = headers.bucket;
 
-                        bucket.hash(&mut builder);
-                        let hash = builder.finish();
+                        let hash = hasher.hash_bucket(&bucket, &path);
                         let queue = match buckets.entry(path) {
-                            Entry::Occupied(mut entry) if *entry.get() != bucket => {
-                                let mut old_builder = hasher.build_hasher();
-                                entry.key().hash_components(&mut old_builder);
-                                entry.get().hash(&mut old_builder);
-                                let old_hash = old_builder.finish();
-
+                            MapEntry::Occupied(mut entry) if *entry.get() != bucket => {
+                                let old_hash = hasher.hash_bucket(entry.get(), entry.key());
                                 tracing::debug!(new = hash, previous = old_hash, "bucket changed");
 
                                 *entry.get_mut() = bucket;
@@ -236,7 +243,7 @@ pub async fn runner(
                                 };
 
                                 match queues.entry(hash, |a| a.0 == hash, |a| a.0) {
-                                    hash_table::Entry::Occupied(entry) => {
+                                    TableEntry::Occupied(entry) => {
                                         let incoming = &mut entry.into_mut().1;
                                         incoming.inner.extend(queue.inner);
 
@@ -247,15 +254,12 @@ pub async fn runner(
 
                                         incoming
                                     }
-                                    hash_table::Entry::Vacant(entry) => &mut entry.insert((hash, queue)).into_mut().1,
+                                    TableEntry::Vacant(entry) => &mut entry.insert((hash, queue)).into_mut().1,
                                 }
                             }
-                            Entry::Occupied(_) => &mut queues.find_mut(hash, |a| a.0 == hash).unwrap().1,
-                            Entry::Vacant(entry) => {
-                                let mut old_builder = hasher.build_hasher();
-                                entry.key().hash_components(&mut old_builder);
-                                let old_hash = old_builder.finish();
-
+                            MapEntry::Occupied(_) => &mut queues.find_mut(hash, |a| a.0 == hash).unwrap().1,
+                            MapEntry::Vacant(entry) => {
+                                let old_hash = hasher.hash(entry.key());
                                 tracing::debug!(hash, "bucket assigned");
                                 entry.insert(bucket);
 
@@ -280,11 +284,7 @@ pub async fn runner(
                         queue
                     }
                     Ok(None) => {
-                        if let Some(bucket) = buckets.get(&path) {
-                            bucket.hash(&mut builder);
-                        }
-                        let hash = builder.finish();
-
+                        let hash = buckets.get(&path).map_or_else(|| hasher.hash(&path), |bucket| hasher.hash_bucket(bucket, &path));
                         &mut queues.find_mut(hash, |a| a.0 == hash).expect("hash is unchanged").1
                     }
                     Err(_) => {
@@ -293,26 +293,18 @@ pub async fn runner(
                             global_remaining += 1;
                         }
 
-                        if let Some(bucket) = buckets.get(&path) {
-                            bucket.hash(&mut builder);
-                        }
-                        let hash = builder.finish();
-
+                        let hash = buckets.get(&path).map_or_else(|| hasher.hash(&path), |bucket| hasher.hash_bucket(bucket, &path));
                         &mut queues.find_mut(hash, |a| a.0 == hash).expect("hash is unchanged").1
                     }
                 };
                 on_pop!(queue);
             }
             Some((msg, predicate)) = rx.recv() => {
-                let mut builder = hasher.build_hasher();
-                msg.path.hash_components(&mut builder);
-
                 let (_, queue) = if let Some(bucket) = buckets.get(&msg.path) {
-                    bucket.hash(&mut builder);
-                    let hash = builder.finish();
+                    let hash = hasher.hash_bucket(bucket, &msg.path);
                     queues.find_mut(hash, |a| a.0 == hash).unwrap()
                 } else {
-                    let hash = builder.finish();
+                    let hash = hasher.hash(&msg.path);
                     queues.entry(hash, |a| a.0 == hash, |a| a.0).or_insert((hash, Queue::default())).into_mut()
                 };
 
