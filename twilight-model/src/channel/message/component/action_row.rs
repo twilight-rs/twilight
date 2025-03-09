@@ -3,6 +3,7 @@ use super::Component;
 /// Non-interactive [`Component`] container of other (non action row) components.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ActionRow {
+    /// Unique identifier of the action row.
     pub id: Option<i32>,
     /// List of components in the action row.
     pub components: Vec<Component>,

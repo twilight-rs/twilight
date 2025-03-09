@@ -25,7 +25,7 @@ pub use self::{
     container::Container,
     file_display::FileDisplay,
     kind::ComponentType,
-    media_gallery::{MediaGallery, MediaGalleryItems},
+    media_gallery::{MediaGallery, MediaGalleryItem},
     section::Section,
     select_menu::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
     seperator::{Separator, SeperatorSpacingSize},
@@ -299,7 +299,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
         let mut id: Option<i32> = None;
         let mut content: Option<String> = None;
-        let mut items: Option<Vec<MediaGalleryItems>> = None;
+        let mut items: Option<Vec<MediaGalleryItem>> = None;
         let mut divider: Option<bool> = None;
         let mut spacing: Option<SeperatorSpacingSize> = None;
         let mut file: Option<UnfurledMediaItem> = None;
