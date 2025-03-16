@@ -265,8 +265,10 @@ pub async fn runner(
                             queue.reset = Some(reset.insert_at(hash, headers.reset_at));
                         }
                         if queue.remaining == 0 {
-                            let reset_after = Instant::now().saturating_duration_since(headers.reset_at);
-                            tracing::info!(?reset_after, "exhausted");
+                            tracing::info!(
+                                reset_after = ?headers.reset_at.saturating_duration_since(Instant::now()),
+                                "exhausted"
+                            );
                             continue;
                         }
 
