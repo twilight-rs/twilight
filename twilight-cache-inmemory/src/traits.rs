@@ -166,6 +166,9 @@ pub trait CacheableChannel:
 
     /// Set the last pin timestamp to a new timestamp.
     fn set_last_pin_timestamp(&mut self, timestamp: Option<Timestamp>);
+
+    /// Sets the status of the channel.
+    fn set_status(&mut self, status: Option<String>);
 }
 
 impl CacheableChannel for Channel {
@@ -193,6 +196,10 @@ impl CacheableChannel for Channel {
 
     fn set_last_pin_timestamp(&mut self, timestamp: Option<Timestamp>) {
         self.last_pin_timestamp = timestamp;
+    }
+
+    fn set_status(&mut self, status: Option<String>) {
+        self.status = status;
     }
 }
 
