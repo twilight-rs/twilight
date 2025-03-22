@@ -204,6 +204,7 @@ mod tests {
             url: None,
             disabled: false,
             sku_id: None,
+            id: None,
         });
 
         let embed = Embed {

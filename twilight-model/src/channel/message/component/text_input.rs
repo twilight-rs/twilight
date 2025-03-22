@@ -5,6 +5,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TextInput {
+    pub id: Option<i32>,
     /// User defined identifier for the input text.
     pub custom_id: String,
     /// Text appearing over the input field.
