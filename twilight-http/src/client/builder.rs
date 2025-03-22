@@ -43,7 +43,7 @@ impl ClientBuilder {
         };
 
         Client {
-            http,
+            http: Arc::new(http),
             default_headers: self.default_headers,
             proxy: self.proxy,
             ratelimiter: self.ratelimiter,

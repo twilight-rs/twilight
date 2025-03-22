@@ -1,5 +1,5 @@
 mod builder;
-mod connector;
+pub(crate) mod connector;
 mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
@@ -113,7 +113,6 @@ use std::{
     },
     time::Duration,
 };
-use tokio::time;
 use twilight_http_ratelimiting::RateLimiter;
 use twilight_model::{
     channel::{message::AllowedMentions, ChannelType},
@@ -244,7 +243,7 @@ impl Deref for Token {
 pub struct Client {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
-    http: HyperClient<Connector, Full<Bytes>>,
+    http: Arc<HyperClient<Connector, Full<Bytes>>>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<RateLimiter>,
     timeout: Duration,
@@ -2986,10 +2985,10 @@ impl Client {
             builder.body(Full::default())
         };
 
-        let inner = self.http.request(try_req.map_err(|source| Error {
+        let http_request = try_req.map_err(|source| Error {
             kind: ErrorType::BuildingRequest,
             source: Some(Box::new(source)),
-        })?);
+        })?;
 
         // For requests that don't use an authorization token we don't need to
         // remember whether the token is invalid. This may be for requests such
@@ -2998,13 +2997,13 @@ impl Client {
             .then(|| self.token_invalidated.clone())
             .flatten();
 
-        Ok(if let Some(ratelimiter) = &self.ratelimiter {
-            let permit_future = ratelimiter.acquire(ratelimit_path);
+        let mut response =
+            ResponseFuture::new(self.http.clone(), invalid_token, http_request, self.timeout);
+        if let Some(ratelimiter) = self.ratelimiter.clone() {
+            response.set_rate_limiter(ratelimiter, ratelimit_path);
+        }
 
-            ResponseFuture::ratelimit(invalid_token, inner, self.timeout, permit_future)
-        } else {
-            ResponseFuture::new(Box::pin(time::timeout(self.timeout, inner)), invalid_token)
-        })
+        Ok(response)
     }
 }
 
