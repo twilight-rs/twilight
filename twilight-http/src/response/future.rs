@@ -148,7 +148,7 @@ impl<T> Inner<T> {
         loop {
             match &mut self.stage {
                 ResponseFutureStage::Chunking { fut, status } => {
-                    match ready!(Pin::new(fut).poll(cx)) {
+                    return Poll::Ready(Err(match ready!(Pin::new(fut).poll(cx)) {
                         Ok(bytes) => match crate::json::from_bytes::<ApiError>(&bytes) {
                             Ok(error) => Error {
                                 kind: ErrorType::Response {
@@ -167,7 +167,7 @@ impl<T> Inner<T> {
                             kind: ErrorType::RequestError,
                             source: Some(Box::new(source)),
                         },
-                    };
+                    }))
                 }
                 ResponseFutureStage::Delay(fut) => {
                     ready!(Pin::new(fut).poll(cx));
