@@ -335,3 +335,46 @@ pub async fn runner(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use tokio::time::{advance, Duration, Instant};
+
+    use crate::{actor::GC_INTERVAL, Path, RateLimitHeaders, RateLimiter};
+
+    const RESET_AFTER: Duration = Duration::from_secs(5);
+    const PATH: Path = Path::ApplicationsMe;
+    const PATH2: Path = Path::ChannelsId(1);
+
+    #[tokio::test(start_paused = true)]
+    async fn gc() {
+        let rate_limiter = RateLimiter::default();
+
+        rate_limiter
+            .acquire(PATH)
+            .await
+            .complete(Some(RateLimitHeaders {
+                bucket: vec![1, 2, 3],
+                limit: 5,
+                remaining: 4,
+                reset_at: Instant::now() + RESET_AFTER,
+            }));
+
+        advance(GC_INTERVAL - RESET_AFTER).await;
+
+        rate_limiter
+            .acquire(PATH2)
+            .await
+            .complete(Some(RateLimitHeaders {
+                bucket: vec![2, 3, 4],
+                limit: 5,
+                remaining: 4,
+                reset_at: Instant::now() + RESET_AFTER,
+            }));
+
+        advance(RESET_AFTER).await;
+
+        rate_limiter.acquire(PATH).await.complete(None);
+        rate_limiter.acquire(PATH2).await.complete(None);
+    }
+}
