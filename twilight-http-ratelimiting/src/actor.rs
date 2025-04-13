@@ -3,7 +3,7 @@
 use crate::{Bucket, Path, Predicate, RateLimitHeaders, Request, GLOBAL_LIMIT_PERIOD};
 use hashbrown::{hash_table::Entry as TableEntry, HashTable};
 use std::{
-    collections::{hash_map::Entry as MapEntry, HashMap, HashSet, VecDeque},
+    collections::{hash_map::Entry as MapEntry, HashMap, VecDeque},
     future::poll_fn,
     hash::{BuildHasher, Hash, Hasher as _, RandomState},
     mem,
@@ -152,19 +152,14 @@ pub async fn runner(
             biased;
             () = &mut gc_interval => {
                 let _span = tracing::debug_span!("garbage collection").entered();
-                let keep = buckets
-                .iter()
-                .map(|(path, bucket)| hasher.hash_bucket(bucket, path))
-                .filter(|&hash| {
+                buckets.retain(|path, bucket| {
+                    let hash = hasher.hash_bucket(bucket, path);
                     let entry = queues.find_entry(hash, |a| a.0 == hash).unwrap();
                     let queue = &entry.get().1;
 
-                    !queue.idle || !queue.inner.is_empty() || queue.reset.is_some()
-                })
-                .collect::<HashSet<_>>();
-                queues.retain(|(hash, _)| {
-                    let keep = keep.contains(hash);
+                    let keep = !queue.idle || !queue.inner.is_empty() || queue.reset.is_some();
                     if !keep {
+                        entry.remove();
                         tracing::debug!(hash, "removed");
                     }
 
