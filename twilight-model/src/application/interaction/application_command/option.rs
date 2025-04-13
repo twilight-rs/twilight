@@ -95,6 +95,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
         }
 
         impl ValueEnvelope {
+            #[allow(clippy::missing_const_for_fn)]
             fn as_unexpected(&self) -> Unexpected<'_> {
                 match self {
                     Self::Boolean(b) => Unexpected::Bool(*b),

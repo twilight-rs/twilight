@@ -401,7 +401,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
                     value = Some(map.next_value()?);
                 }
-            };
+            }
         }
 
         let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;

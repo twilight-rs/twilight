@@ -71,6 +71,7 @@ impl ActivityButton {
     }
 
     /// Retrieve an immutable reference to the label.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn label(&self) -> Option<&str> {
         match self {
             Self::Link(link) => Some(&link.label),
@@ -81,6 +82,7 @@ impl ActivityButton {
 
     /// Retrieve an immutable reference to the URL if this is a link activity
     /// button.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn url(&self) -> Option<&str> {
         if let Self::Link(link) = self {
             Some(&link.url)

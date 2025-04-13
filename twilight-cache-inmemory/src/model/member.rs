@@ -113,6 +113,7 @@ impl CachedMember {
     }
 
     /// List of role IDs this member has.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn roles(&self) -> &[Id<RoleMarker>] {
         &self.roles
     }
