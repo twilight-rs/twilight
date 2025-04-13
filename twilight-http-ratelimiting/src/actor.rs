@@ -291,7 +291,13 @@ pub async fn runner(
                     queues.find_mut(hash, |a| a.0 == hash).unwrap()
                 } else {
                     let hash = hasher.hash(&msg.path);
-                    queues.entry(hash, |a| a.0 == hash, |a| a.0).or_insert((hash, Queue::default())).into_mut()
+                    match queues.entry(hash, |a| a.0 == hash, |a| a.0) {
+                        TableEntry::Occupied(occupied_entry) => occupied_entry.into_mut(),
+                        TableEntry::Vacant(vacant_entry) => {
+                            tracing::debug!(hash, "created new queue");
+                            vacant_entry.insert((hash, Queue::default())).into_mut()
+                        }
+                    }
                 };
 
                 let cancel = predicate.is_some_and(|p| !p(queue.reset.map(|key| Bucket {
