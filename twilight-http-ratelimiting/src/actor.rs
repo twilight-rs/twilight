@@ -1,6 +1,6 @@
 //! Rate limiting state manager.
 
-use crate::{Bucket, Path, Predicate, RateLimitHeaders, Request, GLOBAL_LIMIT_PERIOD};
+use crate::{Bucket, Path, Predicate, RateLimitHeaders, GLOBAL_LIMIT_PERIOD};
 use hashbrown::{hash_table::Entry as TableEntry, HashTable};
 use std::{
     collections::{hash_map::Entry as MapEntry, HashMap, VecDeque},
@@ -39,6 +39,15 @@ impl Hasher {
     }
 }
 
+/// Pending permit request state.
+#[derive(Debug)]
+pub struct Message {
+    /// Completion handle.
+    pub notifier: oneshot::Sender<oneshot::Sender<Option<RateLimitHeaders>>>,
+    /// Path the permit is for, mapping to a [`Queue`].
+    pub path: Path,
+}
+
 /// Grouped pending permits holder.
 ///
 /// Grouping may be done by path or bucket, based on previous permits' response
@@ -54,7 +63,7 @@ struct Queue {
     /// the queue is exhausted.
     idle: bool,
     /// List of pending permit requests.
-    inner: VecDeque<Request>,
+    inner: VecDeque<Message>,
     /// Total number of permits until the queue becomes exhausted.
     limit: u16,
     /// Key mapping to an [`Instant`] when the queue resets, if rate limited.
@@ -82,7 +91,7 @@ const GC_INTERVAL: Duration = Duration::from_secs(60 * 60 * 6);
 #[allow(clippy::too_many_lines)]
 pub async fn runner(
     global_limit: u16,
-    mut rx: mpsc::UnboundedReceiver<(Request, Option<Predicate>)>,
+    mut rx: mpsc::UnboundedReceiver<(Message, Option<Predicate>)>,
 ) {
     let mut global_remaining = global_limit;
     let mut global_timer = pin!(sleep(Duration::ZERO));
