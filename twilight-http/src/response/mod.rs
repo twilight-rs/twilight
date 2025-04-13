@@ -108,14 +108,12 @@ impl Display for DeserializeBodyError {
             &DeserializeBodyErrorType::BodyNotUtf8 { .. } => {
                 f.write_str("response body is not a utf-8 valid string")
             }
-            DeserializeBodyErrorType::Chunking { .. } => {
-                f.write_str("failed to chunk response body")
-            }
+            DeserializeBodyErrorType::Chunking => f.write_str("failed to chunk response body"),
             #[cfg(feature = "decompression")]
-            DeserializeBodyErrorType::Decompressing { .. } => {
+            DeserializeBodyErrorType::Decompressing => {
                 f.write_str("failed to decompress response body")
             }
-            DeserializeBodyErrorType::Deserializing { .. } => {
+            DeserializeBodyErrorType::Deserializing => {
                 f.write_str("failed to deserialize response body")
             }
         }

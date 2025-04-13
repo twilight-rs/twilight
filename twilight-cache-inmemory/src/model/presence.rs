@@ -23,6 +23,7 @@ pub struct CachedPresence {
 
 impl CachedPresence {
     /// Current activities.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn activities(&self) -> &[Activity] {
         &self.activities
     }

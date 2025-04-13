@@ -47,6 +47,7 @@ impl CachedMessageInteraction {
     }
 
     /// Name of the interaction used.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -151,6 +152,7 @@ impl CachedMessage {
     /// receiving the attachments of messages.
     ///
     /// [`Message::attachments`]: twilight_model::channel::Message::attachments
+    #[allow(clippy::missing_const_for_fn)]
     pub fn attachments(&self) -> &[Attachment] {
         &self.attachments
     }
@@ -173,6 +175,7 @@ impl CachedMessage {
     /// receiving the components of messages.
     ///
     /// [`Message::components`]: twilight_model::channel::Message::components
+    #[allow(clippy::missing_const_for_fn)]
     pub fn components(&self) -> &[Component] {
         &self.components
     }
@@ -183,6 +186,7 @@ impl CachedMessage {
     /// receiving the content of messages.
     ///
     /// [`Message::content`]: twilight_model::channel::Message::content
+    #[allow(clippy::missing_const_for_fn)]
     pub fn content(&self) -> &str {
         &self.content
     }
@@ -198,6 +202,7 @@ impl CachedMessage {
     /// receiving the embeds of messages.
     ///
     /// [`Message::embeds`]: twilight_model::channel::Message::embeds
+    #[allow(clippy::missing_const_for_fn)]
     pub fn embeds(&self) -> &[Embed] {
         &self.embeds
     }
@@ -233,6 +238,7 @@ impl CachedMessage {
     }
 
     /// Channels mentioned in the content.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn mention_channels(&self) -> &[ChannelMention] {
         &self.mention_channels
     }
@@ -243,11 +249,13 @@ impl CachedMessage {
     }
 
     /// Roles mentioned in the content.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn mention_roles(&self) -> &[Id<RoleMarker>] {
         &self.mention_roles
     }
 
     /// Users mentioned in the content.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn mentions(&self) -> &[Id<UserMarker>] {
         &self.mentions
     }
@@ -258,6 +266,7 @@ impl CachedMessage {
     }
 
     /// Reactions to the message.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn reactions(&self) -> &[Reaction] {
         &self.reactions
     }
@@ -274,6 +283,7 @@ impl CachedMessage {
     }
 
     /// Stickers within the message.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn sticker_items(&self) -> &[MessageSticker] {
         &self.sticker_items
     }

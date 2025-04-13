@@ -506,7 +506,7 @@ impl RatelimitHeaders {
 
                     scope.replace(scope_parsed);
                 }
-                _ => continue,
+                _ => (),
             }
         }
 

@@ -124,10 +124,8 @@ impl Display for MessageValidationError {
 
                 Display::fmt(&STICKER_MAX, f)
             }
-            MessageValidationErrorType::TooManyEmbeds { .. } => {
-                f.write_str("message has too many embeds")
-            }
-            MessageValidationErrorType::WebhookUsername { .. } => {
+            MessageValidationErrorType::TooManyEmbeds => f.write_str("message has too many embeds"),
+            MessageValidationErrorType::WebhookUsername => {
                 if let Some(source) = self.source() {
                     Display::fmt(&source, f)
                 } else {
