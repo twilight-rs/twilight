@@ -4,7 +4,7 @@ use crate::{
     client::connector::Connector,
     error::{Error, ErrorType},
 };
-use http::{header::RETRY_AFTER, HeaderMap, Request, StatusCode};
+use http::{header, HeaderMap, Request, StatusCode};
 use http_body_util::Full;
 use hyper::body::Bytes;
 use hyper_util::client::legacy::{Client, ResponseFuture as HyperResponseFuture};
@@ -226,13 +226,13 @@ impl<T> Inner<T> {
                         let mut response = response;
                         // Inaccurate since end-users can only access the decompressed body.
                         #[cfg(feature = "decompression")]
-                        response.headers_mut().remove(http::header::CONTENT_LENGTH);
+                        response.headers_mut().remove(header::CONTENT_LENGTH);
 
                         return Poll::Ready(Ok(Response::new(response)));
                     }
 
                     if response.status() == StatusCode::TOO_MANY_REQUESTS {
-                        if let Some(retry_after) = response.headers().get(RETRY_AFTER) {
+                        if let Some(retry_after) = response.headers().get(header::RETRY_AFTER) {
                             if let Ok(str) = retry_after.to_str() {
                                 if let Ok(secs) = str.parse() {
                                     let duration = Duration::from_secs(secs);
