@@ -191,8 +191,6 @@ impl GatewayEventVisitor<'_> {
                 Ok(Some(key)) if key == field => found = Some(map.next_value()?),
                 Ok(Some(_)) | Err(_) => {
                     map.next_value::<IgnoredAny>()?;
-
-                    continue;
                 }
                 Ok(None) => {
                     break;

@@ -78,9 +78,7 @@ impl PathParseError {
 impl Display for PathParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            PathParseErrorType::IntegerParsing { .. } => {
-                f.write_str("An ID in a segment was invalid")
-            }
+            PathParseErrorType::IntegerParsing => f.write_str("An ID in a segment was invalid"),
             PathParseErrorType::MessageIdWithoutMethod { .. } => {
                 f.write_str("A message path was detected but the method wasn't given")
             }

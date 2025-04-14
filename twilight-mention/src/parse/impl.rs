@@ -168,7 +168,7 @@ impl ParseMention for CommandMention {
                     current_segment = i + 1;
                 }
 
-                Some(_) => continue,
+                Some(_) => (),
             }
         };
 
@@ -187,7 +187,7 @@ impl ParseMention for CommandMention {
                         source: None,
                     })
                 }
-                _ => continue,
+                _ => (),
             }
         };
 

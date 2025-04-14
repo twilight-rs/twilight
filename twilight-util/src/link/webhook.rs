@@ -42,9 +42,7 @@ impl WebhookParseError {
 impl Display for WebhookParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
-            WebhookParseErrorType::IdInvalid { .. } => {
-                f.write_str("url path segment isn't a valid ID")
-            }
+            WebhookParseErrorType::IdInvalid => f.write_str("url path segment isn't a valid ID"),
             WebhookParseErrorType::SegmentMissing => {
                 f.write_str("url is missing a required path segment")
             }
@@ -230,7 +228,7 @@ mod tests {
             super::parse("https://discord.com/api/webhooks/notaninteger")
                 .unwrap_err()
                 .kind(),
-            &WebhookParseErrorType::IdInvalid { .. },
+            &WebhookParseErrorType::IdInvalid,
         ));
     }
 }

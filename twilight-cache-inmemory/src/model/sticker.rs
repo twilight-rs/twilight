@@ -48,6 +48,7 @@ impl CachedSticker {
     }
 
     /// Description of the sticker.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description(&self) -> &str {
         &self.description
     }
@@ -73,6 +74,7 @@ impl CachedSticker {
     }
 
     /// Name of the sticker.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -88,6 +90,7 @@ impl CachedSticker {
     }
 
     /// CSV list of tags the sticker is assigned to, if any.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn tags(&self) -> &str {
         &self.tags
     }
