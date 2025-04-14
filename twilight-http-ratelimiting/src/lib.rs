@@ -135,15 +135,6 @@ pub struct Bucket {
     pub reset_at: Instant,
 }
 
-/// Pending permit state.
-#[derive(Debug)]
-struct Request {
-    /// Completion handle for the associated [`PermitFuture`].
-    notifier: oneshot::Sender<oneshot::Sender<Option<RateLimitHeaders>>>,
-    /// Path the permit is for, mapping to a [`Queue`].
-    path: Path,
-}
-
 /// Actor run closure pre-enqueue for early [`MaybePermitFuture`] cancellation.
 type Predicate = Box<dyn FnOnce(Option<Bucket>) -> bool + Send>;
 
@@ -157,7 +148,7 @@ type Predicate = Box<dyn FnOnce(Option<Bucket>) -> bool + Send>;
 #[derive(Clone, Debug)]
 pub struct RateLimiter {
     /// Actor message sender.
-    tx: mpsc::UnboundedSender<(Request, Option<Predicate>)>,
+    tx: mpsc::UnboundedSender<(actor::Message, Option<Predicate>)>,
 }
 
 impl RateLimiter {
@@ -176,7 +167,7 @@ impl RateLimiter {
     pub fn acquire(&self, path: Path) -> PermitFuture {
         let (tx, rx) = oneshot::channel();
         self.tx
-            .send((Request { path, notifier: tx }, None))
+            .send((actor::Message { path, notifier: tx }, None))
             .expect("actor is alive");
 
         PermitFuture(rx)
@@ -216,7 +207,10 @@ impl RateLimiter {
     {
         let (tx, rx) = oneshot::channel();
         self.tx
-            .send((Request { path, notifier: tx }, Some(Box::new(predicate))))
+            .send((
+                actor::Message { path, notifier: tx },
+                Some(Box::new(predicate)),
+            ))
             .expect("actor is alive");
 
         MaybePermitFuture(rx)

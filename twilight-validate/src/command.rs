@@ -334,7 +334,7 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
         return Err(CommandValidationError {
             kind: CommandValidationErrorType::DescriptionNotAllowed,
         });
-    };
+    }
 
     if let Some(name_localizations) = name_localizations {
         for name in name_localizations.values() {

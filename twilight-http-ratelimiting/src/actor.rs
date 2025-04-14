@@ -1,9 +1,9 @@
 //! Rate limiting state manager.
 
-use crate::{Bucket, Path, Predicate, RateLimitHeaders, Request, GLOBAL_LIMIT_PERIOD};
+use crate::{Bucket, Path, Predicate, RateLimitHeaders, GLOBAL_LIMIT_PERIOD};
 use hashbrown::{hash_table::Entry as TableEntry, HashTable};
 use std::{
-    collections::{hash_map::Entry as MapEntry, HashMap, HashSet, VecDeque},
+    collections::{hash_map::Entry as MapEntry, HashMap, VecDeque},
     future::poll_fn,
     hash::{BuildHasher, Hash, Hasher as _, RandomState},
     mem,
@@ -39,6 +39,15 @@ impl Hasher {
     }
 }
 
+/// Pending permit request state.
+#[derive(Debug)]
+pub struct Message {
+    /// Completion handle.
+    pub notifier: oneshot::Sender<oneshot::Sender<Option<RateLimitHeaders>>>,
+    /// Path the permit is for, mapping to a [`Queue`].
+    pub path: Path,
+}
+
 /// Grouped pending permits holder.
 ///
 /// Grouping may be done by path or bucket, based on previous permits' response
@@ -54,7 +63,7 @@ struct Queue {
     /// the queue is exhausted.
     idle: bool,
     /// List of pending permit requests.
-    inner: VecDeque<Request>,
+    inner: VecDeque<Message>,
     /// Total number of permits until the queue becomes exhausted.
     limit: u16,
     /// Key mapping to an [`Instant`] when the queue resets, if rate limited.
@@ -82,7 +91,7 @@ const GC_INTERVAL: Duration = Duration::from_secs(60 * 60 * 6);
 #[allow(clippy::too_many_lines)]
 pub async fn runner(
     global_limit: u16,
-    mut rx: mpsc::UnboundedReceiver<(Request, Option<Predicate>)>,
+    mut rx: mpsc::UnboundedReceiver<(Message, Option<Predicate>)>,
 ) {
     let mut global_remaining = global_limit;
     let mut global_timer = pin!(sleep(Duration::ZERO));
@@ -152,19 +161,14 @@ pub async fn runner(
             biased;
             () = &mut gc_interval => {
                 let _span = tracing::debug_span!("garbage collection").entered();
-                let keep = buckets
-                .iter()
-                .map(|(path, bucket)| hasher.hash_bucket(bucket, path))
-                .filter(|&hash| {
+                buckets.retain(|path, bucket| {
+                    let hash = hasher.hash_bucket(bucket, path);
                     let entry = queues.find_entry(hash, |a| a.0 == hash).unwrap();
                     let queue = &entry.get().1;
 
-                    !queue.idle || !queue.inner.is_empty() || queue.reset.is_some()
-                })
-                .collect::<HashSet<_>>();
-                queues.retain(|(hash, _)| {
-                    let keep = keep.contains(hash);
+                    let keep = !queue.idle || !queue.inner.is_empty() || queue.reset.is_some();
                     if !keep {
+                        entry.remove();
                         tracing::debug!(hash, "removed");
                     }
 
@@ -296,7 +300,13 @@ pub async fn runner(
                     queues.find_mut(hash, |a| a.0 == hash).unwrap()
                 } else {
                     let hash = hasher.hash(&msg.path);
-                    queues.entry(hash, |a| a.0 == hash, |a| a.0).or_insert((hash, Queue::default())).into_mut()
+                    match queues.entry(hash, |a| a.0 == hash, |a| a.0) {
+                        TableEntry::Occupied(occupied_entry) => occupied_entry.into_mut(),
+                        TableEntry::Vacant(vacant_entry) => {
+                            tracing::debug!(hash, "created new queue");
+                            vacant_entry.insert((hash, Queue::default())).into_mut()
+                        }
+                    }
                 };
 
                 let cancel = predicate.is_some_and(|p| !p(queue.reset.map(|key| Bucket {
@@ -323,5 +333,48 @@ pub async fn runner(
             }
             else => break,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tokio::time::{advance, Duration, Instant};
+
+    use crate::{actor::GC_INTERVAL, Path, RateLimitHeaders, RateLimiter};
+
+    const RESET_AFTER: Duration = Duration::from_secs(5);
+    const PATH: Path = Path::ApplicationsMe;
+    const PATH2: Path = Path::ChannelsId(1);
+
+    #[tokio::test(start_paused = true)]
+    async fn gc() {
+        let rate_limiter = RateLimiter::default();
+
+        rate_limiter
+            .acquire(PATH)
+            .await
+            .complete(Some(RateLimitHeaders {
+                bucket: vec![1, 2, 3],
+                limit: 5,
+                remaining: 4,
+                reset_at: Instant::now() + RESET_AFTER,
+            }));
+
+        advance(GC_INTERVAL - RESET_AFTER).await;
+
+        rate_limiter
+            .acquire(PATH2)
+            .await
+            .complete(Some(RateLimitHeaders {
+                bucket: vec![2, 3, 4],
+                limit: 5,
+                remaining: 4,
+                reset_at: Instant::now() + RESET_AFTER,
+            }));
+
+        advance(RESET_AFTER).await;
+
+        rate_limiter.acquire(PATH).await.complete(None);
+        rate_limiter.acquire(PATH2).await.complete(None);
     }
 }

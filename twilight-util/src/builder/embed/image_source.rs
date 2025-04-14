@@ -40,10 +40,8 @@ impl ImageSourceAttachmentError {
 impl Display for ImageSourceAttachmentError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ImageSourceAttachmentErrorType::ExtensionEmpty { .. } => {
-                f.write_str("the extension is empty")
-            }
-            ImageSourceAttachmentErrorType::ExtensionMissing { .. } => {
+            ImageSourceAttachmentErrorType::ExtensionEmpty => f.write_str("the extension is empty"),
+            ImageSourceAttachmentErrorType::ExtensionMissing => {
                 f.write_str("the extension is missing")
             }
         }

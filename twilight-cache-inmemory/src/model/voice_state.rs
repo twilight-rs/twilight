@@ -77,6 +77,7 @@ impl CachedVoiceState {
     }
 
     /// Session ID.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn session_id(&self) -> &str {
         &self.session_id
     }

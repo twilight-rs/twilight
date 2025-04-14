@@ -76,10 +76,10 @@ impl NodeError {
 impl Display for NodeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            NodeErrorType::BuildingConnectionRequest { .. } => {
+            NodeErrorType::BuildingConnectionRequest => {
                 f.write_str("failed to build connection request")
             }
-            NodeErrorType::Connecting { .. } => f.write_str("Failed to connect to the node"),
+            NodeErrorType::Connecting => f.write_str("Failed to connect to the node"),
             NodeErrorType::SerializingMessage { .. } => {
                 f.write_str("failed to serialize outgoing message as json")
             }
@@ -716,8 +716,6 @@ async fn backoff(
                 tokio_time::sleep(Duration::from_secs(seconds)).await;
 
                 seconds *= 2;
-
-                continue;
             }
         }
     }

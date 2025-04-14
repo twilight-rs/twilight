@@ -230,6 +230,7 @@ impl Request {
     }
 
     /// String path of the full URL.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn path(&self) -> &str {
         &self.path
     }
