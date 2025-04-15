@@ -33,7 +33,6 @@ use serde::{de::DeserializeOwned, Deserialize};
     feature = "rustls-platform-verifier",
     feature = "rustls-webpki-roots"
 ))]
-use std::io::ErrorKind as IoErrorKind;
 use std::{
     env::consts::OS,
     fmt,
@@ -947,24 +946,11 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                         break message;
                     }
                 }
-                // Discord, against recommendations from the WebSocket spec,
-                // does not send a close_notify prior to shutting down the TCP
-                // stream. This arm tries to gracefully handle this. The
-                // connection is considered unusable after encountering an io
-                // error, returning `None`.
-                #[cfg(any(
-                    feature = "native-tls",
-                    feature = "rustls-native-roots",
-                    feature = "rustls-platform-verifier",
-                    feature = "rustls-webpki-roots"
-                ))]
-                Some(Err(WebsocketError::Io(e)))
-                    if e.kind() == IoErrorKind::UnexpectedEof
-                        && self.config.proxy_url().is_none()
-                        && self.state.is_disconnected() => {}
                 Some(Err(_)) => {
-                    self.disconnect(CloseInitiator::Transport);
-                    return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
+                    if !self.state.is_disconnected() {
+                        self.disconnect(CloseInitiator::Transport);
+                        return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
+                    }
                 }
                 None => {
                     _ = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_close(cx));
