@@ -148,26 +148,25 @@ impl<T> Inner<T> {
         loop {
             match &mut self.stage {
                 ResponseFutureStage::Chunking { fut, status } => {
-                    return Poll::Ready(Err(match ready!(Pin::new(fut).poll(cx)) {
-                        Ok(bytes) => match crate::json::from_bytes::<ApiError>(&bytes) {
-                            Ok(error) => Error {
-                                kind: ErrorType::Response {
-                                    body: bytes,
-                                    error,
-                                    status: super::StatusCode::new(status.as_u16()),
-                                },
-                                source: None,
+                    let body = ready!(Pin::new(fut).poll(cx)).map_err(|source| Error {
+                        kind: ErrorType::RequestError,
+                        source: Some(Box::new(source)),
+                    })?;
+
+                    return Poll::Ready(Err(match crate::json::from_bytes::<ApiError>(&body) {
+                        Ok(error) => Error {
+                            kind: ErrorType::Response {
+                                body,
+                                error,
+                                status: super::StatusCode::new(status.as_u16()),
                             },
-                            Err(source) => Error {
-                                kind: ErrorType::Parsing { body: bytes },
-                                source: Some(Box::new(source)),
-                            },
+                            source: None,
                         },
                         Err(source) => Error {
-                            kind: ErrorType::RequestError,
+                            kind: ErrorType::Parsing { body },
                             source: Some(Box::new(source)),
                         },
-                    }))
+                    }));
                 }
                 ResponseFutureStage::Delay(fut) => {
                     ready!(Pin::new(fut).poll(cx));
@@ -236,6 +235,7 @@ impl<T> Inner<T> {
                             if let Ok(str) = retry_after.to_str() {
                                 if let Ok(secs) = str.parse() {
                                     let duration = Duration::from_secs(secs);
+                                    tracing::debug!(?duration, "retrying request");
                                     self.stage =
                                         ResponseFutureStage::Delay(Box::pin(time::sleep(duration)));
                                     continue;
