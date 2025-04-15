@@ -27,12 +27,6 @@ use crate::{
 use futures_core::Stream;
 use futures_sink::Sink;
 use serde::{de::DeserializeOwned, Deserialize};
-#[cfg(any(
-    feature = "native-tls",
-    feature = "rustls-native-roots",
-    feature = "rustls-platform-verifier",
-    feature = "rustls-webpki-roots"
-))]
 use std::{
     env::consts::OS,
     fmt,
