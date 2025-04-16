@@ -1,4 +1,5 @@
 use crate::{traits::CacheableChannel, CacheableModels, InMemoryCache, ResourceType, UpdateCache};
+use twilight_model::gateway::payload::incoming::VoiceChannelStatusUpdate;
 use twilight_model::{
     channel::Channel,
     gateway::payload::incoming::{ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate},
@@ -80,6 +81,18 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ChannelUpdate {
         }
 
         cache.cache_channel(self.0.clone());
+    }
+}
+
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for VoiceChannelStatusUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
+        if !cache.wants(ResourceType::CHANNEL) {
+            return;
+        }
+
+        if let Some(mut channel) = cache.channels.get_mut(&self.id) {
+            channel.set_status(self.status.clone());
+        }
     }
 }
 

@@ -864,6 +864,7 @@ impl<CacheModels: CacheableModels> Default for InMemoryCache<CacheModels> {
 }
 
 mod private {
+    use twilight_model::gateway::payload::incoming::VoiceChannelStatusUpdate;
     use twilight_model::gateway::{
         event::Event,
         payload::incoming::{
@@ -922,6 +923,7 @@ mod private {
     impl Sealed for ThreadUpdate {}
     impl Sealed for UnavailableGuild {}
     impl Sealed for UserUpdate {}
+    impl Sealed for VoiceChannelStatusUpdate {}
     impl Sealed for VoiceStateUpdate {}
     impl Sealed for GuildScheduledEventCreate {}
     impl Sealed for GuildScheduledEventDelete {}
@@ -1013,6 +1015,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             Event::ThreadUpdate(v) => cache.update(v.deref()),
             Event::UnavailableGuild(v) => cache.update(v),
             Event::UserUpdate(v) => cache.update(v),
+            Event::VoiceChannelStatusUpdate(v) => cache.update(v),
             Event::VoiceStateUpdate(v) => cache.update(v.deref()),
 
             // Ignored events.
