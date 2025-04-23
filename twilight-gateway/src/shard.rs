@@ -940,11 +940,10 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                         break message;
                     }
                 }
+                Some(Err(_)) if self.state.is_disconnected() => {}
                 Some(Err(_)) => {
-                    if !self.state.is_disconnected() {
-                        self.disconnect(CloseInitiator::Transport);
-                        return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
-                    }
+                    self.disconnect(CloseInitiator::Transport);
+                    return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));
                 }
                 None => {
                     _ = ready!(Pin::new(self.connection.as_mut().unwrap()).poll_close(cx));
