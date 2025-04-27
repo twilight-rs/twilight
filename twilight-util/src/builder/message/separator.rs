@@ -1,4 +1,4 @@
-use twilight_model::channel::message::component::{Separator, SeperatorSpacingSize};
+use twilight_model::channel::message::component::{Separator, SeparatorSpacingSize};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into a separator"]
@@ -25,7 +25,7 @@ impl SeparatorBuilder {
         self
     }
 
-    pub fn spacing(mut self, spacing: SeperatorSpacingSize) -> Self {
+    pub fn spacing(mut self, spacing: SeparatorSpacingSize) -> Self {
         self.0.spacing.replace(spacing.into());
 
         self
