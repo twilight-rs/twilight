@@ -13,7 +13,7 @@ mod kind;
 mod media_gallery;
 mod section;
 mod select_menu;
-mod seperator;
+mod separator;
 mod text_display;
 mod text_input;
 mod thumbnail;
@@ -28,7 +28,7 @@ pub use self::{
     media_gallery::{MediaGallery, MediaGalleryItem},
     section::Section,
     select_menu::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
-    seperator::{Separator, SeperatorSpacingSize},
+    separator::{Separator, SeparatorSpacingSize},
     text_display::TextDisplay,
     text_input::{TextInput, TextInputStyle},
     thumbnail::Thumbnail,
@@ -301,7 +301,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut content: Option<String> = None;
         let mut items: Option<Vec<MediaGalleryItem>> = None;
         let mut divider: Option<bool> = None;
-        let mut spacing: Option<SeperatorSpacingSize> = None;
+        let mut spacing: Option<SeparatorSpacingSize> = None;
         let mut file: Option<UnfurledMediaItem> = None;
         let mut spoiler: Option<bool> = None;
         let mut accessory: Option<Component> = None;
