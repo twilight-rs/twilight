@@ -40,19 +40,33 @@ pub enum ComponentType {
     ///
     /// [`SelectMenu`]: super::SelectMenu
     ChannelSelectMenu,
-    /// Component is a Section.
+    /// Component is a [`Container`] to display text alongside an accessory component.
+    ///
+    /// [`Container`]: super::Container
     Section,
-    /// Component is a TextDisplay.
+    /// Component is a [`TextDisplay`] containing markdown text.
+    ///
+    /// [`TextDisplay`]: super::TextDisplay
     TextDisplay,
-    /// Component is a Thumbnail.
+    /// Component is a [`Thumbnail`] that can be used as an accessory.
+    ///
+    /// [`Thumbnail`]: super::Thumbnail
     Thumbnail,
-    /// Component is a MediaGallery.
+    /// Component is a [`MediaGallery`] that display images and other media.
+    ///
+    /// [`MediaGallery`]: super::MediaGallery
     MediaGallery,
-    /// Component is a File.
+    /// Component is a [`FileDisplay`] that displays an attached file.
+    ///
+    /// [`FileDisplay`]: super::FileDisplay
     File,
-    /// Component is a Separator.
+    /// Component is a [`Separator`] that adds vertical padding between other components.
+    ///
+    /// [`Separator`]: super::Separator
     Separator,
-    /// Component is a Container.
+    /// Component is a [`Container`] that visually groups a set of components.
+    ///
+    /// [`Container`]: super::Container
     Container,
     /// Variant value is unknown to the library.
     Unknown(u8),
@@ -178,6 +192,13 @@ mod tests {
         serde_test::assert_tokens(&ComponentType::RoleSelectMenu, &[Token::U8(6)]);
         serde_test::assert_tokens(&ComponentType::MentionableSelectMenu, &[Token::U8(7)]);
         serde_test::assert_tokens(&ComponentType::ChannelSelectMenu, &[Token::U8(8)]);
+        serde_test::assert_tokens(&ComponentType::Section, &[Token::U8(9)]);
+        serde_test::assert_tokens(&ComponentType::TextDisplay, &[Token::U8(10)]);
+        serde_test::assert_tokens(&ComponentType::Thumbnail, &[Token::U8(11)]);
+        serde_test::assert_tokens(&ComponentType::MediaGallery, &[Token::U8(12)]);
+        serde_test::assert_tokens(&ComponentType::File, &[Token::U8(13)]);
+        serde_test::assert_tokens(&ComponentType::Separator, &[Token::U8(14)]);
+        serde_test::assert_tokens(&ComponentType::Container, &[Token::U8(17)]);
         serde_test::assert_tokens(&ComponentType::Unknown(99), &[Token::U8(99)]);
     }
 

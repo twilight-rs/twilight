@@ -2,13 +2,16 @@ use serde::{Deserialize, Serialize};
 
 /// A separator is a layout component that adds vertical padding and
 /// visual division between components.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct Separator {
     /// Optional identifier for the separator.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i32>,
     /// Whether a visual divider should be shown. Defaults to `true`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub divider: Option<bool>,
     /// The size of the separator padding. Defaults to `Small`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub spacing: Option<SeparatorSpacingSize>,
 }
 
