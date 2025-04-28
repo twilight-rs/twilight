@@ -5,13 +5,17 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct Section {
     /// Optional identifier for the section.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i32>,
-    /// An array of components making up this section.
+    /// One to three [text components].
     ///
-    /// Currently, only the TextDisplay component is supported here.
+    /// [text components]: super::TextDisplay
     pub components: Vec<Component>,
     /// An accessory component for this section.
     ///
-    /// Currently, only Thumbnail or Button components are supported here.
+    /// Currently, only [Thumbnail] and [Button] components are supported here.
+    ///
+    /// [Thumbnail]: super::Thumbnail
+    /// [Button]: super::Button
     pub accessory: Box<Component>,
 }

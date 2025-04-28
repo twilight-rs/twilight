@@ -60,7 +60,9 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// use twilight_model::channel::message::component::{ActionRow, Button, ButtonStyle, Component};
 ///
 /// Component::ActionRow(ActionRow {
+///     id: None,
 ///     components: Vec::from([Component::Button(Button {
+///         id: None,
 ///         custom_id: Some("click_one".to_owned()),
 ///         disabled: false,
 ///         emoji: None,
@@ -84,7 +86,9 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// };
 ///
 /// Component::ActionRow(ActionRow {
+///     id: None,
 ///     components: vec![Component::SelectMenu(SelectMenu {
+///         id: None,
 ///         channel_types: None,
 ///         custom_id: "class_select_1".to_owned(),
 ///         default_values: None,
@@ -141,12 +145,19 @@ pub enum Component {
     SelectMenu(SelectMenu),
     /// Pop-up item that renders on modals.
     TextInput(TextInput),
+    /// Markdown text.
     TextDisplay(TextDisplay),
+    /// Display images and other media.
     MediaGallery(MediaGallery),
+    /// Component to add vertical padding between other components.
     Separator(Separator),
+    /// Displays an attached file.
     File(FileDisplay),
+    /// Container to display text alongside an accessory component.
     Section(Section),
+    /// Container that visually groups a set of components.
     Container(Container),
+    /// Small image that can be used as an accessory.
     Thumbnail(Thumbnail),
     /// Variant value is unknown to the library.
     Unknown(u8),
@@ -161,6 +172,7 @@ impl Component {
     /// };
     ///
     /// let component = Component::Button(Button {
+    ///     id: None,
     ///     custom_id: None,
     ///     disabled: false,
     ///     emoji: None,
@@ -728,12 +740,16 @@ impl Serialize for Component {
             // Required fields:
             // - type
             // - components
+            //
+            // Optional fields:
+            // - id
             Component::ActionRow(row) => 2 + usize::from(row.id.is_some()),
             // Required fields:
             // - type
             // - style
             //
             // Optional fields:
+            // - id
             // - custom_id
             // - disabled
             // - emoji
@@ -755,6 +771,7 @@ impl Serialize for Component {
             // - type
             //
             // Optional fields:
+            // - id
             // - channel_types (for channel select menus)
             // - default_values
             // - disabled
@@ -780,6 +797,7 @@ impl Serialize for Component {
             // - type
             //
             // Optional fields:
+            // - id
             // - max_length
             // - min_length
             // - placeholder
@@ -793,28 +811,72 @@ impl Serialize for Component {
                     + usize::from(text_input.value.is_some())
                     + usize::from(text_input.id.is_some())
             }
+            // Required fields:
+            // - type
+            // - content
+            // Optional fields:
+            // - id
             Component::TextDisplay(text_display) => 2 + usize::from(text_display.id.is_some()),
+            // Required fields:
+            // - type
+            // - items
+            // Optional fields:
+            // - id
             Component::MediaGallery(media_gallery) => 2 + usize::from(media_gallery.id.is_some()),
+            // Required fields:
+            // - type
+            // Optional fields:
+            // - id
+            // - divider
+            // - spacing
             Component::Separator(separator) => {
-                2 + usize::from(separator.divider.is_some())
+                1 + usize::from(separator.divider.is_some())
                     + usize::from(separator.spacing.is_some())
                     + usize::from(separator.id.is_some())
             }
+            // Required fields:
+            // - type
+            // - file
+            // Optional fields:
+            // - id
+            // - spoiler
             Component::File(file) => {
-                3 + usize::from(file.spoiler.is_some()) + usize::from(file.id.is_some())
+                2 + usize::from(file.spoiler.is_some()) + usize::from(file.id.is_some())
             }
-            // We are dropping fields here but nothing we can do about that for
-            // the time being.
-            Component::Unknown(_) => 1,
+            // Required fields:
+            // - type
+            // - components
+            // - accessory
+            // Optional fields:
+            // - id
             Component::Section(section) => 3 + usize::from(section.id.is_some()),
+            // Required fields:
+            // - type
+            // - components
+            // Optional fields:
+            // - id
+            // - accent_color
+            // - spoiler
             Component::Container(container) => {
                 2 + usize::from(container.accent_color.is_some())
                     + usize::from(container.spoiler.is_some())
                     + usize::from(container.id.is_some())
             }
+            // Required fields:
+            // - type
+            // - media
+            // Optional fields:
+            // - id
+            // - description
+            // - spoiler
             Component::Thumbnail(thumbnail) => {
-                2 + usize::from(thumbnail.spoiler.is_some()) + usize::from(thumbnail.id.is_some())
+                2 + usize::from(thumbnail.spoiler.is_some())
+                    + usize::from(thumbnail.id.is_some())
+                    + usize::from(thumbnail.description.is_some())
             }
+            // We are dropping fields here but nothing we can do about that for
+            // the time being.
+            Component::Unknown(_) => 1,
         };
 
         let mut state = serializer.serialize_struct("Component", len)?;
@@ -822,11 +884,17 @@ impl Serialize for Component {
         match self {
             Component::ActionRow(action_row) => {
                 state.serialize_field("type", &ComponentType::ActionRow)?;
+                if let Some(id) = action_row.id {
+                    state.serialize_field("id", &id)?;
+                }
 
                 state.serialize_field("components", &action_row.components)?;
             }
             Component::Button(button) => {
                 state.serialize_field("type", &ComponentType::Button)?;
+                if let Some(id) = button.id {
+                    state.serialize_field("id", &id)?;
+                }
 
                 if button.custom_id.is_some() {
                     state.serialize_field("custom_id", &button.custom_id)?;
@@ -858,6 +926,10 @@ impl Serialize for Component {
                 match &select_menu.kind {
                     SelectMenuType::Text => {
                         state.serialize_field("type", &ComponentType::TextSelectMenu)?;
+                        if let Some(id) = select_menu.id {
+                            state.serialize_field("id", &id)?;
+                        }
+
                         state.serialize_field(
                             "options",
                             &select_menu.options.as_ref().ok_or(SerError::custom(
@@ -867,15 +939,28 @@ impl Serialize for Component {
                     }
                     SelectMenuType::User => {
                         state.serialize_field("type", &ComponentType::UserSelectMenu)?;
+                        if let Some(id) = select_menu.id {
+                            state.serialize_field("id", &id)?;
+                        }
                     }
                     SelectMenuType::Role => {
                         state.serialize_field("type", &ComponentType::RoleSelectMenu)?;
+                        if let Some(id) = select_menu.id {
+                            state.serialize_field("id", &id)?;
+                        }
                     }
                     SelectMenuType::Mentionable => {
                         state.serialize_field("type", &ComponentType::MentionableSelectMenu)?;
+                        if let Some(id) = select_menu.id {
+                            state.serialize_field("id", &id)?;
+                        }
                     }
                     SelectMenuType::Channel => {
                         state.serialize_field("type", &ComponentType::ChannelSelectMenu)?;
+                        if let Some(id) = select_menu.id {
+                            state.serialize_field("id", &id)?;
+                        }
+
                         if let Some(channel_types) = &select_menu.channel_types {
                             state.serialize_field("channel_types", channel_types)?;
                         }
@@ -906,6 +991,9 @@ impl Serialize for Component {
             }
             Component::TextInput(text_input) => {
                 state.serialize_field("type", &ComponentType::TextInput)?;
+                if let Some(id) = text_input.id {
+                    state.serialize_field("id", &id)?;
+                }
 
                 // Due to `custom_id` and `label` being required in some
                 // variants and optional in others, serialize as an Option.
@@ -936,52 +1024,79 @@ impl Serialize for Component {
             }
             Component::TextDisplay(text_display) => {
                 state.serialize_field("type", &ComponentType::TextDisplay)?;
-                state.serialize_field("id", &text_display.id)?;
+                if let Some(id) = text_display.id {
+                    state.serialize_field("id", &id)?;
+                }
 
                 state.serialize_field("content", &text_display.content)?;
             }
             Component::MediaGallery(media_gallery) => {
                 state.serialize_field("type", &ComponentType::MediaGallery)?;
-                state.serialize_field("id", &media_gallery.id)?;
+                if let Some(id) = media_gallery.id {
+                    state.serialize_field("id", &id)?;
+                }
 
                 state.serialize_field("items", &media_gallery.items)?;
             }
-            Component::Separator(seperator) => {
+            Component::Separator(separator) => {
                 state.serialize_field("type", &ComponentType::Separator)?;
-                state.serialize_field("id", &seperator.id)?;
-
-                state.serialize_field("divider", &seperator.divider)?;
-                state.serialize_field("spacing", &seperator.spacing)?;
+                if let Some(id) = separator.id {
+                    state.serialize_field("id", &id)?;
+                }
+                if let Some(divider) = separator.divider {
+                    state.serialize_field("divider", &divider)?;
+                }
+                if let Some(spacing) = &separator.spacing {
+                    state.serialize_field("spacing", spacing)?;
+                }
             }
             Component::File(file) => {
                 state.serialize_field("type", &ComponentType::File)?;
-                state.serialize_field("id", &file.id)?;
+                if let Some(id) = file.id {
+                    state.serialize_field("id", &id)?;
+                }
 
                 state.serialize_field("file", &file.file)?;
-                state.serialize_field("spoiler", &file.spoiler)?;
+                if let Some(spoiler) = file.spoiler {
+                    state.serialize_field("spoiler", &spoiler)?;
+                }
             }
             Component::Section(section) => {
                 state.serialize_field("type", &ComponentType::Section)?;
-                state.serialize_field("id", &section.id)?;
+                if let Some(id) = section.id {
+                    state.serialize_field("id", &id)?;
+                }
 
                 state.serialize_field("components", &section.components)?;
                 state.serialize_field("accessory", &section.accessory)?;
             }
             Component::Container(container) => {
                 state.serialize_field("type", &ComponentType::Container)?;
-                state.serialize_field("id", &container.id)?;
+                if let Some(id) = container.id {
+                    state.serialize_field("id", &id)?;
+                }
 
-                state.serialize_field("accent_color", &container.accent_color)?;
-                state.serialize_field("spoiler", &container.spoiler)?;
+                if let Some(accent_color) = container.accent_color {
+                    state.serialize_field("accent_color", &accent_color)?;
+                }
+                if let Some(spoiler) = container.spoiler {
+                    state.serialize_field("spoiler", &spoiler)?;
+                }
                 state.serialize_field("components", &container.components)?;
             }
             Component::Thumbnail(thumbnail) => {
                 state.serialize_field("type", &ComponentType::Thumbnail)?;
-                state.serialize_field("id", &thumbnail.id)?;
+                if let Some(id) = thumbnail.id {
+                    state.serialize_field("id", &id)?;
+                }
 
                 state.serialize_field("media", &thumbnail.media)?;
-                state.serialize_field("description", &thumbnail.description)?;
-                state.serialize_field("spoiler", &thumbnail.spoiler)?;
+                if let Some(description) = &thumbnail.description {
+                    state.serialize_field("description", description)?;
+                }
+                if let Some(spoiler) = thumbnail.spoiler {
+                    state.serialize_field("spoiler", &spoiler)?;
+                }
             }
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing

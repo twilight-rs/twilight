@@ -3,21 +3,24 @@ use serde::{Deserialize, Serialize};
 use super::unfurled_media::UnfurledMediaItem;
 
 /// Component used to organize a set of [`MediaGalleryItem`]s.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct MediaGallery {
-    /// Unique identifier of the media gallery.
+    /// Optional identifier for the media gallery.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i32>,
-    /// List of media gallery items.
+    /// 1 to 10 media gallery items.
     pub items: Vec<MediaGalleryItem>,
 }
 
 /// A media gallery item.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct MediaGalleryItem {
-    /// The attachment for this media gallery item.
+    /// A unfurled media item containing a url or attachment.
     pub media: UnfurledMediaItem,
-    /// The description of this media gallery item.
+    /// Alt text for the media gallery item.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    /// Whether this media gallery item is spoilered (blurred).
+    /// Whether the media should be a spoiler (or blurred out). Defaults to `false`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub spoiler: Option<bool>,
 }

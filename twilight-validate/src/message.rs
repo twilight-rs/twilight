@@ -275,7 +275,7 @@ pub fn components(components: &[Component]) -> Result<(), MessageValidationError
         })
     } else {
         for (idx, component) in components.iter().enumerate() {
-            crate::component::component(component).map_err(|source| {
+            crate::component::component_v2(component).map_err(|source| {
                 let (kind, source) = source.into_parts();
 
                 MessageValidationError {

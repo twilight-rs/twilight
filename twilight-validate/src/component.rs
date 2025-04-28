@@ -11,6 +11,8 @@ use twilight_model::channel::message::component::{
     SelectMenuType, TextInput,
 };
 
+pub use component_v2::component_v2;
+
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
 ///
 /// This is defined in Discord's documentation, per

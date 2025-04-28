@@ -2,18 +2,23 @@ use serde::{Deserialize, Serialize};
 
 use super::Component;
 
-/// A container is a top-level component that is used to organize other
-/// child [`Component`]s.
+/// A Container is a top-level layout component that holds up to 10
+/// [`Component`]s. Containers are visually distinct from surrounding
+/// [`Component`]s and have an optional customizable color bar.
+///
+/// Containers are only available in messages.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct Container {
-    /// The unique identifier of the container.
+    /// Optional identifier for the container.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i32>,
-    /// The color of the vertical bar on the left side of the container.
+    /// Color for the accent on the container as RGB from `0x000000` to `0xFFFFFF`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub accent_color: Option<u32>,
-    /// Whether the container should present content as a spoiler.
+    /// Whether the container should be a spoiler (or blurred out). Defaults to `false`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub spoiler: Option<bool>,
-    // At the moment this can only be ActionRow, TextDisplay, Section,
-    // MediaGallery, Separator, File.
-    /// The components inside this container.
+    /// Up to 10 components of the type action row, text display,
+    /// section, media gallery, separator, or file.
     pub components: Vec<Component>,
 }
