@@ -15,7 +15,9 @@ use twilight_model::{
 /// use twilight_util::builder::InteractionResponseDataBuilder;
 ///
 /// let component = Component::ActionRow(ActionRow {
+///     id: None,
 ///     components: Vec::from([Component::Button(Button {
+///         id: None,
 ///         style: ButtonStyle::Primary,
 ///         emoji: None,
 ///         label: Some("Button label".to_string()),
@@ -204,6 +206,7 @@ mod tests {
             url: None,
             disabled: false,
             sku_id: None,
+            id: None,
         });
 
         let embed = Embed {
