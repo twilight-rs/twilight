@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Button {
+    /// Optional identifier for the button.
     pub id: Option<i32>,
     /// User defined identifier for the button.
     ///

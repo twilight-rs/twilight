@@ -40,12 +40,19 @@ pub enum ComponentType {
     ///
     /// [`SelectMenu`]: super::SelectMenu
     ChannelSelectMenu,
+    /// Component is a Section.
     Section,
+    /// Component is a TextDisplay.
     TextDisplay,
+    /// Component is a Thumbnail.
     Thumbnail,
+    /// Component is a MediaGallery.
     MediaGallery,
+    /// Component is a File.
     File,
+    /// Component is a Separator.
     Separator,
+    /// Component is a Container.
     Container,
     /// Variant value is unknown to the library.
     Unknown(u8),

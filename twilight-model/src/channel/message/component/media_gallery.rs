@@ -11,9 +11,13 @@ pub struct MediaGallery {
     pub items: Vec<MediaGalleryItem>,
 }
 
+/// A media gallery item.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct MediaGalleryItem {
+    /// The attachment for this media gallery item.
     pub media: UnfurledMediaItem,
+    /// The description of this media gallery item.
     pub description: Option<String>,
+    /// Whether this media gallery item is spoilered (blurred).
     pub spoiler: Option<bool>,
 }
