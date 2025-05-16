@@ -36,6 +36,8 @@ bitflags! {
         const SUPPRESS_NOTIFICATIONS = 1 << 12;
         /// This message is a voice message.
         const IS_VOICE_MESSAGE = 1 << 13;
+        /// This flag is required to use the components v2 components.
+        const IS_COMPONENTS_V2 = 1 << 15;
     }
 }
 

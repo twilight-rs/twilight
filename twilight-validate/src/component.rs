@@ -1,5 +1,7 @@
 //! Constants, error types, and functions for validating [`Component`]s.
 
+mod component_v2;
+
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -8,6 +10,8 @@ use twilight_model::channel::message::component::{
     ActionRow, Button, ButtonStyle, Component, ComponentType, SelectMenu, SelectMenuOption,
     SelectMenuType, TextInput,
 };
+
+pub use component_v2::component_v2;
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
 ///
@@ -355,6 +359,9 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&TEXT_INPUT_PLACEHOLDER_MAX, f)
             }
+            ComponentValidationErrorType::DisallowedV2 => {
+                f.write_str("A V2 component was used in a component V1 message")
+            }
         }
     }
 }
@@ -501,9 +508,43 @@ pub enum ComponentValidationErrorType {
         /// Provided number of codepoints.
         chars: usize,
     },
+    /// V2 Components used in a V1 component.
+    DisallowedV2,
 }
 
-/// Ensure that a top-level request component is correct.
+/// Ensure that a top-level request component is correct in V1.
+///
+/// Intended to ensure that a fully formed top-level component for requests
+/// is an action row.
+///
+/// Refer to other validators like [`button`] if you need to validate other
+/// components.
+///
+/// # Errors
+///
+/// Returns an error of type [`InvalidRootComponent`] if the component is not an
+/// [`ActionRow`].
+///
+/// Refer to [`action_row`] for potential errors when validating an action row
+/// component.
+///
+/// Returns a error if any components V2 components are used.
+///
+/// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
+pub fn component_v1(component: &Component) -> Result<(), ComponentValidationError> {
+    match component {
+        Component::ActionRow(action_row) => self::action_row(action_row)?,
+        other => {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
+            });
+        }
+    }
+
+    Ok(())
+}
+
+/// Ensure that a top-level request component is correct in V1.
 ///
 /// Intended to ensure that a fully formed top-level component for requests
 /// is an action row.
@@ -520,17 +561,9 @@ pub enum ComponentValidationErrorType {
 /// component.
 ///
 /// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
+#[deprecated(note = "Use component_v1 for old components and component_v2 for new")]
 pub fn component(component: &Component) -> Result<(), ComponentValidationError> {
-    match component {
-        Component::ActionRow(action_row) => self::action_row(action_row)?,
-        other => {
-            return Err(ComponentValidationError {
-                kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
-            });
-        }
-    }
-
-    Ok(())
+    component_v1(component)
 }
 
 /// Ensure that an action row is correct.
@@ -575,6 +608,18 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
                     kind: ComponentValidationErrorType::InvalidChildComponent {
                         kind: ComponentType::Unknown(*unknown),
                     },
+                })
+            }
+
+            Component::TextDisplay(_)
+            | Component::MediaGallery(_)
+            | Component::Separator(_)
+            | Component::File(_)
+            | Component::Section(_)
+            | Component::Container(_)
+            | Component::Thumbnail(_) => {
+                return Err(ComponentValidationError {
+                    kind: ComponentValidationErrorType::DisallowedV2,
                 })
             }
         }
@@ -1229,6 +1274,7 @@ mod tests {
             style: ButtonStyle::Link,
             url: Some("https://abebooks.com".into()),
             sku_id: None,
+            id: None,
         };
 
         let select_menu = SelectMenu {
@@ -1247,6 +1293,7 @@ mod tests {
                 value: "9780316129084".into(),
             }])),
             placeholder: Some("Choose a book".into()),
+            id: None,
         };
 
         let action_row = ActionRow {
@@ -1254,6 +1301,7 @@ mod tests {
                 Component::SelectMenu(select_menu.clone()),
                 Component::Button(button),
             ]),
+            id: None,
         };
 
         assert!(component(&Component::ActionRow(action_row.clone())).is_ok());
@@ -1271,6 +1319,7 @@ mod tests {
                 Component::SelectMenu(select_menu.clone()),
                 Component::SelectMenu(select_menu),
             ]),
+            id: None,
         });
 
         assert!(component(&invalid_action_row).is_err());
@@ -1288,6 +1337,7 @@ mod tests {
             style: ButtonStyle::Primary,
             url: Some("https://twilight.rs".to_owned()),
             sku_id: None,
+            id: None,
         };
 
         assert!(matches!(
@@ -1311,6 +1361,7 @@ mod tests {
                 style: *style,
                 url: None,
                 sku_id: None,
+                id: None,
             };
 
             assert!(matches!(
