@@ -15,7 +15,7 @@ pub struct MediaGallery {
 /// A media gallery item.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct MediaGalleryItem {
-    /// A unfurled media item containing a url or attachment.
+    /// An unfurled media item containing a url or attachment.
     pub media: UnfurledMediaItem,
     /// Alt text for the media gallery item.
     #[serde(skip_serializing_if = "Option::is_none")]
