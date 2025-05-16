@@ -13,9 +13,9 @@ pub struct Section {
     pub components: Vec<Component>,
     /// An accessory component for this section.
     ///
-    /// Currently, only [Thumbnail] and [Button] components are supported here.
+    /// Currently, only [`Thumbnail`] and [`Button`] components are supported here.
     ///
-    /// [Thumbnail]: super::Thumbnail
-    /// [Button]: super::Button
+    /// [`Thumbnail`]: super::Thumbnail
+    /// [`Button`]: super::Button
     pub accessory: Box<Component>,
 }
