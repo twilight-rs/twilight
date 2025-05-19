@@ -39,3 +39,25 @@ impl From<ActionRowBuilder> for ActionRow {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ActionRowBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(ActionRow: From<ActionRowBuilder>);
+
+    #[test]
+    fn builder() {
+        let expected = ActionRow {
+            id: None,
+            components: Vec::new(),
+        };
+
+        let actual = ActionRowBuilder::new().build();
+
+        assert_eq!(actual, expected);
+    }
+}
