@@ -17,7 +17,7 @@ version = "0.16.0"
 hashbrown = { default-features = false, version = "0.15" }
 tokio = { default-features = false, features = ["macros", "rt", "sync", "time"], version = "1.29" }
 tokio-util = { default-features = false, features = ["time"], version = "0.7.11" }
-tracing = { default-features = false, features = ["std", "attributes"], version = "0.1.23" }
+tracing = { default-features = false, features = ["std"], version = "0.1.23" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1.1.0" }
