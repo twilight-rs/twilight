@@ -15,8 +15,9 @@ use std::{
         Arc,
     },
     task::{Context, Poll},
+    time::{Duration, Instant},
 };
-use tokio::time::{self, Duration, Instant, Timeout};
+use tokio::time::{self, Timeout};
 use twilight_http_ratelimiting::{Permit, PermitFuture, RateLimitHeaders};
 
 type Output<T> = Result<Response<T>, Error>;

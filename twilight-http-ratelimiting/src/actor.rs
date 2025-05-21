@@ -255,13 +255,13 @@ pub async fn runner(
                     queue.limit = headers.limit;
                     queue.remaining = headers.remaining;
                     if let Some(key) = &queue.reset {
-                        reset.reset_at(key, headers.reset_at);
+                        reset.reset_at(key, headers.reset_at.into());
                     } else {
-                        queue.reset = Some(reset.insert_at(hash, headers.reset_at));
+                        queue.reset = Some(reset.insert_at(hash, headers.reset_at.into()));
                     }
                     if queue.is_exhasted() {
                         tracing::info!(
-                            reset_after = ?headers.reset_at.saturating_duration_since(Instant::now()),
+                            reset_after = ?headers.reset_at.saturating_duration_since(Instant::now().into()),
                             "exhausted"
                         );
                         continue;
@@ -303,7 +303,7 @@ pub async fn runner(
                 let is_cancelled = pred.is_some_and(|p| !p(queue.reset.map(|key| crate::Bucket {
                     limit: queue.limit,
                     remaining: queue.remaining,
-                    reset_at: reset.deadline(&key),
+                    reset_at: reset.deadline(&key).into(),
                 })));
 
                 let queue_active = queue.in_flight || (queue.is_exhasted() && queue.reset.is_some());
@@ -330,7 +330,8 @@ pub async fn runner(
 
 #[cfg(test)]
 mod tests {
-    use tokio::time::{advance, Duration, Instant};
+    use std::time::{Duration, Instant};
+    use tokio::time;
 
     use crate::{actor::GC_INTERVAL, Path, RateLimitHeaders, RateLimiter};
 
@@ -352,7 +353,7 @@ mod tests {
                 reset_at: Instant::now() + RESET_AFTER,
             }));
 
-        advance(GC_INTERVAL - RESET_AFTER).await;
+        time::advance(GC_INTERVAL - RESET_AFTER).await;
 
         rate_limiter
             .acquire(PATH2)
@@ -364,7 +365,7 @@ mod tests {
                 reset_at: Instant::now() + RESET_AFTER,
             }));
 
-        advance(RESET_AFTER).await;
+        time::advance(RESET_AFTER).await;
 
         rate_limiter.acquire(PATH).await.complete(None);
         rate_limiter.acquire(PATH2).await.complete(None);
