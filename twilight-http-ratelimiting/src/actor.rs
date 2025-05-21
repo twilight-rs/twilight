@@ -214,13 +214,13 @@ pub async fn runner(
 
                     let hash = hasher.bucket(&headers.bucket, &path);
                     let queue = match buckets.entry(path.clone()) {
-                        MapEntry::Occupied(occupied) if *occupied.get() == headers.bucket => {
+                        MapEntry::Occupied(entry) if *entry.get() == headers.bucket => {
                             &mut queues.find_mut(hash, |&(key, _)| key == hash).unwrap().1
                         }
                         old_entry => {
                             let old_hash = match &old_entry {
-                                MapEntry::Occupied(occupied) => hasher.bucket(occupied.get(), occupied.key()),
-                                MapEntry::Vacant(vacant) => hasher.path(vacant.key()),
+                                MapEntry::Occupied(entry) => hasher.bucket(entry.get(), entry.key()),
+                                MapEntry::Vacant(entry) => hasher.path(entry.key()),
                             };
                             tracing::debug!(new = hash, previous = old_hash, "updated bucket");
 
@@ -233,11 +233,18 @@ pub async fn runner(
                             old_queue.pending = old_pending;
                             try_pop!(old_queue);
 
-                            old_entry.insert_entry(headers.bucket);
+                            match old_entry {
+                                MapEntry::Occupied(mut entry) => {
+                                    entry.insert(headers.bucket);
+                                }
+                                MapEntry::Vacant(entry) => {
+                                    entry.insert(headers.bucket);
+                                }
+                            }
                             // And move them into the new queue.
                             match queues.entry(hash, |&(key, _)| key == hash, |&(key, _)| key) {
-                                TableEntry::Occupied(occupied) => {
-                                    let (_, incoming_queue) = occupied.into_mut();
+                                TableEntry::Occupied(entry) => {
+                                    let (_, incoming_queue) = entry.into_mut();
                                     incoming_queue.pending.extend(pending);
 
                                     if incoming_queue.in_flight {
@@ -246,7 +253,7 @@ pub async fn runner(
 
                                     incoming_queue
                                 }
-                                TableEntry::Vacant(vacant) => &mut vacant.insert((hash, Queue::from(pending))).into_mut().1,
+                                TableEntry::Vacant(entry) => &mut entry.insert((hash, Queue::from(pending))).into_mut().1,
                             }
                         }
                     };
@@ -292,10 +299,10 @@ pub async fn runner(
                 } else {
                     let hash = hasher.path(&msg.path);
                     match queues.entry(hash, |&(key, _)| key == hash, |&(key, _)| key) {
-                        TableEntry::Occupied(occupied) => occupied.into_mut(),
-                        TableEntry::Vacant(vacant) => {
+                        TableEntry::Occupied(entry) => entry.into_mut(),
+                        TableEntry::Vacant(entry) => {
                             tracing::debug!(path = ?msg.path, "new queue");
-                            vacant.insert((hash, Queue::default())).into_mut()
+                            entry.insert((hash, Queue::default())).into_mut()
                         }
                     }
                 };
