@@ -56,7 +56,7 @@ pub struct Message {
 ///
 /// Queue may not be rate limited, in which case the values of [`limit`][Self::limit],
 /// [`reset`][Self::reset], and [`remaining`][Self::remaining] are unused.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Queue {
     /// Whether the queue has a request in flight.
     in_flight: bool,
@@ -74,18 +74,6 @@ impl Queue {
     /// Whether the queue is exhausted.
     const fn is_exhasted(&self) -> bool {
         self.remaining == 0
-    }
-}
-
-impl Default for Queue {
-    fn default() -> Self {
-        Self {
-            in_flight: false,
-            pending: VecDeque::new(),
-            limit: 0,
-            reset: None,
-            remaining: 0,
-        }
     }
 }
 
