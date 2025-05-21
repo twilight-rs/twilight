@@ -192,7 +192,7 @@ impl RateLimiter {
     ///     .acquire_if(Path::ApplicationsMe, |b| b.is_none_or(|b| b.remaining > 10))
     ///     .await
     /// {
-    ///     let headers = unimplemented!("send /applications/@me request");
+    ///     let headers = unimplemented!("GET /applications/@me");
     ///     permit.complete(headers);
     /// }
     /// # });
