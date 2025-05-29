@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SelectMenu {
+    /// Optional identifier for this select menu.
+    pub id: Option<i32>,
     /// An optional list of channel types.
     ///
     /// This is only applicable to [channel select menus](SelectMenuType::Channel).
