@@ -77,6 +77,8 @@ bitflags! {
         const USE_EXTERNAL_SOUNDS = 1 << 45;
         /// Allows sending voice messages
         const SEND_VOICE_MESSAGES = 1 << 46;
+        /// Allows setting voice channel statuses
+        const SET_VOICE_CHANNEL_STATUS = 1 << 48;
         /// Allows sending polls.
         const SEND_POLLS = 1 << 49;
         /// Allows user-installed apps to send public responses. When
