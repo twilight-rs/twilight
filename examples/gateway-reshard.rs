@@ -115,7 +115,7 @@ async fn identify(
         let identified_count = identified
             .iter()
             .fold(0, |acc, i| acc + i.load(Ordering::Relaxed) as usize);
-        let future = ct.run_until_cancelled(time::timeout_at(deadline.into(), shard.next()));
+        let future = ct.run_until_cancelled(time::timeout_at(deadline, shard.next()));
 
         match future.await {
             Some(Ok(Some(Err(source)))) => {
