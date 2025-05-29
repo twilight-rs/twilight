@@ -4,9 +4,12 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
-    time::{Duration, Instant},
+    time::Duration,
 };
-use tokio::{task::JoinSet, time};
+use tokio::{
+    task::JoinSet,
+    time::{self, Instant},
+};
 use tokio_stream::StreamExt as _;
 use tokio_util::sync::CancellationToken;
 use twilight_gateway::{
@@ -115,7 +118,7 @@ async fn identify(
         let identified_count = identified
             .iter()
             .fold(0, |acc, i| acc + i.load(Ordering::Relaxed) as usize);
-        let future = ct.run_until_cancelled(time::timeout_at(deadline.into(), shard.next()));
+        let future = ct.run_until_cancelled(time::timeout_at(deadline, shard.next()));
 
         match future.await {
             Some(Ok(Some(Err(source)))) => {
