@@ -12,7 +12,27 @@ use crate::{
     user::User,
     util::image_hash::ImageHash,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+// Custom deserializer for redirect_uris that filters out null values
+fn deserialize_redirect_uris<'de, D>(deserializer: D) -> Result<Option<Vec<String>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum RedirectUris {
+        Strings(Vec<String>),
+        OptionalStrings(Vec<Option<String>>),
+    }
+
+    let opt_redirect_uris: Option<RedirectUris> = Option::deserialize(deserializer)?;
+
+    Ok(opt_redirect_uris.map(|redirect_uris| match redirect_uris {
+        RedirectUris::Strings(vec) => vec,
+        RedirectUris::OptionalStrings(vec) => vec.into_iter().filter_map(|item| item).collect(),
+    }))
+}
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Application {
@@ -81,8 +101,12 @@ pub struct Application {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privacy_policy_url: Option<String>,
     /// Redirect URIs for the application.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub redirect_uris: Option<Vec<Option<String>>>,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_redirect_uris",
+        default
+    )]
+    pub redirect_uris: Option<Vec<String>>,
     /// Role connection verification URL for the app.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role_connections_verification_url: Option<String>,
@@ -219,10 +243,9 @@ mod tests {
             primary_sku_id: Some(Id::new(4)),
             privacy_policy_url: Some("https://privacypolicy".into()),
             redirect_uris: Some(vec![
-                Some("https://localhost:3000/api/auth".to_owned()),
-                Some("https://example.com/dashboard".to_owned()),
-                Some("https://example.com/api/auth/callback/discord".to_owned()),
-                None,
+                "https://localhost:3000/api/auth".to_owned(),
+                "https://example.com/dashboard".to_owned(),
+                "https://example.com/api/auth/callback/discord".to_owned(),
             ]),
             role_connections_verification_url: Some("https://roleconnections".into()),
             rpc_origins: vec!["one".to_owned()],
@@ -336,14 +359,10 @@ mod tests {
                 Token::Str("https://privacypolicy"),
                 Token::Str("redirect_uris"),
                 Token::Some,
-                Token::Seq { len: Some(4) },
-                Token::Some,
+                Token::Seq { len: Some(3) },
                 Token::Str("https://localhost:3000/api/auth"),
-                Token::Some,
                 Token::Str("https://example.com/dashboard"),
-                Token::Some,
                 Token::Str("https://example.com/api/auth/callback/discord"),
-                Token::None,
                 Token::SeqEnd,
                 Token::Str("role_connections_verification_url"),
                 Token::Some,
@@ -601,10 +620,9 @@ mod tests {
             primary_sku_id: None,
             privacy_policy_url: None,
             redirect_uris: Some(vec![
-                Some("https://localhost:3000/api/auth".to_owned()),
-                Some("https://example.com/dashboard".to_owned()),
-                Some("https://example.com/api/auth/callback/discord".to_owned()),
-                None,
+                "https://localhost:3000/api/auth".to_owned(),
+                "https://example.com/dashboard".to_owned(),
+                "https://example.com/api/auth/callback/discord".to_owned(),
             ]),
             role_connections_verification_url: None,
             rpc_origins: vec![],
@@ -712,5 +730,33 @@ mod tests {
         };
 
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn deserialize_redirect_uris_with_nulls() {
+        let json_str = r#"{
+            "redirect_uris": [
+                "https://localhost:3000/api/auth",
+                null,
+                "https://example.com/dashboard",
+                null,
+                "https://example.com/api/auth/callback/discord"
+            ]
+        }"#;
+
+        #[derive(Deserialize)]
+        struct TestStruct {
+            #[serde(deserialize_with = "super::deserialize_redirect_uris")]
+            redirect_uris: Option<Vec<String>>,
+        }
+
+        let result: TestStruct = serde_json::from_str(json_str).expect("json to be valid");
+        let expected = vec![
+            "https://localhost:3000/api/auth".to_owned(),
+            "https://example.com/dashboard".to_owned(),
+            "https://example.com/api/auth/callback/discord".to_owned(),
+        ];
+
+        assert_eq!(result.redirect_uris, Some(expected));
     }
 }
