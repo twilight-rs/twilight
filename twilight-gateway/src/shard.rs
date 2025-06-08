@@ -31,6 +31,7 @@ use std::{
     env::consts::OS,
     fmt,
     future::Future,
+    io,
     pin::Pin,
     str,
     task::{ready, Context, Poll},
@@ -622,7 +623,8 @@ impl<Q: Queue> Shard<Q> {
                 // have to be a heartbeat ACK.
                 if self.latency.sent().is_some() && !self.heartbeat_interval_event {
                     tracing::info!("connection is failed or \"zombied\"");
-                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
+
+                    return Poll::Ready(Err(WebsocketError::Io(io::ErrorKind::TimedOut.into())));
                 } else {
                     tracing::debug!("sending heartbeat");
                     self.pending = Pending::text(
