@@ -777,6 +777,7 @@ impl Standby {
 
     /// Process a general event that is either of a particular type or in a
     /// particular guild.
+    #[allow(clippy::needless_pass_by_value)]
     #[tracing::instrument(level = "trace")]
     fn process_specific_event<
         K: Debug + Display + Eq + Hash + PartialEq + 'static,
