@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum GuildCreate {
-    Available(Guild),
     Unavailable(UnavailableGuild),
+    Available(Guild),
 }
 
 impl GuildCreate {
