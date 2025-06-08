@@ -625,15 +625,15 @@ impl<Q: Queue> Shard<Q> {
                     tracing::info!("connection is failed or \"zombied\"");
 
                     return Poll::Ready(Err(WebsocketError::Io(io::ErrorKind::TimedOut.into())));
-                } else {
-                    tracing::debug!("sending heartbeat");
-                    self.pending = Pending::text(
-                        json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                            .expect("serialization cannot fail"),
-                        true,
-                    );
-                    self.heartbeat_interval_event = false;
                 }
+
+                tracing::debug!("sending heartbeat");
+                self.pending = Pending::text(
+                    json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
+                        .expect("serialization cannot fail"),
+                    true,
+                );
+                self.heartbeat_interval_event = false;
 
                 continue;
             }
