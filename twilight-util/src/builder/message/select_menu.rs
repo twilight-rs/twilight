@@ -10,9 +10,9 @@ pub struct SelectMenuBuilder(SelectMenu);
 
 impl SelectMenuBuilder {
     /// Create a new select menu builder.
-    pub fn new(custom_id: String, kind: SelectMenuType) -> Self {
+    pub fn new(custom_id: impl Into<String>, kind: SelectMenuType) -> Self {
         Self(SelectMenu {
-            custom_id,
+            custom_id: custom_id.into(),
             disabled: false,
             max_values: None,
             min_values: None,
@@ -94,5 +94,35 @@ impl SelectMenuBuilder {
 impl From<SelectMenuBuilder> for SelectMenu {
     fn from(builder: SelectMenuBuilder) -> Self {
         builder.build()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(SelectMenuBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(SelectMenu: From<SelectMenuBuilder>);
+
+    #[test]
+    fn builder() {
+        let expected = SelectMenu {
+            custom_id: "foo".to_string(),
+            disabled: false,
+            max_values: None,
+            min_values: None,
+            options: None,
+            placeholder: None,
+            id: None,
+            channel_types: None,
+            default_values: None,
+            kind: SelectMenuType::Text,
+        };
+
+        let actual = SelectMenuBuilder::new("foo", SelectMenuType::Text).build();
+
+        assert_eq!(expected, actual);
     }
 }
