@@ -47,3 +47,13 @@ impl From<SectionBuilder> for Section {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(SectionBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(Section: From<SectionBuilder>);
+}
