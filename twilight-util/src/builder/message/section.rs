@@ -50,10 +50,27 @@ impl From<SectionBuilder> for Section {
 
 #[cfg(test)]
 mod tests {
+    use crate::builder::message::ActionRowBuilder;
+
     use super::*;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
     assert_impl_all!(SectionBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(Section: From<SectionBuilder>);
+
+    #[test]
+    fn builder() {
+        let action_row = ActionRowBuilder::new().build();
+
+        let expected = Section {
+            components: Vec::new(),
+            id: None,
+            accessory: Box::new(action_row.clone().into()),
+        };
+
+        let actual = SectionBuilder::new(action_row).build();
+
+        assert_eq!(actual, expected);
+    }
 }

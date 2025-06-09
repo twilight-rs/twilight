@@ -220,15 +220,57 @@ impl From<Button> for Component {
     }
 }
 
+impl From<Container> for Component {
+    fn from(container: Container) -> Self {
+        Self::Container(container)
+    }
+}
+
+impl From<FileDisplay> for Component {
+    fn from(file_display: FileDisplay) -> Self {
+        Self::File(file_display)
+    }
+}
+
+impl From<MediaGallery> for Component {
+    fn from(media_gallery: MediaGallery) -> Self {
+        Self::MediaGallery(media_gallery)
+    }
+}
+
+impl From<Section> for Component {
+    fn from(section: Section) -> Self {
+        Self::Section(section)
+    }
+}
+
 impl From<SelectMenu> for Component {
     fn from(select_menu: SelectMenu) -> Self {
         Self::SelectMenu(select_menu)
     }
 }
 
+impl From<Separator> for Component {
+    fn from(separator: Separator) -> Self {
+        Self::Separator(separator)
+    }
+}
+
+impl From<TextDisplay> for Component {
+    fn from(text_display: TextDisplay) -> Self {
+        Self::TextDisplay(text_display)
+    }
+}
+
 impl From<TextInput> for Component {
     fn from(text_input: TextInput) -> Self {
         Self::TextInput(text_input)
+    }
+}
+
+impl From<Thumbnail> for Component {
+    fn from(thumbnail: Thumbnail) -> Self {
+        Self::Thumbnail(thumbnail)
     }
 }
 
