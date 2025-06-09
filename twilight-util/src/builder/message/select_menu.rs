@@ -123,6 +123,6 @@ mod tests {
 
         let actual = SelectMenuBuilder::new("foo", SelectMenuType::Text).build();
 
-        assert_eq!(expected, actual);
+        assert_eq!(actual, expected);
     }
 }

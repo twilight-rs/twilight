@@ -67,6 +67,6 @@ mod tests {
 
         let actual = SeparatorBuilder::new().build();
 
-        assert_eq!(expected, actual);
+        assert_eq!(actual, expected);
     }
 }
