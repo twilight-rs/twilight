@@ -48,3 +48,34 @@ impl From<ThumbnailBuilder> for Thumbnail {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ThumbnailBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(Thumbnail: From<ThumbnailBuilder>);
+
+    #[test]
+    fn builder() {
+        let media = UnfurledMediaItem {
+            url: "http://www.example.com/example.png".to_string(),
+            proxy_url: None,
+            height: None,
+            width: None,
+            content_type: None,
+        };
+        let expected = Thumbnail {
+            id: None,
+            media: media.clone(),
+            description: None,
+            spoiler: None,
+        };
+
+        let actual = ThumbnailBuilder::new(media).build();
+
+        assert_eq!(actual, expected);
+    }
+}
