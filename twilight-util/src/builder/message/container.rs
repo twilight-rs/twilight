@@ -55,3 +55,27 @@ impl From<ContainerBuilder> for Container {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ContainerBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(Container: From<ContainerBuilder>);
+
+    #[test]
+    fn builder() {
+        let expected = Container {
+            accent_color: None,
+            components: Vec::new(),
+            id: None,
+            spoiler: None,
+        };
+
+        let actual = ContainerBuilder::new().build();
+
+        assert_eq!(expected, actual);
+    }
+}
