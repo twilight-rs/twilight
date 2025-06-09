@@ -70,3 +70,31 @@ impl From<ButtonBuilder> for Button {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ButtonBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(Button: From<ButtonBuilder>);
+
+    #[test]
+    fn builder() {
+        let expected = Button {
+            custom_id: None,
+            disabled: false,
+            emoji: None,
+            label: None,
+            style: ButtonStyle::Primary,
+            url: None,
+            id: None,
+            sku_id: None,
+        };
+
+        let actual = ButtonBuilder::new(ButtonStyle::Primary).build();
+
+        assert_eq!(actual, expected);
+    }
+}
