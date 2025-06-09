@@ -25,8 +25,8 @@ impl ButtonBuilder {
     }
 
     /// The custom identifier of the button.
-    pub fn custom_id(mut self, custom_id: String) -> Self {
-        self.0.custom_id.replace(custom_id);
+    pub fn custom_id(mut self, custom_id: impl Into<String>) -> Self {
+        self.0.custom_id.replace(custom_id.into());
 
         self
     }
@@ -46,8 +46,8 @@ impl ButtonBuilder {
     }
 
     /// Sets the URL for this button.
-    pub fn url(mut self, url: String) -> Self {
-        self.0.url.replace(url);
+    pub fn url(mut self, url: impl Into<String>) -> Self {
+        self.0.url.replace(url.into());
 
         self
     }
