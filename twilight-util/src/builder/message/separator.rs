@@ -47,3 +47,26 @@ impl From<SeparatorBuilder> for Separator {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(SeparatorBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(Separator: From<SeparatorBuilder>);
+
+    #[test]
+    fn builder() {
+        let expected = Separator {
+            id: None,
+            divider: None,
+            spacing: None,
+        };
+
+        let actual = SeparatorBuilder::new().build();
+
+        assert_eq!(expected, actual);
+    }
+}
