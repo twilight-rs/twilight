@@ -47,3 +47,33 @@ impl From<FileDisplayBuilder> for FileDisplay {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(FileDisplayBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(FileDisplay: From<FileDisplayBuilder>);
+
+    #[test]
+    fn builder() {
+        let file = UnfurledMediaItem {
+            url: "http://example.com/image.png".to_string(),
+            proxy_url: None,
+            width: None,
+            height: None,
+            content_type: None,
+        };
+        let expected = FileDisplay {
+            id: None,
+            file: file.clone(),
+            spoiler: None,
+        };
+
+        let actual = FileDisplayBuilder::new(file).build();
+
+        assert_eq!(expected, actual);
+    }
+}
