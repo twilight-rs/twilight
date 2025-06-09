@@ -60,4 +60,8 @@ impl CacheableChannel for MinimalCachedChannel {
     fn set_last_pin_timestamp(&mut self, _timestamp: Option<Timestamp>) {
         // We don't store this information, so this is a no-op
     }
+
+    fn set_status(&mut self, _status: Option<String>) {
+        // We don't store this information, so this is a no-op
+    }
 }
