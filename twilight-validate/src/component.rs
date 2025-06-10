@@ -749,8 +749,7 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
     // Also, we check if the button is not a premium and custom ID, label,
     // URL or emoji is set.
     let is_premium = button.style == ButtonStyle::Premium;
-    if is_premium && (has_custom_id || has_url || has_label || has_emoji || !has_sku_id)
-    {
+    if is_premium && (has_custom_id || has_url || has_label || has_emoji || !has_sku_id) {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::ButtonStyle {
                 style: button.style,

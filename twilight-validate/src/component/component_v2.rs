@@ -40,7 +40,7 @@ pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
 ///
 /// Refer to other validators like [`button`] if you need to validate other
 /// components.
-/// 
+///
 /// # Errors
 pub fn component_v2(component: &Component) -> Result<(), ComponentValidationError> {
     match component {
@@ -59,7 +59,7 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
 }
 
 /// Validates a text display component.
-/// 
+///
 /// # Errors
 pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidationError> {
     let content_len = text_display.content.len();
