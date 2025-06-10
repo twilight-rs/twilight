@@ -1,5 +1,5 @@
 use super::{ComponentValidationError, ComponentValidationErrorType};
-use twilight_model::channel::message::component::{MediaGallery, MediaGalleryItem, TextDisplay};
+use twilight_model::channel::message::component::{MediaGallery, MediaGalleryItem, Section, TextDisplay};
 use twilight_model::channel::message::Component;
 
 /// Maximum number of root [`Component`]s in a message in Components V2.
@@ -33,11 +33,11 @@ pub const MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX: usize = 1024;
 pub fn component_v2(component: &Component) -> Result<(), ComponentValidationError> {
     match component {
         Component::ActionRow(action_row) => super::action_row(action_row, true)?,
-        Component::Button(button) => super::button(button)?,
-        Component::SelectMenu(select_menu) => super::select_menu(select_menu)?,
-        Component::TextInput(text_input) => super::text_input(text_input)?,
         Component::TextDisplay(text_display) => self::text_display(text_display)?,
         Component::MediaGallery(media_gallery) => self::media_gallery(media_gallery)?,
+        Component::Section(section) => self::section(section)?,
+        // note(HTGAzureX1212): do we need to validate these?
+        Component::Separator(_) | Component::File(_) => (),
         _ => todo!(),
     }
 
@@ -68,6 +68,10 @@ pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValida
     }
 
     Ok(())
+}
+
+pub fn section(_: &Section) -> Result<(), ComponentValidationError> {
+    todo!()
 }
 
 fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {

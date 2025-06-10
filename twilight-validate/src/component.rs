@@ -387,7 +387,7 @@ impl Display for ComponentValidationError {
                 f.write_str(" respectively")
             }
             ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong { len: count } => {
-                f.write_str("a media gallery item decription length is ")?;
+                f.write_str("a media gallery item description length is ")?;
                 Display::fmt(count, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
