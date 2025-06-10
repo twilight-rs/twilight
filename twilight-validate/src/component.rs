@@ -1389,9 +1389,9 @@ mod tests {
             id: None,
         };
 
-        assert!(component(&Component::ActionRow(action_row.clone())).is_ok());
+        assert!(component_v1(&Component::ActionRow(action_row.clone())).is_ok());
 
-        assert!(component(&Component::SelectMenu(select_menu.clone())).is_err());
+        assert!(component_v1(&Component::SelectMenu(select_menu.clone())).is_err());
 
         assert!(super::action_row(&action_row, false).is_ok());
 
@@ -1407,7 +1407,7 @@ mod tests {
             id: None,
         });
 
-        assert!(component(&invalid_action_row).is_err());
+        assert!(component_v1(&invalid_action_row).is_err());
     }
 
     // Test that a button with both a custom ID and URL results in a
