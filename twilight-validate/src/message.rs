@@ -2,7 +2,6 @@
 //!
 //! [`Message`]: twilight_model::channel::Message
 
-use crate::component::COMPONENT_COUNT_V2;
 use crate::{
     component::{ComponentValidationErrorType, COMPONENT_COUNT},
     embed::{chars as embed_chars, EmbedValidationErrorType, EMBED_TOTAL_LENGTH},
@@ -269,13 +268,7 @@ pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValid
 pub fn components(components: &[Component], is_v2: bool) -> Result<(), MessageValidationError> {
     let count = components.len();
 
-    let max = if is_v2 {
-        COMPONENT_COUNT_V2
-    } else {
-        COMPONENT_COUNT
-    };
-
-    if count > max {
+    if !is_v2 && count > COMPONENT_COUNT {
         return Err(MessageValidationError {
             kind: MessageValidationErrorType::ComponentCount { count },
             source: None,
@@ -297,6 +290,8 @@ pub fn components(components: &[Component], is_v2: bool) -> Result<(), MessageVa
             }
         })?;
     }
+    
+    // TODO(HTGAzureX1212): the TOTAL number of components shall not exceed 20
 
     Ok(())
 }
