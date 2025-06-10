@@ -1,5 +1,7 @@
 use super::{ComponentValidationError, ComponentValidationErrorType};
-use twilight_model::channel::message::component::{MediaGallery, MediaGalleryItem, Section, TextDisplay};
+use twilight_model::channel::message::component::{
+    MediaGallery, MediaGalleryItem, Section, TextDisplay,
+};
 use twilight_model::channel::message::Component;
 
 /// Maximum number of root [`Component`]s in a message in Components V2.
@@ -80,25 +82,31 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
     let components = section.components.len();
     if !(SECTION_COMPONENTS_MIN..=SECTION_COMPONENTS_MAX).contains(&components) {
         return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::SectionComponentCountOutOfRange { count: components },
+            kind: ComponentValidationErrorType::SectionComponentCountOutOfRange {
+                count: components,
+            },
         });
     }
 
     for component in section.components.iter() {
         match component {
             Component::TextDisplay(text_display) => self::text_display(text_display)?,
-            _ => return Err(ComponentValidationError {
-                kind: ComponentValidationErrorType::DisallowedChildren,
-            }),
+            _ => {
+                return Err(ComponentValidationError {
+                    kind: ComponentValidationErrorType::DisallowedChildren,
+                })
+            }
         }
     }
 
     match section.accessory.as_ref() {
         Component::Button(button) => super::button(button)?,
         Component::Thumbnail(_) => todo!(),
-        _ => return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::DisallowedChildren,
-        }),
+        _ => {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::DisallowedChildren,
+            })
+        }
     }
 
     Ok(())
