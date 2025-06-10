@@ -40,6 +40,8 @@ pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
 ///
 /// Refer to other validators like [`button`] if you need to validate other
 /// components.
+/// 
+/// # Errors
 pub fn component_v2(component: &Component) -> Result<(), ComponentValidationError> {
     match component {
         Component::ActionRow(action_row) => super::action_row(action_row, true)?,
@@ -56,6 +58,9 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
     Ok(())
 }
 
+/// Validates a text display component.
+/// 
+/// # Errors
 pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidationError> {
     let content_len = text_display.content.len();
     if content_len > TEXT_DISPLAY_CONTENT_LENGTH_MAX {
@@ -67,6 +72,9 @@ pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidatio
     Ok(())
 }
 
+/// Validates a media gallery component.
+///
+/// # Errors
 pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValidationError> {
     let items = media_gallery.items.len();
     if !(MEDIA_GALLERY_ITEMS_MIN..=MEDIA_GALLERY_ITEMS_MAX).contains(&items) {
@@ -82,6 +90,9 @@ pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValida
     Ok(())
 }
 
+/// Validates a section component.
+///
+/// # Errors
 pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
     let components = section.components.len();
     if !(SECTION_COMPONENTS_MIN..=SECTION_COMPONENTS_MAX).contains(&components) {
@@ -116,6 +127,9 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
     Ok(())
 }
 
+/// Validates a container component.
+///
+/// # Errors
 pub fn container(container: &Container) -> Result<(), ComponentValidationError> {
     for component in &container.components {
         match component {
@@ -135,6 +149,9 @@ pub fn container(container: &Container) -> Result<(), ComponentValidationError> 
     Ok(())
 }
 
+/// Validates a thumbnail component.
+///
+/// # Errors
 pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> {
     let Some(desc) = thumbnail.description.as_ref() else {
         return Ok(());
