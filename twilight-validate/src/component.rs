@@ -750,7 +750,7 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
     // URL or emoji is set.
     let is_premium = button.style == ButtonStyle::Premium;
     if (is_premium && !has_sku_id)
-        || (!is_premium && (has_emoji || has_label || has_url || has_custom_id))
+        || (is_premium && (has_emoji || has_label || has_url || has_custom_id))
     {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::ButtonStyle {
