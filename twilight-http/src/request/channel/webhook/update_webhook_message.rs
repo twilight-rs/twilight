@@ -164,19 +164,14 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// Pass [`None`] to clear existing components.
     ///
-    /// # Errors
+    /// # Manual Validation
     ///
-    /// Refer to the errors section of
-    /// [`twilight_validate::component::component`] for a list of errors that
-    /// may be returned as a result of validating each provided component.
+    /// Validation of components is not done automatically here, as we don't know which component
+    /// version is in use, you can validate them manually using the [`twilight_validate::component::component_v1`]
+    /// or [`twilight_validate::component::component_v2`] functions.
     pub fn components(mut self, components: Option<&'a [Component]>) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
-            if let Some(components) = components {
-                validate_components(components)?;
-            }
-
             fields.components = Some(Nullable(components));
-
             Ok(fields)
         });
 
