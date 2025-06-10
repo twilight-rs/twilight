@@ -154,7 +154,12 @@ impl<'a> CreateFollowup<'a> {
     /// may be returned as a result of validating each provided component.
     pub fn components(mut self, components: &'a [Component]) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
-            validate_components(components)?;
+            validate_components(
+                components,
+                fields
+                    .flags
+                    .is_some_and(|flags| flags.contains(MessageFlags::IS_COMPONENTS_V2)),
+            )?;
             fields.components = Some(components);
 
             Ok(fields)
@@ -217,10 +222,11 @@ impl<'a> CreateFollowup<'a> {
 
     /// Set the message's flags.
     ///
-    /// The only supported flags are [`EPHEMERAL`] and [`SUPPRESS_EMBEDS`].
+    /// The only supported flags are [`EPHEMERAL`], [`SUPPRESS_EMBEDS`] and [`IS_COMPONENTS_V2`].
     ///
     /// [`EPHEMERAL`]: MessageFlags::EPHEMERAL
-    /// [`SUPPRESS_EMBEDS`]: twilight_model::channel::message::MessageFlags::SUPPRESS_EMBEDS
+    /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
+    /// [`IS_COMPONENTS_V2`]: MessageFlags::IS_COMPONENTS_V2
     pub fn flags(mut self, flags: MessageFlags) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.flags = Some(flags);
