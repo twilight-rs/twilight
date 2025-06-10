@@ -12,6 +12,7 @@ use twilight_model::channel::message::component::{
 };
 
 pub use component_v2::component_v2;
+use crate::component::component_v2::TEXT_DISPLAY_CONTENT_LENGTH_MAX;
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
 ///
@@ -359,11 +360,18 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&TEXT_INPUT_PLACEHOLDER_MAX, f)
             }
+            ComponentValidationErrorType::DisallowedV2 => {
+                f.write_str("a V2 component was used in a component V1 message")
+            }
             ComponentValidationErrorType::DisallowedChildren => {
                 f.write_str("a component contains a disallowed child component")
             }
-            ComponentValidationErrorType::DisallowedV2 => {
-                f.write_str("a V2 component was used in a component V1 message")
+            ComponentValidationErrorType::TextDisplayContentTooLong { len: count } => {
+                f.write_str("a text display content length is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" characters long, but the max is ")?;
+                
+                Display::fmt(&TEXT_DISPLAY_CONTENT_LENGTH_MAX, f)
             }
         }
     }
@@ -511,10 +519,14 @@ pub enum ComponentValidationErrorType {
         /// Provided number of codepoints.
         chars: usize,
     },
-    /// Disallowed children components are found in a root component.
-    DisallowedChildren,
     /// V2 Components used in a V1 component.
     DisallowedV2,
+    /// Disallowed children components are found in a root component.
+    DisallowedChildren,
+    /// Content of text display component is too long.
+    TextDisplayContentTooLong {
+        len: usize,
+    },
 }
 
 /// Ensure that a top-level request component is correct in V1.
