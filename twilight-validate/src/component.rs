@@ -18,16 +18,24 @@ pub use component_v2::component_v2;
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Action Rows][1].
 ///
-/// [1]: https://discord.com/developers/docs/interactions/message-components#action-rows
+/// [1]: https://discord.com/developers/docs/components/reference#action-row
 pub const ACTION_ROW_COMPONENT_COUNT: usize = 5;
 
 /// Maximum number of root [`Component`]s in a message.
 ///
 /// This is defined in Discord's documentation, per
-/// [Discord Docs/Action Row][1].
+/// [Discord Docs][1].
 ///
-/// [1]: https://discord.com/developers/docs/interactions/message-components#action-rows
+/// [1]: https://discord.com/developers/docs/components/reference#legacy-message-component-behavior
 pub const COMPONENT_COUNT: usize = 5;
+
+/// Maximum number of root [`Component`]s in a message in Components V2.
+///
+/// This is defined in Discord's documentation, per
+/// [Discord Docs][1].
+///
+/// [1]: https://discord.com/developers/docs/components/reference#component-reference
+pub const COMPONENT_COUNT_V2: usize = 40;
 
 /// Maximum length of a [`Component`] custom ID in codepoints.
 ///
