@@ -37,9 +37,9 @@ impl From<u8> for SeparatorSpacingSize {
     }
 }
 
-impl Into<u8> for SeparatorSpacingSize {
-    fn into(self) -> u8 {
-        match self {
+impl From<SeparatorSpacingSize> for u8 {
+    fn from(value: SeparatorSpacingSize) -> Self {
+        match value {
             SeparatorSpacingSize::Small => 1,
             SeparatorSpacingSize::Large => 2,
             SeparatorSpacingSize::Other(other) => other,

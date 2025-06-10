@@ -596,7 +596,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             ComponentType::ActionRow => {
                 let components = components.ok_or_else(|| DeError::missing_field("components"))?;
 
-                Self::Value::ActionRow(ActionRow { components, id })
+                Self::Value::ActionRow(ActionRow { id, components })
             }
             // Required fields:
             // - style
@@ -741,7 +741,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             ComponentType::File => {
                 let file = file.ok_or_else(|| DeError::missing_field("file"))?;
 
-                Self::Value::File(FileDisplay { file, spoiler, id })
+                Self::Value::File(FileDisplay { id, file, spoiler })
             }
             ComponentType::Unknown(unknown) => Self::Value::Unknown(unknown),
             ComponentType::Section => {
