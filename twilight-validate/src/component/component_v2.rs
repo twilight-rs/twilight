@@ -170,6 +170,9 @@ pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> 
     Ok(())
 }
 
+/// Validates a media gallery item
+/// 
+/// # Errors
 fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
     let Some(desc) = item.description.as_ref() else {
         return Ok(());
