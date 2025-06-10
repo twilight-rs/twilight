@@ -2,6 +2,7 @@
 //!
 //! [`Message`]: twilight_model::channel::Message
 
+use crate::component::COMPONENT_COUNT_V2;
 use crate::{
     component::{ComponentValidationErrorType, COMPONENT_COUNT},
     embed::{chars as embed_chars, EmbedValidationErrorType, EMBED_TOTAL_LENGTH},
@@ -265,28 +266,39 @@ pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValid
 /// be returned as a result of validating each provided component.
 ///
 /// [`component`]: crate::component::component
-pub fn components(components: &[Component]) -> Result<(), MessageValidationError> {
+pub fn components(components: &[Component], is_v2: bool) -> Result<(), MessageValidationError> {
     let count = components.len();
 
-    if count > COMPONENT_COUNT {
-        Err(MessageValidationError {
+    let max = if is_v2 {
+        COMPONENT_COUNT_V2
+    } else {
+        COMPONENT_COUNT
+    };
+
+    if count > max {
+        return Err(MessageValidationError {
             kind: MessageValidationErrorType::ComponentCount { count },
             source: None,
-        })
-    } else {
-        for (idx, component) in components.iter().enumerate() {
-            crate::component::component_v2(component).map_err(|source| {
-                let (kind, source) = source.into_parts();
-
-                MessageValidationError {
-                    kind: MessageValidationErrorType::ComponentInvalid { idx, kind },
-                    source,
-                }
-            })?;
-        }
-
-        Ok(())
+        });
     }
+
+    let function = if is_v2 {
+        crate::component::component_v2
+    } else {
+        crate::component::component_v1
+    };
+    for (idx, component) in components.iter().enumerate() {
+        function(component).map_err(|source| {
+            let (kind, source) = source.into_parts();
+
+            MessageValidationError {
+                kind: MessageValidationErrorType::ComponentInvalid { idx, kind },
+                source,
+            }
+        })?;
+    }
+
+    Ok(())
 }
 
 /// Ensure a message's content is correct.
