@@ -166,7 +166,12 @@ impl<'a> CreateMessage<'a> {
     /// may be returned as a result of validating each provided component.
     pub fn components(mut self, components: &'a [Component]) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
-            validate_components(components)?;
+            validate_components(
+                components,
+                fields
+                    .flags
+                    .is_some_and(|flags| flags.contains(MessageFlags::IS_COMPONENTS_V2)),
+            )?;
             fields.components = Some(components);
 
             Ok(fields)
