@@ -29,14 +29,6 @@ pub const ACTION_ROW_COMPONENT_COUNT: usize = 5;
 /// [1]: https://discord.com/developers/docs/components/reference#legacy-message-component-behavior
 pub const COMPONENT_COUNT: usize = 5;
 
-/// Maximum number of root [`Component`]s in a message in Components V2.
-///
-/// This is defined in Discord's documentation, per
-/// [Discord Docs][1].
-///
-/// [1]: https://discord.com/developers/docs/components/reference#component-reference
-pub const COMPONENT_COUNT_V2: usize = 40;
-
 /// Maximum length of a [`Component`] custom ID in codepoints.
 ///
 /// An example of a component with a custom ID is the
