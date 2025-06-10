@@ -2,6 +2,14 @@ use twilight_model::channel::message::Component;
 
 use super::ComponentValidationError;
 
+/// Maximum number of root [`Component`]s in a message in Components V2.
+///
+/// This is defined in Discord's documentation, per
+/// [Discord Docs][1].
+///
+/// [1]: https://discord.com/developers/docs/components/reference#component-reference
+pub const COMPONENT_COUNT_V2: usize = 40;
+
 // TODO: rewrite comment
 /// Ensure that a top-level request component is correct in V2.
 ///
