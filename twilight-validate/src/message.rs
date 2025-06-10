@@ -291,7 +291,7 @@ pub fn components(components: &[Component], is_v2: bool) -> Result<(), MessageVa
         })?;
     }
 
-    // TODO(HTGAzureX1212): the TOTAL number of components shall not exceed 20
+    // TODO(HTGAzureX1212): the TOTAL number of components shall not exceed 40
 
     Ok(())
 }
