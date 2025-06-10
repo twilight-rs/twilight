@@ -11,8 +11,8 @@ use twilight_model::channel::message::component::{
     SelectMenuType, TextInput,
 };
 
-pub use component_v2::component_v2;
 use crate::component::component_v2::TEXT_DISPLAY_CONTENT_LENGTH_MAX;
+pub use component_v2::component_v2;
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
 ///
@@ -370,7 +370,7 @@ impl Display for ComponentValidationError {
                 f.write_str("a text display content length is ")?;
                 Display::fmt(count, f)?;
                 f.write_str(" characters long, but the max is ")?;
-                
+
                 Display::fmt(&TEXT_DISPLAY_CONTENT_LENGTH_MAX, f)
             }
         }
@@ -524,9 +524,7 @@ pub enum ComponentValidationErrorType {
     /// Disallowed children components are found in a root component.
     DisallowedChildren,
     /// Content of text display component is too long.
-    TextDisplayContentTooLong {
-        len: usize,
-    },
+    TextDisplayContentTooLong { len: usize },
 }
 
 /// Ensure that a top-level request component is correct in V1.

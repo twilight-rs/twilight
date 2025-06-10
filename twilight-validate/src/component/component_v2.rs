@@ -1,6 +1,6 @@
-use twilight_model::channel::message::Component;
-use twilight_model::channel::message::component::TextDisplay;
 use super::{ComponentValidationError, ComponentValidationErrorType};
+use twilight_model::channel::message::component::TextDisplay;
+use twilight_model::channel::message::Component;
 
 /// Maximum number of root [`Component`]s in a message in Components V2.
 ///
@@ -28,9 +28,9 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::SelectMenu(select_menu) => super::select_menu(select_menu)?,
         Component::TextInput(text_input) => super::text_input(text_input)?,
         Component::TextDisplay(text_display) => self::text_display(text_display)?,
-        _ => todo!()
+        _ => todo!(),
     }
-    
+
     Ok(())
 }
 
@@ -38,11 +38,9 @@ pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidatio
     let content_len = text_display.content.len();
     if content_len > TEXT_DISPLAY_CONTENT_LENGTH_MAX {
         return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::TextDisplayContentTooLong {
-                len: content_len
-            }
+            kind: ComponentValidationErrorType::TextDisplayContentTooLong { len: content_len },
         });
     }
-    
+
     Ok(())
 }
