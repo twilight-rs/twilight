@@ -1,16 +1,16 @@
 use super::{ComponentValidationError, ComponentValidationErrorType};
 use twilight_model::channel::message::component::{
-    MediaGallery, MediaGalleryItem, Section, TextDisplay,
+    Container, MediaGallery, MediaGalleryItem, Section, TextDisplay, Thumbnail,
 };
 use twilight_model::channel::message::Component;
 
-/// Maximum number of root [`Component`]s in a message in Components V2.
-///
-/// This is defined in Discord's documentation, per
-/// [Discord Docs][1].
-///
-/// [1]: https://discord.com/developers/docs/components/reference#component-reference
-pub const COMPONENT_COUNT_TOTAL_V2: usize = 40;
+// /// Maximum number of root [`Component`]s in a message in Components V2.
+// ///
+// /// This is defined in Discord's documentation, per
+// /// [Discord Docs][1].
+// ///
+// /// [1]: https://discord.com/developers/docs/components/reference#component-reference
+// pub const COMPONENT_COUNT_TOTAL_V2: usize = 40;
 
 /// Maximum length of text display content.
 pub const TEXT_DISPLAY_CONTENT_LENGTH_MAX: usize = 2000;
@@ -44,6 +44,8 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::TextDisplay(text_display) => self::text_display(text_display)?,
         Component::MediaGallery(media_gallery) => self::media_gallery(media_gallery)?,
         Component::Section(section) => self::section(section)?,
+        Component::Container(container) => self::container(container)?,
+        Component::Thumbnail(thumbnail) => self::thumbnail(thumbnail)?,
         // note(HTGAzureX1212): do we need to validate these?
         Component::Separator(_) | Component::File(_) => (),
         _ => todo!(),
@@ -101,7 +103,7 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
 
     match section.accessory.as_ref() {
         Component::Button(button) => super::button(button)?,
-        Component::Thumbnail(_) => todo!(),
+        Component::Thumbnail(thumbnail) => self::thumbnail(thumbnail)?,
         _ => {
             return Err(ComponentValidationError {
                 kind: ComponentValidationErrorType::DisallowedChildren,
@@ -110,6 +112,14 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
     }
 
     Ok(())
+}
+
+pub fn container(_: &Container) -> Result<(), ComponentValidationError> {
+    todo!()
+}
+
+pub fn thumbnail(_: &Thumbnail) -> Result<(), ComponentValidationError> {
+    todo!()
 }
 
 fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {

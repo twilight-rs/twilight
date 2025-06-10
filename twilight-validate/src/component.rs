@@ -563,6 +563,7 @@ pub enum ComponentValidationErrorType {
         /// Number of items in the media gallery.
         count: usize,
     },
+    /// The description of a media gallery item is too long.
     MediaGalleryItemDescriptionTooLong {
         /// Length of the provided description.
         len: usize,
