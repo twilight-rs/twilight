@@ -1,5 +1,5 @@
 use super::{ComponentValidationError, ComponentValidationErrorType};
-use twilight_model::channel::message::component::TextDisplay;
+use twilight_model::channel::message::component::{MediaGallery, MediaGalleryItem, TextDisplay};
 use twilight_model::channel::message::Component;
 
 /// Maximum number of root [`Component`]s in a message in Components V2.
@@ -12,6 +12,15 @@ pub const COMPONENT_COUNT_TOTAL_V2: usize = 40;
 
 /// Maximum length of text display content.
 pub const TEXT_DISPLAY_CONTENT_LENGTH_MAX: usize = 2000;
+
+/// Minimum amount of items in a media gallery.
+pub const MEDIA_GALLERY_ITEMS_MIN: usize = 1;
+
+/// Maximum amount of items in a media gallery.
+pub const MEDIA_GALLERY_ITEMS_MAX: usize = 10;
+
+/// Maximum length of a description of a media gallery item.
+pub const MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX: usize = 1024;
 
 // TODO: rewrite comment
 /// Ensure that a top-level request component is correct in V2.
@@ -28,6 +37,7 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::SelectMenu(select_menu) => super::select_menu(select_menu)?,
         Component::TextInput(text_input) => super::text_input(text_input)?,
         Component::TextDisplay(text_display) => self::text_display(text_display)?,
+        Component::MediaGallery(media_gallery) => self::media_gallery(media_gallery)?,
         _ => todo!(),
     }
 
@@ -39,6 +49,36 @@ pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidatio
     if content_len > TEXT_DISPLAY_CONTENT_LENGTH_MAX {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::TextDisplayContentTooLong { len: content_len },
+        });
+    }
+
+    Ok(())
+}
+
+pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValidationError> {
+    let items = media_gallery.items.len();
+    if !(MEDIA_GALLERY_ITEMS_MIN..=MEDIA_GALLERY_ITEMS_MAX).contains(&items) {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::MediaGalleryItemCountOutOfRange { count: items },
+        });
+    }
+
+    for item in media_gallery.items.iter() {
+        media_gallery_item(&item)?;
+    }
+
+    Ok(())
+}
+
+fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
+    let Some(desc) = item.description.as_ref() else {
+        return Ok(());
+    };
+
+    let len = desc.len();
+    if len > MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong { len },
         });
     }
 

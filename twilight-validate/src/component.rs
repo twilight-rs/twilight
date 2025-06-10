@@ -11,7 +11,10 @@ use twilight_model::channel::message::component::{
     SelectMenuType, TextInput,
 };
 
-use crate::component::component_v2::TEXT_DISPLAY_CONTENT_LENGTH_MAX;
+use crate::component::component_v2::{
+    MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN, MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX,
+    TEXT_DISPLAY_CONTENT_LENGTH_MAX,
+};
 pub use component_v2::component_v2;
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -373,6 +376,23 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&TEXT_DISPLAY_CONTENT_LENGTH_MAX, f)
             }
+            ComponentValidationErrorType::MediaGalleryItemCountOutOfRange { count } => {
+                f.write_str("a media gallery has ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" items, but the min and max are ")?;
+                Display::fmt(&MEDIA_GALLERY_ITEMS_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&MEDIA_GALLERY_ITEMS_MAX, f)?;
+
+                f.write_str(" respectively")
+            }
+            ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong { len: count } => {
+                f.write_str("a media gallery item decription length is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, f)
+            }
         }
     }
 }
@@ -524,7 +544,19 @@ pub enum ComponentValidationErrorType {
     /// Disallowed children components are found in a root component.
     DisallowedChildren,
     /// Content of text display component is too long.
-    TextDisplayContentTooLong { len: usize },
+    TextDisplayContentTooLong {
+        /// Length of the provided content.
+        len: usize,
+    },
+    /// The number of items in a media gallery is out of range.
+    MediaGalleryItemCountOutOfRange {
+        /// Number of items in the media gallery.
+        count: usize,
+    },
+    MediaGalleryItemDescriptionTooLong {
+        /// Length of the provided description.
+        len: usize,
+    },
 }
 
 /// Ensure that a top-level request component is correct in V1.
