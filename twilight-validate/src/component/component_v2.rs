@@ -1,3 +1,5 @@
+//! Validates components V2.
+
 use super::{ComponentValidationError, ComponentValidationErrorType};
 use twilight_model::channel::message::component::{
     Container, MediaGallery, MediaGalleryItem, Section, TextDisplay, Thumbnail,
@@ -30,6 +32,7 @@ pub const SECTION_COMPONENTS_MIN: usize = 1;
 /// Maximum amount of components in a section.
 pub const SECTION_COMPONENTS_MAX: usize = 3;
 
+/// Maximum length of a thumbnail description
 pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
 
 // TODO: rewrite comment
