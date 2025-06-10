@@ -73,8 +73,8 @@ pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValida
         });
     }
 
-    for item in media_gallery.items.iter() {
-        media_gallery_item(&item)?;
+    for item in &media_gallery.items {
+        media_gallery_item(item)?;
     }
 
     Ok(())
@@ -90,7 +90,7 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
         });
     }
 
-    for component in section.components.iter() {
+    for component in &section.components {
         match component {
             Component::TextDisplay(text_display) => self::text_display(text_display)?,
             _ => {
