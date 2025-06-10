@@ -11,10 +11,7 @@ use twilight_model::channel::message::component::{
     SelectMenuType, TextInput,
 };
 
-use crate::component::component_v2::{
-    MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN, MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX,
-    TEXT_DISPLAY_CONTENT_LENGTH_MAX,
-};
+use crate::component::component_v2::{MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN, MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX};
 pub use component_v2::component_v2;
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -393,6 +390,16 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, f)
             }
+            ComponentValidationErrorType::SectionComponentCountOutOfRange { count } => {
+                f.write_str("a section has ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" components, but the min and max are ")?;
+                Display::fmt(&SECTION_COMPONENTS_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&SECTION_COMPONENTS_MAX, f)?;
+
+                f.write_str(" respectively")
+            }
         }
     }
 }
@@ -556,6 +563,11 @@ pub enum ComponentValidationErrorType {
     MediaGalleryItemDescriptionTooLong {
         /// Length of the provided description.
         len: usize,
+    },
+    /// The number of components in a section is out of range.
+    SectionComponentCountOutOfRange {
+        /// Number of components in the section.
+        count: usize,
     },
 }
 

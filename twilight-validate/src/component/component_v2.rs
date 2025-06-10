@@ -22,6 +22,12 @@ pub const MEDIA_GALLERY_ITEMS_MAX: usize = 10;
 /// Maximum length of a description of a media gallery item.
 pub const MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX: usize = 1024;
 
+/// Minimum amount of components in a section.
+pub const SECTION_COMPONENTS_MIN: usize = 1;
+
+/// Maximum amount of components in a section.
+pub const SECTION_COMPONENTS_MAX: usize = 3;
+
 // TODO: rewrite comment
 /// Ensure that a top-level request component is correct in V2.
 ///
@@ -70,8 +76,32 @@ pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValida
     Ok(())
 }
 
-pub fn section(_: &Section) -> Result<(), ComponentValidationError> {
-    todo!()
+pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
+    let components = section.components.len();
+    if !(SECTION_COMPONENTS_MIN..=SECTION_COMPONENTS_MAX).contains(&components) {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::SectionComponentCountOutOfRange { count: components },
+        });
+    }
+
+    for component in section.components.iter() {
+        match component {
+            Component::TextDisplay(text_display) => self::text_display(text_display)?,
+            _ => return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::DisallowedChildren,
+            }),
+        }
+    }
+
+    match section.accessory.as_ref() {
+        Component::Button(button) => super::button(button)?,
+        Component::Thumbnail(_) => todo!(),
+        _ => return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::DisallowedChildren,
+        }),
+    }
+
+    Ok(())
 }
 
 fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
