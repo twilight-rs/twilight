@@ -24,8 +24,8 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    attachment as validate_attachment, components as validate_components,
-    content as validate_content, embeds as validate_embeds, MessageValidationError,
+    attachment as validate_attachment, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
 };
 
 #[derive(Serialize)]
