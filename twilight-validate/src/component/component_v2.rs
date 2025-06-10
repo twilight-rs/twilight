@@ -8,7 +8,7 @@ use super::ComponentValidationError;
 /// [Discord Docs][1].
 ///
 /// [1]: https://discord.com/developers/docs/components/reference#component-reference
-pub const COMPONENT_COUNT_V2: usize = 40;
+pub const COMPONENT_COUNT_TOTAL_V2: usize = 40;
 
 // TODO: rewrite comment
 /// Ensure that a top-level request component is correct in V2.
@@ -18,16 +18,6 @@ pub const COMPONENT_COUNT_V2: usize = 40;
 ///
 /// Refer to other validators like [`button`] if you need to validate other
 /// components.
-///
-/// # Errors
-///
-/// Returns an error of type [`InvalidRootComponent`] if the component is not an
-/// [`ActionRow`].
-///
-/// Refer to [`action_row`] for potential errors when validating an action row
-/// component.
-///
-/// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
 pub fn component_v2(component: &Component) -> Result<(), ComponentValidationError> {
     todo!()
 }
