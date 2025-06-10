@@ -367,8 +367,11 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&TEXT_INPUT_PLACEHOLDER_MAX, f)
             }
+            ComponentValidationErrorType::DisallowedChildren => {
+                f.write_str("a component contains a disallowed child component")
+            }
             ComponentValidationErrorType::DisallowedV2 => {
-                f.write_str("A V2 component was used in a component V1 message")
+                f.write_str("a V2 component was used in a component V1 message")
             }
         }
     }
@@ -516,6 +519,8 @@ pub enum ComponentValidationErrorType {
         /// Provided number of codepoints.
         chars: usize,
     },
+    /// Disallowed children components are found in a root component.
+    DisallowedChildren,
     /// V2 Components used in a V1 component.
     DisallowedV2,
 }
@@ -541,7 +546,7 @@ pub enum ComponentValidationErrorType {
 /// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
 pub fn component_v1(component: &Component) -> Result<(), ComponentValidationError> {
     match component {
-        Component::ActionRow(action_row) => self::action_row(action_row)?,
+        Component::ActionRow(action_row) => self::action_row(action_row, false)?,
         other => {
             return Err(ComponentValidationError {
                 kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
@@ -596,7 +601,7 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 ///
 /// [`ActionRowComponentCount`]: ComponentValidationErrorType::ActionRowComponentCount
 /// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
-pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError> {
+pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentValidationError> {
     self::component_action_row_components(&action_row.components)?;
 
     for component in &action_row.components {
@@ -627,7 +632,11 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
             | Component::Container(_)
             | Component::Thumbnail(_) => {
                 return Err(ComponentValidationError {
-                    kind: ComponentValidationErrorType::DisallowedV2,
+                    kind: if is_v2 {
+                        ComponentValidationErrorType::DisallowedChildren
+                    } else {
+                        ComponentValidationErrorType::DisallowedV2
+                    },
                 })
             }
         }
@@ -659,6 +668,9 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
     let has_custom_id = button.custom_id.is_some();
+    let has_emoji = button.emoji.is_some();
+    let has_label = button.label.is_some();
+    let has_sku_id = button.sku_id.is_some();
     let has_url = button.url.is_some();
 
     // First check if a custom ID and URL are both set. If so this
@@ -669,7 +681,22 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
         });
     }
 
-    // Next, we check if the button is a link and a URL is not set.
+    // Next, we check if the button is a premium and a SKU ID is not set.
+    //
+    // Also, we check if the button is not a premium and custom ID, label,
+    // URL or emoji is set.
+    let is_premium = button.style == ButtonStyle::Premium;
+    if (is_premium && !has_sku_id)
+        || (!is_premium && (has_emoji || has_label || has_url || has_custom_id))
+    {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::ButtonStyle {
+                style: button.style,
+            },
+        });
+    }
+
+    // Then, we check if the button is a link and a URL is not set.
     //
     // Lastly, we check if the button is not a link and a custom ID is
     // not set.
@@ -1316,7 +1343,7 @@ mod tests {
 
         assert!(component(&Component::SelectMenu(select_menu.clone())).is_err());
 
-        assert!(super::action_row(&action_row).is_ok());
+        assert!(super::action_row(&action_row, false).is_ok());
 
         let invalid_action_row = Component::ActionRow(ActionRow {
             components: Vec::from([
