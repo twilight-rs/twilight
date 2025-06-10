@@ -14,6 +14,7 @@ use twilight_model::channel::message::component::{
 use crate::component::component_v2::{
     MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN, MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX,
     SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX,
+    THUMBNAIL_DESCRIPTION_LENGTH_MAX,
 };
 pub use component_v2::component_v2;
 
@@ -386,9 +387,9 @@ impl Display for ComponentValidationError {
 
                 f.write_str(" respectively")
             }
-            ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong { len: count } => {
+            ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong { len } => {
                 f.write_str("a media gallery item description length is ")?;
-                Display::fmt(count, f)?;
+                Display::fmt(len, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
                 Display::fmt(&MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, f)
@@ -402,6 +403,13 @@ impl Display for ComponentValidationError {
                 Display::fmt(&SECTION_COMPONENTS_MAX, f)?;
 
                 f.write_str(" respectively")
+            }
+            ComponentValidationErrorType::ThumbnailDescriptionTooLong { len } => {
+                f.write_str("a thumbnail description length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&THUMBNAIL_DESCRIPTION_LENGTH_MAX, f)
             }
         }
     }
@@ -572,6 +580,11 @@ pub enum ComponentValidationErrorType {
     SectionComponentCountOutOfRange {
         /// Number of components in the section.
         count: usize,
+    },
+    /// The length of the thumbnail description is too long.
+    ThumbnailDescriptionTooLong {
+        /// Length of the provided description.
+        len: usize,
     },
 }
 
