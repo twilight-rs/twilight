@@ -30,6 +30,8 @@ pub const SECTION_COMPONENTS_MIN: usize = 1;
 /// Maximum amount of components in a section.
 pub const SECTION_COMPONENTS_MAX: usize = 3;
 
+pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
+
 // TODO: rewrite comment
 /// Ensure that a top-level request component is correct in V2.
 ///
@@ -114,12 +116,38 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
     Ok(())
 }
 
-pub fn container(_: &Container) -> Result<(), ComponentValidationError> {
-    todo!()
+pub fn container(container: &Container) -> Result<(), ComponentValidationError> {
+    for component in &container.components {
+        match component {
+            Component::ActionRow(action_row) => super::action_row(action_row, true)?,
+            Component::TextDisplay(text_display) => self::text_display(text_display)?,
+            Component::Section(section) => self::section(section)?,
+            Component::MediaGallery(media_gallery) => self::media_gallery(media_gallery)?,
+            Component::Separator(_) | Component::File(_) => (),
+            _ => {
+                return Err(ComponentValidationError {
+                    kind: ComponentValidationErrorType::DisallowedChildren,
+                })
+            }
+        }
+    }
+
+    Ok(())
 }
 
-pub fn thumbnail(_: &Thumbnail) -> Result<(), ComponentValidationError> {
-    todo!()
+pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> {
+    let Some(desc) = thumbnail.description.as_ref() else {
+        return Ok(());
+    };
+
+    let len = desc.len();
+    if len > THUMBNAIL_DESCRIPTION_LENGTH_MAX {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::ThumbnailDescriptionTooLong { len },
+        });
+    }
+
+    Ok(())
 }
 
 fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
