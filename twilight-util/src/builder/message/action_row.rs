@@ -7,7 +7,7 @@ pub struct ActionRowBuilder(ActionRow);
 
 impl ActionRowBuilder {
     /// Create a new action row builder.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(ActionRow {
             id: None,
             components: Vec::new(),
@@ -31,6 +31,12 @@ impl ActionRowBuilder {
     /// Build into an action row.
     pub fn build(self) -> ActionRow {
         self.0
+    }
+}
+
+impl Default for ActionRowBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

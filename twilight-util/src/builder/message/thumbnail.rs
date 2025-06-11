@@ -7,7 +7,7 @@ pub struct ThumbnailBuilder(Thumbnail);
 
 impl ThumbnailBuilder {
     /// Create a new thumbnail builder.
-    pub fn new(media: UnfurledMediaItem) -> Self {
+    pub const fn new(media: UnfurledMediaItem) -> Self {
         Self(Thumbnail {
             id: None,
             media,
