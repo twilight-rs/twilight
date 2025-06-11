@@ -265,28 +265,35 @@ pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValid
 /// be returned as a result of validating each provided component.
 ///
 /// [`component`]: crate::component::component
-pub fn components(components: &[Component]) -> Result<(), MessageValidationError> {
+pub fn components(components: &[Component], is_v2: bool) -> Result<(), MessageValidationError> {
     let count = components.len();
 
-    if count > COMPONENT_COUNT {
-        Err(MessageValidationError {
+    if !is_v2 && count > COMPONENT_COUNT {
+        return Err(MessageValidationError {
             kind: MessageValidationErrorType::ComponentCount { count },
             source: None,
-        })
-    } else {
-        for (idx, component) in components.iter().enumerate() {
-            crate::component::component(component).map_err(|source| {
-                let (kind, source) = source.into_parts();
-
-                MessageValidationError {
-                    kind: MessageValidationErrorType::ComponentInvalid { idx, kind },
-                    source,
-                }
-            })?;
-        }
-
-        Ok(())
+        });
     }
+
+    let function = if is_v2 {
+        crate::component::component_v2
+    } else {
+        crate::component::component_v1
+    };
+    for (idx, component) in components.iter().enumerate() {
+        function(component).map_err(|source| {
+            let (kind, source) = source.into_parts();
+
+            MessageValidationError {
+                kind: MessageValidationErrorType::ComponentInvalid { idx, kind },
+                source,
+            }
+        })?;
+    }
+
+    // TODO(HTGAzureX1212): the TOTAL number of components shall not exceed 40
+
+    Ok(())
 }
 
 /// Ensure a message's content is correct.
