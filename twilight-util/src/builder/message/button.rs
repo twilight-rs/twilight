@@ -11,7 +11,7 @@ pub struct ButtonBuilder(Button);
 
 impl ButtonBuilder {
     /// Create a new button builder.
-    pub fn new(style: ButtonStyle) -> Self {
+    pub const fn new(style: ButtonStyle) -> Self {
         Self(Button {
             custom_id: None,
             disabled: false,
@@ -32,7 +32,7 @@ impl ButtonBuilder {
     }
 
     /// Specify whether this button is disabled.
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.0.disabled = disabled;
 
         self
@@ -53,6 +53,8 @@ impl ButtonBuilder {
     }
 
     /// Validate the fields in this builder.
+    ///
+    /// # Errors
     pub fn validate(self) -> Result<Self, ComponentValidationError> {
         button(&self.0)?;
 

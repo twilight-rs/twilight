@@ -7,7 +7,7 @@ pub struct ContainerBuilder(Container);
 
 impl ContainerBuilder {
     /// Create a new container builder.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(Container {
             accent_color: None,
             components: Vec::new(),
@@ -47,6 +47,12 @@ impl ContainerBuilder {
     /// Build into a container.
     pub fn build(self) -> Container {
         self.0
+    }
+}
+
+impl Default for ContainerBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

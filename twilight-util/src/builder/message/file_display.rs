@@ -7,7 +7,7 @@ pub struct FileDisplayBuilder(FileDisplay);
 
 impl FileDisplayBuilder {
     /// Create a new file display builder.
-    pub fn new(file: UnfurledMediaItem) -> Self {
+    pub const fn new(file: UnfurledMediaItem) -> Self {
         Self(FileDisplay {
             id: None,
             file,
