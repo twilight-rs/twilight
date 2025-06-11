@@ -166,9 +166,9 @@ impl<'a> UpdateResponse<'a> {
     /// version is in use, you can validate them manually using the [`twilight_validate::component::component_v1`]
     /// or [`twilight_validate::component::component_v2`] functions.
     pub fn components(mut self, components: Option<&'a [Component]>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.fields = self.fields.map(|mut fields| {
             fields.components = Some(Nullable(components));
-            Ok(fields)
+            fields
         });
 
         self

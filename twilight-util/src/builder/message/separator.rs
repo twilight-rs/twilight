@@ -7,7 +7,7 @@ pub struct SeparatorBuilder(Separator);
 
 impl SeparatorBuilder {
     /// Create a new separator builder.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(Separator {
             id: None,
             divider: None,
@@ -31,14 +31,20 @@ impl SeparatorBuilder {
 
     /// Set the spacing of this separator.
     pub fn spacing(mut self, spacing: SeparatorSpacingSize) -> Self {
-        self.0.spacing.replace(spacing.into());
+        self.0.spacing.replace(spacing);
 
         self
     }
 
     /// Build into a separator.
-    pub fn build(self) -> Separator {
+    pub const fn build(self) -> Separator {
         self.0
+    }
+}
+
+impl Default for SeparatorBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -26,7 +26,7 @@ impl SelectMenuBuilder {
     }
 
     /// Set whether this select menu is disabled.
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.0.disabled = disabled;
 
         self
