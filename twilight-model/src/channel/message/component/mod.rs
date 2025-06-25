@@ -206,6 +206,24 @@ impl Component {
             Component::Thumbnail(_) => ComponentType::Thumbnail,
         }
     }
+
+    /// Get the amount of components a component should count as.
+    pub fn component_count(&self) -> usize {
+        match self {
+            Component::ActionRow(action_row) => 1 + action_row.components.len(),
+            Component::Section(section) => 1 + section.components.len(),
+            Component::Container(container) => 1 + container.components.len(),
+            Component::Button(_)
+            | Component::SelectMenu(_)
+            | Component::TextInput(_)
+            | Component::TextDisplay(_)
+            | Component::MediaGallery(_)
+            | Component::Separator(_)
+            | Component::File(_)
+            | Component::Thumbnail(_)
+            | Component::Unknown(_) => 1,
+        }
+    }
 }
 
 impl From<ActionRow> for Component {
