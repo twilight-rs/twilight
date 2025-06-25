@@ -3,7 +3,7 @@
 //! [`Message`]: twilight_model::channel::Message
 
 use crate::{
-    component::{ComponentValidationErrorType, COMPONENT_COUNT},
+    component::{ComponentValidationErrorType, COMPONENT_COUNT, COMPONENT_V2_COUNT},
     embed::{chars as embed_chars, EmbedValidationErrorType, EMBED_TOTAL_LENGTH},
     request::ValidationError,
 };
@@ -100,10 +100,14 @@ impl Display for MessageValidationError {
 
                 f.write_str("`is invalid")
             }
-            MessageValidationErrorType::ComponentCount { count } => {
+            MessageValidationErrorType::ComponentCount { count, is_v2 } => {
                 Display::fmt(count, f)?;
                 f.write_str(" components were provided, but only ")?;
-                Display::fmt(&COMPONENT_COUNT, f)?;
+                if *is_v2 {
+                    Display::fmt(&COMPONENT_V2_COUNT, f)?;
+                } else {
+                    Display::fmt(&COMPONENT_COUNT, f)?;
+                }
 
                 f.write_str(" root components are allowed")
             }
@@ -155,6 +159,8 @@ pub enum MessageValidationErrorType {
     ComponentCount {
         /// Number of components that were provided.
         count: usize,
+        /// If it was a components V2 check.
+        is_v2: bool,
     },
     /// An invalid message component was provided.
     ComponentInvalid {
@@ -266,13 +272,26 @@ pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValid
 ///
 /// [`component`]: crate::component::component
 pub fn components(components: &[Component], is_v2: bool) -> Result<(), MessageValidationError> {
-    let count = components.len();
+    if is_v2 {
+        let count = components
+            .iter()
+            .map(Component::component_count)
+            .sum::<usize>();
+        if count > COMPONENT_V2_COUNT {
+            return Err(MessageValidationError {
+                kind: MessageValidationErrorType::ComponentCount { count, is_v2 },
+                source: None,
+            });
+        }
+    } else {
+        let count = components.len();
 
-    if !is_v2 && count > COMPONENT_COUNT {
-        return Err(MessageValidationError {
-            kind: MessageValidationErrorType::ComponentCount { count },
-            source: None,
-        });
+        if count > COMPONENT_COUNT {
+            return Err(MessageValidationError {
+                kind: MessageValidationErrorType::ComponentCount { count, is_v2 },
+                source: None,
+            });
+        }
     }
 
     let function = if is_v2 {
@@ -290,8 +309,6 @@ pub fn components(components: &[Component], is_v2: bool) -> Result<(), MessageVa
             }
         })?;
     }
-
-    // TODO(HTGAzureX1212): the TOTAL number of components shall not exceed 40
 
     Ok(())
 }
