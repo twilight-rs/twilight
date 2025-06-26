@@ -6,14 +6,6 @@ use twilight_model::channel::message::component::{
 };
 use twilight_model::channel::message::Component;
 
-// /// Maximum number of root [`Component`]s in a message in Components V2.
-// ///
-// /// This is defined in Discord's documentation, per
-// /// [Discord Docs][1].
-// ///
-// /// [1]: https://discord.com/developers/docs/components/reference#component-reference
-// pub const COMPONENT_COUNT_TOTAL_V2: usize = 40;
-
 /// Maximum length of text display content.
 pub const TEXT_DISPLAY_CONTENT_LENGTH_MAX: usize = 2000;
 

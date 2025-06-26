@@ -40,7 +40,7 @@ pub const COMPONENT_COUNT: usize = 5;
 /// [Discord Docs][1].
 ///
 /// [1]: https://discord.com/developers/docs/components/reference#component-reference
-pub const COMPONENT_V2_COUNT: usize = 5;
+pub const COMPONENT_V2_COUNT: usize = 40;
 
 /// Maximum length of a [`Component`] custom ID in codepoints.
 ///
