@@ -4395,11 +4395,13 @@ mod tests {
         let route = Route::InteractionCallback {
             interaction_id: INTERACTION_ID,
             interaction_token: INTERACTION_TOKEN,
-            with_response: true
+            with_response: true,
         };
         assert_eq!(
             route.to_string(),
-            format!("interactions/{INTERACTION_ID}/{INTERACTION_TOKEN}/callback?with_response=true")
+            format!(
+                "interactions/{INTERACTION_ID}/{INTERACTION_TOKEN}/callback?with_response=true"
+            )
         );
     }
 
