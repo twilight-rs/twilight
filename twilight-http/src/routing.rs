@@ -929,7 +929,7 @@ pub enum Route<'a> {
         interaction_id: u64,
         /// The token for the interaction.
         interaction_token: &'a str,
-        /// If response should be retrived.
+        /// If response should be retrieved.
         with_response: bool,
     },
     /// Route information to join a thread as the current user.
@@ -4395,10 +4395,11 @@ mod tests {
         let route = Route::InteractionCallback {
             interaction_id: INTERACTION_ID,
             interaction_token: INTERACTION_TOKEN,
+            with_response: true
         };
         assert_eq!(
             route.to_string(),
-            format!("interactions/{INTERACTION_ID}/{INTERACTION_TOKEN}/callback")
+            format!("interactions/{INTERACTION_ID}/{INTERACTION_TOKEN}/callback?with_response=true")
         );
     }
 
