@@ -170,6 +170,8 @@ pub struct Channel {
     /// Defaults to automatic for applicable channels.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rtc_region: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
     /// Metadata about a thread.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread_metadata: Option<ThreadMetadata>,
@@ -261,6 +263,7 @@ mod tests {
             rate_limit_per_user: Some(0),
             recipients: None,
             rtc_region: None,
+            status: None,
             thread_metadata: None,
             topic: Some("a".to_owned()),
             user_limit: None,
@@ -304,6 +307,7 @@ mod tests {
             rate_limit_per_user: None,
             recipients: None,
             rtc_region: None,
+            status: None,
             thread_metadata: None,
             topic: None,
             user_limit: None,
@@ -359,6 +363,7 @@ mod tests {
             rate_limit_per_user: None,
             recipients: None,
             rtc_region: None,
+            status: None,
             thread_metadata: None,
             topic: Some("a news channel".to_owned()),
             user_limit: None,
@@ -428,6 +433,7 @@ mod tests {
             rate_limit_per_user: Some(1000),
             recipients: None,
             rtc_region: None,
+            status: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
@@ -518,6 +524,7 @@ mod tests {
             rate_limit_per_user: Some(1000),
             recipients: None,
             rtc_region: None,
+            status: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
@@ -616,6 +623,7 @@ mod tests {
             rate_limit_per_user: Some(1000),
             recipients: None,
             rtc_region: None,
+            status: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,

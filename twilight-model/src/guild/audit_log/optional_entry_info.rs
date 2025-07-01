@@ -159,6 +159,17 @@ pub struct AuditLogOptionalEntryInfo {
     /// [`AuditLogEventType::ChannelOverwriteUpdate`]: super::AuditLogEventType::ChannelOverwriteUpdate
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role_name: Option<String>,
+    /// Status of a voice channel.
+    ///
+    /// The following events have this option:
+    ///
+    /// - [`AuditLogEventType::VoiceChannelStatusUpdate`]
+    /// - [`AuditLogEventType::VoiceChannelStatusDelete`]
+    ///
+    /// [`AuditLogEventType::VoiceChannelStatusUpdate`]: super::AuditLogEventType::VoiceChannelStatusUpdate
+    /// [`AuditLogEventType::VoiceChannelStatusDelete`]: super::AuditLogEventType::VoiceChannelStatusDelete
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
 }
 
 #[cfg(test)]
@@ -176,7 +187,8 @@ mod tests {
         kind,
         members_removed,
         message_id,
-        role_name
+        role_name,
+        status
     );
     assert_impl_all!(
         AuditLogOptionalEntryInfo: Clone,

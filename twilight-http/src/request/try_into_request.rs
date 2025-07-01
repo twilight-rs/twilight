@@ -1,4 +1,5 @@
 mod private {
+    use crate::request::channel::SetVoiceChannelStatus;
     use crate::request::{
         application::{
             command::{
@@ -266,6 +267,7 @@ mod private {
     impl Sealed for SearchGuildMembers<'_> {}
     impl Sealed for SetGlobalCommands<'_> {}
     impl Sealed for SetGuildCommands<'_> {}
+    impl Sealed for SetVoiceChannelStatus<'_> {}
     impl Sealed for SyncTemplate<'_> {}
     impl Sealed for UpdateAutoModerationRule<'_> {}
     impl Sealed for UpdateChannel<'_> {}
