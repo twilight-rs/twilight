@@ -111,29 +111,24 @@ async fn identify(
     deadline: Instant,
     ct: CancellationToken,
 ) -> Shard {
-    let timeout = time::sleep_until(deadline.into());
-    tokio::pin!(timeout);
-    // Register timer.
-    timeout.as_mut().reset(deadline.into());
-
     loop {
         let identified_count = identified
             .iter()
             .fold(0, |acc, i| acc + i.load(Ordering::Relaxed) as usize);
-        tokio::select! {
-            biased;
-            _ = ct.cancelled() => return shard,
-            _ = &mut timeout, if identified_count >= (identified.len() * 3) / 4 => {
+        let future = ct.run_until_cancelled(time::timeout_at(deadline.into(), shard.next()));
+
+        match future.await {
+            Some(Ok(Some(Err(source)))) => {
+                tracing::warn!(?source, "error receiving message");
+            }
+            Some(Err(_)) if identified_count >= (identified.len() * 3) / 4 => {
                 ct.cancel();
                 return shard;
-            },
-            Some(item) = shard.next() => {
-                if let Err(source) = item {
-                    tracing::warn!(?source, "error receiving message");
-                } else {
-                    let is_identified = shard.state().is_identified();
-                    identified[shard.id().number() as usize].store(is_identified, Ordering::Relaxed);
-                }
+            }
+            None => return shard,
+            _ => {
+                let is_identified = shard.state().is_identified();
+                identified[shard.id().number() as usize].store(is_identified, Ordering::Relaxed);
             }
         }
     }
