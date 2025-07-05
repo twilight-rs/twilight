@@ -1005,7 +1005,7 @@ impl Client {
         &self,
         guild_id: Id<GuildMarker>,
         fields: UpdateGuildOnboardingFields,
-    ) -> UpdateGuildOnboarding {
+    ) -> UpdateGuildOnboarding<'_> {
         UpdateGuildOnboarding::new(self, guild_id, fields)
     }
 

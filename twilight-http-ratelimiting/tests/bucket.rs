@@ -1,4 +1,4 @@
-use tokio::time::{advance, Duration, Instant};
+use tokio::time::{self, Duration, Instant};
 use twilight_http_ratelimiting::{Path, RateLimitHeaders, RateLimiter};
 
 const BUCKET: fn() -> Vec<u8> = || vec![1, 2, 3, 4];
@@ -22,15 +22,15 @@ async fn bucket_limit() {
             bucket: BUCKET(),
             limit: 10,
             remaining: 0,
-            reset_at: now + RESET_AFTER,
+            reset_at: now.into_std() + RESET_AFTER,
         })),
     }
 
-    advance(RESET_AFTER / 2).await;
+    time::advance(RESET_AFTER / 2).await;
 
     assert!(rate_limiter.bucket(PATH).await.is_some());
 
-    advance(RESET_AFTER / 2).await;
+    time::advance(RESET_AFTER / 2).await;
 
     assert!(rate_limiter.bucket(PATH).await.is_none());
     _ = permit_fut2.await;
@@ -41,7 +41,7 @@ async fn bucket_limit() {
 async fn bucket_sublimit() {
     let rate_limiter = RateLimiter::default();
 
-    let reset_at = Instant::now() + RESET_AFTER;
+    let reset_at = Instant::now().into_std() + RESET_AFTER;
     rate_limiter
         .acquire(PATH)
         .await
@@ -89,7 +89,7 @@ async fn bucket_sublimit() {
 async fn bucket_shared() {
     let rate_limiter = RateLimiter::default();
 
-    let reset_at = Instant::now() + RESET_AFTER;
+    let reset_at = Instant::now().into_std() + RESET_AFTER;
     rate_limiter
         .acquire(PATH)
         .await

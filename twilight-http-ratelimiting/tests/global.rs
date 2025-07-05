@@ -1,4 +1,4 @@
-use tokio::time::{advance, Instant};
+use tokio::time::{self, Instant};
 use twilight_http_ratelimiting::{Path, RateLimiter, GLOBAL_LIMIT_PERIOD};
 
 const PATH: Path = Path::ApplicationsMe;
@@ -31,7 +31,7 @@ async fn global_reset_on_cancel() {
 
     let permit = rate_limiter.acquire(PATH).await;
 
-    advance(GLOBAL_LIMIT_PERIOD / 2).await;
+    time::advance(GLOBAL_LIMIT_PERIOD / 2).await;
 
     drop(permit);
 
@@ -51,7 +51,7 @@ async fn global_reset_preemptive() {
 
     rate_limiter.acquire(PATH).await.complete(None);
 
-    advance(GLOBAL_LIMIT_PERIOD).await;
+    time::advance(GLOBAL_LIMIT_PERIOD).await;
 
     rate_limiter.acquire(PATH).await.complete(None);
     rate_limiter.acquire(PATH).await.complete(None);

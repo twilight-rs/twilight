@@ -27,17 +27,11 @@ use crate::{
 use futures_core::Stream;
 use futures_sink::Sink;
 use serde::{de::DeserializeOwned, Deserialize};
-#[cfg(any(
-    feature = "native-tls",
-    feature = "rustls-native-roots",
-    feature = "rustls-platform-verifier",
-    feature = "rustls-webpki-roots"
-))]
-use std::io::ErrorKind as IoErrorKind;
 use std::{
     env::consts::OS,
     fmt,
     future::Future,
+    io,
     pin::Pin,
     str,
     task::{ready, Context, Poll},
@@ -629,16 +623,17 @@ impl<Q: Queue> Shard<Q> {
                 // have to be a heartbeat ACK.
                 if self.latency.sent().is_some() && !self.heartbeat_interval_event {
                     tracing::info!("connection is failed or \"zombied\"");
-                    self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
-                } else {
-                    tracing::debug!("sending heartbeat");
-                    self.pending = Pending::text(
-                        json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                            .expect("serialization cannot fail"),
-                        true,
-                    );
-                    self.heartbeat_interval_event = false;
+
+                    return Poll::Ready(Err(WebsocketError::Io(io::ErrorKind::TimedOut.into())));
                 }
+
+                tracing::debug!("sending heartbeat");
+                self.pending = Pending::text(
+                    json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
+                        .expect("serialization cannot fail"),
+                    true,
+                );
+                self.heartbeat_interval_event = false;
 
                 continue;
             }
@@ -947,21 +942,7 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                         break message;
                     }
                 }
-                // Discord, against recommendations from the WebSocket spec,
-                // does not send a close_notify prior to shutting down the TCP
-                // stream. This arm tries to gracefully handle this. The
-                // connection is considered unusable after encountering an io
-                // error, returning `None`.
-                #[cfg(any(
-                    feature = "native-tls",
-                    feature = "rustls-native-roots",
-                    feature = "rustls-platform-verifier",
-                    feature = "rustls-webpki-roots"
-                ))]
-                Some(Err(WebsocketError::Io(e)))
-                    if e.kind() == IoErrorKind::UnexpectedEof
-                        && self.config.proxy_url().is_none()
-                        && self.state.is_disconnected() => {}
+                Some(Err(_)) if self.state.is_disconnected() => {}
                 Some(Err(_)) => {
                     self.disconnect(CloseInitiator::Transport);
                     return Poll::Ready(Some(Ok(Message::ABNORMAL_CLOSE)));

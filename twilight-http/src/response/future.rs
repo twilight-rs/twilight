@@ -17,8 +17,9 @@ use std::{
         Arc,
     },
     task::{ready, Context, Poll},
+    time::{Duration, Instant},
 };
-use tokio::time::{self, Duration, Instant, Sleep, Timeout};
+use tokio::time::{self, Sleep, Timeout};
 use twilight_http_ratelimiting::{Path, Permit, PermitFuture, RateLimitHeaders, RateLimiter};
 
 /// Parse ratelimit headers from a map of headers.

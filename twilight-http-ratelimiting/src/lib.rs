@@ -17,12 +17,9 @@ use std::{
     future::Future,
     pin::Pin,
     task::{Context, Poll},
-    time::Duration,
+    time::{Duration, Instant},
 };
-use tokio::{
-    sync::{mpsc, oneshot},
-    time::Instant,
-};
+use tokio::sync::{mpsc, oneshot};
 
 /// Duration from the first globally limited request until the remaining count
 /// resets to the global limit count.
@@ -195,7 +192,7 @@ impl RateLimiter {
     ///     .acquire_if(Path::ApplicationsMe, |b| b.is_none_or(|b| b.remaining > 10))
     ///     .await
     /// {
-    ///     let headers = unimplemented!("send /applications/@me request");
+    ///     let headers = unimplemented!("GET /applications/@me");
     ///     permit.complete(headers);
     /// }
     /// # });
@@ -247,11 +244,13 @@ mod tests {
         Bucket, MaybePermitFuture, Path, Permit, PermitFuture, RateLimitHeaders, RateLimiter,
     };
     use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, future::Future, hash::Hash};
-    use tokio::{
-        task,
+    use std::{
+        fmt::Debug,
+        future::Future,
+        hash::Hash,
         time::{Duration, Instant},
     };
+    use tokio::task;
 
     assert_impl_all!(Bucket: Clone, Copy, Debug, Eq, Hash, PartialEq, Send, Sync);
     assert_impl_all!(MaybePermitFuture: Debug, Future<Output = Option<Permit>>);

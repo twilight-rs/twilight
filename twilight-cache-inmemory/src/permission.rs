@@ -31,7 +31,7 @@
 //! [`InMemoryCachePermissions::check_member_communication_disabled`].
 //!
 //! [`ResourceType`]: crate::ResourceType
-//! [communication timed out until]: CachedMember::communication_disabled_until
+//! [communication disabled until]: crate::model::CachedMember::communication_disabled_until
 //! [current system time]: SystemTime::now
 //! [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
 

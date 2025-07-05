@@ -330,15 +330,13 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
-    /// Specify the ID of another message to forward.
-    pub fn forward(mut self, other: Id<MessageMarker>) -> Self {
+    /// Specify the channel and message IDs of another message to forward.
+    pub fn forward(mut self, channel_id: Id<ChannelMarker>, message_id: Id<MessageMarker>) -> Self {
         self.fields = self.fields.map(|mut fields| {
-            let channel_id = self.channel_id;
-
             let reference = if let Some(reference) = fields.message_reference {
                 MessageReference {
                     channel_id: Some(channel_id),
-                    message_id: Some(other),
+                    message_id: Some(message_id),
                     ..reference
                 }
             } else {
@@ -346,7 +344,7 @@ impl<'a> CreateMessage<'a> {
                     kind: MessageReferenceType::Forward,
                     channel_id: Some(channel_id),
                     guild_id: None,
-                    message_id: Some(other),
+                    message_id: Some(message_id),
                     fail_if_not_exists: None,
                 }
             };
