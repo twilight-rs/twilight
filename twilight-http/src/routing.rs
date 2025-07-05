@@ -1,5 +1,5 @@
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
+pub use twilight_http_ratelimiting::{Path, PathParseError, PathParseErrorType};
 
 use crate::{
     query_formatter::{QueryArray, QueryStringFormatter},
@@ -1417,32 +1417,29 @@ impl Route<'_> {
 
     /// Typed path of the route.
     ///
-    /// Paths are used with a [`Ratelimiter`].
+    /// Paths are used with a [`RateLimiter`].
     ///
     /// # Examples
     ///
     /// Use a route's path to retrieve a ratelimiter ticket:
     ///
-    /// ```
+    /// ```no_run
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() {
     /// use twilight_http::routing::Route;
-    /// use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
+    /// use twilight_http_ratelimiting::RateLimiter;
     ///
-    /// let ratelimiter = InMemoryRatelimiter::new();
+    /// let ratelimiter = RateLimiter::default();
     /// let route = Route::CreateMessage { channel_id: 123 };
     ///
-    /// // Take a ticket from the ratelimiter.
-    /// let rx = ratelimiter.ticket(route.to_path()).await?;
-    ///
     /// // Wait to be told that a request can be made...
-    /// let _tx = rx.await;
+    /// let permit = ratelimiter.acquire(route.to_path()).await;
     ///
     /// // The request can now be made.
-    /// # Ok(()) }
+    /// # }
     /// ```
     ///
-    /// [`Ratelimiter`]: twilight_http_ratelimiting::Ratelimiter
+    /// [`RateLimiter`]: twilight_http_ratelimiting::RateLimiter
     #[allow(clippy::too_many_lines)]
     pub fn to_path(&self) -> Path {
         match *self {

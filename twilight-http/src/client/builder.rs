@@ -6,7 +6,7 @@ use std::{
     sync::{atomic::AtomicBool, Arc},
     time::Duration,
 };
-use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
+use twilight_http_ratelimiting::RateLimiter;
 use twilight_model::channel::message::AllowedMentions;
 
 /// A builder for [`Client`].
@@ -15,7 +15,7 @@ use twilight_model::channel::message::AllowedMentions;
 pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Box<str>>,
-    pub(crate) ratelimiter: Option<Box<dyn Ratelimiter>>,
+    ratelimiter: Option<RateLimiter>,
     remember_invalid_token: bool,
     pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
@@ -72,7 +72,7 @@ impl ClientBuilder {
     ///
     /// Set the proxy to `twilight_http_proxy.internal`:
     ///
-    /// ```
+    /// ```no_run
     /// use twilight_http::Client;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -95,10 +95,10 @@ impl ClientBuilder {
     /// If the argument is `None` then the client's ratelimiter will be skipped
     /// before making a request.
     ///
-    /// If this method is not called at all then a default [`InMemoryRatelimiter`] will be
-    /// created by [`ClientBuilder::build`].
+    /// If not called, then a default [`RateLimiter`] will be created by
+    /// [`ClientBuilder::build`].
     #[allow(clippy::missing_const_for_fn)]
-    pub fn ratelimiter(mut self, ratelimiter: Option<Box<dyn Ratelimiter>>) -> Self {
+    pub fn ratelimiter(mut self, ratelimiter: Option<RateLimiter>) -> Self {
         self.ratelimiter = ratelimiter;
 
         self
@@ -152,12 +152,11 @@ impl ClientBuilder {
 
 impl Default for ClientBuilder {
     fn default() -> Self {
-        #[allow(clippy::box_default)]
         Self {
             default_allowed_mentions: None,
             default_headers: None,
             proxy: None,
-            ratelimiter: Some(Box::new(InMemoryRatelimiter::default())),
+            ratelimiter: (!cfg!(test)).then(RateLimiter::default),
             remember_invalid_token: true,
             timeout: Duration::from_secs(10),
             token: None,
