@@ -59,37 +59,57 @@ fn parse_ratelimit_headers(
     }))
 }
 
+///                                  [Delay] <-----------------|
+///                                     |                      |
+///    |----- <has permit generator>----|------|               |
+/// [Permit]  ---------------------------> [Response]          |
+///               [Response] <-------<OK>-----|--<rate limit>--|
+///                                           |
+///                                         <else> ----> [Chunking]
 enum ResponseFutureStage {
+    /// Awaiting error response body.
     Chunking {
         fut: BytesFuture,
         status: StatusCode,
     },
+    /// Awaiting to send request.
     Delay(Pin<Box<Sleep>>),
+    /// Awaiting rate limiter permit.
     Permit(PermitFuture),
+    /// Awaiting response.
     Response {
         fut: Pin<Box<Timeout<HyperResponseFuture>>>,
         permit: Option<Permit>,
     },
 }
 
+/// [`PermitFuture`] generator.
 struct PermitFutureGenerator {
+    /// Rate limiter to acquire permits from.
     rate_limiter: RateLimiter,
+    /// Rate limiter path to acquire permits for.
     path: Path,
 }
 
 impl PermitFutureGenerator {
+    /// Generates a permit future.
     fn generate(&self) -> PermitFuture {
         self.rate_limiter.acquire(self.path.clone())
     }
 }
 
-struct ResponseFutureGenerator {
-    client: Arc<Client<Connector, Full<Bytes>>>,
+/// [`Timeout<HyperResponseFuture>`] generator.
+struct TimedResponseFutureGenerator {
+    /// HTTP client to send requests from.
+    client: Client<Connector, Full<Bytes>>,
+    /// HTTP request to send.
     request: Request<Full<Bytes>>,
+    /// Duration after which the request times out.
     timeout: Duration,
 }
 
-impl ResponseFutureGenerator {
+impl TimedResponseFutureGenerator {
+    /// Generates a timeout response future.
     fn generate(&self) -> Pin<Box<Timeout<HyperResponseFuture>>> {
         Box::pin(time::timeout(
             self.timeout,
@@ -135,135 +155,29 @@ impl ResponseFutureGenerator {
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct ResponseFuture<T>(Result<Inner<T>, Ready<Error>>);
 
+/// Internal response future fields.
 struct Inner<T> {
+    /// Whether the client's token is invalidated.
     invalid_token: Option<Arc<AtomicBool>>,
+    /// Optional [`PermitFuture`] generator, if registered.
     permit_generator: Option<PermitFutureGenerator>,
     phantom: PhantomData<T>,
+    /// Predicate to check after completing [`ResponseFutureStage::Permit`].
     pre_flight_check: Option<Box<dyn Fn() -> bool + Send + 'static>>,
-    response_generator: ResponseFutureGenerator,
+    /// [`Timeout<HyperResponseFuture>`] generator.
+    response_generator: TimedResponseFutureGenerator,
+    /// This future's current stage.
     stage: ResponseFutureStage,
-}
-
-impl<T> Inner<T> {
-    fn poll(&mut self, cx: &mut Context<'_>) -> Poll<Result<Response<T>, Error>> {
-        loop {
-            match &mut self.stage {
-                ResponseFutureStage::Chunking { fut, status } => {
-                    let body = ready!(Pin::new(fut).poll(cx)).map_err(|source| Error {
-                        kind: ErrorType::RequestError,
-                        source: Some(Box::new(source)),
-                    })?;
-
-                    return Poll::Ready(Err(match crate::json::from_bytes::<ApiError>(&body) {
-                        Ok(error) => Error {
-                            kind: ErrorType::Response {
-                                body,
-                                error,
-                                status: super::StatusCode::new(status.as_u16()),
-                            },
-                            source: None,
-                        },
-                        Err(source) => Error {
-                            kind: ErrorType::Parsing { body },
-                            source: Some(Box::new(source)),
-                        },
-                    }));
-                }
-                ResponseFutureStage::Delay(fut) => {
-                    ready!(Pin::new(fut).poll(cx));
-                    self.stage = match &self.permit_generator {
-                        Some(gen) => ResponseFutureStage::Permit(gen.generate()),
-                        None => ResponseFutureStage::Response {
-                            fut: self.response_generator.generate(),
-                            permit: None,
-                        },
-                    };
-                }
-                ResponseFutureStage::Permit(fut) => {
-                    let permit = ready!(Pin::new(fut).poll(cx));
-                    if self.pre_flight_check.as_ref().is_some_and(|check| !check()) {
-                        return Poll::Ready(Err(Error {
-                            kind: ErrorType::RequestCanceled,
-                            source: None,
-                        }));
-                    }
-
-                    self.stage = ResponseFutureStage::Response {
-                        fut: self.response_generator.generate(),
-                        permit: Some(permit),
-                    };
-                }
-                ResponseFutureStage::Response { fut, permit } => {
-                    let response = ready!(Pin::new(fut).poll(cx))
-                        .map_err(|source| Error {
-                            kind: ErrorType::RequestTimedOut,
-                            source: Some(Box::new(source)),
-                        })?
-                        .map_err(|source| Error {
-                            kind: ErrorType::RequestError,
-                            source: Some(Box::new(source)),
-                        })?;
-
-                    if response.status() == StatusCode::UNAUTHORIZED {
-                        if let Some(invalid) = &self.invalid_token {
-                            invalid.store(true, Ordering::Relaxed);
-                        }
-                    }
-
-                    if let Some(permit) = permit.take() {
-                        match parse_ratelimit_headers(response.headers()) {
-                            Ok(v) => permit.complete(v),
-                            Err(source) => {
-                                tracing::warn!("header parsing failed: {source}; {response:?}");
-
-                                permit.complete(None);
-                            }
-                        }
-                    }
-
-                    if response.status().is_success() {
-                        #[cfg(feature = "decompression")]
-                        let mut response = response;
-                        // Inaccurate since end-users can only access the decompressed body.
-                        #[cfg(feature = "decompression")]
-                        response.headers_mut().remove(header::CONTENT_LENGTH);
-
-                        return Poll::Ready(Ok(Response::new(response)));
-                    }
-
-                    if response.status() == StatusCode::TOO_MANY_REQUESTS {
-                        if let Some(retry_after) = response.headers().get(header::RETRY_AFTER) {
-                            if let Ok(str) = retry_after.to_str() {
-                                if let Ok(secs) = str.parse() {
-                                    let duration = Duration::from_secs(secs);
-                                    tracing::debug!(?duration, "retrying request");
-                                    self.stage =
-                                        ResponseFutureStage::Delay(Box::pin(time::sleep(duration)));
-                                    continue;
-                                }
-                            }
-                            tracing::warn!("unknown retry-after header value: {retry_after:?}");
-                        }
-                    }
-
-                    self.stage = ResponseFutureStage::Chunking {
-                        status: response.status(),
-                        fut: Response::<()>::new(response).bytes(),
-                    }
-                }
-            }
-        }
-    }
 }
 
 impl<T> ResponseFuture<T> {
     pub(crate) fn new(
-        client: Arc<Client<Connector, Full<Bytes>>>,
+        client: Client<Connector, Full<Bytes>>,
         invalid_token: Option<Arc<AtomicBool>>,
         request: Request<Full<Bytes>>,
         timeout: Duration,
     ) -> Self {
-        let response_generator = ResponseFutureGenerator {
+        let response_generator = TimedResponseFutureGenerator {
             client,
             request,
             timeout,
@@ -273,10 +187,7 @@ impl<T> ResponseFuture<T> {
             permit_generator: None,
             phantom: PhantomData,
             pre_flight_check: None,
-            stage: ResponseFutureStage::Response {
-                fut: response_generator.generate(),
-                permit: None,
-            },
+            stage: ResponseFutureStage::Delay(Box::pin(time::sleep(Duration::ZERO))),
             response_generator,
         }))
     }
@@ -338,16 +249,21 @@ impl<T> ResponseFuture<T> {
     where
         P: Fn() -> bool + Send + 'static,
     {
-        let Ok(inner) = &mut self.0 else { return false };
-        inner.pre_flight_check = Some(Box::new(predicate));
-
-        true
+        if let Ok(inner) = &mut self.0 {
+            if inner.permit_generator.is_some() && inner.pre_flight_check.is_none() {
+                inner.pre_flight_check = Some(Box::new(predicate));
+                return true;
+            }
+        }
+        false
     }
 
+    /// Creates a future that is immediately ready with an error.
     pub(crate) fn error(source: Error) -> Self {
         Self(Err(ready(source)))
     }
 
+    /// Registers a [`PermitFutureGenerator`] for this future.
     #[track_caller]
     pub(crate) fn set_rate_limiter(&mut self, rate_limiter: RateLimiter, path: Path) {
         let Ok(inner) = &mut self.0 else {
@@ -363,9 +279,121 @@ impl<T: Unpin> Future for ResponseFuture<T> {
     type Output = Result<Response<T>, Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        match &mut self.0 {
-            Ok(inner) => inner.poll(cx),
-            Err(err) => Pin::new(err).poll(cx).map(Err),
+        let inner = match &mut self.0 {
+            Ok(inner) => inner,
+            Err(err) => return Pin::new(err).poll(cx).map(Err),
+        };
+
+        loop {
+            match &mut inner.stage {
+                ResponseFutureStage::Chunking { fut, status } => {
+                    let body = ready!(Pin::new(fut).poll(cx)).map_err(|source| Error {
+                        kind: ErrorType::RequestError,
+                        source: Some(Box::new(source)),
+                    })?;
+
+                    return Poll::Ready(Err(match crate::json::from_bytes::<ApiError>(&body) {
+                        Ok(error) => Error {
+                            kind: ErrorType::Response {
+                                body,
+                                error,
+                                status: super::StatusCode::new(status.as_u16()),
+                            },
+                            source: None,
+                        },
+                        Err(source) => Error {
+                            kind: ErrorType::Parsing { body },
+                            source: Some(Box::new(source)),
+                        },
+                    }));
+                }
+                ResponseFutureStage::Delay(fut) => {
+                    ready!(Pin::new(fut).poll(cx));
+                    inner.stage = match &inner.permit_generator {
+                        Some(gen) => ResponseFutureStage::Permit(gen.generate()),
+                        None => ResponseFutureStage::Response {
+                            fut: inner.response_generator.generate(),
+                            permit: None,
+                        },
+                    };
+                }
+                ResponseFutureStage::Permit(fut) => {
+                    let permit = ready!(Pin::new(fut).poll(cx));
+                    if inner
+                        .pre_flight_check
+                        .as_ref()
+                        .is_some_and(|check| !check())
+                    {
+                        return Poll::Ready(Err(Error {
+                            kind: ErrorType::RequestCanceled,
+                            source: None,
+                        }));
+                    }
+
+                    inner.stage = ResponseFutureStage::Response {
+                        fut: inner.response_generator.generate(),
+                        permit: Some(permit),
+                    };
+                }
+                ResponseFutureStage::Response { fut, permit } => {
+                    let response = ready!(Pin::new(fut).poll(cx))
+                        .map_err(|source| Error {
+                            kind: ErrorType::RequestTimedOut,
+                            source: Some(Box::new(source)),
+                        })?
+                        .map_err(|source| Error {
+                            kind: ErrorType::RequestError,
+                            source: Some(Box::new(source)),
+                        })?;
+
+                    if response.status() == StatusCode::UNAUTHORIZED {
+                        if let Some(invalid) = &inner.invalid_token {
+                            invalid.store(true, Ordering::Relaxed);
+                        }
+                    }
+
+                    if let Some(permit) = permit.take() {
+                        match parse_ratelimit_headers(response.headers()) {
+                            Ok(v) => permit.complete(v),
+                            Err(source) => {
+                                tracing::warn!("header parsing failed: {source}; {response:?}");
+
+                                permit.complete(None);
+                            }
+                        }
+                    }
+
+                    if response.status().is_success() {
+                        #[cfg(feature = "decompression")]
+                        let mut response = response;
+                        // Inaccurate since end-users can only access the decompressed body.
+                        #[cfg(feature = "decompression")]
+                        response.headers_mut().remove(header::CONTENT_LENGTH);
+
+                        return Poll::Ready(Ok(Response::new(response)));
+                    }
+
+                    if response.status() == StatusCode::TOO_MANY_REQUESTS {
+                        if let Some(retry_after) = response.headers().get(header::RETRY_AFTER) {
+                            if let Ok(str) = retry_after.to_str() {
+                                if let Ok(secs) = str.parse() {
+                                    let duration = Duration::from_secs(secs);
+                                    tracing::debug!(?duration, "retrying request");
+                                    inner.stage =
+                                        ResponseFutureStage::Delay(Box::pin(time::sleep(duration)));
+                                    continue;
+                                }
+                            }
+                            tracing::warn!("unknown retry-after header value: {retry_after:?}");
+                        }
+                    }
+
+                    inner.stage = ResponseFutureStage::Chunking {
+                        status: response.status(),
+                        fut: Response::<()>::new(response).bytes(),
+                    }
+                }
+            }
         }
     }
 }

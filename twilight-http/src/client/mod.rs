@@ -243,11 +243,11 @@ impl Deref for Token {
 pub struct Client {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
-    http: Arc<HyperClient<Connector, Full<Bytes>>>,
+    http: HyperClient<Connector, Full<Bytes>>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<RateLimiter>,
     timeout: Duration,
-    /// Whether the token has been invalidated.
+    /// Whether the token is invalidated.
     ///
     /// Whether an invalid token is tracked can be configured via
     /// [`ClientBuilder::remember_invalid_token`].
