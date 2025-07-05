@@ -128,15 +128,15 @@ impl Ord for Role {
     /// #   tags: None,
     /// #   unicode_emoji: None,
     /// };
-    /// assert_eq!(Ordering::Less, role_a.cmp(&role_b));
-    /// assert_eq!(Ordering::Greater, role_b.cmp(&role_a));
+    /// assert_eq!(Ordering::Greater, role_a.cmp(&role_b));
+    /// assert_eq!(Ordering::Less, role_b.cmp(&role_a));
     /// assert_eq!(Ordering::Equal, role_a.cmp(&role_a));
     /// assert_eq!(Ordering::Equal, role_b.cmp(&role_b));
     /// ```
     fn cmp(&self, other: &Self) -> Ordering {
         self.position
             .cmp(&other.position)
-            .then(self.id.get().cmp(&other.id.get()))
+            .then(other.id.get().cmp(&self.id.get()))
     }
 }
 
