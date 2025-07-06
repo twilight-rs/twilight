@@ -59,26 +59,24 @@ fn parse_ratelimit_headers(
     }))
 }
 
-///                                  [Delay] <-----------------|
-///                                     |                      |
-///    |----- <has permit generator>----|------|               |
-/// [Permit]  ---------------------------> [Response]          |
-///               [Response] <-------<OK>-----|--<rate limit>--|
-///                                           |
-///                                         <else> ----> [Chunking]
-enum ResponseFutureStage {
-    /// Awaiting error response body.
-    Chunking {
+/// Sub-futures of [`ResponseFuture`].
+enum ResponseStageFuture {
+    /// Future that completes when to send a request.
+    Delay(Pin<Box<Sleep>>),
+    /// Future that completes with an error response body.
+    Error {
+        /// Inner response body future.
         fut: BytesFuture,
+        /// Erroneous response status code.
         status: StatusCode,
     },
-    /// Awaiting to send request.
-    Delay(Pin<Box<Sleep>>),
-    /// Awaiting rate limiter permit.
-    Permit(PermitFuture),
-    /// Awaiting response.
+    /// Future that completes when a rate limit permit is ready.
+    RateLimitPermit(PermitFuture),
+    /// Future that completes with a response or timeout.
     Response {
+        /// Inner timed response future.
         fut: Pin<Box<Timeout<HyperResponseFuture>>>,
+        /// Optional rate limit permit.
         permit: Option<Permit>,
     },
 }
@@ -155,21 +153,6 @@ impl TimedResponseFutureGenerator {
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct ResponseFuture<T>(Result<Inner<T>, Ready<Error>>);
 
-/// Internal response future fields.
-struct Inner<T> {
-    /// Whether the client's token is invalidated.
-    invalid_token: Option<Arc<AtomicBool>>,
-    /// Optional [`PermitFuture`] generator, if registered.
-    permit_generator: Option<PermitFutureGenerator>,
-    phantom: PhantomData<T>,
-    /// Predicate to check after completing [`ResponseFutureStage::Permit`].
-    pre_flight_check: Option<Box<dyn Fn() -> bool + Send + 'static>>,
-    /// [`Timeout<HyperResponseFuture>`] generator.
-    response_generator: TimedResponseFutureGenerator,
-    /// This future's current stage.
-    stage: ResponseFutureStage,
-}
-
 impl<T> ResponseFuture<T> {
     pub(crate) fn new(
         client: Client<Connector, Full<Bytes>>,
@@ -187,7 +170,7 @@ impl<T> ResponseFuture<T> {
             permit_generator: None,
             phantom: PhantomData,
             pre_flight_check: None,
-            stage: ResponseFutureStage::Delay(Box::pin(time::sleep(Duration::ZERO))),
+            stage: ResponseStageFuture::Delay(Box::pin(time::sleep(Duration::ZERO))),
             response_generator,
         }))
     }
@@ -266,11 +249,10 @@ impl<T> ResponseFuture<T> {
     /// Registers a [`PermitFutureGenerator`] for this future.
     #[track_caller]
     pub(crate) fn set_rate_limiter(&mut self, rate_limiter: RateLimiter, path: Path) {
+        let permit_generator = PermitFutureGenerator { rate_limiter, path };
         let Ok(inner) = &mut self.0 else {
             panic!("tried setting rate limiter on error variant");
         };
-        let permit_generator = PermitFutureGenerator { rate_limiter, path };
-        inner.stage = ResponseFutureStage::Permit(permit_generator.generate());
         inner.permit_generator = Some(permit_generator);
     }
 }
@@ -278,6 +260,7 @@ impl<T> ResponseFuture<T> {
 impl<T: Unpin> Future for ResponseFuture<T> {
     type Output = Result<Response<T>, Error>;
 
+    #[allow(clippy::too_many_lines)]
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let inner = match &mut self.0 {
             Ok(inner) => inner,
@@ -286,7 +269,17 @@ impl<T: Unpin> Future for ResponseFuture<T> {
 
         loop {
             match &mut inner.stage {
-                ResponseFutureStage::Chunking { fut, status } => {
+                ResponseStageFuture::Delay(fut) => {
+                    ready!(Pin::new(fut).poll(cx));
+                    inner.stage = match &inner.permit_generator {
+                        Some(gen) => ResponseStageFuture::RateLimitPermit(gen.generate()),
+                        None => ResponseStageFuture::Response {
+                            fut: inner.response_generator.generate(),
+                            permit: None,
+                        },
+                    };
+                }
+                ResponseStageFuture::Error { fut, status } => {
                     let body = ready!(Pin::new(fut).poll(cx)).map_err(|source| Error {
                         kind: ErrorType::RequestError,
                         source: Some(Box::new(source)),
@@ -307,17 +300,7 @@ impl<T: Unpin> Future for ResponseFuture<T> {
                         },
                     }));
                 }
-                ResponseFutureStage::Delay(fut) => {
-                    ready!(Pin::new(fut).poll(cx));
-                    inner.stage = match &inner.permit_generator {
-                        Some(gen) => ResponseFutureStage::Permit(gen.generate()),
-                        None => ResponseFutureStage::Response {
-                            fut: inner.response_generator.generate(),
-                            permit: None,
-                        },
-                    };
-                }
-                ResponseFutureStage::Permit(fut) => {
+                ResponseStageFuture::RateLimitPermit(fut) => {
                     let permit = ready!(Pin::new(fut).poll(cx));
                     if inner
                         .pre_flight_check
@@ -330,12 +313,12 @@ impl<T: Unpin> Future for ResponseFuture<T> {
                         }));
                     }
 
-                    inner.stage = ResponseFutureStage::Response {
+                    inner.stage = ResponseStageFuture::Response {
                         fut: inner.response_generator.generate(),
                         permit: Some(permit),
                     };
                 }
-                ResponseFutureStage::Response { fut, permit } => {
+                ResponseStageFuture::Response { fut, permit } => {
                     let response = ready!(Pin::new(fut).poll(cx))
                         .map_err(|source| Error {
                             kind: ErrorType::RequestTimedOut,
@@ -377,10 +360,9 @@ impl<T: Unpin> Future for ResponseFuture<T> {
                         if let Some(retry_after) = response.headers().get(header::RETRY_AFTER) {
                             if let Ok(str) = retry_after.to_str() {
                                 if let Ok(secs) = str.parse() {
-                                    let duration = Duration::from_secs(secs);
-                                    tracing::debug!(?duration, "retrying request");
-                                    inner.stage =
-                                        ResponseFutureStage::Delay(Box::pin(time::sleep(duration)));
+                                    tracing::debug!(delay = secs, "retrying request");
+                                    let delay = time::sleep(Duration::from_secs(secs));
+                                    inner.stage = ResponseStageFuture::Delay(Box::pin(delay));
                                     continue;
                                 }
                             }
@@ -388,7 +370,7 @@ impl<T: Unpin> Future for ResponseFuture<T> {
                         }
                     }
 
-                    inner.stage = ResponseFutureStage::Chunking {
+                    inner.stage = ResponseStageFuture::Error {
                         status: response.status(),
                         fut: Response::<()>::new(response).bytes(),
                     }
@@ -396,4 +378,19 @@ impl<T: Unpin> Future for ResponseFuture<T> {
             }
         }
     }
+}
+
+/// Internal response future fields.
+struct Inner<T> {
+    /// Whether the client's token is invalidated.
+    invalid_token: Option<Arc<AtomicBool>>,
+    /// Optional [`PermitFuture`] generator, if registered.
+    permit_generator: Option<PermitFutureGenerator>,
+    phantom: PhantomData<T>,
+    /// Predicate to check after completing [`ResponseFutureStage::Permit`].
+    pre_flight_check: Option<Box<dyn Fn() -> bool + Send + 'static>>,
+    /// [`Timeout<HyperResponseFuture>`] generator.
+    response_generator: TimedResponseFutureGenerator,
+    /// This future's current stage.
+    stage: ResponseStageFuture,
 }
