@@ -2920,7 +2920,6 @@ impl Client {
         let host = self.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{protocol}://{host}/api/v{API_VERSION}/{path}");
-        tracing::debug!(?url);
 
         let mut builder = hyper::Request::builder().method(method.name()).uri(&url);
 
@@ -2997,8 +2996,13 @@ impl Client {
             .then(|| self.token_invalidated.clone())
             .flatten();
 
-        let mut response =
-            ResponseFuture::new(self.http.clone(), invalid_token, http_request, self.timeout);
+        let mut response = ResponseFuture::new(
+            self.http.clone(),
+            invalid_token,
+            http_request,
+            tracing::info_span!("req", method = method.name(), url = url),
+            self.timeout,
+        );
         if let Some(ratelimiter) = self.ratelimiter.clone() {
             response.set_rate_limiter(ratelimiter, ratelimit_path);
         }

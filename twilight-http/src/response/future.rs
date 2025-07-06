@@ -158,6 +158,7 @@ impl<T> ResponseFuture<T> {
         client: Client<Connector, Full<Bytes>>,
         invalid_token: Option<Arc<AtomicBool>>,
         request: Request<Full<Bytes>>,
+        span: tracing::Span,
         timeout: Duration,
     ) -> Self {
         let response_generator = TimedResponseFutureGenerator {
@@ -170,8 +171,9 @@ impl<T> ResponseFuture<T> {
             permit_generator: None,
             phantom: PhantomData,
             pre_flight_check: None,
-            stage: ResponseStageFuture::Delay(Box::pin(time::sleep(Duration::ZERO))),
             response_generator,
+            span,
+            stage: ResponseStageFuture::Delay(Box::pin(time::sleep(Duration::ZERO))),
         }))
     }
 
@@ -266,6 +268,8 @@ impl<T: Unpin> Future for ResponseFuture<T> {
             Ok(inner) => inner,
             Err(err) => return Pin::new(err).poll(cx).map(Err),
         };
+
+        let _entered = inner.span.enter();
 
         loop {
             match &mut inner.stage {
@@ -391,6 +395,8 @@ struct Inner<T> {
     pre_flight_check: Option<Box<dyn Fn() -> bool + Send + 'static>>,
     /// [`Timeout<HyperResponseFuture>`] generator.
     response_generator: TimedResponseFutureGenerator,
+    /// This future's span.
+    span: tracing::Span,
     /// This future's current stage.
     stage: ResponseStageFuture,
 }
