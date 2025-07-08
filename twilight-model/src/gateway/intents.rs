@@ -81,7 +81,7 @@ bitflags! {
         ///  - [`GUILD_BAN_ADD`]
         ///  - [`GUILD_BAN_REMOVE`]
         ///
-        /// [`GUILD_AUDIT_LOG_ENTRY_CREATE`]: super::event::Event::
+        /// [`GUILD_AUDIT_LOG_ENTRY_CREATE`]: super::event::Event::GuildAuditLogEntryCreate
         /// [`GUILD_BAN_ADD`]: super::event::Event::BanAdd
         /// [`GUILD_BAN_REMOVE`]: super::event::Event::BanRemove
         const GUILD_MODERATION = 1 << 2;
@@ -90,10 +90,36 @@ bitflags! {
         /// Event(s) received:
         ///  - [`GUILD_EMOJIS_UPDATE`]
         ///  - [`GUILD_STICKERS_UPDATE`]
+        ///  - [`GUILD_SOUNDBOARD_SOUND_CREATE`]
+        ///  - [`GUILD_SOUNDBOARD_SOUND_DELETE`]
+        ///  - [`GUILD_SOUNDBOARD_SOUND_UPDATE`]
+        ///  - [`GUILD_SOUNDBOARD_SOUNDS_UPDATE`]
         ///
         /// [`GUILD_EMOJIS_UPDATE`]: super::event::Event::GuildEmojisUpdate
         /// [`GUILD_STICKERS_UPDATE`]: super::event::Event::GuildStickersUpdate
+        /// [`GUILD_SOUNDBOARD_SOUND_CREATE`]:
+        /// [`GUILD_SOUNDBOARD_SOUND_DELETE`]:
+        /// [`GUILD_SOUNDBOARD_SOUND_UPDATE`]:
+        /// [`GUILD_SOUNDBOARD_SOUNDS_UPDATE`]:
+        #[deprecated(since = "0.17.0", note = "use `GUILD_EXPRESSIONS` instead")]
         const GUILD_EMOJIS_AND_STICKERS = 1 << 3;
+        /// Guild expressions intent.
+        ///
+        /// Event(s) received:
+        ///  - [`GUILD_EMOJIS_UPDATE`]
+        ///  - [`GUILD_STICKERS_UPDATE`]
+        ///  - [`GUILD_SOUNDBOARD_SOUND_CREATE`]
+        ///  - [`GUILD_SOUNDBOARD_SOUND_DELETE`]
+        ///  - [`GUILD_SOUNDBOARD_SOUND_UPDATE`]
+        ///  - [`GUILD_SOUNDBOARD_SOUNDS_UPDATE`]
+        ///
+        /// [`GUILD_EMOJIS_UPDATE`]: super::event::Event::GuildEmojisUpdate
+        /// [`GUILD_STICKERS_UPDATE`]: super::event::Event::GuildStickersUpdate
+        /// [`GUILD_SOUNDBOARD_SOUND_CREATE`]:
+        /// [`GUILD_SOUNDBOARD_SOUND_DELETE`]:
+        /// [`GUILD_SOUNDBOARD_SOUND_UPDATE`]:
+        /// [`GUILD_SOUNDBOARD_SOUNDS_UPDATE`]:
+        const GUILD_EXPRESSIONS = 1 << 3;
         /// Guild integrations intent.
         ///
         /// Event(s) received:

@@ -2,7 +2,9 @@
 //!
 //! [`Shard::command`]: crate::Shard::command
 
-use twilight_model::gateway::payload::outgoing::{RequestGuildMembers, RequestSoundboardSounds, UpdatePresence, UpdateVoiceState};
+use twilight_model::gateway::payload::outgoing::{
+    RequestGuildMembers, RequestSoundboardSounds, UpdatePresence, UpdateVoiceState,
+};
 
 mod private {
     //! Private module to provide a sealed trait depended on by [`Command`],
