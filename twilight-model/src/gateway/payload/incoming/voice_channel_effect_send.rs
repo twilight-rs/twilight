@@ -1,7 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{guild::Emoji, id::{marker::{AnimationMarker, ChannelMarker, GuildMarker, SoundboardSoundMarker, UserMarker}, Id}};
-
+use crate::{
+    guild::Emoji,
+    id::{
+        marker::{AnimationMarker, ChannelMarker, GuildMarker, SoundboardSoundMarker, UserMarker},
+        Id,
+    },
+};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct VoiceChannelEffectSend {
