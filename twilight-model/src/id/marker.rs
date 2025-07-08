@@ -9,6 +9,11 @@
 // DEVELOPMENT: When adding a new marker, be sure to add its implementation to
 // `util/snowflake`.
 
+/// Marker for animation IDs.
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct AnimationMarker;
+
 /// Marker for application IDs.
 ///
 /// Types such as [`Message::application_id`] or [`Guild::application_id`]
