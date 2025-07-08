@@ -38,6 +38,10 @@ mod guild_scheduled_event_delete;
 mod guild_scheduled_event_update;
 mod guild_scheduled_event_user_add;
 mod guild_scheduled_event_user_remove;
+mod guild_soundboard_sound_create;
+mod guild_soundboard_sound_delete;
+mod guild_soundboard_sound_update;
+mod guild_soundboard_sounds_update;
 mod guild_stickers_update;
 mod guild_update;
 mod hello;
@@ -76,6 +80,7 @@ mod thread_update;
 mod typing_start;
 mod unavailable_guild;
 mod user_update;
+mod voice_channel_effect_send;
 mod voice_server_update;
 mod voice_state_update;
 mod webhooks_update;
@@ -97,6 +102,10 @@ pub use self::{
     guild_scheduled_event_update::GuildScheduledEventUpdate,
     guild_scheduled_event_user_add::GuildScheduledEventUserAdd,
     guild_scheduled_event_user_remove::GuildScheduledEventUserRemove,
+    guild_soundboard_sound_create::GuildSoundboardSoundCreate,
+    guild_soundboard_sound_delete::GuildSoundboardSoundDelete,
+    guild_soundboard_sound_update::GuildSoundboardSoundUpdate,
+    guild_soundboard_sounds_update::GuildSoundboardSoundsUpdate,
     guild_stickers_update::GuildStickersUpdate, guild_update::GuildUpdate, hello::Hello,
     integration_create::IntegrationCreate, integration_delete::IntegrationDelete,
     integration_update::IntegrationUpdate, interaction_create::InteractionCreate,

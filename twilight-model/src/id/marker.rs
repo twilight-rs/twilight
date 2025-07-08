@@ -220,6 +220,15 @@ pub struct ScheduledEventMarker;
 #[non_exhaustive]
 pub struct ScheduledEventEntityMarker;
 
+/// Marker for guild soundboard sound IDs.
+///
+/// Types such as [`SoundboardSound`] use this ID marker.
+///
+/// [`SoundboardSound`]: crate::guild::SoundboardSound
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct SoundboardSoundMarker;
+
 /// Marker for stage IDs.
 ///
 /// Types such as [`StageInstance`] use this ID marker.
