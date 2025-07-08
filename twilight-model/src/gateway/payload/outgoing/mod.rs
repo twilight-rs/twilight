@@ -12,6 +12,7 @@
 
 pub mod identify;
 pub mod request_guild_members;
+pub mod request_soundboard_sounds;
 pub mod resume;
 pub mod update_presence;
 pub mod update_voice_state;
@@ -20,5 +21,6 @@ mod heartbeat;
 
 pub use self::{
     heartbeat::Heartbeat, identify::Identify, request_guild_members::RequestGuildMembers,
-    resume::Resume, update_presence::UpdatePresence, update_voice_state::UpdateVoiceState,
+    request_soundboard_sounds::RequestSoundboardSounds, resume::Resume,
+    update_presence::UpdatePresence, update_voice_state::UpdateVoiceState,
 };

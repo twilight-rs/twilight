@@ -2,9 +2,7 @@
 //!
 //! [`Shard::command`]: crate::Shard::command
 
-use twilight_model::gateway::payload::outgoing::{
-    RequestGuildMembers, UpdatePresence, UpdateVoiceState,
-};
+use twilight_model::gateway::payload::outgoing::{RequestGuildMembers, RequestSoundboardSounds, UpdatePresence, UpdateVoiceState};
 
 mod private {
     //! Private module to provide a sealed trait depended on by [`Command`],
@@ -14,13 +12,14 @@ mod private {
 
     use serde::Serialize;
     use twilight_model::gateway::payload::outgoing::{
-        RequestGuildMembers, UpdatePresence, UpdateVoiceState,
+        RequestGuildMembers, RequestSoundboardSounds, UpdatePresence, UpdateVoiceState,
     };
 
     /// Sealed trait to prevent users from implementing the Command trait.
     pub trait Sealed: Serialize {}
 
     impl Sealed for RequestGuildMembers {}
+    impl Sealed for RequestSoundboardSounds {}
     impl Sealed for UpdatePresence {}
     impl Sealed for UpdateVoiceState {}
 }
@@ -44,6 +43,7 @@ mod private {
 pub trait Command: private::Sealed {}
 
 impl Command for RequestGuildMembers {}
+impl Command for RequestSoundboardSounds {}
 impl Command for UpdatePresence {}
 impl Command for UpdateVoiceState {}
 

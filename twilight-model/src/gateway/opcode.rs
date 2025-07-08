@@ -37,6 +37,8 @@ pub enum OpCode {
     ///
     /// [`Heartbeat`]: Self::Heartbeat
     HeartbeatAck = 11,
+    /// Request a list of soundboard sounds for a list of guilds.
+    RequestSoundboardSounds = 31,
 }
 
 impl OpCode {
@@ -55,6 +57,7 @@ impl OpCode {
             9 => Self::InvalidSession,
             10 => Self::Hello,
             11 => Self::HeartbeatAck,
+            31 => Self::RequestSoundboardSounds,
             _ => return None,
         })
     }
@@ -97,6 +100,7 @@ impl OpCode {
     /// - [`PresenceUpdate`]
     /// - [`Resume`]
     /// - [`RequestGuildMembers`]
+    /// - [`RequestSoundboardSounds`]
     /// - [`VoiceStateUpdate`]
     ///
     /// [`Heartbeat`]: Self::Heartbeat
@@ -104,6 +108,7 @@ impl OpCode {
     /// [`PresenceUpdate`]: Self::PresenceUpdate
     /// [`Resume`]: Self::Resume
     /// [`RequestGuildMembers`]: Self::RequestGuildMembers
+    /// [`RequestSoundboardSounds`]: Self::RequestSoundboardSounds
     /// [`VoiceStateUpdate`]: Self::VoiceStateUpdate
     pub const fn is_sent(self) -> bool {
         matches!(
@@ -113,6 +118,7 @@ impl OpCode {
                 | Self::PresenceUpdate
                 | Self::Resume
                 | Self::RequestGuildMembers
+                | Self::RequestSoundboardSounds
                 | Self::VoiceStateUpdate
         )
     }
@@ -150,6 +156,7 @@ mod tests {
         (OpCode::InvalidSession, 9, true, false),
         (OpCode::Hello, 10, true, false),
         (OpCode::HeartbeatAck, 11, true, false),
+        (OpCode::RequestSoundboardSounds, 31, false, true),
     ];
 
     #[test]
