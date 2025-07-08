@@ -26,5 +26,28 @@ pub struct SoundboardSound {
 
 #[cfg(test)]
 mod tests {
-    // TODO: stub
+    use super::SoundboardSound;
+    use std::fmt::Debug;
+    use serde::{Deserialize, Serialize};
+    use static_assertions::{assert_fields, assert_impl_all};
+
+    assert_fields!(
+        SoundboardSound: available,
+        emoji_id,
+        emoji_name,
+        guild_id,
+        name,
+        sound_id,
+        user,
+        volume
+    );
+
+    assert_impl_all!(
+        SoundboardSound: Clone, Debug, Deserialize<'static>, PartialEq, Serialize
+    );
+
+    #[test]
+    fn soundboard_sound() {
+        // TODO: stub
+    }
 }
