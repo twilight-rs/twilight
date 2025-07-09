@@ -105,11 +105,11 @@ bitflags! {
         const GUILD_SCHEDULED_EVENT_USER_ADD = 1 << 67;
         /// A guild's integrations have been updated.
         const GUILD_SCHEDULED_EVENT_USER_REMOVE = 1 << 68;
-        /// A guild's soundboard sound have been updated
+        /// A guild soundboard sound have been created
         const GUILD_SOUNDBOARD_SOUND_CREATE = 1 << 79;
-        /// A guild's soundboard sound have been updated
+        /// A guild soundboard sound have been deleted
         const GUILD_SOUNDBOARD_SOUND_DELETE = 1 << 80;
-        /// A guild's soundboard sound have been updated
+        /// A guild soundboard sound have been updated
         const GUILD_SOUNDBOARD_SOUND_UPDATE = 1 << 81;
         /// A guild's soundboard sounds have been updated
         const GUILD_SOUNDBOARD_SOUNDS_UPDATE = 1 << 82;

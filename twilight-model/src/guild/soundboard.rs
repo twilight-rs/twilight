@@ -26,10 +26,13 @@ pub struct SoundboardSound {
 
 #[cfg(test)]
 mod tests {
+    use crate::id::Id;
+
     use super::SoundboardSound;
-    use std::fmt::Debug;
     use serde::{Deserialize, Serialize};
+    use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
+    use std::fmt::Debug;
 
     assert_fields!(
         SoundboardSound: available,
@@ -48,6 +51,30 @@ mod tests {
 
     #[test]
     fn soundboard_sound() {
-        // TODO: stub
+        let sound = SoundboardSound {
+            available: true,
+            emoji_id: None,
+            emoji_name: None,
+            guild_id: None,
+            name: "test".to_owned(),
+            sound_id: Id::new(123),
+            user: None,
+            volume: 50.0,
+        };
+
+        serde_test::assert_tokens(
+            &sound, 
+            &[
+                Token::Struct { name: "SoundboardSound", len: 4 },
+                Token::Str("available"),
+                Token::Bool(true),
+                Token::Str("name"),
+                Token::Str("test"),
+                Token::Str("sound_id"),
+                Token::Str("123"),
+                Token::Str("volume"),
+                Token::F64(50.0),
+            ]
+        );
     }
 }

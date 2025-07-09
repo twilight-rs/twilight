@@ -91,6 +91,14 @@ pub enum Event {
     GuildScheduledEventUserAdd(GuildScheduledEventUserAdd),
     /// A user was removed from a guild scheduled event.
     GuildScheduledEventUserRemove(GuildScheduledEventUserRemove),
+    /// A guild soundboard sound has been created.
+    GuildSoundboardSoundCreate(Box<GuildSoundboardSoundCreate>),
+    /// A guild soundboard sound has been deleted.
+    GuildSoundboardSoundDelete(GuildSoundboardSoundDelete),
+    /// A guild soundboard sound has been updated.
+    GuildSoundboardSoundUpdate(Box<GuildSoundboardSoundUpdate>),
+    /// A guild's soundboard sounds has been updated.
+    GuildSoundboardSoundsUpdate(GuildSoundboardSoundsUpdate),
     /// A guild's stickers were updated.
     GuildStickersUpdate(GuildStickersUpdate),
     /// A guild was updated.
@@ -173,6 +181,8 @@ pub enum Event {
     UnavailableGuild(UnavailableGuild),
     /// The current user was updated.
     UserUpdate(UserUpdate),
+    /// An effect was sent in a voice channel the current user is in.
+    VoiceChannelEffectSend(Box<VoiceChannelEffectSend>),
     /// A voice server update was sent.
     VoiceServerUpdate(VoiceServerUpdate),
     /// A voice state in a voice channel was updated.
@@ -206,6 +216,10 @@ impl Event {
             Event::GuildScheduledEventUpdate(e) => Some(e.0.guild_id),
             Event::GuildScheduledEventUserAdd(e) => Some(e.guild_id),
             Event::GuildScheduledEventUserRemove(e) => Some(e.guild_id),
+            Event::GuildSoundboardSoundCreate(e) => e.0.guild_id,
+            Event::GuildSoundboardSoundDelete(e) => Some(e.guild_id),
+            Event::GuildSoundboardSoundUpdate(e) => e.0.guild_id,
+            Event::GuildSoundboardSoundsUpdate(e) => Some(e.guild_id),
             Event::GuildStickersUpdate(e) => Some(e.guild_id),
             Event::GuildUpdate(e) => Some(e.0.id),
             Event::IntegrationCreate(e) => e.0.guild_id,
@@ -243,6 +257,7 @@ impl Event {
             Event::ThreadUpdate(e) => e.0.guild_id,
             Event::TypingStart(e) => e.guild_id,
             Event::UnavailableGuild(e) => Some(e.id),
+            Event::VoiceChannelEffectSend(e) => Some(e.guild_id),
             Event::VoiceServerUpdate(e) => Some(e.guild_id),
             Event::VoiceStateUpdate(e) => e.0.guild_id,
             Event::WebhooksUpdate(e) => Some(e.guild_id),
@@ -293,6 +308,10 @@ impl Event {
             Self::GuildScheduledEventUpdate(_) => EventType::GuildScheduledEventUpdate,
             Self::GuildScheduledEventUserAdd(_) => EventType::GuildScheduledEventUserAdd,
             Self::GuildScheduledEventUserRemove(_) => EventType::GuildScheduledEventUserRemove,
+            Self::GuildSoundboardSoundCreate(_) => EventType::GuildSoundboardSoundCreate,
+            Self::GuildSoundboardSoundDelete(_) => EventType::GuildSoundboardSoundDelete,
+            Self::GuildSoundboardSoundUpdate(_) => EventType::GuildSoundboardSoundUpdate,
+            Self::GuildSoundboardSoundsUpdate(_) => EventType::GuildSoundboardSoundsUpdate,
             Self::GuildStickersUpdate(_) => EventType::GuildStickersUpdate,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
             Self::IntegrationCreate(_) => EventType::IntegrationCreate,
@@ -333,6 +352,7 @@ impl Event {
             Self::TypingStart(_) => EventType::TypingStart,
             Self::UnavailableGuild(_) => EventType::UnavailableGuild,
             Self::UserUpdate(_) => EventType::UserUpdate,
+            Self::VoiceChannelEffectSend(_) => EventType::VoiceChannelEffectSend,
             Self::VoiceServerUpdate(_) => EventType::VoiceServerUpdate,
             Self::VoiceStateUpdate(_) => EventType::VoiceStateUpdate,
             Self::WebhooksUpdate(_) => EventType::WebhooksUpdate,
@@ -371,6 +391,10 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::GuildScheduledEventUserRemove(v) => {
                 Self::GuildScheduledEventUserRemove(v)
             }
+            DispatchEvent::GuildSoundboardSoundCreate(v) => Self::GuildSoundboardSoundCreate(v),
+            DispatchEvent::GuildSoundboardSoundDelete(v) => Self::GuildSoundboardSoundDelete(v),
+            DispatchEvent::GuildSoundboardSoundUpdate(v) => Self::GuildSoundboardSoundUpdate(v),
+            DispatchEvent::GuildSoundboardSoundsUpdate(v) => Self::GuildSoundboardSoundsUpdate(v),
             DispatchEvent::GuildStickersUpdate(v) => Self::GuildStickersUpdate(v),
             DispatchEvent::GuildUpdate(v) => Self::GuildUpdate(v),
             DispatchEvent::IntegrationCreate(v) => Self::IntegrationCreate(v),
@@ -411,6 +435,7 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::TypingStart(v) => Self::TypingStart(v),
             DispatchEvent::UnavailableGuild(v) => Self::UnavailableGuild(v),
             DispatchEvent::UserUpdate(v) => Self::UserUpdate(v),
+            DispatchEvent::VoiceChannelEffectSend(v) => Self::VoiceChannelEffectSend(v),
             DispatchEvent::VoiceServerUpdate(v) => Self::VoiceServerUpdate(v),
             DispatchEvent::VoiceStateUpdate(v) => Self::VoiceStateUpdate(v),
             DispatchEvent::WebhooksUpdate(v) => Self::WebhooksUpdate(v),
@@ -497,6 +522,8 @@ mod tests {
     const_assert!(mem::size_of::<GuildScheduledEventCreate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildScheduledEventDelete>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildScheduledEventUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildSoundboardSoundCreate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildSoundboardSoundUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<IntegrationCreate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<IntegrationUpdate>() > EVENT_THRESHOLD);
@@ -514,6 +541,7 @@ mod tests {
     const_assert!(mem::size_of::<ThreadMemberUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ThreadUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<TypingStart>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<VoiceChannelEffectSend>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<VoiceStateUpdate>() > EVENT_THRESHOLD);
 
     // Unboxed.
@@ -530,6 +558,8 @@ mod tests {
     const_assert!(mem::size_of::<GuildIntegrationsUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildScheduledEventUserAdd>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildScheduledEventUserRemove>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildSoundboardSoundDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildSoundboardSoundsUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<IntegrationDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<InviteDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MemberChunk>() <= EVENT_THRESHOLD);

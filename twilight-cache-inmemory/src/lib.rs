@@ -1034,6 +1034,11 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::GatewayReconnect
             | Event::GuildAuditLogEntryCreate(_)
             | Event::GuildIntegrationsUpdate(_)
+            // TODO: maybe soundboard sounds will be cached after all
+            | Event::GuildSoundboardSoundCreate(_)
+            | Event::GuildSoundboardSoundDelete(_)
+            | Event::GuildSoundboardSoundUpdate(_)
+            | Event::GuildSoundboardSoundsUpdate(_)
             | Event::InviteCreate(_)
             | Event::InviteDelete(_)
             | Event::MessagePollVoteAdd(_)
@@ -1042,6 +1047,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::ThreadMembersUpdate(_)
             | Event::ThreadMemberUpdate(_)
             | Event::TypingStart(_)
+            | Event::VoiceChannelEffectSend(_)
             | Event::VoiceServerUpdate(_)
             | Event::WebhooksUpdate(_) => {}
         }
