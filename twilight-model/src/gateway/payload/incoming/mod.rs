@@ -69,6 +69,7 @@ mod ready;
 mod role_create;
 mod role_delete;
 mod role_update;
+mod soundboard_sounds;
 mod stage_instance_create;
 mod stage_instance_delete;
 mod stage_instance_update;
@@ -117,11 +118,12 @@ pub use self::{
     presence_update::PresenceUpdate, reaction_add::ReactionAdd, reaction_remove::ReactionRemove,
     reaction_remove_all::ReactionRemoveAll, reaction_remove_emoji::ReactionRemoveEmoji,
     ready::Ready, role_create::RoleCreate, role_delete::RoleDelete, role_update::RoleUpdate,
-    stage_instance_create::StageInstanceCreate, stage_instance_delete::StageInstanceDelete,
-    stage_instance_update::StageInstanceUpdate, thread_create::ThreadCreate,
-    thread_delete::ThreadDelete, thread_list_sync::ThreadListSync,
+    soundboard_sounds::SoundboardSounds, stage_instance_create::StageInstanceCreate,
+    stage_instance_delete::StageInstanceDelete, stage_instance_update::StageInstanceUpdate,
+    thread_create::ThreadCreate, thread_delete::ThreadDelete, thread_list_sync::ThreadListSync,
     thread_member_update::ThreadMemberUpdate, thread_members_update::ThreadMembersUpdate,
     thread_update::ThreadUpdate, typing_start::TypingStart, unavailable_guild::UnavailableGuild,
-    user_update::UserUpdate, voice_channel_effect_send::VoiceChannelEffectSend, voice_server_update::VoiceServerUpdate,
-    voice_state_update::VoiceStateUpdate, webhooks_update::WebhooksUpdate,
+    user_update::UserUpdate, voice_channel_effect_send::VoiceChannelEffectSend,
+    voice_server_update::VoiceServerUpdate, voice_state_update::VoiceStateUpdate,
+    webhooks_update::WebhooksUpdate,
 };

@@ -70,6 +70,7 @@ pub enum DispatchEvent {
     RoleCreate(RoleCreate),
     RoleDelete(RoleDelete),
     RoleUpdate(RoleUpdate),
+    SoundboardSounds(SoundboardSounds),
     StageInstanceCreate(StageInstanceCreate),
     StageInstanceDelete(StageInstanceDelete),
     StageInstanceUpdate(StageInstanceUpdate),
@@ -148,6 +149,7 @@ impl DispatchEvent {
             Self::RoleCreate(_) => EventType::RoleCreate,
             Self::RoleDelete(_) => EventType::RoleDelete,
             Self::RoleUpdate(_) => EventType::RoleUpdate,
+            Self::SoundboardSounds(_) => EventType::SoundboardSounds,
             Self::StageInstanceCreate(_) => EventType::StageInstanceCreate,
             Self::StageInstanceDelete(_) => EventType::StageInstanceDelete,
             Self::StageInstanceUpdate(_) => EventType::StageInstanceUpdate,
@@ -221,6 +223,7 @@ impl TryFrom<Event> for DispatchEvent {
             Event::RoleCreate(v) => Self::RoleCreate(v),
             Event::RoleDelete(v) => Self::RoleDelete(v),
             Event::RoleUpdate(v) => Self::RoleUpdate(v),
+            Event::SoundboardSounds(v) => Self::SoundboardSounds(v),
             Event::StageInstanceCreate(v) => Self::StageInstanceCreate(v),
             Event::StageInstanceDelete(v) => Self::StageInstanceDelete(v),
             Event::StageInstanceUpdate(v) => Self::StageInstanceUpdate(v),
@@ -342,18 +345,18 @@ impl<'de> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'_> {
             "GUILD_ROLE_UPDATE" => {
                 DispatchEvent::RoleUpdate(RoleUpdate::deserialize(deserializer)?)
             }
-            "GUILD_SOUNDBOARD_SOUND_CREATE" => {
-                DispatchEvent::GuildSoundboardSoundCreate(Box::new(GuildSoundboardSoundCreate::deserialize(deserializer)?))
-            }
-            "GUILD_SOUNDBOARD_SOUND_DELETE" => {
-                DispatchEvent::GuildSoundboardSoundDelete(GuildSoundboardSoundDelete::deserialize(deserializer)?)
-            }
-            "GUILD_SOUNDBOARD_SOUND_UPDATE" => {
-                DispatchEvent::GuildSoundboardSoundUpdate(Box::new(GuildSoundboardSoundUpdate::deserialize(deserializer)?))
-            }
-            "GUILD_SOUNDBOARD_SOUNDS_UPDATE" => {
-                DispatchEvent::GuildSoundboardSoundsUpdate(GuildSoundboardSoundsUpdate::deserialize(deserializer)?)
-            }
+            "GUILD_SOUNDBOARD_SOUND_CREATE" => DispatchEvent::GuildSoundboardSoundCreate(Box::new(
+                GuildSoundboardSoundCreate::deserialize(deserializer)?,
+            )),
+            "GUILD_SOUNDBOARD_SOUND_DELETE" => DispatchEvent::GuildSoundboardSoundDelete(
+                GuildSoundboardSoundDelete::deserialize(deserializer)?,
+            ),
+            "GUILD_SOUNDBOARD_SOUND_UPDATE" => DispatchEvent::GuildSoundboardSoundUpdate(Box::new(
+                GuildSoundboardSoundUpdate::deserialize(deserializer)?,
+            )),
+            "GUILD_SOUNDBOARD_SOUNDS_UPDATE" => DispatchEvent::GuildSoundboardSoundsUpdate(
+                GuildSoundboardSoundsUpdate::deserialize(deserializer)?,
+            ),
             "GUILD_STICKERS_UPDATE" => {
                 DispatchEvent::GuildStickersUpdate(GuildStickersUpdate::deserialize(deserializer)?)
             }
@@ -417,6 +420,9 @@ impl<'de> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'_> {
 
                 DispatchEvent::Resumed
             }
+            "SOUNDBOARD_SOUNDS" => {
+                DispatchEvent::SoundboardSounds(SoundboardSounds::deserialize(deserializer)?)
+            }
             "STAGE_INSTANCE_CREATE" => {
                 DispatchEvent::StageInstanceCreate(StageInstanceCreate::deserialize(deserializer)?)
             }
@@ -448,9 +454,9 @@ impl<'de> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'_> {
                 DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))
             }
             "USER_UPDATE" => DispatchEvent::UserUpdate(UserUpdate::deserialize(deserializer)?),
-            "VOICE_CHANNEL_EFFECT_SEND" => {
-                DispatchEvent::VoiceChannelEffectSend(Box::new(VoiceChannelEffectSend::deserialize(deserializer)?))
-            }
+            "VOICE_CHANNEL_EFFECT_SEND" => DispatchEvent::VoiceChannelEffectSend(Box::new(
+                VoiceChannelEffectSend::deserialize(deserializer)?,
+            )),
             "VOICE_SERVER_UPDATE" => {
                 DispatchEvent::VoiceServerUpdate(VoiceServerUpdate::deserialize(deserializer)?)
             }

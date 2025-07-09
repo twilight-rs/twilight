@@ -80,6 +80,7 @@ pub enum EventType {
     RoleDelete,
     #[serde(rename = "GUILD_ROLE_UPDATE")]
     RoleUpdate,
+    SoundboardSounds,
     StageInstanceCreate,
     StageInstanceDelete,
     StageInstanceUpdate,
@@ -157,6 +158,7 @@ impl EventType {
             Self::RoleCreate => Some("GUILD_ROLE_CREATE"),
             Self::RoleDelete => Some("GUILD_ROLE_DELETE"),
             Self::RoleUpdate => Some("GUILD_ROLE_UPDATE"),
+            Self::SoundboardSounds => Some("SOUNDBOARD_SOUNDS"),
             Self::StageInstanceCreate => Some("STAGE_INSTANCE_CREATE"),
             Self::StageInstanceDelete => Some("STAGE_INSTANCE_DELETE"),
             Self::StageInstanceUpdate => Some("STAGE_INSTANCE_UPDATE"),
@@ -241,6 +243,7 @@ impl<'a> TryFrom<&'a str> for EventType {
             "GUILD_ROLE_CREATE" => Ok(Self::RoleCreate),
             "GUILD_ROLE_DELETE" => Ok(Self::RoleDelete),
             "GUILD_ROLE_UPDATE" => Ok(Self::RoleUpdate),
+            "SOUNDBOARD_SOUNDS" => Ok(Self::SoundboardSounds),
             "STAGE_INSTANCE_CREATE" => Ok(Self::StageInstanceCreate),
             "STAGE_INSTANCE_DELETE" => Ok(Self::StageInstanceDelete),
             "STAGE_INSTANCE_UPDATE" => Ok(Self::StageInstanceUpdate),
@@ -392,6 +395,7 @@ mod tests {
         assert_variant(EventType::RoleCreate, "GUILD_ROLE_CREATE");
         assert_variant(EventType::RoleDelete, "GUILD_ROLE_DELETE");
         assert_variant(EventType::RoleUpdate, "GUILD_ROLE_UPDATE");
+        assert_variant(EventType::SoundboardSounds, "SOUNDBOARD_SOUNDS");
         assert_variant(EventType::StageInstanceCreate, "STAGE_INSTANCE_CREATE");
         assert_variant(EventType::StageInstanceDelete, "STAGE_INSTANCE_DELETE");
         assert_variant(EventType::StageInstanceUpdate, "STAGE_INSTANCE_UPDATE");

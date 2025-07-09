@@ -156,6 +156,8 @@ pub enum Event {
     RoleDelete(RoleDelete),
     /// A role was updated in a guild.
     RoleUpdate(RoleUpdate),
+    /// Soundboard sounds in a guild.
+    SoundboardSounds(SoundboardSounds),
     /// A stage instance was created in a stage channel.
     StageInstanceCreate(StageInstanceCreate),
     /// A stage instance was deleted in a stage channel.
@@ -246,6 +248,7 @@ impl Event {
             Event::RoleCreate(e) => Some(e.guild_id),
             Event::RoleDelete(e) => Some(e.guild_id),
             Event::RoleUpdate(e) => Some(e.guild_id),
+            Event::SoundboardSounds(e) => Some(e.guild_id),
             Event::StageInstanceCreate(e) => Some(e.0.guild_id),
             Event::StageInstanceDelete(e) => Some(e.0.guild_id),
             Event::StageInstanceUpdate(e) => Some(e.0.guild_id),
@@ -340,6 +343,7 @@ impl Event {
             Self::RoleCreate(_) => EventType::RoleCreate,
             Self::RoleDelete(_) => EventType::RoleDelete,
             Self::RoleUpdate(_) => EventType::RoleUpdate,
+            Self::SoundboardSounds(_) => EventType::SoundboardSounds,
             Self::StageInstanceCreate(_) => EventType::StageInstanceCreate,
             Self::StageInstanceDelete(_) => EventType::StageInstanceDelete,
             Self::StageInstanceUpdate(_) => EventType::StageInstanceUpdate,
@@ -423,6 +427,7 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::ReactionRemoveEmoji(v) => Self::ReactionRemoveEmoji(v),
             DispatchEvent::Ready(v) => Self::Ready(v),
             DispatchEvent::Resumed => Self::Resumed,
+            DispatchEvent::SoundboardSounds(v) => Self::SoundboardSounds(v),
             DispatchEvent::StageInstanceCreate(v) => Self::StageInstanceCreate(v),
             DispatchEvent::StageInstanceDelete(v) => Self::StageInstanceDelete(v),
             DispatchEvent::StageInstanceUpdate(v) => Self::StageInstanceUpdate(v),
@@ -570,6 +575,7 @@ mod tests {
     const_assert!(mem::size_of::<RoleCreate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<RoleDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<RoleUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<SoundboardSounds>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<StageInstanceCreate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<StageInstanceDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<StageInstanceUpdate>() <= EVENT_THRESHOLD);

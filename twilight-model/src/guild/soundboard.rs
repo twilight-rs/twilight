@@ -63,9 +63,12 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &sound, 
+            &sound,
             &[
-                Token::Struct { name: "SoundboardSound", len: 4 },
+                Token::Struct {
+                    name: "SoundboardSound",
+                    len: 4,
+                },
                 Token::Str("available"),
                 Token::Bool(true),
                 Token::Str("name"),
@@ -74,7 +77,7 @@ mod tests {
                 Token::Str("123"),
                 Token::Str("volume"),
                 Token::F64(50.0),
-            ]
+            ],
         );
     }
 }

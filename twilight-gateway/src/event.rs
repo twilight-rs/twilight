@@ -172,6 +172,8 @@ bitflags! {
         const ROLE_DELETE = 1 << 31;
         /// Role has been updated in a guild.
         const ROLE_UPDATE = 1 << 32;
+        /// Soundboard sounds from a guild.
+        const SOUNDBOARD_SOUNDS = 1 << 49;
         /// Stage instance was created in a stage channel.
         const STAGE_INSTANCE_CREATE = 1 << 57;
         /// Stage instance was deleted in a stage channel.
@@ -422,6 +424,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::RoleCreate => Self::ROLE_CREATE,
             EventType::RoleDelete => Self::ROLE_DELETE,
             EventType::RoleUpdate => Self::ROLE_UPDATE,
+            EventType::SoundboardSounds => Self::SOUNDBOARD_SOUNDS,
             EventType::StageInstanceCreate => Self::STAGE_INSTANCE_CREATE,
             EventType::StageInstanceDelete => Self::STAGE_INSTANCE_DELETE,
             EventType::StageInstanceUpdate => Self::STAGE_INSTANCE_UPDATE,
