@@ -78,6 +78,7 @@ mod tests {
                 Token::Str("123"),
                 Token::Str("volume"),
                 Token::F64(50.0),
+                Token::StructEnd,
             ],
         );
     }
