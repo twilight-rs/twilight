@@ -1039,6 +1039,8 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::GuildSoundboardSoundDelete(_)
             | Event::GuildSoundboardSoundUpdate(_)
             | Event::GuildSoundboardSoundsUpdate(_)
+            | Event::SoundboardSounds(_)
+            // TODO: end of above TODO
             | Event::InviteCreate(_)
             | Event::InviteDelete(_)
             | Event::MessagePollVoteAdd(_)

@@ -74,6 +74,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("test"),
                 Token::Str("sound_id"),
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("volume"),
                 Token::F64(50.0),
