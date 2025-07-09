@@ -986,6 +986,11 @@ pub enum Route<'a> {
         /// Query to search by.
         query: &'a str,
     },
+    /// Route information to send soundboard sound.
+    SendSoundboardSound {
+        /// ID of the channel to send the soundboard sound in.
+        channel_id: u64,
+    },
     /// Route information to set global commands.
     SetGlobalCommands {
         /// The ID of the owner application.
@@ -1398,6 +1403,7 @@ impl Route<'_> {
             | Self::ExecuteWebhook { .. }
             | Self::FollowNewsChannel { .. }
             | Self::InteractionCallback { .. }
+            | Self::SendSoundboardSound { .. }
             | Self::SyncGuildIntegration { .. } => Method::Post,
             Self::AddGuildMember { .. }
             | Self::AddMemberRole { .. }
@@ -1743,6 +1749,9 @@ impl Route<'_> {
             Self::UpdateGuildMfa { guild_id } => Path::GuildsIdMfa(guild_id),
             Self::EndPoll { channel_id, .. } | Self::GetAnswerVoters { channel_id, .. } => {
                 Path::ChannelsIdPolls(channel_id)
+            }
+            Self::SendSoundboardSound { channel_id } => {
+                Path::ChannelsIdSendSoundboardSound(channel_id)
             }
         }
     }
@@ -3038,6 +3047,12 @@ impl Display for Route<'_> {
                 Display::fmt(application_id, f)?;
 
                 f.write_str("/skus")
+            }
+            Route::SendSoundboardSound { channel_id } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+
+                f.write_str("/send-soundboard-sound")
             }
         }
     }

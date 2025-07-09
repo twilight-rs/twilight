@@ -4,6 +4,7 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
+use crate::request::channel::SendSoundboardSound;
 use crate::request::{
     application::{
         emoji::{
@@ -115,6 +116,7 @@ use std::{
 };
 use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
+use twilight_model::id::marker::SoundboardSoundMarker;
 use twilight_model::{
     channel::{message::AllowedMentions, ChannelType},
     guild::{
@@ -2880,6 +2882,14 @@ impl Client {
         emoji_id: Id<EmojiMarker>,
     ) -> DeleteApplicationEmoji<'_> {
         DeleteApplicationEmoji::new(self, application_id, emoji_id)
+    }
+
+    pub const fn send_soundboard_sound(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        sound_id: Id<SoundboardSoundMarker>,
+    ) -> SendSoundboardSound<'_> {
+        SendSoundboardSound::new(self, channel_id, sound_id)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].
