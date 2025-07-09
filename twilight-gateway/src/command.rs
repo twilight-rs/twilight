@@ -54,10 +54,11 @@ mod tests {
     use super::Command;
     use static_assertions::assert_impl_all;
     use twilight_model::gateway::payload::outgoing::{
-        RequestGuildMembers, UpdatePresence, UpdateVoiceState,
+        RequestGuildMembers, RequestSoundboardSounds, UpdatePresence, UpdateVoiceState
     };
 
     assert_impl_all!(RequestGuildMembers: Command);
+    assert_impl_all!(RequestSoundboardSounds: Command);
     assert_impl_all!(UpdatePresence: Command);
     assert_impl_all!(UpdateVoiceState: Command);
 }
