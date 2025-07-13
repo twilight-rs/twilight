@@ -9,7 +9,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardS
             return;
         }
 
-        cache.cache_soundboard_sound(self.0.clone())
+        cache.cache_soundboard_sound(self.0.clone());
     }
 }
 
