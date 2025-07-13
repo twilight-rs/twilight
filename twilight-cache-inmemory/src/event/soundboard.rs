@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use crate::traits::CacheableSoundboardSound;
 use crate::{traits::CacheableModels, InMemoryCache, ResourceType, UpdateCache};
 use twilight_model::{
