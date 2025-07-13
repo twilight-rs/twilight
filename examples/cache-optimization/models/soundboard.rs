@@ -12,8 +12,8 @@ pub struct MinimalCachedSoundboardSound {
 impl CacheableSoundboardSound for MinimalCachedSoundboardSound {}
 
 impl From<SoundboardSound> for MinimalCachedSoundboardSound {
-    fn from(_: SoundboardSound) -> Self {
-        Self
+    fn from(sound: SoundboardSound) -> Self {
+        Self { sound_id: sound.sound_id }
     }
 }
 
