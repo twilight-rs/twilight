@@ -599,7 +599,9 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         &self,
         guild_id: Id<GuildMarker>,
     ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<SoundboardSoundMarker>>>> {
-        self.guild_soundboard_sounds.get(&guild_id).map(Reference::new)
+        self.guild_soundboard_sounds
+            .get(&guild_id)
+            .map(Reference::new)
     }
 
     /// Gets the set of voice states in a guild.

@@ -1,5 +1,7 @@
 use crate::{traits::CacheableModels, InMemoryCache, ResourceType, UpdateCache};
-use twilight_model::{gateway::payload::incoming::GuildSoundboardSoundCreate, guild::SoundboardSound};
+use twilight_model::{
+    gateway::payload::incoming::GuildSoundboardSoundCreate, guild::SoundboardSound,
+};
 
 impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardSoundCreate {
     fn update(&self, cache: &InMemoryCache<CacheModels>) {
@@ -20,6 +22,9 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
                 .insert(soundboard_sound.sound_id);
         }
 
-        self.soundboard_sound.insert(soundboard_sound.sound_id, soundboard_sound);
+        self.soundboard_sound.insert(
+            soundboard_sound.sound_id,
+            CacheModels::SoundboardSound::from(soundboard_sound),
+        );
     }
 }
