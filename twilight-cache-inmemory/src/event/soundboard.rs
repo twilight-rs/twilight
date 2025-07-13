@@ -1,6 +1,10 @@
+use std::ops::Deref;
+use crate::traits::CacheableSoundboardSound;
 use crate::{traits::CacheableModels, InMemoryCache, ResourceType, UpdateCache};
 use twilight_model::{
-    gateway::payload::incoming::GuildSoundboardSoundCreate, guild::SoundboardSound,
+    gateway::payload::incoming::{GuildSoundboardSoundCreate, GuildSoundboardSoundDelete},
+    guild::SoundboardSound,
+    id::{marker::SoundboardSoundMarker, Id},
 };
 
 impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardSoundCreate {
@@ -10,6 +14,12 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardS
         }
 
         cache.cache_soundboard_sound(self.0.clone());
+    }
+}
+
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardSoundDelete {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
+        cache.delete_soundboard_sound(self.sound_id);
     }
 }
 
@@ -26,5 +36,18 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
             soundboard_sound.sound_id,
             CacheModels::SoundboardSound::from(soundboard_sound),
         );
+    }
+
+    pub(crate) fn delete_soundboard_sound(&self, sound_id: Id<SoundboardSoundMarker>) {
+        let Some((_, sound)) = self.soundboard_sound.remove(&sound_id) else {
+            return;
+        };
+        let Some(guild_id) = sound.guild_id() else {
+            return;
+        };
+        let Some(mut sounds) = self.guild_soundboard_sounds.get_mut(&guild_id) else {
+            return;
+        };
+        sounds.remove(&sound_id);
     }
 }

@@ -299,9 +299,15 @@ pub trait CacheablePresence:
 pub trait CacheableSoundboardSound:
     From<SoundboardSound> + PartialEq<SoundboardSound> + Clone + Debug
 {
+    /// Guild ID of the soundboard sound, if any.
+    fn guild_id(&self) -> Option<Id<GuildMarker>>;
 }
 
-impl CacheableSoundboardSound for SoundboardSound {}
+impl CacheableSoundboardSound for SoundboardSound {
+    fn guild_id(&self) -> Option<Id<GuildMarker>> {
+        self.guild_id
+    }
+}
 
 /// Trait for a generic cached representation of a [`StageInstance`].
 pub trait CacheableStageInstance:
