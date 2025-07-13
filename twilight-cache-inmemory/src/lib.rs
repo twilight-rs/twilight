@@ -205,6 +205,7 @@ pub struct InMemoryCache<CacheModels: CacheableModels = DefaultCacheModels> {
     guild_presences: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
     guild_roles: DashMap<Id<GuildMarker>, HashSet<Id<RoleMarker>>>,
     guild_scheduled_events: DashMap<Id<GuildMarker>, HashSet<Id<ScheduledEventMarker>>>,
+    guild_soundboard_sounds: DashMap<Id<GuildMarker>, HashSet<Id<SoundboardSoundMarker>>>,
     guild_stage_instances: DashMap<Id<GuildMarker>, HashSet<Id<StageMarker>>>,
     guild_stickers: DashMap<Id<GuildMarker>, HashSet<Id<StickerMarker>>>,
     integrations: DashMap<
@@ -585,6 +586,22 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         self.guild_stickers.get(&guild_id).map(Reference::new)
     }
 
+    /// Gets the set of the soundboard sounds in a guild.
+    ///
+    /// This is an O(m) operation, where m is the amount of stickers in the
+    /// guild. This requires the [`GUILDS`] and [`GUILD_EXPRESSIONS`]
+    /// intents and the [`SOUNDBOARD_SOUND`] resource type.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
+    /// [`SOUNDBOARD_SOUNDS`]: crate::config::ResourceType::SOUNDBOARD_SOUNDS
+    pub fn guild_soundboard_sounds(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<SoundboardSoundMarker>>>> {
+        self.guild_soundboard_sounds.get(&guild_id).map(Reference::new)
+    }
+
     /// Gets the set of voice states in a guild.
     ///
     /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents.
@@ -691,9 +708,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
     /// Gets a soundboard sound by ID.
     ///
-    /// This requires the [`GUILD_EXPRESSIONS`] intent.
+    /// This requires the [`GUILD_EXPRESSIONS`] intent and the [`SOUNDBOARD_SOUNDS`] resource type.
     ///
     /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
+    /// [`SOUNDBOARD_SOUNDS`]: crate::config::ResourceType::SOUNDBOARD_SOUNDS
     pub fn soundboard_sound(
         &self,
         soundboard_sound_id: Id<SoundboardSoundMarker>,
@@ -718,10 +736,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     /// Gets a sticker by ID.
     ///
     /// This is the O(1) operation. This requires the [`GUILDS`] and the
-    /// [`GUILD_EMOJIS_AND_STICKERS`] intents and the [`STICKER`] resource type.
+    /// [`GUILD_EXPRESSIONS`] intents and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn sticker(
         &self,
@@ -858,6 +876,7 @@ impl<CacheModels: CacheableModels> Default for InMemoryCache<CacheModels> {
             guild_presences: DashMap::new(),
             guild_roles: DashMap::new(),
             guild_scheduled_events: DashMap::new(),
+            guild_soundboard_sounds: DashMap::new(),
             guild_stage_instances: DashMap::new(),
             guild_stickers: DashMap::new(),
             guilds: DashMap::new(),
@@ -1056,11 +1075,13 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::GatewayReconnect
             | Event::GuildAuditLogEntryCreate(_)
             | Event::GuildIntegrationsUpdate(_)
+            // todo
             | Event::GuildSoundboardSoundCreate(_)
             | Event::GuildSoundboardSoundDelete(_)
             | Event::GuildSoundboardSoundUpdate(_)
             | Event::GuildSoundboardSoundsUpdate(_)
             | Event::SoundboardSounds(_)
+            // todo
             | Event::InviteCreate(_)
             | Event::InviteDelete(_)
             | Event::MessagePollVoteAdd(_)

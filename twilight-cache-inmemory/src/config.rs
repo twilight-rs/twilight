@@ -39,6 +39,8 @@ bitflags! {
         const STICKER = 1 << 13;
         /// Information relating to guild scheduled events.
         const GUILD_SCHEDULED_EVENT = 1 << 14;
+        /// information relating to guild soundboard sounds
+        const SOUNDBOARD_SOUNDS = 1 << 15;
     }
 }
 
