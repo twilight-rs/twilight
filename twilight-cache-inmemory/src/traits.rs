@@ -36,7 +36,7 @@ use twilight_model::{
     },
     guild::{
         scheduled_event::GuildScheduledEvent, Emoji, Guild, GuildIntegration, Member,
-        PartialMember, Role,
+        PartialMember, Role, SoundboardSound,
     },
     id::{
         marker::{
@@ -63,7 +63,7 @@ pub trait CacheableModels: Clone + Debug {
     type Guild: CacheableGuild;
     /// The cached [`GuildIntegration`] model representation.
     type GuildIntegration: CacheableGuildIntegration;
-    /// The cached [`GuildScheduledEvent` model representation.
+    /// The cached [`GuildScheduledEvent`] model representation.
     type GuildScheduledEvent: CacheableGuildScheduledEvent;
     /// The cached [`Member`] model representation.
     type Member: CacheableMember;
@@ -73,6 +73,8 @@ pub trait CacheableModels: Clone + Debug {
     type Presence: CacheablePresence;
     /// The cached [`Role`] model representation.
     type Role: CacheableRole;
+    /// The cached [`SoundboardSound`] model representation/
+    type SoundboardSound: CacheableSoundboardSound;
     /// The cached [`StageInstance`] model representation.
     type StageInstance: CacheableStageInstance;
     /// The cached [`Sticker`] model representation.
@@ -292,6 +294,14 @@ pub trait CacheablePresence:
     From<Presence> + PartialEq<Presence> + PartialEq<Self> + Clone + Debug
 {
 }
+
+/// Trait for a generic cached representation of a [`SoundboardSound`].
+pub trait CacheableSoundboardSound:
+    From<SoundboardSound> + PartialEq<SoundboardSound> + Clone + Debug
+{
+}
+
+impl CacheableSoundboardSound for SoundboardSound {}
 
 /// Trait for a generic cached representation of a [`StageInstance`].
 pub trait CacheableStageInstance:

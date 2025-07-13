@@ -9,6 +9,7 @@ pub mod message;
 pub mod presence;
 pub mod reaction;
 pub mod role;
+pub mod soundboard;
 pub mod stage_instance;
 pub mod sticker;
 pub mod thread;

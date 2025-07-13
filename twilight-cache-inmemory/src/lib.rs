@@ -57,11 +57,11 @@ use std::{
 use twilight_model::{
     channel::{Channel, StageInstance},
     gateway::event::Event,
-    guild::{scheduled_event::GuildScheduledEvent, GuildIntegration, Role},
+    guild::{scheduled_event::GuildScheduledEvent, GuildIntegration, Role, SoundboardSound},
     id::{
         marker::{
             ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            ScheduledEventMarker, StageMarker, StickerMarker, UserMarker,
+            ScheduledEventMarker, SoundboardSoundMarker, StageMarker, StickerMarker, UserMarker,
         },
         Id,
     },
@@ -217,6 +217,7 @@ pub struct InMemoryCache<CacheModels: CacheableModels = DefaultCacheModels> {
     roles: DashMap<Id<RoleMarker>, GuildResource<CacheModels::Role>>,
     scheduled_events:
         DashMap<Id<ScheduledEventMarker>, GuildResource<CacheModels::GuildScheduledEvent>>,
+    soundboard_sound: DashMap<Id<SoundboardSoundMarker>, CacheModels::SoundboardSound>,
     stage_instances: DashMap<Id<StageMarker>, GuildResource<CacheModels::StageInstance>>,
     stickers: DashMap<Id<StickerMarker>, GuildResource<CacheModels::Sticker>>,
     unavailable_guilds: DashSet<Id<GuildMarker>>,
@@ -245,6 +246,7 @@ impl CacheableModels for DefaultCacheModels {
     type Message = model::CachedMessage;
     type Presence = model::CachedPresence;
     type Role = Role;
+    type SoundboardSound = SoundboardSound;
     type StageInstance = StageInstance;
     type Sticker = model::CachedSticker;
     type User = User;
@@ -474,11 +476,11 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
     /// Gets the set of emojis in a guild.
     ///
-    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`]
+    /// This requires both the [`GUILDS`] and [`GUILD_EXPRESSIONS`]
     /// intents.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
     pub fn guild_emojis(
         &self,
         guild_id: Id<GuildMarker>,
@@ -570,11 +572,11 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     /// Gets the set of the stickers in a guild.
     ///
     /// This is an O(m) operation, where m is the amount of stickers in the
-    /// guild. This requires the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`]
+    /// guild. This requires the [`GUILDS`] and [`GUILD_EXPRESSIONS`]
     /// intents and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn guild_stickers(
         &self,
@@ -685,6 +687,20 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         Reference<'_, Id<ScheduledEventMarker>, GuildResource<CacheModels::GuildScheduledEvent>>,
     > {
         self.scheduled_events.get(&event_id).map(Reference::new)
+    }
+
+    /// Gets a soundboard sound by ID.
+    ///
+    /// This requires the [`GUILD_EXPRESSIONS`] intent.
+    ///
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
+    pub fn soundboard_sound(
+        &self,
+        soundboard_sound_id: Id<SoundboardSoundMarker>,
+    ) -> Option<Reference<'_, Id<SoundboardSoundMarker>, CacheModels::SoundboardSound>> {
+        self.soundboard_sound
+            .get(&soundboard_sound_id)
+            .map(Reference::new)
     }
 
     /// Gets a stage instance by ID.
@@ -851,6 +867,7 @@ impl<CacheModels: CacheableModels> Default for InMemoryCache<CacheModels> {
             presences: DashMap::new(),
             roles: DashMap::new(),
             scheduled_events: DashMap::new(),
+            soundboard_sound: DashMap::new(),
             stage_instances: DashMap::new(),
             stickers: DashMap::new(),
             unavailable_guilds: DashSet::new(),
@@ -870,13 +887,14 @@ mod private {
             ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate, GuildCreate,
             GuildDelete, GuildEmojisUpdate, GuildScheduledEventCreate, GuildScheduledEventDelete,
             GuildScheduledEventUpdate, GuildScheduledEventUserAdd, GuildScheduledEventUserRemove,
-            GuildStickersUpdate, GuildUpdate, IntegrationCreate, IntegrationDelete,
-            IntegrationUpdate, InteractionCreate, MemberAdd, MemberChunk, MemberRemove,
-            MemberUpdate, MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
-            PresenceUpdate, ReactionAdd, ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji,
-            Ready, RoleCreate, RoleDelete, RoleUpdate, StageInstanceCreate, StageInstanceDelete,
-            StageInstanceUpdate, ThreadCreate, ThreadDelete, ThreadListSync, ThreadUpdate,
-            UnavailableGuild, UserUpdate, VoiceStateUpdate,
+            GuildSoundboardSoundCreate, GuildSoundboardSoundDelete, GuildSoundboardSoundUpdate,
+            GuildSoundboardSoundsUpdate, GuildStickersUpdate, GuildUpdate, IntegrationCreate,
+            IntegrationDelete, IntegrationUpdate, InteractionCreate, MemberAdd, MemberChunk,
+            MemberRemove, MemberUpdate, MessageCreate, MessageDelete, MessageDeleteBulk,
+            MessageUpdate, PresenceUpdate, ReactionAdd, ReactionRemove, ReactionRemoveAll,
+            ReactionRemoveEmoji, Ready, RoleCreate, RoleDelete, RoleUpdate, StageInstanceCreate,
+            StageInstanceDelete, StageInstanceUpdate, ThreadCreate, ThreadDelete, ThreadListSync,
+            ThreadUpdate, UnavailableGuild, UserUpdate, VoiceStateUpdate,
         },
     };
 
@@ -928,6 +946,10 @@ mod private {
     impl Sealed for GuildScheduledEventUpdate {}
     impl Sealed for GuildScheduledEventUserAdd {}
     impl Sealed for GuildScheduledEventUserRemove {}
+    impl Sealed for GuildSoundboardSoundCreate {}
+    impl Sealed for GuildSoundboardSoundDelete {}
+    impl Sealed for GuildSoundboardSoundUpdate {}
+    impl Sealed for GuildSoundboardSoundsUpdate {}
 }
 
 /// Implemented for dispatch events.
