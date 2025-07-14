@@ -1,5 +1,4 @@
 mod private {
-    use crate::request::channel::SendSoundboardSound;
     use crate::request::{
         application::{
             command::{
@@ -53,7 +52,7 @@ mod private {
             },
             CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission,
             DeleteChannelPermissionConfigured, DeletePin, FollowNewsChannel, GetChannel, GetPins,
-            UpdateChannel, UpdateChannelPermission,
+            SendSoundboardSound, UpdateChannel, UpdateChannelPermission,
         },
         guild::{
             auto_moderation::{
@@ -70,6 +69,7 @@ mod private {
             role::{
                 CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
             },
+            soundboard::GetGuildSoundboardSounds,
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
@@ -227,6 +227,7 @@ mod private {
     impl Sealed for GetGuildScheduledEvent<'_> {}
     impl Sealed for GetGuildScheduledEventUsers<'_> {}
     impl Sealed for GetGuildScheduledEvents<'_> {}
+    impl Sealed for GetGuildSoundboardSounds<'_> {}
     impl Sealed for GetGuildSticker<'_> {}
     impl Sealed for GetGuildStickers<'_> {}
     impl Sealed for GetGuildVanityUrl<'_> {}
