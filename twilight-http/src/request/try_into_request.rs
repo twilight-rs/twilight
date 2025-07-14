@@ -103,8 +103,8 @@ mod private {
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetCurrentAuthorizationInformation, GetGateway, GetGatewayAuthed, GetUserApplicationInfo,
-        GetVoiceRegions,
+        GetCurrentAuthorizationInformation, GetDefaultSoundboardSounds, GetGateway,
+        GetGatewayAuthed, GetUserApplicationInfo, GetVoiceRegions,
     };
 
     pub trait Sealed {}
@@ -202,6 +202,7 @@ mod private {
     impl Sealed for GetCurrentUserGuildMember<'_> {}
     impl Sealed for GetCurrentUserGuilds<'_> {}
     impl Sealed for GetCurrentUserVoiceState<'_> {}
+    impl Sealed for GetDefaultSoundboardSounds<'_> {}
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
     impl Sealed for GetEntitlements<'_> {}

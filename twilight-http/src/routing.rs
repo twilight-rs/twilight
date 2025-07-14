@@ -1003,6 +1003,8 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route  information to get soundboard default sounds.
+    GetSoundboardDefaultSounds,
     /// Route information to sync a guild's integration.
     SyncGuildIntegration {
         /// The ID of the guild.
@@ -1329,6 +1331,7 @@ impl Route<'_> {
             | Self::GetPublicArchivedThreads { .. }
             | Self::GetReactionUsers { .. }
             | Self::GetRole { .. }
+            | Self::GetSoundboardDefaultSounds
             | Self::GetSKUs { .. }
             | Self::GetStageInstance { .. }
             | Self::GetSticker { .. }
@@ -1753,6 +1756,7 @@ impl Route<'_> {
             Self::SendSoundboardSound { channel_id } => {
                 Path::ChannelsIdSendSoundboardSound(channel_id)
             }
+            Self::GetSoundboardDefaultSounds => Path::SoundboardDefaultSounds,
         }
     }
 }
@@ -3054,6 +3058,7 @@ impl Display for Route<'_> {
 
                 f.write_str("/send-soundboard-sound")
             }
+            Route::GetSoundboardDefaultSounds => f.write_str("soundboard-default-sounds"),
         }
     }
 }

@@ -4,7 +4,6 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
-use crate::request::channel::SendSoundboardSound;
 use crate::request::{
     application::{
         emoji::{
@@ -48,7 +47,8 @@ use crate::{
                 UpdateWebhookMessage, UpdateWebhookWithToken,
             },
             CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission, DeletePin,
-            FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
+            FollowNewsChannel, GetChannel, GetPins, SendSoundboardSound, UpdateChannel,
+            UpdateChannelPermission,
         },
         guild::{
             auto_moderation::{
@@ -93,8 +93,8 @@ use crate::{
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetCurrentAuthorizationInformation, GetGateway, GetUserApplicationInfo, GetVoiceRegions,
-        Method, Request, UpdateCurrentUserApplication,
+        GetCurrentAuthorizationInformation, GetDefaultSoundboardSounds, GetGateway,
+        GetUserApplicationInfo, GetVoiceRegions, Method, Request, UpdateCurrentUserApplication,
     },
     response::ResponseFuture,
     API_VERSION,
@@ -2884,12 +2884,54 @@ impl Client {
         DeleteApplicationEmoji::new(self, application_id, emoji_id)
     }
 
+    /// Send a soundboard sound in a voice channel the current user is connected to.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let channel_id = Id::new(1);
+    /// let sound_id = Id::new(2);
+    ///
+    /// client
+    ///     .send_soundboard_sound(channel_id, sound_id)
+    ///     .await?;
+    ///
+    /// # Ok(()) }
+    /// ```
     pub const fn send_soundboard_sound(
         &self,
         channel_id: Id<ChannelMarker>,
         sound_id: Id<SoundboardSoundMarker>,
     ) -> SendSoundboardSound<'_> {
         SendSoundboardSound::new(self, channel_id, sound_id)
+    }
+
+    /// Retrieve the soundboard default sounds provided by Discord.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// client
+    ///     .soundboard_default_sounds()
+    ///     .await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    pub const fn soundboard_default_sounds(&self) -> GetDefaultSoundboardSounds<'_> {
+        GetDefaultSoundboardSounds::new(self)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].
