@@ -1,28 +1,24 @@
 use crate::traits::CacheableSoundboardSound;
 use crate::{traits::CacheableModels, InMemoryCache, ResourceType, UpdateCache};
 use twilight_model::{
-    gateway::payload::incoming::{GuildSoundboardSoundCreate, GuildSoundboardSoundDelete},
+    gateway::payload::incoming::{
+        GuildSoundboardSoundCreate, GuildSoundboardSoundDelete, GuildSoundboardSoundUpdate,
+        GuildSoundboardSoundsUpdate,
+    },
     guild::SoundboardSound,
     id::{marker::SoundboardSoundMarker, Id},
 };
 
-impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardSoundCreate {
-    fn update(&self, cache: &InMemoryCache<CacheModels>) {
-        if !cache.wants(ResourceType::SOUNDBOARD_SOUNDS) {
-            return;
-        }
-
-        cache.cache_soundboard_sound(self.0.clone());
-    }
-}
-
-impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardSoundDelete {
-    fn update(&self, cache: &InMemoryCache<CacheModels>) {
-        cache.delete_soundboard_sound(self.sound_id);
-    }
-}
-
 impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
+    pub(crate) fn cache_soundboard_sounds(
+        &self,
+        sounds: impl IntoIterator<Item = SoundboardSound>,
+    ) {
+        for sound in sounds {
+            self.cache_soundboard_sound(sound);
+        }
+    }
+
     pub(crate) fn cache_soundboard_sound(&self, soundboard_sound: SoundboardSound) {
         if let Some(guild_id) = soundboard_sound.guild_id {
             self.guild_soundboard_sounds
@@ -48,5 +44,33 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
             return;
         };
         sounds.remove(&sound_id);
+    }
+}
+
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardSoundCreate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
+        if !cache.wants(ResourceType::SOUNDBOARD_SOUNDS) {
+            return;
+        }
+
+        cache.cache_soundboard_sound(self.0.clone());
+    }
+}
+
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardSoundDelete {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
+        cache.delete_soundboard_sound(self.sound_id);
+    }
+}
+
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardSoundUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
+        cache.cache_soundboard_sound(self.0.clone());
+    }
+}
+
+impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildSoundboardSoundsUpdate {
+    fn update(&self, cache: &InMemoryCache<CacheModels>) {
+        cache.cache_soundboard_sounds(self.soundboard_sounds.clone());
     }
 }
