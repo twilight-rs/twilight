@@ -2899,9 +2899,7 @@ impl Client {
     /// let channel_id = Id::new(1);
     /// let sound_id = Id::new(2);
     ///
-    /// client
-    ///     .send_soundboard_sound(channel_id, sound_id)
-    ///     .await?;
+    /// client.send_soundboard_sound(channel_id, sound_id).await?;
     ///
     /// # Ok(()) }
     /// ```
@@ -2924,9 +2922,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// client
-    ///     .soundboard_default_sounds()
-    ///     .await?;
+    /// client.soundboard_default_sounds().await?;
     ///
     /// # Ok(()) }
     /// ```
