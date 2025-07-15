@@ -164,7 +164,7 @@ impl InteractionResponseDataBuilder {
     }
 
     /// Set the poll of the callback.
-    pub const fn poll(mut self, poll: Poll) -> Self {
+    pub fn poll(mut self, poll: Poll) -> Self {
         self.0.poll = Some(poll);
 
         self
