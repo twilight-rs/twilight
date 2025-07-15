@@ -241,7 +241,7 @@ pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValid
     if filename
         .as_ref()
         .chars()
-        .all(|c| (c.is_ascii_alphanumeric() || c == DOT || c == DASH || c == UNDERSCORE))
+        .all(|c| c.is_ascii_alphanumeric() || c == DOT || c == DASH || c == UNDERSCORE)
     {
         Ok(())
     } else {
