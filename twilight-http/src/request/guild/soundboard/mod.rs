@@ -1,3 +1,5 @@
+mod get_guild_soundboard_sound;
 mod get_guild_soundboard_sounds;
 
+pub use get_guild_soundboard_sound::GetGuildSoundboardSound;
 pub use get_guild_soundboard_sounds::GetGuildSoundboardSounds;

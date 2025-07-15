@@ -683,6 +683,11 @@ pub enum Route<'a> {
         /// Whether to include user counts.
         with_user_count: bool,
     },
+    /// Route information to get a guild's soundboard sound.
+    GetGuildSoundboardSound {
+        guild_id: u64,
+        sound_id: u64,
+    },
     /// Route information to get a guild's soundboard sounds.
     GetGuildSoundboardSounds {
         guild_id: u64,
@@ -1310,6 +1315,7 @@ impl Route<'_> {
             | Self::GetGuildPreview { .. }
             | Self::GetGuildPruneCount { .. }
             | Self::GetGuildRoles { .. }
+            | Self::GetGuildSoundboardSound { .. }
             | Self::GetGuildSoundboardSounds { .. }
             | Self::GetGuildScheduledEvent { .. }
             | Self::GetGuildScheduledEventUsers { .. }
@@ -1762,6 +1768,9 @@ impl Route<'_> {
                 Path::ChannelsIdSendSoundboardSound(channel_id)
             }
             Self::GetSoundboardDefaultSounds => Path::SoundboardDefaultSounds,
+            Self::GetGuildSoundboardSound { guild_id, .. } => {
+                Path::GuildsIdSoundboardSoundsId(guild_id)
+            }
             Self::GetGuildSoundboardSounds { guild_id } => Path::GuildsIdSoundboardSounds(guild_id),
         }
     }
@@ -3065,6 +3074,13 @@ impl Display for Route<'_> {
                 f.write_str("/send-soundboard-sound")
             }
             Route::GetSoundboardDefaultSounds => f.write_str("soundboard-default-sounds"),
+            Route::GetGuildSoundboardSound { guild_id, sound_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/soundboard-sounds/")?;
+
+                Display::fmt(sound_id, f)
+            }
             Route::GetGuildSoundboardSounds { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;

@@ -69,7 +69,7 @@ mod private {
             role::{
                 CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
             },
-            soundboard::GetGuildSoundboardSounds,
+            soundboard::{GetGuildSoundboardSound, GetGuildSoundboardSounds},
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
@@ -227,6 +227,7 @@ mod private {
     impl Sealed for GetGuildScheduledEvent<'_> {}
     impl Sealed for GetGuildScheduledEventUsers<'_> {}
     impl Sealed for GetGuildScheduledEvents<'_> {}
+    impl Sealed for GetGuildSoundboardSound<'_> {}
     impl Sealed for GetGuildSoundboardSounds<'_> {}
     impl Sealed for GetGuildSticker<'_> {}
     impl Sealed for GetGuildStickers<'_> {}

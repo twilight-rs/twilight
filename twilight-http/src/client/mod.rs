@@ -65,7 +65,7 @@ use crate::{
             role::{
                 CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
             },
-            soundboard::GetGuildSoundboardSounds,
+            soundboard::{GetGuildSoundboardSound, GetGuildSoundboardSounds},
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
@@ -2929,6 +2929,33 @@ impl Client {
     /// ```
     pub const fn soundboard_default_sounds(&self) -> GetDefaultSoundboardSounds<'_> {
         GetDefaultSoundboardSounds::new(self)
+    }
+
+    /// Retrieve a soundboard sound of a guild.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = Id::new(1);
+    /// let sound_id = Id::new(1);
+    ///
+    /// client.guild_soundboard_sound(guild_id, sound_id).await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    pub const fn guild_soundboard_sound(
+        &self,
+        guild_id: Id<GuildMarker>,
+        sound_id: Id<SoundboardSoundMarker>,
+    ) -> GetGuildSoundboardSound<'_> {
+        GetGuildSoundboardSound::new(self, guild_id, sound_id)
     }
 
     /// Retrieve the soundboard sounds of a guild.
