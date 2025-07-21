@@ -135,6 +135,8 @@ pub struct Interaction {
     /// Present when the interaction is invoked in a direct message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
+    /// Attachment size limit in bytes
+    pub attachment_size_limit: u64,
 }
 
 impl Interaction {
