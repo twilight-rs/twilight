@@ -1167,6 +1167,7 @@ mod tests {
                 guild: None,
                 user: None,
             },
+            attachment_size_limit: 0,
             channel: Some(Channel {
                 bitrate: None,
                 guild_id: None,

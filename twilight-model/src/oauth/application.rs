@@ -12,7 +12,7 @@ use crate::{
     user::User,
     util::image_hash::ImageHash,
 };
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
 // Custom deserializer for redirect_uris that filters out null values
 fn deserialize_redirect_uris<'de, D>(deserializer: D) -> Result<Option<Vec<String>>, D::Error>
