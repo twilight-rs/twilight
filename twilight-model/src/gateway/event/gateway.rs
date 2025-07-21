@@ -18,6 +18,7 @@ use std::{
 
 /// An event from the gateway, which can either be a dispatch event with
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug)]
 pub enum GatewayEvent {
     Dispatch(u64, DispatchEvent),

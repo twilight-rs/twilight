@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 // Developer note: Do not change order as we want unavailable to fail
 // first.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum GuildCreate {
