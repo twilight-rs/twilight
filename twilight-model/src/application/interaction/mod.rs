@@ -210,6 +210,7 @@ enum InteractionField {
     User,
     Version,
     AuthorizingIntegrationOwners,
+    AttachmentSizeLimit,
 }
 
 struct InteractionVisitor;
@@ -243,6 +244,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut authorizing_integration_owners: Option<
             ApplicationIntegrationMap<AnonymizableId<GuildMarker>, Id<UserMarker>>,
         > = None;
+        let mut attachment_size_limit: Option<u64> = None;
 
         loop {
             let key = match map.next_key() {
@@ -386,6 +388,13 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
                     authorizing_integration_owners = map.next_value()?;
                 }
+                InteractionField::AttachmentSizeLimit => {
+                    if attachment_size_limit.is_some() {
+                        return Err(DeError::duplicate_field("attachment_size_limit"));
+                    }
+
+                    attachment_size_limit = map.next_value()?;
+                }
             }
         }
 
@@ -454,6 +463,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             message,
             token,
             user,
+            attachment_size_limit: attachment_size_limit.unwrap_or(0),
         })
     }
 }
@@ -678,6 +688,7 @@ mod tests {
             message: None,
             token: "interaction token".into(),
             user: None,
+            attachment_size_limit: 8388608,
         };
 
         // TODO: switch the `assert_tokens` see #2190
@@ -686,7 +697,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Interaction",
-                    len: 14,
+                    len: 15,
                 },
                 Token::Str("app_permissions"),
                 Token::Some,
@@ -910,6 +921,8 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("token"),
                 Token::Str("interaction token"),
+                Token::Str("attachment_size_limit"),
+                Token::U64(8388608),
                 Token::StructEnd,
             ],
         );
