@@ -688,7 +688,7 @@ mod tests {
             message: None,
             token: "interaction token".into(),
             user: None,
-            attachment_size_limit: 8388608,
+            attachment_size_limit: 8_388_608,
         };
 
         // TODO: switch the `assert_tokens` see #2190
@@ -922,7 +922,7 @@ mod tests {
                 Token::Str("token"),
                 Token::Str("interaction token"),
                 Token::Str("attachment_size_limit"),
-                Token::U64(8388608),
+                Token::U64(8_388_608),
                 Token::StructEnd,
             ],
         );
