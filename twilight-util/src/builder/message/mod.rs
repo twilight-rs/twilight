@@ -11,7 +11,13 @@ mod text_display;
 mod thumbnail;
 
 pub use self::{
-    action_row::ActionRowBuilder, button::ButtonBuilder, container::ContainerBuilder,
-    file_display::FileDisplayBuilder, section::SectionBuilder, select_menu::SelectMenuBuilder,
-    separator::SeparatorBuilder, text_display::TextDisplayBuilder, thumbnail::ThumbnailBuilder,
+    action_row::ActionRowBuilder,
+    button::ButtonBuilder,
+    container::ContainerBuilder,
+    file_display::FileDisplayBuilder,
+    section::SectionBuilder,
+    select_menu::{SelectMenuBuilder, SelectMenuOptionBuilder},
+    separator::SeparatorBuilder,
+    text_display::TextDisplayBuilder,
+    thumbnail::ThumbnailBuilder,
 };
