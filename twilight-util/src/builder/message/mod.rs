@@ -12,6 +12,6 @@ mod thumbnail;
 
 pub use self::{
     action_row::ActionRowBuilder, button::ButtonBuilder, container::ContainerBuilder,
-    file_display::FileDisplayBuilder, section::SectionBuilder, separator::SeparatorBuilder,
-    text_display::TextDisplayBuilder, thumbnail::ThumbnailBuilder,
+    file_display::FileDisplayBuilder, section::SectionBuilder, select_menu::SelectMenuBuilder,
+    separator::SeparatorBuilder, text_display::TextDisplayBuilder, thumbnail::ThumbnailBuilder,
 };
