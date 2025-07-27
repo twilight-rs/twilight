@@ -379,7 +379,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut accessory: Option<Component> = None;
         let mut media: Option<UnfurledMediaItem> = None;
         let mut description: Option<String> = None;
-        let mut accent_color: Option<u32> = None;
+        let mut accent_color: Option<Option<u32>> = None;
 
         loop {
             let key = match map.next_key() {

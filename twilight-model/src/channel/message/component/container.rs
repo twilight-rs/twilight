@@ -14,7 +14,7 @@ pub struct Container {
     pub id: Option<i32>,
     /// Color for the accent on the container as RGB from `0x000000` to `0xFFFFFF`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub accent_color: Option<u32>,
+    pub accent_color: Option<Option<u32>>,
     /// Whether the container should be a spoiler (or blurred out). Defaults to `false`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub spoiler: Option<bool>,
