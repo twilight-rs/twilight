@@ -13,7 +13,7 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::message::{AllowedMentions, Component, Embed, Message},
+    channel::message::{AllowedMentions, Component, Embed, Message, MessageFlags},
     http::attachment::Attachment,
     id::{
         marker::{ApplicationMarker, AttachmentMarker},
@@ -38,6 +38,8 @@ struct UpdateResponseFields<'a> {
     content: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<Nullable<&'a [Embed]>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
 }
@@ -105,6 +107,7 @@ impl<'a> UpdateResponse<'a> {
                 components: None,
                 content: None,
                 embeds: None,
+                flags: None,
                 payload_json: None,
             }),
             http,
@@ -274,6 +277,20 @@ impl<'a> UpdateResponse<'a> {
 
             Ok(fields)
         });
+
+        self
+    }
+
+    /// Set the response's flags.
+    ///
+    /// The only supported flags are [`SUPPRESS_EMBEDS`] and [`IS_COMPONENTS_V2`].
+    ///
+    /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
+    /// [`IS_COMPONENTS_V2`]: MessageFlags::IS_COMPONENTS_V2
+    pub fn flags(mut self, flags: MessageFlags) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.flags = Some(flags);
+        }
 
         self
     }
