@@ -5,6 +5,7 @@ use super::attachment::Attachment;
 use crate::{
     application::command::CommandOptionChoice,
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
+    poll::Poll,
 };
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -74,6 +75,9 @@ pub struct InteractionResponseData {
     /// Whether the response is TTS.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tts: Option<bool>,
+    /// A poll of the response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub poll: Option<Poll>,
 }
 
 /// Type of interaction response.
@@ -159,6 +163,7 @@ mod tests {
                 flags: Some(MessageFlags::EPHEMERAL),
                 title: None,
                 tts: None,
+                poll: None,
             }),
         };
 
