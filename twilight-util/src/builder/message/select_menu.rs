@@ -100,7 +100,7 @@ impl SelectMenuBuilder {
     }
 
     /// Add an option to this select menu.
-    #[allow(clippy::missing-panics-doc)] // this does not panic; unwrap is never called on None
+    #[allow(clippy::missing_panics_doc)] // this does not panic; unwrap is never called on None
     pub fn option(mut self, option: impl Into<SelectMenuOption>) -> Self {
         if self.0.options.is_none() {
             self.0.options.replace(Vec::new());
