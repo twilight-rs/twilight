@@ -24,7 +24,7 @@ impl SelectMenuOptionBuilder {
     }
 
     /// Set whether this option is the default
-    pub fn default(mut self, default: bool) -> Self {
+    pub const fn default(mut self, default: bool) -> Self {
         self.0.default = default;
 
         self
@@ -100,6 +100,7 @@ impl SelectMenuBuilder {
     }
 
     /// Add an option to this select menu.
+    #[allow(clippy::missing-panics-doc)] // this does not panic; unwrap is never called on None
     pub fn option(mut self, option: impl Into<SelectMenuOption>) -> Self {
         if self.0.options.is_none() {
             self.0.options.replace(Vec::new());
