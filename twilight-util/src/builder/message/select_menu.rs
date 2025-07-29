@@ -1,7 +1,60 @@
 use twilight_model::channel::{
-    message::component::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
+    message::{
+        component::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
+        EmojiReactionType,
+    },
     ChannelType,
 };
+
+/// Create a select menu option with a builder
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[must_use = "must be built into a select menu option"]
+pub struct SelectMenuOptionBuilder(SelectMenuOption);
+
+impl SelectMenuOptionBuilder {
+    /// Create a new select menu option builder.
+    pub fn new(label: impl Into<String>, value: impl Into<String>) -> Self {
+        Self(SelectMenuOption {
+            default: false,
+            description: None,
+            emoji: None,
+            label: label.into(),
+            value: value.into(),
+        })
+    }
+
+    /// Set whether this option is the default
+    pub fn default(mut self, default: bool) -> Self {
+        self.0.default = default;
+
+        self
+    }
+
+    /// Set the associated emoji
+    pub fn emoji(mut self, emoji: EmojiReactionType) -> Self {
+        self.0.emoji.replace(emoji);
+
+        self
+    }
+
+    /// Set the description
+    pub fn description(mut self, description: impl Into<String>) -> Self {
+        self.0.description.replace(description.into());
+
+        self
+    }
+
+    /// Build into a select menu option
+    pub fn build(self) -> SelectMenuOption {
+        self.0
+    }
+}
+
+impl From<SelectMenuOptionBuilder> for SelectMenuOption {
+    fn from(builder: SelectMenuOptionBuilder) -> Self {
+        builder.build()
+    }
+}
 
 /// Create a select menu with a builder.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -108,12 +161,20 @@ mod tests {
 
     #[test]
     fn builder() {
+        let expected_option = SelectMenuOption {
+            default: false,
+            description: Some("test".to_string()),
+            emoji: None,
+            label: "bar".to_string(),
+            value: "foo".to_string(),
+        };
+
         let expected = SelectMenu {
             custom_id: "foo".to_string(),
             disabled: false,
             max_values: None,
             min_values: None,
-            options: None,
+            options: Some(vec![expected_option]),
             placeholder: None,
             id: None,
             channel_types: None,
@@ -121,7 +182,9 @@ mod tests {
             kind: SelectMenuType::Text,
         };
 
-        let actual = SelectMenuBuilder::new("foo", SelectMenuType::Text).build();
+        let actual = SelectMenuBuilder::new("foo", SelectMenuType::Text)
+            .option(SelectMenuOptionBuilder::new("bar", "foo").description("test"))
+            .build();
 
         assert_eq!(actual, expected);
     }
