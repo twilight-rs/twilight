@@ -7,7 +7,7 @@ use crate::{
 use http::{header, HeaderMap, Request, StatusCode};
 use http_body_util::Full;
 use hyper::body::Bytes;
-use hyper_util::client::legacy::{Client, ResponseFuture as HyperResponseFuture};
+use hyper_util::client::legacy::{Client as HyperClient, ResponseFuture as HyperResponseFuture};
 use std::{
     future::{ready, Future, Ready},
     marker::PhantomData,
@@ -99,7 +99,7 @@ impl PermitFutureGenerator {
 /// [`Timeout<HyperResponseFuture>`] generator.
 struct TimedResponseFutureGenerator {
     /// HTTP client to send requests from.
-    client: Client<Connector, Full<Bytes>>,
+    client: HyperClient<Connector, Full<Bytes>>,
     /// HTTP request to send.
     request: Request<Full<Bytes>>,
     /// Duration after which the request times out.
@@ -155,7 +155,7 @@ pub struct ResponseFuture<T>(Result<Inner<T>, Ready<Error>>);
 
 impl<T> ResponseFuture<T> {
     pub(crate) fn new(
-        client: Client<Connector, Full<Bytes>>,
+        client: HyperClient<Connector, Full<Bytes>>,
         invalid_token: Option<Arc<AtomicBool>>,
         request: Request<Full<Bytes>>,
         span: tracing::Span,
