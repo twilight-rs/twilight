@@ -1,5 +1,5 @@
 mod builder;
-mod connector;
+pub(crate) mod connector;
 mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
@@ -113,7 +113,6 @@ use std::{
     },
     time::Duration,
 };
-use tokio::time;
 use twilight_http_ratelimiting::RateLimiter;
 use twilight_model::{
     channel::{message::AllowedMentions, ChannelType},
@@ -248,7 +247,7 @@ pub struct Client {
     proxy: Option<Box<str>>,
     ratelimiter: Option<RateLimiter>,
     timeout: Duration,
-    /// Whether the token has been invalidated.
+    /// Whether the token is invalidated.
     ///
     /// Whether an invalid token is tracked can be configured via
     /// [`ClientBuilder::remember_invalid_token`].
@@ -2921,7 +2920,6 @@ impl Client {
         let host = self.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{protocol}://{host}/api/v{API_VERSION}/{path}");
-        tracing::debug!(?url);
 
         let mut builder = hyper::Request::builder().method(method.name()).uri(&url);
 
@@ -2986,10 +2984,10 @@ impl Client {
             builder.body(Full::default())
         };
 
-        let inner = self.http.request(try_req.map_err(|source| Error {
+        let http_request = try_req.map_err(|source| Error {
             kind: ErrorType::BuildingRequest,
             source: Some(Box::new(source)),
-        })?);
+        })?;
 
         // For requests that don't use an authorization token we don't need to
         // remember whether the token is invalid. This may be for requests such
@@ -2998,13 +2996,17 @@ impl Client {
             .then(|| self.token_invalidated.clone())
             .flatten();
 
-        Ok(if let Some(ratelimiter) = &self.ratelimiter {
-            let permit_future = ratelimiter.acquire(ratelimit_path);
+        let response = ResponseFuture::new(
+            self.http.clone(),
+            invalid_token,
+            http_request,
+            tracing::info_span!("req", method = method.name(), url = url),
+            self.timeout,
+            self.ratelimiter.clone(),
+            ratelimit_path,
+        );
 
-            ResponseFuture::ratelimit(invalid_token, inner, self.timeout, permit_future)
-        } else {
-            ResponseFuture::new(Box::pin(time::timeout(self.timeout, inner)), invalid_token)
-        })
+        Ok(response)
     }
 }
 
