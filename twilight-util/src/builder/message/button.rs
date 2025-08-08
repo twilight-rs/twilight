@@ -52,6 +52,13 @@ impl ButtonBuilder {
         self
     }
 
+    /// Sets the label for this button.
+    pub fn label(mut self, label: impl Into<String>) -> Self {
+        self.0.label.replace(label.into());
+
+        self
+    }
+
     /// Validate the fields in this builder.
     ///
     /// # Errors
