@@ -610,7 +610,7 @@ impl Drop for Connection {
     }
 }
 
-fn connect_request(state: &NodeConfig) -> Result<ClientBuilder, NodeError> {
+fn connect_request(state: &NodeConfig) -> Result<ClientBuilder<'_>, NodeError> {
     let mut builder = ClientBuilder::new()
         .uri(&format!("ws://{}", state.address))
         .map_err(|source| NodeError {
@@ -745,7 +745,7 @@ mod tests {
     #[test]
     fn node_config_debug() {
         let config = NodeConfig {
-            address: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 1312)),
+            address: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 1312)),
             authorization: "some auth".to_owned(),
             resume: None,
             user_id: Id::new(123),
