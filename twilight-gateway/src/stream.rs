@@ -64,7 +64,7 @@ pub trait StreamExt: Stream {
     /// [`Event::GatewayClose`]: crate::Event::GatewayClose
     /// [`parse`]: crate::parse
     /// [`pin!`]: std::pin::pin
-    fn next_event(&mut self, wanted_event_types: EventTypeFlags) -> private::NextEvent<Self>
+    fn next_event(&mut self, wanted_event_types: EventTypeFlags) -> private::NextEvent<'_, Self>
     where
         Self: Unpin,
     {
