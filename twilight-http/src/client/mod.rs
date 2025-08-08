@@ -2996,16 +2996,15 @@ impl Client {
             .then(|| self.token_invalidated.clone())
             .flatten();
 
-        let mut response = ResponseFuture::new(
+        let response = ResponseFuture::new(
             self.http.clone(),
             invalid_token,
             http_request,
             tracing::info_span!("req", method = method.name(), url = url),
             self.timeout,
+            self.ratelimiter.clone(),
+            ratelimit_path,
         );
-        if let Some(ratelimiter) = self.ratelimiter.clone() {
-            response.set_rate_limiter(ratelimiter, ratelimit_path);
-        }
 
         Ok(response)
     }

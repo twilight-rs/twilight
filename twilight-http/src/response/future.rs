@@ -160,7 +160,11 @@ impl<T> ResponseFuture<T> {
         request: Request<Full<Bytes>>,
         span: tracing::Span,
         timeout: Duration,
+        rate_limiter: Option<RateLimiter>,
+        path: Path,
     ) -> Self {
+        let permit_generator =
+            rate_limiter.map(|rate_limiter| PermitFutureGenerator { rate_limiter, path });
         let response_generator = TimedResponseFutureGenerator {
             client,
             request,
@@ -168,7 +172,7 @@ impl<T> ResponseFuture<T> {
         };
         Self(Ok(Inner {
             invalid_token,
-            permit_generator: None,
+            permit_generator,
             phantom: PhantomData,
             pre_flight_check: None,
             response_generator,
@@ -246,16 +250,6 @@ impl<T> ResponseFuture<T> {
     /// Creates a future that is immediately ready with an error.
     pub(crate) fn error(source: Error) -> Self {
         Self(Err(ready(source)))
-    }
-
-    /// Registers a [`PermitFutureGenerator`] for this future.
-    #[track_caller]
-    pub(crate) fn set_rate_limiter(&mut self, rate_limiter: RateLimiter, path: Path) {
-        let permit_generator = PermitFutureGenerator { rate_limiter, path };
-        let Ok(inner) = &mut self.0 else {
-            panic!("tried setting rate limiter on error variant");
-        };
-        inner.permit_generator = Some(permit_generator);
     }
 }
 
