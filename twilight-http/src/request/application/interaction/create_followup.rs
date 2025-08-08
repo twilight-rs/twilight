@@ -14,6 +14,7 @@ use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed, Message, MessageFlags},
     http::attachment::Attachment,
     id::{marker::ApplicationMarker, Id},
+    poll::Poll,
 };
 use twilight_validate::message::{
     attachment as validate_attachment, components as validate_components,
@@ -38,6 +39,8 @@ struct CreateFollowupFields<'a> {
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    poll: Option<Poll>,
 }
 
 /// Create a followup message to an interaction, by its token.
@@ -97,6 +100,7 @@ impl<'a> CreateFollowup<'a> {
                 payload_json: None,
                 tts: None,
                 flags: None,
+                poll: None,
             }),
             http,
             token,
@@ -253,6 +257,15 @@ impl<'a> CreateFollowup<'a> {
     pub fn tts(mut self, tts: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.tts = Some(tts);
+        }
+
+        self
+    }
+
+    /// Specify the poll for this followup message.
+    pub fn poll(mut self, poll: Poll) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.poll = Some(poll);
         }
 
         self
