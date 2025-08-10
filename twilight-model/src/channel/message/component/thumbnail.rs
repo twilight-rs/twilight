@@ -14,7 +14,7 @@ pub struct Thumbnail {
     pub media: UnfurledMediaItem,
     /// Alt text for the media.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
+    pub description: Option<Option<String>>,
     /// Whether the thumbnail should be a spoiler (or blurred
     /// out). Defaults to `false`.
     #[serde(skip_serializing_if = "Option::is_none")]

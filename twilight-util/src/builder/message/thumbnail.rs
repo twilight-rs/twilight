@@ -32,7 +32,7 @@ impl ThumbnailBuilder {
 
     /// Set the description of this thumbnail.
     pub fn description(mut self, description: impl Into<String>) -> Self {
-        self.0.description.replace(description.into());
+        self.0.description.replace(Some(description.into()));
 
         self
     }
