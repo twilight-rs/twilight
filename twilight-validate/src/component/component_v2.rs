@@ -148,7 +148,7 @@ pub fn container(container: &Container) -> Result<(), ComponentValidationError> 
 ///
 /// # Errors
 pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> {
-    let Some(desc) = thumbnail.description.as_ref() else {
+    let Some(Some(desc)) = thumbnail.description.as_ref() else {
         return Ok(());
     };
 
