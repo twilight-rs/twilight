@@ -7,10 +7,10 @@ pub struct ThumbnailBuilder(Thumbnail);
 
 impl ThumbnailBuilder {
     /// Create a new thumbnail builder.
-    pub const fn new(media: UnfurledMediaItem) -> Self {
+    pub fn new(media: impl Into<UnfurledMediaItem>) -> Self {
         Self(Thumbnail {
             id: None,
-            media,
+            media: media.into(),
             description: None,
             spoiler: None,
         })
@@ -60,21 +60,21 @@ mod tests {
 
     #[test]
     fn builder() {
-        let media = UnfurledMediaItem {
-            url: "http://www.example.com/example.png".to_string(),
-            proxy_url: None,
-            height: None,
-            width: None,
-            content_type: None,
-        };
+        let url = "http://www.example.com/example.png";
         let expected = Thumbnail {
             id: None,
-            media: media.clone(),
+            media: UnfurledMediaItem {
+                url: url.to_string(),
+                proxy_url: None,
+                height: None,
+                width: None,
+                content_type: None,
+            },
             description: None,
             spoiler: None,
         };
 
-        let actual = ThumbnailBuilder::new(media).build();
+        let actual = ThumbnailBuilder::new(url).build();
 
         assert_eq!(actual, expected);
     }

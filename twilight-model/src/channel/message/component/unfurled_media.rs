@@ -21,3 +21,25 @@ pub struct UnfurledMediaItem {
     /// API as part of the response.
     pub content_type: Option<String>,
 }
+
+impl UnfurledMediaItem {
+    /// Create a new Unfurled Media Item for use in a request
+    pub fn new(url: impl Into<String>) -> Self {
+        Self {
+            url: url.into(),
+            proxy_url: None,
+            height: None,
+            width: None,
+            content_type: None,
+        }
+    }
+}
+
+impl<T> From<T> for UnfurledMediaItem
+where
+    T: Into<String>,
+{
+    fn from(url: T) -> Self {
+        Self::new(url)
+    }
+}
