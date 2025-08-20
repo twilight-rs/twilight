@@ -300,6 +300,11 @@ impl TryIntoRequest for CreateFollowup<'_> {
             thread_id: None,
             token: self.token,
             wait: None,
+            with_components: Some(
+                fields
+                    .components
+                    .is_some_and(|components| !components.is_empty()),
+            ),
             webhook_id: self.application_id.get(),
         });
 
