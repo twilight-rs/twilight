@@ -412,6 +412,11 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
             thread_id: self.thread_id.map(Id::get),
             token: self.token,
             wait: Some(self.wait),
+            with_components: Some(
+                fields
+                    .components
+                    .is_some_and(|components| !components.is_empty()),
+            ),
             webhook_id: self.webhook_id.get(),
         });
 
