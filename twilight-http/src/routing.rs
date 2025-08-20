@@ -387,7 +387,7 @@ pub enum Route<'a> {
         token: &'a str,
         /// Whether to wait for a message response.
         wait: Option<bool>,
-        /// Wether the message includes Components V2.
+        /// Whether the message includes Components V2.
         with_components: Option<bool>,
         /// The ID of the webhook.
         webhook_id: u64,
