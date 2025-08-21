@@ -372,7 +372,7 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&TEXT_INPUT_PLACEHOLDER_MAX, f)
             }
-            ComponentValidationErrorType::DisallowedV2 => {
+            ComponentValidationErrorType::DisallowedV2Components => {
                 f.write_str("a V2 component was used in a component V1 message")
             }
             ComponentValidationErrorType::DisallowedChildren => {
@@ -706,7 +706,7 @@ pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentVa
                     kind: if is_v2 {
                         ComponentValidationErrorType::DisallowedChildren
                     } else {
-                        ComponentValidationErrorType::DisallowedV2
+                        ComponentValidationErrorType::DisallowedV2Components
                     },
                 })
             }

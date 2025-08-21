@@ -27,7 +27,6 @@ pub const SECTION_COMPONENTS_MAX: usize = 3;
 /// Maximum length of a thumbnail description
 pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
 
-// TODO: rewrite comment
 /// Ensure that a top-level request component is correct in V2.
 ///
 /// Intended to ensure that a fully formed top-level component for requests
@@ -45,7 +44,6 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::Section(section) => self::section(section)?,
         Component::Container(container) => self::container(container)?,
         Component::Thumbnail(thumbnail) => self::thumbnail(thumbnail)?,
-        // note(HTGAzureX1212): do we need to validate these?
         Component::Separator(_) | Component::File(_) => (),
         _ => todo!(),
     }
