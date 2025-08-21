@@ -72,10 +72,10 @@ type Connection = tokio_websockets::WebSocketStream<MaybeTlsStream<TcpStream>>;
 
 /// Wrapper enum around [`WebsocketError`] with a timeout case.
 enum ConnectionError {
-    /// Error from the websocket library, [`tokio_websockets`].
-    Websocket(WebsocketError),
     /// Connection attempt timed out.
     Timeout(Elapsed),
+    /// Error from the websocket library, [`tokio_websockets`].
+    Websocket(WebsocketError),
 }
 
 impl ConnectionError {
