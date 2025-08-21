@@ -67,6 +67,9 @@ const COMPRESSION_FEATURES: &str = if cfg!(feature = "zstd") {
     ""
 };
 
+/// Timeout for connecting to the gateway.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
 /// [`tokio_websockets`] library Websocket connection.
 type Connection = tokio_websockets::WebSocketStream<MaybeTlsStream<TcpStream>>;
 
@@ -890,7 +893,7 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                             time::sleep(Duration::from_secs(secs.into())).await;
 
                             Ok(timeout(
-                                Duration::from_secs(10),
+                                CONNECT_TIMEOUT,
                                 ClientBuilder::new()
                                     .uri(&uri)
                                     .expect("URL should be valid")
