@@ -16,7 +16,7 @@ impl ContainerBuilder {
         })
     }
 
-    /// Set the accent color of this container, setting it to null will remove the accent color.
+    /// Set the accent color of this container; setting it to null will remove the accent color.
     pub fn accent_color(mut self, accent_color: Option<u32>) -> Self {
         self.0.accent_color.replace(accent_color);
 
