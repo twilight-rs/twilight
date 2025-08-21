@@ -38,6 +38,10 @@ pub enum EventType {
     GuildScheduledEventUserAdd,
     GuildScheduledEventUserRemove,
     GuildStickersUpdate,
+    GuildSoundboardSoundCreate,
+    GuildSoundboardSoundDelete,
+    GuildSoundboardSoundUpdate,
+    GuildSoundboardSoundsUpdate,
     GuildUpdate,
     IntegrationCreate,
     IntegrationDelete,
@@ -76,6 +80,7 @@ pub enum EventType {
     RoleDelete,
     #[serde(rename = "GUILD_ROLE_UPDATE")]
     RoleUpdate,
+    SoundboardSounds,
     StageInstanceCreate,
     StageInstanceDelete,
     StageInstanceUpdate,
@@ -88,6 +93,7 @@ pub enum EventType {
     TypingStart,
     UnavailableGuild,
     UserUpdate,
+    VoiceChannelEffectSend,
     VoiceServerUpdate,
     VoiceStateUpdate,
     WebhooksUpdate,
@@ -121,6 +127,10 @@ impl EventType {
             Self::GuildScheduledEventUserAdd => Some("GUILD_SCHEDULED_EVENT_USER_ADD"),
             Self::GuildScheduledEventUserRemove => Some("GUILD_SCHEDULED_EVENT_USER_REMOVE"),
             Self::GuildStickersUpdate => Some("GUILD_STICKERS_UPDATE"),
+            Self::GuildSoundboardSoundCreate => Some("GUILD_SOUNDBOARD_SOUND_CREATE"),
+            Self::GuildSoundboardSoundDelete => Some("GUILD_SOUNDBOARD_SOUND_DELETE"),
+            Self::GuildSoundboardSoundUpdate => Some("GUILD_SOUNDBOARD_SOUND_UPDATE"),
+            Self::GuildSoundboardSoundsUpdate => Some("GUILD_SOUNDBOARD_SOUNDS_UPDATE"),
             Self::GuildUpdate => Some("GUILD_UPDATE"),
             Self::IntegrationCreate => Some("INTEGRATION_CREATE"),
             Self::IntegrationDelete => Some("INTEGRATION_DELETE"),
@@ -148,6 +158,7 @@ impl EventType {
             Self::RoleCreate => Some("GUILD_ROLE_CREATE"),
             Self::RoleDelete => Some("GUILD_ROLE_DELETE"),
             Self::RoleUpdate => Some("GUILD_ROLE_UPDATE"),
+            Self::SoundboardSounds => Some("SOUNDBOARD_SOUNDS"),
             Self::StageInstanceCreate => Some("STAGE_INSTANCE_CREATE"),
             Self::StageInstanceDelete => Some("STAGE_INSTANCE_DELETE"),
             Self::StageInstanceUpdate => Some("STAGE_INSTANCE_UPDATE"),
@@ -160,6 +171,7 @@ impl EventType {
             Self::TypingStart => Some("TYPING_START"),
             Self::UnavailableGuild => Some("UNAVAILABLE_GUILD"),
             Self::UserUpdate => Some("USER_UPDATE"),
+            Self::VoiceChannelEffectSend => Some("VOICE_CHANNEL_EFFECT_SEND"),
             Self::VoiceServerUpdate => Some("VOICE_SERVER_UPDATE"),
             Self::VoiceStateUpdate => Some("VOICE_STATE_UPDATE"),
             Self::WebhooksUpdate => Some("WEBHOOKS_UPDATE"),
@@ -200,6 +212,10 @@ impl<'a> TryFrom<&'a str> for EventType {
             "GUILD_SCHEDULED_EVENT_UPDATE" => Ok(Self::GuildScheduledEventUpdate),
             "GUILD_SCHEDULED_EVENT_USER_ADD" => Ok(Self::GuildScheduledEventUserAdd),
             "GUILD_SCHEDULED_EVENT_USER_REMOVE" => Ok(Self::GuildScheduledEventUserRemove),
+            "GUILD_SOUNDBOARD_SOUND_CREATE" => Ok(Self::GuildSoundboardSoundCreate),
+            "GUILD_SOUNDBOARD_SOUND_DELETE" => Ok(Self::GuildSoundboardSoundDelete),
+            "GUILD_SOUNDBOARD_SOUND_UPDATE" => Ok(Self::GuildSoundboardSoundUpdate),
+            "GUILD_SOUNDBOARD_SOUNDS_UPDATE" => Ok(Self::GuildSoundboardSoundsUpdate),
             "GUILD_UPDATE" => Ok(Self::GuildUpdate),
             "INTEGRATION_CREATE" => Ok(Self::IntegrationCreate),
             "INTEGRATION_DELETE" => Ok(Self::IntegrationDelete),
@@ -227,6 +243,7 @@ impl<'a> TryFrom<&'a str> for EventType {
             "GUILD_ROLE_CREATE" => Ok(Self::RoleCreate),
             "GUILD_ROLE_DELETE" => Ok(Self::RoleDelete),
             "GUILD_ROLE_UPDATE" => Ok(Self::RoleUpdate),
+            "SOUNDBOARD_SOUNDS" => Ok(Self::SoundboardSounds),
             "STAGE_INSTANCE_CREATE" => Ok(Self::StageInstanceCreate),
             "STAGE_INSTANCE_DELETE" => Ok(Self::StageInstanceDelete),
             "STAGE_INSTANCE_UPDATE" => Ok(Self::StageInstanceUpdate),
@@ -239,6 +256,7 @@ impl<'a> TryFrom<&'a str> for EventType {
             "TYPING_START" => Ok(Self::TypingStart),
             "UNAVAILABLE_GUILD" => Ok(Self::UnavailableGuild),
             "USER_UPDATE" => Ok(Self::UserUpdate),
+            "VOICE_CHANNEL_EFFECT_SEND" => Ok(Self::VoiceChannelEffectSend),
             "VOICE_SERVER_UPDATE" => Ok(Self::VoiceServerUpdate),
             "VOICE_STATE_UPDATE" => Ok(Self::VoiceStateUpdate),
             "WEBHOOKS_UPDATE" => Ok(Self::WebhooksUpdate),
@@ -331,6 +349,22 @@ mod tests {
             EventType::GuildScheduledEventUserRemove,
             "GUILD_SCHEDULED_EVENT_USER_REMOVE",
         );
+        assert_variant(
+            EventType::GuildSoundboardSoundCreate,
+            "GUILD_SOUNDBOARD_SOUND_CREATE",
+        );
+        assert_variant(
+            EventType::GuildSoundboardSoundDelete,
+            "GUILD_SOUNDBOARD_SOUND_DELETE",
+        );
+        assert_variant(
+            EventType::GuildSoundboardSoundUpdate,
+            "GUILD_SOUNDBOARD_SOUND_UPDATE",
+        );
+        assert_variant(
+            EventType::GuildSoundboardSoundsUpdate,
+            "GUILD_SOUNDBOARD_SOUNDS_UPDATE",
+        );
         assert_variant(EventType::GuildUpdate, "GUILD_UPDATE");
         assert_variant(EventType::IntegrationCreate, "INTEGRATION_CREATE");
         assert_variant(EventType::IntegrationDelete, "INTEGRATION_DELETE");
@@ -361,6 +395,7 @@ mod tests {
         assert_variant(EventType::RoleCreate, "GUILD_ROLE_CREATE");
         assert_variant(EventType::RoleDelete, "GUILD_ROLE_DELETE");
         assert_variant(EventType::RoleUpdate, "GUILD_ROLE_UPDATE");
+        assert_variant(EventType::SoundboardSounds, "SOUNDBOARD_SOUNDS");
         assert_variant(EventType::StageInstanceCreate, "STAGE_INSTANCE_CREATE");
         assert_variant(EventType::StageInstanceDelete, "STAGE_INSTANCE_DELETE");
         assert_variant(EventType::StageInstanceUpdate, "STAGE_INSTANCE_UPDATE");

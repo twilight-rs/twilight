@@ -332,6 +332,12 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                     VALID_OPCODES,
                 ))
             }
+            OpCode::RequestSoundboardSounds => {
+                return Err(DeError::unknown_variant(
+                    "RequestSoundboardSounds",
+                    VALID_OPCODES,
+                ))
+            }
             OpCode::Resume => return Err(DeError::unknown_variant("Resume", VALID_OPCODES)),
             OpCode::PresenceUpdate => {
                 return Err(DeError::unknown_variant("PresenceUpdate", VALID_OPCODES))

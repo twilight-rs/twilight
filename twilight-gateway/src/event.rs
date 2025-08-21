@@ -105,6 +105,14 @@ bitflags! {
         const GUILD_SCHEDULED_EVENT_USER_ADD = 1 << 67;
         /// A guild's integrations have been updated.
         const GUILD_SCHEDULED_EVENT_USER_REMOVE = 1 << 68;
+        /// A guild soundboard sound have been created
+        const GUILD_SOUNDBOARD_SOUND_CREATE = 1 << 79;
+        /// A guild soundboard sound have been deleted
+        const GUILD_SOUNDBOARD_SOUND_DELETE = 1 << 80;
+        /// A guild soundboard sound have been updated
+        const GUILD_SOUNDBOARD_SOUND_UPDATE = 1 << 81;
+        /// A guild's soundboard sounds have been updated
+        const GUILD_SOUNDBOARD_SOUNDS_UPDATE = 1 << 82;
         /// A guild's stickers have been updated.
         const GUILD_STICKERS_UPDATE = 1 << 63;
         /// A guild has been updated.
@@ -164,6 +172,8 @@ bitflags! {
         const ROLE_DELETE = 1 << 31;
         /// Role has been updated in a guild.
         const ROLE_UPDATE = 1 << 32;
+        /// Soundboard sounds from a guild.
+        const SOUNDBOARD_SOUNDS = 1 << 49;
         /// Stage instance was created in a stage channel.
         const STAGE_INSTANCE_CREATE = 1 << 57;
         /// Stage instance was deleted in a stage channel.
@@ -189,6 +199,9 @@ bitflags! {
         const UNAVAILABLE_GUILD = 1 << 40;
         /// Current user's profile has been updated.
         const USER_UPDATE = 1 << 41;
+        /// Someone sends an effect (emoji or soundboard sound) in a voice
+        /// channel the current user is connected to.
+        const VOICE_CHANNEL_EFFECT_SEND = 1 << 45;
         /// Voice server has provided an update with voice session details.
         const VOICE_SERVER_UPDATE = 1 << 42;
         /// User's state in a voice channel has been updated.
@@ -253,8 +266,22 @@ bitflags! {
         /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS_AND_STICKERS`].
         ///
         /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
+        #[deprecated(since = "0.17.0", note = "use `GUILD_EXPRESSIONS` instead")]
         const GUILD_EMOJIS_AND_STICKERS = Self::GUILD_EMOJIS_UPDATE.bits()
-            | Self::GUILD_STICKERS_UPDATE.bits();
+            | Self::GUILD_STICKERS_UPDATE.bits()
+            | Self::GUILD_SOUNDBOARD_SOUND_CREATE.bits()
+            | Self::GUILD_SOUNDBOARD_SOUND_DELETE.bits()
+            | Self::GUILD_SOUNDBOARD_SOUND_UPDATE.bits()
+            | Self::GUILD_SOUNDBOARD_SOUNDS_UPDATE.bits();
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_EXPRESSIONS`].
+        ///
+        /// [`Intents::GUILD_EXPRESSIONS`]: crate::Intents::GUILD_EXPRESSIONS
+        const GUILD_EXPRESSIONS = Self::GUILD_EMOJIS_UPDATE.bits()
+            | Self::GUILD_STICKERS_UPDATE.bits()
+            | Self::GUILD_SOUNDBOARD_SOUND_CREATE.bits()
+            | Self::GUILD_SOUNDBOARD_SOUND_DELETE.bits()
+            | Self::GUILD_SOUNDBOARD_SOUND_UPDATE.bits()
+            | Self::GUILD_SOUNDBOARD_SOUNDS_UPDATE.bits();
 
         /// All [`EventTypeFlags`] in [`Intents::GUILD_INTEGRATIONS`].
         ///
@@ -322,13 +349,13 @@ bitflags! {
         /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
         ///
         /// [`Intents::GUILD_VOICE_STATES`]: crate::Intents::GUILD_VOICE_STATES
-        const GUILD_VOICE_STATES = Self::VOICE_STATE_UPDATE.bits();
+        const GUILD_VOICE_STATES = Self::VOICE_STATE_UPDATE.bits()
+            | Self::VOICE_CHANNEL_EFFECT_SEND.bits();
 
         /// All [`EventTypeFlags`] in [`Intents::GUILD_WEBHOOKS`].
         ///
         /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
         const GUILD_WEBHOOKS = Self::WEBHOOKS_UPDATE.bits();
-
     }
 }
 
@@ -365,6 +392,10 @@ impl From<EventType> for EventTypeFlags {
             EventType::GuildScheduledEventUpdate => Self::GUILD_SCHEDULED_EVENT_UPDATE,
             EventType::GuildScheduledEventUserAdd => Self::GUILD_SCHEDULED_EVENT_USER_ADD,
             EventType::GuildScheduledEventUserRemove => Self::GUILD_SCHEDULED_EVENT_USER_REMOVE,
+            EventType::GuildSoundboardSoundCreate => Self::GUILD_SOUNDBOARD_SOUND_CREATE,
+            EventType::GuildSoundboardSoundDelete => Self::GUILD_SOUNDBOARD_SOUND_DELETE,
+            EventType::GuildSoundboardSoundUpdate => Self::GUILD_SOUNDBOARD_SOUND_UPDATE,
+            EventType::GuildSoundboardSoundsUpdate => Self::GUILD_SOUNDBOARD_SOUNDS_UPDATE,
             EventType::GuildStickersUpdate => Self::GUILD_STICKERS_UPDATE,
             EventType::GuildUpdate => Self::GUILD_UPDATE,
             EventType::IntegrationCreate => Self::INTEGRATION_CREATE,
@@ -393,6 +424,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::RoleCreate => Self::ROLE_CREATE,
             EventType::RoleDelete => Self::ROLE_DELETE,
             EventType::RoleUpdate => Self::ROLE_UPDATE,
+            EventType::SoundboardSounds => Self::SOUNDBOARD_SOUNDS,
             EventType::StageInstanceCreate => Self::STAGE_INSTANCE_CREATE,
             EventType::StageInstanceDelete => Self::STAGE_INSTANCE_DELETE,
             EventType::StageInstanceUpdate => Self::STAGE_INSTANCE_UPDATE,
@@ -405,6 +437,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::TypingStart => Self::TYPING_START,
             EventType::UnavailableGuild => Self::UNAVAILABLE_GUILD,
             EventType::UserUpdate => Self::USER_UPDATE,
+            EventType::VoiceChannelEffectSend => Self::VOICE_CHANNEL_EFFECT_SEND,
             EventType::VoiceServerUpdate => Self::VOICE_SERVER_UPDATE,
             EventType::VoiceStateUpdate => Self::VOICE_STATE_UPDATE,
             EventType::WebhooksUpdate => Self::WEBHOOKS_UPDATE,

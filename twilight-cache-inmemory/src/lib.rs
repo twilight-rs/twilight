@@ -57,11 +57,11 @@ use std::{
 use twilight_model::{
     channel::{Channel, StageInstance},
     gateway::event::Event,
-    guild::{scheduled_event::GuildScheduledEvent, GuildIntegration, Role},
+    guild::{scheduled_event::GuildScheduledEvent, GuildIntegration, Role, SoundboardSound},
     id::{
         marker::{
             ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            ScheduledEventMarker, StageMarker, StickerMarker, UserMarker,
+            ScheduledEventMarker, SoundboardSoundMarker, StageMarker, StickerMarker, UserMarker,
         },
         Id,
     },
@@ -205,6 +205,7 @@ pub struct InMemoryCache<CacheModels: CacheableModels = DefaultCacheModels> {
     guild_presences: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
     guild_roles: DashMap<Id<GuildMarker>, HashSet<Id<RoleMarker>>>,
     guild_scheduled_events: DashMap<Id<GuildMarker>, HashSet<Id<ScheduledEventMarker>>>,
+    guild_soundboard_sounds: DashMap<Id<GuildMarker>, HashSet<Id<SoundboardSoundMarker>>>,
     guild_stage_instances: DashMap<Id<GuildMarker>, HashSet<Id<StageMarker>>>,
     guild_stickers: DashMap<Id<GuildMarker>, HashSet<Id<StickerMarker>>>,
     integrations: DashMap<
@@ -217,6 +218,7 @@ pub struct InMemoryCache<CacheModels: CacheableModels = DefaultCacheModels> {
     roles: DashMap<Id<RoleMarker>, GuildResource<CacheModels::Role>>,
     scheduled_events:
         DashMap<Id<ScheduledEventMarker>, GuildResource<CacheModels::GuildScheduledEvent>>,
+    soundboard_sound: DashMap<Id<SoundboardSoundMarker>, CacheModels::SoundboardSound>,
     stage_instances: DashMap<Id<StageMarker>, GuildResource<CacheModels::StageInstance>>,
     stickers: DashMap<Id<StickerMarker>, GuildResource<CacheModels::Sticker>>,
     unavailable_guilds: DashSet<Id<GuildMarker>>,
@@ -245,6 +247,7 @@ impl CacheableModels for DefaultCacheModels {
     type Message = model::CachedMessage;
     type Presence = model::CachedPresence;
     type Role = Role;
+    type SoundboardSound = SoundboardSound;
     type StageInstance = StageInstance;
     type Sticker = model::CachedSticker;
     type User = User;
@@ -474,11 +477,11 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
     /// Gets the set of emojis in a guild.
     ///
-    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`]
+    /// This requires both the [`GUILDS`] and [`GUILD_EXPRESSIONS`]
     /// intents.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
     pub fn guild_emojis(
         &self,
         guild_id: Id<GuildMarker>,
@@ -570,17 +573,35 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     /// Gets the set of the stickers in a guild.
     ///
     /// This is an O(m) operation, where m is the amount of stickers in the
-    /// guild. This requires the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`]
+    /// guild. This requires the [`GUILDS`] and [`GUILD_EXPRESSIONS`]
     /// intents and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn guild_stickers(
         &self,
         guild_id: Id<GuildMarker>,
     ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<StickerMarker>>>> {
         self.guild_stickers.get(&guild_id).map(Reference::new)
+    }
+
+    /// Gets the set of the soundboard sounds in a guild.
+    ///
+    /// This is an O(m) operation, where m is the amount of stickers in the
+    /// guild. This requires the [`GUILDS`] and [`GUILD_EXPRESSIONS`]
+    /// intents and the [`SOUNDBOARD_SOUND`] resource type.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
+    /// [`SOUNDBOARD_SOUNDS`]: crate::config::ResourceType::SOUNDBOARD_SOUNDS
+    pub fn guild_soundboard_sounds(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<SoundboardSoundMarker>>>> {
+        self.guild_soundboard_sounds
+            .get(&guild_id)
+            .map(Reference::new)
     }
 
     /// Gets the set of voice states in a guild.
@@ -687,6 +708,21 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         self.scheduled_events.get(&event_id).map(Reference::new)
     }
 
+    /// Gets a soundboard sound by ID.
+    ///
+    /// This requires the [`GUILD_EXPRESSIONS`] intent and the [`SOUNDBOARD_SOUNDS`] resource type.
+    ///
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
+    /// [`SOUNDBOARD_SOUNDS`]: crate::config::ResourceType::SOUNDBOARD_SOUNDS
+    pub fn soundboard_sound(
+        &self,
+        soundboard_sound_id: Id<SoundboardSoundMarker>,
+    ) -> Option<Reference<'_, Id<SoundboardSoundMarker>, CacheModels::SoundboardSound>> {
+        self.soundboard_sound
+            .get(&soundboard_sound_id)
+            .map(Reference::new)
+    }
+
     /// Gets a stage instance by ID.
     ///
     /// This requires the [`GUILDS`] intent.
@@ -702,10 +738,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     /// Gets a sticker by ID.
     ///
     /// This is the O(1) operation. This requires the [`GUILDS`] and the
-    /// [`GUILD_EMOJIS_AND_STICKERS`] intents and the [`STICKER`] resource type.
+    /// [`GUILD_EXPRESSIONS`] intents and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
+    /// [`GUILD_EXPRESSIONS`]: ::twilight_model::gateway::Intents::GUILD_EXPRESSIONS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn sticker(
         &self,
@@ -842,6 +878,7 @@ impl<CacheModels: CacheableModels> Default for InMemoryCache<CacheModels> {
             guild_presences: DashMap::new(),
             guild_roles: DashMap::new(),
             guild_scheduled_events: DashMap::new(),
+            guild_soundboard_sounds: DashMap::new(),
             guild_stage_instances: DashMap::new(),
             guild_stickers: DashMap::new(),
             guilds: DashMap::new(),
@@ -851,6 +888,7 @@ impl<CacheModels: CacheableModels> Default for InMemoryCache<CacheModels> {
             presences: DashMap::new(),
             roles: DashMap::new(),
             scheduled_events: DashMap::new(),
+            soundboard_sound: DashMap::new(),
             stage_instances: DashMap::new(),
             stickers: DashMap::new(),
             unavailable_guilds: DashSet::new(),
@@ -870,13 +908,14 @@ mod private {
             ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate, GuildCreate,
             GuildDelete, GuildEmojisUpdate, GuildScheduledEventCreate, GuildScheduledEventDelete,
             GuildScheduledEventUpdate, GuildScheduledEventUserAdd, GuildScheduledEventUserRemove,
-            GuildStickersUpdate, GuildUpdate, IntegrationCreate, IntegrationDelete,
-            IntegrationUpdate, InteractionCreate, MemberAdd, MemberChunk, MemberRemove,
-            MemberUpdate, MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
-            PresenceUpdate, ReactionAdd, ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji,
-            Ready, RoleCreate, RoleDelete, RoleUpdate, StageInstanceCreate, StageInstanceDelete,
-            StageInstanceUpdate, ThreadCreate, ThreadDelete, ThreadListSync, ThreadUpdate,
-            UnavailableGuild, UserUpdate, VoiceStateUpdate,
+            GuildSoundboardSoundCreate, GuildSoundboardSoundDelete, GuildSoundboardSoundUpdate,
+            GuildSoundboardSoundsUpdate, GuildStickersUpdate, GuildUpdate, IntegrationCreate,
+            IntegrationDelete, IntegrationUpdate, InteractionCreate, MemberAdd, MemberChunk,
+            MemberRemove, MemberUpdate, MessageCreate, MessageDelete, MessageDeleteBulk,
+            MessageUpdate, PresenceUpdate, ReactionAdd, ReactionRemove, ReactionRemoveAll,
+            ReactionRemoveEmoji, Ready, RoleCreate, RoleDelete, RoleUpdate, StageInstanceCreate,
+            StageInstanceDelete, StageInstanceUpdate, ThreadCreate, ThreadDelete, ThreadListSync,
+            ThreadUpdate, UnavailableGuild, UserUpdate, VoiceStateUpdate,
         },
     };
 
@@ -928,6 +967,10 @@ mod private {
     impl Sealed for GuildScheduledEventUpdate {}
     impl Sealed for GuildScheduledEventUserAdd {}
     impl Sealed for GuildScheduledEventUserRemove {}
+    impl Sealed for GuildSoundboardSoundCreate {}
+    impl Sealed for GuildSoundboardSoundDelete {}
+    impl Sealed for GuildSoundboardSoundUpdate {}
+    impl Sealed for GuildSoundboardSoundsUpdate {}
 }
 
 /// Implemented for dispatch events.
@@ -1034,6 +1077,13 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::GatewayReconnect
             | Event::GuildAuditLogEntryCreate(_)
             | Event::GuildIntegrationsUpdate(_)
+            // todo
+            | Event::GuildSoundboardSoundCreate(_)
+            | Event::GuildSoundboardSoundDelete(_)
+            | Event::GuildSoundboardSoundUpdate(_)
+            | Event::GuildSoundboardSoundsUpdate(_)
+            | Event::SoundboardSounds(_)
+            // todo
             | Event::InviteCreate(_)
             | Event::InviteDelete(_)
             | Event::MessagePollVoteAdd(_)
@@ -1042,6 +1092,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::ThreadMembersUpdate(_)
             | Event::ThreadMemberUpdate(_)
             | Event::TypingStart(_)
+            | Event::VoiceChannelEffectSend(_)
             | Event::VoiceServerUpdate(_)
             | Event::WebhooksUpdate(_) => {}
         }

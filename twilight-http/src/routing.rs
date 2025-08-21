@@ -683,6 +683,15 @@ pub enum Route<'a> {
         /// Whether to include user counts.
         with_user_count: bool,
     },
+    /// Route information to get a guild's soundboard sound.
+    GetGuildSoundboardSound {
+        guild_id: u64,
+        sound_id: u64,
+    },
+    /// Route information to get a guild's soundboard sounds.
+    GetGuildSoundboardSounds {
+        guild_id: u64,
+    },
     /// Route information to get a guild's sticker.
     GetGuildSticker {
         /// ID of the guild.
@@ -986,6 +995,11 @@ pub enum Route<'a> {
         /// Query to search by.
         query: &'a str,
     },
+    /// Route information to send soundboard sound.
+    SendSoundboardSound {
+        /// ID of the channel to send the soundboard sound in.
+        channel_id: u64,
+    },
     /// Route information to set global commands.
     SetGlobalCommands {
         /// The ID of the owner application.
@@ -998,6 +1012,8 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route  information to get soundboard default sounds.
+    GetSoundboardDefaultSounds,
     /// Route information to sync a guild's integration.
     SyncGuildIntegration {
         /// The ID of the guild.
@@ -1299,6 +1315,8 @@ impl Route<'_> {
             | Self::GetGuildPreview { .. }
             | Self::GetGuildPruneCount { .. }
             | Self::GetGuildRoles { .. }
+            | Self::GetGuildSoundboardSound { .. }
+            | Self::GetGuildSoundboardSounds { .. }
             | Self::GetGuildScheduledEvent { .. }
             | Self::GetGuildScheduledEventUsers { .. }
             | Self::GetGuildScheduledEvents { .. }
@@ -1324,6 +1342,7 @@ impl Route<'_> {
             | Self::GetPublicArchivedThreads { .. }
             | Self::GetReactionUsers { .. }
             | Self::GetRole { .. }
+            | Self::GetSoundboardDefaultSounds
             | Self::GetSKUs { .. }
             | Self::GetStageInstance { .. }
             | Self::GetSticker { .. }
@@ -1398,6 +1417,7 @@ impl Route<'_> {
             | Self::ExecuteWebhook { .. }
             | Self::FollowNewsChannel { .. }
             | Self::InteractionCallback { .. }
+            | Self::SendSoundboardSound { .. }
             | Self::SyncGuildIntegration { .. } => Method::Post,
             Self::AddGuildMember { .. }
             | Self::AddMemberRole { .. }
@@ -1744,6 +1764,14 @@ impl Route<'_> {
             Self::EndPoll { channel_id, .. } | Self::GetAnswerVoters { channel_id, .. } => {
                 Path::ChannelsIdPolls(channel_id)
             }
+            Self::SendSoundboardSound { channel_id } => {
+                Path::ChannelsIdSendSoundboardSound(channel_id)
+            }
+            Self::GetSoundboardDefaultSounds => Path::SoundboardDefaultSounds,
+            Self::GetGuildSoundboardSound { guild_id, .. } => {
+                Path::GuildsIdSoundboardSoundsId(guild_id)
+            }
+            Self::GetGuildSoundboardSounds { guild_id } => Path::GuildsIdSoundboardSounds(guild_id),
         }
     }
 }
@@ -3038,6 +3066,26 @@ impl Display for Route<'_> {
                 Display::fmt(application_id, f)?;
 
                 f.write_str("/skus")
+            }
+            Route::SendSoundboardSound { channel_id } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+
+                f.write_str("/send-soundboard-sound")
+            }
+            Route::GetSoundboardDefaultSounds => f.write_str("soundboard-default-sounds"),
+            Route::GetGuildSoundboardSound { guild_id, sound_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/soundboard-sounds/")?;
+
+                Display::fmt(sound_id, f)
+            }
+            Route::GetGuildSoundboardSounds { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/soundboard-sounds")
             }
         }
     }

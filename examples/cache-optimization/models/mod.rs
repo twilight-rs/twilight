@@ -13,6 +13,7 @@ pub mod member;
 pub mod message;
 pub mod presence;
 pub mod role;
+pub mod soundboard;
 pub mod stage_instance;
 pub mod sticker;
 pub mod user;
@@ -32,6 +33,7 @@ impl CacheableModels for CustomCacheModels {
     type Message = message::MinimalCachedMessage;
     type Presence = presence::MinimalCachedPresence;
     type Role = role::MinimalCachedRole;
+    type SoundboardSound = soundboard::MinimalCachedSoundboardSound;
     type StageInstance = stage_instance::MinimalCachedStageInstance;
     type Sticker = sticker::MinimalCachedSticker;
     type User = user::MinimalCachedUser;

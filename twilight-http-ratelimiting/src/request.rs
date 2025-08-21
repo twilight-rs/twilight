@@ -160,6 +160,8 @@ pub enum Path {
     ChannelsIdPolls(u64),
     /// Operating on a group DM's recipients.
     ChannelsIdRecipients(u64),
+    /// Operating on a channel's sending soundboard sound.
+    ChannelsIdSendSoundboardSound(u64),
     /// Operating on a thread's members.
     ChannelsIdThreadMembers(u64),
     /// Operating on a thread's member.
@@ -238,6 +240,10 @@ pub enum Path {
     GuildsIdScheduledEventsId(u64),
     /// Operating on a particular guild's scheduled event users.
     GuildsIdScheduledEventsIdUsers(u64),
+    /// Operating on a guild's soundboard sounds
+    GuildsIdSoundboardSounds(u64),
+    /// Operating on a guild's particular soundboard sounds
+    GuildsIdSoundboardSoundsId(u64),
     /// Operating on one of the user's guilds' stickers.
     GuildsIdStickers(u64),
     /// Operating on one of the user's guilds' templates.
@@ -270,6 +276,8 @@ pub enum Path {
     OauthApplicationsMe,
     /// Operating on the current authorization's information.
     OauthMe,
+    /// Operating on soundboard default sounds.
+    SoundboardDefaultSounds,
     /// Operating on stage instances.
     StageInstances,
     /// Operating on sticker packs.
@@ -391,6 +399,9 @@ impl FromStr for Path {
             ["channels", id, "recipients"] | ["channels", id, "recipients", _] => {
                 ChannelsIdRecipients(parse_id(id)?)
             }
+            ["channels", id, "send-soundboard-sound"] => {
+                ChannelsIdSendSoundboardSound(parse_id(id)?)
+            }
             ["channels", id, "thread-members"] => ChannelsIdThreadMembers(parse_id(id)?),
             ["channels", id, "thread-members", _] => ChannelsIdThreadMembersId(parse_id(id)?),
             ["channels", id, "threads"] => ChannelsIdThreads(parse_id(id)?),
@@ -435,6 +446,8 @@ impl FromStr for Path {
             ["guilds", id, "scheduled-events", _, "users"] => {
                 GuildsIdScheduledEventsIdUsers(parse_id(id)?)
             }
+            ["guilds", id, "soundboard-sounds"] => GuildsIdSoundboardSounds(parse_id(id)?),
+            ["guilds", id, "soundboard-sounds", _] => GuildsIdSoundboardSoundsId(parse_id(id)?),
             ["guilds", id, "stickers"] | ["guilds", id, "stickers", _] => {
                 GuildsIdStickers(parse_id(id)?)
             }
@@ -451,6 +464,7 @@ impl FromStr for Path {
             ["guilds", id, "widget.json"] => GuildsIdWidgetJson(parse_id(id)?),
             ["invites", _] => InvitesCode,
             ["interactions", id, _, "callback"] => InteractionCallback(parse_id(id)?),
+            ["soundboard-default-sounds"] => SoundboardDefaultSounds,
             ["stage-instances", _] => StageInstances,
             ["sticker-packs"] => StickerPacks,
             ["stickers", _] => Stickers,
