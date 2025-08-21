@@ -566,7 +566,7 @@ pub enum ComponentValidationErrorType {
         chars: usize,
     },
     /// V2 components used in a V1 component.
-    DisallowedV2,
+    DisallowedV2Components,
     /// Disallowed children components are found in a root component.
     DisallowedChildren,
     /// Content of text display component is too long.
