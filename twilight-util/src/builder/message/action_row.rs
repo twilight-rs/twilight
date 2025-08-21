@@ -21,7 +21,7 @@ impl ActionRowBuilder {
         self
     }
 
-    /// The component's identifier.
+    /// Sets the component's identifier.
     pub fn id(mut self, id: i32) -> Self {
         self.0.id.replace(id);
 
