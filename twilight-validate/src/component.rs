@@ -645,7 +645,7 @@ pub fn component_v1(component: &Component) -> Result<(), ComponentValidationErro
 /// component.
 ///
 /// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
-#[deprecated(note = "Use component_v1 for old components and component_v2 for new")]
+#[deprecated(note = "Use component_v1 for old components and component_v2 for new ones")]
 pub fn component(component: &Component) -> Result<(), ComponentValidationError> {
     component_v1(component)
 }
