@@ -182,7 +182,12 @@ impl<'a> ExecuteWebhook<'a> {
     /// may be returned as a result of validating each provided component.
     pub fn components(mut self, components: &'a [Component]) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
-            validate_components(components)?;
+            validate_components(
+                components,
+                fields
+                    .flags
+                    .is_some_and(|flags| flags.contains(MessageFlags::IS_COMPONENTS_V2)),
+            )?;
             fields.components = Some(components);
 
             Ok(fields)
@@ -245,9 +250,12 @@ impl<'a> ExecuteWebhook<'a> {
 
     /// Set the message's flags.
     ///
-    /// The only supported flag is [`SUPPRESS_EMBEDS`].
+    /// The only supported flags are [`SUPPRESS_EMBEDS`], [`SUPPRESS_NOTIFICATIONS`] and
+    /// [`IS_COMPONENTS_V2`]
     ///
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
+    /// [`SUPPRESS_NOTIFICATIONS`]: MessageFlags::SUPPRESS_NOTIFICATIONS
+    /// [`IS_COMPONENTS_V2`]: MessageFlags::IS_COMPONENTS_V2
     pub fn flags(mut self, flags: MessageFlags) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.flags = Some(flags);
@@ -404,6 +412,11 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
             thread_id: self.thread_id.map(Id::get),
             token: self.token,
             wait: Some(self.wait),
+            with_components: Some(
+                fields
+                    .components
+                    .is_some_and(|components| !components.is_empty()),
+            ),
             webhook_id: self.webhook_id.get(),
         });
 

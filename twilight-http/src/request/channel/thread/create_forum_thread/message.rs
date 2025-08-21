@@ -100,7 +100,14 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// may be returned as a result of validating each provided component.
     pub fn components(mut self, components: &'a [Component]) -> Self {
         self.0 = self.0.and_then(|mut inner| {
-            validate_components(components)?;
+            validate_components(
+                components,
+                inner
+                    .fields
+                    .message
+                    .flags
+                    .is_some_and(|f| f.contains(MessageFlags::IS_COMPONENTS_V2)),
+            )?;
             inner.fields.message.components = Some(components);
 
             Ok(inner)

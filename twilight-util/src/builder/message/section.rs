@@ -1,0 +1,76 @@
+use twilight_model::channel::message::{component::Section, Component};
+
+/// Create a section with a builder.
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[must_use = "must be built into section"]
+pub struct SectionBuilder(Section);
+
+impl SectionBuilder {
+    /// Create a new section builder.
+    pub fn new(accessory: impl Into<Component>) -> Self {
+        Self(Section {
+            components: Vec::new(),
+            id: None,
+            accessory: Box::new(accessory.into()),
+        })
+    }
+
+    /// Add a component to this section.
+    pub fn component(mut self, component: impl Into<Component>) -> Self {
+        self.0.components.push(component.into());
+
+        self
+    }
+
+    /// Set the identifier of this section.
+    pub fn id(mut self, id: i32) -> Self {
+        self.0.id.replace(id);
+
+        self
+    }
+
+    /// Set the accessory of this section.
+    pub fn accessory(mut self, accessory: impl Into<Component>) -> Self {
+        self.0.accessory = Box::new(accessory.into());
+
+        self
+    }
+
+    /// Build into a section.
+    pub fn build(self) -> Section {
+        self.0
+    }
+}
+
+impl From<SectionBuilder> for Section {
+    fn from(builder: SectionBuilder) -> Self {
+        builder.build()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::builder::message::ActionRowBuilder;
+
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(SectionBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(Section: From<SectionBuilder>);
+
+    #[test]
+    fn builder() {
+        let action_row = ActionRowBuilder::new().build();
+
+        let expected = Section {
+            components: Vec::new(),
+            id: None,
+            accessory: Box::new(action_row.clone().into()),
+        };
+
+        let actual = SectionBuilder::new(action_row).build();
+
+        assert_eq!(actual, expected);
+    }
+}
