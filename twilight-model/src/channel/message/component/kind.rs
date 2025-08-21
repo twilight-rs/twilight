@@ -52,7 +52,7 @@ pub enum ComponentType {
     ///
     /// [`Thumbnail`]: super::Thumbnail
     Thumbnail,
-    /// Component is a [`MediaGallery`] that display images and other media.
+    /// Component is a [`MediaGallery`] that displays images and other media.
     ///
     /// [`MediaGallery`]: super::MediaGallery
     MediaGallery,
