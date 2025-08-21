@@ -811,7 +811,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// Get emojis for the application `100`:
+    /// Get entitlements for the application `100`:
     ///
     /// ```no_run
     /// # use twilight_http::Client;
