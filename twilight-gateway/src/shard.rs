@@ -29,6 +29,7 @@ use futures_sink::Sink;
 use serde::{de::DeserializeOwned, Deserialize};
 use std::{
     env::consts::OS,
+    error::Error,
     fmt,
     future::Future,
     io,
@@ -39,7 +40,7 @@ use std::{
 use tokio::{
     net::TcpStream,
     sync::oneshot,
-    time::{self, Duration, Instant, Interval, MissedTickBehavior},
+    time::{self, error::Elapsed, timeout, Duration, Instant, Interval, MissedTickBehavior},
 };
 use tokio_websockets::{ClientBuilder, Error as WebsocketError, Limits, MaybeTlsStream};
 use twilight_model::gateway::{
@@ -69,8 +70,38 @@ const COMPRESSION_FEATURES: &str = if cfg!(feature = "zstd") {
 /// [`tokio_websockets`] library Websocket connection.
 type Connection = tokio_websockets::WebSocketStream<MaybeTlsStream<TcpStream>>;
 
+/// Wrapper enum around [`WebsocketError`] with a timeout case.
+enum ConnectionError {
+    /// Error from the websocket library, [`tokio_websockets`].
+    Websocket(WebsocketError),
+    /// Connection attempt timed out.
+    Timeout(Elapsed),
+}
+
+impl ConnectionError {
+    /// Returns the boxed wrapped error.
+    fn into_boxed_error(self) -> Box<dyn Error + Send + Sync> {
+        match self {
+            Self::Websocket(e) => Box::new(e),
+            Self::Timeout(e) => Box::new(e),
+        }
+    }
+}
+
+impl From<WebsocketError> for ConnectionError {
+    fn from(value: WebsocketError) -> Self {
+        Self::Websocket(value)
+    }
+}
+
+impl From<Elapsed> for ConnectionError {
+    fn from(value: Elapsed) -> Self {
+        Self::Timeout(value)
+    }
+}
+
 /// Wrapper struct around an `async fn` with a `Debug` implementation.
-struct ConnectionFuture(Pin<Box<dyn Future<Output = Result<Connection, WebsocketError>> + Send>>);
+struct ConnectionFuture(Pin<Box<dyn Future<Output = Result<Connection, ConnectionError>> + Send>>);
 
 impl fmt::Debug for ConnectionFuture {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -858,14 +889,17 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                             let secs = 2u8.saturating_pow(reconnect_attempts.into());
                             time::sleep(Duration::from_secs(secs.into())).await;
 
-                            Ok(ClientBuilder::new()
-                                .uri(&uri)
-                                .expect("URL should be valid")
-                                .limits(Limits::unlimited())
-                                .connector(&tls)
-                                .connect()
-                                .await?
-                                .0)
+                            Ok(timeout(
+                                Duration::from_secs(10),
+                                ClientBuilder::new()
+                                    .uri(&uri)
+                                    .expect("URL should be valid")
+                                    .limits(Limits::unlimited())
+                                    .connector(&tls)
+                                    .connect(),
+                            )
+                            .await??
+                            .0)
                         })));
                     }
 
@@ -893,7 +927,7 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
 
                             return Poll::Ready(Some(Err(ReceiveMessageError {
                                 kind: ReceiveMessageErrorType::Reconnect,
-                                source: Some(Box::new(source)),
+                                source: Some(source.into_boxed_error()),
                             })));
                         }
                     }
