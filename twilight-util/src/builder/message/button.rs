@@ -24,7 +24,7 @@ impl ButtonBuilder {
         })
     }
 
-    /// The custom identifier of the button.
+    /// Sets the custom identifier of the button.
     pub fn custom_id(mut self, custom_id: impl Into<String>) -> Self {
         self.0.custom_id.replace(custom_id.into());
 
