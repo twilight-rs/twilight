@@ -33,8 +33,8 @@ twilight-model = { default-features = false, path = "../twilight-model", version
 twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.16.0" }
 
 # Optional dependencies.
-brotli-decompressor = { default-features = false, features = ["std"], optional = true, version = "4" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.14.0-rc.3" }
+brotli-decompressor = { default-features = false, features = ["std"], optional = true, version = "5" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.15.0" }
 
 [features]
 default = ["decompression", "rustls-platform-verifier", "rustls-ring"]
