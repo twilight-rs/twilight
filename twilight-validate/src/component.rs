@@ -565,7 +565,7 @@ pub enum ComponentValidationErrorType {
         /// Provided number of codepoints.
         chars: usize,
     },
-    /// V2 Components used in a V1 component.
+    /// V2 components used in a V1 component.
     DisallowedV2,
     /// Disallowed children components are found in a root component.
     DisallowedChildren,
