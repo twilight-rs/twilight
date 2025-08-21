@@ -998,6 +998,11 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to set voice channel status.
+    SetVoiceChannelStatus {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
     /// Route information to sync a guild's integration.
     SyncGuildIntegration {
         /// The ID of the guild.
@@ -1408,6 +1413,7 @@ impl Route<'_> {
             | Self::PinMessage { .. }
             | Self::SetGlobalCommands { .. }
             | Self::SetGuildCommands { .. }
+            | Self::SetVoiceChannelStatus { .. }
             | Self::SyncTemplate { .. }
             | Self::UpdateCommandPermissions { .. }
             | Self::UpdateGuildOnboarding { .. }
@@ -1744,6 +1750,7 @@ impl Route<'_> {
             Self::EndPoll { channel_id, .. } | Self::GetAnswerVoters { channel_id, .. } => {
                 Path::ChannelsIdPolls(channel_id)
             }
+            Self::SetVoiceChannelStatus { channel_id } => Path::ChannelsIdVoiceStatus(channel_id),
         }
     }
 }
@@ -2067,6 +2074,12 @@ impl Display for Route<'_> {
                 Display::fmt(channel_id, f)?;
 
                 f.write_str("/typing")
+            }
+            Route::SetVoiceChannelStatus { channel_id } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+
+                f.write_str("/voice-status")
             }
             Route::CreateWebhook { channel_id } | Route::GetChannelWebhooks { channel_id } => {
                 f.write_str("channels/")?;
@@ -4875,5 +4888,16 @@ mod tests {
     fn get_skus() {
         let route = Route::GetSKUs { application_id: 1 };
         assert_eq!(route.to_string(), format!("applications/1/skus"));
+    }
+
+    #[test]
+    fn set_voice_channel_status() {
+        let route = Route::SetVoiceChannelStatus {
+            channel_id: CHANNEL_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("channels/{CHANNEL_ID}/voice-status")
+        );
     }
 }

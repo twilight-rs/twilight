@@ -4,6 +4,7 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
+use crate::request::channel::SetVoiceChannelStatus;
 use crate::request::{
     application::{
         emoji::{
@@ -2880,6 +2881,14 @@ impl Client {
         emoji_id: Id<EmojiMarker>,
     ) -> DeleteApplicationEmoji<'_> {
         DeleteApplicationEmoji::new(self, application_id, emoji_id)
+    }
+
+    /// Sets the status of a voice channel.
+    pub const fn set_voice_channel_status(
+        &self,
+        channel_id: Id<ChannelMarker>,
+    ) -> SetVoiceChannelStatus<'_> {
+        SetVoiceChannelStatus::new(self, channel_id)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].
