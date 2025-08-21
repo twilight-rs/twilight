@@ -323,6 +323,7 @@ mod tests {
             message: None,
             token: "token".into(),
             user: None,
+            attachment_size_limit: 0,
         }));
 
         {
