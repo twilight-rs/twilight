@@ -1,9 +1,9 @@
 use super::Token;
-use crate::{client::connector, Client};
+use crate::{Client, client::connector};
 use http::header::HeaderMap;
 use hyper_util::rt::TokioExecutor;
 use std::{
-    sync::{atomic::AtomicBool, Arc},
+    sync::{Arc, atomic::AtomicBool},
     time::Duration,
 };
 use twilight_http_ratelimiting::RateLimiter;

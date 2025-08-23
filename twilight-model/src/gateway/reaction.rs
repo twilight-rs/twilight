@@ -2,8 +2,8 @@ use crate::{
     channel::message::EmojiReactionType,
     guild::Member,
     id::{
-        marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
     },
     util::HexColor,
 };

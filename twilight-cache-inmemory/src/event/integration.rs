@@ -1,10 +1,10 @@
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use twilight_model::{
     gateway::payload::incoming::{IntegrationCreate, IntegrationDelete, IntegrationUpdate},
     guild::GuildIntegration,
     id::{
-        marker::{GuildMarker, IntegrationMarker},
         Id,
+        marker::{GuildMarker, IntegrationMarker},
     },
 };
 
@@ -28,10 +28,9 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
             .integrations
             .remove(&(guild_id, integration_id))
             .is_some()
+            && let Some(mut integrations) = self.guild_integrations.get_mut(&guild_id)
         {
-            if let Some(mut integrations) = self.guild_integrations.get_mut(&guild_id) {
-                integrations.remove(&integration_id);
-            }
+            integrations.remove(&integration_id);
         }
     }
 }

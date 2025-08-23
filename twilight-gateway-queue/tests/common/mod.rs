@@ -1,5 +1,5 @@
-use tokio::time::{advance, Duration, Instant};
-use twilight_gateway_queue::{Queue, IDENTIFY_DELAY, LIMIT_PERIOD};
+use tokio::time::{Duration, Instant, advance};
+use twilight_gateway_queue::{IDENTIFY_DELAY, LIMIT_PERIOD, Queue};
 
 pub async fn same_id_is_serial(queue: impl Queue) {
     let now = Instant::now();

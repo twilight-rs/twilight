@@ -17,7 +17,7 @@ impl ThumbnailBuilder {
     }
 
     /// Set the identifier of this thumbnail.
-    pub fn id(mut self, id: i32) -> Self {
+    pub const fn id(mut self, id: i32) -> Self {
         self.0.id.replace(id);
 
         self

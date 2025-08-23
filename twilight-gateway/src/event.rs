@@ -1,7 +1,7 @@
 //! Optimization for skipping deserialization of unwanted events.
 
 use bitflags::bitflags;
-use twilight_model::gateway::{event::EventType, OpCode};
+use twilight_model::gateway::{OpCode, event::EventType};
 
 bitflags! {
     /// Important optimization for narrowing requested event types.

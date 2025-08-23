@@ -2,19 +2,19 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     guild::Ban,
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 use twilight_validate::request::{
-    get_guild_bans_limit as validate_get_guild_bans_limit, ValidationError,
+    ValidationError, get_guild_bans_limit as validate_get_guild_bans_limit,
 };
 
 struct GetBansFields {
@@ -75,7 +75,7 @@ impl<'a> GetBans<'a> {
     /// is respected.
     ///
     /// [`before`]: Self::before
-    pub fn after(mut self, user_id: Id<UserMarker>) -> Self {
+    pub const fn after(mut self, user_id: Id<UserMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.after = Some(user_id);
         }
@@ -90,7 +90,7 @@ impl<'a> GetBans<'a> {
     ///
     /// [`after`]: Self::after
     /// [`before`]: Self::before
-    pub fn before(mut self, user_id: Id<UserMarker>) -> Self {
+    pub const fn before(mut self, user_id: Id<UserMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.before = Some(user_id);
         }

@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u8", into = "u8")]
+#[derive(Default)]
 pub enum WebhookType {
+    #[default]
     Incoming,
     ChannelFollower,
     /// Webhooks used with interactions.
@@ -30,12 +32,6 @@ impl From<WebhookType> for u8 {
             WebhookType::Application => 3,
             WebhookType::Unknown(unknown) => unknown,
         }
-    }
-}
-
-impl Default for WebhookType {
-    fn default() -> Self {
-        Self::Incoming
     }
 }
 

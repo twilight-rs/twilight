@@ -10,13 +10,13 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::invite::{Invite, TargetType},
     id::{
-        marker::{ApplicationMarker, ChannelMarker, UserMarker},
         Id,
+        marker::{ApplicationMarker, ChannelMarker, UserMarker},
     },
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason, invite_max_age as validate_invite_max_age,
-    invite_max_uses as validate_invite_max_uses, ValidationError,
+    ValidationError, audit_reason as validate_audit_reason,
+    invite_max_age as validate_invite_max_age, invite_max_uses as validate_invite_max_uses,
 };
 
 #[derive(Serialize)]
@@ -176,7 +176,10 @@ impl<'a> CreateInvite<'a> {
     /// This only works if [`target_type`] is set to [`TargetType::EmbeddedApplication`].
     ///
     /// [`target_type`]: Self::target_type
-    pub fn target_application_id(mut self, target_application_id: Id<ApplicationMarker>) -> Self {
+    pub const fn target_application_id(
+        mut self,
+        target_application_id: Id<ApplicationMarker>,
+    ) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.target_application_id = Some(target_application_id);
         }
@@ -185,7 +188,7 @@ impl<'a> CreateInvite<'a> {
     }
 
     /// Set the target user id for this invite.
-    pub fn target_user_id(mut self, target_user_id: Id<UserMarker>) -> Self {
+    pub const fn target_user_id(mut self, target_user_id: Id<UserMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.target_user_id = Some(target_user_id);
         }
@@ -194,7 +197,7 @@ impl<'a> CreateInvite<'a> {
     }
 
     /// Set the target type for this invite.
-    pub fn target_type(mut self, target_type: TargetType) -> Self {
+    pub const fn target_type(mut self, target_type: TargetType) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.target_type = Some(target_type);
         }
@@ -205,7 +208,7 @@ impl<'a> CreateInvite<'a> {
     /// Specify true if the invite should grant temporary membership.
     ///
     /// Defaults to false.
-    pub fn temporary(mut self, temporary: bool) -> Self {
+    pub const fn temporary(mut self, temporary: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.temporary = Some(temporary);
         }
@@ -219,7 +222,7 @@ impl<'a> CreateInvite<'a> {
     /// unique one time use invites). See [Discord Docs/Create Channel Invite].
     ///
     /// [Discord Docs/Create Channel Invite]: https://discord.com/developers/docs/resources/channel#create-channel-invite
-    pub fn unique(mut self, unique: bool) -> Self {
+    pub const fn unique(mut self, unique: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.unique = Some(unique);
         }

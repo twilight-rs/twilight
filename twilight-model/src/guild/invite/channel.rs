@@ -1,6 +1,6 @@
 use crate::{
     channel::ChannelType,
-    id::{marker::ChannelMarker, Id},
+    id::{Id, marker::ChannelMarker},
 };
 use serde::{Deserialize, Serialize};
 

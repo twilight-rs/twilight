@@ -55,9 +55,9 @@ pub mod null_boolean {
 pub mod zeroable_id {
     use crate::id::Id;
     use serde::{
+        Deserialize,
         de::{Deserializer, Error as DeError, Visitor},
         ser::Serializer,
-        Deserialize,
     };
     use std::{
         fmt::{Formatter, Result as FmtResult},

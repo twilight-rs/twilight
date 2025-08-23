@@ -1,9 +1,9 @@
 use twilight_model::channel::{
-    message::{
-        component::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
-        EmojiReactionType,
-    },
     ChannelType,
+    message::{
+        EmojiReactionType,
+        component::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
+    },
 };
 
 /// Create a select menu option with a builder
@@ -86,14 +86,14 @@ impl SelectMenuBuilder {
     }
 
     /// Set the max values of this select menu.
-    pub fn max_values(mut self, max_values: u8) -> Self {
+    pub const fn max_values(mut self, max_values: u8) -> Self {
         self.0.max_values.replace(max_values);
 
         self
     }
 
     /// Set the min values of this select menu.
-    pub fn min_values(mut self, min_values: u8) -> Self {
+    pub const fn min_values(mut self, min_values: u8) -> Self {
         self.0.min_values.replace(min_values);
 
         self

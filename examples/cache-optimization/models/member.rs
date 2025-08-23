@@ -1,11 +1,11 @@
-use twilight_cache_inmemory::{model::ComputedInteractionMember, CacheableMember};
+use twilight_cache_inmemory::{CacheableMember, model::ComputedInteractionMember};
 use twilight_model::{
     application::interaction::InteractionMember,
     gateway::payload::incoming::MemberUpdate,
     guild::{Member, PartialMember},
     id::{
-        marker::{RoleMarker, UserMarker},
         Id,
+        marker::{RoleMarker, UserMarker},
     },
     util::{ImageHash, Timestamp},
 };

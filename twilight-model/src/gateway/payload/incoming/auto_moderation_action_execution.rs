@@ -1,8 +1,8 @@
 use crate::{
     guild::auto_moderation::{AutoModerationAction, AutoModerationTriggerType},
     id::{
-        marker::{AutoModerationRuleMarker, ChannelMarker, GuildMarker, MessageMarker, UserMarker},
         Id,
+        marker::{AutoModerationRuleMarker, ChannelMarker, GuildMarker, MessageMarker, UserMarker},
     },
 };
 use serde::{Deserialize, Serialize};
@@ -67,10 +67,10 @@ mod tests {
             AutoModerationAction, AutoModerationActionType, AutoModerationTriggerType,
         },
         id::{
+            Id,
             marker::{
                 AutoModerationRuleMarker, ChannelMarker, GuildMarker, MessageMarker, UserMarker,
             },
-            Id,
         },
     };
     use serde::{Deserialize, Serialize};

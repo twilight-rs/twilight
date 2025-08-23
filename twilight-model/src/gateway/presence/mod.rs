@@ -22,16 +22,16 @@ pub use self::{
 
 use crate::{
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
     user::User,
 };
 use serde::{
-    de::{
-        value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor,
-    },
     Deserialize, Serialize,
+    de::{
+        DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor, value::MapAccessDeserializer,
+    },
 };
 use std::fmt::{Formatter, Result as FmtResult};
 

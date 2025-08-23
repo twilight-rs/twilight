@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 use std::future::IntoFuture;
 use twilight_model::{
     id::{
-        marker::{ChannelMarker, MessageMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, MessageMarker, UserMarker},
     },
     user::User,
 };
@@ -56,7 +56,7 @@ impl<'a> GetAnswerVoters<'a> {
     }
 
     /// Set the user ID to get voters after.
-    pub fn after(mut self, after: Id<UserMarker>) -> Self {
+    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
         self.fields.after.replace(after);
 
         self
@@ -65,7 +65,7 @@ impl<'a> GetAnswerVoters<'a> {
     /// Set the limit of voters to get.
     ///
     /// The minimum is 1 and the maximum is 100.
-    pub fn limit(mut self, limit: u8) -> Self {
+    pub const fn limit(mut self, limit: u8) -> Self {
         self.fields.limit.replace(limit);
 
         self

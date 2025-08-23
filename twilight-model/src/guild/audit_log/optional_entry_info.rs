@@ -1,8 +1,8 @@
 use crate::{
     guild::GuildIntegrationType,
     id::{
-        marker::{ChannelMarker, GenericMarker, MessageMarker},
         Id,
+        marker::{ChannelMarker, GenericMarker, MessageMarker},
     },
 };
 use serde::{Deserialize, Serialize};

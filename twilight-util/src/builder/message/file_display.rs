@@ -16,7 +16,7 @@ impl FileDisplayBuilder {
     }
 
     /// Set the identifier of this file display.
-    pub fn id(mut self, id: i32) -> Self {
+    pub const fn id(mut self, id: i32) -> Self {
         self.0.id.replace(id);
 
         self
@@ -30,7 +30,7 @@ impl FileDisplayBuilder {
     }
 
     /// Specify whether this file display is spoilered.
-    pub fn spoiler(mut self, spoiler: bool) -> Self {
+    pub const fn spoiler(mut self, spoiler: bool) -> Self {
         self.0.spoiler.replace(spoiler);
 
         self

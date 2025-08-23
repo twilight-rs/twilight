@@ -6,8 +6,8 @@ mod prompt;
 mod prompt_type;
 
 use crate::id::{
-    marker::{ChannelMarker, GuildMarker},
     Id,
+    marker::{ChannelMarker, GuildMarker},
 };
 use serde::{Deserialize, Serialize};
 

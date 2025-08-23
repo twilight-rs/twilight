@@ -2,7 +2,7 @@
 
 use crate::{
     guild::Permissions,
-    id::{marker::GenericMarker, Id},
+    id::{Id, marker::GenericMarker},
 };
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};

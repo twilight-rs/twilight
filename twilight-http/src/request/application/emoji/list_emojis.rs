@@ -1,14 +1,14 @@
 use std::future::IntoFuture;
 
 use crate::{
+    Client, Error, Response,
     request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
-    Client, Error, Response,
 };
 use twilight_model::{
     application::EmojiList,
-    id::{marker::ApplicationMarker, Id},
+    id::{Id, marker::ApplicationMarker},
 };
 
 #[must_use = "requests must be configured and executed"]

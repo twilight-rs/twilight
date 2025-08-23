@@ -2,11 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use std::future::IntoFuture;
-use twilight_model::id::{marker::ApplicationMarker, Id};
+use twilight_model::id::{Id, marker::ApplicationMarker};
 
 /// Delete a followup message to an interaction, by its token and message ID.
 ///
@@ -18,7 +18,7 @@ use twilight_model::id::{marker::ApplicationMarker, Id};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
-/// use twilight_http::{request::AuditLogReason, Client};
+/// use twilight_http::{Client, request::AuditLogReason};
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);

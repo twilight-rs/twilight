@@ -1,4 +1,4 @@
-use twilight_model::channel::message::{component::ActionRow, Component};
+use twilight_model::channel::message::{Component, component::ActionRow};
 
 /// Create an action row from a builder.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -22,7 +22,7 @@ impl ActionRowBuilder {
     }
 
     /// Sets the component's identifier.
-    pub fn id(mut self, id: i32) -> Self {
+    pub const fn id(mut self, id: i32) -> Self {
         self.0.id.replace(id);
 
         self

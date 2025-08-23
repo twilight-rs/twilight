@@ -1,8 +1,8 @@
 use crate::{
     gateway::opcode::OpCode,
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 use serde::{Deserialize, Serialize};
@@ -122,7 +122,7 @@ impl RequestGuildMembersBuilder {
     ///
     /// By default, this uses Discord's default.
     #[must_use = "has no effect if not built into a RequestGuildMembers"]
-    pub fn presences(mut self, presences: bool) -> Self {
+    pub const fn presences(mut self, presences: bool) -> Self {
         self.presences.replace(presences);
 
         self

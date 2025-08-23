@@ -7,13 +7,13 @@ pub use serde_json::to_string;
 pub use simd_json::to_string;
 
 use crate::{
-    error::{ReceiveMessageError, ReceiveMessageErrorType},
     EventTypeFlags,
+    error::{ReceiveMessageError, ReceiveMessageErrorType},
 };
 use serde::de::DeserializeSeed;
 use twilight_model::gateway::{
-    event::{GatewayEvent, GatewayEventDeserializer},
     OpCode,
+    event::{GatewayEvent, GatewayEventDeserializer},
 };
 
 /// Parse a JSON encoded gateway event into a `GatewayEvent` if
@@ -59,7 +59,7 @@ pub fn parse(
                         event: String::from_utf8_lossy(&bytes).into_owned(),
                     },
                     source: Some(Box::new(source)),
-                })
+                });
             }
         };
 

@@ -1,7 +1,7 @@
 use twilight_cache_inmemory::CacheableGuildIntegration;
 use twilight_model::{
     guild::GuildIntegration,
-    id::{marker::IntegrationMarker, Id},
+    id::{Id, marker::IntegrationMarker},
 };
 
 #[derive(Clone, Debug, PartialEq)]

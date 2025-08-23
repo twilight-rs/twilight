@@ -1,8 +1,8 @@
 use crate::{
     guild::Member,
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
     util::Timestamp,
 };

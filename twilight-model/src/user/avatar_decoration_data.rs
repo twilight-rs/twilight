@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    id::{marker::AvatarDecorationDataSkuMarker, Id},
+    id::{Id, marker::AvatarDecorationDataSkuMarker},
     util::ImageHash,
 };
 

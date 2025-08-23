@@ -1,8 +1,8 @@
 use super::DeleteChannelPermissionConfigured;
 use crate::client::Client;
 use twilight_model::id::{
-    marker::{ChannelMarker, RoleMarker, UserMarker},
     Id,
+    marker::{ChannelMarker, RoleMarker, UserMarker},
 };
 
 /// Clear the permissions for a target ID in a channel.
