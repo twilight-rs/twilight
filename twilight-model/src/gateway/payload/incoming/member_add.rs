@@ -1,6 +1,6 @@
 use crate::{
     guild::Member,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
@@ -31,7 +31,7 @@ mod tests {
     use super::{Member, MemberAdd};
     use crate::{
         guild::MemberFlags,
-        id::{marker::GuildMarker, Id},
+        id::{Id, marker::GuildMarker},
         user::User,
         util::Timestamp,
     };

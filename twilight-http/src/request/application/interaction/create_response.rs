@@ -2,16 +2,16 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        application::interaction::CreateResponseWithResponse, attachment::AttachmentManager,
-        Request, TryIntoRequest,
+        Request, TryIntoRequest, application::interaction::CreateResponseWithResponse,
+        attachment::AttachmentManager,
     },
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     http::interaction::InteractionResponse,
-    id::{marker::InteractionMarker, Id},
+    id::{Id, marker::InteractionMarker},
 };
 
 /// Respond to an interaction, by its ID and token.

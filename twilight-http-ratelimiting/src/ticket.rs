@@ -64,7 +64,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::sync::oneshot::{self, error::RecvError, Receiver, Sender};
+use tokio::sync::oneshot::{self, Receiver, Sender, error::RecvError};
 
 /// Receiver to wait for the headers sent by the API consumer.
 ///

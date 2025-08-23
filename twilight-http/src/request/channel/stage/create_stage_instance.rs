@@ -8,13 +8,13 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::{stage_instance::PrivacyLevel, StageInstance},
+    channel::{StageInstance, stage_instance::PrivacyLevel},
     id::{
-        marker::{ChannelMarker, ScheduledEventMarker},
         Id,
+        marker::{ChannelMarker, ScheduledEventMarker},
     },
 };
-use twilight_validate::request::{stage_topic as validate_stage_topic, ValidationError};
+use twilight_validate::request::{ValidationError, stage_topic as validate_stage_topic};
 
 #[derive(Serialize)]
 struct CreateStageInstanceFields<'a> {

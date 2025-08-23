@@ -2,8 +2,8 @@ use twilight_cache_inmemory::traits::CacheableGuildScheduledEvent;
 use twilight_model::{
     guild::scheduled_event::GuildScheduledEvent,
     id::{
-        marker::{GuildMarker, ScheduledEventMarker},
         Id,
+        marker::{GuildMarker, ScheduledEventMarker},
     },
 };
 

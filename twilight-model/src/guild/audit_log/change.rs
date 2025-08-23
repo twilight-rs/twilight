@@ -10,10 +10,10 @@ use crate::{
         VerificationLevel,
     },
     id::{
+        Id,
         marker::{
             ApplicationMarker, ChannelMarker, GenericMarker, GuildMarker, RoleMarker, UserMarker,
         },
-        Id,
     },
     util::{ImageHash, Timestamp},
 };

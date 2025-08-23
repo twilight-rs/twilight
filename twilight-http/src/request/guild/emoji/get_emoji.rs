@@ -9,8 +9,8 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::Emoji,
     id::{
-        marker::{EmojiMarker, GuildMarker},
         Id,
+        marker::{EmojiMarker, GuildMarker},
     },
 };
 

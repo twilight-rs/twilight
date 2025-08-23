@@ -10,11 +10,11 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::PartialMember,
     id::{
-        marker::{GuildMarker, RoleMarker, UserMarker},
         Id,
+        marker::{GuildMarker, RoleMarker, UserMarker},
     },
 };
-use twilight_validate::request::{nickname as validate_nickname, ValidationError};
+use twilight_validate::request::{ValidationError, nickname as validate_nickname};
 
 #[derive(Serialize)]
 struct AddGuildMemberFields<'a> {

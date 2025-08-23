@@ -8,15 +8,15 @@ use crate::{headers::RatelimitHeaders, request::Path, ticket::TicketNotifier};
 use std::{
     collections::HashMap,
     sync::{
-        atomic::{AtomicU64, Ordering},
         Arc, Mutex,
+        atomic::{AtomicU64, Ordering},
     },
     time::{Duration, Instant},
 };
 use tokio::{
     sync::{
-        mpsc::{self, UnboundedReceiver, UnboundedSender},
         Mutex as AsyncMutex,
+        mpsc::{self, UnboundedReceiver, UnboundedSender},
     },
     time::{sleep, timeout},
 };

@@ -3,13 +3,13 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
-    marker::{ChannelMarker, MessageMarker, UserMarker},
     Id,
+    marker::{ChannelMarker, MessageMarker, UserMarker},
 };
 
 /// User to delete the reaction of.

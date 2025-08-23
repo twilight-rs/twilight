@@ -60,18 +60,18 @@ mod error;
 mod r#impl;
 mod iter;
 
-use crate::{timestamp::Timestamp, Mention};
+use crate::{Mention, timestamp::Timestamp};
 
 pub use self::{
     error::{ParseMentionError, ParseMentionErrorType},
-    iter::MentionIter,
     r#impl::ParseMention,
+    iter::MentionIter,
 };
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{
-    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
     Id,
+    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
 };
 
 /// Any type of mention.

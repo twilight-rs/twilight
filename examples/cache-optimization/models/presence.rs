@@ -2,8 +2,8 @@ use twilight_cache_inmemory::CacheablePresence;
 use twilight_model::{
     gateway::presence::Presence,
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 

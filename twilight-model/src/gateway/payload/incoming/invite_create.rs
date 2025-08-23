@@ -3,8 +3,8 @@
 use crate::{
     guild::invite::TargetType,
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
     user::{self, DiscriminatorDisplay, User},
     util::{ImageHash, Timestamp},

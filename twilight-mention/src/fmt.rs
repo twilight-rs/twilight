@@ -6,8 +6,8 @@ use twilight_model::{
     channel::Channel,
     guild::{Emoji, Member, Role},
     id::{
-        marker::{ChannelMarker, CommandMarker, EmojiMarker, RoleMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, CommandMarker, EmojiMarker, RoleMarker, UserMarker},
     },
     user::{CurrentUser, User},
 };
@@ -314,8 +314,8 @@ mod tests {
         channel::Channel,
         guild::{Emoji, Member, Role},
         id::{
-            marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
             Id,
+            marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
         },
         user::{CurrentUser, User},
     };

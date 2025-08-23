@@ -19,14 +19,16 @@ pub trait AuditLogReason<'a>: private::Sealed {
 mod private {
     use crate::request::{
         channel::{
+            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
+            UpdateChannelPermission,
             invite::{CreateInvite, DeleteInvite},
             message::{DeleteMessage, DeleteMessages},
             thread::UpdateThread,
             webhook::{CreateWebhook, DeleteWebhook, DeleteWebhookMessage, UpdateWebhook},
-            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
-            UpdateChannelPermission,
         },
         guild::{
+            CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild, UpdateGuildMfa,
+            UpdateGuildWidgetSettings,
             auto_moderation::{
                 CreateAutoModerationRule, DeleteAutoModerationRule, UpdateAutoModerationRule,
             },
@@ -37,8 +39,6 @@ mod private {
             role::{CreateRole, DeleteRole, UpdateRole, UpdateRolePositions},
             sticker::{CreateGuildSticker, UpdateGuildSticker},
             update_guild_onboarding::UpdateGuildOnboarding,
-            CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild, UpdateGuildMfa,
-            UpdateGuildWidgetSettings,
         },
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildScheduledEvent,
@@ -105,20 +105,20 @@ mod tests {
     use super::AuditLogReason;
     use crate::request::{
         channel::{
+            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
+            UpdateChannelPermission,
             invite::{CreateInvite, DeleteInvite},
             message::{DeleteMessage, DeleteMessages},
             webhook::{CreateWebhook, DeleteWebhook, UpdateWebhook},
-            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
-            UpdateChannelPermission,
         },
         guild::{
+            CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild,
             ban::{CreateBan, DeleteBan},
             emoji::{CreateEmoji, DeleteEmoji, UpdateEmoji},
             integration::DeleteGuildIntegration,
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
             role::{CreateRole, DeleteRole, UpdateRole, UpdateRolePositions},
             sticker::{CreateGuildSticker, UpdateGuildSticker},
-            CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild,
         },
         user::UpdateCurrentUser,
     };

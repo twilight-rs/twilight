@@ -1,20 +1,20 @@
 use super::{CreateForumThread, ForumThread};
 use crate::{
-    request::{attachment::PartialAttachment, Nullable, TryIntoRequest},
-    response::{Response, ResponseFuture},
     Error,
+    request::{Nullable, TryIntoRequest, attachment::PartialAttachment},
+    response::{Response, ResponseFuture},
 };
 use serde::Serialize;
 use std::{future::IntoFuture, mem};
 use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::attachment::Attachment,
-    id::{marker::StickerMarker, Id},
+    id::{Id, marker::StickerMarker},
 };
 use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
-    content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
-    MessageValidationError,
+    MessageValidationError, attachment_filename as validate_attachment_filename,
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    sticker_ids as validate_sticker_ids,
 };
 
 /// Contents of the first message in the new forum thread.

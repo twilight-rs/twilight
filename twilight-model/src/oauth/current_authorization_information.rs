@@ -35,14 +35,14 @@ pub struct CurrentAuthorizationInformation {
 mod tests {
     use crate::{
         id::Id,
-        oauth::{scope, Application},
+        oauth::{Application, scope},
         test::image_hash,
-        util::{datetime::TimestampParseError, Timestamp},
+        util::{Timestamp, datetime::TimestampParseError},
     };
 
     use super::CurrentAuthorizationInformation;
     use serde::{Deserialize, Serialize};
-    use serde_test::{assert_tokens, Token};
+    use serde_test::{Token, assert_tokens};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
 

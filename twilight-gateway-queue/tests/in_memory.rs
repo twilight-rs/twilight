@@ -2,7 +2,7 @@ mod common;
 
 use common::*;
 use tokio::time::{Duration, Instant};
-use twilight_gateway_queue::{InMemoryQueue, Queue, IDENTIFY_DELAY};
+use twilight_gateway_queue::{IDENTIFY_DELAY, InMemoryQueue, Queue};
 
 #[tokio::test]
 async fn disabled_is_instant() {

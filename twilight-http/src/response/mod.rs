@@ -54,8 +54,8 @@ pub use self::{future::ResponseFuture, status_code::StatusCode};
 
 use self::marker::ListBody;
 use http::{
-    header::{HeaderValue, Iter as HeaderMapIter},
     Response as HyperResponse,
+    header::{HeaderValue, Iter as HeaderMapIter},
 };
 use http_body_util::BodyExt;
 use hyper::body::{Bytes, Incoming};
@@ -610,9 +610,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::{
-        marker::{EmptyBody, ListBody},
         BytesFuture, DeserializeBodyError, DeserializeBodyErrorType, HeaderIter, ModelFuture,
         Response, TextFuture,
+        marker::{EmptyBody, ListBody},
     };
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, future::Future, iter::FusedIterator};

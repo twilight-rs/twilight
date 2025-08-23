@@ -1,4 +1,4 @@
-use crate::id::{marker::OnboardingPromptMarker, Id};
+use crate::id::{Id, marker::OnboardingPromptMarker};
 use serde::{Deserialize, Serialize};
 
 use super::{OnboardingPromptOption, OnboardingPromptType};

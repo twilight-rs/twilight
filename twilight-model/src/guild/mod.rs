@@ -63,18 +63,18 @@ pub use self::{
 
 use super::gateway::presence::PresenceListDeserializer;
 use crate::{
-    channel::{message::sticker::Sticker, Channel, StageInstance},
+    channel::{Channel, StageInstance, message::sticker::Sticker},
     gateway::presence::Presence,
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
     },
     util::{ImageHash, Timestamp},
     voice::VoiceState,
 };
 use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
 };
 use std::fmt::{Formatter, Result as FmtResult};
 

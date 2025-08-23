@@ -9,23 +9,22 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{
+        Channel, ChannelType, VideoQualityMode,
         forum::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag},
         permission_overwrite::PermissionOverwrite,
         thread::AutoArchiveDuration,
-        Channel, ChannelType, VideoQualityMode,
     },
     id::{
-        marker::{ChannelMarker, GuildMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker},
     },
 };
 use twilight_validate::{
     channel::{
-        bitrate as validate_bitrate, name as validate_name,
+        ChannelValidationError, bitrate as validate_bitrate, name as validate_name,
         rate_limit_per_user as validate_rate_limit_per_user, topic as validate_topic,
-        ChannelValidationError,
     },
-    request::{audit_reason as validate_audit_reason, ValidationError},
+    request::{ValidationError, audit_reason as validate_audit_reason},
 };
 
 #[derive(Serialize)]

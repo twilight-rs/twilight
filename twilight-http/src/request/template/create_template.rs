@@ -9,11 +9,11 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     guild::template::Template,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 use twilight_validate::request::{
-    template_description as validate_template_description, template_name as validate_template_name,
-    ValidationError,
+    ValidationError, template_description as validate_template_description,
+    template_name as validate_template_name,
 };
 
 #[derive(Serialize)]

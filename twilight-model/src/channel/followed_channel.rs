@@ -1,6 +1,6 @@
 use crate::id::{
-    marker::{ChannelMarker, WebhookMarker},
     Id,
+    marker::{ChannelMarker, WebhookMarker},
 };
 use serde::{Deserialize, Serialize};
 

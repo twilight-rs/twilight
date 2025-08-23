@@ -1,9 +1,9 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use std::fmt::{Display, Write};
 use twilight_mention::fmt::Mention;
 use twilight_model::id::{
-    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
     Id,
+    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
 };
 
 fn format_id<T: Display>(input: &mut String, formatter: &T) {

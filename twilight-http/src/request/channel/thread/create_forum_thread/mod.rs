@@ -6,16 +6,16 @@ use self::message::CreateForumThreadMessageFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{attachment::AttachmentManager, Nullable, Request},
+    request::{Nullable, Request, attachment::AttachmentManager},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::{Deserialize, Serialize};
 use twilight_model::{
-    channel::{thread::AutoArchiveDuration, Channel, Message},
+    channel::{Channel, Message, thread::AutoArchiveDuration},
     id::{
-        marker::{ChannelMarker, TagMarker},
         Id,
+        marker::{ChannelMarker, TagMarker},
     },
 };
 

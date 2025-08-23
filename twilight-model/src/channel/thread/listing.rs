@@ -1,4 +1,4 @@
-use crate::channel::{thread::ThreadMember, Channel};
+use crate::channel::{Channel, thread::ThreadMember};
 use serde::{Deserialize, Serialize};
 
 /// Response body returned in thread listing methods.

@@ -8,11 +8,11 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::{thread::AutoArchiveDuration, Channel, ChannelType},
-    id::{marker::ChannelMarker, Id},
+    channel::{Channel, ChannelType, thread::AutoArchiveDuration},
+    id::{Id, marker::ChannelMarker},
 };
 use twilight_validate::channel::{
-    is_thread as validate_is_thread, name as validate_name, ChannelValidationError,
+    ChannelValidationError, is_thread as validate_is_thread, name as validate_name,
 };
 
 #[derive(Serialize)]

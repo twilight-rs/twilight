@@ -184,8 +184,8 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         channel::message::{
-            component::{Button, ButtonStyle},
             MentionType,
+            component::{Button, ButtonStyle},
         },
         poll::{PollLayoutType, PollMedia},
         util::Timestamp,

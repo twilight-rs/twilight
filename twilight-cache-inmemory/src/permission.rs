@@ -37,8 +37,8 @@
 
 use super::InMemoryCache;
 use crate::{
-    traits::{CacheableChannel, CacheableGuild, CacheableMember, CacheableRole},
     CacheableModels,
+    traits::{CacheableChannel, CacheableGuild, CacheableMember, CacheableRole},
 };
 use std::{
     error::Error,
@@ -46,11 +46,11 @@ use std::{
     time::{Duration, SystemTime},
 };
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
+    channel::{ChannelType, permission_overwrite::PermissionOverwrite},
     guild::Permissions,
     id::{
-        marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
     },
 };
 use twilight_util::permission_calculator::PermissionCalculator;
@@ -648,7 +648,7 @@ mod tests {
     use super::{
         ChannelError, ChannelErrorType, InMemoryCachePermissions, RootError, RootErrorType,
     };
-    use crate::{test, DefaultCacheModels, DefaultInMemoryCache};
+    use crate::{DefaultCacheModels, DefaultInMemoryCache, test};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
         error::Error,
@@ -658,8 +658,8 @@ mod tests {
     };
     use twilight_model::{
         channel::{
-            permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             Channel, ChannelType,
+            permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
         },
         gateway::payload::incoming::{
             ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate, ThreadCreate,
@@ -669,8 +669,8 @@ mod tests {
             NSFWLevel, Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
         },
         id::{
-            marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
             Id,
+            marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
         },
         util::Timestamp,
     };

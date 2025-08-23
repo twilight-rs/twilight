@@ -8,7 +8,7 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::{
     guild::template::Template,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 /// Sync a template to the current state of the guild, by ID and code.

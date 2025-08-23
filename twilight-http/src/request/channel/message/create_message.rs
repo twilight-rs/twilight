@@ -2,8 +2,8 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        attachment::{AttachmentManager, PartialAttachment},
         Nullable, Request, TryIntoRequest,
+        attachment::{AttachmentManager, PartialAttachment},
     },
     response::{Response, ResponseFuture},
     routing::Route,
@@ -17,15 +17,14 @@ use twilight_model::{
     },
     http::attachment::Attachment,
     id::{
-        marker::{ChannelMarker, MessageMarker, StickerMarker},
         Id,
+        marker::{ChannelMarker, MessageMarker, StickerMarker},
     },
     poll::Poll,
 };
 use twilight_validate::message::{
-    attachment as validate_attachment, components as validate_components,
+    MessageValidationError, attachment as validate_attachment, components as validate_components,
     content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
-    MessageValidationError,
 };
 
 #[derive(Serialize)]

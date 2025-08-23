@@ -1,18 +1,18 @@
 use std::borrow::Cow;
 
 use crate::{
+    CacheableModels, InMemoryCache, UpdateCache,
     config::ResourceType,
     model::member::ComputedInteractionMember,
     traits::{CacheableGuild, CacheableMember},
-    CacheableModels, InMemoryCache, UpdateCache,
 };
 use twilight_model::{
     application::interaction::InteractionMember,
     gateway::payload::incoming::{MemberAdd, MemberChunk, MemberRemove, MemberUpdate},
     guild::{Member, PartialMember},
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 
@@ -181,7 +181,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use std::borrow::Cow;
     use twilight_model::{
         gateway::payload::incoming::{MemberRemove, MemberUpdate},
@@ -212,9 +212,11 @@ mod tests {
             assert!(guild_1_user_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached members
-            assert!(guild_1_user_ids
-                .iter()
-                .all(|id| cache.member(Id::new(1), *id).is_some()));
+            assert!(
+                guild_1_user_ids
+                    .iter()
+                    .all(|id| cache.member(Id::new(1), *id).is_some())
+            );
 
             // Check for the cached users
             assert!(guild_1_user_ids.iter().all(|id| cache.user(*id).is_some()));
@@ -236,10 +238,12 @@ mod tests {
             assert!(guild_2_user_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached members
-            assert!(guild_2_user_ids
-                .iter()
-                .copied()
-                .all(|id| cache.member(Id::new(1), id).is_some()));
+            assert!(
+                guild_2_user_ids
+                    .iter()
+                    .copied()
+                    .all(|id| cache.member(Id::new(1), id).is_some())
+            );
 
             // Check for the cached users
             assert!(guild_2_user_ids.iter().all(|id| cache.user(*id).is_some()));

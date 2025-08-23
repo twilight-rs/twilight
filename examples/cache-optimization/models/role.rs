@@ -1,7 +1,7 @@
 use twilight_cache_inmemory::CacheableRole;
 use twilight_model::{
     guild::{Permissions, Role},
-    id::{marker::RoleMarker, Id},
+    id::{Id, marker::RoleMarker},
 };
 
 #[derive(Clone, Debug, PartialEq)]

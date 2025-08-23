@@ -2,19 +2,19 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     guild::scheduled_event::GuildScheduledEventUser,
     id::{
-        marker::{GuildMarker, ScheduledEventMarker, UserMarker},
         Id,
+        marker::{GuildMarker, ScheduledEventMarker, UserMarker},
     },
 };
 use twilight_validate::request::{
-    scheduled_event_get_users as validate_scheduled_event_get_users, ValidationError,
+    ValidationError, scheduled_event_get_users as validate_scheduled_event_get_users,
 };
 
 struct GetGuildScheduledEventUsersFields {

@@ -1,28 +1,28 @@
 use crate::DefaultInMemoryCache;
 use twilight_model::{
     channel::{
-        message::{
-            sticker::{Sticker, StickerFormatType, StickerType},
-            EmojiReactionType, Message, MessageFlags, MessageType,
-        },
         Channel, ChannelType,
+        message::{
+            EmojiReactionType, Message, MessageFlags, MessageType,
+            sticker::{Sticker, StickerFormatType, StickerType},
+        },
     },
     gateway::{
-        payload::incoming::{MessageCreate, ReactionAdd},
         GatewayReaction,
+        payload::incoming::{MessageCreate, ReactionAdd},
     },
     guild::{
-        scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
         AfkTimeout, DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member,
         MemberFlags, MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role, RoleFlags,
         SystemChannelFlags, VerificationLevel,
+        scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
     },
     id::{
+        Id,
         marker::{
             ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, ScheduledEventMarker,
             StickerMarker, UserMarker,
         },
-        Id,
     },
     user::{CurrentUser, User},
     util::{ImageHash, Timestamp},

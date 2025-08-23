@@ -1,8 +1,8 @@
-use crate::{traits::CacheableChannel, CacheableModels, InMemoryCache, ResourceType, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, ResourceType, UpdateCache, traits::CacheableChannel};
 use twilight_model::{
     channel::Channel,
     gateway::payload::incoming::{ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate},
-    id::{marker::ChannelMarker, Id},
+    id::{Id, marker::ChannelMarker},
 };
 
 impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
@@ -85,7 +85,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ChannelUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use twilight_model::gateway::{
         event::Event,
         payload::incoming::{ChannelDelete, ChannelUpdate},
@@ -98,11 +98,13 @@ mod tests {
 
         cache.cache_channel(channel.clone());
         assert_eq!(1, cache.channels.len());
-        assert!(cache
-            .guild_channels
-            .get(&guild_id)
-            .unwrap()
-            .contains(&channel_id));
+        assert!(
+            cache
+                .guild_channels
+                .get(&guild_id)
+                .unwrap()
+                .contains(&channel_id)
+        );
 
         cache.update(&Event::ChannelDelete(Box::new(ChannelDelete(channel))));
         assert!(cache.channels.is_empty());
@@ -116,10 +118,12 @@ mod tests {
 
         cache.update(&ChannelUpdate(channel));
         assert_eq!(1, cache.channels.len());
-        assert!(cache
-            .guild_channels
-            .get(&guild_id)
-            .unwrap()
-            .contains(&channel_id));
+        assert!(
+            cache
+                .guild_channels
+                .get(&guild_id)
+                .unwrap()
+                .contains(&channel_id)
+        );
     }
 }

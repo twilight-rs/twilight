@@ -1,10 +1,10 @@
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use twilight_model::{
     gateway::payload::incoming::{IntegrationCreate, IntegrationDelete, IntegrationUpdate},
     guild::GuildIntegration,
     id::{
-        marker::{GuildMarker, IntegrationMarker},
         Id,
+        marker::{GuildMarker, IntegrationMarker},
     },
 };
 

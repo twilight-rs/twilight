@@ -46,7 +46,7 @@ impl From<OnboardingPromptType> for u8 {
 #[cfg(test)]
 mod tests {
     use super::OnboardingPromptType;
-    use serde_test::{assert_tokens, Token};
+    use serde_test::{Token, assert_tokens};
 
     #[test]
     fn onboarding_prompt_type() {

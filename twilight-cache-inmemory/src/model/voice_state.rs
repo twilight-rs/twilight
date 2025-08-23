@@ -1,8 +1,8 @@
 use serde::Serialize;
 use twilight_model::{
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
     util::Timestamp,
     voice::VoiceState,
@@ -167,8 +167,8 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         id::{
-            marker::{ChannelMarker, GuildMarker, UserMarker},
             Id,
+            marker::{ChannelMarker, GuildMarker, UserMarker},
         },
         voice::VoiceState,
     };

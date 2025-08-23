@@ -1,6 +1,7 @@
 //! Provides the Snowflake trait for defining extractable information from a Discord Snowflake.
 
 use twilight_model::id::{
+    Id,
     marker::{
         ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
         CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
@@ -8,7 +9,6 @@ use twilight_model::id::{
         RoleSubscriptionSkuMarker, ScheduledEventEntityMarker, ScheduledEventMarker, StageMarker,
         StickerMarker, StickerPackMarker, StickerPackSkuMarker, UserMarker, WebhookMarker,
     },
-    Id,
 };
 
 /// Snowflake is a trait for defining extractable information from a Snowflake. A Snowflake is a

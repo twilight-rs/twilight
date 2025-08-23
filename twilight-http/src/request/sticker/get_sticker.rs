@@ -8,7 +8,7 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::{
     channel::message::sticker::Sticker,
-    id::{marker::StickerMarker, Id},
+    id::{Id, marker::StickerMarker},
 };
 
 /// Returns a single sticker by its ID.

@@ -27,22 +27,22 @@ use std::fmt::Debug;
 use twilight_model::{
     application::interaction::InteractionMember,
     channel::{
-        message::{Reaction, Sticker},
         Channel, ChannelType, Message, StageInstance,
+        message::{Reaction, Sticker},
     },
     gateway::{
         payload::incoming::{GuildUpdate, MemberUpdate},
         presence::Presence,
     },
     guild::{
-        scheduled_event::GuildScheduledEvent, Emoji, Guild, GuildIntegration, Member,
-        PartialMember, Role,
+        Emoji, Guild, GuildIntegration, Member, PartialMember, Role,
+        scheduled_event::GuildScheduledEvent,
     },
     id::{
+        Id,
         marker::{
             ChannelMarker, GuildMarker, RoleMarker, ScheduledEventMarker, StickerMarker, UserMarker,
         },
-        Id,
     },
     user::{CurrentUser, User},
     util::{ImageHash, Timestamp},

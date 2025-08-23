@@ -358,8 +358,8 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::channel::message::{
-        embed::{EmbedAuthor, EmbedField, EmbedFooter},
         Embed,
+        embed::{EmbedAuthor, EmbedField, EmbedFooter},
     };
 
     assert_impl_all!(EmbedValidationErrorType: Debug, Send, Sync);

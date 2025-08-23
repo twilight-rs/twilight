@@ -10,9 +10,9 @@ pub use self::{
     delete_all_reactions::DeleteAllReactions, delete_reaction::DeleteReaction,
     get_reactions::GetReactions,
 };
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::{marker::EmojiMarker, Id};
+use twilight_model::id::{Id, marker::EmojiMarker};
 
 /// Handle a reaction of either a custom or unicode emoji.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]

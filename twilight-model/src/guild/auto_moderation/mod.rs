@@ -25,8 +25,8 @@ pub use self::{
 };
 
 use crate::id::{
-    marker::{AutoModerationRuleMarker, ChannelMarker, GuildMarker, RoleMarker, UserMarker},
     Id,
+    marker::{AutoModerationRuleMarker, ChannelMarker, GuildMarker, RoleMarker, UserMarker},
 };
 use serde::{Deserialize, Serialize};
 
@@ -69,8 +69,8 @@ mod tests {
         AutoModerationTriggerType,
     };
     use crate::id::{
-        marker::{AutoModerationRuleMarker, ChannelMarker, GuildMarker, RoleMarker, UserMarker},
         Id,
+        marker::{AutoModerationRuleMarker, ChannelMarker, GuildMarker, RoleMarker, UserMarker},
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;

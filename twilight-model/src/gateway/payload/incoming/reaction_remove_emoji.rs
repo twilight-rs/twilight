@@ -1,8 +1,8 @@
 use crate::{
     channel::message::EmojiReactionType,
     id::{
-        marker::{ChannelMarker, GuildMarker, MessageMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, MessageMarker},
     },
 };
 use serde::{Deserialize, Serialize};

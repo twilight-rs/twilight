@@ -4,8 +4,8 @@ use super::{
 };
 use crate::{
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
     },
     util::image_hash::ImageHash,
 };

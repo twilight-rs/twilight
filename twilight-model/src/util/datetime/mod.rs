@@ -50,7 +50,7 @@ use std::{
     fmt::{Formatter, Result as FmtResult},
     str::FromStr,
 };
-use time::{format_description::well_known::Rfc3339, OffsetDateTime, PrimitiveDateTime};
+use time::{OffsetDateTime, PrimitiveDateTime, format_description::well_known::Rfc3339};
 
 /// Number of microseconds in a second.
 const MICROSECONDS_PER_SECOND: i64 = 1_000_000;

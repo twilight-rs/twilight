@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     id::{
-        marker::{ApplicationMarker, EntitlementMarker, GuildMarker, SkuMarker, UserMarker},
         Id,
+        marker::{ApplicationMarker, EntitlementMarker, GuildMarker, SkuMarker, UserMarker},
     },
     util::Timestamp,
 };

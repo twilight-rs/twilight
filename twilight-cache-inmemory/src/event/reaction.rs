@@ -1,7 +1,7 @@
 use crate::{
+    CacheableModels, InMemoryCache, UpdateCache,
     config::ResourceType,
     traits::{CacheableCurrentUser, CacheableMessage},
-    CacheableModels, InMemoryCache, UpdateCache,
 };
 use twilight_model::{
     channel::message::{EmojiReactionType, Reaction, ReactionCountDetails},
@@ -144,8 +144,8 @@ mod tests {
     use twilight_model::{
         channel::message::{EmojiReactionType, Reaction},
         gateway::{
-            payload::incoming::{ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
             GatewayReaction,
+            payload::incoming::{ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
         },
         id::Id,
     };

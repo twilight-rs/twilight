@@ -19,14 +19,14 @@ use serde::Serialize;
 use twilight_model::{
     guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
     id::{
-        marker::{ChannelMarker, GuildMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker},
     },
     util::Timestamp,
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason, scheduled_event_name as validate_scheduled_event_name,
-    ValidationError,
+    ValidationError, audit_reason as validate_audit_reason,
+    scheduled_event_name as validate_scheduled_event_name,
 };
 
 #[derive(Serialize)]

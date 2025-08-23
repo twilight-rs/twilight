@@ -1,7 +1,7 @@
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use twilight_model::{
     gateway::{payload::incoming::PresenceUpdate, presence::Presence},
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
@@ -40,7 +40,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for PresenceUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use twilight_model::{
         gateway::{
             event::Event,
@@ -72,10 +72,12 @@ mod tests {
 
         assert_eq!(1, cache.presences.len());
         assert_eq!(1, cache.guild_presences.len());
-        assert!(cache
-            .guild_presences
-            .get(&guild_id)
-            .unwrap()
-            .contains(&user_id));
+        assert!(
+            cache
+                .guild_presences
+                .get(&guild_id)
+                .unwrap()
+                .contains(&user_id)
+        );
     }
 }

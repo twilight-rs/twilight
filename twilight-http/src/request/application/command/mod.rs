@@ -31,7 +31,7 @@ use std::collections::HashMap;
 use twilight_model::{
     application::command::{CommandOption, CommandType},
     guild::Permissions,
-    id::{marker::ApplicationMarker, Id},
+    id::{Id, marker::ApplicationMarker},
 };
 
 /// Version of [`Command`] but with borrowed fields.

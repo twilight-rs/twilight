@@ -2,7 +2,7 @@
 
 use super::MemberFlags;
 use crate::{
-    id::{marker::RoleMarker, Id},
+    id::{Id, marker::RoleMarker},
     user::User,
     util::{ImageHash, Timestamp},
 };

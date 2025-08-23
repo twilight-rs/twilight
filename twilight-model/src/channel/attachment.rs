@@ -1,6 +1,6 @@
 use super::AttachmentFlags;
 use crate::{
-    id::{marker::AttachmentMarker, Id},
+    id::{Id, marker::AttachmentMarker},
     util::is_false,
 };
 use serde::{Deserialize, Serialize};

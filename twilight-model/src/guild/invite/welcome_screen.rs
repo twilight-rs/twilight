@@ -1,6 +1,6 @@
 use crate::id::{
-    marker::{ChannelMarker, EmojiMarker},
     Id,
+    marker::{ChannelMarker, EmojiMarker},
 };
 use serde::{Deserialize, Serialize};
 

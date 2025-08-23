@@ -13,12 +13,12 @@ use twilight_model::{
         VerificationLevel,
     },
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason, guild_name as validate_guild_name, ValidationError,
+    ValidationError, audit_reason as validate_audit_reason, guild_name as validate_guild_name,
 };
 
 #[derive(Serialize)]

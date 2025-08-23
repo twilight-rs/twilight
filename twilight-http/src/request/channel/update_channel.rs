@@ -9,18 +9,18 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{
+        Channel, ChannelFlags, ChannelType, VideoQualityMode,
         forum::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag},
         permission_overwrite::PermissionOverwrite,
-        Channel, ChannelFlags, ChannelType, VideoQualityMode,
     },
-    id::{marker::ChannelMarker, Id},
+    id::{Id, marker::ChannelMarker},
 };
 use twilight_validate::{
     channel::{
-        bitrate as validate_bitrate, forum_topic as validate_forum_topic, name as validate_name,
-        topic as validate_topic, user_limit as validate_user_limit, ChannelValidationError,
+        ChannelValidationError, bitrate as validate_bitrate, forum_topic as validate_forum_topic,
+        name as validate_name, topic as validate_topic, user_limit as validate_user_limit,
     },
-    request::{audit_reason as validate_audit_reason, ValidationError},
+    request::{ValidationError, audit_reason as validate_audit_reason},
 };
 
 // The Discord API doesn't require the `name` and `kind` fields to be present,

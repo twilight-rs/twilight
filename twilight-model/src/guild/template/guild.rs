@@ -5,7 +5,7 @@ use crate::{
         AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, SystemChannelFlags,
         VerificationLevel,
     },
-    id::{marker::ChannelMarker, Id},
+    id::{Id, marker::ChannelMarker},
     util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};

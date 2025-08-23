@@ -1,8 +1,8 @@
 use crate::{
     channel::ChannelType,
     id::{
-        marker::{ChannelMarker, GuildMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker},
     },
 };
 use serde::{Deserialize, Serialize};

@@ -11,14 +11,14 @@ use std::{
     mem,
     pin::Pin,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
     task::{Context, Poll},
     time::Duration,
 };
 use tokio::time::{self, Timeout};
-use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
+use twilight_http_ratelimiting::{RatelimitHeaders, WaitForTicketFuture, ticket::TicketSender};
 
 type Output<T> = Result<Response<T>, Error>;
 
@@ -86,13 +86,13 @@ impl InFlight {
                 return InnerPoll::Ready(Err(Error {
                     kind: ErrorType::RequestError,
                     source: Some(Box::new(source)),
-                }))
+                }));
             }
             Poll::Ready(Err(source)) => {
                 return InnerPoll::Ready(Err(Error {
                     kind: ErrorType::RequestTimedOut,
                     source: Some(Box::new(source)),
-                }))
+                }));
             }
             Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::InFlight(self)),
         };
@@ -182,7 +182,7 @@ impl RatelimitQueue {
                 return InnerPoll::Ready(Err(Error {
                     kind: ErrorType::RatelimiterTicket,
                     source: Some(source),
-                }))
+                }));
             }
             Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(self)),
         };

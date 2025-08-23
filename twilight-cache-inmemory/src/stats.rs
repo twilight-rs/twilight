@@ -1,6 +1,6 @@
 use twilight_model::id::{
-    marker::{ChannelMarker, GuildMarker},
     Id,
+    marker::{ChannelMarker, GuildMarker},
 };
 
 use crate::{CacheableModels, DefaultCacheModels};

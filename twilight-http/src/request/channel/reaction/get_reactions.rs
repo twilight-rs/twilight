@@ -3,20 +3,20 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     channel::message::ReactionType,
     id::{
-        marker::{ChannelMarker, MessageMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, MessageMarker, UserMarker},
     },
     user::User,
 };
 use twilight_validate::request::{
-    get_reactions_limit as validate_get_reactions_limit, ValidationError,
+    ValidationError, get_reactions_limit as validate_get_reactions_limit,
 };
 
 struct GetReactionsFields {

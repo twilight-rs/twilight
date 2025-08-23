@@ -8,7 +8,7 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::{
     channel::thread::ThreadsListing,
-    id::{marker::ChannelMarker, Id},
+    id::{Id, marker::ChannelMarker},
 };
 
 /// Returns archived private threads in the channel.

@@ -6,8 +6,8 @@ pub use role::TemplateRole;
 
 use crate::{
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
     user::User,
     util::Timestamp,
@@ -37,8 +37,8 @@ mod tests {
     use super::{Template, TemplateGuild, TemplateRole};
     use crate::{
         channel::{
-            permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             Channel, ChannelType,
+            permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
         },
         guild::{
             AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, Permissions,

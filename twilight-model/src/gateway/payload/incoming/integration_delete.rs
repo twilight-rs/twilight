@@ -1,6 +1,6 @@
 use crate::id::{
-    marker::{ApplicationMarker, GuildMarker, IntegrationMarker},
     Id,
+    marker::{ApplicationMarker, GuildMarker, IntegrationMarker},
 };
 use serde::{Deserialize, Serialize};
 

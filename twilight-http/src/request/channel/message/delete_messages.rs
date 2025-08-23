@@ -2,18 +2,18 @@ use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::id::{
-    marker::{ChannelMarker, MessageMarker},
     Id,
+    marker::{ChannelMarker, MessageMarker},
 };
 use twilight_validate::{
-    channel::{bulk_delete_messages as validate_bulk_delete_messages, ChannelValidationError},
-    request::{audit_reason as validate_audit_reason, ValidationError},
+    channel::{ChannelValidationError, bulk_delete_messages as validate_bulk_delete_messages},
+    request::{ValidationError, audit_reason as validate_audit_reason},
 };
 
 #[derive(Serialize)]

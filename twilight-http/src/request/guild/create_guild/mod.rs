@@ -19,8 +19,8 @@ use twilight_model::{
     },
     http::permission_overwrite::PermissionOverwrite,
     id::{
-        marker::{ChannelMarker, RoleMarker},
         Id,
+        marker::{ChannelMarker, RoleMarker},
     },
 };
 use twilight_validate::request::guild_name as validate_guild_name;

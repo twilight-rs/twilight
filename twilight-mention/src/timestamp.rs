@@ -267,7 +267,7 @@ impl TryFrom<&str> for TimestampStyle {
             _ => {
                 return Err(TimestampStyleConversionError {
                     kind: TimestampStyleConversionErrorType::StyleInvalid,
-                })
+                });
             }
         })
     }

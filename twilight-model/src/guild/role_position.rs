@@ -1,4 +1,4 @@
-use crate::id::{marker::RoleMarker, Id};
+use crate::id::{Id, marker::RoleMarker};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

@@ -1,4 +1,4 @@
-use crate::id::{marker::ChannelMarker, Id};
+use crate::id::{Id, marker::ChannelMarker};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

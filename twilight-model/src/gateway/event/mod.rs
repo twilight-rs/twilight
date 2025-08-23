@@ -11,8 +11,8 @@ pub use self::{
     kind::EventType,
 };
 
-use super::{payload::incoming::*, CloseFrame};
-use crate::id::{marker::GuildMarker, Id};
+use super::{CloseFrame, payload::incoming::*};
+use crate::id::{Id, marker::GuildMarker};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 

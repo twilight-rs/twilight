@@ -22,12 +22,12 @@ pub use self::{
 use super::EmojiReactionType;
 use crate::{
     channel::ChannelType,
-    id::{marker::SkuMarker, Id},
+    id::{Id, marker::SkuMarker},
 };
 use serde::{
+    Deserialize, Serialize, Serializer,
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{Error as SerError, SerializeStruct},
-    Deserialize, Serialize, Serializer,
 };
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};

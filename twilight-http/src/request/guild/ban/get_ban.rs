@@ -9,8 +9,8 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::Ban,
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 

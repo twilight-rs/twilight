@@ -8,7 +8,7 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::{
     guild::widget::GuildWidget,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 /// Get a guild's widget

@@ -2,13 +2,13 @@ use crate::{
     gateway::presence::{Presence, PresenceListDeserializer},
     guild::Member,
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
 };
 use std::fmt::{Formatter, Result as FmtResult};
 

@@ -1,6 +1,6 @@
 use crate::id::{
-    marker::{GuildMarker, ScheduledEventMarker, UserMarker},
     Id,
+    marker::{GuildMarker, ScheduledEventMarker, UserMarker},
 };
 use serde::{Deserialize, Serialize};
 

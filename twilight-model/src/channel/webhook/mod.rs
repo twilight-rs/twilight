@@ -6,8 +6,8 @@ pub use self::{channel::WebhookChannel, guild::WebhookGuild, kind::WebhookType};
 
 use crate::{
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, WebhookMarker},
         Id,
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, WebhookMarker},
     },
     user::User,
     util::image_hash::ImageHash,

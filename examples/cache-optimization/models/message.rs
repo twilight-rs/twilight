@@ -1,7 +1,7 @@
 use twilight_cache_inmemory::CacheableMessage;
 use twilight_model::{
-    channel::{message::Reaction, Message},
-    id::{marker::MessageMarker, Id},
+    channel::{Message, message::Reaction},
+    id::{Id, marker::MessageMarker},
 };
 
 #[derive(Clone, Debug, PartialEq)]

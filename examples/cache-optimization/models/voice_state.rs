@@ -1,8 +1,8 @@
 use twilight_cache_inmemory::CacheableVoiceState;
 use twilight_model::{
     id::{
-        marker::{ChannelMarker, GuildMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker},
     },
     voice::VoiceState,
 };

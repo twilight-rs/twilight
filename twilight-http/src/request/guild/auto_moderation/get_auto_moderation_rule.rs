@@ -9,8 +9,8 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::auto_moderation::AutoModerationRule,
     id::{
-        marker::{AutoModerationRuleMarker, GuildMarker},
         Id,
+        marker::{AutoModerationRuleMarker, GuildMarker},
     },
 };
 
