@@ -611,6 +611,22 @@ impl Drop for Connection {
 }
 
 fn connect_request(state: &NodeConfig) -> Result<ClientBuilder<'_>, NodeError> {
+    // If no global crypto provider for rustls has been configured yet,
+    // configure one since tokio-websockets requires one.
+    // FIXME: Require the user to configure this starting with 0.17
+    #[cfg(any(feature = "rustls-ring", feature = "rustls-aws_lc_rs"))]
+    if rustls::crypto::CryptoProvider::get_default().is_none() {
+        #[cfg(feature = "rustls-aws_lc_rs")]
+        rustls::crypto::aws_lc_rs::default_provider()
+            .install_default()
+            .unwrap();
+
+        #[cfg(all(feature = "rustls-ring", not(feature = "rustls-aws_lc_rs")))]
+        rustls::crypto::ring::default_provider()
+            .install_default()
+            .unwrap();
+    }
+
     let mut builder = ClientBuilder::new()
         .uri(&format!("ws://{}", state.address))
         .map_err(|source| NodeError {

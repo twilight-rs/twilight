@@ -374,6 +374,22 @@ impl<Q> Shard<Q> {
             resume_url = None;
         }
 
+        // If no global crypto provider for rustls has been configured yet,
+        // configure one since tokio-websockets requires one.
+        // FIXME: Require the user to configure this starting with 0.17
+        #[cfg(any(feature = "rustls-ring", feature = "rustls-aws_lc_rs"))]
+        if rustls::crypto::CryptoProvider::get_default().is_none() {
+            #[cfg(feature = "rustls-aws_lc_rs")]
+            rustls::crypto::aws_lc_rs::default_provider()
+                .install_default()
+                .unwrap();
+
+            #[cfg(all(feature = "rustls-ring", not(feature = "rustls-aws_lc_rs")))]
+            rustls::crypto::ring::default_provider()
+                .install_default()
+                .unwrap();
+        }
+
         Self {
             config,
             connection_future: None,
