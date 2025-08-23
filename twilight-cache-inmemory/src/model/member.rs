@@ -6,8 +6,8 @@ use twilight_model::{
     gateway::payload::incoming::MemberUpdate,
     guild::{Member, MemberFlags, PartialMember},
     id::{
-        marker::{RoleMarker, UserMarker},
         Id,
+        marker::{RoleMarker, UserMarker},
     },
     util::{ImageHash, Timestamp},
 };

@@ -1,7 +1,7 @@
 use crate::{
     id::{
-        marker::{EmojiMarker, RoleMarker},
         Id,
+        marker::{EmojiMarker, RoleMarker},
     },
     user::User,
 };

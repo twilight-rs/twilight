@@ -128,7 +128,7 @@ impl<T> Id<T> {
     /// The value must not be zero.
     #[allow(unsafe_code)]
     pub const unsafe fn new_unchecked(n: u64) -> Self {
-        Self::from_nonzero(NonZeroU64::new_unchecked(n))
+        Self::from_nonzero(unsafe { NonZeroU64::new_unchecked(n) })
     }
 
     /// Create an ID if the provided value is not zero.
@@ -412,13 +412,13 @@ impl<T> TryFrom<u64> for Id<T> {
 #[cfg(test)]
 mod tests {
     use super::{
+        Id,
         marker::{
             ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
             CommandVersionMarker, EmojiMarker, EntitlementMarker, GenericMarker, GuildMarker,
             IntegrationMarker, InteractionMarker, MessageMarker, RoleMarker,
             RoleSubscriptionSkuMarker, SkuMarker, StageMarker, UserMarker, WebhookMarker,
         },
-        Id,
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;

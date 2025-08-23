@@ -12,7 +12,7 @@ use std::{
 };
 use tokio::sync::{
     mpsc::UnboundedReceiver as MpscReceiver,
-    oneshot::{error::RecvError, Receiver},
+    oneshot::{Receiver, error::RecvError},
 };
 use twilight_model::{
     application::interaction::Interaction,

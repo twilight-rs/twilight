@@ -3,7 +3,7 @@ use crate::{
         ActivityAssets, ActivityButton, ActivityEmoji, ActivityFlags, ActivityParty,
         ActivitySecrets, ActivityTimestamps, ActivityType,
     },
-    id::{marker::ApplicationMarker, Id},
+    id::{Id, marker::ApplicationMarker},
 };
 use serde::{Deserialize, Serialize};
 

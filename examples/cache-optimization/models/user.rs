@@ -1,6 +1,6 @@
 use twilight_cache_inmemory::CacheableUser;
 use twilight_model::{
-    id::{marker::UserMarker, Id},
+    id::{Id, marker::UserMarker},
     user::User,
 };
 

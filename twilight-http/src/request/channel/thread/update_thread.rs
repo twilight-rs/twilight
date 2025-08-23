@@ -8,18 +8,18 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::{thread::AutoArchiveDuration, Channel},
+    channel::{Channel, thread::AutoArchiveDuration},
     id::{
-        marker::{ChannelMarker, TagMarker},
         Id,
+        marker::{ChannelMarker, TagMarker},
     },
 };
 use twilight_validate::{
     channel::{
-        name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
-        ChannelValidationError,
+        ChannelValidationError, name as validate_name,
+        rate_limit_per_user as validate_rate_limit_per_user,
     },
-    request::{audit_reason as validate_audit_reason, ValidationError},
+    request::{ValidationError, audit_reason as validate_audit_reason},
 };
 
 #[derive(Serialize)]
@@ -217,9 +217,9 @@ impl TryIntoRequest for UpdateThread<'_> {
 mod tests {
     use super::{UpdateThread, UpdateThreadFields};
     use crate::{
+        Client,
         request::{Request, TryIntoRequest},
         routing::Route,
-        Client,
     };
     use std::error::Error;
     use twilight_model::id::Id;

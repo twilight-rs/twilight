@@ -8,7 +8,7 @@ pub use self::{
 };
 
 use crate::Client;
-use twilight_model::id::{marker::ApplicationMarker, Id};
+use twilight_model::id::{Id, marker::ApplicationMarker};
 
 /// Create a new global command.
 #[must_use = "the command must have a type"]

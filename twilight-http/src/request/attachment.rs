@@ -2,7 +2,7 @@ use crate::request::Form;
 use serde::{Deserialize, Serialize};
 use twilight_model::{
     http::attachment::Attachment,
-    id::{marker::AttachmentMarker, Id},
+    id::{Id, marker::AttachmentMarker},
 };
 
 pub struct AttachmentManager<'a> {

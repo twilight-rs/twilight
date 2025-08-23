@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
 use serde::Serialize;
@@ -10,12 +10,12 @@ use std::future::IntoFuture;
 use twilight_model::{
     application::command::permissions::CommandPermission,
     id::{
-        marker::{ApplicationMarker, CommandMarker, GuildMarker},
         Id,
+        marker::{ApplicationMarker, CommandMarker, GuildMarker},
     },
 };
 use twilight_validate::command::{
-    guild_permissions as validate_guild_permissions, CommandValidationError,
+    CommandValidationError, guild_permissions as validate_guild_permissions,
 };
 
 #[derive(Serialize)]

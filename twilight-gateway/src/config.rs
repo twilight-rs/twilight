@@ -1,14 +1,14 @@
 //! User configuration for shards.
 
-use crate::{queue::InMemoryQueue, Session};
+use crate::{Session, queue::InMemoryQueue};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::Arc,
 };
 use tokio_websockets::Connector;
 use twilight_model::gateway::{
-    payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
+    payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
 };
 
 /// Wrapper for an authorization token with a debug implementation that redacts

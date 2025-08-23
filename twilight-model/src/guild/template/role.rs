@@ -1,6 +1,6 @@
 use crate::{
     guild::{Permissions, RoleTags},
-    id::{marker::RoleMarker, Id},
+    id::{Id, marker::RoleMarker},
 };
 use serde::{Deserialize, Serialize};
 

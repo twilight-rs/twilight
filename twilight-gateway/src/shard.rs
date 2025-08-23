@@ -15,6 +15,7 @@ use crate::compression::Decompressor;
 ))]
 use crate::inflater::Inflater;
 use crate::{
+    API_VERSION, Command, Config, Message, ShardId,
     channel::{MessageChannel, MessageSender},
     error::{ReceiveMessageError, ReceiveMessageErrorType},
     json,
@@ -22,11 +23,10 @@ use crate::{
     queue::{InMemoryQueue, Queue},
     ratelimiter::CommandRatelimiter,
     session::Session,
-    Command, Config, Message, ShardId, API_VERSION,
 };
 use futures_core::Stream;
 use futures_sink::Sink;
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{Deserialize, de::DeserializeOwned};
 use std::{
     env::consts::OS,
     error::Error,
@@ -35,24 +35,24 @@ use std::{
     io,
     pin::Pin,
     str,
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
 };
 use tokio::{
     net::TcpStream,
     sync::oneshot,
-    time::{self, error::Elapsed, timeout, Duration, Instant, Interval, MissedTickBehavior},
+    time::{self, Duration, Instant, Interval, MissedTickBehavior, error::Elapsed, timeout},
 };
 use tokio_websockets::{ClientBuilder, Error as WebsocketError, Limits, MaybeTlsStream};
 use twilight_model::gateway::{
+    CloseCode, CloseFrame, Intents, OpCode,
     event::GatewayEventDeserializer,
     payload::{
         incoming::Hello,
         outgoing::{
-            identify::{IdentifyInfo, IdentifyProperties},
             Heartbeat, Identify, Resume,
+            identify::{IdentifyInfo, IdentifyProperties},
         },
     },
-    CloseCode, CloseFrame, Intents, OpCode,
 };
 
 /// URL of the Discord gateway.
@@ -881,12 +881,14 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
         let message = loop {
             match self.state {
                 ShardState::FatallyClosed => {
-                    _ = ready!(Pin::new(
-                        self.connection
-                            .as_mut()
-                            .expect("poll_next called after Poll::Ready(None)")
-                    )
-                    .poll_close(cx));
+                    _ = ready!(
+                        Pin::new(
+                            self.connection
+                                .as_mut()
+                                .expect("poll_next called after Poll::Ready(None)")
+                        )
+                        .poll_close(cx)
+                    );
                     self.connection = None;
                     return Poll::Ready(None);
                 }

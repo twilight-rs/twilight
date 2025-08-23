@@ -9,8 +9,8 @@ use std::future::IntoFuture;
 use twilight_model::{
     channel::thread::ThreadMember,
     id::{
-        marker::{ChannelMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, UserMarker},
     },
 };
 

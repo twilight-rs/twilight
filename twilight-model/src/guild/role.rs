@@ -1,7 +1,7 @@
 use super::{RoleFlags, RoleTags};
 use crate::{
     guild::Permissions,
-    id::{marker::RoleMarker, Id},
+    id::{Id, marker::RoleMarker},
     util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};

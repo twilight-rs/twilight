@@ -1,4 +1,5 @@
 use crate::{
+    Client,
     request::application::{
         command::{
             CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
@@ -11,14 +12,13 @@ use crate::{
             GetResponse, UpdateFollowup, UpdateResponse,
         },
     },
-    Client,
 };
 use twilight_model::{
-    application::command::{permissions::CommandPermission, Command},
+    application::command::{Command, permissions::CommandPermission},
     http::interaction::InteractionResponse,
     id::{
-        marker::{ApplicationMarker, CommandMarker, GuildMarker, InteractionMarker, MessageMarker},
         Id,
+        marker::{ApplicationMarker, CommandMarker, GuildMarker, InteractionMarker, MessageMarker},
     },
 };
 

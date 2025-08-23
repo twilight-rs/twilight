@@ -1,7 +1,7 @@
 use http_body_util::{BodyExt, Full};
-use hyper::{body::Bytes, Request};
+use hyper::{Request, body::Bytes};
 use hyper_util::{
-    client::legacy::{connect::HttpConnector, Client as HyperClient},
+    client::legacy::{Client as HyperClient, connect::HttpConnector},
     rt::TokioExecutor,
 };
 use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
@@ -10,9 +10,9 @@ use twilight_gateway::{
 };
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
+    Lavalink,
     http::LoadedTracks,
     model::{Destroy, Pause, Play, Seek, Stop, Volume},
-    Lavalink,
 };
 use twilight_model::{
     channel::Message,

@@ -26,7 +26,7 @@ use futures_util::{
     sink::SinkExt,
     stream::{Stream, StreamExt},
 };
-use http::header::{HeaderName, AUTHORIZATION};
+use http::header::{AUTHORIZATION, HeaderName};
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -41,9 +41,9 @@ use tokio::{
     time as tokio_time,
 };
 use tokio_websockets::{
-    upgrade, ClientBuilder, Error as WebsocketError, MaybeTlsStream, Message, WebSocketStream,
+    ClientBuilder, Error as WebsocketError, MaybeTlsStream, Message, WebSocketStream, upgrade,
 };
-use twilight_model::id::{marker::UserMarker, Id};
+use twilight_model::id::{Id, marker::UserMarker};
 
 /// An error occurred while either initializing a connection or while running
 /// its event loop.

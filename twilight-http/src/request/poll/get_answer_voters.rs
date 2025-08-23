@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 use std::future::IntoFuture;
 use twilight_model::{
     id::{
-        marker::{ChannelMarker, MessageMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, MessageMarker, UserMarker},
     },
     user::User,
 };

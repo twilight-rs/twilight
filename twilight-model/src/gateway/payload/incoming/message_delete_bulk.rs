@@ -1,6 +1,6 @@
 use crate::id::{
-    marker::{ChannelMarker, GuildMarker, MessageMarker},
     Id,
+    marker::{ChannelMarker, GuildMarker, MessageMarker},
 };
 use serde::{Deserialize, Serialize};
 

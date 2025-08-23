@@ -28,15 +28,15 @@ use crate::{
     channel::{Channel, Message},
     guild::{GuildFeature, PartialMember, Permissions},
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         AnonymizableId, Id,
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
     },
     oauth::ApplicationIntegrationMap,
     user::User,
 };
 use serde::{
-    de::{Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Deserializer, Serialize,
+    de::{Error as DeError, IgnoredAny, MapAccess, Visitor},
 };
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
@@ -496,13 +496,13 @@ pub struct InteractionPartialGuild {
 #[cfg(test)]
 mod tests {
     use super::{
-        application_command::{CommandData, CommandDataOption, CommandOptionValue},
         Interaction, InteractionData, InteractionDataResolved, InteractionMember, InteractionType,
+        application_command::{CommandData, CommandDataOption, CommandOptionValue},
     };
     use crate::{
         application::{
             command::{CommandOptionType, CommandType},
-            monetization::{entitlement::Entitlement, EntitlementType},
+            monetization::{EntitlementType, entitlement::Entitlement},
         },
         channel::Channel,
         guild::{MemberFlags, PartialMember, Permissions},

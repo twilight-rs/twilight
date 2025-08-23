@@ -10,11 +10,11 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::Emoji,
     id::{
-        marker::{GuildMarker, RoleMarker},
         Id,
+        marker::{GuildMarker, RoleMarker},
     },
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
 struct CreateEmojiFields<'a> {

@@ -2,8 +2,8 @@ use serde::Serialize;
 use twilight_model::{
     gateway::presence::{Activity, ClientStatus, Presence, Status},
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 

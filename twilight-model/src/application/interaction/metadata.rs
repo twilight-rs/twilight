@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     id::{
-        marker::{GuildMarker, InteractionMarker, MessageMarker, UserMarker},
         AnonymizableId, Id,
+        marker::{GuildMarker, InteractionMarker, MessageMarker, UserMarker},
     },
     oauth::ApplicationIntegrationMap,
     user::User,

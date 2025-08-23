@@ -2,14 +2,14 @@ use std::future::IntoFuture;
 
 use twilight_model::{
     guild::onboarding::Onboarding,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 use crate::{
+    Client, Error, Response,
     request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
-    Client, Error, Response,
 };
 
 /// Get the onboarding information for a guild.

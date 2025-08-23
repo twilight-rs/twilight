@@ -9,8 +9,8 @@ use std::future::IntoFuture;
 use twilight_model::{
     channel::Message,
     id::{
-        marker::{ApplicationMarker, MessageMarker},
         Id,
+        marker::{ApplicationMarker, MessageMarker},
     },
 };
 
@@ -99,8 +99,8 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::error::Error;
     use twilight_model::id::{
-        marker::{ApplicationMarker, MessageMarker},
         Id,
+        marker::{ApplicationMarker, MessageMarker},
     };
 
     assert_impl_all!(GetFollowup<'_>: Send, Sync);

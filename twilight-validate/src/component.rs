@@ -575,7 +575,7 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
                     kind: ComponentValidationErrorType::InvalidChildComponent {
                         kind: ComponentType::Unknown(*unknown),
                     },
-                })
+                });
             }
         }
     }

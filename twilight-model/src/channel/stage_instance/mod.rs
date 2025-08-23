@@ -3,8 +3,8 @@ mod privacy_level;
 pub use self::privacy_level::PrivacyLevel;
 
 use crate::id::{
-    marker::{ChannelMarker, GuildMarker, ScheduledEventMarker, StageMarker},
     Id,
+    marker::{ChannelMarker, GuildMarker, ScheduledEventMarker, StageMarker},
 };
 use serde::{Deserialize, Serialize};
 

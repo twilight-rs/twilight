@@ -5,8 +5,8 @@ pub use self::{member::TeamMember, membership_state::TeamMembershipState};
 
 use crate::{
     id::{
-        marker::{OauthTeamMarker, UserMarker},
         Id,
+        marker::{OauthTeamMarker, UserMarker},
     },
     util::image_hash::ImageHash,
 };

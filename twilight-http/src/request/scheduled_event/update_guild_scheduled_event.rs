@@ -11,15 +11,15 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
     id::{
-        marker::{ChannelMarker, GuildMarker, ScheduledEventMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, ScheduledEventMarker},
     },
     util::Timestamp,
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason,
+    ValidationError, audit_reason as validate_audit_reason,
     scheduled_event_description as validate_scheduled_event_description,
-    scheduled_event_name as validate_scheduled_event_name, ValidationError,
+    scheduled_event_name as validate_scheduled_event_name,
 };
 
 #[derive(Serialize)]

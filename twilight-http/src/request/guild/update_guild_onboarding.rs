@@ -3,11 +3,11 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::onboarding::{Onboarding, OnboardingMode, OnboardingPromptEmoji, OnboardingPromptType},
     id::{
+        Id,
         marker::{
             ChannelMarker, GuildMarker, OnboardingPromptMarker, OnboardingPromptOptionMarker,
             RoleMarker,
         },
-        Id,
     },
 };
 
@@ -21,7 +21,7 @@ use crate::{
     routing::Route,
 };
 
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdateOnboardingPromptOption {

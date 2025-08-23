@@ -9,12 +9,12 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::audit_log::{AuditLog, AuditLogEventType},
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 use twilight_validate::request::{
-    get_guild_audit_log_limit as validate_get_guild_audit_log_limit, ValidationError,
+    ValidationError, get_guild_audit_log_limit as validate_get_guild_audit_log_limit,
 };
 
 struct GetAuditLogFields {

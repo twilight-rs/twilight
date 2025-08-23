@@ -1,5 +1,5 @@
 use super::StickerFormatType;
-use crate::id::{marker::StickerMarker, Id};
+use crate::id::{Id, marker::StickerMarker};
 use serde::{Deserialize, Serialize};
 
 /// Smallest amount of data required to render a [`Sticker`].

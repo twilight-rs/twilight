@@ -44,8 +44,8 @@ pub use self::permission::InMemoryCachePermissions;
 
 use self::iter::InMemoryCacheIter;
 use dashmap::{
-    mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
+    mapref::{entry::Entry, one::Ref},
 };
 use std::{
     collections::{HashSet, VecDeque},
@@ -57,13 +57,13 @@ use std::{
 use twilight_model::{
     channel::{Channel, StageInstance},
     gateway::event::Event,
-    guild::{scheduled_event::GuildScheduledEvent, GuildIntegration, Role},
+    guild::{GuildIntegration, Role, scheduled_event::GuildScheduledEvent},
     id::{
+        Id,
         marker::{
             ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
             ScheduledEventMarker, StageMarker, StickerMarker, UserMarker,
         },
-        Id,
     },
     user::{CurrentUser, User},
 };
@@ -1050,7 +1050,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use twilight_model::{
         gateway::payload::incoming::RoleDelete,
         guild::{Member, MemberFlags, Permissions, Role, RoleFlags},

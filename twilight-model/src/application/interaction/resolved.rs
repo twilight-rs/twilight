@@ -1,9 +1,9 @@
 use crate::{
-    channel::{thread::ThreadMetadata, Attachment, ChannelType, Message},
+    channel::{Attachment, ChannelType, Message, thread::ThreadMetadata},
     guild::{MemberFlags, Permissions, Role},
     id::{
-        marker::{AttachmentMarker, ChannelMarker, MessageMarker, RoleMarker, UserMarker},
         Id,
+        marker::{AttachmentMarker, ChannelMarker, MessageMarker, RoleMarker, UserMarker},
     },
     user::User,
     util::{ImageHash, Timestamp},
@@ -100,11 +100,11 @@ mod tests {
     use super::{InteractionChannel, InteractionDataResolved, InteractionMember};
     use crate::{
         channel::{
-            message::{
-                sticker::{MessageSticker, StickerFormatType},
-                MessageFlags, MessageType,
-            },
             Attachment, ChannelType, Message,
+            message::{
+                MessageFlags, MessageType,
+                sticker::{MessageSticker, StickerFormatType},
+            },
         },
         guild::{MemberFlags, PartialMember, Permissions, Role, RoleFlags},
         id::Id,

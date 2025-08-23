@@ -17,7 +17,7 @@ use twilight_model::{
     },
     util::Timestamp,
 };
-use twilight_validate::embed::{embed as validate_embed, EmbedValidationError};
+use twilight_validate::embed::{EmbedValidationError, embed as validate_embed};
 
 /// Create an [`Embed`] with a builder.
 ///

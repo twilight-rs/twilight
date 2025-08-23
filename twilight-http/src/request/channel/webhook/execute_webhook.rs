@@ -2,11 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{
+        Nullable, Request, TryIntoRequest,
         attachment::{AttachmentManager, PartialAttachment},
         channel::webhook::ExecuteWebhookAndWait,
-        Nullable, Request, TryIntoRequest,
     },
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use serde::Serialize;
@@ -15,15 +15,14 @@ use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::attachment::Attachment,
     id::{
-        marker::{ChannelMarker, WebhookMarker},
         Id,
+        marker::{ChannelMarker, WebhookMarker},
     },
 };
 use twilight_validate::{
     message::{
-        attachment as validate_attachment, components as validate_components,
-        content as validate_content, embeds as validate_embeds, MessageValidationError,
-        MessageValidationErrorType,
+        MessageValidationError, MessageValidationErrorType, attachment as validate_attachment,
+        components as validate_components, content as validate_content, embeds as validate_embeds,
     },
     request::webhook_username as validate_webhook_username,
 };

@@ -8,13 +8,13 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::{thread::AutoArchiveDuration, Channel},
+    channel::{Channel, thread::AutoArchiveDuration},
     id::{
-        marker::{ChannelMarker, MessageMarker},
         Id,
+        marker::{ChannelMarker, MessageMarker},
     },
 };
-use twilight_validate::channel::{name as validate_name, ChannelValidationError};
+use twilight_validate::channel::{ChannelValidationError, name as validate_name};
 
 #[derive(Serialize)]
 struct CreateThreadFromMessageFields<'a> {

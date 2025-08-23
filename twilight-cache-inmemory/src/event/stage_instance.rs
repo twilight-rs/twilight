@@ -1,10 +1,10 @@
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use twilight_model::{
     channel::StageInstance,
     gateway::payload::incoming::{StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate},
     id::{
-        marker::{GuildMarker, StageMarker},
         Id,
+        marker::{GuildMarker, StageMarker},
     },
 };
 
@@ -78,7 +78,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for StageInstanceUpd
 mod tests {
     use crate::DefaultInMemoryCache;
     use twilight_model::{
-        channel::{stage_instance::PrivacyLevel, StageInstance},
+        channel::{StageInstance, stage_instance::PrivacyLevel},
         gateway::payload::incoming::{
             StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate,
         },

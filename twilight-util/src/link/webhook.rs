@@ -8,7 +8,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     num::NonZeroU64,
 };
-use twilight_model::id::{marker::WebhookMarker, Id};
+use twilight_model::id::{Id, marker::WebhookMarker};
 
 /// Error when [parsing] a webhook URL.
 ///
@@ -176,10 +176,12 @@ mod tests {
             (Id::new(123), None),
             super::parse("https://discord.com/api/webhooks/123").unwrap(),
         );
-        assert!(super::parse("https://discord.com/api/webhooks/123/")
-            .unwrap()
-            .1
-            .is_none());
+        assert!(
+            super::parse("https://discord.com/api/webhooks/123/")
+                .unwrap()
+                .1
+                .is_none()
+        );
     }
 
     #[test]

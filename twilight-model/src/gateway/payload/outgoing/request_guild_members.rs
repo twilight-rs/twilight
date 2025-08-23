@@ -1,8 +1,8 @@
 use crate::{
     gateway::opcode::OpCode,
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 use serde::{Deserialize, Serialize};

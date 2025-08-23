@@ -1,11 +1,11 @@
 //! Memory based [`Queue`] implementation and supporting items.
 
-use super::{Queue, IDENTIFY_DELAY, LIMIT_PERIOD};
+use super::{IDENTIFY_DELAY, LIMIT_PERIOD, Queue};
 use std::{collections::VecDeque, fmt::Debug, iter};
 use tokio::{
     sync::{mpsc, oneshot},
     task::yield_now,
-    time::{sleep_until, Duration, Instant},
+    time::{Duration, Instant, sleep_until},
 };
 
 /// Possible messages from the [`InMemoryQueue`] to the [`runner`].

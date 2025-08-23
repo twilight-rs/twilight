@@ -1,4 +1,4 @@
-use crate::id::{marker::RoleSubscriptionSkuMarker, Id};
+use crate::id::{Id, marker::RoleSubscriptionSkuMarker};
 use serde::{Deserialize, Serialize};
 
 /// Information about a role subscription that created a [`Message`].

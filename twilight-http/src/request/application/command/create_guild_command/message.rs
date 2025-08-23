@@ -11,11 +11,11 @@ use twilight_model::{
     application::command::{Command, CommandType},
     guild::Permissions,
     id::{
-        marker::{ApplicationMarker, GuildMarker},
         Id,
+        marker::{ApplicationMarker, GuildMarker},
     },
 };
-use twilight_validate::command::{name as validate_name, CommandValidationError};
+use twilight_validate::command::{CommandValidationError, name as validate_name};
 
 struct CreateGuildMessageCommandFields<'a> {
     default_member_permissions: Option<Permissions>,

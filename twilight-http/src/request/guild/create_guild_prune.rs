@@ -9,13 +9,13 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::GuildPrune,
     id::{
-        marker::{GuildMarker, RoleMarker},
         Id,
+        marker::{GuildMarker, RoleMarker},
     },
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason, guild_prune_days as validate_guild_prune_days,
-    ValidationError,
+    ValidationError, audit_reason as validate_audit_reason,
+    guild_prune_days as validate_guild_prune_days,
 };
 
 struct CreateGuildPruneFields<'a> {

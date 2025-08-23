@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use std::borrow::Cow;
 use twilight_model::{
     application::interaction::InteractionData, gateway::payload::incoming::InteractionCreate,
@@ -65,23 +65,23 @@ mod tests {
         application::{
             command::CommandType,
             interaction::{
-                application_command::CommandData, Interaction, InteractionData,
-                InteractionDataResolved, InteractionMember, InteractionType,
+                Interaction, InteractionData, InteractionDataResolved, InteractionMember,
+                InteractionType, application_command::CommandData,
             },
         },
         channel::{
-            message::{
-                sticker::{MessageSticker, StickerFormatType},
-                MessageFlags, MessageType,
-            },
             Channel, ChannelType, Message,
+            message::{
+                MessageFlags, MessageType,
+                sticker::{MessageSticker, StickerFormatType},
+            },
         },
         gateway::payload::incoming::InteractionCreate,
         guild::{MemberFlags, PartialMember, Permissions, Role, RoleFlags},
         id::Id,
         oauth::ApplicationIntegrationMap,
         user::User,
-        util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
+        util::{ImageHash, Timestamp, image_hash::ImageHashParseError},
     };
 
     #[allow(clippy::too_many_lines, deprecated)]

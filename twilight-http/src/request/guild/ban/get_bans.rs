@@ -2,19 +2,19 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     guild::Ban,
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 use twilight_validate::request::{
-    get_guild_bans_limit as validate_get_guild_bans_limit, ValidationError,
+    ValidationError, get_guild_bans_limit as validate_get_guild_bans_limit,
 };
 
 struct GetBansFields {

@@ -10,15 +10,15 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::Member,
     id::{
-        marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
     },
     util::Timestamp,
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason,
+    ValidationError, audit_reason as validate_audit_reason,
     communication_disabled_until as validate_communication_disabled_until,
-    nickname as validate_nickname, ValidationError,
+    nickname as validate_nickname,
 };
 
 #[derive(Serialize)]
@@ -209,14 +209,14 @@ impl TryIntoRequest for UpdateGuildMember<'_> {
 mod tests {
     use super::{UpdateGuildMember, UpdateGuildMemberFields};
     use crate::{
+        Client,
         request::{Nullable, Request, TryIntoRequest},
         routing::Route,
-        Client,
     };
     use std::error::Error;
     use twilight_model::id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     };
 
     const GUILD_ID: Id<GuildMarker> = Id::new(1);

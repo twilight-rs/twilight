@@ -353,7 +353,7 @@ impl FromStr for RatelimitScope {
                         value: s.to_owned(),
                     },
                     source: None,
-                })
+                });
             }
         })
     }

@@ -1,7 +1,7 @@
 use crate::{
     application::interaction::InteractionType,
     guild::PartialMember,
-    id::{marker::InteractionMarker, Id},
+    id::{Id, marker::InteractionMarker},
     user::User,
 };
 use serde::{Deserialize, Serialize};

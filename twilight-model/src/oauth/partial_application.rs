@@ -1,5 +1,5 @@
 use super::ApplicationFlags;
-use crate::id::{marker::ApplicationMarker, Id};
+use crate::id::{Id, marker::ApplicationMarker};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

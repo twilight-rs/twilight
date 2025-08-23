@@ -9,8 +9,8 @@ pub use self::option::{CommandDataOption, CommandOptionValue};
 use crate::{
     application::{command::CommandType, interaction::InteractionDataResolved},
     id::{
-        marker::{CommandMarker, GenericMarker, GuildMarker},
         Id,
+        marker::{CommandMarker, GenericMarker, GuildMarker},
     },
 };
 use serde::{Deserialize, Serialize};

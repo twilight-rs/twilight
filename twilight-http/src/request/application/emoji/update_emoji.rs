@@ -3,16 +3,16 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::Emoji,
     id::{
-        marker::{ApplicationMarker, EmojiMarker},
         Id,
+        marker::{ApplicationMarker, EmojiMarker},
     },
 };
 
 use crate::{
+    Client, Error,
     request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
-    Client, Error,
 };
 
 #[derive(Serialize)]

@@ -4,18 +4,18 @@ mod bucket;
 
 use self::bucket::{Bucket, BucketQueueTask};
 use super::{
-    ticket::{self, TicketNotifier},
     Bucket as InfoBucket, Ratelimiter,
+    ticket::{self, TicketNotifier},
 };
 use crate::{
-    request::Path, GetBucketFuture, GetTicketFuture, HasBucketFuture, IsGloballyLockedFuture,
+    GetBucketFuture, GetTicketFuture, HasBucketFuture, IsGloballyLockedFuture, request::Path,
 };
 use std::{
     collections::hash_map::{Entry, HashMap},
     future,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };

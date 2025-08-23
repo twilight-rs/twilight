@@ -191,7 +191,7 @@ impl From<ShardId> for [u32; 2] {
 #[cfg(test)]
 mod tests {
     use super::ShardId;
-    use serde::{de::DeserializeOwned, Serialize};
+    use serde::{Serialize, de::DeserializeOwned};
     use serde_test::Token;
     use static_assertions::{assert_impl_all, const_assert_eq};
     use std::{fmt::Debug, hash::Hash};

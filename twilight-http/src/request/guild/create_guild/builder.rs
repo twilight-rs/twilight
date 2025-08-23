@@ -8,8 +8,8 @@ use twilight_model::{
     guild::Permissions,
     http::permission_overwrite::PermissionOverwrite,
     id::{
-        marker::{ChannelMarker, RoleMarker},
         Id,
+        marker::{ChannelMarker, RoleMarker},
     },
 };
 

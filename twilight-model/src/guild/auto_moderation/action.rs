@@ -1,4 +1,4 @@
-use crate::id::{marker::ChannelMarker, Id};
+use crate::id::{Id, marker::ChannelMarker};
 use serde::{Deserialize, Serialize};
 
 /// An action which will execute whenever a rule is triggered.

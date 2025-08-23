@@ -11,13 +11,13 @@ use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
     guild::Permissions,
     id::{
-        marker::{ApplicationMarker, GuildMarker},
         Id,
+        marker::{ApplicationMarker, GuildMarker},
     },
 };
 use twilight_validate::command::{
-    chat_input_name as validate_chat_input_name, description as validate_description,
-    options as validate_options, CommandValidationError,
+    CommandValidationError, chat_input_name as validate_chat_input_name,
+    description as validate_description, options as validate_options,
 };
 
 struct CreateGuildChatInputCommandFields<'a> {

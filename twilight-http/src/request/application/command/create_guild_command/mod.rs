@@ -9,8 +9,8 @@ pub use self::{
 
 use crate::Client;
 use twilight_model::id::{
-    marker::{ApplicationMarker, GuildMarker},
     Id,
+    marker::{ApplicationMarker, GuildMarker},
 };
 
 /// Create a new command in a guild.

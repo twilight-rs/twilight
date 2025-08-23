@@ -13,11 +13,11 @@ use twilight_model::{
         AutoModerationTriggerMetadata,
     },
     id::{
-        marker::{AutoModerationRuleMarker, ChannelMarker, GuildMarker, RoleMarker},
         Id,
+        marker::{AutoModerationRuleMarker, ChannelMarker, GuildMarker, RoleMarker},
     },
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
 struct UpdateAutoModerationRuleFields<'a> {

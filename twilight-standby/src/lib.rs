@@ -36,8 +36,8 @@ use twilight_model::{
         payload::incoming::{MessageCreate, ReactionAdd},
     },
     id::{
-        marker::{ChannelMarker, GuildMarker, MessageMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, MessageMarker},
     },
 };
 
@@ -1063,19 +1063,19 @@ mod tests {
     use twilight_gateway::{Event, EventType};
     use twilight_model::{
         application::interaction::{
-            message_component::MessageComponentInteractionData, Interaction, InteractionData,
-            InteractionType,
+            Interaction, InteractionData, InteractionType,
+            message_component::MessageComponentInteractionData,
         },
         channel::{
-            message::{component::ComponentType, EmojiReactionType, Message, MessageType},
             Channel, ChannelType,
+            message::{EmojiReactionType, Message, MessageType, component::ComponentType},
         },
         gateway::{
-            payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
             GatewayReaction, ShardId,
+            payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
         guild::Permissions,
-        id::{marker::GuildMarker, Id},
+        id::{Id, marker::GuildMarker},
         oauth::{ApplicationFlags, ApplicationIntegrationMap, PartialApplication},
         user::{CurrentUser, User},
         util::Timestamp,

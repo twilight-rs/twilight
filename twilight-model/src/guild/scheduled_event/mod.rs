@@ -6,11 +6,11 @@ pub use self::user::GuildScheduledEventUser;
 
 use crate::{
     id::{
+        Id,
         marker::{
             ChannelMarker, GuildMarker, ScheduledEventEntityMarker, ScheduledEventMarker,
             UserMarker,
         },
-        Id,
     },
     user::User,
     util::{ImageHash, Timestamp},

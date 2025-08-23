@@ -1,6 +1,6 @@
 use crate::{
     channel::thread::ThreadMember,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};

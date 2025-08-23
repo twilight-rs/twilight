@@ -4,13 +4,13 @@ use serde::Serialize;
 use twilight_model::{
     gateway::payload::incoming::GuildUpdate,
     guild::{
-        scheduled_event::GuildScheduledEvent, AfkTimeout, DefaultMessageNotificationLevel,
-        ExplicitContentFilter, Guild, GuildFeature, MfaLevel, NSFWLevel, Permissions, PremiumTier,
-        SystemChannelFlags, VerificationLevel,
+        AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, GuildFeature,
+        MfaLevel, NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
+        scheduled_event::GuildScheduledEvent,
     },
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
     },
     util::{ImageHash, Timestamp},
 };
