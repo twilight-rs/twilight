@@ -4,7 +4,7 @@ use crate::{
     util::Timestamp,
 };
 
-use super::{Component, Embed, MessageFlags, MessageSticker, MessageType};
+use super::{Component, Embed, Mention, MessageFlags, MessageSticker, MessageType};
 
 use serde::{Deserialize, Serialize};
 
@@ -38,6 +38,9 @@ pub struct MessageSnapshotFields {
     /// Type of message.
     #[serde(rename = "type")]
     pub kind: MessageType,
+    /// Users mentioned in the message snapshot.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub mentions: Vec<Mention>,
     /// Stickers within the message snapshot.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub sticker_items: Vec<MessageSticker>,
@@ -48,10 +51,10 @@ pub struct MessageSnapshotFields {
 #[cfg(test)]
 mod tests {
     use super::{MessageSnapshot, MessageSnapshotFields};
-    use crate::{channel::Attachment, id::Id, util::Timestamp};
-    use crate::channel::message::{Component, MessageSticker, MessageType};
     use crate::channel::message::component::{ActionRow, Button, ButtonStyle, ComponentType};
     use crate::channel::message::sticker::StickerFormatType;
+    use crate::channel::message::{Component, MessageSticker, MessageType};
+    use crate::{channel::Attachment, id::Id, util::Timestamp};
     use serde_test::Token;
 
     #[test]
@@ -80,7 +83,8 @@ mod tests {
                 embeds: Vec::new(),
                 kind: MessageType::Regular,
                 flags: None,
-                sticker_items: vec![],
+                mentions: Vec::new(),
+                sticker_items: Vec::new(),
                 timestamp: Timestamp::from_secs(1_571_573_184).unwrap(),
             },
             guild_id: Some(Id::new(1)),
@@ -106,8 +110,6 @@ mod tests {
                 },
                 Token::Str("content_type"),
                 Token::None,
-                // Token::Str("ephemeral"),
-                // Token::Bool(false),
                 Token::Str("filename"),
                 Token::Str("file.jpg"),
                 Token::Str("height"),
@@ -149,7 +151,7 @@ mod tests {
         );
     }
 
-
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_message_snapshot_with_sticker_and_components() {
         let value = MessageSnapshot {
@@ -186,6 +188,7 @@ mod tests {
                 embeds: Vec::new(),
                 kind: MessageType::Regular,
                 flags: None,
+                mentions: Vec::new(),
                 sticker_items: vec![MessageSticker {
                     format_type: StickerFormatType::Png,
                     id: Id::new(1),
@@ -216,8 +219,6 @@ mod tests {
                 },
                 Token::Str("content_type"),
                 Token::None,
-                // Token::Str("ephemeral"),
-                // Token::Bool(false),
                 Token::Str("filename"),
                 Token::Str("file.jpg"),
                 Token::Str("height"),
