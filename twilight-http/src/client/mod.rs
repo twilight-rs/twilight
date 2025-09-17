@@ -113,7 +113,7 @@ use std::{
     },
     time::Duration,
 };
-use twilight_http_ratelimiting::RateLimiter;
+use twilight_http_ratelimiting::{Endpoint, RateLimiter};
 use twilight_model::{
     channel::{message::AllowedMentions, ChannelType},
     guild::{
@@ -2912,7 +2912,6 @@ impl Client {
             headers: req_headers,
             method,
             path,
-            ratelimit_path,
             use_authorization_token,
         } = request;
 
@@ -3003,7 +3002,7 @@ impl Client {
             tracing::info_span!("req", method = method.name(), url = url),
             self.timeout,
             self.ratelimiter.clone(),
-            ratelimit_path,
+            Endpoint { method, path },
         );
 
         Ok(response)

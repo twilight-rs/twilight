@@ -1,8 +1,5 @@
 use super::{Form, Method};
-use crate::{
-    error::Error,
-    routing::{Path, Route},
-};
+use crate::{error::Error, routing::Route};
 use http::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::Serialize;
 
@@ -51,26 +48,21 @@ impl RequestBuilder {
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::str::FromStr;
-    /// use twilight_http::{
-    ///     request::{Method, RequestBuilder},
-    ///     routing::Path,
-    /// };
+    /// use twilight_http::request::{Method, RequestBuilder};
     ///
     /// let method = Method::Post;
     /// let path_and_query = "channels/123/pins".to_owned();
-    /// let ratelimit_path = Path::from_str(&path_and_query)?;
     ///
-    /// let _request = RequestBuilder::raw(method, ratelimit_path, path_and_query).build();
+    /// let _request = RequestBuilder::raw(method, path_and_query).build();
     /// # Ok(()) }
     /// ```
-    pub const fn raw(method: Method, ratelimit_path: Path, path_and_query: String) -> Self {
+    pub const fn raw(method: Method, path_and_query: String) -> Self {
         Self(Ok(Request {
             body: None,
             form: None,
             headers: None,
             method,
             path: path_and_query,
-            ratelimit_path,
             use_authorization_token: true,
         }))
     }
@@ -149,7 +141,6 @@ pub struct Request {
     pub(crate) headers: Option<HeaderMap<HeaderValue>>,
     pub(crate) method: Method,
     pub(crate) path: String,
-    pub(crate) ratelimit_path: Path,
     pub(crate) use_authorization_token: bool,
 }
 
@@ -204,7 +195,6 @@ impl Request {
             headers: None,
             method: route.method(),
             path: route.to_string(),
-            ratelimit_path: route.to_path(),
             use_authorization_token: true,
         }
     }
@@ -233,11 +223,6 @@ impl Request {
     #[allow(clippy::missing_const_for_fn)]
     pub fn path(&self) -> &str {
         &self.path
-    }
-
-    /// Path used for ratelimiting.
-    pub const fn ratelimit_path(&self) -> &Path {
-        &self.ratelimit_path
     }
 
     /// Whether to use the client's authorization token in the request.

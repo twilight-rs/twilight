@@ -9,9 +9,9 @@
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
 mod actor;
-mod request;
+mod endpoint;
 
-pub use crate::request::{Method, Path, PathParseError, PathParseErrorType};
+pub use crate::endpoint::{Endpoint, Method};
 
 use std::{
     future::Future,
@@ -157,23 +157,29 @@ impl RateLimiter {
         Self { tx }
     }
 
-    /// Await a single permit for this path.
+    /// Await a single permit for this endpoint.
     ///
-    /// Permits are queued per path in the order they were requested.
+    /// Permits are queued per endpoint in the order they were requested.
     #[allow(clippy::missing_panics_doc)]
-    pub fn acquire(&self, path: Path) -> PermitFuture {
+    pub fn acquire(&self, endpoint: Endpoint) -> PermitFuture {
         let (tx, rx) = oneshot::channel();
         self.tx
-            .send((actor::Message { path, notifier: tx }, None))
+            .send((
+                actor::Message {
+                    endpoint,
+                    notifier: tx,
+                },
+                None,
+            ))
             .expect("actor is alive");
 
         PermitFuture(rx)
     }
 
-    /// Await a single permit for this path, but only if the predicate evaluates
+    /// Await a single permit for this endpoint, but only if the predicate evaluates
     /// to `true`.
     ///
-    /// Permits are queued per path in the order they were requested.
+    /// Permits are queued per endpoint in the order they were requested.
     ///
     /// Note that the predicate is asynchronously called in the actor task.
     ///
@@ -186,10 +192,14 @@ impl RateLimiter {
     /// #     .unwrap();
     /// # rt.block_on(async {
     /// # let rate_limiter = twilight_http_ratelimiting::RateLimiter::default();
-    /// use twilight_http_ratelimiting::Path;
+    /// use twilight_http_ratelimiting::{Endpoint, Method};
     ///
+    /// let endpoint = Endpoint {
+    ///     method: Method::Get,
+    ///     path: String::from("applications/@me"),
+    /// };
     /// if let Some(permit) = rate_limiter
-    ///     .acquire_if(Path::ApplicationsMe, |b| b.is_none_or(|b| b.remaining > 10))
+    ///     .acquire_if(endpoint, |b| b.is_none_or(|b| b.remaining > 10))
     ///     .await
     /// {
     ///     let headers = unimplemented!("GET /applications/@me");
@@ -198,14 +208,17 @@ impl RateLimiter {
     /// # });
     /// ```
     #[allow(clippy::missing_panics_doc)]
-    pub fn acquire_if<P>(&self, path: Path, predicate: P) -> MaybePermitFuture
+    pub fn acquire_if<P>(&self, endpoint: Endpoint, predicate: P) -> MaybePermitFuture
     where
         P: FnOnce(Option<Bucket>) -> bool + Send + 'static,
     {
         let (tx, rx) = oneshot::channel();
         self.tx
             .send((
-                actor::Message { path, notifier: tx },
+                actor::Message {
+                    endpoint,
+                    notifier: tx,
+                },
                 Some(Box::new(predicate)),
             ))
             .expect("actor is alive");
@@ -213,13 +226,13 @@ impl RateLimiter {
         MaybePermitFuture(rx)
     }
 
-    /// Retrieve the [`Bucket`] for this path.
+    /// Retrieve the [`Bucket`] for this endpoint.
     ///
     /// The bucket is internally retrieved via [`acquire_if`][Self::acquire_if].
     #[allow(clippy::missing_panics_doc)]
-    pub async fn bucket(&self, path: Path) -> Option<Bucket> {
+    pub async fn bucket(&self, endpoint: Endpoint) -> Option<Bucket> {
         let (tx, rx) = oneshot::channel();
-        self.acquire_if(path, |bucket| {
+        self.acquire_if(endpoint, |bucket| {
             _ = tx.send(bucket);
             false
         })
@@ -241,7 +254,8 @@ impl Default for RateLimiter {
 #[cfg(test)]
 mod tests {
     use super::{
-        Bucket, MaybePermitFuture, Path, Permit, PermitFuture, RateLimitHeaders, RateLimiter,
+        Bucket, Endpoint, MaybePermitFuture, Method, Permit, PermitFuture, RateLimitHeaders,
+        RateLimiter,
     };
     use static_assertions::assert_impl_all;
     use std::{
@@ -259,14 +273,23 @@ mod tests {
     assert_impl_all!(RateLimitHeaders: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
     assert_impl_all!(RateLimiter: Clone, Debug, Default, Send, Sync);
 
-    const PATH: Path = Path::ApplicationsMe;
+    const ENDPOINT: fn() -> Endpoint = || Endpoint {
+        method: Method::Get,
+        path: String::from("applications/@me"),
+    };
 
     #[tokio::test]
     async fn acquire_if() {
         let rate_limiter = RateLimiter::default();
 
-        assert!(rate_limiter.acquire_if(PATH, |_| false).await.is_none());
-        assert!(rate_limiter.acquire_if(PATH, |_| true).await.is_some());
+        assert!(rate_limiter
+            .acquire_if(ENDPOINT(), |_| false)
+            .await
+            .is_none());
+        assert!(rate_limiter
+            .acquire_if(ENDPOINT(), |_| true)
+            .await
+            .is_some());
     }
 
     #[tokio::test]
@@ -283,10 +306,13 @@ mod tests {
             reset_at,
         };
 
-        rate_limiter.acquire(PATH).await.complete(Some(headers));
+        rate_limiter
+            .acquire(ENDPOINT())
+            .await
+            .complete(Some(headers));
         task::yield_now().await;
 
-        let bucket = rate_limiter.bucket(PATH).await.unwrap();
+        let bucket = rate_limiter.bucket(ENDPOINT()).await.unwrap();
         assert_eq!(bucket.limit, limit);
         assert_eq!(bucket.remaining, remaining);
         assert!(

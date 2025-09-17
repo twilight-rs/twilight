@@ -249,7 +249,6 @@ mod tests {
 
         assert_eq!(expected.body(), actual.body());
         assert_eq!(expected.path(), actual.path());
-        assert_eq!(expected.ratelimit_path(), actual.ratelimit_path());
 
         Ok(())
     }

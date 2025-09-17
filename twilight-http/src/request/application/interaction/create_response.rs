@@ -104,7 +104,6 @@ impl TryIntoRequest for CreateResponse<'_> {
 mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
-    use twilight_http_ratelimiting::Path;
     use twilight_model::{
         http::interaction::{InteractionResponse, InteractionResponseType},
         id::Id,
@@ -129,10 +128,6 @@ mod tests {
             .try_into_request()?;
 
         assert!(!req.use_authorization_token());
-        assert_eq!(
-            &Path::InteractionCallback(interaction_id.get()),
-            req.ratelimit_path()
-        );
 
         Ok(())
     }
