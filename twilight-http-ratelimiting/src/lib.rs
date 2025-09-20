@@ -9,12 +9,10 @@
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
 mod actor;
-mod endpoint;
-
-pub use crate::endpoint::{Endpoint, Method};
 
 use std::{
     future::Future,
+    hash::{Hash as _, Hasher},
     pin::Pin,
     task::{Context, Poll},
     time::{Duration, Instant},
@@ -24,6 +22,123 @@ use tokio::sync::{mpsc, oneshot};
 /// Duration from the first globally limited request until the remaining count
 /// resets to the global limit count.
 pub const GLOBAL_LIMIT_PERIOD: Duration = Duration::from_secs(1);
+
+/// HTTP request [method].
+///
+/// [method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+pub enum Method {
+    /// Delete a resource.
+    Delete,
+    /// Retrieve a resource.
+    Get,
+    /// Update a resource.
+    Patch,
+    /// Create a resource.
+    Post,
+    /// Replace a resource.
+    Put,
+}
+
+impl Method {
+    /// Name of the method.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Method::Delete => "DELETE",
+            Method::Get => "GET",
+            Method::Patch => "PATCH",
+            Method::Post => "POST",
+            Method::Put => "PUT",
+        }
+    }
+}
+
+/// Rate limited endpoint.
+///
+/// The rate limiter dynamically supports new or unknown API paths, but is consequently unable to
+/// catch invalid arguments. Invalidly structured endpoints may be permitted at an improper time.
+///
+/// # Example
+///
+/// ```no_run
+/// # let rt = tokio::runtime::Builder::new_current_thread()
+/// #     .enable_time()
+/// #     .build()
+/// #     .unwrap();
+/// # rt.block_on(async {
+/// # let rate_limiter = twilight_http_ratelimiting::RateLimiter::default();
+/// use twilight_http_ratelimiting::{Endpoint, Method};
+///
+/// let url = "https://discord.com/api/v10/guilds/745809834183753828/audit-logs?limit=10";
+/// let endpoint = Endpoint {
+///     method: Method::Get,
+///     path: String::from("guilds/745809834183753828/audit-logs"),
+/// };
+/// let permit = rate_limiter.acquire(endpoint).await;
+/// let headers = unimplemented!("GET {url}");
+/// permit.complete(headers);
+/// # });
+/// ```
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Endpoint {
+    /// Method of the endpoint.
+    pub method: Method,
+    /// API path of the endpoint.
+    ///
+    /// Should not start with a slash (`/`) or include query parameters (`?key=value`).
+    pub path: String,
+}
+
+impl Endpoint {
+    /// Whether the endpoint is properly structured.
+    pub(crate) fn is_valid(&self) -> bool {
+        self.path.as_bytes().starts_with(b"/") && !self.path.as_bytes().contains(&b'?')
+    }
+
+    /// Whether the endpoint is an interaction.
+    pub(crate) fn is_interaction(&self) -> bool {
+        self.path.as_bytes().starts_with(b"webhooks")
+            || self.path.as_bytes().starts_with(b"interactions")
+    }
+
+    /// Feeds the top-level resources of this endpoint into the given [`Hasher`].
+    ///
+    /// Top-level resources represent the bucket namespace in which they are unique.
+    ///
+    /// Top-level resources are currently:
+    /// - `channels/<channel_id>`
+    /// - `guilds/<guild_id>`
+    /// - `webhooks/<webhook_id>`
+    /// - `webhooks/<webhook_id>/<webhook_token>`
+    pub(crate) fn hash_resources(&self, state: &mut impl Hasher) {
+        let mut segments = self.path.as_bytes().split(|&s| s == b'/');
+        match segments.next().unwrap_or_default() {
+            b"channels" => {
+                if let Some(s) = segments.next() {
+                    "channels".hash(state);
+                    s.hash(state);
+                }
+            }
+            b"guilds" => {
+                if let Some(s) = segments.next() {
+                    "guilds".hash(state);
+                    s.hash(state);
+                }
+            }
+            b"webhooks" => {
+                if let Some(s) = segments.next() {
+                    "webhooks".hash(state);
+                    s.hash(state);
+                }
+                if let Some(s) = segments.next() {
+                    s.hash(state);
+                }
+            }
+            _ => {}
+        }
+    }
+}
 
 /// Parsed user response rate limit headers.
 ///
@@ -75,7 +190,7 @@ impl RateLimitHeaders {
     }
 }
 
-/// Permit to send a Discord HTTP API request to the acquired path.
+/// Permit to send a Discord HTTP API request to the acquired endpoint.
 #[derive(Debug)]
 #[must_use = "dropping the permit immediately cancels itself"]
 pub struct Permit(oneshot::Sender<Option<RateLimitHeaders>>);
@@ -267,7 +382,9 @@ mod tests {
     use tokio::task;
 
     assert_impl_all!(Bucket: Clone, Copy, Debug, Eq, Hash, PartialEq, Send, Sync);
+    assert_impl_all!(Endpoint: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
     assert_impl_all!(MaybePermitFuture: Debug, Future<Output = Option<Permit>>);
+    assert_impl_all!(Method: Clone, Copy, Debug, Eq, PartialEq);
     assert_impl_all!(Permit: Debug, Send, Sync);
     assert_impl_all!(PermitFuture: Debug, Future<Output = Permit>);
     assert_impl_all!(RateLimitHeaders: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
@@ -319,5 +436,14 @@ mod tests {
             bucket.reset_at.saturating_duration_since(reset_at) < Duration::from_millis(1)
                 && reset_at.saturating_duration_since(bucket.reset_at) < Duration::from_millis(1)
         );
+    }
+
+    #[test]
+    fn method_conversions() {
+        assert_eq!("DELETE", Method::Delete.name());
+        assert_eq!("GET", Method::Get.name());
+        assert_eq!("PATCH", Method::Patch.name());
+        assert_eq!("POST", Method::Post.name());
+        assert_eq!("PUT", Method::Put.name());
     }
 }

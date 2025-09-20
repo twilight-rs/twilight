@@ -24,18 +24,20 @@ use tokio_util::time::delay_queue::{DelayQueue, Key};
 struct Hasher(RandomState);
 
 impl Hasher {
-    /// Hashes a bucket and an endpoint.
+    /// Hashes a bucket and an endpoint's top-level resources.
+    ///
+    /// The resulting hash is globally unique.
     fn bucket(&self, bucket: &[u8], endpoint: &Endpoint) -> u64 {
         let mut hasher = self.0.build_hasher();
-        endpoint.hash_components(&mut hasher);
+        endpoint.hash_resources(&mut hasher);
         bucket.hash(&mut hasher);
         hasher.finish()
     }
 
-    /// Hashes an endpoint.
+    /// Hashes an endpoint's top-level resources.
     fn endpoint(&self, endpoint: &Endpoint) -> u64 {
         let mut hasher = self.0.build_hasher();
-        endpoint.hash_components(&mut hasher);
+        endpoint.hash_resources(&mut hasher);
         hasher.finish()
     }
 }
@@ -51,11 +53,13 @@ pub struct Message {
 
 /// Grouped pending permits holder.
 ///
-/// Grouping may be done by path or bucket, based on previous permits' response
-/// headers.
+/// Grouping is based on previous permits' response headers: by bucket (if known) or endpoint.
 ///
-/// Queue may not be rate limited, in which case the values of [`limit`][Self::limit],
-/// [`reset`][Self::reset], and [`remaining`][Self::remaining] are unused.
+/// May not be rate limited, in which case [`limit`], [`reset`], and [`remaining`] are unused.
+///
+/// [`limit`]: Self::limit
+/// [`reset`]: Self::reset
+/// [`remaining`]: Self::remaining
 #[derive(Debug, Default)]
 struct Queue {
     /// Whether the queue has a request in flight.
@@ -102,7 +106,7 @@ pub async fn runner(
     let mut global_timer = pin!(sleep(Duration::ZERO));
 
     let mut buckets = HashMap::<Endpoint, Vec<u8>>::new();
-    // Invariants: may never contain more than one task per path at once.
+    // Invariants: may never contain more than one task per endpoint at once.
     let mut in_flight = JoinSet::<(Endpoint, Result<Option<RateLimitHeaders>, RecvError>)>::new();
 
     let mut gc_interval = pin!(sleep(GC_INTERVAL));
@@ -280,7 +284,9 @@ pub async fn runner(
                 }
             }
             Some((msg, pred)) = rx.recv() => {
-                // Group bucketless requests until they are assigned a bucket.
+                if !msg.endpoint.is_valid() {
+                    tracing::warn!(path = msg.endpoint.path, "improperly formatted path");
+                }
                 let (_, queue) = if let Some(bucket) = buckets.get(&msg.endpoint) {
                     let hash = hasher.bucket(bucket, &msg.endpoint);
                     queues.find_mut(hash, |&(key, _)| key == hash).unwrap()
