@@ -2911,7 +2911,7 @@ impl Client {
             form,
             headers: req_headers,
             method,
-            path,
+            mut path,
             use_authorization_token,
         } = request;
 
@@ -2995,6 +2995,9 @@ impl Client {
             .then(|| self.token_invalidated.clone())
             .flatten();
 
+        if let Some(i) = path.find('?') {
+            path.truncate(i);
+        }
         let response = ResponseFuture::new(
             self.http.clone(),
             invalid_token,
