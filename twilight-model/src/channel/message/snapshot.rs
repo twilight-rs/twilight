@@ -6,6 +6,7 @@ use crate::{
 
 use super::{Component, Embed, Mention, MessageFlags, MessageSticker, MessageType};
 
+use crate::id::marker::RoleMarker;
 use serde::{Deserialize, Serialize};
 
 /// The snap-shot of a message.
@@ -41,6 +42,9 @@ pub struct MessageSnapshotFields {
     /// Users mentioned in the message snapshot.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub mentions: Vec<Mention>,
+    /// Roles mentioned in the message snapshot.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub mention_roles: Vec<Id<RoleMarker>>,
     /// Stickers within the message snapshot.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub sticker_items: Vec<MessageSticker>,
@@ -84,6 +88,7 @@ mod tests {
                 kind: MessageType::Regular,
                 flags: None,
                 mentions: Vec::new(),
+                mention_roles: Vec::new(),
                 sticker_items: Vec::new(),
                 timestamp: Timestamp::from_secs(1_571_573_184).unwrap(),
             },
@@ -189,6 +194,7 @@ mod tests {
                 kind: MessageType::Regular,
                 flags: None,
                 mentions: Vec::new(),
+                mention_roles: Vec::new(),
                 sticker_items: vec![MessageSticker {
                     format_type: StickerFormatType::Png,
                     id: Id::new(1),
