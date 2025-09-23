@@ -93,7 +93,7 @@ pub struct Endpoint {
 impl Endpoint {
     /// Whether the endpoint is properly structured.
     pub(crate) fn is_valid(&self) -> bool {
-        self.path.as_bytes().starts_with(b"/") && !self.path.as_bytes().contains(&b'?')
+        !self.path.as_bytes().starts_with(b"/") && !self.path.as_bytes().contains(&b'?')
     }
 
     /// Whether the endpoint is an interaction.
@@ -376,7 +376,7 @@ mod tests {
     use std::{
         fmt::Debug,
         future::Future,
-        hash::Hash,
+        hash::{DefaultHasher, Hash, Hasher as _},
         time::{Duration, Instant},
     };
     use tokio::task;
@@ -435,6 +435,51 @@ mod tests {
         assert!(
             bucket.reset_at.saturating_duration_since(reset_at) < Duration::from_millis(1)
                 && reset_at.saturating_duration_since(bucket.reset_at) < Duration::from_millis(1)
+        );
+    }
+
+    fn with_hasher(f: impl FnOnce(&mut DefaultHasher)) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        f(&mut hasher);
+        hasher.finish()
+    }
+
+    #[test]
+    fn endpoint() {
+        let invalid = Endpoint {
+            method: Method::Get,
+            path: String::from("/guilds/745809834183753828/audit-logs?limit=10"),
+        };
+        let delete_webhook = Endpoint {
+            method: Method::Delete,
+            path: String::from("webhooks/1"),
+        };
+        let interaction_response = Endpoint {
+            method: Method::Post,
+            path: String::from("interactions/1/abc/callback"),
+        };
+
+        assert!(!invalid.is_valid());
+        assert!(delete_webhook.is_valid());
+        assert!(interaction_response.is_valid());
+
+        assert!(delete_webhook.is_interaction());
+        assert!(interaction_response.is_interaction());
+
+        assert_eq!(
+            with_hasher(|state| invalid.hash_resources(state)),
+            with_hasher(|_| {})
+        );
+        assert_eq!(
+            with_hasher(|state| delete_webhook.hash_resources(state)),
+            with_hasher(|state| {
+                "webhooks".hash(state);
+                b"1".hash(state);
+            })
+        );
+        assert_eq!(
+            with_hasher(|state| interaction_response.hash_resources(state)),
+            with_hasher(|_| {})
         );
     }
 
