@@ -387,7 +387,7 @@ struct Inner<T> {
     /// Optional [`PermitFuture`] generator, if registered.
     permit_generator: Option<PermitFutureGenerator>,
     phantom: PhantomData<T>,
-    /// Predicate to check after completing [`ResponseFutureStage::Permit`].
+    /// Predicate to check after completing [`ResponseStageFuture::RateLimitPermit`].
     pre_flight_check: Option<Box<dyn Fn() -> bool + Send + 'static>>,
     /// [`Timeout<HyperResponseFuture>`] generator.
     response_generator: TimedResponseFutureGenerator,
