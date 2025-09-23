@@ -164,8 +164,8 @@ pub async fn runner(
             biased;
             () = &mut gc_interval => {
                 let _span = tracing::debug_span!("gc").entered();
-                buckets.retain(|path, bucket| {
-                    let hash = hasher.bucket(bucket, path);
+                buckets.retain(|endpoint, bucket| {
+                    let hash = hasher.bucket(bucket, endpoint);
                     let entry = queues.find_entry(hash, |&(key, _)| key == hash).unwrap();
                     let (_, queue) = entry.get();
 
@@ -199,13 +199,13 @@ pub async fn runner(
                     try_pop!(queue);
                 }
             }
-            Some(Ok((path, headers))) = in_flight.join_next() => {
-                let _span = tracing::info_span!("resp", ?path).entered();
+            Some(Ok((endpoint, headers))) = in_flight.join_next() => {
+                let _span = tracing::info_span!("resp", ?endpoint).entered();
                 if let Ok(Some(headers)) = headers {
                     tracing::trace!(?headers);
 
-                    let hash = hasher.bucket(&headers.bucket, &path);
-                    let queue = match buckets.entry(path.clone()) {
+                    let hash = hasher.bucket(&headers.bucket, &endpoint);
+                    let queue = match buckets.entry(endpoint.clone()) {
                         MapEntry::Occupied(entry) if *entry.get() == headers.bucket => {
                             &mut queues.find_mut(hash, |&(key, _)| key == hash).unwrap().1
                         }
@@ -216,7 +216,7 @@ pub async fn runner(
                             };
                             tracing::debug!(new = hash, previous = old_hash, "updated bucket");
 
-                            // Retrieve this path's requests.
+                            // Retrieve this endpoint's requests.
                             let (_, old_queue) = queues.find_mut(old_hash, |&(key, _)| key == old_hash).unwrap();
                             old_queue.in_flight = false;
                             let (pending, old_pending) = mem::take(&mut old_queue.pending)
@@ -277,7 +277,7 @@ pub async fn runner(
                         tracing::debug!(headers = "None");
                     }
 
-                    let hash = buckets.get(&path).map_or_else(|| hasher.endpoint(&path), |bucket| hasher.bucket(bucket, &path));
+                    let hash = buckets.get(&endpoint).map_or_else(|| hasher.endpoint(&endpoint), |bucket| hasher.bucket(bucket, &endpoint));
                     let (_, queue) = queues.find_mut(hash, |&(key, _)| key == hash).unwrap();
                     queue.in_flight = false;
                     try_pop!(queue);
