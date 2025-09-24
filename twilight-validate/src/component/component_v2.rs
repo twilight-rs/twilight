@@ -39,13 +39,15 @@ pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
 pub fn component_v2(component: &Component) -> Result<(), ComponentValidationError> {
     match component {
         Component::ActionRow(action_row) => super::action_row(action_row, true)?,
-        Component::TextDisplay(text_display) => self::text_display(text_display)?,
+        Component::Button(button) => super::button(button)?,
+        Component::Container(container) => self::container(container)?,
         Component::MediaGallery(media_gallery) => self::media_gallery(media_gallery)?,
         Component::Section(section) => self::section(section)?,
-        Component::Container(container) => self::container(container)?,
+        Component::SelectMenu(select_menu) => super::select_menu(select_menu)?,
+        Component::TextDisplay(text_display) => self::text_display(text_display)?,
+        Component::TextInput(text_input) => super::text_input(text_input)?,
         Component::Thumbnail(thumbnail) => self::thumbnail(thumbnail)?,
-        Component::Separator(_) | Component::File(_) => (),
-        _ => todo!(),
+        Component::Separator(_) | Component::File(_) | Component::Unknown(_) => (),
     }
 
     Ok(())
