@@ -55,6 +55,7 @@ mod base;
 mod get_current_authorization_information;
 mod get_gateway;
 mod get_gateway_authed;
+mod get_soundboard_default_sounds;
 mod get_user_application;
 mod get_voice_regions;
 mod multipart;
@@ -67,6 +68,7 @@ pub use self::{
     get_current_authorization_information::GetCurrentAuthorizationInformation,
     get_gateway::GetGateway,
     get_gateway_authed::GetGatewayAuthed,
+    get_soundboard_default_sounds::GetDefaultSoundboardSounds,
     get_user_application::GetUserApplicationInfo,
     get_voice_regions::GetVoiceRegions,
     multipart::Form,

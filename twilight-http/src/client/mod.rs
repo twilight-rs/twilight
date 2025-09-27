@@ -47,7 +47,8 @@ use crate::{
                 UpdateWebhookMessage, UpdateWebhookWithToken,
             },
             CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission, DeletePin,
-            FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
+            FollowNewsChannel, GetChannel, GetPins, SendSoundboardSound, UpdateChannel,
+            UpdateChannelPermission,
         },
         guild::{
             auto_moderation::{
@@ -64,6 +65,7 @@ use crate::{
             role::{
                 CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
             },
+            soundboard::{GetGuildSoundboardSound, GetGuildSoundboardSounds},
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
@@ -92,8 +94,8 @@ use crate::{
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetCurrentAuthorizationInformation, GetGateway, GetUserApplicationInfo, GetVoiceRegions,
-        Method, Request, UpdateCurrentUserApplication,
+        GetCurrentAuthorizationInformation, GetDefaultSoundboardSounds, GetGateway,
+        GetUserApplicationInfo, GetVoiceRegions, Method, Request, UpdateCurrentUserApplication,
     },
     response::ResponseFuture,
     API_VERSION,
@@ -115,6 +117,7 @@ use std::{
 };
 use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
+use twilight_model::id::marker::SoundboardSoundMarker;
 use twilight_model::{
     channel::{message::AllowedMentions, ChannelType},
     guild::{
@@ -2880,6 +2883,104 @@ impl Client {
         emoji_id: Id<EmojiMarker>,
     ) -> DeleteApplicationEmoji<'_> {
         DeleteApplicationEmoji::new(self, application_id, emoji_id)
+    }
+
+    /// Send a soundboard sound in a voice channel the current user is connected to.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let channel_id = Id::new(1);
+    /// let sound_id = Id::new(2);
+    ///
+    /// client.send_soundboard_sound(channel_id, sound_id).await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    pub const fn send_soundboard_sound(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        sound_id: Id<SoundboardSoundMarker>,
+    ) -> SendSoundboardSound<'_> {
+        SendSoundboardSound::new(self, channel_id, sound_id)
+    }
+
+    /// Retrieve the soundboard default sounds provided by Discord.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// client.soundboard_default_sounds().await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    pub const fn soundboard_default_sounds(&self) -> GetDefaultSoundboardSounds<'_> {
+        GetDefaultSoundboardSounds::new(self)
+    }
+
+    /// Retrieve a soundboard sound of a guild.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = Id::new(1);
+    /// let sound_id = Id::new(1);
+    ///
+    /// client.guild_soundboard_sound(guild_id, sound_id).await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    pub const fn guild_soundboard_sound(
+        &self,
+        guild_id: Id<GuildMarker>,
+        sound_id: Id<SoundboardSoundMarker>,
+    ) -> GetGuildSoundboardSound<'_> {
+        GetGuildSoundboardSound::new(self, guild_id, sound_id)
+    }
+
+    /// Retrieve the soundboard sounds of a guild.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = Id::new(1);
+    ///
+    /// client.guild_soundboard_sounds(guild_id).await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    pub const fn guild_soundboard_sounds(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetGuildSoundboardSounds<'_> {
+        GetGuildSoundboardSounds::new(self, guild_id)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].

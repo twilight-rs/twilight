@@ -9,6 +9,11 @@
 // DEVELOPMENT: When adding a new marker, be sure to add its implementation to
 // `util/snowflake`.
 
+/// Marker for animation IDs.
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct AnimationMarker;
+
 /// Marker for application IDs.
 ///
 /// Types such as [`Message::application_id`] or [`Guild::application_id`]
@@ -219,6 +224,15 @@ pub struct ScheduledEventMarker;
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ScheduledEventEntityMarker;
+
+/// Marker for guild soundboard sound IDs.
+///
+/// Types such as [`SoundboardSound`] use this ID marker.
+///
+/// [`SoundboardSound`]: crate::guild::SoundboardSound
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct SoundboardSoundMarker;
 
 /// Marker for stage IDs.
 ///

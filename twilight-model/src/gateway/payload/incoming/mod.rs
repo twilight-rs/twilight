@@ -13,6 +13,7 @@
 
 pub mod invite_create;
 pub mod reaction_remove_emoji;
+pub mod voice_channel_effect_send;
 
 mod auto_moderation_action_execution;
 mod auto_moderation_rule_create;
@@ -38,6 +39,10 @@ mod guild_scheduled_event_delete;
 mod guild_scheduled_event_update;
 mod guild_scheduled_event_user_add;
 mod guild_scheduled_event_user_remove;
+mod guild_soundboard_sound_create;
+mod guild_soundboard_sound_delete;
+mod guild_soundboard_sound_update;
+mod guild_soundboard_sounds_update;
 mod guild_stickers_update;
 mod guild_update;
 mod hello;
@@ -64,6 +69,7 @@ mod ready;
 mod role_create;
 mod role_delete;
 mod role_update;
+mod soundboard_sounds;
 mod stage_instance_create;
 mod stage_instance_delete;
 mod stage_instance_update;
@@ -97,6 +103,10 @@ pub use self::{
     guild_scheduled_event_update::GuildScheduledEventUpdate,
     guild_scheduled_event_user_add::GuildScheduledEventUserAdd,
     guild_scheduled_event_user_remove::GuildScheduledEventUserRemove,
+    guild_soundboard_sound_create::GuildSoundboardSoundCreate,
+    guild_soundboard_sound_delete::GuildSoundboardSoundDelete,
+    guild_soundboard_sound_update::GuildSoundboardSoundUpdate,
+    guild_soundboard_sounds_update::GuildSoundboardSoundsUpdate,
     guild_stickers_update::GuildStickersUpdate, guild_update::GuildUpdate, hello::Hello,
     integration_create::IntegrationCreate, integration_delete::IntegrationDelete,
     integration_update::IntegrationUpdate, interaction_create::InteractionCreate,
@@ -108,11 +118,12 @@ pub use self::{
     presence_update::PresenceUpdate, reaction_add::ReactionAdd, reaction_remove::ReactionRemove,
     reaction_remove_all::ReactionRemoveAll, reaction_remove_emoji::ReactionRemoveEmoji,
     ready::Ready, role_create::RoleCreate, role_delete::RoleDelete, role_update::RoleUpdate,
-    stage_instance_create::StageInstanceCreate, stage_instance_delete::StageInstanceDelete,
-    stage_instance_update::StageInstanceUpdate, thread_create::ThreadCreate,
-    thread_delete::ThreadDelete, thread_list_sync::ThreadListSync,
+    soundboard_sounds::SoundboardSounds, stage_instance_create::StageInstanceCreate,
+    stage_instance_delete::StageInstanceDelete, stage_instance_update::StageInstanceUpdate,
+    thread_create::ThreadCreate, thread_delete::ThreadDelete, thread_list_sync::ThreadListSync,
     thread_member_update::ThreadMemberUpdate, thread_members_update::ThreadMembersUpdate,
     thread_update::ThreadUpdate, typing_start::TypingStart, unavailable_guild::UnavailableGuild,
-    user_update::UserUpdate, voice_server_update::VoiceServerUpdate,
-    voice_state_update::VoiceStateUpdate, webhooks_update::WebhooksUpdate,
+    user_update::UserUpdate, voice_channel_effect_send::VoiceChannelEffectSend,
+    voice_server_update::VoiceServerUpdate, voice_state_update::VoiceStateUpdate,
+    webhooks_update::WebhooksUpdate,
 };

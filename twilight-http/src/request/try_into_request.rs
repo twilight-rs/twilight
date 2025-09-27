@@ -52,7 +52,7 @@ mod private {
             },
             CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission,
             DeleteChannelPermissionConfigured, DeletePin, FollowNewsChannel, GetChannel, GetPins,
-            UpdateChannel, UpdateChannelPermission,
+            SendSoundboardSound, UpdateChannel, UpdateChannelPermission,
         },
         guild::{
             auto_moderation::{
@@ -69,6 +69,7 @@ mod private {
             role::{
                 CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
             },
+            soundboard::{GetGuildSoundboardSound, GetGuildSoundboardSounds},
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
@@ -102,8 +103,8 @@ mod private {
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetCurrentAuthorizationInformation, GetGateway, GetGatewayAuthed, GetUserApplicationInfo,
-        GetVoiceRegions,
+        GetCurrentAuthorizationInformation, GetDefaultSoundboardSounds, GetGateway,
+        GetGatewayAuthed, GetUserApplicationInfo, GetVoiceRegions,
     };
 
     pub trait Sealed {}
@@ -201,6 +202,7 @@ mod private {
     impl Sealed for GetCurrentUserGuildMember<'_> {}
     impl Sealed for GetCurrentUserGuilds<'_> {}
     impl Sealed for GetCurrentUserVoiceState<'_> {}
+    impl Sealed for GetDefaultSoundboardSounds<'_> {}
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
     impl Sealed for GetEntitlements<'_> {}
@@ -225,6 +227,8 @@ mod private {
     impl Sealed for GetGuildScheduledEvent<'_> {}
     impl Sealed for GetGuildScheduledEventUsers<'_> {}
     impl Sealed for GetGuildScheduledEvents<'_> {}
+    impl Sealed for GetGuildSoundboardSound<'_> {}
+    impl Sealed for GetGuildSoundboardSounds<'_> {}
     impl Sealed for GetGuildSticker<'_> {}
     impl Sealed for GetGuildStickers<'_> {}
     impl Sealed for GetGuildVanityUrl<'_> {}
@@ -264,6 +268,7 @@ mod private {
     impl Sealed for RemoveRoleFromMember<'_> {}
     impl Sealed for RemoveThreadMember<'_> {}
     impl Sealed for SearchGuildMembers<'_> {}
+    impl Sealed for SendSoundboardSound<'_> {}
     impl Sealed for SetGlobalCommands<'_> {}
     impl Sealed for SetGuildCommands<'_> {}
     impl Sealed for SyncTemplate<'_> {}

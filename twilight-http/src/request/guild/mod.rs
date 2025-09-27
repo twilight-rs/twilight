@@ -5,6 +5,7 @@ pub mod emoji;
 pub mod integration;
 pub mod member;
 pub mod role;
+pub mod soundboard;
 pub mod sticker;
 pub mod update_guild_channel_positions;
 pub mod update_guild_onboarding;

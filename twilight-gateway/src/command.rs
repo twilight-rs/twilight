@@ -3,7 +3,7 @@
 //! [`Shard::command`]: crate::Shard::command
 
 use twilight_model::gateway::payload::outgoing::{
-    RequestGuildMembers, UpdatePresence, UpdateVoiceState,
+    RequestGuildMembers, RequestSoundboardSounds, UpdatePresence, UpdateVoiceState,
 };
 
 mod private {
@@ -14,13 +14,14 @@ mod private {
 
     use serde::Serialize;
     use twilight_model::gateway::payload::outgoing::{
-        RequestGuildMembers, UpdatePresence, UpdateVoiceState,
+        RequestGuildMembers, RequestSoundboardSounds, UpdatePresence, UpdateVoiceState,
     };
 
     /// Sealed trait to prevent users from implementing the Command trait.
     pub trait Sealed: Serialize {}
 
     impl Sealed for RequestGuildMembers {}
+    impl Sealed for RequestSoundboardSounds {}
     impl Sealed for UpdatePresence {}
     impl Sealed for UpdateVoiceState {}
 }
@@ -44,6 +45,7 @@ mod private {
 pub trait Command: private::Sealed {}
 
 impl Command for RequestGuildMembers {}
+impl Command for RequestSoundboardSounds {}
 impl Command for UpdatePresence {}
 impl Command for UpdateVoiceState {}
 
@@ -52,10 +54,11 @@ mod tests {
     use super::Command;
     use static_assertions::assert_impl_all;
     use twilight_model::gateway::payload::outgoing::{
-        RequestGuildMembers, UpdatePresence, UpdateVoiceState,
+        RequestGuildMembers, RequestSoundboardSounds, UpdatePresence, UpdateVoiceState,
     };
 
     assert_impl_all!(RequestGuildMembers: Command);
+    assert_impl_all!(RequestSoundboardSounds: Command);
     assert_impl_all!(UpdatePresence: Command);
     assert_impl_all!(UpdateVoiceState: Command);
 }
