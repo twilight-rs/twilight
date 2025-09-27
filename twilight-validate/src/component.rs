@@ -16,7 +16,7 @@ use crate::component::component_v2::{
     SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX,
     THUMBNAIL_DESCRIPTION_LENGTH_MAX,
 };
-pub use component_v2::component_v2;
+pub use component_v2::{component_v2, container, media_gallery, section, text_display, thumbnail};
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
 ///

@@ -1,6 +1,9 @@
 //! Validates components V2.
 
-use super::{ComponentValidationError, ComponentValidationErrorType};
+use super::{
+    action_row, button, select_menu, text_input, ComponentValidationError,
+    ComponentValidationErrorType,
+};
 use twilight_model::channel::message::component::{
     Container, MediaGallery, MediaGalleryItem, Section, TextDisplay, Thumbnail,
 };
@@ -36,17 +39,28 @@ pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
 /// components.
 ///
 /// # Errors
+///
+/// For errors refer to the errors of the following functions:
+/// - [`action_row`]
+/// - [`button`]
+/// - [`container`]
+/// - [`media_gallery`]
+/// - [`section`]
+/// - [`select_menu`]
+/// - [`text_display`]
+/// - [`text_input`]
+/// - [`thumbnail`]
 pub fn component_v2(component: &Component) -> Result<(), ComponentValidationError> {
     match component {
-        Component::ActionRow(action_row) => super::action_row(action_row, true)?,
-        Component::Button(button) => super::button(button)?,
-        Component::Container(container) => self::container(container)?,
-        Component::MediaGallery(media_gallery) => self::media_gallery(media_gallery)?,
-        Component::Section(section) => self::section(section)?,
-        Component::SelectMenu(select_menu) => super::select_menu(select_menu)?,
-        Component::TextDisplay(text_display) => self::text_display(text_display)?,
-        Component::TextInput(text_input) => super::text_input(text_input)?,
-        Component::Thumbnail(thumbnail) => self::thumbnail(thumbnail)?,
+        Component::ActionRow(ar) => action_row(ar, true)?,
+        Component::Button(b) => button(b)?,
+        Component::Container(c) => container(c)?,
+        Component::MediaGallery(mg) => media_gallery(mg)?,
+        Component::Section(s) => section(s)?,
+        Component::SelectMenu(sm) => select_menu(sm)?,
+        Component::TextDisplay(td) => text_display(td)?,
+        Component::TextInput(ti) => text_input(ti)?,
+        Component::Thumbnail(t) => thumbnail(t)?,
         Component::Separator(_) | Component::File(_) | Component::Unknown(_) => (),
     }
 
@@ -56,6 +70,11 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
 /// Validates a text display component.
 ///
 /// # Errors
+///
+/// This will error with [`TextDisplayContentTooLong`] if the content is longer
+/// than [`TEXT_DISPLAY_CONTENT_LENGTH_MAX`].
+///
+/// [`TextDisplayContentTooLong`]: ComponentValidationErrorType::TextDisplayContentTooLong
 pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidationError> {
     let content_len = text_display.content.len();
     if content_len > TEXT_DISPLAY_CONTENT_LENGTH_MAX {
@@ -70,6 +89,14 @@ pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidatio
 /// Validates a media gallery component.
 ///
 /// # Errors
+///
+/// This will error with [`MediaGalleryItemCountOutOfRange`] if the amount of
+/// media items is less than [`MEDIA_GALLERY_ITEMS_MIN`] or greater than
+/// [`MEDIA_GALLERY_ITEMS_MAX`].
+///
+/// For errors for validation of induvidual items see the dovumentation for [`media_gallery_item`].
+///
+/// [`MediaGalleryItemCountOutOfRange`]: ComponentValidationErrorType::MediaGalleryItemCountOutOfRange
 pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValidationError> {
     let items = media_gallery.items.len();
     if !(MEDIA_GALLERY_ITEMS_MIN..=MEDIA_GALLERY_ITEMS_MAX).contains(&items) {
@@ -88,6 +115,17 @@ pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValida
 /// Validates a section component.
 ///
 /// # Errors
+///
+/// This will error with [`SectionComponentCountOutOfRange`] if the amount of
+/// section components is less than [`SECTION_COMPONENTS_MIN`] or greater than
+/// [`SECTION_COMPONENTS_MAX`].
+///
+/// For validation of specific components see:
+/// - [`button`]
+/// - [`text_display`]
+/// - [`thumbnail`]
+///
+/// [`SectionComponentCountOutOfRange`]: ComponentValidationErrorType::SectionComponentCountOutOfRange
 pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
     let components = section.components.len();
     if !(SECTION_COMPONENTS_MIN..=SECTION_COMPONENTS_MAX).contains(&components) {
@@ -100,7 +138,7 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
 
     for component in &section.components {
         match component {
-            Component::TextDisplay(text_display) => self::text_display(text_display)?,
+            Component::TextDisplay(td) => text_display(td)?,
             _ => {
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::DisallowedChildren,
@@ -110,8 +148,8 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
     }
 
     match section.accessory.as_ref() {
-        Component::Button(button) => super::button(button)?,
-        Component::Thumbnail(thumbnail) => self::thumbnail(thumbnail)?,
+        Component::Button(b) => button(b)?,
+        Component::Thumbnail(t) => thumbnail(t)?,
         _ => {
             return Err(ComponentValidationError {
                 kind: ComponentValidationErrorType::DisallowedChildren,
@@ -124,14 +162,27 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
 
 /// Validates a container component.
 ///
+/// The only allowed components that are allowed are: `action_row`, `file`,
+/// `media_gallery`, `section`, `seperator` and `text_display`.
+///
 /// # Errors
+///
+/// For errors for specific components refer to the errors of the following functions:
+/// - [`action_row`]
+/// - [`media_gallery`]
+/// - [`text_display`]
+/// - [`secion`]
+///
+/// If any except the allowed components are used if will fail with [`DisallowedChildren`].
+///
+/// [`DisallowedChildren`]: ComponentValidationErrorType::DisallowedChildren
 pub fn container(container: &Container) -> Result<(), ComponentValidationError> {
     for component in &container.components {
         match component {
-            Component::ActionRow(action_row) => super::action_row(action_row, true)?,
-            Component::TextDisplay(text_display) => self::text_display(text_display)?,
-            Component::Section(section) => self::section(section)?,
-            Component::MediaGallery(media_gallery) => self::media_gallery(media_gallery)?,
+            Component::ActionRow(ar) => action_row(ar, true)?,
+            Component::TextDisplay(td) => text_display(td)?,
+            Component::Section(s) => section(s)?,
+            Component::MediaGallery(mg) => media_gallery(mg)?,
             Component::Separator(_) | Component::File(_) => (),
             _ => {
                 return Err(ComponentValidationError {
@@ -147,6 +198,11 @@ pub fn container(container: &Container) -> Result<(), ComponentValidationError> 
 /// Validates a thumbnail component.
 ///
 /// # Errors
+///
+/// This will error with [`ThumbnailDescriptionTooLong`] if the description is longer
+/// than [`THUMBNAIL_DESCRIPTION_LENGTH_MAX`].
+///
+/// [`TextDisplayContentTooLong`]: ComponentValidationErrorType::ThumbnailDescriptionTooLong
 pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> {
     let Some(Some(desc)) = thumbnail.description.as_ref() else {
         return Ok(());
@@ -165,6 +221,11 @@ pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> 
 /// Validates a media gallery item
 ///
 /// # Errors
+///
+/// This will error with [`MediaGalleryItemDescriptionTooLong`] if the description is longer
+/// than [`MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX`].
+///
+/// [`TextDisplayContentTooLong`]: ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong
 fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
     let Some(desc) = item.description.as_ref() else {
         return Ok(());
