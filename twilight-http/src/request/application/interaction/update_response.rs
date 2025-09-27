@@ -13,7 +13,7 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::message::{AllowedMentions, Component, Embed, Message},
+    channel::message::{AllowedMentions, Component, Embed, Message, MessageFlags},
     http::attachment::Attachment,
     id::{
         marker::{ApplicationMarker, AttachmentMarker},
@@ -21,8 +21,8 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    attachment as validate_attachment, components as validate_components,
-    content as validate_content, embeds as validate_embeds, MessageValidationError,
+    attachment as validate_attachment, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
 };
 
 #[derive(Serialize)]
@@ -38,6 +38,8 @@ struct UpdateResponseFields<'a> {
     content: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<Nullable<&'a [Embed]>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
 }
@@ -105,6 +107,7 @@ impl<'a> UpdateResponse<'a> {
                 components: None,
                 content: None,
                 embeds: None,
+                flags: None,
                 payload_json: None,
             }),
             http,
@@ -160,20 +163,15 @@ impl<'a> UpdateResponse<'a> {
     ///
     /// Pass [`None`] to clear existing components.
     ///
-    /// # Errors
+    /// # Manual Validation
     ///
-    /// Refer to the errors section of
-    /// [`twilight_validate::component::component`] for a list of errors that
-    /// may be returned as a result of validating each provided component.
+    /// Validation of components is not done automatically here, as we don't know which component
+    /// version is in use, you can validate them manually using the [`twilight_validate::component::component_v1`]
+    /// or [`twilight_validate::component::component_v2`] functions.
     pub fn components(mut self, components: Option<&'a [Component]>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            if let Some(components) = components {
-                validate_components(components)?;
-            }
-
+        self.fields = self.fields.map(|mut fields| {
             fields.components = Some(Nullable(components));
-
-            Ok(fields)
+            fields
         });
 
         self
@@ -279,6 +277,20 @@ impl<'a> UpdateResponse<'a> {
 
             Ok(fields)
         });
+
+        self
+    }
+
+    /// Set the response's flags.
+    ///
+    /// The only supported flags are [`SUPPRESS_EMBEDS`] and [`IS_COMPONENTS_V2`].
+    ///
+    /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
+    /// [`IS_COMPONENTS_V2`]: MessageFlags::IS_COMPONENTS_V2
+    pub fn flags(mut self, flags: MessageFlags) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.flags = Some(flags);
+        }
 
         self
     }
