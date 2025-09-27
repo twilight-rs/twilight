@@ -163,7 +163,7 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
 /// Validates a container component.
 ///
 /// The only allowed components that are allowed are: `action_row`, `file`,
-/// `media_gallery`, `section`, `seperator` and `text_display`.
+/// `media_gallery`, `section`, `separator` and `text_display`.
 ///
 /// # Errors
 ///
@@ -171,7 +171,7 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
 /// - [`action_row`]
 /// - [`media_gallery`]
 /// - [`text_display`]
-/// - [`secion`]
+/// - [`section`]
 ///
 /// If any except the allowed components are used if will fail with [`DisallowedChildren`].
 ///
