@@ -178,7 +178,9 @@ mod tests {
                     width: Some(100),
                 }],
                 components: vec![Component::ActionRow(ActionRow {
+                    id: None,
                     components: Vec::from([Component::Button(Button {
+                        id: None,
                         custom_id: Some("button-1".to_owned()),
                         disabled: false,
                         emoji: None,
