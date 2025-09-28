@@ -1,8 +1,8 @@
 use crate::{
     guild::MemberFlags,
     id::{
-        marker::{GuildMarker, RoleMarker},
         Id,
+        marker::{GuildMarker, RoleMarker},
     },
     user::User,
     util::{ImageHash, Timestamp},

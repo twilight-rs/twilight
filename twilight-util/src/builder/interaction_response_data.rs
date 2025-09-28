@@ -10,13 +10,15 @@ use twilight_model::{
 /// # Example
 /// ```
 /// use twilight_model::channel::message::{
-///     component::{ActionRow, Button, ButtonStyle, Component},
 ///     MessageFlags,
+///     component::{ActionRow, Button, ButtonStyle, Component},
 /// };
 /// use twilight_util::builder::InteractionResponseDataBuilder;
 ///
 /// let component = Component::ActionRow(ActionRow {
+///     id: None,
 ///     components: Vec::from([Component::Button(Button {
+///         id: None,
 ///         style: ButtonStyle::Primary,
 ///         emoji: None,
 ///         label: Some("Button label".to_string()),
@@ -184,8 +186,8 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         channel::message::{
-            component::{Button, ButtonStyle},
             MentionType,
+            component::{Button, ButtonStyle},
         },
         poll::{PollLayoutType, PollMedia},
         util::Timestamp,
@@ -214,6 +216,7 @@ mod tests {
             url: None,
             disabled: false,
             sku_id: None,
+            id: None,
         });
 
         let embed = Embed {

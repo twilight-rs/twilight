@@ -1,9 +1,9 @@
 //! Rate limiting state manager.
 
-use crate::{Path, RateLimitHeaders, GLOBAL_LIMIT_PERIOD};
-use hashbrown::{hash_table::Entry as TableEntry, HashTable};
+use crate::{GLOBAL_LIMIT_PERIOD, Path, RateLimitHeaders};
+use hashbrown::{HashTable, hash_table::Entry as TableEntry};
 use std::{
-    collections::{hash_map::Entry as MapEntry, HashMap, VecDeque},
+    collections::{HashMap, VecDeque, hash_map::Entry as MapEntry},
     future::poll_fn,
     hash::{BuildHasher, Hash, Hasher as _, RandomState},
     mem,
@@ -15,7 +15,7 @@ use tokio::{
         oneshot::{self, error::RecvError},
     },
     task::JoinSet,
-    time::{sleep, Duration, Instant},
+    time::{Duration, Instant, sleep},
 };
 use tokio_util::time::delay_queue::{DelayQueue, Key};
 
@@ -328,7 +328,7 @@ mod tests {
     use std::time::{Duration, Instant};
     use tokio::time;
 
-    use crate::{actor::GC_INTERVAL, Path, RateLimitHeaders, RateLimiter};
+    use crate::{Path, RateLimitHeaders, RateLimiter, actor::GC_INTERVAL};
 
     const RESET_AFTER: Duration = Duration::from_secs(5);
     const PATH: Path = Path::ApplicationsMe;

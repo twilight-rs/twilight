@@ -16,7 +16,7 @@ functionality. Please use the individual crates listed below instead!
 
 ## Installation
 
-Twilight supports a MSRV of Rust 1.79. We do not consider changes to the MSRV
+Twilight supports a MSRV of Rust 1.88. We do not consider changes to the MSRV
 semver-incompatible, therefore it may change in minor or patch releases.
 
 We recommend that most users start out with these crates:

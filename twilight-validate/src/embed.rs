@@ -246,12 +246,12 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         });
     }
 
-    if let Some(color) = embed.color {
-        if color > COLOR_MAXIMUM {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::ColorNotRgb { color },
-            });
-        }
+    if let Some(color) = embed.color
+        && color > COLOR_MAXIMUM
+    {
+        return Err(EmbedValidationError {
+            kind: EmbedValidationErrorType::ColorNotRgb { color },
+        });
     }
 
     if let Some(description) = embed.description.as_ref() {
@@ -358,8 +358,8 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::channel::message::{
-        embed::{EmbedAuthor, EmbedField, EmbedFooter},
         Embed,
+        embed::{EmbedAuthor, EmbedField, EmbedFooter},
     };
 
     assert_impl_all!(EmbedValidationErrorType: Debug, Send, Sync);

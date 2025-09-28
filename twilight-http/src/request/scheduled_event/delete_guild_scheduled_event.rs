@@ -9,8 +9,8 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::scheduled_event::GuildScheduledEvent,
     id::{
-        marker::{GuildMarker, ScheduledEventMarker},
         Id,
+        marker::{GuildMarker, ScheduledEventMarker},
     },
 };
 

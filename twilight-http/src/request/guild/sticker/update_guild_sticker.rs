@@ -10,15 +10,15 @@ use std::future::IntoFuture;
 use twilight_model::{
     channel::message::sticker::Sticker,
     id::{
-        marker::{GuildMarker, StickerMarker},
         Id,
+        marker::{GuildMarker, StickerMarker},
     },
 };
 use twilight_validate::{
-    request::{audit_reason as validate_audit_reason, ValidationError},
+    request::{ValidationError, audit_reason as validate_audit_reason},
     sticker::{
-        description as validate_description, name as validate_name, tags as validate_tags,
-        StickerValidationError,
+        StickerValidationError, description as validate_description, name as validate_name,
+        tags as validate_tags,
     },
 };
 

@@ -8,8 +8,8 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::{
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
     voice::VoiceState,
 };

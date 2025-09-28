@@ -9,8 +9,8 @@ use std::future::IntoFuture;
 use twilight_model::{
     channel::message::sticker::Sticker,
     id::{
-        marker::{GuildMarker, StickerMarker},
         Id,
+        marker::{GuildMarker, StickerMarker},
     },
 };
 

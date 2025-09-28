@@ -57,47 +57,35 @@ pub fn create() -> Connector {
         feature = "rustls-webpki-roots"
     ))]
     let connector = {
-        #[cfg(not(any(feature = "rustls-ring", feature = "rustls-aws_lc_rs")))]
-        let crypto_provider = rustls::crypto::CryptoProvider::get_default()
-            .expect("No default crypto provider installed or configured via crate features")
-            .clone();
-        #[cfg(feature = "rustls-aws_lc_rs")]
-        let crypto_provider = rustls::crypto::aws_lc_rs::default_provider();
-        #[cfg(all(feature = "rustls-ring", not(feature = "rustls-aws_lc_rs")))]
-        let crypto_provider = rustls::crypto::ring::default_provider();
+        use hyper_rustls::ConfigBuilderExt;
 
         #[cfg(all(
             feature = "rustls-native-roots",
             not(feature = "rustls-platform-verifier")
         ))]
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_provider_and_native_roots(crypto_provider)
-            .expect("no native roots found")
-            .https_or_http()
-            .enable_http1()
-            .enable_http2()
-            .wrap_connector(connector);
-        #[cfg(feature = "rustls-platform-verifier")]
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_provider_and_platform_verifier(crypto_provider)
+        let tls_config = rustls::ClientConfig::builder()
+            .with_native_roots()
             .expect("no usable cipher suites in crypto provider")
-            .https_or_http()
-            .enable_http1()
-            .enable_http2()
-            .wrap_connector(connector);
+            .with_no_client_auth();
+        #[cfg(feature = "rustls-platform-verifier")]
+        let tls_config = rustls::ClientConfig::builder()
+            .try_with_platform_verifier()
+            .expect("no usable cipher suites in crypto provider")
+            .with_no_client_auth();
         #[cfg(all(
             feature = "rustls-webpki-roots",
             not(any(feature = "rustls-native-roots", feature = "rustls-platform-verifier"))
         ))]
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_provider_and_webpki_roots(crypto_provider)
-            .expect("no usable cipher suites in crypto provider")
+        let tls_config = rustls::ClientConfig::builder()
+            .with_webpki_roots()
+            .with_no_client_auth();
+
+        hyper_rustls::HttpsConnectorBuilder::new()
+            .with_tls_config(tls_config)
             .https_or_http()
             .enable_http1()
             .enable_http2()
-            .wrap_connector(connector);
-
-        connector
+            .wrap_connector(connector)
     };
 
     #[cfg(all(

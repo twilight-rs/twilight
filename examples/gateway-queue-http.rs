@@ -1,13 +1,13 @@
 use http_body_util::Empty;
 use hyper::body::Bytes;
 use hyper_util::{
-    client::legacy::{connect::HttpConnector, Client},
+    client::legacy::{Client, connect::HttpConnector},
     rt::TokioExecutor,
 };
 use std::env;
 use tokio::sync::oneshot;
 use twilight_gateway::{
-    queue::Queue, ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _,
+    ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _, queue::Queue,
 };
 
 #[derive(Debug)]

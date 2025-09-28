@@ -5,10 +5,10 @@ pub use self::settings::GuildWidgetSettings;
 use crate::{
     gateway::presence::Status,
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
         AnonymizableId, Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
-    user::{discriminator, DiscriminatorDisplay},
+    user::{DiscriminatorDisplay, discriminator},
     util::ImageHash,
 };
 use serde::{Deserialize, Serialize};

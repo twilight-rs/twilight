@@ -79,7 +79,7 @@ impl Form {
 
     /// Preview the built buffer's length without consuming the form.
     #[allow(clippy::len_without_is_empty)]
-    pub fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         self.buffer.len() + Self::BOUNDARY_TERMINATOR.len()
     }
 

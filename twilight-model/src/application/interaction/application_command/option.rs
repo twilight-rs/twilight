@@ -1,14 +1,14 @@
 use crate::{
     application::command::CommandOptionType,
     id::{
-        marker::{AttachmentMarker, ChannelMarker, GenericMarker, RoleMarker, UserMarker},
         Id,
+        marker::{AttachmentMarker, ChannelMarker, GenericMarker, RoleMarker, UserMarker},
     },
 };
 use serde::{
+    Deserialize, Deserializer, Serialize, Serializer,
     de::{Error as DeError, IgnoredAny, MapAccess, Unexpected, Visitor},
     ser::SerializeStruct,
-    Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 

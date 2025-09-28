@@ -7,7 +7,7 @@ use crate::{
 };
 use std::future::IntoFuture;
 use twilight_model::{
-    id::{marker::UserMarker, Id},
+    id::{Id, marker::UserMarker},
     user::User,
 };
 

@@ -70,7 +70,7 @@ impl Config {
     }
 
     /// Returns a mutable reference to the message cache size.
-    pub fn message_cache_size_mut(&mut self) -> &mut usize {
+    pub const fn message_cache_size_mut(&mut self) -> &mut usize {
         &mut self.message_cache_size
     }
     /// Returns an immutable reference to the resource types enabled.
@@ -81,7 +81,7 @@ impl Config {
     }
 
     /// Returns a mutable reference to the resource types enabled.
-    pub fn resource_types_mut(&mut self) -> &mut ResourceType {
+    pub const fn resource_types_mut(&mut self) -> &mut ResourceType {
         &mut self.resource_types
     }
 }

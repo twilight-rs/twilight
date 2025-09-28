@@ -13,12 +13,12 @@ use twilight_model::{
         VerificationLevel,
     },
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason, guild_name as validate_guild_name, ValidationError,
+    ValidationError, audit_reason as validate_audit_reason, guild_name as validate_guild_name,
 };
 
 #[derive(Serialize)]
@@ -104,7 +104,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set the voice channel where AFK voice users are sent.
-    pub fn afk_channel_id(mut self, afk_channel_id: Option<Id<ChannelMarker>>) -> Self {
+    pub const fn afk_channel_id(mut self, afk_channel_id: Option<Id<ChannelMarker>>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.afk_channel_id = Some(Nullable(afk_channel_id));
         }
@@ -113,7 +113,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set how much time it takes for a voice user to be considered AFK.
-    pub fn afk_timeout(mut self, afk_timeout: u64) -> Self {
+    pub const fn afk_timeout(mut self, afk_timeout: u64) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.afk_timeout = Some(afk_timeout);
         }
@@ -127,7 +127,7 @@ impl<'a> UpdateGuild<'a> {
     /// the banner.
     ///
     /// The server must have the `BANNER` feature.
-    pub fn banner(mut self, banner: Option<&'a str>) -> Self {
+    pub const fn banner(mut self, banner: Option<&'a str>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.banner = Some(Nullable(banner));
         }
@@ -139,7 +139,7 @@ impl<'a> UpdateGuild<'a> {
     /// [Discord Docs/Create Guild] for more information.
     ///
     /// [Discord Docs/Create Guild]: https://discord.com/developers/docs/resources/guild#create-guild
-    pub fn default_message_notifications(
+    pub const fn default_message_notifications(
         mut self,
         default_message_notifications: Option<DefaultMessageNotificationLevel>,
     ) -> Self {
@@ -153,7 +153,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the guild's discovery splash image.
     ///
     /// Requires the guild to have the `DISCOVERABLE` feature enabled.
-    pub fn discovery_splash(mut self, discovery_splash: Option<&'a str>) -> Self {
+    pub const fn discovery_splash(mut self, discovery_splash: Option<&'a str>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.discovery_splash = Some(Nullable(discovery_splash));
         }
@@ -162,7 +162,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set the explicit content filter level.
-    pub fn explicit_content_filter(
+    pub const fn explicit_content_filter(
         mut self,
         explicit_content_filter: Option<ExplicitContentFilter>,
     ) -> Self {
@@ -190,7 +190,7 @@ impl<'a> UpdateGuild<'a> {
     /// [`GuildFeature::InvitesDisabled`]: twilight_model::guild::GuildFeature::InvitesDisabled
     /// [`Permissions::ADMINISTRATOR`]: twilight_model::guild::Permissions::ADMINISTRATOR
     /// [`Permissions::MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
-    pub fn features(mut self, features: &'a [&'a str]) -> Self {
+    pub const fn features(mut self, features: &'a [&'a str]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.features = Some(features);
         }
@@ -205,7 +205,7 @@ impl<'a> UpdateGuild<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: Option<&'a str>) -> Self {
+    pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.icon = Some(Nullable(icon));
         }
@@ -238,7 +238,7 @@ impl<'a> UpdateGuild<'a> {
     /// Transfer ownership to another user.
     ///
     /// Only works if the current user is the owner.
-    pub fn owner_id(mut self, owner_id: Id<UserMarker>) -> Self {
+    pub const fn owner_id(mut self, owner_id: Id<UserMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.owner_id = Some(owner_id);
         }
@@ -249,7 +249,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the guild's splash image.
     ///
     /// Requires the guild to have the `INVITE_SPLASH` feature enabled.
-    pub fn splash(mut self, splash: Option<&'a str>) -> Self {
+    pub const fn splash(mut self, splash: Option<&'a str>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.splash = Some(Nullable(splash));
         }
@@ -258,7 +258,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set the channel where events such as welcome messages are posted.
-    pub fn system_channel(mut self, system_channel_id: Option<Id<ChannelMarker>>) -> Self {
+    pub const fn system_channel(mut self, system_channel_id: Option<Id<ChannelMarker>>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.system_channel_id = Some(Nullable(system_channel_id));
         }
@@ -267,7 +267,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set the guild's [`SystemChannelFlags`].
-    pub fn system_channel_flags(
+    pub const fn system_channel_flags(
         mut self,
         system_channel_flags: Option<SystemChannelFlags>,
     ) -> Self {
@@ -283,7 +283,7 @@ impl<'a> UpdateGuild<'a> {
     /// Requires the guild to be `PUBLIC`. See [Discord Docs/Modify Guild].
     ///
     /// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
-    pub fn rules_channel(mut self, rules_channel_id: Option<Id<ChannelMarker>>) -> Self {
+    pub const fn rules_channel(mut self, rules_channel_id: Option<Id<ChannelMarker>>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.rules_channel_id = Some(Nullable(rules_channel_id));
         }
@@ -294,7 +294,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the public updates channel.
     ///
     /// Requires the guild to be `PUBLIC`.
-    pub fn public_updates_channel(
+    pub const fn public_updates_channel(
         mut self,
         public_updates_channel_id: Option<Id<ChannelMarker>>,
     ) -> Self {
@@ -308,7 +308,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the preferred locale for the guild.
     ///
     /// Defaults to `en-US`. Requires the guild to be `PUBLIC`.
-    pub fn preferred_locale(mut self, preferred_locale: Option<&'a str>) -> Self {
+    pub const fn preferred_locale(mut self, preferred_locale: Option<&'a str>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.preferred_locale = Some(Nullable(preferred_locale));
         }
@@ -321,7 +321,10 @@ impl<'a> UpdateGuild<'a> {
     /// See [Discord Docs/Guild Object].
     ///
     /// [Discord Docs/Guild Object]: https://discord.com/developers/docs/resources/guild#guild-object-verification-level
-    pub fn verification_level(mut self, verification_level: Option<VerificationLevel>) -> Self {
+    pub const fn verification_level(
+        mut self,
+        verification_level: Option<VerificationLevel>,
+    ) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.verification_level = Some(Nullable(verification_level));
         }
@@ -330,7 +333,10 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set whether the premium progress bar is enabled.
-    pub fn premium_progress_bar_enabled(mut self, premium_progress_bar_enabled: bool) -> Self {
+    pub const fn premium_progress_bar_enabled(
+        mut self,
+        premium_progress_bar_enabled: bool,
+    ) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.premium_progress_bar_enabled = Some(premium_progress_bar_enabled);
         }

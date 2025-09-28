@@ -2,11 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use std::future::IntoFuture;
-use twilight_model::id::{marker::ChannelMarker, Id};
+use twilight_model::id::{Id, marker::ChannelMarker};
 
 /// Fire a Typing Start event in the channel.
 #[must_use = "requests must be configured and executed"]

@@ -1,14 +1,14 @@
 //! User configuration for shards.
 
-use crate::{queue::InMemoryQueue, Session};
+use crate::{Session, queue::InMemoryQueue};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::Arc,
 };
 use tokio_websockets::Connector;
 use twilight_model::gateway::{
-    payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
+    payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
 };
 
 /// Wrapper for an authorization token with a debug implementation that redacts
@@ -133,12 +133,12 @@ impl<Q> Config<Q> {
     }
 
     /// Url to connect to if the shard resumes on initialization.
-    pub(crate) fn take_resume_url(&mut self) -> Option<Box<str>> {
+    pub(crate) const fn take_resume_url(&mut self) -> Option<Box<str>> {
         self.resume_url.take()
     }
 
     /// Session information to resume a shard on initialization.
-    pub(crate) fn take_session(&mut self) -> Option<Session> {
+    pub(crate) const fn take_session(&mut self) -> Option<Session> {
         self.session.take()
     }
 }
@@ -278,12 +278,14 @@ impl<Q> ConfigBuilder<Q> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let config = ConfigBuilder::new(env::var("DISCORD_TOKEN")?, Intents::empty())
     ///     .presence(UpdatePresencePayload::new(
-    ///         vec![MinimalActivity {
-    ///             kind: ActivityType::Playing,
-    ///             name: "Not accepting commands".into(),
-    ///             url: None,
-    ///         }
-    ///         .into()],
+    ///         vec![
+    ///             MinimalActivity {
+    ///                 kind: ActivityType::Playing,
+    ///                 name: "Not accepting commands".into(),
+    ///                 url: None,
+    ///             }
+    ///             .into(),
+    ///         ],
     ///         false,
     ///         None,
     ///         Status::Idle,
@@ -409,6 +411,8 @@ mod tests {
     assert_impl_all!(ConfigBuilder: Debug, Send, Sync);
 
     fn builder() -> ConfigBuilder {
+        let _ = rustls::crypto::ring::default_provider().install_default();
+
         ConfigBuilder::new("test".to_owned(), Intents::empty())
     }
 
@@ -441,6 +445,8 @@ mod tests {
         const WITHOUT: &str = "test";
         const WITH: &str = "Bot test";
 
+        let _ = rustls::crypto::ring::default_provider().install_default();
+
         assert_eq!(
             ConfigBuilder::new(WITHOUT.to_owned(), Intents::empty())
                 .build()
@@ -461,6 +467,8 @@ mod tests {
 
     #[tokio::test]
     async fn config_debug() {
+        let _ = rustls::crypto::ring::default_provider().install_default();
+
         let config = Config::new("Bot foo".to_owned(), Intents::empty());
 
         assert!(format!("{config:?}").contains("token: <redacted>"));

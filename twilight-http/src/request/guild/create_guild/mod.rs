@@ -19,8 +19,8 @@ use twilight_model::{
     },
     http::permission_overwrite::PermissionOverwrite,
     id::{
-        marker::{ChannelMarker, RoleMarker},
         Id,
+        marker::{ChannelMarker, RoleMarker},
     },
 };
 use twilight_validate::request::guild_name as validate_guild_name;
@@ -278,7 +278,7 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub fn afk_channel_id(mut self, afk_channel_id: Id<ChannelMarker>) -> Self {
+    pub const fn afk_channel_id(mut self, afk_channel_id: Id<ChannelMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.afk_channel_id = Some(afk_channel_id);
         }
@@ -287,7 +287,7 @@ impl<'a> CreateGuild<'a> {
     }
 
     /// Set the AFK timeout, in seconds.
-    pub fn afk_timeout(mut self, afk_timeout: AfkTimeout) -> Self {
+    pub const fn afk_timeout(mut self, afk_timeout: AfkTimeout) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.afk_timeout = Some(afk_timeout);
         }
@@ -303,10 +303,10 @@ impl<'a> CreateGuild<'a> {
     ///
     /// ```no_run
     /// use twilight_http::{
+    ///     Client,
     ///     request::guild::create_guild::{
     ///         CategoryFieldsBuilder, GuildChannelFieldsBuilder, TextFieldsBuilder, VoiceFieldsBuilder,
     ///     },
-    ///     Client,
     /// };
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
@@ -360,7 +360,7 @@ impl<'a> CreateGuild<'a> {
     /// [Discord Docs/Create Guild].
     ///
     /// [Discord Docs/Create Guild]: https://discord.com/developers/docs/resources/guild#create-guild
-    pub fn default_message_notifications(
+    pub const fn default_message_notifications(
         mut self,
         default_message_notifications: DefaultMessageNotificationLevel,
     ) -> Self {
@@ -372,7 +372,7 @@ impl<'a> CreateGuild<'a> {
     }
 
     /// Set the explicit content filter level.
-    pub fn explicit_content_filter(
+    pub const fn explicit_content_filter(
         mut self,
         explicit_content_filter: ExplicitContentFilter,
     ) -> Self {
@@ -390,7 +390,7 @@ impl<'a> CreateGuild<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: &'a str) -> Self {
+    pub const fn icon(mut self, icon: &'a str) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.icon.replace(icon);
         }
@@ -423,7 +423,7 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub fn system_channel_id(mut self, system_channel_id: Id<ChannelMarker>) -> Self {
+    pub const fn system_channel_id(mut self, system_channel_id: Id<ChannelMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.system_channel_id = Some(system_channel_id);
         }
@@ -432,7 +432,7 @@ impl<'a> CreateGuild<'a> {
     }
 
     /// Set the guild's [`SystemChannelFlags`].
-    pub fn system_channel_flags(mut self, system_channel_flags: SystemChannelFlags) -> Self {
+    pub const fn system_channel_flags(mut self, system_channel_flags: SystemChannelFlags) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.system_channel_flags = Some(system_channel_flags);
         }
@@ -447,13 +447,15 @@ impl<'a> CreateGuild<'a> {
     /// # Examples
     ///
     /// ```no_run
-    /// use twilight_http::{request::guild::create_guild::RoleFieldsBuilder, Client};
+    /// use twilight_http::{Client, request::guild::create_guild::RoleFieldsBuilder};
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     ///
-    /// let roles = vec![RoleFieldsBuilder::new("role 1".to_owned())
-    ///     .color(0x543923)
-    ///     .build()?];
+    /// let roles = vec![
+    ///     RoleFieldsBuilder::new("role 1".to_owned())
+    ///         .color(0x543923)
+    ///         .build()?,
+    /// ];
     /// client
     ///     .create_guild("guild name".to_owned())
     ///     .roles(roles)

@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[derive(Default)]
 pub enum ActivityType {
+    #[default]
     Playing,
     Streaming,
     Listening,
@@ -38,12 +40,6 @@ impl From<ActivityType> for u8 {
             ActivityType::Competing => 5,
             ActivityType::Unknown(unknown) => unknown,
         }
-    }
-}
-
-impl Default for ActivityType {
-    fn default() -> Self {
-        Self::Playing
     }
 }
 

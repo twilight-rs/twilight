@@ -7,8 +7,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
-use twilight_model::id::marker::{ChannelMarker, RoleMarker};
 use twilight_model::id::Id;
+use twilight_model::id::marker::{ChannelMarker, RoleMarker};
 use twilight_model::util::Timestamp;
 
 /// The maximum audit log reason length in UTF-16 codepoints.

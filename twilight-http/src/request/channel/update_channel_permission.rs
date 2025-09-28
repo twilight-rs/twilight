@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use serde::Serialize;
@@ -11,11 +11,11 @@ use twilight_model::{
     guild::Permissions,
     http::permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
     id::{
-        marker::{ChannelMarker, GenericMarker},
         Id,
+        marker::{ChannelMarker, GenericMarker},
     },
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
 struct UpdateChannelPermissionFields {

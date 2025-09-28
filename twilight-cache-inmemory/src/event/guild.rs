@@ -1,10 +1,10 @@
-use crate::{config::ResourceType, CacheableGuild, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableGuild, CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use dashmap::DashMap;
 use std::{collections::HashSet, hash::Hash, mem};
 use twilight_model::{
     gateway::payload::incoming::{GuildCreate, GuildDelete, GuildUpdate},
     guild::Guild,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
@@ -124,19 +124,19 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
             self.voice_state_guilds.remove(&id);
         }
 
-        if self.wants(ResourceType::MEMBER) {
-            if let Some((_, ids)) = self.guild_members.remove(&id) {
-                for user_id in ids {
-                    self.members.remove(&(id, user_id));
-                }
+        if self.wants(ResourceType::MEMBER)
+            && let Some((_, ids)) = self.guild_members.remove(&id)
+        {
+            for user_id in ids {
+                self.members.remove(&(id, user_id));
             }
         }
 
-        if self.wants(ResourceType::PRESENCE) {
-            if let Some((_, ids)) = self.guild_presences.remove(&id) {
-                for user_id in ids {
-                    self.presences.remove(&(id, user_id));
-                }
+        if self.wants(ResourceType::PRESENCE)
+            && let Some((_, ids)) = self.guild_presences.remove(&id)
+        {
+            for user_id in ids {
+                self.presences.remove(&(id, user_id));
             }
         }
     }
@@ -167,18 +167,18 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildUpdate {
 
         if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
             guild.update_with_guild_update(self);
-        };
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use std::str::FromStr;
     use twilight_model::{
         channel::{
-            thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
             Channel, ChannelType,
+            thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
         },
         gateway::payload::incoming::{
             GuildCreate, GuildUpdate, MemberAdd, MemberRemove, UnavailableGuild,
@@ -387,12 +387,14 @@ mod tests {
         assert!(cache.guilds.get(&guild.id).unwrap().unavailable.unwrap());
 
         cache.update(&GuildCreate::Available(guild.clone()));
-        assert!(!cache
-            .guilds
-            .get(&guild.id)
-            .unwrap()
-            .unavailable
-            .unwrap_or(false));
+        assert!(
+            !cache
+                .guilds
+                .get(&guild.id)
+                .unwrap()
+                .unavailable
+                .unwrap_or(false)
+        );
         assert!(cache.unavailable_guilds.get(&guild.id).is_none());
     }
 

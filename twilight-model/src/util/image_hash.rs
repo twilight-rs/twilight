@@ -557,7 +557,7 @@ impl Nibbles {
     }
 
     /// Advance the index in the iterator by the provided amount.
-    fn advance_idx_by(&mut self, by: usize) {
+    const fn advance_idx_by(&mut self, by: usize) {
         self.idx = if self.idx == usize::MAX {
             0
         } else {
@@ -584,7 +584,10 @@ impl Nibbles {
             return None;
         }
 
-        let (byte, left) = ((BYTE_ARRAY_BOUNDARY - self.idx) / 2, self.idx % 2 == 0);
+        let (byte, left) = (
+            (BYTE_ARRAY_BOUNDARY - self.idx) / 2,
+            self.idx.is_multiple_of(2),
+        );
 
         let store = self.inner.bytes[byte];
 

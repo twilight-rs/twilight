@@ -271,6 +271,8 @@ pub enum Path {
     OauthApplicationsMe,
     /// Operating on the current authorization's information.
     OauthMe,
+    /// Operating on oauth token exchange.
+    OauthToken,
     /// Operating on stage instances.
     StageInstances,
     /// Operating on sticker packs.
@@ -328,6 +330,7 @@ impl Path {
             | Path::InvitesCode
             | Path::OauthApplicationsMe
             | Path::OauthMe
+            | Path::OauthToken
             | Path::StageInstances
             | Path::StickerPacks
             | Path::Stickers
@@ -472,9 +475,15 @@ impl FromStr for Path {
                 ApplicationGuildCommand(parse_id(id)?)
             }
             ["applications", id, "guilds", _, "commands", _]
-            | ["applications", id, "guilds", _, "commands", _, "permissions"] => {
-                ApplicationGuildCommandId(parse_id(id)?)
-            }
+            | [
+                "applications",
+                id,
+                "guilds",
+                _,
+                "commands",
+                _,
+                "permissions",
+            ] => ApplicationGuildCommandId(parse_id(id)?),
             ["applications", id, "skus"] => ApplicationIdSKUs(parse_id(id)?),
             ["channels", id] => ChannelsId(parse_id(id)?),
             ["channels", id, "followers"] => ChannelsIdFollowers(parse_id(id)?),
@@ -575,6 +584,7 @@ impl FromStr for Path {
             ["sticker-packs"] => StickerPacks,
             ["stickers", _] => Stickers,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
+            ["oauth2", "token"] => OauthToken,
             ["oauth2", "@me"] => OauthMe,
             ["users", _] => UsersId,
             ["users", _, "connections"] => UsersIdConnections,
@@ -592,7 +602,7 @@ impl FromStr for Path {
                 return Err(PathParseError {
                     kind: PathParseErrorType::NoMatch,
                     source: None,
-                })
+                });
             }
         })
     }
