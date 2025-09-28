@@ -945,6 +945,7 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 pub fn text_input(text_input: &TextInput) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&text_input.custom_id)?;
 
+    #[allow(deprecated)]
     if let Some(label) = &text_input.label {
         self::component_text_input_label(label)?;
     }

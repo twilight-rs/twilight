@@ -740,6 +740,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
 
+                #[allow(deprecated)]
                 Self::Value::TextInput(TextInput {
                     custom_id,
                     label: label.unwrap_or_default(),
@@ -886,6 +887,7 @@ impl Serialize for Component {
             // - placeholder
             // - required
             // - value
+            #[allow(deprecated)]
             Component::TextInput(text_input) => {
                 3 + usize::from(text_input.label.is_some())
                     + usize::from(text_input.max_length.is_some())
@@ -1093,6 +1095,7 @@ impl Serialize for Component {
                 // variants and optional in others, serialize as an Option.
                 state.serialize_field("custom_id", &Some(&text_input.custom_id))?;
 
+                #[allow(deprecated)]
                 if text_input.label.is_some() {
                     state.serialize_field("label", &text_input.label)?;
                 }
@@ -1524,6 +1527,7 @@ mod tests {
 
     #[test]
     fn text_input() {
+        #[allow(deprecated)]
         let value = Component::TextInput(TextInput {
             custom_id: "test".to_owned(),
             label: Some("The label".to_owned()),
@@ -1608,6 +1612,7 @@ mod tests {
 
     #[test]
     fn label() {
+        #[allow(deprecated)]
         let value = Component::Label(Label {
             id: None,
             label: "The label".to_owned(),
