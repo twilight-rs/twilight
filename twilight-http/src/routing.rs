@@ -1,14 +1,14 @@
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 pub use twilight_http_ratelimiting::{Path, PathParseError, PathParseErrorType};
 
 use crate::{
     query_formatter::{QueryArray, QueryStringFormatter},
-    request::{channel::reaction::RequestReactionType, Method},
+    request::{Method, channel::reaction::RequestReactionType},
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{
-    marker::{RoleMarker, SkuMarker},
     Id,
+    marker::{RoleMarker, SkuMarker},
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -3047,7 +3047,7 @@ impl Display for Route<'_> {
 #[cfg(test)]
 mod tests {
     use super::Route;
-    use crate::request::{channel::reaction::RequestReactionType, Method};
+    use crate::request::{Method, channel::reaction::RequestReactionType};
     use twilight_model::id::Id;
 
     /// Test a route for each method.

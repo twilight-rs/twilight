@@ -1,7 +1,7 @@
 use twilight_cache_inmemory::CacheableSticker;
 use twilight_model::{
     channel::message::Sticker,
-    id::{marker::StickerMarker, Id},
+    id::{Id, marker::StickerMarker},
 };
 
 #[derive(Clone, Debug, PartialEq)]

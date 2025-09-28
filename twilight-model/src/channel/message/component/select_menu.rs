@@ -1,6 +1,6 @@
-use crate::channel::{message::EmojiReactionType, ChannelType};
-use crate::id::marker::{ChannelMarker, RoleMarker, UserMarker};
+use crate::channel::{ChannelType, message::EmojiReactionType};
 use crate::id::Id;
+use crate::id::marker::{ChannelMarker, RoleMarker, UserMarker};
 use serde::{Deserialize, Serialize};
 
 /// Dropdown-style [`Component`] that renders below messages.

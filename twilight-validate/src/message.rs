@@ -3,8 +3,8 @@
 //! [`Message`]: twilight_model::channel::Message
 
 use crate::{
-    component::{ComponentValidationErrorType, COMPONENT_COUNT, COMPONENT_V2_COUNT},
-    embed::{chars as embed_chars, EmbedValidationErrorType, EMBED_TOTAL_LENGTH},
+    component::{COMPONENT_COUNT, COMPONENT_V2_COUNT, ComponentValidationErrorType},
+    embed::{EMBED_TOTAL_LENGTH, EmbedValidationErrorType, chars as embed_chars},
     request::ValidationError,
 };
 use std::{
@@ -14,7 +14,7 @@ use std::{
 use twilight_model::{
     channel::message::{Component, Embed},
     http::attachment::Attachment,
-    id::{marker::StickerMarker, Id},
+    id::{Id, marker::StickerMarker},
 };
 
 /// Maximum length of an attachment's description.

@@ -4,8 +4,8 @@ use std::marker::PhantomData;
 use crate::{CacheableModels, DefaultCacheModels};
 
 use super::{
-    config::{Config, ResourceType},
     InMemoryCache,
+    config::{Config, ResourceType},
 };
 
 /// Builder to configure and construct an [`InMemoryCache`].

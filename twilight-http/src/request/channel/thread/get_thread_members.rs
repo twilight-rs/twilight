@@ -2,18 +2,18 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     channel::thread::ThreadMember,
     id::{
-        marker::{ChannelMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, UserMarker},
     },
 };
-use twilight_validate::channel::{thread_member_limit, ChannelValidationError};
+use twilight_validate::channel::{ChannelValidationError, thread_member_limit};
 
 struct GetThreadMembersFields {
     after: Option<Id<UserMarker>>,
@@ -45,7 +45,7 @@ impl<'a> GetThreadMembers<'a> {
     }
 
     /// Fetch the thread members after the user ID.
-    pub fn after(mut self, after: Id<UserMarker>) -> Self {
+    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.after = Some(after);
         }
@@ -75,7 +75,7 @@ impl<'a> GetThreadMembers<'a> {
     }
 
     /// Include the associated guild members for each thread member.
-    pub fn with_member(mut self, with_member: bool) -> Self {
+    pub const fn with_member(mut self, with_member: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.with_member = Some(with_member);
         }

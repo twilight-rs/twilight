@@ -10,9 +10,9 @@ use std::{collections::HashMap, future::IntoFuture};
 use twilight_model::{
     application::command::{Command, CommandType},
     guild::Permissions,
-    id::{marker::ApplicationMarker, Id},
+    id::{Id, marker::ApplicationMarker},
 };
-use twilight_validate::command::{name as validate_name, CommandValidationError};
+use twilight_validate::command::{CommandValidationError, name as validate_name};
 
 struct CreateGlobalMessageCommandFields<'a> {
     default_member_permissions: Option<Permissions>,
@@ -65,7 +65,7 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     /// Default permissions required for a member to run the command.
     ///
     /// Defaults to [`None`].
-    pub fn default_member_permissions(mut self, default: Permissions) -> Self {
+    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.default_member_permissions = Some(default);
         }
@@ -76,7 +76,7 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     /// Set whether the command is available in DMs.
     ///
     /// Defaults to [`None`].
-    pub fn dm_permission(mut self, dm_permission: bool) -> Self {
+    pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.dm_permission = Some(dm_permission);
         }
@@ -110,7 +110,7 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     /// Set whether the command is age-restricted.
     ///
     /// Defaults to not being specified, which uses Discord's default.
-    pub fn nsfw(mut self, nsfw: bool) -> Self {
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.nsfw = Some(nsfw);
         }

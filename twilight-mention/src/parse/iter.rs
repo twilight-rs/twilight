@@ -107,8 +107,8 @@ mod tests {
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use std::fmt::Debug;
     use twilight_model::id::{
-        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
     };
 
     assert_impl_all!(MentionIter<'_, Id<ChannelMarker>>: Clone, Debug, Iterator, Send, Sync);

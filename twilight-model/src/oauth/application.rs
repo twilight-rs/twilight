@@ -1,13 +1,13 @@
 use super::{
+    ApplicationFlags, InstallParams,
     application_integration_type::{ApplicationIntegrationMap, ApplicationIntegrationTypeConfig},
     team::Team,
-    ApplicationFlags, InstallParams,
 };
 use crate::{
     guild::Guild,
     id::{
-        marker::{ApplicationMarker, GuildMarker, OauthSkuMarker},
         Id,
+        marker::{ApplicationMarker, GuildMarker, OauthSkuMarker},
     },
     user::User,
     util::image_hash::ImageHash,

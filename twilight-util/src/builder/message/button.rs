@@ -1,8 +1,8 @@
 use twilight_model::channel::message::{
-    component::{Button, ButtonStyle},
     EmojiReactionType,
+    component::{Button, ButtonStyle},
 };
-use twilight_validate::component::{button, ComponentValidationError};
+use twilight_validate::component::{ComponentValidationError, button};
 
 /// Create a button from a builder.
 #[derive(Clone, Debug, Eq, PartialEq)]

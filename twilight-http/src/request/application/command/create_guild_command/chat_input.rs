@@ -11,13 +11,13 @@ use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
     guild::Permissions,
     id::{
-        marker::{ApplicationMarker, GuildMarker},
         Id,
+        marker::{ApplicationMarker, GuildMarker},
     },
 };
 use twilight_validate::command::{
-    chat_input_name as validate_chat_input_name, description as validate_description,
-    options as validate_options, CommandValidationError,
+    CommandValidationError, chat_input_name as validate_chat_input_name,
+    description as validate_description, options as validate_options,
 };
 
 struct CreateGuildChatInputCommandFields<'a> {
@@ -105,7 +105,7 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     /// Default permissions required for a member to run the command.
     ///
     /// Defaults to [`None`].
-    pub fn default_member_permissions(mut self, default: Permissions) -> Self {
+    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.default_member_permissions = Some(default);
         }
@@ -168,7 +168,7 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     /// Set whether the command is age-restricted.
     ///
     /// Defaults to not being specified, which uses Discord's default.
-    pub fn nsfw(mut self, nsfw: bool) -> Self {
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.nsfw = Some(nsfw);
         }

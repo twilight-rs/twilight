@@ -7,7 +7,7 @@ pub struct QueryStringFormatter<'w1, 'w2> {
 }
 
 impl<'w1, 'w2> QueryStringFormatter<'w1, 'w2> {
-    pub fn new(formatter: &'w1 mut Formatter<'w2>) -> Self {
+    pub const fn new(formatter: &'w1 mut Formatter<'w2>) -> Self {
         Self {
             formatter,
             is_first: true,

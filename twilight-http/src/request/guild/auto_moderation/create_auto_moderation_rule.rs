@@ -12,12 +12,12 @@ use twilight_model::{
         AutoModerationRule, AutoModerationTriggerType,
     },
     id::{
-        marker::{ChannelMarker, GuildMarker, RoleMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, RoleMarker},
     },
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason,
+    ValidationError, audit_reason as validate_audit_reason,
     auto_moderation_action_metadata_duration_seconds as validate_auto_moderation_action_metadata_duration_seconds,
     auto_moderation_block_action_custom_message_limit as validate_auto_moderation_block_action_custom_message_limit,
     auto_moderation_exempt_channels as validate_auto_moderation_exempt_channels,
@@ -26,7 +26,6 @@ use twilight_validate::request::{
     auto_moderation_metadata_keyword_filter as validate_auto_moderation_metadata_keyword_filter,
     auto_moderation_metadata_mention_total_limit as validate_auto_moderation_metadata_mention_total_limit,
     auto_moderation_metadata_regex_patterns as validate_auto_moderation_metadata_regex_patterns,
-    ValidationError,
 };
 
 #[derive(Serialize)]

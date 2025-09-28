@@ -3,13 +3,13 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
-    marker::{ChannelMarker, MessageMarker},
     Id,
+    marker::{ChannelMarker, MessageMarker},
 };
 
 /// Create a reaction in a [`Id<ChannelMarker>`] on a [`Id<MessageMarker>`].
@@ -18,7 +18,7 @@ use twilight_model::id::{
 ///
 /// # Examples
 /// ```no_run
-/// use twilight_http::{request::channel::reaction::RequestReactionType, Client};
+/// use twilight_http::{Client, request::channel::reaction::RequestReactionType};
 /// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
@@ -89,9 +89,9 @@ mod tests {
 
     use super::CreateReaction;
     use crate::{
-        request::{channel::reaction::RequestReactionType, Request, TryIntoRequest},
-        routing::Route,
         Client,
+        request::{Request, TryIntoRequest, channel::reaction::RequestReactionType},
+        routing::Route,
     };
     use std::error::Error;
     use twilight_model::id::Id;

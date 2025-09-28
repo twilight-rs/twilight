@@ -11,15 +11,15 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
     id::{
-        marker::{ChannelMarker, GuildMarker, ScheduledEventMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, ScheduledEventMarker},
     },
     util::Timestamp,
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason,
+    ValidationError, audit_reason as validate_audit_reason,
     scheduled_event_description as validate_scheduled_event_description,
-    scheduled_event_name as validate_scheduled_event_name, ValidationError,
+    scheduled_event_name as validate_scheduled_event_name,
 };
 
 #[derive(Serialize)]
@@ -100,10 +100,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     /// If `entity_type` is already [`EntityType::External`], this has no
     /// effect.
     pub fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            if fields.entity_type != Some(EntityType::External) {
-                fields.channel_id = Some(Nullable(Some(channel_id)));
-            }
+        if let Ok(fields) = self.fields.as_mut()
+            && fields.entity_type != Some(EntityType::External)
+        {
+            fields.channel_id = Some(Nullable(Some(channel_id)));
         }
 
         self

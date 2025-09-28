@@ -4,16 +4,16 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 use twilight_model::{
     application::monetization::Entitlement,
     id::{
-        marker::{ApplicationMarker, GuildMarker, SkuMarker, UserMarker},
         Id,
+        marker::{ApplicationMarker, GuildMarker, SkuMarker, UserMarker},
     },
 };
 
 use crate::{
+    Client, Error, Response,
     request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
-    Client, Error, Response,
 };
 
 /// Owner of a test entitlement.

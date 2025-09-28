@@ -10,7 +10,7 @@
 //! implementation of [`Mention`]:
 //!
 //! ```
-//! use twilight_mention::{timestamp::Timestamp, Mention};
+//! use twilight_mention::{Mention, timestamp::Timestamp};
 //!
 //! let timestamp = Timestamp::new(1624047064, None);
 //!
@@ -121,7 +121,7 @@ impl Timestamp {
     /// Create a timestamp without a display modifier and format it as a mention:
     ///
     /// ```
-    /// use twilight_mention::{timestamp::Timestamp, Mention};
+    /// use twilight_mention::{Mention, timestamp::Timestamp};
     ///
     /// let timestamp = Timestamp::new(1624044388, None);
     /// assert_eq!("<t:1624044388>", timestamp.mention().to_string());
@@ -267,7 +267,7 @@ impl TryFrom<&str> for TimestampStyle {
             _ => {
                 return Err(TimestampStyleConversionError {
                     kind: TimestampStyleConversionErrorType::StyleInvalid,
-                })
+                });
             }
         })
     }

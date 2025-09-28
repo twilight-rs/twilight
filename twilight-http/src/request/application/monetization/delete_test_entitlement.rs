@@ -1,15 +1,15 @@
 use std::future::IntoFuture;
 
 use twilight_model::id::{
-    marker::{ApplicationMarker, EntitlementMarker},
     Id,
+    marker::{ApplicationMarker, EntitlementMarker},
 };
 
 use crate::{
-    request::{Request, TryIntoRequest},
-    response::{marker::EmptyBody, ResponseFuture},
-    routing::Route,
     Client, Error, Response,
+    request::{Request, TryIntoRequest},
+    response::{ResponseFuture, marker::EmptyBody},
+    routing::Route,
 };
 
 pub struct DeleteTestEntitlement<'a> {

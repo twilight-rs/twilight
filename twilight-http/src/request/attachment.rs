@@ -2,7 +2,7 @@ use crate::request::Form;
 use serde::{Deserialize, Serialize};
 use twilight_model::{
     http::attachment::Attachment,
-    id::{marker::AttachmentMarker, Id},
+    id::{Id, marker::AttachmentMarker},
 };
 
 pub struct AttachmentManager<'a> {
@@ -49,7 +49,7 @@ impl<'a> AttachmentManager<'a> {
             .collect()
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.files.is_empty() && self.ids.is_empty()
     }
 

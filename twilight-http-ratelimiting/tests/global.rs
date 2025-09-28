@@ -1,5 +1,5 @@
 use tokio::time::{self, Instant};
-use twilight_http_ratelimiting::{Path, RateLimiter, GLOBAL_LIMIT_PERIOD};
+use twilight_http_ratelimiting::{GLOBAL_LIMIT_PERIOD, Path, RateLimiter};
 
 const PATH: Path = Path::ApplicationsMe;
 const NOT_LIMITED_PATH: Path = Path::InteractionCallback(1);

@@ -33,10 +33,10 @@ use crate::{
         thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
     },
     id::{
+        Id,
         marker::{
             ApplicationMarker, ChannelMarker, GenericMarker, GuildMarker, TagMarker, UserMarker,
         },
-        Id,
     },
     user::User,
     util::{ImageHash, Timestamp},

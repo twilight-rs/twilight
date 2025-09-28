@@ -2,11 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{
+        Nullable, Request, TryIntoRequest,
         attachment::{AttachmentManager, PartialAttachment},
         channel::webhook::ExecuteWebhookAndWait,
-        Nullable, Request, TryIntoRequest,
     },
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use serde::Serialize;
@@ -15,15 +15,14 @@ use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::attachment::Attachment,
     id::{
-        marker::{ChannelMarker, WebhookMarker},
         Id,
+        marker::{ChannelMarker, WebhookMarker},
     },
 };
 use twilight_validate::{
     message::{
-        attachment as validate_attachment, components as validate_components,
-        content as validate_content, embeds as validate_embeds, MessageValidationError,
-        MessageValidationErrorType,
+        MessageValidationError, MessageValidationErrorType, attachment as validate_attachment,
+        components as validate_components, content as validate_content, embeds as validate_embeds,
     },
     request::webhook_username as validate_webhook_username,
 };
@@ -124,7 +123,7 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
-    pub fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.allowed_mentions = Some(Nullable(allowed_mentions));
         }
@@ -161,7 +160,7 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// The URL of the avatar of the webhook.
-    pub fn avatar_url(mut self, avatar_url: &'a str) -> Self {
+    pub const fn avatar_url(mut self, avatar_url: &'a str) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.avatar_url = Some(avatar_url);
         }
@@ -256,7 +255,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
     /// [`SUPPRESS_NOTIFICATIONS`]: MessageFlags::SUPPRESS_NOTIFICATIONS
     /// [`IS_COMPONENTS_V2`]: MessageFlags::IS_COMPONENTS_V2
-    pub fn flags(mut self, flags: MessageFlags) -> Self {
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.flags = Some(flags);
         }
@@ -318,7 +317,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
     /// [`attachments`]: Self::attachments
     /// [`payload_json`]: Self::payload_json
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.payload_json = Some(payload_json);
         }
@@ -327,7 +326,7 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Execute in a thread belonging to the channel instead of the channel itself.
-    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
+    pub const fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
         self.thread_id.replace(thread_id);
 
         self
@@ -345,7 +344,7 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Specify true if the message is TTS.
-    pub fn tts(mut self, tts: bool) -> Self {
+    pub const fn tts(mut self, tts: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.tts = Some(tts);
         }
@@ -425,10 +424,10 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
         request = request.use_authorization_token(false);
 
         // Set the default allowed mentions if required.
-        if fields.allowed_mentions.is_none() {
-            if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
-            }
+        if fields.allowed_mentions.is_none()
+            && let Some(allowed_mentions) = self.http.default_allowed_mentions()
+        {
+            fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON

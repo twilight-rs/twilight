@@ -475,9 +475,15 @@ impl FromStr for Path {
                 ApplicationGuildCommand(parse_id(id)?)
             }
             ["applications", id, "guilds", _, "commands", _]
-            | ["applications", id, "guilds", _, "commands", _, "permissions"] => {
-                ApplicationGuildCommandId(parse_id(id)?)
-            }
+            | [
+                "applications",
+                id,
+                "guilds",
+                _,
+                "commands",
+                _,
+                "permissions",
+            ] => ApplicationGuildCommandId(parse_id(id)?),
             ["applications", id, "skus"] => ApplicationIdSKUs(parse_id(id)?),
             ["channels", id] => ChannelsId(parse_id(id)?),
             ["channels", id, "followers"] => ChannelsIdFollowers(parse_id(id)?),
@@ -596,7 +602,7 @@ impl FromStr for Path {
                 return Err(PathParseError {
                     kind: PathParseErrorType::NoMatch,
                     source: None,
-                })
+                });
             }
         })
     }

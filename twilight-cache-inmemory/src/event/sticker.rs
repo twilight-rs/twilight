@@ -1,13 +1,13 @@
 use std::{borrow::Cow, collections::HashSet};
 
 use crate::{
-    config::ResourceType, CacheableModels, CacheableSticker, GuildResource, InMemoryCache,
-    UpdateCache,
+    CacheableModels, CacheableSticker, GuildResource, InMemoryCache, UpdateCache,
+    config::ResourceType,
 };
 use twilight_model::{
     channel::message::Sticker,
     gateway::payload::incoming::GuildStickersUpdate,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
@@ -41,10 +41,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     }
 
     pub(crate) fn cache_sticker(&self, guild_id: Id<GuildMarker>, sticker: Sticker) {
-        if let Some(cached_sticker) = self.stickers.get(&sticker.id) {
-            if cached_sticker.value == sticker {
-                return;
-            }
+        if let Some(cached_sticker) = self.stickers.get(&sticker.id)
+            && cached_sticker.value == sticker
+        {
+            return;
         }
 
         if let Some(user) = sticker.user.clone() {
@@ -81,10 +81,10 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildStickersUpd
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultCacheModels, InMemoryCache};
+    use crate::{DefaultCacheModels, InMemoryCache, test};
     use twilight_model::id::{
-        marker::{GuildMarker, StickerMarker},
         Id,
+        marker::{GuildMarker, StickerMarker},
     };
 
     const GUILD_ID: Id<GuildMarker> = Id::new(1);
@@ -109,14 +109,18 @@ mod tests {
         assert_eq!(cache.stickers.len(), 2);
         let one = test::sticker(STICKER_ONE_ID, GUILD_ID);
         let two = test::sticker(STICKER_TWO_ID, GUILD_ID);
-        assert!(cache
-            .stickers
-            .get(&STICKER_ONE_ID)
-            .is_some_and(|r| r.id == STICKER_ONE_ID));
-        assert!(cache
-            .stickers
-            .get(&STICKER_TWO_ID)
-            .is_some_and(|r| r.id == STICKER_TWO_ID));
+        assert!(
+            cache
+                .stickers
+                .get(&STICKER_ONE_ID)
+                .is_some_and(|r| r.id == STICKER_ONE_ID)
+        );
+        assert!(
+            cache
+                .stickers
+                .get(&STICKER_TWO_ID)
+                .is_some_and(|r| r.id == STICKER_TWO_ID)
+        );
 
         let guild_stickers = cache
             .guild_stickers
@@ -140,10 +144,12 @@ mod tests {
         let one = test::sticker(STICKER_ONE_ID, GUILD_ID);
         cache.cache_stickers(GUILD_ID, Vec::from([one]));
         assert_eq!(cache.stickers.len(), 1);
-        assert!(cache
-            .stickers
-            .get(&STICKER_ONE_ID)
-            .is_some_and(|r| r.id == STICKER_ONE_ID));
+        assert!(
+            cache
+                .stickers
+                .get(&STICKER_ONE_ID)
+                .is_some_and(|r| r.id == STICKER_ONE_ID)
+        );
         let guild_stickers = cache
             .guild_stickers
             .get(&GUILD_ID)
