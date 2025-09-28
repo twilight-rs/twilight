@@ -342,3 +342,67 @@ pub fn label_description(value: impl AsRef<str>) -> Result<(), ComponentValidati
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::iter;
+    use twilight_model::channel::message::component::{
+        Button, ButtonStyle, Label, SelectMenu, SelectMenuType,
+    };
+    use twilight_model::channel::message::Component;
+
+    #[test]
+    fn component_label() {
+        let button = Component::Button(Button {
+            custom_id: None,
+            disabled: false,
+            emoji: None,
+            label: Some("Press me".into()),
+            style: ButtonStyle::Danger,
+            url: None,
+            sku_id: None,
+            id: None,
+        });
+
+        let select_menu = Component::SelectMenu(SelectMenu {
+            channel_types: None,
+            custom_id: String::from("my_select"),
+            default_values: None,
+            disabled: false,
+            kind: SelectMenuType::User,
+            max_values: None,
+            min_values: None,
+            options: None,
+            placeholder: None,
+            id: None,
+        });
+
+        let valid_label = Label {
+            id: None,
+            label: "Label".to_string(),
+            description: Some("This is a description".to_owned()),
+            component: Box::new(select_menu),
+        };
+
+        let label_invalid_child = Label {
+            component: Box::new(button),
+            ..valid_label.clone()
+        };
+
+        let label_too_long_description = Label {
+            description: Some(iter::repeat_n('a', 101).collect()),
+            ..valid_label.clone()
+        };
+
+        let label_too_long_label = Label {
+            label: iter::repeat_n('a', 46).collect(),
+            ..valid_label.clone()
+        };
+
+        assert!(label(&valid_label).is_ok());
+        assert!(label(&label_invalid_child).is_err());
+        assert!(label(&label_too_long_description).is_err());
+        assert!(label(&label_too_long_label).is_err());
+    }
+}
