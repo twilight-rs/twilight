@@ -231,6 +231,7 @@ mod tests {
             rate_limit_per_user: None,
             recipients: None,
             rtc_region: None,
+            status: None,
             thread_metadata: None,
             topic: None,
             user_limit: None,
@@ -276,6 +277,7 @@ mod tests {
             rate_limit_per_user: None,
             recipients: None,
             rtc_region: None,
+            status: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Hour,

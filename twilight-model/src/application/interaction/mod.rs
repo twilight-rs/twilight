@@ -562,6 +562,7 @@ mod tests {
                 member_count: None,
                 message_count: None,
                 newly_created: None,
+                status: None,
                 thread_metadata: None,
                 video_quality_mode: None,
             }),

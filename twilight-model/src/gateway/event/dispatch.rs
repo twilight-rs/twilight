@@ -78,6 +78,7 @@ pub enum DispatchEvent {
     TypingStart(Box<TypingStart>),
     UnavailableGuild(UnavailableGuild),
     UserUpdate(UserUpdate),
+    VoiceChannelStatusUpdate(VoiceChannelStatusUpdate),
     VoiceServerUpdate(VoiceServerUpdate),
     VoiceStateUpdate(Box<VoiceStateUpdate>),
     WebhooksUpdate(WebhooksUpdate),
@@ -151,6 +152,7 @@ impl DispatchEvent {
             Self::TypingStart(_) => EventType::TypingStart,
             Self::UnavailableGuild(_) => EventType::UnavailableGuild,
             Self::UserUpdate(_) => EventType::UserUpdate,
+            Self::VoiceChannelStatusUpdate(_) => EventType::VoiceChannelStatusUpdate,
             Self::VoiceServerUpdate(_) => EventType::VoiceServerUpdate,
             Self::VoiceStateUpdate(_) => EventType::VoiceStateUpdate,
             Self::WebhooksUpdate(_) => EventType::WebhooksUpdate,
@@ -426,6 +428,9 @@ impl<'de> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'_> {
                 DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))
             }
             "USER_UPDATE" => DispatchEvent::UserUpdate(UserUpdate::deserialize(deserializer)?),
+            "VOICE_CHANNEL_STATUS_UPDATE" => DispatchEvent::VoiceChannelStatusUpdate(
+                VoiceChannelStatusUpdate::deserialize(deserializer)?,
+            ),
             "VOICE_SERVER_UPDATE" => {
                 DispatchEvent::VoiceServerUpdate(VoiceServerUpdate::deserialize(deserializer)?)
             }
