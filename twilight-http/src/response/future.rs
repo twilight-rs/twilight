@@ -20,7 +20,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::time::{self, Sleep, Timeout};
-use twilight_http_ratelimiting::{Path, Permit, PermitFuture, RateLimitHeaders, RateLimiter};
+use twilight_http_ratelimiting::{Endpoint, Permit, PermitFuture, RateLimitHeaders, RateLimiter};
 
 /// Parse ratelimit headers from a map of headers.
 ///
@@ -85,14 +85,14 @@ enum ResponseStageFuture {
 struct PermitFutureGenerator {
     /// Rate limiter to acquire permits from.
     rate_limiter: RateLimiter,
-    /// Rate limiter path to acquire permits for.
-    path: Path,
+    /// Rate limiter endpoint to acquire permits for.
+    endpoint: Endpoint,
 }
 
 impl PermitFutureGenerator {
     /// Generates a permit future.
     fn generate(&self) -> PermitFuture {
-        self.rate_limiter.acquire(self.path.clone())
+        self.rate_limiter.acquire(self.endpoint.clone())
     }
 }
 
@@ -161,10 +161,12 @@ impl<T> ResponseFuture<T> {
         span: tracing::Span,
         timeout: Duration,
         rate_limiter: Option<RateLimiter>,
-        path: Path,
+        endpoint: Endpoint,
     ) -> Self {
-        let permit_generator =
-            rate_limiter.map(|rate_limiter| PermitFutureGenerator { rate_limiter, path });
+        let permit_generator = rate_limiter.map(|rate_limiter| PermitFutureGenerator {
+            rate_limiter,
+            endpoint,
+        });
         let response_generator = TimedResponseFutureGenerator {
             client,
             request,
@@ -390,7 +392,7 @@ struct Inner<T> {
     /// Optional [`PermitFuture`] generator, if registered.
     permit_generator: Option<PermitFutureGenerator>,
     phantom: PhantomData<T>,
-    /// Predicate to check after completing [`ResponseFutureStage::Permit`].
+    /// Predicate to check after completing [`ResponseStageFuture::RateLimitPermit`].
     pre_flight_check: Option<Box<dyn Fn() -> bool + Send + 'static>>,
     /// [`Timeout<HyperResponseFuture>`] generator.
     response_generator: TimedResponseFutureGenerator,

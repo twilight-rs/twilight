@@ -77,7 +77,7 @@ mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use static_assertions::assert_impl_all;
     use std::{error::Error, future::IntoFuture};
-    use twilight_http_ratelimiting::{Method, Path};
+    use twilight_http_ratelimiting::Method;
 
     assert_impl_all!(GetCurrentAuthorizationInformation<'_>: IntoFuture, Send, Sync, TryIntoRequest);
 
@@ -91,7 +91,6 @@ mod tests {
         assert!(req.form().is_none());
         assert!(req.headers().is_none());
         assert_eq!(Method::Get, req.method());
-        assert_eq!(&Path::OauthMe, req.ratelimit_path());
 
         Ok(())
     }

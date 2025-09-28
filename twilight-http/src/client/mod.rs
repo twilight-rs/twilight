@@ -113,7 +113,7 @@ use std::{
     },
     time::Duration,
 };
-use twilight_http_ratelimiting::RateLimiter;
+use twilight_http_ratelimiting::{Endpoint, RateLimiter};
 use twilight_model::{
     channel::{ChannelType, message::AllowedMentions},
     guild::{
@@ -2911,8 +2911,7 @@ impl Client {
             form,
             headers: req_headers,
             method,
-            path,
-            ratelimit_path,
+            mut path,
             use_authorization_token,
         } = request;
 
@@ -2994,6 +2993,9 @@ impl Client {
             .then(|| self.token_invalidated.clone())
             .flatten();
 
+        if let Some(i) = path.find('?') {
+            path.truncate(i);
+        }
         let response = ResponseFuture::new(
             self.http.clone(),
             invalid_token,
@@ -3001,7 +3003,7 @@ impl Client {
             tracing::info_span!("req", method = method.name(), url = url),
             self.timeout,
             self.ratelimiter.clone(),
-            ratelimit_path,
+            Endpoint { method, path },
         );
 
         Ok(response)

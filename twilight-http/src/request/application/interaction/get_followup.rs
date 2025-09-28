@@ -128,7 +128,6 @@ mod tests {
 
         assert!(expected.body().is_none());
         assert_eq!(expected.path(), actual.path());
-        assert_eq!(expected.ratelimit_path(), actual.ratelimit_path());
         assert_eq!(
             expected.use_authorization_token(),
             actual.use_authorization_token()
