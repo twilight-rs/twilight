@@ -8,13 +8,13 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::{stage_instance::PrivacyLevel, StageInstance},
+    channel::{StageInstance, stage_instance::PrivacyLevel},
     id::{
-        marker::{ChannelMarker, ScheduledEventMarker},
         Id,
+        marker::{ChannelMarker, ScheduledEventMarker},
     },
 };
-use twilight_validate::request::{stage_topic as validate_stage_topic, ValidationError};
+use twilight_validate::request::{ValidationError, stage_topic as validate_stage_topic};
 
 #[derive(Serialize)]
 struct CreateStageInstanceFields<'a> {
@@ -56,7 +56,7 @@ impl<'a> CreateStageInstance<'a> {
     }
 
     /// Set the guild scheduled event associated with this stage instance.
-    pub fn guild_scheduled_event_id(
+    pub const fn guild_scheduled_event_id(
         mut self,
         guild_scheduled_event_id: Id<ScheduledEventMarker>,
     ) -> Self {
@@ -68,7 +68,7 @@ impl<'a> CreateStageInstance<'a> {
     }
 
     /// Set the [`PrivacyLevel`] of the instance.
-    pub fn privacy_level(mut self, privacy_level: PrivacyLevel) -> Self {
+    pub const fn privacy_level(mut self, privacy_level: PrivacyLevel) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.privacy_level = Some(privacy_level);
         }
@@ -82,7 +82,7 @@ impl<'a> CreateStageInstance<'a> {
     /// notification to be sent.
     ///
     /// [`Permissions::MENTION_EVERYONE`]: twilight_model::guild::Permissions::MENTION_EVERYONE
-    pub fn send_start_notification(mut self, send_start_notification: bool) -> Self {
+    pub const fn send_start_notification(mut self, send_start_notification: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.send_start_notification = Some(send_start_notification);
         }

@@ -10,11 +10,11 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::PartialMember,
     id::{
-        marker::{GuildMarker, RoleMarker, UserMarker},
         Id,
+        marker::{GuildMarker, RoleMarker, UserMarker},
     },
 };
-use twilight_validate::request::{nickname as validate_nickname, ValidationError};
+use twilight_validate::request::{ValidationError, nickname as validate_nickname};
 
 #[derive(Serialize)]
 struct AddGuildMemberFields<'a> {
@@ -66,7 +66,7 @@ impl<'a> AddGuildMember<'a> {
 
     /// Whether the new member will be unable to hear audio when connected to a
     /// voice channel.
-    pub fn deaf(mut self, deaf: bool) -> Self {
+    pub const fn deaf(mut self, deaf: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.deaf = Some(deaf);
         }
@@ -75,7 +75,7 @@ impl<'a> AddGuildMember<'a> {
     }
 
     /// Whether the new member will be unable to speak in voice channels.
-    pub fn mute(mut self, mute: bool) -> Self {
+    pub const fn mute(mut self, mute: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.mute = Some(mute);
         }
@@ -107,7 +107,7 @@ impl<'a> AddGuildMember<'a> {
     }
 
     /// List of roles to assign the new member.
-    pub fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
+    pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.roles = Some(roles);
         }

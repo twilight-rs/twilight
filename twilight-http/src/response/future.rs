@@ -4,19 +4,19 @@ use crate::{
     client::connector::Connector,
     error::{Error, ErrorType},
 };
-use http::{header, HeaderMap, Request, StatusCode};
+use http::{HeaderMap, Request, StatusCode, header};
 use http_body_util::Full;
 use hyper::body::Bytes;
 use hyper_util::client::legacy::{Client as HyperClient, ResponseFuture as HyperResponseFuture};
 use std::{
-    future::{ready, Future, Ready},
+    future::{Future, Ready, ready},
     marker::PhantomData,
     pin::Pin,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
     time::{Duration, Instant},
 };
 use tokio::time::{self, Sleep, Timeout};
@@ -204,7 +204,7 @@ impl<T> ResponseFuture<T> {
     ///     future::IntoFuture,
     ///     sync::{Arc, Mutex},
     /// };
-    /// use twilight_http::{error::ErrorType, Client};
+    /// use twilight_http::{Client, error::ErrorType};
     /// use twilight_model::id::Id;
     ///
     /// let channel_id = Id::new(1);
@@ -240,13 +240,16 @@ impl<T> ResponseFuture<T> {
     where
         P: Fn() -> bool + Send + 'static,
     {
-        if let Ok(inner) = &mut self.0 {
-            if inner.permit_generator.is_some() && inner.pre_flight_check.is_none() {
-                inner.pre_flight_check = Some(Box::new(predicate));
-                return true;
-            }
+        if let Ok(inner) = &mut self.0
+            && inner.permit_generator.is_some()
+            && inner.pre_flight_check.is_none()
+        {
+            inner.pre_flight_check = Some(Box::new(predicate));
+
+            true
+        } else {
+            false
         }
-        false
     }
 
     /// Creates a future that is immediately ready with an error.
@@ -272,7 +275,9 @@ impl<T: Unpin> Future for ResponseFuture<T> {
                 ResponseStageFuture::Delay(fut) => {
                     ready!(Pin::new(fut).poll(cx));
                     inner.stage = match &inner.permit_generator {
-                        Some(gen) => ResponseStageFuture::RateLimitPermit(gen.generate()),
+                        Some(generator) => {
+                            ResponseStageFuture::RateLimitPermit(generator.generate())
+                        }
                         None => ResponseStageFuture::Response {
                             fut: inner.response_generator.generate(),
                             permit: None,
@@ -329,10 +334,10 @@ impl<T: Unpin> Future for ResponseFuture<T> {
                             source: Some(Box::new(source)),
                         })?;
 
-                    if response.status() == StatusCode::UNAUTHORIZED {
-                        if let Some(invalid) = &inner.invalid_token {
-                            invalid.store(true, Ordering::Relaxed);
-                        }
+                    if response.status() == StatusCode::UNAUTHORIZED
+                        && let Some(invalid) = &inner.invalid_token
+                    {
+                        invalid.store(true, Ordering::Relaxed);
                     }
 
                     if let Some(permit) = permit.take() {
@@ -356,18 +361,18 @@ impl<T: Unpin> Future for ResponseFuture<T> {
                         return Poll::Ready(Ok(Response::new(response)));
                     }
 
-                    if response.status() == StatusCode::TOO_MANY_REQUESTS {
-                        if let Some(retry_after) = response.headers().get(header::RETRY_AFTER) {
-                            if let Ok(str) = retry_after.to_str() {
-                                if let Ok(secs) = str.parse() {
-                                    tracing::debug!(delay = secs, "retrying request");
-                                    let delay = time::sleep(Duration::from_secs(secs));
-                                    inner.stage = ResponseStageFuture::Delay(Box::pin(delay));
-                                    continue;
-                                }
-                            }
-                            tracing::warn!("unknown retry-after header value: {retry_after:?}");
+                    if response.status() == StatusCode::TOO_MANY_REQUESTS
+                        && let Some(retry_after) = response.headers().get(header::RETRY_AFTER)
+                    {
+                        if let Ok(str) = retry_after.to_str()
+                            && let Ok(secs) = str.parse()
+                        {
+                            tracing::debug!(delay = secs, "retrying request");
+                            let delay = time::sleep(Duration::from_secs(secs));
+                            inner.stage = ResponseStageFuture::Delay(Box::pin(delay));
+                            continue;
                         }
+                        tracing::warn!("unknown retry-after header value: {retry_after:?}");
                     }
 
                     inner.stage = ResponseStageFuture::Error {

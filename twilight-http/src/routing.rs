@@ -1,13 +1,13 @@
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 
 use crate::{
     query_formatter::{QueryArray, QueryStringFormatter},
-    request::{channel::reaction::RequestReactionType, Method},
+    request::{Method, channel::reaction::RequestReactionType},
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{
-    marker::{RoleMarker, SkuMarker},
     Id,
+    marker::{RoleMarker, SkuMarker},
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -386,6 +386,8 @@ pub enum Route<'a> {
         token: &'a str,
         /// Whether to wait for a message response.
         wait: Option<bool>,
+        /// Whether the message includes Components V2.
+        with_components: Option<bool>,
         /// The ID of the webhook.
         webhook_id: u64,
     },
@@ -2098,6 +2100,7 @@ impl Display for Route<'_> {
                 thread_id,
                 token,
                 wait,
+                with_components,
                 webhook_id,
             } => {
                 f.write_str("webhooks/")?;
@@ -2108,7 +2111,8 @@ impl Display for Route<'_> {
                 let mut query_formatter = QueryStringFormatter::new(f);
 
                 query_formatter.write_opt_param("thread_id", thread_id.as_ref())?;
-                query_formatter.write_opt_param("wait", wait.as_ref())
+                query_formatter.write_opt_param("wait", wait.as_ref())?;
+                query_formatter.write_opt_param("with_components", with_components.as_ref())
             }
             Route::DeleteTestEntitlement {
                 application_id,
@@ -2713,7 +2717,7 @@ impl Display for Route<'_> {
 #[cfg(test)]
 mod tests {
     use super::Route;
-    use crate::request::{channel::reaction::RequestReactionType, Method};
+    use crate::request::{Method, channel::reaction::RequestReactionType};
     use twilight_model::id::Id;
 
     /// Test a route for each method.

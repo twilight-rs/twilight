@@ -1,6 +1,6 @@
 use crate::{
     guild::IntegrationAccount,
-    id::{marker::IntegrationMarker, Id},
+    id::{Id, marker::IntegrationMarker},
     user::User,
     util::Timestamp,
 };

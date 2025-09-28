@@ -1,6 +1,6 @@
 use super::{DiscriminatorDisplay, PremiumType, UserFlags};
 use crate::{
-    id::{marker::UserMarker, Id},
+    id::{Id, marker::UserMarker},
     util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};

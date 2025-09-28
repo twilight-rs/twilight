@@ -16,11 +16,11 @@ use crate::{CacheableModels, GuildResource, InMemoryCache};
 use dashmap::{iter::Iter, mapref::multiple::RefMulti};
 use std::{hash::Hash, ops::Deref};
 use twilight_model::id::{
+    Id,
     marker::{
         ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
         StageMarker, StickerMarker, UserMarker,
     },
-    Id,
 };
 
 /// Reference to a resource value being iterated over in the cache.
@@ -258,11 +258,11 @@ impl<'a, K: Eq + Hash, V> Iterator for ResourceIter<'a, K, V> {
 #[cfg(test)]
 mod tests {
     use super::{InMemoryCacheIter, IterReference, ResourceIter};
-    use crate::{test, DefaultCacheModels, DefaultInMemoryCache};
+    use crate::{DefaultCacheModels, DefaultInMemoryCache, test};
     use static_assertions::assert_impl_all;
     use std::{borrow::Cow, fmt::Debug};
     use twilight_model::{
-        id::{marker::UserMarker, Id},
+        id::{Id, marker::UserMarker},
         user::User,
     };
 

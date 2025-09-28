@@ -19,18 +19,23 @@ use crate::request::{
 };
 #[allow(deprecated)]
 use crate::{
+    API_VERSION,
     client::connector::Connector,
     error::{Error, ErrorType},
     request::{
+        GetCurrentAuthorizationInformation, GetGateway, GetUserApplicationInfo, GetVoiceRegions,
+        Method, Request, UpdateCurrentUserApplication,
         channel::{
+            CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission, DeletePin,
+            FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
             invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
             message::{
                 CreateMessage, CrosspostMessage, DeleteMessage, DeleteMessages, GetChannelMessages,
                 GetMessage, UpdateMessage,
             },
             reaction::{
-                delete_reaction::TargetUser, CreateReaction, DeleteAllReaction, DeleteAllReactions,
-                DeleteReaction, GetReactions, RequestReactionType,
+                CreateReaction, DeleteAllReaction, DeleteAllReactions, DeleteReaction,
+                GetReactions, RequestReactionType, delete_reaction::TargetUser,
             },
             stage::{
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
@@ -46,10 +51,14 @@ use crate::{
                 GetChannelWebhooks, GetWebhook, GetWebhookMessage, UpdateWebhook,
                 UpdateWebhookMessage, UpdateWebhookWithToken,
             },
-            CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission, DeletePin,
-            FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
         },
         guild::{
+            CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
+            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
+            GetGuildPreview, GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions,
+            GetGuildWebhooks, GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings,
+            UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
+            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
             auto_moderation::{
                 CreateAutoModerationRule, DeleteAutoModerationRule, GetAutoModerationRule,
                 GetGuildAutoModerationRules, UpdateAutoModerationRule,
@@ -70,12 +79,6 @@ use crate::{
             },
             update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingFields},
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
-            CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
-            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
-            GetGuildPreview, GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions,
-            GetGuildWebhooks, GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings,
-            UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
-            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
         },
         poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
@@ -92,14 +95,11 @@ use crate::{
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetCurrentAuthorizationInformation, GetGateway, GetUserApplicationInfo, GetVoiceRegions,
-        Method, Request, UpdateCurrentUserApplication,
     },
     response::ResponseFuture,
-    API_VERSION,
 };
 use http::header::{
-    HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT,
+    AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, HeaderMap, HeaderValue, USER_AGENT,
 };
 use http_body_util::Full;
 use hyper::body::Bytes;
@@ -108,26 +108,26 @@ use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     ops::Deref,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };
 use twilight_http_ratelimiting::{Endpoint, RateLimiter};
 use twilight_model::{
-    channel::{message::AllowedMentions, ChannelType},
+    channel::{ChannelType, message::AllowedMentions},
     guild::{
-        auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel,
-        RolePosition,
+        MfaLevel, RolePosition, auto_moderation::AutoModerationEventType,
+        scheduled_event::PrivacyLevel,
     },
     http::{channel_position::Position, permission_overwrite::PermissionOverwrite},
     id::{
+        Id,
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
             EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
             ScheduledEventMarker, SkuMarker, StickerMarker, UserMarker, WebhookMarker,
         },
-        Id,
     },
 };
 
@@ -654,7 +654,7 @@ impl Client {
     /// use twilight_model::{
     ///     guild::Permissions,
     ///     http::permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
-    ///     id::{marker::RoleMarker, Id},
+    ///     id::{Id, marker::RoleMarker},
     /// };
     ///
     /// let channel_id = Id::new(123);
@@ -2897,13 +2897,13 @@ impl Client {
     }
 
     fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
-        if let Some(token_invalidated) = self.token_invalidated.as_ref() {
-            if token_invalidated.load(Ordering::Relaxed) {
-                return Err(Error {
-                    kind: ErrorType::Unauthorized,
-                    source: None,
-                });
-            }
+        if let Some(token_invalidated) = self.token_invalidated.as_ref()
+            && token_invalidated.load(Ordering::Relaxed)
+        {
+            return Err(Error {
+                kind: ErrorType::Unauthorized,
+                source: None,
+            });
         }
 
         let Request {
@@ -2922,20 +2922,18 @@ impl Client {
 
         let mut builder = hyper::Request::builder().method(method.name()).uri(&url);
 
-        if use_authorization_token {
-            if let Some(token) = self.token.as_deref() {
-                let value = HeaderValue::from_str(token).map_err(|source| {
-                    let name = AUTHORIZATION.to_string();
+        if use_authorization_token && let Some(token) = self.token.as_deref() {
+            let value = HeaderValue::from_str(token).map_err(|source| {
+                let name = AUTHORIZATION.to_string();
 
-                    Error {
-                        kind: ErrorType::CreatingHeader { name },
-                        source: Some(Box::new(source)),
-                    }
-                })?;
-
-                if let Some(headers) = builder.headers_mut() {
-                    headers.insert(AUTHORIZATION, value);
+                Error {
+                    kind: ErrorType::CreatingHeader { name },
+                    source: Some(Box::new(source)),
                 }
+            })?;
+
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(AUTHORIZATION, value);
             }
         }
 

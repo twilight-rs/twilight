@@ -1,4 +1,4 @@
-use crate::id::{marker::ChannelMarker, Id};
+use crate::id::{Id, marker::ChannelMarker};
 use serde::{Deserialize, Serialize};
 
 /// Partial channel object that a webhook is following.

@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use std::borrow::Cow;
 use twilight_model::{
     application::interaction::InteractionData, gateway::payload::incoming::InteractionCreate,
@@ -7,51 +7,50 @@ use twilight_model::{
 impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for InteractionCreate {
     fn update(&self, cache: &InMemoryCache<CacheModels>) {
         // Cache interaction member
-        if cache.wants(ResourceType::MEMBER) {
-            if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
-                if let Some(user) = &member.user {
-                    cache.cache_user(Cow::Borrowed(user), self.guild_id);
+        if cache.wants(ResourceType::MEMBER)
+            && let (Some(member), Some(guild_id)) = (&self.member, self.guild_id)
+            && let Some(user) = &member.user
+        {
+            cache.cache_user(Cow::Borrowed(user), self.guild_id);
 
-                    cache.cache_borrowed_partial_member(guild_id, member, user.id);
-                }
-            }
+            cache.cache_borrowed_partial_member(guild_id, member, user.id);
         }
 
         // Cache interaction user
-        if cache.wants(ResourceType::USER) {
-            if let Some(user) = &self.user {
-                cache.cache_user(Cow::Borrowed(user), None);
-            }
+        if cache.wants(ResourceType::USER)
+            && let Some(user) = &self.user
+        {
+            cache.cache_user(Cow::Borrowed(user), None);
         }
 
         // Cache resolved interaction data
-        if let Some(InteractionData::ApplicationCommand(data)) = &self.data {
-            if let Some(resolved) = &data.resolved {
-                // Cache resolved users and members
-                for u in resolved.users.values() {
-                    if cache.wants(ResourceType::USER) {
-                        cache.cache_user(Cow::Borrowed(u), self.guild_id);
-                    }
-
-                    if !cache.wants(ResourceType::MEMBER) || self.guild_id.is_none() {
-                        continue;
-                    }
-
-                    // This should always match, because resolved members
-                    // are guaranteed to have a matching resolved user
-                    if let Some(member) = &resolved.members.get(&u.id) {
-                        if let Some(guild_id) = self.guild_id {
-                            cache.cache_borrowed_interaction_member(guild_id, member, u.id);
-                        }
-                    }
+        if let Some(InteractionData::ApplicationCommand(data)) = &self.data
+            && let Some(resolved) = &data.resolved
+        {
+            // Cache resolved users and members
+            for u in resolved.users.values() {
+                if cache.wants(ResourceType::USER) {
+                    cache.cache_user(Cow::Borrowed(u), self.guild_id);
                 }
 
-                // Cache resolved roles
-                if cache.wants(ResourceType::ROLE) {
-                    if let Some(guild_id) = self.guild_id {
-                        cache.cache_roles(guild_id, resolved.roles.values().cloned());
-                    }
+                if !cache.wants(ResourceType::MEMBER) || self.guild_id.is_none() {
+                    continue;
                 }
+
+                // This should always match, because resolved members
+                // are guaranteed to have a matching resolved user
+                if let Some(member) = &resolved.members.get(&u.id)
+                    && let Some(guild_id) = self.guild_id
+                {
+                    cache.cache_borrowed_interaction_member(guild_id, member, u.id);
+                }
+            }
+
+            // Cache resolved roles
+            if cache.wants(ResourceType::ROLE)
+                && let Some(guild_id) = self.guild_id
+            {
+                cache.cache_roles(guild_id, resolved.roles.values().cloned());
             }
         }
     }
@@ -65,23 +64,23 @@ mod tests {
         application::{
             command::CommandType,
             interaction::{
-                application_command::CommandData, Interaction, InteractionData,
-                InteractionDataResolved, InteractionMember, InteractionType,
+                Interaction, InteractionData, InteractionDataResolved, InteractionMember,
+                InteractionType, application_command::CommandData,
             },
         },
         channel::{
-            message::{
-                sticker::{MessageSticker, StickerFormatType},
-                MessageFlags, MessageType,
-            },
             Channel, ChannelType, Message,
+            message::{
+                MessageFlags, MessageType,
+                sticker::{MessageSticker, StickerFormatType},
+            },
         },
         gateway::payload::incoming::InteractionCreate,
         guild::{MemberFlags, PartialMember, Permissions, Role, RoleFlags},
         id::Id,
         oauth::ApplicationIntegrationMap,
         user::User,
-        util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
+        util::{ImageHash, Timestamp, image_hash::ImageHashParseError},
     };
 
     #[allow(clippy::too_many_lines, deprecated)]

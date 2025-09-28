@@ -3,20 +3,20 @@ use std::future::IntoFuture;
 use twilight_model::{
     application::monetization::Entitlement,
     id::{
-        marker::{ApplicationMarker, EntitlementMarker, GuildMarker, SkuMarker, UserMarker},
         Id,
+        marker::{ApplicationMarker, EntitlementMarker, GuildMarker, SkuMarker, UserMarker},
     },
 };
 
 use crate::{
-    request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
-    routing::Route,
     Client, Error, Response,
+    request::{Request, TryIntoRequest},
+    response::{ResponseFuture, marker::ListBody},
+    routing::Route,
 };
 
 use twilight_validate::request::{
-    get_entitlements_limit as validate_get_entitlements_limit, ValidationError,
+    ValidationError, get_entitlements_limit as validate_get_entitlements_limit,
 };
 
 struct GetEntitlementsFields<'a> {

@@ -1,20 +1,20 @@
 use super::{CreateForumThread, ForumThread};
 use crate::{
-    request::{attachment::PartialAttachment, Nullable, TryIntoRequest},
-    response::{Response, ResponseFuture},
     Error,
+    request::{Nullable, TryIntoRequest, attachment::PartialAttachment},
+    response::{Response, ResponseFuture},
 };
 use serde::Serialize;
 use std::{future::IntoFuture, mem};
 use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::attachment::Attachment,
-    id::{marker::StickerMarker, Id},
+    id::{Id, marker::StickerMarker},
 };
 use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
-    content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
-    MessageValidationError,
+    MessageValidationError, attachment_filename as validate_attachment_filename,
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    sticker_ids as validate_sticker_ids,
 };
 
 /// Contents of the first message in the new forum thread.
@@ -50,7 +50,7 @@ impl<'a> CreateForumThreadMessage<'a> {
     ///
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
-    pub fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
         if let Ok(inner) = self.0.as_mut() {
             inner.fields.message.allowed_mentions = Some(Nullable(allowed_mentions));
         }
@@ -100,7 +100,14 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// may be returned as a result of validating each provided component.
     pub fn components(mut self, components: &'a [Component]) -> Self {
         self.0 = self.0.and_then(|mut inner| {
-            validate_components(components)?;
+            validate_components(
+                components,
+                inner
+                    .fields
+                    .message
+                    .flags
+                    .is_some_and(|f| f.contains(MessageFlags::IS_COMPONENTS_V2)),
+            )?;
             inner.fields.message.components = Some(components);
 
             Ok(inner)
@@ -168,7 +175,7 @@ impl<'a> CreateForumThreadMessage<'a> {
     ///
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
     /// [`SUPPRESS_NOTIFICATIONS`]: MessageFlags::SUPPRESS_NOTIFICATIONS
-    pub fn flags(mut self, flags: MessageFlags) -> Self {
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
         if let Ok(inner) = self.0.as_mut() {
             inner.fields.message.flags = Some(flags);
         }
@@ -188,7 +195,7 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
     /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
     /// [`attachments`]: Self::attachments
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         if let Ok(inner) = self.0.as_mut() {
             inner.fields.message.payload_json = Some(payload_json);
         }

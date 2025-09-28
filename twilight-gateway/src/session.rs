@@ -86,7 +86,7 @@ impl Session {
     }
 
     /// Set the sequence, returning the previous sequence.
-    pub(crate) fn set_sequence(&mut self, sequence: u64) -> u64 {
+    pub(crate) const fn set_sequence(&mut self, sequence: u64) -> u64 {
         mem::replace(&mut self.sequence, sequence)
     }
 }

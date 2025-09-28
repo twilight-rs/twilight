@@ -45,10 +45,10 @@ use crate::{
     channel::{Attachment, Channel, ChannelMention},
     guild::PartialMember,
     id::{
+        Id,
         marker::{
             ApplicationMarker, ChannelMarker, GuildMarker, MessageMarker, RoleMarker, WebhookMarker,
         },
-        Id,
     },
     poll::Poll,
     user::User,
@@ -219,11 +219,11 @@ pub struct Message {
 #[cfg(test)]
 mod tests {
     use super::{
+        EmojiReactionType, Message, MessageActivity, MessageActivityType, MessageApplication,
+        MessageCall, MessageFlags, MessageReference, MessageType, Reaction,
         reaction::ReactionCountDetails,
         reference_type::MessageReferenceType,
         sticker::{MessageSticker, StickerFormatType},
-        EmojiReactionType, Message, MessageActivity, MessageActivityType, MessageApplication,
-        MessageCall, MessageFlags, MessageReference, MessageType, Reaction,
     };
     use crate::{
         channel::{ChannelMention, ChannelType},
@@ -231,7 +231,7 @@ mod tests {
         id::Id,
         test::image_hash,
         user::User,
-        util::{datetime::TimestampParseError, Timestamp},
+        util::{Timestamp, datetime::TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

@@ -54,10 +54,10 @@ use twilight_model::{
     },
     channel::ChannelType,
     guild::Permissions,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
     oauth::ApplicationIntegrationType,
 };
-use twilight_validate::command::{command as validate_command, CommandValidationError};
+use twilight_validate::command::{CommandValidationError, command as validate_command};
 
 /// Builder to create a [`Command`].
 #[derive(Clone, Debug)]

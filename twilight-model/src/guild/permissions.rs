@@ -84,6 +84,8 @@ bitflags! {
         /// but the responses will be ephemeral. This only applies to
         /// apps not also installed to the server.
         const USE_EXTERNAL_APPS = 1 << 50;
+        /// Allows pinning and unpinning messages.
+        const PIN_MESSAGES = 1 << 51;
     }
 }
 
@@ -213,6 +215,7 @@ mod tests {
     const_assert_eq!(Permissions::SEND_VOICE_MESSAGES.bits(), 1 << 46);
     const_assert_eq!(Permissions::SEND_POLLS.bits(), 1 << 49);
     const_assert_eq!(Permissions::USE_EXTERNAL_APPS.bits(), 1 << 50);
+    const_assert_eq!(Permissions::PIN_MESSAGES.bits(), 1 << 51);
 
     #[test]
     fn serde() {

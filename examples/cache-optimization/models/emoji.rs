@@ -1,7 +1,7 @@
 use twilight_cache_inmemory::CacheableEmoji;
 use twilight_model::{
     guild::Emoji,
-    id::{marker::EmojiMarker, Id},
+    id::{Id, marker::EmojiMarker},
 };
 
 #[derive(Clone, Debug, PartialEq)]

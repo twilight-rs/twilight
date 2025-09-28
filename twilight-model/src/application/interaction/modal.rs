@@ -4,7 +4,7 @@
 //! [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
 
 use crate::channel::message::component::ComponentType;
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
 
 /// Data received when an [`ModalSubmit`] interaction is executed.
 ///

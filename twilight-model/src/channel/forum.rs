@@ -1,6 +1,6 @@
 use crate::id::{
-    marker::{EmojiMarker, TagMarker},
     Id,
+    marker::{EmojiMarker, TagMarker},
 };
 use serde::{Deserialize, Serialize};
 
@@ -152,11 +152,11 @@ pub struct ForumTag {
 mod tests {
     use super::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag};
     use crate::id::{
-        marker::{EmojiMarker, TagMarker},
         Id,
+        marker::{EmojiMarker, TagMarker},
     };
     use serde::{Deserialize, Serialize};
-    use serde_test::{assert_tokens, Token};
+    use serde_test::{Token, assert_tokens};
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, hash::Hash};
 

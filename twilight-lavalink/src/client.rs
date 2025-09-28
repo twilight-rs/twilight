@@ -13,10 +13,10 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
-    gateway::{event::Event, payload::incoming::VoiceServerUpdate, ShardId},
+    gateway::{ShardId, event::Event, payload::incoming::VoiceServerUpdate},
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 

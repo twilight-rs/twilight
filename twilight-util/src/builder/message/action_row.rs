@@ -1,0 +1,69 @@
+use twilight_model::channel::message::{Component, component::ActionRow};
+
+/// Create an action row from a builder.
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[must_use = "must be built into an ActionRow"]
+pub struct ActionRowBuilder(ActionRow);
+
+impl ActionRowBuilder {
+    /// Create a new action row builder.
+    pub const fn new() -> Self {
+        Self(ActionRow {
+            id: None,
+            components: Vec::new(),
+        })
+    }
+
+    /// Add a component.
+    pub fn component(mut self, component: impl Into<Component>) -> Self {
+        self.0.components.push(component.into());
+
+        self
+    }
+
+    /// Sets the component's identifier.
+    pub const fn id(mut self, id: i32) -> Self {
+        self.0.id.replace(id);
+
+        self
+    }
+
+    /// Build into an action row.
+    pub fn build(self) -> ActionRow {
+        self.0
+    }
+}
+
+impl Default for ActionRowBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<ActionRowBuilder> for ActionRow {
+    fn from(builder: ActionRowBuilder) -> Self {
+        builder.build()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ActionRowBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(ActionRow: From<ActionRowBuilder>);
+
+    #[test]
+    fn builder() {
+        let expected = ActionRow {
+            id: None,
+            components: Vec::new(),
+        };
+
+        let actual = ActionRowBuilder::new().build();
+
+        assert_eq!(actual, expected);
+    }
+}

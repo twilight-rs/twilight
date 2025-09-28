@@ -7,7 +7,7 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::{
     guild::scheduled_event::{EntityType, GuildScheduledEvent},
-    id::{marker::ChannelMarker, Id},
+    id::{Id, marker::ChannelMarker},
     util::Timestamp,
 };
 use twilight_validate::request::{

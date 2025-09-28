@@ -8,7 +8,7 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::{
     channel::Message,
-    id::{marker::ApplicationMarker, Id},
+    id::{Id, marker::ApplicationMarker},
 };
 
 /// Get the original message, by its token.
@@ -21,7 +21,7 @@ use twilight_model::{
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
-/// use twilight_http::{request::AuditLogReason, Client};
+/// use twilight_http::{Client, request::AuditLogReason};
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);

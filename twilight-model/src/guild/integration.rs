@@ -3,8 +3,8 @@ use super::{
 };
 use crate::{
     id::{
-        marker::{GuildMarker, IntegrationMarker, RoleMarker},
         Id,
+        marker::{GuildMarker, IntegrationMarker, RoleMarker},
     },
     user::User,
     util::Timestamp,

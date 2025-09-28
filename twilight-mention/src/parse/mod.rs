@@ -17,8 +17,8 @@
 //! ```
 //! use twilight_mention::ParseMention;
 //! use twilight_model::id::{
-//!     marker::{ChannelMarker, EmojiMarker, RoleMarker},
 //!     Id,
+//!     marker::{ChannelMarker, EmojiMarker, RoleMarker},
 //! };
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -60,18 +60,18 @@ mod error;
 mod r#impl;
 mod iter;
 
-use crate::{timestamp::Timestamp, Mention};
+use crate::{Mention, timestamp::Timestamp};
 
 pub use self::{
     error::{ParseMentionError, ParseMentionErrorType},
-    iter::MentionIter,
     r#impl::ParseMention,
+    iter::MentionIter,
 };
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{
-    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
     Id,
+    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
 };
 
 /// Any type of mention.
@@ -89,8 +89,8 @@ use twilight_model::id::{
 ///     timestamp::Timestamp,
 /// };
 /// use twilight_model::id::{
-///     marker::{ChannelMarker, RoleMarker, UserMarker},
 ///     Id,
+///     marker::{ChannelMarker, RoleMarker, UserMarker},
 /// };
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

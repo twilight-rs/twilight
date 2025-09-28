@@ -1,5 +1,5 @@
 use tokio::time::{self, Instant};
-use twilight_http_ratelimiting::{Endpoint, Method, RateLimiter, GLOBAL_LIMIT_PERIOD};
+use twilight_http_ratelimiting::{Endpoint, GLOBAL_LIMIT_PERIOD, Method, RateLimiter};
 
 const ENDPOINT: fn() -> Endpoint = || Endpoint {
     method: Method::Get,

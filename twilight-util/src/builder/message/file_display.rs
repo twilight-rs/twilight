@@ -1,0 +1,79 @@
+use twilight_model::channel::message::component::{FileDisplay, UnfurledMediaItem};
+
+/// Create a file display with a builder.
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[must_use = "must be built into an file display"]
+pub struct FileDisplayBuilder(FileDisplay);
+
+impl FileDisplayBuilder {
+    /// Create a new file display builder.
+    pub const fn new(file: UnfurledMediaItem) -> Self {
+        Self(FileDisplay {
+            id: None,
+            file,
+            spoiler: None,
+        })
+    }
+
+    /// Set the identifier of this file display.
+    pub const fn id(mut self, id: i32) -> Self {
+        self.0.id.replace(id);
+
+        self
+    }
+
+    /// Set the file of this file display.
+    pub fn file(mut self, file: impl Into<UnfurledMediaItem>) -> Self {
+        self.0.file = file.into();
+
+        self
+    }
+
+    /// Specify whether this file display is spoilered.
+    pub const fn spoiler(mut self, spoiler: bool) -> Self {
+        self.0.spoiler.replace(spoiler);
+
+        self
+    }
+
+    /// Build into a file display.
+    pub fn build(self) -> FileDisplay {
+        self.0
+    }
+}
+
+impl From<FileDisplayBuilder> for FileDisplay {
+    fn from(builder: FileDisplayBuilder) -> Self {
+        builder.build()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(FileDisplayBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(FileDisplay: From<FileDisplayBuilder>);
+
+    #[test]
+    fn builder() {
+        let file = UnfurledMediaItem {
+            url: "http://example.com/image.png".to_string(),
+            proxy_url: None,
+            width: None,
+            height: None,
+            content_type: None,
+        };
+        let expected = FileDisplay {
+            id: None,
+            file: file.clone(),
+            spoiler: None,
+        };
+
+        let actual = FileDisplayBuilder::new(file).build();
+
+        assert_eq!(expected, actual);
+    }
+}

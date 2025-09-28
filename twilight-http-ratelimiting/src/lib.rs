@@ -399,14 +399,18 @@ mod tests {
     async fn acquire_if() {
         let rate_limiter = RateLimiter::default();
 
-        assert!(rate_limiter
-            .acquire_if(ENDPOINT(), |_| false)
-            .await
-            .is_none());
-        assert!(rate_limiter
-            .acquire_if(ENDPOINT(), |_| true)
-            .await
-            .is_some());
+        assert!(
+            rate_limiter
+                .acquire_if(ENDPOINT(), |_| false)
+                .await
+                .is_none()
+        );
+        assert!(
+            rate_limiter
+                .acquire_if(ENDPOINT(), |_| true)
+                .await
+                .is_some()
+        );
     }
 
     #[tokio::test]
