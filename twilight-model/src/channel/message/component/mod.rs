@@ -812,7 +812,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                 Self::Value::Label(Label {
                     id,
                     label,
-                    description: description.flatten(),
+                    description: description.unwrap_or_default(),
                     component: Box::new(component),
                 })
             }
@@ -962,13 +962,14 @@ impl Serialize for Component {
                     + usize::from(thumbnail.id.is_some())
             }
             // Required fields:
+            // - type
             // - label
             // - component
             // Optional fields:
             // - id
             // - description
             Component::Label(label) => {
-                2 + usize::from(label.description.is_some()) + usize::from(label.id.is_some())
+                3 + usize::from(label.description.is_some()) + usize::from(label.id.is_some())
             }
             // We are dropping fields here but nothing we can do about that for
             // the time being.
@@ -1196,12 +1197,14 @@ impl Serialize for Component {
             }
             Component::Label(label) => {
                 state.serialize_field("type", &ComponentType::Label)?;
-                if let Some(id) = label.id {
-                    state.serialize_field("id", &id)?;
+                if label.id.is_some() {
+                    state.serialize_field("id", &label.id)?;
                 }
-                state.serialize_field("label", &label.label)?;
-                if let Some(description) = &label.description {
-                    state.serialize_field("description", description)?;
+                // Due to `label` being required in some
+                // variants and optional in others, serialize as an Option.
+                state.serialize_field("label", &Some(&label.label))?;
+                if label.description.is_some() {
+                    state.serialize_field("description", &label.description)?;
                 }
                 state.serialize_field("component", &label.component)?;
             }
