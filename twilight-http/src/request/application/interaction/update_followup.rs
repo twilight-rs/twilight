@@ -21,8 +21,8 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    attachment as validate_attachment, components as validate_components,
-    content as validate_content, embeds as validate_embeds, MessageValidationError,
+    attachment as validate_attachment, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
 };
 
 #[derive(Serialize)]
@@ -163,20 +163,15 @@ impl<'a> UpdateFollowup<'a> {
     ///
     /// Pass [`None`] to clear existing components.
     ///
-    /// # Errors
+    /// # Manual Validation
     ///
-    /// Refer to the errors section of
-    /// [`twilight_validate::component::component`] for a list of errors that
-    /// may be returned as a result of validating each provided component.
+    /// Validation of components is not done automatically here, as we don't know which component
+    /// version is in use, you can validate them manually using the [`twilight_validate::component::component_v1`]
+    /// or [`twilight_validate::component::component_v2`] functions.
     pub fn components(mut self, components: Option<&'a [Component]>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            if let Some(components) = components {
-                validate_components(components)?;
-            }
-
+        self.fields = self.fields.map(|mut fields| {
             fields.components = Some(Nullable(components));
-
-            Ok(fields)
+            fields
         });
 
         self

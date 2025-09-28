@@ -1,5 +1,7 @@
 //! Constants, error types, and functions for validating [`Component`]s.
 
+mod component_v2;
+
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -9,21 +11,36 @@ use twilight_model::channel::message::component::{
     SelectMenuType, TextInput,
 };
 
+use crate::component::component_v2::{
+    MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN, MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX,
+    SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX,
+    THUMBNAIL_DESCRIPTION_LENGTH_MAX,
+};
+pub use component_v2::{component_v2, container, media_gallery, section, text_display, thumbnail};
+
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
 ///
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Action Rows][1].
 ///
-/// [1]: https://discord.com/developers/docs/interactions/message-components#action-rows
+/// [1]: https://discord.com/developers/docs/components/reference#action-row
 pub const ACTION_ROW_COMPONENT_COUNT: usize = 5;
 
 /// Maximum number of root [`Component`]s in a message.
 ///
 /// This is defined in Discord's documentation, per
-/// [Discord Docs/Action Row][1].
+/// [Discord Docs][1].
 ///
-/// [1]: https://discord.com/developers/docs/interactions/message-components#action-rows
+/// [1]: https://discord.com/developers/docs/components/reference#legacy-message-component-behavior
 pub const COMPONENT_COUNT: usize = 5;
+
+/// Maximum total number of [`Component`]s in a component V2 message.
+///
+/// This is defined in Discord's documentation, per
+/// [Discord Docs][1].
+///
+/// [1]: https://discord.com/developers/docs/components/reference#component-reference
+pub const COMPONENT_V2_COUNT: usize = 40;
 
 /// Maximum length of a [`Component`] custom ID in codepoints.
 ///
@@ -355,6 +372,53 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&TEXT_INPUT_PLACEHOLDER_MAX, f)
             }
+            ComponentValidationErrorType::DisallowedV2Components => {
+                f.write_str("a V2 component was used in a component V1 message")
+            }
+            ComponentValidationErrorType::DisallowedChildren => {
+                f.write_str("a component contains a disallowed child component")
+            }
+            ComponentValidationErrorType::TextDisplayContentTooLong { len: count } => {
+                f.write_str("a text display content length is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&TEXT_DISPLAY_CONTENT_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::MediaGalleryItemCountOutOfRange { count } => {
+                f.write_str("a media gallery has ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" items, but the min and max are ")?;
+                Display::fmt(&MEDIA_GALLERY_ITEMS_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&MEDIA_GALLERY_ITEMS_MAX, f)?;
+
+                f.write_str(" respectively")
+            }
+            ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong { len } => {
+                f.write_str("a media gallery item description length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::SectionComponentCountOutOfRange { count } => {
+                f.write_str("a section has ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" components, but the min and max are ")?;
+                Display::fmt(&SECTION_COMPONENTS_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&SECTION_COMPONENTS_MAX, f)?;
+
+                f.write_str(" respectively")
+            }
+            ComponentValidationErrorType::ThumbnailDescriptionTooLong { len } => {
+                f.write_str("a thumbnail description length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&THUMBNAIL_DESCRIPTION_LENGTH_MAX, f)
+            }
         }
     }
 }
@@ -501,9 +565,70 @@ pub enum ComponentValidationErrorType {
         /// Provided number of codepoints.
         chars: usize,
     },
+    /// V2 components used in a V1 component.
+    DisallowedV2Components,
+    /// Disallowed children components are found in a root component.
+    DisallowedChildren,
+    /// Content of text display component is too long.
+    TextDisplayContentTooLong {
+        /// Length of the provided content.
+        len: usize,
+    },
+    /// The number of items in a media gallery is out of range.
+    MediaGalleryItemCountOutOfRange {
+        /// Number of items in the media gallery.
+        count: usize,
+    },
+    /// The description of a media gallery item is too long.
+    MediaGalleryItemDescriptionTooLong {
+        /// Length of the provided description.
+        len: usize,
+    },
+    /// The number of components in a section is out of range.
+    SectionComponentCountOutOfRange {
+        /// Number of components in the section.
+        count: usize,
+    },
+    /// The length of the thumbnail description is too long.
+    ThumbnailDescriptionTooLong {
+        /// Length of the provided description.
+        len: usize,
+    },
 }
 
-/// Ensure that a top-level request component is correct.
+/// Ensure that a top-level request component is correct in V1.
+///
+/// Intended to ensure that a fully formed top-level component for requests
+/// is an action row.
+///
+/// Refer to other validators like [`button`] if you need to validate other
+/// components.
+///
+/// # Errors
+///
+/// Returns an error of type [`InvalidRootComponent`] if the component is not an
+/// [`ActionRow`].
+///
+/// Refer to [`action_row`] for potential errors when validating an action row
+/// component.
+///
+/// Returns a error if any components V2 components are used.
+///
+/// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
+pub fn component_v1(component: &Component) -> Result<(), ComponentValidationError> {
+    match component {
+        Component::ActionRow(action_row) => self::action_row(action_row, false)?,
+        other => {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
+            });
+        }
+    }
+
+    Ok(())
+}
+
+/// Ensure that a top-level request component is correct in V1.
 ///
 /// Intended to ensure that a fully formed top-level component for requests
 /// is an action row.
@@ -520,17 +645,9 @@ pub enum ComponentValidationErrorType {
 /// component.
 ///
 /// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
+#[deprecated(note = "Use component_v1 for old components and component_v2 for new ones")]
 pub fn component(component: &Component) -> Result<(), ComponentValidationError> {
-    match component {
-        Component::ActionRow(action_row) => self::action_row(action_row)?,
-        other => {
-            return Err(ComponentValidationError {
-                kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
-            });
-        }
-    }
-
-    Ok(())
+    component_v1(component)
 }
 
 /// Ensure that an action row is correct.
@@ -555,7 +672,7 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 ///
 /// [`ActionRowComponentCount`]: ComponentValidationErrorType::ActionRowComponentCount
 /// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
-pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError> {
+pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentValidationError> {
     self::component_action_row_components(&action_row.components)?;
 
     for component in &action_row.components {
@@ -574,6 +691,22 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::InvalidChildComponent {
                         kind: ComponentType::Unknown(*unknown),
+                    },
+                })
+            }
+
+            Component::TextDisplay(_)
+            | Component::MediaGallery(_)
+            | Component::Separator(_)
+            | Component::File(_)
+            | Component::Section(_)
+            | Component::Container(_)
+            | Component::Thumbnail(_) => {
+                return Err(ComponentValidationError {
+                    kind: if is_v2 {
+                        ComponentValidationErrorType::DisallowedChildren
+                    } else {
+                        ComponentValidationErrorType::DisallowedV2Components
                     },
                 })
             }
@@ -606,6 +739,9 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
     let has_custom_id = button.custom_id.is_some();
+    let has_emoji = button.emoji.is_some();
+    let has_label = button.label.is_some();
+    let has_sku_id = button.sku_id.is_some();
     let has_url = button.url.is_some();
 
     // First check if a custom ID and URL are both set. If so this
@@ -616,7 +752,20 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
         });
     }
 
-    // Next, we check if the button is a link and a URL is not set.
+    // Next, we check if the button is a premium and a SKU ID is not set.
+    //
+    // Also, we check if the button is not a premium and custom ID, label,
+    // URL or emoji is set.
+    let is_premium = button.style == ButtonStyle::Premium;
+    if is_premium && (has_custom_id || has_url || has_label || has_emoji || !has_sku_id) {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::ButtonStyle {
+                style: button.style,
+            },
+        });
+    }
+
+    // Then, we check if the button is a link and a URL is not set.
     //
     // Lastly, we check if the button is not a link and a custom ID is
     // not set.
@@ -1229,6 +1378,7 @@ mod tests {
             style: ButtonStyle::Link,
             url: Some("https://abebooks.com".into()),
             sku_id: None,
+            id: None,
         };
 
         let select_menu = SelectMenu {
@@ -1247,6 +1397,7 @@ mod tests {
                 value: "9780316129084".into(),
             }])),
             placeholder: Some("Choose a book".into()),
+            id: None,
         };
 
         let action_row = ActionRow {
@@ -1254,13 +1405,14 @@ mod tests {
                 Component::SelectMenu(select_menu.clone()),
                 Component::Button(button),
             ]),
+            id: None,
         };
 
-        assert!(component(&Component::ActionRow(action_row.clone())).is_ok());
+        assert!(component_v1(&Component::ActionRow(action_row.clone())).is_ok());
 
-        assert!(component(&Component::SelectMenu(select_menu.clone())).is_err());
+        assert!(component_v1(&Component::SelectMenu(select_menu.clone())).is_err());
 
-        assert!(super::action_row(&action_row).is_ok());
+        assert!(super::action_row(&action_row, false).is_ok());
 
         let invalid_action_row = Component::ActionRow(ActionRow {
             components: Vec::from([
@@ -1271,9 +1423,10 @@ mod tests {
                 Component::SelectMenu(select_menu.clone()),
                 Component::SelectMenu(select_menu),
             ]),
+            id: None,
         });
 
-        assert!(component(&invalid_action_row).is_err());
+        assert!(component_v1(&invalid_action_row).is_err());
     }
 
     // Test that a button with both a custom ID and URL results in a
@@ -1288,6 +1441,7 @@ mod tests {
             style: ButtonStyle::Primary,
             url: Some("https://twilight.rs".to_owned()),
             sku_id: None,
+            id: None,
         };
 
         assert!(matches!(
@@ -1311,6 +1465,7 @@ mod tests {
                 style: *style,
                 url: None,
                 sku_id: None,
+                id: None,
             };
 
             assert!(matches!(
