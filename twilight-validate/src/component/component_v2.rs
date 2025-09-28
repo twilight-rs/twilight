@@ -94,7 +94,7 @@ pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidatio
 /// media items is less than [`MEDIA_GALLERY_ITEMS_MIN`] or greater than
 /// [`MEDIA_GALLERY_ITEMS_MAX`].
 ///
-/// For errors for validation of induvidual items see the docuumentation for [`media_gallery_item`].
+/// For errors for validation of induvidual items see the documentation for [`media_gallery_item`].
 ///
 /// [`MediaGalleryItemCountOutOfRange`]: ComponentValidationErrorType::MediaGalleryItemCountOutOfRange
 pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValidationError> {
