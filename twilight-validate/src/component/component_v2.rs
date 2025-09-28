@@ -5,7 +5,8 @@ use super::{
     ComponentValidationErrorType,
 };
 use twilight_model::channel::message::component::{
-    Container, MediaGallery, MediaGalleryItem, Section, TextDisplay, Thumbnail,
+    ComponentType, Container, Label, MediaGallery, MediaGalleryItem, Section, TextDisplay,
+    Thumbnail,
 };
 use twilight_model::channel::message::Component;
 
@@ -27,8 +28,14 @@ pub const SECTION_COMPONENTS_MIN: usize = 1;
 /// Maximum amount of components in a section.
 pub const SECTION_COMPONENTS_MAX: usize = 3;
 
-/// Maximum length of a thumbnail description
+/// Maximum length of a thumbnail description.
 pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
+
+/// Maximum length of the label text of a label component.
+pub const LABEL_LABEL_MAX: usize = 45;
+
+/// Maximum length of a label description.
+pub const LABEL_DESCRIPTION_MAX: usize = 100;
 
 /// Ensure that a top-level request component is correct in V2.
 ///
@@ -42,6 +49,7 @@ pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
 ///
 /// For errors refer to the errors of the following functions:
 /// - [`action_row`]
+/// - [`label`]
 /// - [`button`]
 /// - [`container`]
 /// - [`media_gallery`]
@@ -53,6 +61,7 @@ pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
 pub fn component_v2(component: &Component) -> Result<(), ComponentValidationError> {
     match component {
         Component::ActionRow(ar) => action_row(ar, true)?,
+        Component::Label(l) => label(l)?,
         Component::Button(b) => button(b)?,
         Component::Container(c) => container(c)?,
         Component::MediaGallery(mg) => media_gallery(mg)?,
@@ -65,6 +74,59 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
     }
 
     Ok(())
+}
+
+/// Ensure that a label is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`InvalidChildComponent`] if the provided nested
+/// component is an [`ActionRow`] or a [`Label`]. Labels cannot contain other top-level
+/// components.
+///
+/// Returns an error of type [`DisallowedChildren`] if the label contains V2 components
+/// that are disallowed in labels (i.e. disallowed in modals).
+///
+/// Refer to [`select_menu`] for potential errors when validating a select menu in the label.
+///
+/// Refer to [`text_input`] for potential errors when validating a text input in the label.
+///
+/// Refer to [`text_display`] for potential errors when validating a text display in the label.
+///
+/// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
+/// [`DisallowedChildren`]: ComponentValidationErrorType::DisallowedChildren
+pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
+    self::label_label(&label.label)?;
+
+    if let Some(description) = &label.description {
+        self::label_description(description)?;
+    }
+
+    match &*label.component {
+        Component::ActionRow(_) | Component::Label(_) => Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::InvalidChildComponent {
+                kind: label.component.kind(),
+            },
+        }),
+        Component::SelectMenu(select_menu) => self::select_menu(&select_menu),
+        Component::TextInput(text_input) => self::text_input(&text_input),
+        Component::TextDisplay(text_display) => self::text_display(&text_display),
+        Component::Unknown(unknown) => Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::InvalidChildComponent {
+                kind: ComponentType::Unknown(*unknown),
+            },
+        }),
+
+        Component::Button(_)
+        | Component::MediaGallery(_)
+        | Component::Separator(_)
+        | Component::File(_)
+        | Component::Section(_)
+        | Component::Container(_)
+        | Component::Thumbnail(_) => Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::DisallowedChildren,
+        }),
+    }
 }
 
 /// Validates a text display component.
@@ -239,4 +301,44 @@ fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidation
     }
 
     Ok(())
+}
+
+/// Ensure a [`Label::label`]'s length is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`LabelLabelTooLong`] if the length is invalid.
+///
+/// [`Label::label`]: twilight_model::channel::message::component::Label::label
+/// [`LabelLabelTooLong`]: ComponentValidationErrorType::LabelLabelTooLong
+pub fn label_label(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+    let chars = value.as_ref().chars().count();
+
+    if chars <= LABEL_LABEL_MAX {
+        Ok(())
+    } else {
+        Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::LabelLabelTooLong { len: chars },
+        })
+    }
+}
+
+/// Ensure a [`Label::description`]'s length is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`LabelDescriptionTooLong`] if the length is invalid.
+///
+/// [`Label::label`]: twilight_model::channel::message::component::Label::description
+/// [`LabelDescriptionTooLong`]: ComponentValidationErrorType::LabelDescriptionTooLong
+pub fn label_description(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+    let chars = value.as_ref().chars().count();
+
+    if chars <= LABEL_DESCRIPTION_MAX {
+        Ok(())
+    } else {
+        Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::LabelDescriptionTooLong { len: chars },
+        })
+    }
 }

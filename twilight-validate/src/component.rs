@@ -12,9 +12,9 @@ use twilight_model::channel::message::component::{
 };
 
 use crate::component::component_v2::{
-    MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN, MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX,
-    SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX,
-    THUMBNAIL_DESCRIPTION_LENGTH_MAX,
+    LABEL_DESCRIPTION_MAX, LABEL_LABEL_MAX, MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN,
+    MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN,
+    TEXT_DISPLAY_CONTENT_LENGTH_MAX, THUMBNAIL_DESCRIPTION_LENGTH_MAX,
 };
 pub use component_v2::{component_v2, container, media_gallery, section, text_display, thumbnail};
 
@@ -419,6 +419,20 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&THUMBNAIL_DESCRIPTION_LENGTH_MAX, f)
             }
+            ComponentValidationErrorType::LabelLabelTooLong { len } => {
+                f.write_str("a label text of a label component is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&LABEL_LABEL_MAX, f)
+            }
+            ComponentValidationErrorType::LabelDescriptionTooLong { len } => {
+                f.write_str("a label description length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&LABEL_DESCRIPTION_MAX, f)
+            }
         }
     }
 }
@@ -594,6 +608,16 @@ pub enum ComponentValidationErrorType {
         /// Length of the provided description.
         len: usize,
     },
+    /// The length of the label text of a label is too long.
+    LabelLabelTooLong {
+        /// Length of the provided label.
+        len: usize,
+    },
+    /// The length of the description of a label is too long.
+    LabelDescriptionTooLong {
+        /// Length of the provided description.
+        len: usize,
+    },
 }
 
 /// Ensure that a top-level request component is correct in V1.
@@ -612,7 +636,7 @@ pub enum ComponentValidationErrorType {
 /// Refer to [`action_row`] for potential errors when validating an action row
 /// component.
 ///
-/// Returns a error if any components V2 components are used.
+/// Returns an error if any components V2 components are used.
 ///
 /// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
 pub fn component_v1(component: &Component) -> Result<(), ComponentValidationError> {
@@ -657,9 +681,15 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 /// Returns an error of type [`ActionRowComponentCount`] if the action row has
 /// too many components in it.
 ///
+/// Returns an error of type [`DisallowedChildren`] if the action row contains V2 components
+/// that are disallowed in action rows and `is_v2` is `true`.
+///
+/// Returns an error of type [`DisallowedV2Components`] if the action row contains V2 components
+/// and `is_v2` is `false`.
+///
 /// Returns an error of type [`InvalidChildComponent`] if the provided nested
-/// component is an [`ActionRow`]. Action rows can not contain another action
-/// row.
+/// component is an [`ActionRow`] or a [`Label`]. Action rows cannot contain other top-level
+/// components.
 ///
 /// Refer to [`button`] for potential errors when validating a button in the
 /// action row.
@@ -671,16 +701,18 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 /// the action row.
 ///
 /// [`ActionRowComponentCount`]: ComponentValidationErrorType::ActionRowComponentCount
+/// [`DisallowedChildren`]: ComponentValidationErrorType::DisallowedChildren
+/// [`DisallowedV2Components`]: ComponentValidationErrorType::DisallowedV2Components
 /// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
 pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentValidationError> {
     self::component_action_row_components(&action_row.components)?;
 
     for component in &action_row.components {
         match component {
-            Component::ActionRow(_) => {
+            Component::ActionRow(_) | Component::Label(_) => {
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::InvalidChildComponent {
-                        kind: ComponentType::ActionRow,
+                        kind: component.kind(),
                     },
                 });
             }
