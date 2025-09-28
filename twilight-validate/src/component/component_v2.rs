@@ -108,9 +108,9 @@ pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
                 kind: label.component.kind(),
             },
         }),
-        Component::SelectMenu(select_menu) => self::select_menu(&select_menu),
-        Component::TextInput(text_input) => self::text_input(&text_input),
-        Component::TextDisplay(text_display) => self::text_display(&text_display),
+        Component::SelectMenu(select_menu) => self::select_menu(select_menu),
+        Component::TextInput(text_input) => self::text_input(text_input),
+        Component::TextDisplay(text_display) => self::text_display(text_display),
         Component::Unknown(unknown) => Err(ComponentValidationError {
             kind: ComponentValidationErrorType::InvalidChildComponent {
                 kind: ComponentType::Unknown(*unknown),
