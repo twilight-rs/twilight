@@ -1602,4 +1602,59 @@ mod tests {
             ],
         );
     }
+
+    #[test]
+    fn label() {
+        let value = Component::Label(Label {
+            id: None,
+            label: "The label".to_owned(),
+            description: Some("The description".to_owned()),
+            component: Box::new(Component::TextInput(TextInput {
+                id: None,
+                custom_id: "The custom id".to_owned(),
+                label: "The text input label".to_owned(),
+                max_length: None,
+                min_length: None,
+                placeholder: None,
+                required: None,
+                style: TextInputStyle::Paragraph,
+                value: None,
+            })),
+        });
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Component",
+                    len: 4,
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::Label.into()),
+                Token::String("label"),
+                Token::Some,
+                Token::String("The label"),
+                Token::String("description"),
+                Token::Some,
+                Token::String("The description"),
+                Token::String("component"),
+                Token::Struct {
+                    name: "Component",
+                    len: 4,
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::TextInput.into()),
+                Token::String("custom_id"),
+                Token::Some,
+                Token::String("The custom id"),
+                Token::String("label"),
+                Token::Some,
+                Token::String("The text input label"),
+                Token::String("style"),
+                Token::U8(TextInputStyle::Paragraph as u8),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
 }
