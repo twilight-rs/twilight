@@ -36,7 +36,7 @@ fn parse_ratelimit_headers(
         .map(HeaderValue::as_bytes)
     {
         Some(b"global") => {
-            tracing::warn!("globally rate limited");
+            tracing::info!("globally rate limited");
 
             Ok(None)
         }
