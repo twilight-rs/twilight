@@ -178,6 +178,9 @@ impl RateLimitHeaders {
     /// Lowercased name for the reset-after header.
     pub const RESET_AFTER: &'static str = "x-ratelimit-reset-after";
 
+    /// Lowercased name for the scope header.
+    pub const SCOPE: &'static str = "x-ratelimit-scope";
+
     /// Emulates a shared resource limit as a user limit by setting `limit` and
     /// `remaining` to zero.
     pub fn shared(bucket: Vec<u8>, retry_after: u16) -> Self {

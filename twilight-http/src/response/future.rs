@@ -4,7 +4,7 @@ use crate::{
     client::connector::Connector,
     error::{Error, ErrorType},
 };
-use http::{HeaderMap, Request, StatusCode, header};
+use http::{HeaderMap, HeaderValue, Request, StatusCode, header};
 use http_body_util::Full;
 use hyper::body::Bytes;
 use hyper_util::client::legacy::{Client as HyperClient, ResponseFuture as HyperResponseFuture};
@@ -19,7 +19,7 @@ use std::{
     task::{Context, Poll, ready},
     time::{Duration, Instant},
 };
-use tokio::time::{self, Sleep, Timeout};
+use tokio::time::{self, Timeout};
 use twilight_http_ratelimiting::{Endpoint, Permit, PermitFuture, RateLimitHeaders, RateLimiter};
 
 /// Parse ratelimit headers from a map of headers.
@@ -31,38 +31,64 @@ use twilight_http_ratelimiting::{Endpoint, Permit, PermitFuture, RateLimitHeader
 fn parse_ratelimit_headers(
     headers: &HeaderMap,
 ) -> Result<Option<RateLimitHeaders>, Box<dyn std::error::Error>> {
-    let bucket = headers.get(RateLimitHeaders::BUCKET);
-    let limit = headers.get(RateLimitHeaders::LIMIT);
-    let remaining = headers.get(RateLimitHeaders::REMAINING);
-    let reset_after = headers.get(RateLimitHeaders::RESET_AFTER);
+    match headers
+        .get(RateLimitHeaders::SCOPE)
+        .map(HeaderValue::as_bytes)
+    {
+        Some(b"global") => {
+            tracing::info!("globally rate limited");
 
-    if bucket.is_none() && limit.is_none() && remaining.is_none() && reset_after.is_none() {
-        return Ok(None);
+            Ok(None)
+        }
+        Some(b"shared") => {
+            let bucket = headers
+                .get(RateLimitHeaders::BUCKET)
+                .ok_or("missing bucket header")?
+                .as_bytes()
+                .to_vec();
+            let retry_after = headers
+                .get(header::RETRY_AFTER)
+                .ok_or("missing retry-after header")?
+                .to_str()?
+                .parse()?;
+
+            Ok(Some(RateLimitHeaders::shared(bucket, retry_after)))
+        }
+        Some(b"user") => {
+            let bucket = headers
+                .get(RateLimitHeaders::BUCKET)
+                .ok_or("missing bucket header")?
+                .as_bytes()
+                .to_vec();
+            let limit = headers
+                .get(RateLimitHeaders::LIMIT)
+                .ok_or("missing limit header")?
+                .to_str()?
+                .parse()?;
+            let remaining = headers
+                .get(RateLimitHeaders::REMAINING)
+                .ok_or("missing remaining header")?
+                .to_str()?
+                .parse()?;
+            let reset_after = headers
+                .get(RateLimitHeaders::RESET_AFTER)
+                .ok_or("missing reset-after header")?
+                .to_str()?
+                .parse()?;
+
+            Ok(Some(RateLimitHeaders {
+                bucket,
+                limit,
+                remaining,
+                reset_at: Instant::now() + Duration::from_secs_f32(reset_after),
+            }))
+        }
+        _ => Ok(None),
     }
-
-    let bucket = bucket.ok_or("missing bucket header")?.as_bytes().to_vec();
-    let limit = limit.ok_or("missing limit header")?.to_str()?.parse()?;
-    let remaining = remaining
-        .ok_or("missing remaining header")?
-        .to_str()?
-        .parse()?;
-    let reset_after = reset_after
-        .ok_or("missing reset-after header")?
-        .to_str()?
-        .parse()?;
-
-    Ok(Some(RateLimitHeaders {
-        bucket,
-        limit,
-        remaining,
-        reset_at: Instant::now() + Duration::from_secs_f32(reset_after),
-    }))
 }
 
 /// Sub-futures of [`ResponseFuture`].
 enum ResponseStageFuture {
-    /// Future that completes when to send a request.
-    Delay(Pin<Box<Sleep>>),
     /// Future that completes with an error response body.
     Error {
         /// Inner response body future.
@@ -116,7 +142,14 @@ impl TimedResponseFutureGenerator {
     }
 }
 
-/// Future that will resolve to a [`Response`].
+/// Future that completes when a [`Response`] is received.
+///
+/// # Rate limits
+///
+/// Requests that exceed a rate limit are automatically and immediately retried
+/// until they succeed or fail with another error. If configured without a
+/// [`RateLimiter`], care must be taken that an external service intercepts and
+/// delays these retry requests.
 ///
 /// # Canceling a response future pre-flight
 ///
@@ -172,6 +205,13 @@ impl<T> ResponseFuture<T> {
             request,
             timeout,
         };
+        let stage = permit_generator.as_ref().map_or_else(
+            || ResponseStageFuture::Response {
+                fut: response_generator.generate(),
+                permit: None,
+            },
+            |generator| ResponseStageFuture::RateLimitPermit(generator.generate()),
+        );
         Self(Ok(Inner {
             invalid_token,
             permit_generator,
@@ -179,7 +219,7 @@ impl<T> ResponseFuture<T> {
             pre_flight_check: None,
             response_generator,
             span,
-            stage: ResponseStageFuture::Delay(Box::pin(time::sleep(Duration::ZERO))),
+            stage,
         }))
     }
 
@@ -261,7 +301,6 @@ impl<T> ResponseFuture<T> {
 impl<T: Unpin> Future for ResponseFuture<T> {
     type Output = Result<Response<T>, Error>;
 
-    #[allow(clippy::too_many_lines)]
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let inner = match &mut self.0 {
             Ok(inner) => inner,
@@ -272,18 +311,6 @@ impl<T: Unpin> Future for ResponseFuture<T> {
 
         loop {
             match &mut inner.stage {
-                ResponseStageFuture::Delay(fut) => {
-                    ready!(Pin::new(fut).poll(cx));
-                    inner.stage = match &inner.permit_generator {
-                        Some(generator) => {
-                            ResponseStageFuture::RateLimitPermit(generator.generate())
-                        }
-                        None => ResponseStageFuture::Response {
-                            fut: inner.response_generator.generate(),
-                            permit: None,
-                        },
-                    };
-                }
                 ResponseStageFuture::Error { fut, status } => {
                     let body = ready!(Pin::new(fut).poll(cx)).map_err(|source| Error {
                         kind: ErrorType::RequestError,
@@ -359,25 +386,21 @@ impl<T: Unpin> Future for ResponseFuture<T> {
                         response.headers_mut().remove(header::CONTENT_LENGTH);
 
                         return Poll::Ready(Ok(Response::new(response)));
-                    }
-
-                    if response.status() == StatusCode::TOO_MANY_REQUESTS
-                        && let Some(retry_after) = response.headers().get(header::RETRY_AFTER)
-                    {
-                        if let Ok(str) = retry_after.to_str()
-                            && let Ok(secs) = str.parse()
-                        {
-                            tracing::debug!(delay = secs, "retrying request");
-                            let delay = time::sleep(Duration::from_secs(secs));
-                            inner.stage = ResponseStageFuture::Delay(Box::pin(delay));
-                            continue;
-                        }
-                        tracing::warn!("unknown retry-after header value: {retry_after:?}");
-                    }
-
-                    inner.stage = ResponseStageFuture::Error {
-                        status: response.status(),
-                        fut: Response::<()>::new(response).bytes(),
+                    } else if response.status() == StatusCode::TOO_MANY_REQUESTS {
+                        inner.stage = match &inner.permit_generator {
+                            Some(generator) => {
+                                ResponseStageFuture::RateLimitPermit(generator.generate())
+                            }
+                            None => ResponseStageFuture::Response {
+                                fut: inner.response_generator.generate(),
+                                permit: None,
+                            },
+                        };
+                    } else {
+                        inner.stage = ResponseStageFuture::Error {
+                            status: response.status(),
+                            fut: Response::<()>::new(response).bytes(),
+                        };
                     }
                 }
             }
