@@ -26,6 +26,7 @@ pub use self::{
     container::Container,
     file_display::FileDisplay,
     kind::ComponentType,
+    label::Label,
     media_gallery::{MediaGallery, MediaGalleryItem},
     section::Section,
     select_menu::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
@@ -37,7 +38,6 @@ pub use self::{
 };
 
 use super::EmojiReactionType;
-use crate::channel::message::component::label::Label;
 use crate::{
     channel::ChannelType,
     id::{marker::SkuMarker, Id},
