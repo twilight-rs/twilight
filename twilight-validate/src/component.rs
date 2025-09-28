@@ -944,7 +944,10 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 /// [`TextInputValueLength`]: ComponentValidationErrorType::TextInputValueLength
 pub fn text_input(text_input: &TextInput) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&text_input.custom_id)?;
-    self::component_text_input_label(&text_input.label)?;
+
+    if let Some(label) = &text_input.label {
+        self::component_text_input_label(label)?;
+    }
 
     if let Some(max_length) = text_input.max_length {
         self::component_text_input_max(max_length)?;

@@ -10,7 +10,7 @@ pub struct TextInput {
     /// User defined identifier for the input text.
     pub custom_id: String,
     /// Text appearing over the input field.
-    pub label: String,
+    pub label: Option<String>,
     /// The maximum length of the text.
     pub max_length: Option<u16>,
     /// The minimum length of the text.

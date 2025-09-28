@@ -719,10 +719,10 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             }
             // Required fields:
             // - custom_id
-            // - label
             // - style
             //
             // Optional fields:
+            // - label
             // - max_length
             // - min_length
             // - placeholder
@@ -735,10 +735,6 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
 
-                let label = label
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("label"))?;
-
                 let style = style
                     .ok_or_else(|| DeError::missing_field("style"))?
                     .deserialize_into()
@@ -746,7 +742,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
                 Self::Value::TextInput(TextInput {
                     custom_id,
-                    label,
+                    label: label.unwrap_or_default(),
                     max_length: max_length.unwrap_or_default(),
                     min_length: min_length.unwrap_or_default(),
                     placeholder: placeholder.unwrap_or_default(),
@@ -879,19 +875,20 @@ impl Serialize for Component {
             }
             // Required fields:
             // - custom_id
-            // - label
             // - style
             // - type
             //
             // Optional fields:
             // - id
+            // - label
             // - max_length
             // - min_length
             // - placeholder
             // - required
             // - value
             Component::TextInput(text_input) => {
-                4 + usize::from(text_input.max_length.is_some())
+                3 + usize::from(text_input.label.is_some())
+                    + usize::from(text_input.max_length.is_some())
                     + usize::from(text_input.min_length.is_some())
                     + usize::from(text_input.placeholder.is_some())
                     + usize::from(text_input.required.is_some())
@@ -1092,10 +1089,13 @@ impl Serialize for Component {
                     state.serialize_field("id", &id)?;
                 }
 
-                // Due to `custom_id` and `label` being required in some
+                // Due to `custom_id` being required in some
                 // variants and optional in others, serialize as an Option.
                 state.serialize_field("custom_id", &Some(&text_input.custom_id))?;
-                state.serialize_field("label", &Some(&text_input.label))?;
+
+                if text_input.label.is_some() {
+                    state.serialize_field("label", &text_input.label)?;
+                }
 
                 if text_input.max_length.is_some() {
                     state.serialize_field("max_length", &text_input.max_length)?;
@@ -1526,7 +1526,7 @@ mod tests {
     fn text_input() {
         let value = Component::TextInput(TextInput {
             custom_id: "test".to_owned(),
-            label: "The label".to_owned(),
+            label: Some("The label".to_owned()),
             max_length: Some(100),
             min_length: Some(1),
             placeholder: Some("Taking this place".to_owned()),
@@ -1615,7 +1615,7 @@ mod tests {
             component: Box::new(Component::TextInput(TextInput {
                 id: None,
                 custom_id: "The custom id".to_owned(),
-                label: "The text input label".to_owned(),
+                label: Some("The text input label".to_owned()),
                 max_length: None,
                 min_length: None,
                 placeholder: None,
