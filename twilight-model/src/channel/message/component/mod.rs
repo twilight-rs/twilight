@@ -10,6 +10,7 @@ mod button;
 mod container;
 mod file_display;
 mod kind;
+mod label;
 mod media_gallery;
 mod section;
 mod select_menu;
@@ -36,6 +37,7 @@ pub use self::{
 };
 
 use super::EmojiReactionType;
+use crate::channel::message::component::label::Label;
 use crate::{
     channel::ChannelType,
     id::{marker::SkuMarker, Id},
@@ -159,6 +161,8 @@ pub enum Component {
     Container(Container),
     /// Small image that can be used as an accessory.
     Thumbnail(Thumbnail),
+    /// Wrapper for modal components providing a label and an optional description.
+    Label(Label),
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -204,6 +208,7 @@ impl Component {
             Component::Section(_) => ComponentType::Section,
             Component::Container(_) => ComponentType::Container,
             Component::Thumbnail(_) => ComponentType::Thumbnail,
+            Component::Label(_) => ComponentType::Label,
         }
     }
 
@@ -222,6 +227,7 @@ impl Component {
             | Component::File(_)
             | Component::Thumbnail(_)
             | Component::Unknown(_) => 1,
+            Component::Label(_) => 2,
         }
     }
 }
@@ -331,6 +337,7 @@ enum Field {
     Media,
     Description,
     AccentColor,
+    Component,
 }
 
 struct ComponentVisitor;
@@ -380,6 +387,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut media: Option<UnfurledMediaItem> = None;
         let mut description: Option<Option<String>> = None;
         let mut accent_color: Option<Option<u32>> = None;
+        let mut component: Option<Component> = None;
 
         loop {
             let key = match map.next_key() {
@@ -603,6 +611,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
                     accent_color = Some(map.next_value()?);
                 }
+                Field::Component => {
+                    if component.is_some() {
+                        return Err(DeError::duplicate_field("component"));
+                    }
+
+                    component = Some(map.next_value()?);
+                }
             }
         }
 
@@ -789,6 +804,18 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     components,
                 })
             }
+            ComponentType::Label => {
+                let label = label
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("label"))?;
+                let component = component.ok_or_else(|| DeError::missing_field("component"))?;
+                Self::Value::Label(Label {
+                    id,
+                    label,
+                    description: description.flatten(),
+                    component: Box::new(component),
+                })
+            }
         })
     }
 }
@@ -931,8 +958,17 @@ impl Serialize for Component {
             // - spoiler
             Component::Thumbnail(thumbnail) => {
                 2 + usize::from(thumbnail.spoiler.is_some())
-                    + usize::from(thumbnail.id.is_some())
                     + usize::from(thumbnail.description.is_some())
+                    + usize::from(thumbnail.id.is_some())
+            }
+            // Required fields:
+            // - label
+            // - component
+            // Optional fields:
+            // - id
+            // - description
+            Component::Label(label) => {
+                2 + usize::from(label.description.is_some()) + usize::from(label.id.is_some())
             }
             // We are dropping fields here but nothing we can do about that for
             // the time being.
@@ -1157,6 +1193,17 @@ impl Serialize for Component {
                 if let Some(spoiler) = thumbnail.spoiler {
                     state.serialize_field("spoiler", &spoiler)?;
                 }
+            }
+            Component::Label(label) => {
+                state.serialize_field("type", &ComponentType::Label)?;
+                if let Some(id) = label.id {
+                    state.serialize_field("id", &id)?;
+                }
+                state.serialize_field("label", &label.label)?;
+                if let Some(description) = &label.description {
+                    state.serialize_field("description", description)?;
+                }
+                state.serialize_field("component", &label.component)?;
             }
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing

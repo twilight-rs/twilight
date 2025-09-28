@@ -68,6 +68,11 @@ pub enum ComponentType {
     ///
     /// [`Container`]: super::Container
     Container,
+    /// Component is a [`Label`] that provides a label and an optional description
+    /// for modal components.
+    ///
+    /// [`Label`]: super::Label
+    Label,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -90,6 +95,7 @@ impl From<u8> for ComponentType {
             13 => ComponentType::File,
             14 => ComponentType::Separator,
             17 => ComponentType::Container,
+            18 => ComponentType::Label,
             unknown => ComponentType::Unknown(unknown),
         }
     }
@@ -113,6 +119,7 @@ impl From<ComponentType> for u8 {
             ComponentType::File => 13,
             ComponentType::Separator => 14,
             ComponentType::Container => 17,
+            ComponentType::Label => 18,
             ComponentType::Unknown(unknown) => unknown,
         }
     }
@@ -151,6 +158,7 @@ impl ComponentType {
             ComponentType::File => "File",
             ComponentType::Separator => "Separator",
             ComponentType::Container => "Container",
+            ComponentType::Label => "Label",
             ComponentType::Unknown(_) => "Unknown",
         }
     }
@@ -199,6 +207,7 @@ mod tests {
         serde_test::assert_tokens(&ComponentType::File, &[Token::U8(13)]);
         serde_test::assert_tokens(&ComponentType::Separator, &[Token::U8(14)]);
         serde_test::assert_tokens(&ComponentType::Container, &[Token::U8(17)]);
+        serde_test::assert_tokens(&ComponentType::Label, &[Token::U8(18)]);
         serde_test::assert_tokens(&ComponentType::Unknown(99), &[Token::U8(99)]);
     }
 
@@ -212,6 +221,14 @@ mod tests {
         assert_eq!("SelectMenu", ComponentType::MentionableSelectMenu.name());
         assert_eq!("SelectMenu", ComponentType::ChannelSelectMenu.name());
         assert_eq!("TextInput", ComponentType::TextInput.name());
+        assert_eq!("Section", ComponentType::Section.name());
+        assert_eq!("TextDisplay", ComponentType::TextDisplay.name());
+        assert_eq!("Thumbnail", ComponentType::Thumbnail.name());
+        assert_eq!("MediaGallery", ComponentType::MediaGallery.name());
+        assert_eq!("File", ComponentType::File.name());
+        assert_eq!("Separator", ComponentType::Separator.name());
+        assert_eq!("Container", ComponentType::Container.name());
+        assert_eq!("Label", ComponentType::Label.name());
         assert_eq!("Unknown", ComponentType::Unknown(99).name());
     }
 }
