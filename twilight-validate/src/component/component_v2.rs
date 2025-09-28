@@ -94,7 +94,7 @@ pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidatio
 /// media items is less than [`MEDIA_GALLERY_ITEMS_MIN`] or greater than
 /// [`MEDIA_GALLERY_ITEMS_MAX`].
 ///
-/// For errors for validation of induvidual items see the dovumentation for [`media_gallery_item`].
+/// For errors for validation of induvidual items see the documentation for [`media_gallery_item`].
 ///
 /// [`MediaGalleryItemCountOutOfRange`]: ComponentValidationErrorType::MediaGalleryItemCountOutOfRange
 pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValidationError> {
@@ -202,7 +202,7 @@ pub fn container(container: &Container) -> Result<(), ComponentValidationError> 
 /// This will error with [`ThumbnailDescriptionTooLong`] if the description is longer
 /// than [`THUMBNAIL_DESCRIPTION_LENGTH_MAX`].
 ///
-/// [`TextDisplayContentTooLong`]: ComponentValidationErrorType::ThumbnailDescriptionTooLong
+/// [`ThumbnailDescriptionTooLong`]: ComponentValidationErrorType::ThumbnailDescriptionTooLong
 pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> {
     let Some(Some(desc)) = thumbnail.description.as_ref() else {
         return Ok(());
@@ -225,8 +225,8 @@ pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> 
 /// This will error with [`MediaGalleryItemDescriptionTooLong`] if the description is longer
 /// than [`MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX`].
 ///
-/// [`TextDisplayContentTooLong`]: ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong
-fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
+/// [`MediaGalleryItemDescriptionTooLong`]: ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong
+pub fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
     let Some(desc) = item.description.as_ref() else {
         return Ok(());
     };
