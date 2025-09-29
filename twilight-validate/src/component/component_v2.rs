@@ -32,10 +32,10 @@ pub const SECTION_COMPONENTS_MAX: usize = 3;
 pub const THUMBNAIL_DESCRIPTION_LENGTH_MAX: usize = 1024;
 
 /// Maximum length of the label text of a label component.
-pub const LABEL_LABEL_MAX: usize = 45;
+pub const LABEL_LABEL_LENGTH_MAX: usize = 45;
 
 /// Maximum length of a label description.
-pub const LABEL_DESCRIPTION_MAX: usize = 100;
+pub const LABEL_DESCRIPTION_LENGTH_MAX: usize = 100;
 
 /// Ensure that a top-level request component is correct in V2.
 ///
@@ -314,7 +314,7 @@ pub const fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), Component
 pub fn label_label(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
     let chars = value.as_ref().chars().count();
 
-    if chars <= LABEL_LABEL_MAX {
+    if chars <= LABEL_LABEL_LENGTH_MAX {
         Ok(())
     } else {
         Err(ComponentValidationError {
@@ -334,7 +334,7 @@ pub fn label_label(value: impl AsRef<str>) -> Result<(), ComponentValidationErro
 pub fn label_description(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
     let chars = value.as_ref().chars().count();
 
-    if chars <= LABEL_DESCRIPTION_MAX {
+    if chars <= LABEL_DESCRIPTION_LENGTH_MAX {
         Ok(())
     } else {
         Err(ComponentValidationError {
@@ -347,10 +347,10 @@ pub fn label_description(value: impl AsRef<str>) -> Result<(), ComponentValidati
 mod tests {
     use super::*;
     use std::iter;
+    use twilight_model::channel::message::Component;
     use twilight_model::channel::message::component::{
         Button, ButtonStyle, Label, SelectMenu, SelectMenuType, TextInput, TextInputStyle,
     };
-    use twilight_model::channel::message::Component;
 
     #[test]
     fn component_label() {

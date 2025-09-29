@@ -12,11 +12,11 @@ use twilight_model::channel::message::component::{
 };
 
 pub use component_v2::{
-    LABEL_DESCRIPTION_MAX, LABEL_LABEL_MAX, MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX,
-    MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN, SECTION_COMPONENTS_MAX,
-    SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX, THUMBNAIL_DESCRIPTION_LENGTH_MAX,
-    component_v2, container, label, label_description, label_label, media_gallery,
-    media_gallery_item, section, text_display, thumbnail,
+    LABEL_DESCRIPTION_LENGTH_MAX, LABEL_LABEL_LENGTH_MAX,
+    MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN,
+    SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX,
+    THUMBNAIL_DESCRIPTION_LENGTH_MAX, component_v2, container, label, label_description,
+    label_label, media_gallery, media_gallery_item, section, text_display, thumbnail,
 };
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -428,14 +428,14 @@ impl Display for ComponentValidationError {
                 Display::fmt(len, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
-                Display::fmt(&LABEL_LABEL_MAX, f)
+                Display::fmt(&LABEL_LABEL_LENGTH_MAX, f)
             }
             ComponentValidationErrorType::LabelDescriptionTooLong { len } => {
                 f.write_str("a label description length is ")?;
                 Display::fmt(len, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
-                Display::fmt(&LABEL_DESCRIPTION_MAX, f)
+                Display::fmt(&LABEL_DESCRIPTION_LENGTH_MAX, f)
             }
         }
     }
