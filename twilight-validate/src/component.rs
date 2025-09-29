@@ -12,10 +12,11 @@ use twilight_model::channel::message::component::{
 };
 
 pub use component_v2::{
-    LABEL_DESCRIPTION_MAX, LABEL_LABEL_MAX, MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN,
-    SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX,
-    THUMBNAIL_DESCRIPTION_LENGTH_MAX, component_v2, container, media_gallery, media_gallery_item,
-    section, text_display, thumbnail,
+    LABEL_DESCRIPTION_MAX, LABEL_LABEL_MAX, MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX,
+    MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN, SECTION_COMPONENTS_MAX,
+    SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX, THUMBNAIL_DESCRIPTION_LENGTH_MAX,
+    component_v2, container, label, label_description, label_label, media_gallery,
+    media_gallery_item, section, text_display, thumbnail,
 };
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
