@@ -1,7 +1,7 @@
 use super::{AuditLogChange, AuditLogEventType, AuditLogOptionalEntryInfo};
 use crate::id::{
-    marker::{AuditLogEntryMarker, GenericMarker, GuildMarker, UserMarker},
     Id,
+    marker::{AuditLogEntryMarker, GenericMarker, GuildMarker, UserMarker},
 };
 use serde::{Deserialize, Serialize};
 

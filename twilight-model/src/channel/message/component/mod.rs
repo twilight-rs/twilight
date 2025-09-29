@@ -38,12 +38,12 @@ pub use self::{
 use super::EmojiReactionType;
 use crate::{
     channel::ChannelType,
-    id::{marker::SkuMarker, Id},
+    id::{Id, marker::SkuMarker},
 };
 use serde::{
+    Deserialize, Serialize, Serializer,
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{Error as SerError, SerializeStruct},
-    Deserialize, Serialize, Serializer,
 };
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
@@ -79,8 +79,8 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// ```
 /// use twilight_model::{
 ///     channel::message::{
-///         component::{ActionRow, Component, SelectMenu, SelectMenuOption, SelectMenuType},
 ///         EmojiReactionType,
+///         component::{ActionRow, Component, SelectMenu, SelectMenuOption, SelectMenuType},
 ///     },
 ///     id::Id,
 /// };
@@ -208,7 +208,7 @@ impl Component {
     }
 
     /// Get the amount of components a component should count as.
-    pub fn component_count(&self) -> usize {
+    pub const fn component_count(&self) -> usize {
         match self {
             Component::ActionRow(action_row) => 1 + action_row.components.len(),
             Component::Section(section) => 1 + section.components.len(),
@@ -666,10 +666,10 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             | ComponentType::MentionableSelectMenu
             | ComponentType::ChannelSelectMenu) => {
                 // Verify the individual variants' required fields
-                if let ComponentType::TextSelectMenu = kind {
-                    if options.is_none() {
-                        return Err(DeError::missing_field("options"));
-                    }
+                if let ComponentType::TextSelectMenu = kind
+                    && options.is_none()
+                {
+                    return Err(DeError::missing_field("options"));
                 }
 
                 let custom_id = custom_id

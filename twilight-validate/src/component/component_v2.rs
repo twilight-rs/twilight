@@ -1,13 +1,13 @@
 //! Validates components V2.
 
 use super::{
-    action_row, button, select_menu, text_input, ComponentValidationError,
-    ComponentValidationErrorType,
+    ComponentValidationError, ComponentValidationErrorType, action_row, button, select_menu,
+    text_input,
 };
+use twilight_model::channel::message::Component;
 use twilight_model::channel::message::component::{
     Container, MediaGallery, MediaGalleryItem, Section, TextDisplay, Thumbnail,
 };
-use twilight_model::channel::message::Component;
 
 /// Maximum length of text display content.
 pub const TEXT_DISPLAY_CONTENT_LENGTH_MAX: usize = 2000;
@@ -75,7 +75,7 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
 /// than [`TEXT_DISPLAY_CONTENT_LENGTH_MAX`].
 ///
 /// [`TextDisplayContentTooLong`]: ComponentValidationErrorType::TextDisplayContentTooLong
-pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidationError> {
+pub const fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidationError> {
     let content_len = text_display.content.len();
     if content_len > TEXT_DISPLAY_CONTENT_LENGTH_MAX {
         return Err(ComponentValidationError {
@@ -94,7 +94,7 @@ pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidatio
 /// media items is less than [`MEDIA_GALLERY_ITEMS_MIN`] or greater than
 /// [`MEDIA_GALLERY_ITEMS_MAX`].
 ///
-/// For errors for validation of induvidual items see the dovumentation for [`media_gallery_item`].
+/// For errors for validation of induvidual items see the documentation for [`media_gallery_item`].
 ///
 /// [`MediaGalleryItemCountOutOfRange`]: ComponentValidationErrorType::MediaGalleryItemCountOutOfRange
 pub fn media_gallery(media_gallery: &MediaGallery) -> Result<(), ComponentValidationError> {
@@ -142,7 +142,7 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
             _ => {
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::DisallowedChildren,
-                })
+                });
             }
         }
     }
@@ -153,7 +153,7 @@ pub fn section(section: &Section) -> Result<(), ComponentValidationError> {
         _ => {
             return Err(ComponentValidationError {
                 kind: ComponentValidationErrorType::DisallowedChildren,
-            })
+            });
         }
     }
 
@@ -187,7 +187,7 @@ pub fn container(container: &Container) -> Result<(), ComponentValidationError> 
             _ => {
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::DisallowedChildren,
-                })
+                });
             }
         }
     }
@@ -202,8 +202,8 @@ pub fn container(container: &Container) -> Result<(), ComponentValidationError> 
 /// This will error with [`ThumbnailDescriptionTooLong`] if the description is longer
 /// than [`THUMBNAIL_DESCRIPTION_LENGTH_MAX`].
 ///
-/// [`TextDisplayContentTooLong`]: ComponentValidationErrorType::ThumbnailDescriptionTooLong
-pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> {
+/// [`ThumbnailDescriptionTooLong`]: ComponentValidationErrorType::ThumbnailDescriptionTooLong
+pub const fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> {
     let Some(Some(desc)) = thumbnail.description.as_ref() else {
         return Ok(());
     };
@@ -225,8 +225,8 @@ pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> 
 /// This will error with [`MediaGalleryItemDescriptionTooLong`] if the description is longer
 /// than [`MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX`].
 ///
-/// [`TextDisplayContentTooLong`]: ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong
-fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
+/// [`MediaGalleryItemDescriptionTooLong`]: ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong
+pub const fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
     let Some(desc) = item.description.as_ref() else {
         return Ok(());
     };

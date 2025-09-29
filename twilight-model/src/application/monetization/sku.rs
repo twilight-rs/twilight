@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::id::{
-    marker::{ApplicationMarker, SkuMarker},
     Id,
+    marker::{ApplicationMarker, SkuMarker},
 };
 
 use super::{SkuFlags, SkuType};

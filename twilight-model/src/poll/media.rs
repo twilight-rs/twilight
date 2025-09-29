@@ -1,4 +1,4 @@
-use crate::id::{marker::EmojiMarker, Id};
+use crate::id::{Id, marker::EmojiMarker};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

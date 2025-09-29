@@ -10,8 +10,8 @@ use twilight_model::{
 /// # Example
 /// ```
 /// use twilight_model::channel::message::{
-///     component::{ActionRow, Button, ButtonStyle, Component},
 ///     MessageFlags,
+///     component::{ActionRow, Button, ButtonStyle, Component},
 /// };
 /// use twilight_util::builder::InteractionResponseDataBuilder;
 ///
@@ -186,8 +186,8 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         channel::message::{
-            component::{Button, ButtonStyle},
             MentionType,
+            component::{Button, ButtonStyle},
         },
         poll::{PollLayoutType, PollMedia},
         util::Timestamp,

@@ -9,13 +9,13 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::GuildPrune,
     id::{
-        marker::{GuildMarker, RoleMarker},
         Id,
+        marker::{GuildMarker, RoleMarker},
     },
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason, guild_prune_days as validate_guild_prune_days,
-    ValidationError,
+    ValidationError, audit_reason as validate_audit_reason,
+    guild_prune_days as validate_guild_prune_days,
 };
 
 struct CreateGuildPruneFields<'a> {
@@ -52,7 +52,7 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     /// List of roles to include when pruning.
-    pub fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
+    pub const fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.include_roles = roles;
         }
@@ -61,7 +61,7 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     /// Return the amount of pruned members. Discouraged for large guilds.
-    pub fn compute_prune_count(mut self, compute_prune_count: bool) -> Self {
+    pub const fn compute_prune_count(mut self, compute_prune_count: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.compute_prune_count = Some(compute_prune_count);
         }

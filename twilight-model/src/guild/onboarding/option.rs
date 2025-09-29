@@ -1,8 +1,8 @@
 use crate::{
     guild::Emoji,
     id::{
-        marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
         Id,
+        marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
     },
 };
 use serde::{Deserialize, Serialize};
@@ -53,8 +53,8 @@ mod tests {
     use crate::{
         guild::Emoji,
         id::{
-            marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
             Id,
+            marker::{ChannelMarker, EmojiMarker, OnboardingPromptOptionMarker, RoleMarker},
         },
     };
     use serde_test::Token;

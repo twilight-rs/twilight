@@ -1,8 +1,8 @@
-use crate::{traits::CacheableChannel, CacheableModels, InMemoryCache, ResourceType, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, ResourceType, UpdateCache, traits::CacheableChannel};
 use twilight_model::{
     channel::Channel,
     gateway::payload::incoming::{ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate},
-    id::{marker::ChannelMarker, Id},
+    id::{Id, marker::ChannelMarker},
 };
 
 impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
@@ -29,14 +29,11 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     /// The guild channel data itself and the channel entry in its guild's list
     /// of channels will be deleted.
     pub(crate) fn delete_channel(&self, channel_id: Id<ChannelMarker>) {
-        if let Some((_, channel)) = self.channels.remove(&channel_id) {
-            if let Some(guild_id) = channel.guild_id() {
-                let maybe_channels = self.guild_channels.get_mut(&guild_id);
-
-                if let Some(mut channels) = maybe_channels {
-                    channels.remove(&channel_id);
-                }
-            }
+        if let Some((_, channel)) = self.channels.remove(&channel_id)
+            && let Some(guild_id) = channel.guild_id()
+            && let Some(mut channels) = self.guild_channels.get_mut(&guild_id)
+        {
+            channels.remove(&channel_id);
         }
     }
 }
@@ -85,7 +82,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ChannelUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use twilight_model::gateway::{
         event::Event,
         payload::incoming::{ChannelDelete, ChannelUpdate},
@@ -98,11 +95,13 @@ mod tests {
 
         cache.cache_channel(channel.clone());
         assert_eq!(1, cache.channels.len());
-        assert!(cache
-            .guild_channels
-            .get(&guild_id)
-            .unwrap()
-            .contains(&channel_id));
+        assert!(
+            cache
+                .guild_channels
+                .get(&guild_id)
+                .unwrap()
+                .contains(&channel_id)
+        );
 
         cache.update(&Event::ChannelDelete(Box::new(ChannelDelete(channel))));
         assert!(cache.channels.is_empty());
@@ -116,10 +115,12 @@ mod tests {
 
         cache.update(&ChannelUpdate(channel));
         assert_eq!(1, cache.channels.len());
-        assert!(cache
-            .guild_channels
-            .get(&guild_id)
-            .unwrap()
-            .contains(&channel_id));
+        assert!(
+            cache
+                .guild_channels
+                .get(&guild_id)
+                .unwrap()
+                .contains(&channel_id)
+        );
     }
 }

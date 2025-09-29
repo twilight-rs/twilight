@@ -1,4 +1,4 @@
-use twilight_model::channel::message::{component::Section, Component};
+use twilight_model::channel::message::{Component, component::Section};
 
 /// Create a section with a builder.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -23,7 +23,7 @@ impl SectionBuilder {
     }
 
     /// Set the identifier of this section.
-    pub fn id(mut self, id: i32) -> Self {
+    pub const fn id(mut self, id: i32) -> Self {
         self.0.id.replace(id);
 
         self

@@ -1,14 +1,14 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{attachment::AttachmentManager, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest, attachment::AttachmentManager},
     response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     http::interaction::InteractionResponse,
-    id::{marker::InteractionMarker, Id},
+    id::{Id, marker::InteractionMarker},
 };
 
 /// Respond to an interaction, by its ID and token.
@@ -92,7 +92,6 @@ impl TryIntoRequest for CreateResponseWithResponse<'_> {
 mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
-    use twilight_http_ratelimiting::Path;
     use twilight_model::{
         http::interaction::{InteractionResponse, InteractionResponseType},
         id::Id,
@@ -118,10 +117,6 @@ mod tests {
             .try_into_request()?;
 
         assert!(!req.use_authorization_token());
-        assert_eq!(
-            &Path::InteractionCallback(interaction_id.get()),
-            req.ratelimit_path()
-        );
 
         Ok(())
     }

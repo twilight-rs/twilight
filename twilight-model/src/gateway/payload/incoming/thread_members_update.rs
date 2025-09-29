@@ -1,13 +1,13 @@
 use crate::{
     channel::thread::member::{ThreadMember, ThreadMemberIntermediary},
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
 };
 use serde::{
-    de::{value::MapAccessDeserializer, MapAccess, Visitor},
     Deserialize, Deserializer, Serialize,
+    de::{MapAccess, Visitor, value::MapAccessDeserializer},
 };
 use std::fmt::{Formatter, Result as FmtResult};
 

@@ -16,21 +16,21 @@ impl SeparatorBuilder {
     }
 
     /// Set the identifier of this separator.
-    pub fn id(mut self, id: i32) -> Self {
+    pub const fn id(mut self, id: i32) -> Self {
         self.0.id.replace(id);
 
         self
     }
 
     /// Set whether this separator is a divider.
-    pub fn divider(mut self, divider: bool) -> Self {
+    pub const fn divider(mut self, divider: bool) -> Self {
         self.0.divider.replace(divider);
 
         self
     }
 
     /// Set the spacing of this separator.
-    pub fn spacing(mut self, spacing: SeparatorSpacingSize) -> Self {
+    pub const fn spacing(mut self, spacing: SeparatorSpacingSize) -> Self {
         self.0.spacing.replace(spacing);
 
         self

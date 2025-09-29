@@ -1,5 +1,5 @@
 use crate::{
-    id::{marker::OauthTeamMarker, Id},
+    id::{Id, marker::OauthTeamMarker},
     oauth::team::TeamMembershipState,
     user::User,
 };

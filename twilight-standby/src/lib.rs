@@ -36,8 +36,8 @@ use twilight_model::{
         payload::incoming::{MessageCreate, ReactionAdd},
     },
     id::{
-        marker::{ChannelMarker, GuildMarker, MessageMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, MessageMarker},
     },
 };
 
@@ -171,14 +171,14 @@ impl Standby {
 
         match event {
             Event::InteractionCreate(e) => {
-                if e.kind == InteractionType::MessageComponent {
-                    if let Some(message) = &e.message {
-                        completions.add_with(&Self::process_specific_event(
-                            &self.components,
-                            message.id,
-                            e,
-                        ));
-                    }
+                if e.kind == InteractionType::MessageComponent
+                    && let Some(message) = &e.message
+                {
+                    completions.add_with(&Self::process_specific_event(
+                        &self.components,
+                        message.id,
+                        e,
+                    ));
                 }
             }
             Event::MessageCreate(e) => {
@@ -1003,14 +1003,14 @@ impl ProcessResults {
     }
 
     /// Add another set of results to this set.
-    fn add_with(&mut self, other: &Self) {
+    const fn add_with(&mut self, other: &Self) {
         self.dropped = self.dropped.saturating_add(other.dropped);
         self.fulfilled = self.fulfilled.saturating_add(other.fulfilled);
         self.sent = self.sent.saturating_add(other.sent);
     }
 
     /// Handle a process status.
-    fn handle(&mut self, status: ProcessStatus) {
+    const fn handle(&mut self, status: ProcessStatus) {
         match status {
             ProcessStatus::Dropped => {
                 self.dropped += 1;
@@ -1063,19 +1063,19 @@ mod tests {
     use twilight_gateway::{Event, EventType};
     use twilight_model::{
         application::interaction::{
-            message_component::MessageComponentInteractionData, Interaction, InteractionData,
-            InteractionType,
+            Interaction, InteractionData, InteractionType,
+            message_component::MessageComponentInteractionData,
         },
         channel::{
-            message::{component::ComponentType, EmojiReactionType, Message, MessageType},
             Channel, ChannelType,
+            message::{EmojiReactionType, Message, MessageType, component::ComponentType},
         },
         gateway::{
-            payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
             GatewayReaction, ShardId,
+            payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
         guild::Permissions,
-        id::{marker::GuildMarker, Id},
+        id::{Id, marker::GuildMarker},
         oauth::{ApplicationFlags, ApplicationIntegrationMap, PartialApplication},
         user::{CurrentUser, User},
         util::Timestamp,

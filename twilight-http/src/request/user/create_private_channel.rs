@@ -9,7 +9,7 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::Channel,
-    id::{marker::UserMarker, Id},
+    id::{Id, marker::UserMarker},
 };
 
 #[derive(Serialize)]

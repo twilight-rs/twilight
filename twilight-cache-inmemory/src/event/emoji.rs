@@ -1,9 +1,9 @@
-use crate::{config::ResourceType, CacheableModels, GuildResource, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, GuildResource, InMemoryCache, UpdateCache, config::ResourceType};
 use std::borrow::Cow;
 use twilight_model::{
     gateway::payload::incoming::GuildEmojisUpdate,
     guild::Emoji,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
@@ -32,10 +32,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     }
 
     pub(crate) fn cache_emoji(&self, guild_id: Id<GuildMarker>, emoji: Emoji) {
-        if let Some(cached_emoji) = self.emojis.get(&emoji.id) {
-            if cached_emoji.value == emoji {
-                return;
-            }
+        if let Some(cached_emoji) = self.emojis.get(&emoji.id)
+            && cached_emoji.value == emoji
+        {
+            return;
         }
 
         if let Some(user) = emoji.user.as_ref() {
@@ -72,10 +72,10 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildEmojisUpdat
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use twilight_model::{
         gateway::payload::incoming::GuildEmojisUpdate,
-        id::{marker::EmojiMarker, Id},
+        id::{Id, marker::EmojiMarker},
         user::User,
     };
 
@@ -83,7 +83,7 @@ mod tests {
     fn cache_emoji() {
         // The user to do some of the inserts
         fn user_mod(id: Id<EmojiMarker>) -> Option<User> {
-            if id.get() % 2 == 0 {
+            if id.get().is_multiple_of(2) {
                 // Only use user for half
                 Some(test::user(Id::new(1)))
             } else {

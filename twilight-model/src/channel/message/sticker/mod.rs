@@ -15,8 +15,8 @@ pub use self::{
 
 use crate::{
     id::{
-        marker::{GuildMarker, StickerMarker, StickerPackMarker},
         Id,
+        marker::{GuildMarker, StickerMarker, StickerPackMarker},
     },
     user::User,
     util::is_false,

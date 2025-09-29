@@ -73,8 +73,7 @@ async fn main() -> anyhow::Result<()> {
                     Some("requesting two users") => {
                         println!(
                             "received response for requesting two members; found: {:?}; missing: {:?}",
-                            chunk.members,
-                            chunk.not_found,
+                            chunk.members, chunk.not_found,
                         );
                     }
                     Some("querying for members") => {

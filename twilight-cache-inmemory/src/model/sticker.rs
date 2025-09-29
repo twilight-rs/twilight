@@ -1,12 +1,12 @@
 use serde::Serialize;
 use twilight_model::{
     channel::message::{
-        sticker::{StickerFormatType, StickerType},
         Sticker,
+        sticker::{StickerFormatType, StickerType},
     },
     id::{
-        marker::{GuildMarker, StickerMarker, StickerPackMarker, UserMarker},
         Id,
+        marker::{GuildMarker, StickerMarker, StickerPackMarker, UserMarker},
     },
 };
 
@@ -163,12 +163,12 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         channel::message::{
-            sticker::{StickerFormatType, StickerType},
             Sticker,
+            sticker::{StickerFormatType, StickerType},
         },
         id::Id,
         user::{PremiumType, User, UserFlags},
-        util::{image_hash::ImageHashParseError, ImageHash},
+        util::{ImageHash, image_hash::ImageHashParseError},
     };
 
     assert_fields!(

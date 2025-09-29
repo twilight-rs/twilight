@@ -10,15 +10,15 @@ use std::future::IntoFuture;
 use twilight_model::{
     guild::Member,
     id::{
-        marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
     },
     util::Timestamp,
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason,
+    ValidationError, audit_reason as validate_audit_reason,
     communication_disabled_until as validate_communication_disabled_until,
-    nickname as validate_nickname, ValidationError,
+    nickname as validate_nickname,
 };
 
 #[derive(Serialize)]
@@ -75,7 +75,7 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     /// Move the member to a different voice channel.
-    pub fn channel_id(mut self, channel_id: Option<Id<ChannelMarker>>) -> Self {
+    pub const fn channel_id(mut self, channel_id: Option<Id<ChannelMarker>>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.channel_id = Some(Nullable(channel_id));
         }
@@ -114,7 +114,7 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     /// If true, restrict the member's ability to hear sound from a voice channel.
-    pub fn deaf(mut self, deaf: bool) -> Self {
+    pub const fn deaf(mut self, deaf: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.deaf = Some(deaf);
         }
@@ -123,7 +123,7 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     /// If true, restrict the member's ability to speak in a voice channel.
-    pub fn mute(mut self, mute: bool) -> Self {
+    pub const fn mute(mut self, mute: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.mute = Some(mute);
         }
@@ -156,7 +156,7 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     /// Set the new list of roles for a member.
-    pub fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
+    pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.roles = Some(roles);
         }
@@ -209,14 +209,14 @@ impl TryIntoRequest for UpdateGuildMember<'_> {
 mod tests {
     use super::{UpdateGuildMember, UpdateGuildMemberFields};
     use crate::{
+        Client,
         request::{Nullable, Request, TryIntoRequest},
         routing::Route,
-        Client,
     };
     use std::error::Error;
     use twilight_model::id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     };
 
     const GUILD_ID: Id<GuildMarker> = Id::new(1);

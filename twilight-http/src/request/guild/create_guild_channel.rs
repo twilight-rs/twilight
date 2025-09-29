@@ -9,23 +9,22 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{
+        Channel, ChannelType, VideoQualityMode,
         forum::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag},
         permission_overwrite::PermissionOverwrite,
         thread::AutoArchiveDuration,
-        Channel, ChannelType, VideoQualityMode,
     },
     id::{
-        marker::{ChannelMarker, GuildMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker},
     },
 };
 use twilight_validate::{
     channel::{
-        bitrate as validate_bitrate, name as validate_name,
+        ChannelValidationError, bitrate as validate_bitrate, name as validate_name,
         rate_limit_per_user as validate_rate_limit_per_user, topic as validate_topic,
-        ChannelValidationError,
     },
-    request::{audit_reason as validate_audit_reason, ValidationError},
+    request::{ValidationError, audit_reason as validate_audit_reason},
 };
 
 #[derive(Serialize)]
@@ -120,7 +119,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set the available tags for the forum.
-    pub fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
+    pub const fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.available_tags = Some(available_tags);
         }
@@ -154,7 +153,7 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
-    pub fn default_auto_archive_duration(
+    pub const fn default_auto_archive_duration(
         mut self,
         auto_archive_duration: AutoArchiveDuration,
     ) -> Self {
@@ -166,7 +165,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set the default forum layout for new forum channels.
-    pub fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
+    pub const fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.default_forum_layout = Some(default_forum_layout);
         }
@@ -175,7 +174,10 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set the default reaction emoji for new forum threads.
-    pub fn default_reaction_emoji(mut self, default_reaction_emoji: &'a DefaultReaction) -> Self {
+    pub const fn default_reaction_emoji(
+        mut self,
+        default_reaction_emoji: &'a DefaultReaction,
+    ) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.default_reaction_emoji = Some(default_reaction_emoji);
         }
@@ -184,7 +186,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set the default sort order for newly created forum channels.
-    pub fn default_sort_order(mut self, default_sort_order: ForumSortOrder) -> Self {
+    pub const fn default_sort_order(mut self, default_sort_order: ForumSortOrder) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.default_sort_order = Some(default_sort_order);
         }
@@ -216,7 +218,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set the kind of channel.
-    pub fn kind(mut self, kind: ChannelType) -> Self {
+    pub const fn kind(mut self, kind: ChannelType) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.kind = Some(kind);
         }
@@ -225,7 +227,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set whether the channel is marked as NSFW.
-    pub fn nsfw(mut self, nsfw: bool) -> Self {
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.nsfw = Some(nsfw);
         }
@@ -235,7 +237,7 @@ impl<'a> CreateGuildChannel<'a> {
 
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, create this
     /// channel as a child of the category channel.
-    pub fn parent_id(mut self, parent_id: Id<ChannelMarker>) -> Self {
+    pub const fn parent_id(mut self, parent_id: Id<ChannelMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.parent_id = Some(parent_id);
         }
@@ -244,7 +246,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set the permission overwrites of a channel.
-    pub fn permission_overwrites(
+    pub const fn permission_overwrites(
         mut self,
         permission_overwrites: &'a [PermissionOverwrite],
     ) -> Self {
@@ -259,7 +261,7 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// Positions are numerical and zero-indexed. If you place a channel at position 2, channels
     /// 2-n will shift down one position and the initial channel will take its place.
-    pub fn position(mut self, position: u64) -> Self {
+    pub const fn position(mut self, position: u64) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.position = Some(position);
         }
@@ -293,7 +295,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// For voice and stage channels, set the channel's RTC region.
-    pub fn rtc_region(mut self, rtc_region: &'a str) -> Self {
+    pub const fn rtc_region(mut self, rtc_region: &'a str) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.rtc_region = Some(rtc_region);
         }
@@ -331,7 +333,7 @@ impl<'a> CreateGuildChannel<'a> {
     /// inclusive. See [Discord Docs/Modify Channel] for more details.
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
-    pub fn user_limit(mut self, user_limit: u16) -> Self {
+    pub const fn user_limit(mut self, user_limit: u16) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.user_limit = Some(user_limit);
         }
@@ -340,7 +342,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// For voice channels, set the channel's video quality mode.
-    pub fn video_quality_mode(mut self, video_quality_mode: VideoQualityMode) -> Self {
+    pub const fn video_quality_mode(mut self, video_quality_mode: VideoQualityMode) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.video_quality_mode = Some(video_quality_mode);
         }

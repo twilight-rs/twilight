@@ -1,9 +1,9 @@
 use twilight_cache_inmemory::CacheableChannel;
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
+    channel::{Channel, ChannelType, permission_overwrite::PermissionOverwrite},
     id::{
-        marker::{ChannelMarker, GuildMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker},
     },
     util::Timestamp,
 };

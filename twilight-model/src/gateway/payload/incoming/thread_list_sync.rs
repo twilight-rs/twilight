@@ -1,8 +1,8 @@
 use crate::{
-    channel::{thread::ThreadMember, Channel},
+    channel::{Channel, thread::ThreadMember},
     id::{
-        marker::{ChannelMarker, GuildMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker},
     },
 };
 use serde::{Deserialize, Serialize};

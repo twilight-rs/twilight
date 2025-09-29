@@ -30,8 +30,8 @@
 //! ```
 //! use twilight_model::{
 //!     channel::{
-//!         permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
 //!         ChannelType,
+//!         permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
 //!     },
 //!     guild::Permissions,
 //!     id::Id,
@@ -100,13 +100,13 @@ use self::preset::{
 };
 use twilight_model::{
     channel::{
-        permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
         ChannelType,
+        permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
     },
     guild::Permissions,
     id::{
-        marker::{GuildMarker, RoleMarker, UserMarker},
         Id,
+        marker::{GuildMarker, RoleMarker, UserMarker},
     },
 };
 
@@ -515,13 +515,13 @@ const fn process_permission_overwrites(
 
 #[cfg(test)]
 mod tests {
-    use super::{preset::PERMISSIONS_ROOT_ONLY, PermissionCalculator};
+    use super::{PermissionCalculator, preset::PERMISSIONS_ROOT_ONLY};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
         channel::{
-            permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             ChannelType,
+            permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
         },
         guild::Permissions,
         id::Id,

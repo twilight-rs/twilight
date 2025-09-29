@@ -2,8 +2,8 @@
 //! requests.
 
 use http::{
-    header::{HeaderValue, AUTHORIZATION},
     Error as HttpError, Request,
+    header::{AUTHORIZATION, HeaderValue},
 };
 use percent_encoding::NON_ALPHANUMERIC;
 use serde::{Deserialize, Deserializer, Serialize};

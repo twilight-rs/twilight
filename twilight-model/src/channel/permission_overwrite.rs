@@ -1,6 +1,6 @@
 use crate::{
     guild::Permissions,
-    id::{marker::GenericMarker, Id},
+    id::{Id, marker::GenericMarker},
 };
 use serde::{Deserialize, Serialize};
 

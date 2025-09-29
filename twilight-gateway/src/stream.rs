@@ -1,6 +1,6 @@
 //! Convenient `Stream` extension trait for message deserialization.
 
-use crate::{error::ReceiveMessageError, EventTypeFlags, Message};
+use crate::{EventTypeFlags, Message, error::ReceiveMessageError};
 use futures_core::Stream;
 
 /// An extension trait for the [`Stream`] trait.
@@ -80,12 +80,12 @@ mod private {
     //!
     //! Effectively disallows consumers from implementing the trait.
 
-    use crate::{error::ReceiveMessageError, json::parse, EventTypeFlags, Message};
+    use crate::{EventTypeFlags, Message, error::ReceiveMessageError, json::parse};
     use futures_core::Stream;
     use std::{
         future::Future,
         pin::Pin,
-        task::{ready, Context, Poll},
+        task::{Context, Poll, ready},
     };
     use twilight_model::gateway::event::Event;
 
@@ -99,7 +99,7 @@ mod private {
 
     impl<'a, St: ?Sized> NextEvent<'a, St> {
         /// Create a new future.
-        pub fn new(stream: &'a mut St, events: EventTypeFlags) -> Self {
+        pub const fn new(stream: &'a mut St, events: EventTypeFlags) -> Self {
             Self { events, stream }
         }
     }

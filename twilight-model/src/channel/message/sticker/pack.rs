@@ -1,7 +1,7 @@
 use super::Sticker;
 use crate::id::{
-    marker::{StickerBannerAssetMarker, StickerMarker, StickerPackMarker, StickerPackSkuMarker},
     Id,
+    marker::{StickerBannerAssetMarker, StickerMarker, StickerPackMarker, StickerPackSkuMarker},
 };
 use serde::{Deserialize, Serialize};
 
