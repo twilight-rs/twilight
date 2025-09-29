@@ -1,4 +1,4 @@
-use twilight_model::channel::message::{component::Container, Component};
+use twilight_model::channel::message::{Component, component::Container};
 
 /// Create a container with a builder.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -17,7 +17,7 @@ impl ContainerBuilder {
     }
 
     /// Set the accent color of this container; setting it to null will remove the accent color.
-    pub fn accent_color(mut self, accent_color: Option<u32>) -> Self {
+    pub const fn accent_color(mut self, accent_color: Option<u32>) -> Self {
         self.0.accent_color.replace(accent_color);
 
         self
@@ -31,14 +31,14 @@ impl ContainerBuilder {
     }
 
     /// Set the identifier of this container.
-    pub fn id(mut self, id: i32) -> Self {
+    pub const fn id(mut self, id: i32) -> Self {
         self.0.id.replace(id);
 
         self
     }
 
     /// Specify whether this container is spoilered.
-    pub fn spoiler(mut self, spoiler: bool) -> Self {
+    pub const fn spoiler(mut self, spoiler: bool) -> Self {
         self.0.spoiler.replace(spoiler);
 
         self

@@ -1,7 +1,7 @@
 use super::WelcomeScreen;
 use crate::{
     guild::{GuildFeature, VerificationLevel},
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
     util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
@@ -36,8 +36,8 @@ pub struct InviteGuild {
 mod tests {
     use crate::{
         guild::{
-            invite::{InviteGuild, WelcomeScreen, WelcomeScreenChannel},
             GuildFeature, VerificationLevel,
+            invite::{InviteGuild, WelcomeScreen, WelcomeScreenChannel},
         },
         id::Id,
         test::image_hash,

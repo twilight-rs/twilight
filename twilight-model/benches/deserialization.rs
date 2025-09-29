@@ -1,11 +1,11 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 use serde::de::DeserializeSeed;
 use serde_json::Deserializer;
 use twilight_model::gateway::{
+    GatewayReaction,
     event::GatewayEventDeserializer,
     payload::incoming::{MemberChunk, TypingStart},
-    GatewayReaction,
 };
 
 fn gateway_event_role_delete() {

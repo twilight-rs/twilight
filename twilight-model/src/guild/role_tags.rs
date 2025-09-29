@@ -1,7 +1,7 @@
 use crate::{
     id::{
-        marker::{IntegrationMarker, RoleSubscriptionSkuMarker, UserMarker},
         Id,
+        marker::{IntegrationMarker, RoleSubscriptionSkuMarker, UserMarker},
     },
     util::is_false,
 };

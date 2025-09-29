@@ -8,11 +8,11 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::{thread::AutoArchiveDuration, Channel, ChannelType},
-    id::{marker::ChannelMarker, Id},
+    channel::{Channel, ChannelType, thread::AutoArchiveDuration},
+    id::{Id, marker::ChannelMarker},
 };
 use twilight_validate::channel::{
-    is_thread as validate_is_thread, name as validate_name, ChannelValidationError,
+    ChannelValidationError, is_thread as validate_is_thread, name as validate_name,
 };
 
 #[derive(Serialize)]
@@ -70,7 +70,10 @@ impl<'a> CreateThread<'a> {
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
-    pub fn auto_archive_duration(mut self, auto_archive_duration: AutoArchiveDuration) -> Self {
+    pub const fn auto_archive_duration(
+        mut self,
+        auto_archive_duration: AutoArchiveDuration,
+    ) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.auto_archive_duration = Some(auto_archive_duration);
         }
@@ -79,7 +82,7 @@ impl<'a> CreateThread<'a> {
     }
 
     /// Whether non-moderators can add other non-moderators to a thread.
-    pub fn invitable(mut self, invitable: bool) -> Self {
+    pub const fn invitable(mut self, invitable: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.invitable = Some(invitable);
         }

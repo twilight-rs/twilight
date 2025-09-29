@@ -9,8 +9,8 @@ use std::future::IntoFuture;
 use twilight_model::{
     application::command::Command,
     id::{
-        marker::{ApplicationMarker, CommandMarker},
         Id,
+        marker::{ApplicationMarker, CommandMarker},
     },
 };
 

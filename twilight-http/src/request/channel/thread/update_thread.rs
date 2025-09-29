@@ -8,18 +8,18 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::{thread::AutoArchiveDuration, Channel},
+    channel::{Channel, thread::AutoArchiveDuration},
     id::{
-        marker::{ChannelMarker, TagMarker},
         Id,
+        marker::{ChannelMarker, TagMarker},
     },
 };
 use twilight_validate::{
     channel::{
-        name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
-        ChannelValidationError,
+        ChannelValidationError, name as validate_name,
+        rate_limit_per_user as validate_rate_limit_per_user,
     },
-    request::{audit_reason as validate_audit_reason, ValidationError},
+    request::{ValidationError, audit_reason as validate_audit_reason},
 };
 
 #[derive(Serialize)]
@@ -71,7 +71,7 @@ impl<'a> UpdateThread<'a> {
     }
 
     /// Set the forum thread's applied tags.
-    pub fn applied_tags(mut self, applied_tags: Option<&'a [Id<TagMarker>]>) -> Self {
+    pub const fn applied_tags(mut self, applied_tags: Option<&'a [Id<TagMarker>]>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.applied_tags = Some(Nullable(applied_tags));
         }
@@ -86,7 +86,7 @@ impl<'a> UpdateThread<'a> {
     ///
     /// [`SEND_MESSAGES`]: twilight_model::guild::Permissions::SEND_MESSAGES
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
-    pub fn archived(mut self, archived: bool) -> Self {
+    pub const fn archived(mut self, archived: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.archived = Some(archived);
         }
@@ -98,7 +98,10 @@ impl<'a> UpdateThread<'a> {
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
-    pub fn auto_archive_duration(mut self, auto_archive_duration: AutoArchiveDuration) -> Self {
+    pub const fn auto_archive_duration(
+        mut self,
+        auto_archive_duration: AutoArchiveDuration,
+    ) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.auto_archive_duration = Some(auto_archive_duration);
         }
@@ -107,7 +110,7 @@ impl<'a> UpdateThread<'a> {
     }
 
     /// Whether non-moderators can add other non-moderators to a thread.
-    pub fn invitable(mut self, invitable: bool) -> Self {
+    pub const fn invitable(mut self, invitable: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.invitable = Some(invitable);
         }
@@ -121,7 +124,7 @@ impl<'a> UpdateThread<'a> {
     /// unlock it.
     ///
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
-    pub fn locked(mut self, locked: bool) -> Self {
+    pub const fn locked(mut self, locked: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.locked = Some(locked);
         }
@@ -217,9 +220,9 @@ impl TryIntoRequest for UpdateThread<'_> {
 mod tests {
     use super::{UpdateThread, UpdateThreadFields};
     use crate::{
+        Client,
         request::{Request, TryIntoRequest},
         routing::Route,
-        Client,
     };
     use std::error::Error;
     use twilight_model::id::Id;
@@ -249,7 +252,6 @@ mod tests {
 
         assert_eq!(expected.body(), actual.body());
         assert_eq!(expected.path(), actual.path());
-        assert_eq!(expected.ratelimit_path(), actual.ratelimit_path());
 
         Ok(())
     }

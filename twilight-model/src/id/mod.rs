@@ -30,8 +30,8 @@
 //!
 //! ```
 //! use twilight_model::id::{
-//!     marker::{GuildMarker, RoleMarker},
 //!     Id,
+//!     marker::{GuildMarker, RoleMarker},
 //! };
 //!
 //! // Often Rust's type inference will be able to infer the type of ID.
@@ -98,7 +98,7 @@ impl<T> Id<T> {
     /// # Examples
     ///
     /// ```
-    /// use twilight_model::id::{marker::GenericMarker, Id};
+    /// use twilight_model::id::{Id, marker::GenericMarker};
     ///
     /// const ID: Id<GenericMarker> = Id::new(123);
     ///
@@ -128,7 +128,7 @@ impl<T> Id<T> {
     /// The value must not be zero.
     #[allow(unsafe_code)]
     pub const unsafe fn new_unchecked(n: u64) -> Self {
-        Self::from_nonzero(NonZeroU64::new_unchecked(n))
+        Self::from_nonzero(unsafe { NonZeroU64::new_unchecked(n) })
     }
 
     /// Create an ID if the provided value is not zero.
@@ -136,7 +136,7 @@ impl<T> Id<T> {
     /// # Examples
     ///
     /// ```
-    /// use twilight_model::id::{marker::GenericMarker, Id};
+    /// use twilight_model::id::{Id, marker::GenericMarker};
     ///
     /// assert!(Id::<GenericMarker>::new_checked(123).is_some());
     /// assert!(Id::<GenericMarker>::new_checked(0).is_none());
@@ -160,7 +160,7 @@ impl<T> Id<T> {
     /// Create an ID with a value and then confirm its inner value:
     ///
     /// ```
-    /// use twilight_model::id::{marker::ChannelMarker, Id};
+    /// use twilight_model::id::{Id, marker::ChannelMarker};
     ///
     /// let channel_id = Id::<ChannelMarker>::new(7);
     ///
@@ -178,7 +178,7 @@ impl<T> Id<T> {
     ///
     /// ```
     /// use std::num::NonZeroU64;
-    /// use twilight_model::id::{marker::ChannelMarker, Id};
+    /// use twilight_model::id::{Id, marker::ChannelMarker};
     ///
     /// let channel_id = Id::<ChannelMarker>::new(7);
     ///
@@ -196,8 +196,8 @@ impl<T> Id<T> {
     ///
     /// ```
     /// use twilight_model::id::{
-    ///     marker::{GuildMarker, RoleMarker},
     ///     Id,
+    ///     marker::{GuildMarker, RoleMarker},
     /// };
     ///
     /// let role_id: Id<RoleMarker> = Id::new(1);
@@ -226,12 +226,12 @@ impl<T> Debug for Id<T> {
         // `any::type_name` will usually provide an FQN, so we'll do our best
         // (and simplest) method here of removing it to only get the type name
         // itself.
-        if let Some(position) = type_name.rfind("::") {
-            if let Some(slice) = type_name.get(position + 2..) {
-                f.write_str("<")?;
-                f.write_str(slice)?;
-                f.write_str(">")?;
-            }
+        if let Some(position) = type_name.rfind("::")
+            && let Some(slice) = type_name.get(position + 2..)
+        {
+            f.write_str("<")?;
+            f.write_str(slice)?;
+            f.write_str(">")?;
         }
 
         f.write_str("(")?;
@@ -412,13 +412,13 @@ impl<T> TryFrom<u64> for Id<T> {
 #[cfg(test)]
 mod tests {
     use super::{
+        Id,
         marker::{
             ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
             CommandVersionMarker, EmojiMarker, EntitlementMarker, GenericMarker, GuildMarker,
             IntegrationMarker, InteractionMarker, MessageMarker, RoleMarker,
             RoleSubscriptionSkuMarker, SkuMarker, StageMarker, UserMarker, WebhookMarker,
         },
-        Id,
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;

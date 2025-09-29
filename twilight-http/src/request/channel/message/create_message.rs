@@ -2,8 +2,8 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        attachment::{AttachmentManager, PartialAttachment},
         Nullable, Request, TryIntoRequest,
+        attachment::{AttachmentManager, PartialAttachment},
     },
     response::{Response, ResponseFuture},
     routing::Route,
@@ -17,15 +17,14 @@ use twilight_model::{
     },
     http::attachment::Attachment,
     id::{
-        marker::{ChannelMarker, MessageMarker, StickerMarker},
         Id,
+        marker::{ChannelMarker, MessageMarker, StickerMarker},
     },
     poll::Poll,
 };
 use twilight_validate::message::{
-    attachment as validate_attachment, components as validate_components,
+    MessageValidationError, attachment as validate_attachment, components as validate_components,
     content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
-    MessageValidationError,
 };
 
 #[derive(Serialize)]
@@ -119,7 +118,7 @@ impl<'a> CreateMessage<'a> {
     ///
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
-    pub fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.allowed_mentions = Some(Nullable(allowed_mentions));
         }
@@ -233,7 +232,7 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Specify if this message is a poll.
-    pub fn poll(mut self, poll: &'a Poll) -> Self {
+    pub const fn poll(mut self, poll: &'a Poll) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.poll = Some(poll);
         }
@@ -269,7 +268,7 @@ impl<'a> CreateMessage<'a> {
     ///
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
     /// [`SUPPRESS_NOTIFICATIONS`]: MessageFlags::SUPPRESS_NOTIFICATIONS
-    pub fn flags(mut self, flags: MessageFlags) -> Self {
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.flags = Some(flags);
         }
@@ -278,7 +277,7 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Attach a nonce to the message, for optimistic message sending.
-    pub fn nonce(mut self, nonce: u64) -> Self {
+    pub const fn nonce(mut self, nonce: u64) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.nonce = Some(nonce);
         }
@@ -298,7 +297,7 @@ impl<'a> CreateMessage<'a> {
     /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
     /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
     /// [`attachments`]: Self::attachments
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.payload_json = Some(payload_json);
         }
@@ -381,7 +380,7 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Specify true if the message is TTS.
-    pub fn tts(mut self, tts: bool) -> Self {
+    pub const fn tts(mut self, tts: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.tts = Some(tts);
         }
@@ -413,10 +412,10 @@ impl TryIntoRequest for CreateMessage<'_> {
         });
 
         // Set the default allowed mentions if required.
-        if fields.allowed_mentions.is_none() {
-            if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
-            }
+        if fields.allowed_mentions.is_none()
+            && let Some(allowed_mentions) = self.http.default_allowed_mentions()
+        {
+            fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON

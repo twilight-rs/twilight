@@ -3,8 +3,8 @@ use twilight_model::{
     gateway::payload::incoming::GuildUpdate,
     guild::Guild,
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 

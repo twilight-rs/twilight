@@ -16,10 +16,10 @@ pub mod voice_state;
 
 use std::{borrow::Cow, collections::HashSet};
 
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use twilight_model::{
     gateway::payload::incoming::{Ready, UnavailableGuild, UserUpdate},
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
     user::{CurrentUser, User},
 };
 
@@ -32,17 +32,16 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     }
 
     pub(crate) fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<Id<GuildMarker>>) {
-        if let Some(cached_user) = self.users.get_mut(&user.id) {
-            if cached_user.value() == user.as_ref() {
-                if let Some(guild_id) = guild_id {
-                    self.user_guilds
-                        .entry(user.id)
-                        .or_default()
-                        .insert(guild_id);
-                }
+        if let Some(cached_user) = self.users.get_mut(&user.id)
+            && cached_user.value() == user.as_ref()
+            && let Some(guild_id) = guild_id
+        {
+            self.user_guilds
+                .entry(user.id)
+                .or_default()
+                .insert(guild_id);
 
-                return;
-            }
+            return;
         }
 
         let user = user.into_owned();
@@ -97,7 +96,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for UserUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
 
     /// Test retrieval of the current user, notably that it doesn't simply
     /// panic or do anything funny. This is the only synchronous mutex that we

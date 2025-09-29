@@ -2,14 +2,14 @@ use std::future::IntoFuture;
 
 use twilight_model::{
     application::monetization::Sku,
-    id::{marker::ApplicationMarker, Id},
+    id::{Id, marker::ApplicationMarker},
 };
 
 use crate::{
-    request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
-    routing::Route,
     Client, Error, Response,
+    request::{Request, TryIntoRequest},
+    response::{ResponseFuture, marker::ListBody},
+    routing::Route,
 };
 
 pub struct GetSKUs<'a> {

@@ -2,15 +2,15 @@ use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{marker::ListBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     guild::{Role, RolePosition},
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 /// Modify the position of the roles.
 ///

@@ -1,6 +1,6 @@
 use crate::{
     guild::PartialMember,
-    id::{marker::UserMarker, Id},
+    id::{Id, marker::UserMarker},
     user::{self, DiscriminatorDisplay, UserFlags},
     util::image_hash::ImageHash,
 };

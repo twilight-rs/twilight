@@ -2,15 +2,15 @@ use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
-    marker::{GuildMarker, RoleMarker, UserMarker},
     Id,
+    marker::{GuildMarker, RoleMarker, UserMarker},
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 /// Remove a role from a member in a guild, by id.
 #[must_use = "requests must be configured and executed"]

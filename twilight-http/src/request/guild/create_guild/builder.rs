@@ -8,8 +8,8 @@ use twilight_model::{
     guild::Permissions,
     http::permission_overwrite::PermissionOverwrite,
     id::{
-        marker::{ChannelMarker, RoleMarker},
         Id,
+        marker::{ChannelMarker, RoleMarker},
     },
 };
 
@@ -133,7 +133,7 @@ impl RoleFieldsBuilder {
     }
 
     /// Show the role above other roles in the user list.
-    pub fn hoist(mut self) -> Self {
+    pub const fn hoist(mut self) -> Self {
         if let Ok(fields) = self.0.as_mut() {
             fields.hoist = Some(true);
         }
@@ -164,7 +164,7 @@ impl RoleFieldsBuilder {
     }
 
     /// Allow the role to be @mentioned.
-    pub fn mentionable(mut self) -> Self {
+    pub const fn mentionable(mut self) -> Self {
         if let Ok(fields) = self.0.as_mut() {
             fields.mentionable = Some(true);
         }
@@ -173,7 +173,7 @@ impl RoleFieldsBuilder {
     }
 
     /// Set the permissions of the role.
-    pub fn permissions(mut self, permissions: Permissions) -> Self {
+    pub const fn permissions(mut self, permissions: Permissions) -> Self {
         if let Ok(fields) = self.0.as_mut() {
             fields.permissions = Some(permissions);
         }
@@ -182,7 +182,7 @@ impl RoleFieldsBuilder {
     }
 
     /// Set the position of the role.
-    pub fn position(mut self, position: i64) -> Self {
+    pub const fn position(mut self, position: i64) -> Self {
         if let Ok(fields) = self.0.as_mut() {
             fields.position = Some(position);
         }
@@ -356,7 +356,7 @@ impl TextFieldsBuilder {
     }
 
     /// Make the channel NSFW.
-    pub fn nsfw(mut self) -> Self {
+    pub const fn nsfw(mut self) -> Self {
         if let Ok(fields) = self.0.as_mut() {
             fields.nsfw = Some(true);
         }
@@ -547,7 +547,7 @@ impl VoiceFieldsBuilder {
     }
 
     /// Set the voice channel's bitrate.
-    pub fn bitrate(mut self, bitrate: u32) -> Self {
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
         if let Ok(fields) = self.0.as_mut() {
             fields.bitrate = Some(bitrate);
         }
@@ -565,7 +565,7 @@ impl VoiceFieldsBuilder {
     }
 
     /// Set the voice channel's user limit.
-    pub fn user_limit(mut self, limit: u16) -> Self {
+    pub const fn user_limit(mut self, limit: u16) -> Self {
         if let Ok(fields) = self.0.as_mut() {
             fields.user_limit = Some(limit);
         }

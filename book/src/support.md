@@ -15,7 +15,7 @@ The API documentation is [also available][api docs].
 
 ### Supported Rust Versions
 
-Twilight currently supports an MSRV of Rust 1.53+.
+Twilight currently supports an MSRV of Rust 1.88+.
 
 ### Breaking Changes
 

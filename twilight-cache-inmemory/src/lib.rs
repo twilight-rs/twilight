@@ -1,4 +1,4 @@
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 #![warn(
     clippy::missing_const_for_fn,
@@ -44,8 +44,8 @@ pub use self::permission::InMemoryCachePermissions;
 
 use self::iter::InMemoryCacheIter;
 use dashmap::{
-    mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
+    mapref::{entry::Entry, one::Ref},
 };
 use std::{
     collections::{HashSet, VecDeque},
@@ -57,13 +57,13 @@ use std::{
 use twilight_model::{
     channel::{Channel, StageInstance},
     gateway::event::Event,
-    guild::{scheduled_event::GuildScheduledEvent, GuildIntegration, Role},
+    guild::{GuildIntegration, Role, scheduled_event::GuildScheduledEvent},
     id::{
+        Id,
         marker::{
             ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
             ScheduledEventMarker, StageMarker, StickerMarker, UserMarker,
         },
-        Id,
     },
     user::{CurrentUser, User},
 };
@@ -797,11 +797,11 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
         for role_id in member.roles() {
             if let Some(role) = self.role(*role_id) {
-                if let Some((position, id)) = highest_role {
-                    if role.position() < position || (role.position() == position && role.id() > id)
-                    {
-                        continue;
-                    }
+                if let Some((position, id)) = highest_role
+                    && (role.position() < position
+                        || (role.position() == position && role.id() > id))
+                {
+                    continue;
                 }
 
                 highest_role = Some((role.position(), role.id()));
@@ -1050,7 +1050,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use twilight_model::{
         gateway::payload::incoming::RoleDelete,
         guild::{Member, MemberFlags, Permissions, Role, RoleFlags},

@@ -6,8 +6,8 @@
 use std::fmt;
 
 use serde::{
-    de::{Error, Unexpected, Visitor},
     Deserialize,
+    de::{Error, Unexpected, Visitor},
 };
 
 /// Struct that will only serialize from the bool specified as `T`.

@@ -1,7 +1,7 @@
 use twilight_cache_inmemory::CacheableStageInstance;
 use twilight_model::{
     channel::StageInstance,
-    id::{marker::StageMarker, Id},
+    id::{Id, marker::StageMarker},
 };
 
 #[derive(Clone, Debug, PartialEq)]

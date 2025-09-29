@@ -2,13 +2,13 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     http::channel_position::Position,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 /// Modify the positions of the channels.

@@ -1,10 +1,10 @@
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use twilight_model::{
     gateway::payload::incoming::{RoleCreate, RoleDelete, RoleUpdate},
     guild::Role,
     id::{
-        marker::{GuildMarker, RoleMarker},
         Id,
+        marker::{GuildMarker, RoleMarker},
     },
 };
 
@@ -36,10 +36,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     }
 
     fn delete_role(&self, role_id: Id<RoleMarker>) {
-        if let Some((_, role)) = self.roles.remove(&role_id) {
-            if let Some(mut roles) = self.guild_roles.get_mut(&role.guild_id) {
-                roles.remove(&role_id);
-            }
+        if let Some((_, role)) = self.roles.remove(&role_id)
+            && let Some(mut roles) = self.guild_roles.get_mut(&role.guild_id)
+        {
+            roles.remove(&role_id);
         }
     }
 }
@@ -76,7 +76,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for RoleUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use twilight_model::{gateway::payload::incoming::RoleCreate, id::Id};
 
     #[test]
@@ -121,11 +121,13 @@ mod tests {
             assert!(guild_1_role_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached role
-            assert!(guild_1_roles.into_iter().all(|role| cache
-                .role(role.id)
-                .expect("Role missing from cache")
-                .resource()
-                == &role));
+            assert!(guild_1_roles.into_iter().all(|role| {
+                cache
+                    .role(role.id)
+                    .expect("Role missing from cache")
+                    .resource()
+                    == &role
+            }));
         }
 
         // Bulk inserts
@@ -147,11 +149,13 @@ mod tests {
             assert!(guild_2_role_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached role
-            assert!(guild_2_roles.into_iter().all(|role| cache
-                .role(role.id)
-                .expect("Role missing from cache")
-                .resource()
-                == &role));
+            assert!(guild_2_roles.into_iter().all(|role| {
+                cache
+                    .role(role.id)
+                    .expect("Role missing from cache")
+                    .resource()
+                    == &role
+            }));
         }
     }
 }

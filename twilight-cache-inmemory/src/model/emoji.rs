@@ -3,8 +3,8 @@ use serde::Serialize;
 use twilight_model::{
     guild::Emoji,
     id::{
-        marker::{EmojiMarker, RoleMarker, UserMarker},
         Id,
+        marker::{EmojiMarker, RoleMarker, UserMarker},
     },
 };
 

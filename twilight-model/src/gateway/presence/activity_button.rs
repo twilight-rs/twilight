@@ -1,9 +1,9 @@
 //! Representations of activity linked or textual buttons.
 
 use serde::{
+    Deserialize, Serialize,
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{SerializeStruct, Serializer},
-    Deserialize, Serialize,
 };
 use std::fmt::{Formatter, Result as FmtResult};
 

@@ -10,13 +10,13 @@ use std::future::IntoFuture;
 use twilight_model::{
     channel::Webhook,
     id::{
-        marker::{ChannelMarker, WebhookMarker},
         Id,
+        marker::{ChannelMarker, WebhookMarker},
     },
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason, webhook_username as validate_webhook_username,
-    ValidationError,
+    ValidationError, audit_reason as validate_audit_reason,
+    webhook_username as validate_webhook_username,
 };
 
 #[derive(Serialize)]
@@ -60,7 +60,7 @@ impl<'a> UpdateWebhook<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: Option<&'a str>) -> Self {
+    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.avatar = Some(Nullable(avatar));
         }
@@ -69,7 +69,7 @@ impl<'a> UpdateWebhook<'a> {
     }
 
     /// Move this webhook to a new channel.
-    pub fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
+    pub const fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.channel_id = Some(channel_id);
         }

@@ -4,9 +4,10 @@
 //! [`Shard::send`]: crate::Shard::send
 
 use crate::{
+    CloseFrame,
     command::Command,
     error::{ChannelError, ChannelErrorType},
-    json, CloseFrame,
+    json,
 };
 use tokio::sync::mpsc;
 

@@ -1,14 +1,14 @@
 use crate::{
+    Error,
     client::Client,
     request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
-    Error,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     guild::Member,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 /// Get information about the current user in a guild.

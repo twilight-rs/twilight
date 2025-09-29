@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
+#[derive(Default)]
 pub enum PremiumTier {
+    #[default]
     None,
     Tier1,
     Tier2,
@@ -32,12 +34,6 @@ impl From<PremiumTier> for u8 {
             PremiumTier::Tier3 => 3,
             PremiumTier::Other(other) => other,
         }
-    }
-}
-
-impl Default for PremiumTier {
-    fn default() -> Self {
-        Self::None
     }
 }
 

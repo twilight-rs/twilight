@@ -9,8 +9,8 @@ use std::future::IntoFuture;
 use twilight_model::{
     channel::Message,
     id::{
-        marker::{ChannelMarker, MessageMarker},
         Id,
+        marker::{ChannelMarker, MessageMarker},
     },
 };
 

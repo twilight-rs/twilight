@@ -9,18 +9,18 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{
+        Channel, ChannelFlags, ChannelType, VideoQualityMode,
         forum::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag},
         permission_overwrite::PermissionOverwrite,
-        Channel, ChannelFlags, ChannelType, VideoQualityMode,
     },
-    id::{marker::ChannelMarker, Id},
+    id::{Id, marker::ChannelMarker},
 };
 use twilight_validate::{
     channel::{
-        bitrate as validate_bitrate, forum_topic as validate_forum_topic, name as validate_name,
-        topic as validate_topic, user_limit as validate_user_limit, ChannelValidationError,
+        ChannelValidationError, bitrate as validate_bitrate, forum_topic as validate_forum_topic,
+        name as validate_name, topic as validate_topic, user_limit as validate_user_limit,
     },
-    request::{audit_reason as validate_audit_reason, ValidationError},
+    request::{ValidationError, audit_reason as validate_audit_reason},
 };
 
 // The Discord API doesn't require the `name` and `kind` fields to be present,
@@ -108,7 +108,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set the available tags for the forum.
-    pub fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
+    pub const fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.available_tags = Some(available_tags);
         }
@@ -137,7 +137,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set the default layout for forum channels.
-    pub fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
+    pub const fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.default_forum_layout = Some(default_forum_layout);
         }
@@ -146,7 +146,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set the default reaction emoji for new forum threads.
-    pub fn default_reaction_emoji(
+    pub const fn default_reaction_emoji(
         mut self,
         default_reaction_emoji: Option<&'a DefaultReaction>,
     ) -> Self {
@@ -158,7 +158,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set the default sort order for forum channels.
-    pub fn default_sort_order(mut self, default_sort_order: Option<ForumSortOrder>) -> Self {
+    pub const fn default_sort_order(mut self, default_sort_order: Option<ForumSortOrder>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.default_sort_order = Some(Nullable(default_sort_order));
         }
@@ -200,7 +200,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set the flags of the channel, if supported.
-    pub fn flags(mut self, flags: ChannelFlags) -> Self {
+    pub const fn flags(mut self, flags: ChannelFlags) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.flags = Some(flags);
         }
@@ -257,7 +257,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set whether the channel is marked as NSFW.
-    pub fn nsfw(mut self, nsfw: bool) -> Self {
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.nsfw = Some(nsfw);
         }
@@ -267,7 +267,7 @@ impl<'a> UpdateChannel<'a> {
 
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, move this
     /// channel to a child of the category channel.
-    pub fn parent_id(mut self, parent_id: Option<Id<ChannelMarker>>) -> Self {
+    pub const fn parent_id(mut self, parent_id: Option<Id<ChannelMarker>>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.parent_id = Some(Nullable(parent_id));
         }
@@ -277,7 +277,7 @@ impl<'a> UpdateChannel<'a> {
 
     /// Set the permission overwrites of a channel. This will overwrite all permissions that the
     /// channel currently has, so use with caution!
-    pub fn permission_overwrites(
+    pub const fn permission_overwrites(
         mut self,
         permission_overwrites: &'a [PermissionOverwrite],
     ) -> Self {
@@ -292,7 +292,7 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// Positions are numerical and zero-indexed. If you place a channel at position 2, channels
     /// 2-n will shift down one position and the initial channel will take its place.
-    pub fn position(mut self, position: u64) -> Self {
+    pub const fn position(mut self, position: u64) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.position = Some(position);
         }
@@ -327,7 +327,7 @@ impl<'a> UpdateChannel<'a> {
     /// For voice and stage channels, set the channel's RTC region.
     ///
     /// Set to `None` to clear.
-    pub fn rtc_region(mut self, rtc_region: Option<&'a str>) -> Self {
+    pub const fn rtc_region(mut self, rtc_region: Option<&'a str>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.rtc_region = Some(Nullable(rtc_region));
         }
@@ -380,7 +380,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set the [`VideoQualityMode`] for the voice channel.
-    pub fn video_quality_mode(mut self, video_quality_mode: VideoQualityMode) -> Self {
+    pub const fn video_quality_mode(mut self, video_quality_mode: VideoQualityMode) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.video_quality_mode = Some(video_quality_mode);
         }
@@ -395,7 +395,7 @@ impl<'a> UpdateChannel<'a> {
     /// `NEWS` feature enabled. See [Discord Docs/Modify Channel].
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
-    pub fn kind(mut self, kind: ChannelType) -> Self {
+    pub const fn kind(mut self, kind: ChannelType) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.kind = Some(kind);
         }
