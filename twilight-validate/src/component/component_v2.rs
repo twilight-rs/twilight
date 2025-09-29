@@ -68,7 +68,6 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::Section(s) => section(s)?,
         Component::SelectMenu(sm) => select_menu(sm)?,
         Component::TextDisplay(td) => text_display(td)?,
-        Component::TextInput(ti) => text_input(ti)?,
         Component::TextInput(ti) => text_input(ti, true)?,
         Component::Thumbnail(t) => thumbnail(t)?,
         Component::Separator(_) | Component::File(_) | Component::Unknown(_) => (),
