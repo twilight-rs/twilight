@@ -372,6 +372,9 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&TEXT_INPUT_PLACEHOLDER_MAX, f)
             }
+            ComponentValidationErrorType::TextInputDisallowedLabel => {
+                f.write_str("a text input contained a label when disallowed")
+            }
             ComponentValidationErrorType::DisallowedV2Components => {
                 f.write_str("a V2 component was used in a component V1 message")
             }
@@ -579,6 +582,8 @@ pub enum ComponentValidationErrorType {
         /// Provided number of codepoints.
         chars: usize,
     },
+    /// A [`TextInput`] component contained a label in a context where it is not allowed.
+    TextInputDisallowedLabel,
     /// V2 components used in a V1 component.
     DisallowedV2Components,
     /// Disallowed children components are found in a root component.
@@ -718,7 +723,7 @@ pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentVa
             }
             Component::Button(button) => self::button(button)?,
             Component::SelectMenu(select_menu) => self::select_menu(select_menu)?,
-            Component::TextInput(text_input) => self::text_input(text_input)?,
+            Component::TextInput(text_input) => self::text_input(text_input, true)?,
             Component::Unknown(unknown) => {
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::InvalidChildComponent {
@@ -919,6 +924,10 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 
 /// Ensure that a text input is correct.
 ///
+/// The `label_allowed` parameter determines whether the deprecated [`TextInput::label`] field is
+/// allowed in this context.
+/// It should be disallowed if the text input component is place within a label component.
+///
 /// # Errors
 ///
 /// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
@@ -942,11 +951,20 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 /// [`TextInputMinLength`]: ComponentValidationErrorType::TextInputMinLength
 /// [`TextInputPlaceholderLength`]: ComponentValidationErrorType::TextInputPlaceholderLength
 /// [`TextInputValueLength`]: ComponentValidationErrorType::TextInputValueLength
-pub fn text_input(text_input: &TextInput) -> Result<(), ComponentValidationError> {
+pub fn text_input(
+    text_input: &TextInput,
+    label_allowed: bool,
+) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&text_input.custom_id)?;
 
     #[allow(deprecated)]
     if let Some(label) = &text_input.label {
+        if !label_allowed {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::TextInputDisallowedLabel,
+            });
+        }
+
         self::component_text_input_label(label)?;
     }
 
