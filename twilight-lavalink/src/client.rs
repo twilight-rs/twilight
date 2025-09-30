@@ -103,7 +103,7 @@ pub struct Lavalink {
     shard_count: u32,
     user_id: Id<UserMarker>,
     server_updates: DashMap<Id<GuildMarker>, VoiceServerUpdate>,
-    sessions: DashMap<Id<GuildMarker>, Box<str>>,
+    discord_sessions: DashMap<Id<GuildMarker>, Box<str>>,
 }
 
 impl Lavalink {
@@ -145,7 +145,7 @@ impl Lavalink {
             shard_count,
             user_id,
             server_updates: DashMap::new(),
-            sessions: DashMap::new(),
+            discord_sessions: DashMap::new(),
         }
     }
 
@@ -199,10 +199,10 @@ impl Lavalink {
                     }
 
                     if e.channel_id.is_none() {
-                        self.sessions.remove(&guild_id);
+                        self.discord_sessions.remove(&guild_id);
                         self.server_updates.remove(&guild_id);
                     } else {
-                        self.sessions
+                        self.discord_sessions
                             .insert(guild_id, e.session_id.clone().into_boxed_str());
                     }
                     guild_id
@@ -218,7 +218,7 @@ impl Lavalink {
 
         let update = {
             let server = self.server_updates.get(&guild_id);
-            let session = self.sessions.get(&guild_id);
+            let session = self.discord_sessions.get(&guild_id);
             match (server, session) {
                 (Some(server), Some(session)) => {
                     let server = server.value();
@@ -280,6 +280,7 @@ impl Lavalink {
             authorization: authorization.into(),
             resume: self.resume.clone(),
             user_id: self.user_id,
+            enable_tls: cfg!(feature = "tls"),
         };
 
         let (node, rx) = Node::connect(config, self.players.clone()).await?;
@@ -386,7 +387,7 @@ impl Lavalink {
 
         self.server_updates
             .retain(|k, _| (k.get() >> 22) % shard_count != u64::from(shard_id));
-        self.sessions
+        self.discord_sessions
             .retain(|k, _| (k.get() >> 22) % shard_count != u64::from(shard_id));
     }
 }
