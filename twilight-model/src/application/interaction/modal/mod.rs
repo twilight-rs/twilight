@@ -330,8 +330,8 @@ impl Serialize for ModalInteractionComponent {
             state: &mut State,
             select: &ModalInteractionSelectMenu<ValueType>,
         ) -> Result<(), <State as SerializeStruct>::Error> {
-            state.serialize_field("id", &select.id)?;
             state.serialize_field("custom_id", &select.custom_id)?;
+            state.serialize_field("id", &select.id)?;
             state.serialize_field("values", &select.values)?;
             Ok(())
         }
@@ -420,8 +420,12 @@ impl Serialize for ModalInteractionComponent {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::application::interaction::InteractionChannel;
+    use crate::channel::ChannelType;
+    use crate::guild::Permissions;
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
+    use std::collections::HashMap;
     use std::fmt::Debug;
 
     assert_fields!(ModalInteractionData: custom_id, components);
@@ -435,19 +439,6 @@ mod tests {
         Sync
     );
 
-    assert_fields!(ModalInteractionActionRow: components);
-    assert_impl_all!(
-        ModalInteractionActionRow: Clone,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        PartialEq,
-        Send,
-        Serialize,
-        Sync
-    );
-
-    assert_fields!(ModalInteractionComponent: custom_id, value);
     assert_impl_all!(
         ModalInteractionComponent: Clone,
         Debug,
@@ -459,17 +450,41 @@ mod tests {
         Sync
     );
 
+    fn label_tokens(id: i32, component_tokens: &[Token]) -> Vec<Token> {
+        let mut label_tokens = vec![
+            Token::Struct {
+                name: "ModalInteractionComponent",
+                len: 3,
+            },
+            Token::String("type"),
+            Token::U8(ComponentType::Label.into()),
+            Token::String("id"),
+            Token::I32(id),
+            Token::String("component"),
+        ];
+        label_tokens.extend_from_slice(component_tokens);
+        label_tokens.push(Token::StructEnd);
+
+        label_tokens
+    }
+
     #[test]
-    fn modal_data() {
+    fn modal_action_rows() {
         let value = ModalInteractionData {
             custom_id: "test-modal".to_owned(),
-            components: Vec::from([ModalInteractionActionRow {
-                components: Vec::from([ModalInteractionComponent {
-                    custom_id: "the-data-id".to_owned(),
-                    kind: ComponentType::TextInput,
-                    value: Some("input value".into()),
-                }]),
-            }]),
+            components: vec![ModalInteractionComponent::ActionRow(
+                ModalInteractionActionRow {
+                    id: 1,
+                    components: vec![ModalInteractionComponent::TextInput(
+                        ModalInteractionTextInput {
+                            custom_id: "the-data-id".to_owned(),
+                            id: 2,
+                            value: "input value".to_owned(),
+                        },
+                    )],
+                },
+            )],
+            resolved: None,
         };
 
         serde_test::assert_tokens(
@@ -482,23 +497,26 @@ mod tests {
                 Token::String("components"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "ModalInteractionDataActionRow",
-                    len: 2,
+                    name: "ModalInteractionComponent",
+                    len: 3,
                 },
                 Token::String("type"),
                 Token::U8(ComponentType::ActionRow.into()),
+                Token::String("id"),
+                Token::I32(1),
                 Token::String("components"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "ModalInteractionDataComponent",
-                    len: 3,
+                    name: "ModalInteractionComponent",
+                    len: 4,
                 },
-                Token::String("custom_id"),
-                Token::String("the-data-id"),
                 Token::String("type"),
                 Token::U8(ComponentType::TextInput.into()),
+                Token::String("custom_id"),
+                Token::String("the-data-id"),
+                Token::String("id"),
+                Token::I32(2),
                 Token::String("value"),
-                Token::Some,
                 Token::String("input value"),
                 Token::StructEnd,
                 Token::SeqEnd,
@@ -509,5 +527,154 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn modal_labels() {
+        let value = ModalInteractionData {
+            custom_id: "test-modal".to_owned(),
+            components: vec![
+                ModalInteractionComponent::Label(ModalInteractionLabel {
+                    id: 1,
+                    component: Box::new(ModalInteractionComponent::TextInput(
+                        ModalInteractionTextInput {
+                            custom_id: "the-text-input-id".to_owned(),
+                            id: 2,
+                            value: "input value".to_owned(),
+                        },
+                    )),
+                }),
+                ModalInteractionComponent::Label(ModalInteractionLabel {
+                    id: 3,
+                    component: Box::new(ModalInteractionComponent::TextDisplay(
+                        ModalInteractionTextDisplay { id: 4 },
+                    )),
+                }),
+                ModalInteractionComponent::Label(ModalInteractionLabel {
+                    id: 5,
+                    component: Box::new(ModalInteractionComponent::ChannelSelect(
+                        ModalInteractionChannelSelect {
+                            id: 6,
+                            custom_id: "the-channel-select-id".to_owned(),
+                            values: vec![Id::new(42)],
+                        },
+                    )),
+                }),
+            ],
+            resolved: Some(InteractionDataResolved {
+                attachments: HashMap::new(),
+                channels: HashMap::from([(
+                    Id::new(42),
+                    InteractionChannel {
+                        id: Id::new(42),
+                        kind: ChannelType::GuildText,
+                        name: "the-channel-name".to_owned(),
+                        parent_id: None,
+                        permissions: Permissions::empty(),
+                        thread_metadata: None,
+                    },
+                )]),
+                members: HashMap::new(),
+                messages: HashMap::new(),
+                roles: HashMap::new(),
+                users: HashMap::new(),
+            }),
+        };
+
+        let text_input_tokens = [
+            Token::Struct {
+                name: "ModalInteractionComponent",
+                len: 4,
+            },
+            Token::String("type"),
+            Token::U8(ComponentType::TextInput.into()),
+            Token::String("custom_id"),
+            Token::String("the-text-input-id"),
+            Token::String("id"),
+            Token::I32(2),
+            Token::String("value"),
+            Token::String("input value"),
+            Token::StructEnd,
+        ];
+
+        let text_display_tokens = [
+            Token::Struct {
+                name: "ModalInteractionComponent",
+                len: 2,
+            },
+            Token::String("type"),
+            Token::U8(ComponentType::TextDisplay.into()),
+            Token::String("id"),
+            Token::I32(4),
+            Token::StructEnd,
+        ];
+
+        let channel_select_tokens = [
+            Token::Struct {
+                name: "ModalInteractionComponent",
+                len: 4,
+            },
+            Token::String("type"),
+            Token::U8(ComponentType::ChannelSelectMenu.into()),
+            Token::String("custom_id"),
+            Token::String("the-channel-select-id"),
+            Token::String("id"),
+            Token::I32(6),
+            Token::String("values"),
+            Token::Seq { len: Some(1) },
+            Token::NewtypeStruct { name: "Id" },
+            Token::String("42"),
+            Token::SeqEnd,
+            Token::StructEnd,
+        ];
+
+        let mut all_tokens = vec![
+            Token::Struct {
+                name: "ModalInteractionData",
+                len: 3,
+            },
+            Token::String("components"),
+            Token::Seq { len: Some(3) },
+        ];
+
+        all_tokens.extend_from_slice(&label_tokens(1, &text_input_tokens));
+        all_tokens.extend_from_slice(&label_tokens(3, &text_display_tokens));
+        all_tokens.extend_from_slice(&label_tokens(5, &channel_select_tokens));
+
+        all_tokens.extend_from_slice(&[
+            Token::SeqEnd,
+            Token::String("custom_id"),
+            Token::String("test-modal"),
+            Token::String("resolved"),
+            Token::Some,
+            Token::Struct {
+                name: "InteractionDataResolved",
+                len: 1,
+            },
+            Token::String("channels"),
+            Token::Map { len: Some(1) },
+            Token::NewtypeStruct { name: "Id" },
+            Token::String("42"),
+            Token::Struct {
+                name: "InteractionChannel",
+                len: 4,
+            },
+            Token::String("id"),
+            Token::NewtypeStruct { name: "Id" },
+            Token::String("42"),
+            Token::String("type"),
+            Token::U8(0),
+            Token::String("name"),
+            Token::String("the-channel-name"),
+            Token::String("permissions"),
+            Token::String("0"),
+            Token::StructEnd,
+            Token::MapEnd,
+            Token::StructEnd,
+            Token::StructEnd,
+        ]);
+
+        serde_test::assert_tokens(&value, &all_tokens);
     }
 }
