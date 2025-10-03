@@ -298,6 +298,12 @@ impl From<Thumbnail> for Component {
     }
 }
 
+impl From<Label> for Component {
+    fn from(label: Label) -> Self {
+        Self::Label(label)
+    }
+}
+
 impl<'de> Deserialize<'de> for Component {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_any(ComponentVisitor)
