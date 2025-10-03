@@ -47,6 +47,7 @@ pub struct ModalInteractionData {
     ///
     /// [Discord Docs/Custom ID]: https://discord.com/developers/docs/interactions/message-components#custom-id
     pub custom_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<InteractionDataResolved>,
 }
 
