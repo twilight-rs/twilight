@@ -382,6 +382,7 @@ mod tests {
             options: None,
             placeholder: None,
             id: None,
+            required: None,
         });
 
         let valid_label = Label {

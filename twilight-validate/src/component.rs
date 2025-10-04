@@ -1454,6 +1454,7 @@ mod tests {
             }])),
             placeholder: Some("Choose a book".into()),
             id: None,
+            required: None,
         };
 
         let action_row = ActionRow {

@@ -134,6 +134,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///             },
 ///         ])),
 ///         placeholder: Some("Choose a class".to_owned()),
+///         required: None,
 ///     })],
 /// });
 /// ```
@@ -681,6 +682,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             // - min_values
             // - placeholder
             // - channel_types (if this is a channel select menu)
+            // - required
             kind @ (ComponentType::TextSelectMenu
             | ComponentType::UserSelectMenu
             | ComponentType::RoleSelectMenu
@@ -721,6 +723,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     options,
                     placeholder: placeholder.unwrap_or_default(),
                     id,
+                    required: required.unwrap_or_default(),
                 })
             }
             // Required fields:
@@ -868,6 +871,7 @@ impl Serialize for Component {
             // - max_values
             // - min_values
             // - placeholder
+            // - required
             Component::SelectMenu(select_menu) => {
                 // We ignore text menus that don't include the `options` field, as those are
                 // detected later in the serialization process
@@ -879,6 +883,7 @@ impl Serialize for Component {
                     + usize::from(select_menu.options.is_some())
                     + usize::from(select_menu.placeholder.is_some())
                     + usize::from(select_menu.id.is_some())
+                    + usize::from(select_menu.required.is_some())
             }
             // Required fields:
             // - custom_id
@@ -1090,6 +1095,10 @@ impl Serialize for Component {
                 if select_menu.placeholder.is_some() {
                     state.serialize_field("placeholder", &select_menu.placeholder)?;
                 }
+
+                if select_menu.required.is_some() {
+                    state.serialize_field("required", &select_menu.required)?;
+                }
             }
             Component::TextInput(text_input) => {
                 state.serialize_field("type", &ComponentType::TextInput)?;
@@ -1278,6 +1287,7 @@ mod tests {
                     }])),
                     placeholder: Some("test placeholder".into()),
                     id: None,
+                    required: Some(true),
                 }),
             ]),
             id: None,
@@ -1313,7 +1323,7 @@ mod tests {
                 Token::StructEnd,
                 Token::Struct {
                     name: "Component",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("type"),
                 Token::U8(ComponentType::TextSelectMenu.into()),
@@ -1348,6 +1358,9 @@ mod tests {
                 Token::Str("placeholder"),
                 Token::Some,
                 Token::Str("test placeholder"),
+                Token::Str("required"),
+                Token::Some,
+                Token::Bool(true),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::StructEnd,
@@ -1473,6 +1486,7 @@ mod tests {
                 options: None,
                 placeholder: None,
                 id: None,
+                required: None,
             });
             let mut tokens = vec![
                 Token::Struct {
