@@ -39,33 +39,46 @@ use std::fmt::Formatter;
 /// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ModalInteractionData {
-    /// List of user inputs.
+    /// List of modal component responses.
     pub components: Vec<ModalInteractionComponent>,
     /// User defined identifier for the modal.
     ///
     /// See [Discord Docs/Custom ID].
     ///
-    /// [Discord Docs/Custom ID]: https://discord.com/developers/docs/interactions/message-components#custom-id
+    /// [Discord Docs/Custom ID]: https://discord.com/developers/docs/components/reference#anatomy-of-a-component-custom-id
     pub custom_id: String,
+    /// Resolved data from select menus.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<InteractionDataResolved>,
 }
 
+/// User filled in modal component.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ModalInteractionComponent {
+    /// Top-level layout component including a string label and optional description.
     Label(ModalInteractionLabel),
+    /// Top-level layout component. In modals, layout components are preferred over action rows.
     ActionRow(ModalInteractionActionRow),
+    /// Dropdown selection component for text.
     StringSelect(ModalInteractionStringSelect),
+    /// Dropdown selection component for users.
     UserSelect(ModalInteractionUserSelect),
+    /// Dropdown selection component for roles.
     RoleSelect(ModalInteractionRoleSelect),
+    /// Dropdown selection component for mentionables.
     MentionableSelect(ModalInteractionMentionableSelect),
+    /// Dropdown selection component for channels.
     ChannelSelect(ModalInteractionChannelSelect),
+    /// Text input component.
     TextInput(ModalInteractionTextInput),
+    /// Markdown text.
     TextDisplay(ModalInteractionTextDisplay),
+    /// Variant value is unknown to the library in the context of modals.
     Unknown(u8),
 }
 
 impl ModalInteractionComponent {
+    /// Type of component that this is.
     pub fn kind(&self) -> ComponentType {
         match self {
             ModalInteractionComponent::Label(_) => ComponentType::Label,

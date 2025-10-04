@@ -5,12 +5,10 @@ use serde::{Deserialize, Serialize, Serializer};
 
 /// User filled in [`ActionRow`].
 ///
-/// See [Discord Docs/Modal Submit Data Structure].
-///
 /// [`ActionRow`]: crate::channel::message::component::ActionRow
-/// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct ModalInteractionActionRow {
+    /// Unique identifier for the component.
     pub id: i32,
     /// List of components.
     pub components: Vec<ModalInteractionComponent>,
