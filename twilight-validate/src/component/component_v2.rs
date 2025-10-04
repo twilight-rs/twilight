@@ -312,7 +312,7 @@ pub const fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), Component
 ///
 /// [`Label::label`]: twilight_model::channel::message::component::Label::label
 /// [`LabelLabelTooLong`]: ComponentValidationErrorType::LabelLabelTooLong
-pub fn label_label(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+fn label_label(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
     let chars = value.as_ref().chars().count();
 
     if chars <= LABEL_LABEL_LENGTH_MAX {
@@ -332,7 +332,7 @@ pub fn label_label(value: impl AsRef<str>) -> Result<(), ComponentValidationErro
 ///
 /// [`Label::label`]: twilight_model::channel::message::component::Label::description
 /// [`LabelDescriptionTooLong`]: ComponentValidationErrorType::LabelDescriptionTooLong
-pub fn label_description(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+fn label_description(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
     let chars = value.as_ref().chars().count();
 
     if chars <= LABEL_DESCRIPTION_LENGTH_MAX {
