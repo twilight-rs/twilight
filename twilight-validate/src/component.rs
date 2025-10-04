@@ -710,6 +710,7 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 /// [`DisallowedChildren`]: ComponentValidationErrorType::DisallowedChildren
 /// [`DisallowedV2Components`]: ComponentValidationErrorType::DisallowedV2Components
 /// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
+/// [`Label`]: twilight_model::channel::message::component::Label
 pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentValidationError> {
     self::component_action_row_components(&action_row.components)?;
 

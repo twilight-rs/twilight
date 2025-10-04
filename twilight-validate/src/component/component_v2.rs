@@ -95,6 +95,7 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
 ///
 /// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
 /// [`DisallowedChildren`]: ComponentValidationErrorType::DisallowedChildren
+/// [`ActionRow`]: twilight_model::channel::message::component::ActionRow
 pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
     self::label_label(&label.label)?;
 
