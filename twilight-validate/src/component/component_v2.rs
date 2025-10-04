@@ -84,8 +84,8 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
 /// component is an [`ActionRow`] or a [`Label`]. Labels cannot contain other top-level
 /// components.
 ///
-/// Returns an error of type [`DisallowedChildren`] if the label contains V2 components
-/// that are disallowed in labels (i.e. disallowed in modals).
+/// Returns an error of type [`DisallowedChildren`] if the label contains components
+/// that are disallowed in labels.
 ///
 /// Refer to [`select_menu`] for potential errors when validating a select menu in the label.
 ///
@@ -110,7 +110,6 @@ pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
         }),
         Component::SelectMenu(select_menu) => self::select_menu(select_menu),
         Component::TextInput(text_input) => self::text_input(text_input, false),
-        Component::TextDisplay(text_display) => self::text_display(text_display),
         Component::Unknown(unknown) => Err(ComponentValidationError {
             kind: ComponentValidationErrorType::InvalidChildComponent {
                 kind: ComponentType::Unknown(*unknown),
@@ -118,6 +117,7 @@ pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
         }),
 
         Component::Button(_)
+        | Component::TextDisplay(_)
         | Component::MediaGallery(_)
         | Component::Separator(_)
         | Component::File(_)
@@ -365,6 +365,11 @@ mod tests {
             id: None,
         });
 
+        let text_display = Component::TextDisplay(TextDisplay {
+            id: None,
+            content: "Text display".to_owned(),
+        });
+
         let select_menu = Component::SelectMenu(SelectMenu {
             channel_types: None,
             custom_id: "my_select".to_owned(),
@@ -390,6 +395,13 @@ mod tests {
             ..valid_label.clone()
         };
 
+        let label_invalid_child_2 = Label {
+            id: None,
+            label: "Another label".to_owned(),
+            description: None,
+            component: Box::new(text_display),
+        };
+
         let label_too_long_description = Label {
             description: Some(iter::repeat_n('a', 101).collect()),
             ..valid_label.clone()
@@ -404,6 +416,8 @@ mod tests {
         assert!(component_v2(&Component::Label(valid_label)).is_ok());
         assert!(label(&label_invalid_child).is_err());
         assert!(component_v2(&Component::Label(label_invalid_child)).is_err());
+        assert!(label(&label_invalid_child_2).is_err());
+        assert!(component_v2(&Component::Label(label_invalid_child_2)).is_err());
         assert!(label(&label_too_long_description).is_err());
         assert!(component_v2(&Component::Label(label_too_long_description)).is_err());
         assert!(label(&label_too_long_label).is_err());
