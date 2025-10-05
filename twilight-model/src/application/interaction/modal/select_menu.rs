@@ -1,6 +1,5 @@
 use crate::id::Id;
 use crate::id::marker::{ChannelMarker, GenericMarker, RoleMarker, UserMarker};
-use serde::{Deserialize, Serialize};
 
 /// User filled in String Select.
 ///
@@ -42,7 +41,7 @@ pub type ModalInteractionChannelSelect = ModalInteractionSelectMenu<Id<ChannelMa
 /// and [`ModalInteractionChannelSelect`].
 ///
 /// [`SelectMenu`]: crate::channel::message::component::SelectMenu
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ModalInteractionSelectMenu<ValueType> {
     /// Unique identifier for the component.
     pub id: i32,

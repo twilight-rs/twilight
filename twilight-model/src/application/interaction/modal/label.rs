@@ -1,5 +1,4 @@
 use crate::application::interaction::modal::ModalInteractionComponent;
-use serde::{Deserialize, Serialize};
 
 /// User filled in [`Label`].
 ///
@@ -7,7 +6,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Label`]: crate::channel::message::component::Label
 /// [Discord Docs/Label Interaction Response Structure]: https://discord.com/developers/docs/components/reference#label-label-interaction-response-structure
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ModalInteractionLabel {
     /// Unique identifier for the component.
     pub id: i32,
