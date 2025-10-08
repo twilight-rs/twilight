@@ -22,4 +22,4 @@ edition = "2024"
 include = ["src/**/*.rs", "README.md"]
 license = "ISC"
 repository = "https://github.com/twilight-rs/twilight.git"
-rust-version = "1.88"
+rust-version = "1.89"
