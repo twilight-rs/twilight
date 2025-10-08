@@ -29,10 +29,10 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
 * `twilight-http` (*default*): enable the `stream::create_recommended` function
-* Compression (mutually exclusive)
-  * `zlib-stock`: [`flate2`]'s stock zlib implementation (*deprecated*)
-  * `zlib-simd`: use [`zlib-ng`] for zlib, may have better performance (*deprecated*)
-  * `zstd` (*default*): enable zstd transport compression
+* Transport compression (mutually exclusive)
+  * `zlib-stock`: [`flate2`]'s stock Zlib implementation
+  * `zlib-simd`: use [`zlib-ng`] for Zlib, may have better performance
+  * `zstd` (*default*): Zstandard transport compression
 
 ## Example
 

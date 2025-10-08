@@ -6,14 +6,8 @@
 //! information about what a shard is in the context of Discord's gateway API,
 //! refer to the documentation for [`Shard`].
 
-#[cfg(feature = "zstd")]
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
 use crate::compression::Decompressor;
-#[allow(deprecated)]
-#[cfg(all(
-    any(feature = "zlib-stock", feature = "zlib-simd"),
-    not(feature = "zstd")
-))]
-use crate::inflater::Inflater;
 use crate::{
     API_VERSION, Command, Config, Message, ShardId,
     channel::{MessageChannel, MessageSender},
@@ -306,8 +300,8 @@ pub struct Shard<Q = InMemoryQueue> {
     /// The connection should only be dropped after it has returned `Ok(None)`
     /// to comply with the WebSocket protocol.
     connection: Option<Connection>,
-    /// Zstd decompressor.
-    #[cfg(feature = "zstd")]
+    /// Event decompressor.
+    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
     decompressor: Decompressor,
     /// Interval of how often the gateway would like the shard to send
     /// heartbeats.
@@ -324,13 +318,6 @@ pub struct Shard<Q = InMemoryQueue> {
     id: ShardId,
     /// Identify queue receiver.
     identify_rx: Option<oneshot::Receiver<()>>,
-    /// Zlib decompressor.
-    #[allow(deprecated)]
-    #[cfg(all(
-        any(feature = "zlib-stock", feature = "zlib-simd"),
-        not(feature = "zstd")
-    ))]
-    inflater: Inflater,
     /// Potentially pending outgoing message.
     pending: Option<Pending>,
     /// Recent heartbeat latency statistics.
@@ -378,18 +365,12 @@ impl<Q> Shard<Q> {
             config,
             connection_future: None,
             connection: None,
-            #[cfg(feature = "zstd")]
+            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
             decompressor: Decompressor::new(),
             heartbeat_interval: None,
             heartbeat_interval_event: false,
             id: shard_id,
             identify_rx: None,
-            #[allow(deprecated)]
-            #[cfg(all(
-                any(feature = "zlib-stock", feature = "zlib-simd"),
-                not(feature = "zstd")
-            ))]
-            inflater: Inflater::new(),
             pending: None,
             latency: Latency::new(),
             ratelimiter: None,
@@ -410,19 +391,6 @@ impl<Q> Shard<Q> {
     /// ID of the shard.
     pub const fn id(&self) -> ShardId {
         self.id
-    }
-
-    /// Zlib decompressor statistics.
-    ///
-    /// Reset when reconnecting to the gateway.
-    #[allow(deprecated)]
-    #[cfg(all(
-        any(feature = "zlib-stock", feature = "zlib-simd"),
-        not(feature = "zstd")
-    ))]
-    #[deprecated(since = "0.16.1", note = "replaced by zstd compression")]
-    pub const fn inflater(&self) -> &Inflater {
-        &self.inflater
     }
 
     /// State of the shard.
@@ -917,14 +885,12 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                         Ok(connection) => {
                             self.connection = Some(connection);
                             self.state = ShardState::Identifying;
-                            #[cfg(feature = "zstd")]
-                            self.decompressor.reset();
-                            #[allow(deprecated)]
-                            #[cfg(all(
-                                not(feature = "zstd"),
-                                any(feature = "zlib-stock", feature = "zlib-simd")
+                            #[cfg(any(
+                                feature = "zlib-stock",
+                                feature = "zlib-simd",
+                                feature = "zstd"
                             ))]
-                            self.inflater.reset();
+                            self.decompressor.reset();
                         }
                         Err(source) => {
                             self.resume_url = None;
@@ -951,25 +917,20 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
 
             match ready!(Pin::new(self.connection.as_mut().unwrap()).poll_next(cx)) {
                 Some(Ok(message)) => {
-                    #[cfg(feature = "zstd")]
+                    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
                     if message.is_binary() {
                         match self.decompressor.decompress(message.as_payload()) {
+                            #[cfg(feature = "zstd")]
                             Ok(message) => break Message::Text(message),
-                            Err(source) => {
-                                self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
-                                return Poll::Ready(Some(Err(
-                                    ReceiveMessageError::from_compression(source),
-                                )));
-                            }
-                        }
-                    }
-                    #[cfg(all(
-                        not(feature = "zstd"),
-                        any(feature = "zlib-stock", feature = "zlib-simd")
-                    ))]
-                    if message.is_binary() {
-                        match self.inflater.inflate(message.as_payload()) {
+                            #[cfg(all(
+                                not(feature = "zstd"),
+                                any(feature = "zlib-stock", feature = "zlib-simd")
+                            ))]
                             Ok(Some(message)) => break Message::Text(message),
+                            #[cfg(all(
+                                not(feature = "zstd"),
+                                any(feature = "zlib-stock", feature = "zlib-simd")
+                            ))]
                             Ok(None) => continue,
                             Err(source) => {
                                 self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));

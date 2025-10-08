@@ -1,14 +1,8 @@
-//! Flate2 based decompressor for Discord gateway messages.
-//!
-//! The [`Inflater`] decompresses messages sent over the gateway by reusing a
-//! common buffer to minimize the amount of allocations in the hot path.
-//!
-//! A compressed message buffer is used to store incomplete messages and gets,
-//! if used, shrank every minute to the size of the most recent completed
-//! message.
+//! Zlib transport compression.
 
-use crate::error::CompressionError;
+use super::CompressionError;
 
+/// Gateway event decompressor.
 #[derive(Debug)]
 pub struct Decompressor {
     /// Common decompressed message buffer.
@@ -20,16 +14,13 @@ pub struct Decompressor {
 }
 
 impl Decompressor {
-    /// [`Self::buffer`]'s size.
-    const BUFFER_SIZE: usize = 32 * 1024;
-
     /// Zlib synchronization marker.
     const SYNC: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 
     /// Create a new decompressor for a shard.
     pub fn new() -> Self {
         Self {
-            buffer: vec![0; Self::BUFFER_SIZE].into_boxed_slice(),
+            buffer: vec![0; super::BUFFER_SIZE].into_boxed_slice(),
             decompress: flate2::Decompress::new(true),
             partial: Vec::new(),
         }
@@ -71,7 +62,7 @@ impl Decompressor {
         let mut decompressed = Vec::new();
 
         loop {
-            let produced = self.decompress.total_out();
+            let total_out = self.decompress.total_out();
 
             // Use Sync to ensure data is flushed to the buffer.
             self.decompress
@@ -83,7 +74,7 @@ impl Decompressor {
                 .map_err(CompressionError::from_decompress)?;
 
             processed = (self.decompress.total_in() - total_in) as usize;
-            let produced = (self.decompress.total_out() - produced) as usize;
+            let produced = (self.decompress.total_out() - total_out) as usize;
 
             decompressed.extend_from_slice(&self.buffer[..produced]);
 

@@ -58,11 +58,11 @@ This is enabled by default.
 The `rustls-webpki-roots` feature enables [`tokio-websockets`]'
 `rustls-webpki-roots` feature.
 
-### Compression
+### Transport compression
 
 `twilight-gateway` supports both Zlib and Zstandard transport compression.
 
-#### Zlib (deprecated)
+#### Zlib
 
 Zlib allows specifying two different backends.
 
@@ -73,7 +73,7 @@ upstream or the one included with the operating system.
 
 ##### SIMD
 
-`zlib-simd` enables the use of [zlib-ng] which is a modern fork of zlib that in
+`zlib-simd` enables the use of [zlib-ng] which is a modern fork of Zlib that in
 most cases will be more effective. However, this will add an external dependency
 on [cmake].
 
