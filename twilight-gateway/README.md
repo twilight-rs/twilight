@@ -28,12 +28,6 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
     certificate facilities via [`rustls-platform-verifier`]
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
-* Crypto providers (required with [`rustls`])
-  * `rustls-ring` (*default*): [`ring`] as the crypto provider, recommended for
-    compatibility
-  * `rustls-aws_lc_rs`: [`aws-lc-rs`] as the crypto provider, recommended for
-    performance and widely used platforms
-  * none of the above: install your own via [`CryptoProvider::install_default`]
 * `twilight-http` (*default*): enable the `stream::create_recommended` function
 * Compression (mutually exclusive)
   * `zlib-stock`: [`flate2`]'s stock zlib implementation (*deprecated*)

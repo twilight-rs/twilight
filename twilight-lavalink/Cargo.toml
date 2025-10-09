@@ -20,13 +20,12 @@ http = { default-features = false, version = "1" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
-tokio-websockets = { default-features = false, features = ["client", "fastrand", "sha1_smol"], version = "0.12.2" }
+tokio-websockets = { default-features = false, features = ["client", "fastrand", "sha1_smol"], version = "0.13" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.16.0" }
 
 # Optional dependencies.
 percent-encoding = { default-features = false, optional = true, version = "2" }
-rustls = { default-features = false, optional = true, version = "0.23" }
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }

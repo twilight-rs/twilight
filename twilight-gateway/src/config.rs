@@ -411,8 +411,6 @@ mod tests {
     assert_impl_all!(ConfigBuilder: Debug, Send, Sync);
 
     fn builder() -> ConfigBuilder {
-        let _ = rustls::crypto::ring::default_provider().install_default();
-
         ConfigBuilder::new("test".to_owned(), Intents::empty())
     }
 
@@ -445,8 +443,6 @@ mod tests {
         const WITHOUT: &str = "test";
         const WITH: &str = "Bot test";
 
-        let _ = rustls::crypto::ring::default_provider().install_default();
-
         assert_eq!(
             ConfigBuilder::new(WITHOUT.to_owned(), Intents::empty())
                 .build()
@@ -467,8 +463,6 @@ mod tests {
 
     #[tokio::test]
     async fn config_debug() {
-        let _ = rustls::crypto::ring::default_provider().install_default();
-
         let config = Config::new("Bot foo".to_owned(), Intents::empty());
 
         assert!(format!("{config:?}").contains("token: <redacted>"));
