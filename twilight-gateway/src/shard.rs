@@ -6,7 +6,7 @@
 //! information about what a shard is in the context of Discord's gateway API,
 //! refer to the documentation for [`Shard`].
 
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
+#[cfg(any(feature = "zlib", feature = "zstd"))]
 use crate::compression::Decompressor;
 use crate::{
     API_VERSION, Command, Config, Message, ShardId,
@@ -55,7 +55,7 @@ const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 /// Query argument depending on enabled compression features.
 const COMPRESSION_FEATURES: &str = if cfg!(feature = "zstd") {
     "&compress=zstd-stream"
-} else if cfg!(feature = "zlib-stock") || cfg!(feature = "zlib-simd") {
+} else if cfg!(feature = "zlib") {
     "&compress=zlib-stream"
 } else {
     ""
@@ -301,7 +301,7 @@ pub struct Shard<Q = InMemoryQueue> {
     /// to comply with the WebSocket protocol.
     connection: Option<Connection>,
     /// Event decompressor.
-    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
+    #[cfg(any(feature = "zlib", feature = "zstd"))]
     decompressor: Decompressor,
     /// Interval of how often the gateway would like the shard to send
     /// heartbeats.
@@ -365,7 +365,7 @@ impl<Q> Shard<Q> {
             config,
             connection_future: None,
             connection: None,
-            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
+            #[cfg(any(feature = "zlib", feature = "zstd"))]
             decompressor: Decompressor::new(),
             heartbeat_interval: None,
             heartbeat_interval_event: false,
@@ -885,11 +885,7 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                         Ok(connection) => {
                             self.connection = Some(connection);
                             self.state = ShardState::Identifying;
-                            #[cfg(any(
-                                feature = "zlib-stock",
-                                feature = "zlib-simd",
-                                feature = "zstd"
-                            ))]
+                            #[cfg(any(feature = "zlib", feature = "zstd"))]
                             self.decompressor.reset();
                         }
                         Err(source) => {
@@ -917,20 +913,14 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
 
             match ready!(Pin::new(self.connection.as_mut().unwrap()).poll_next(cx)) {
                 Some(Ok(message)) => {
-                    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
+                    #[cfg(any(feature = "zlib", feature = "zstd"))]
                     if message.is_binary() {
                         match self.decompressor.decompress(message.as_payload()) {
                             #[cfg(feature = "zstd")]
                             Ok(message) => break Message::Text(message),
-                            #[cfg(all(
-                                not(feature = "zstd"),
-                                any(feature = "zlib-stock", feature = "zlib-simd")
-                            ))]
+                            #[cfg(all(not(feature = "zstd"), feature = "zlib"))]
                             Ok(Some(message)) => break Message::Text(message),
-                            #[cfg(all(
-                                not(feature = "zstd"),
-                                any(feature = "zlib-stock", feature = "zlib-simd")
-                            ))]
+                            #[cfg(all(not(feature = "zstd"), feature = "zlib"))]
                             Ok(None) => continue,
                             Err(source) => {
                                 self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));

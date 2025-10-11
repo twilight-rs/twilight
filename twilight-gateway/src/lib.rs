@@ -17,7 +17,7 @@ pub mod error;
 
 mod channel;
 mod command;
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
+#[cfg(any(feature = "zlib", feature = "zstd"))]
 mod compression;
 mod config;
 mod event;

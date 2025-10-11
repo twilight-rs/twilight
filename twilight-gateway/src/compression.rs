@@ -2,18 +2,12 @@
 
 use std::{error::Error, fmt};
 
-#[cfg(all(
-    any(feature = "zlib-stock", feature = "zlib-simd"),
-    not(feature = "zstd")
-))]
+#[cfg(all(not(feature = "zstd"), feature = "zlib"))]
 mod zlib;
 #[cfg(feature = "zstd")]
 mod zstd;
 
-#[cfg(all(
-    any(feature = "zlib-stock", feature = "zlib-simd"),
-    not(feature = "zstd")
-))]
+#[cfg(all(not(feature = "zstd"), feature = "zlib"))]
 pub use zlib::Decompressor;
 #[cfg(feature = "zstd")]
 pub use zstd::Decompressor;
@@ -67,10 +61,7 @@ impl CompressionError {
     }
 
     /// Shortcut to create a new error for a zlib decompression error.
-    #[cfg(all(
-        any(feature = "zlib-stock", feature = "zlib-simd"),
-        not(feature = "zstd")
-    ))]
+    #[cfg(all(not(feature = "zstd"), feature = "zlib"))]
     pub(crate) fn from_decompress(source: flate2::DecompressError) -> Self {
         Self {
             kind: CompressionErrorType::Decompressing,

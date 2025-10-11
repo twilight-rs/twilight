@@ -64,21 +64,11 @@ The `rustls-webpki-roots` feature enables [`tokio-websockets`]'
 
 #### Zlib
 
-Zlib allows specifying two different backends.
+The `zlib` feature implementation is `target_arch` dependent:
 
-##### Stock
-
-The `zlib-stock` feature makes [flate2] use of the stock Zlib which is either
-upstream or the one included with the operating system.
-
-##### SIMD
-
-`zlib-simd` enables the use of [zlib-ng] which is a modern fork of Zlib that in
-most cases will be more effective. However, this will add an external dependency
-on [cmake].
-
-If both are enabled or if the `zlib` feature of [flate2] is enabled anywhere in
-the dependency tree it will make use of that instead of [zlib-ng].
+| s390x           | other       |
+| --------------- | ----------- |
+| [`zlib-ng-sys`] | [`zlib-rs`] |
 
 #### Zstandard
 
@@ -128,11 +118,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
 [img:shard]: ./section_3_shard.png
 [RusTLS]: https://crates.io/crates/rustls
-[cmake]: https://cmake.org/
-[flate2]: https://github.com/alexcrichton/flate2-rs
-[zlib-ng]: https://github.com/zlib-ng/zlib-ng
 [`hyper-rustls`]: https://crates.io/crates/hyper-rustls
 [`hyper-tls`]: https://crates.io/crates/hyper-tls
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`tokio-websockets`]: https://crates.io/crates/tokio-websockets
+[`zlib-ng-sys`]: https://crates.io/crates/libz-ng-sys
+[`zlib-rs`]: https://crates.io/crates/zlib-rs
