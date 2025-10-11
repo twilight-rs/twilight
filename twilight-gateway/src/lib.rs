@@ -17,15 +17,10 @@ pub mod error;
 
 mod channel;
 mod command;
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
+#[cfg(any(feature = "zlib", feature = "zstd"))]
 mod compression;
 mod config;
 mod event;
-#[cfg(all(
-    any(feature = "zlib-stock", feature = "zlib-simd"),
-    not(feature = "zstd")
-))]
-mod inflater;
 mod json;
 mod latency;
 mod message;
@@ -34,12 +29,6 @@ mod session;
 mod shard;
 mod stream;
 
-#[allow(deprecated)]
-#[cfg(all(
-    any(feature = "zlib-stock", feature = "zlib-simd"),
-    not(feature = "zstd")
-))]
-pub use self::inflater::Inflater;
 pub use self::{
     channel::MessageSender,
     command::Command,
