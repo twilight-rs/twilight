@@ -195,6 +195,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "username".into(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: Some(UserFlags::empty()),
                 system: None,
                 verified: None,

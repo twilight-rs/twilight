@@ -14,7 +14,7 @@ pub struct RoleUpdate {
 mod tests {
     use super::{Role, RoleUpdate};
     use crate::{
-        guild::{Permissions, RoleFlags},
+        guild::{Permissions, RoleFlags, RoleColors},
         id::Id,
     };
     use serde_test::Token;
@@ -25,6 +25,11 @@ mod tests {
             guild_id: Id::new(1),
             role: Role {
                 color: 0,
+                colors: RoleColors {
+                    primary_color: 0,
+                    secondary_color: None,
+                    tertiary_color: None,
+                },
                 hoist: true,
                 icon: None,
                 id: Id::new(1),

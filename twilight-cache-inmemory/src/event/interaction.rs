@@ -82,6 +82,7 @@ mod tests {
         user::User,
         util::{ImageHash, Timestamp, image_hash::ImageHashParseError},
     };
+    use twilight_model::guild::RoleColors;
 
     #[allow(clippy::too_many_lines, deprecated)]
     #[test]
@@ -186,6 +187,7 @@ mod tests {
                                 mfa_enabled: None,
                                 name: "test".to_owned(),
                                 premium_type: None,
+                                primary_guild: None,
                                 public_flags: None,
                                 system: None,
                                 verified: None,
@@ -241,6 +243,11 @@ mod tests {
                         Id::new(8),
                         Role {
                             color: 0u32,
+                            colors: RoleColors {
+                                primary_color: 0,
+                                secondary_color: None,
+                                tertiary_color: None,
+                            },
                             hoist: false,
                             icon: None,
                             id: Id::new(8),
@@ -272,6 +279,7 @@ mod tests {
                             mfa_enabled: None,
                             name: "different name".into(),
                             premium_type: None,
+                            primary_guild: None,
                             public_flags: None,
                             system: None,
                             verified: None,
@@ -314,6 +322,7 @@ mod tests {
                     mfa_enabled: None,
                     name: "username".into(),
                     premium_type: None,
+                    primary_guild: None,
                     public_flags: None,
                     system: None,
                     verified: None,

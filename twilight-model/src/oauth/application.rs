@@ -174,6 +174,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "app dev".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,

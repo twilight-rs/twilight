@@ -39,6 +39,7 @@ mod role;
 mod role_flags;
 mod role_position;
 mod role_tags;
+mod role_colors;
 mod system_channel_flags;
 mod unavailable_guild;
 mod vanity_url;
@@ -59,6 +60,7 @@ pub use self::{
     role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
     verification_level::VerificationLevel, widget::GuildWidget,
+    role_colors::RoleColors
 };
 
 use super::gateway::presence::PresenceListDeserializer;

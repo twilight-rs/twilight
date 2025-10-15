@@ -1057,6 +1057,7 @@ mod tests {
         id::Id,
         util::Timestamp,
     };
+    use twilight_model::guild::RoleColors;
 
     #[test]
     fn syntax_update() {
@@ -1106,6 +1107,11 @@ mod tests {
             vec![
                 Role {
                     color: 0,
+                    colors: RoleColors {
+                        primary_color: 0,
+                        secondary_color: None,
+                        tertiary_color: None,
+                    },
                     hoist: false,
                     icon: None,
                     id: Id::new(1),
@@ -1120,6 +1126,11 @@ mod tests {
                 },
                 Role {
                     color: 0,
+                    colors: RoleColors {
+                        primary_color: 0,
+                        secondary_color: None,
+                        tertiary_color: None,
+                    },
                     hoist: false,
                     icon: None,
                     id: Id::new(2),

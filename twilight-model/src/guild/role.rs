@@ -6,10 +6,16 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
+use super::RoleColors;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
+    #[deprecated(
+        since="1.7.0",
+        note="Deprecated by Discord in favour for the new ``colors`` field."
+    )]
     pub color: u32,
+    pub colors: RoleColors,
     pub hoist: bool,
     /// Icon image hash.
     ///
@@ -59,10 +65,14 @@ impl Ord for Role {
     /// ```
     /// # use twilight_model::{guild::{Permissions, Role, RoleFlags}, id::Id};
     /// # use std::cmp::Ordering;
+    /// # use twilight_model::guild::RoleColors;
     /// let role_a = Role {
     ///     id: Id::new(123),
     ///     position: 12,
     /// #   color: 0,
+    /// #   colors: RoleColors {
+    /// #       primary_color: 0,secondary_color: None,tertiary_color: None,
+    /// #   },
     /// #   hoist: true,
     /// #   icon: None,
     /// #   managed: false,
@@ -148,7 +158,7 @@ impl PartialOrd for Role {
 
 #[cfg(test)]
 mod tests {
-    use super::{Permissions, Role};
+    use super::{Permissions, Role, RoleColors};
     use crate::{guild::RoleFlags, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -157,6 +167,7 @@ mod tests {
 
     assert_fields!(
         Role: color,
+        colors,
         hoist,
         icon,
         id,
@@ -183,6 +194,11 @@ mod tests {
     fn role() {
         let role = Role {
             color: 0,
+            colors: RoleColors {
+                primary_color: 0,
+                secondary_color: None,
+                tertiary_color: None,
+            },
             hoist: true,
             icon: None,
             id: Id::new(123),
@@ -205,6 +221,14 @@ mod tests {
                 },
                 Token::Str("color"),
                 Token::U32(0),
+                Token::Str("colors"),
+                Token::Struct {
+                    name: "RoleColors",
+                    len: 1,
+                },
+                Token::Str("primary_color"),
+                Token::U32(0),
+                Token::StructEnd,
                 Token::Str("hoist"),
                 Token::Bool(true),
                 Token::Str("id"),
