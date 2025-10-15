@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
 use crate::id::Id;
 use crate::id::marker::GuildMarker;
+use serde::{Deserialize, Serialize};
 
 /// The Primary Guild data (also known as guild tag(s)) provided with the [`User`] object.
 ///
@@ -18,5 +18,5 @@ pub struct PrimaryGuild {
     /// The text content of the guild tag, within 2-4 characters.
     pub tag: Option<String>,
     /// The guild tag's badge hash.
-    pub badge: Option<String>
+    pub badge: Option<String>,
 }

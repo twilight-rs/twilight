@@ -1,3 +1,4 @@
+use super::RoleColors;
 use super::{RoleFlags, RoleTags};
 use crate::{
     guild::Permissions,
@@ -6,13 +7,12 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
-use super::RoleColors;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
     #[deprecated(
-        since="1.7.0",
-        note="Deprecated by Discord in favour for the new ``colors`` field."
+        since = "1.7.0",
+        note = "Deprecated by Discord in favour for the new ``colors`` field."
     )]
     pub color: u32,
     pub colors: RoleColors,

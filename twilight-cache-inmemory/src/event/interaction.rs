@@ -60,6 +60,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for InteractionCreat
 mod tests {
     use crate::DefaultInMemoryCache;
     use std::collections::HashMap;
+    use twilight_model::guild::RoleColors;
     use twilight_model::{
         application::{
             command::CommandType,
@@ -82,7 +83,6 @@ mod tests {
         user::User,
         util::{ImageHash, Timestamp, image_hash::ImageHashParseError},
     };
-    use twilight_model::guild::RoleColors;
 
     #[allow(clippy::too_many_lines, deprecated)]
     #[test]

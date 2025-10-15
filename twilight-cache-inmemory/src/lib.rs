@@ -1051,13 +1051,13 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
 #[cfg(test)]
 mod tests {
     use crate::{DefaultInMemoryCache, test};
+    use twilight_model::guild::RoleColors;
     use twilight_model::{
         gateway::payload::incoming::RoleDelete,
         guild::{Member, MemberFlags, Permissions, Role, RoleFlags},
         id::Id,
         util::Timestamp,
     };
-    use twilight_model::guild::RoleColors;
 
     #[test]
     fn syntax_update() {

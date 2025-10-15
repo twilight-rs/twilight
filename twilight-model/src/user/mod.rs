@@ -11,7 +11,7 @@ pub use self::{
     avatar_decoration_data::AvatarDecorationData, connection::Connection,
     connection_visibility::ConnectionVisibility, current_user::CurrentUser,
     current_user_guild::CurrentUserGuild, flags::UserFlags, premium_type::PremiumType,
-    primary_guild::PrimaryGuild
+    primary_guild::PrimaryGuild,
 };
 
 use crate::{
@@ -195,12 +195,12 @@ impl User {
 #[cfg(test)]
 mod tests {
     use super::{DiscriminatorDisplay, PremiumType, User, UserFlags};
+    use crate::id::marker::GuildMarker;
+    use crate::user::primary_guild::PrimaryGuild;
     use crate::{id::Id, test::image_hash};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, hash::Hash};
-    use crate::id::marker::GuildMarker;
-    use crate::user::primary_guild::PrimaryGuild;
 
     assert_impl_all!(
         DiscriminatorDisplay: Clone,
@@ -359,10 +359,12 @@ mod tests {
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
             primary_guild: Some(PrimaryGuild {
-                identity_guild_id: Some(Id::<GuildMarker>::new_checked(169256939211980800).unwrap()),
+                identity_guild_id: Some(
+                    Id::<GuildMarker>::new_checked(169256939211980800).unwrap(),
+                ),
                 identity_enabled: Some(true),
                 tag: Some("DISC".to_owned()),
-                badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned())
+                badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned()),
             }),
             public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             system: None,
@@ -398,10 +400,12 @@ mod tests {
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
             primary_guild: Some(PrimaryGuild {
-                identity_guild_id: Some(Id::<GuildMarker>::new_checked(169256939211980800).unwrap()),
+                identity_guild_id: Some(
+                    Id::<GuildMarker>::new_checked(169256939211980800).unwrap(),
+                ),
                 identity_enabled: Some(true),
                 tag: Some("DISC".to_owned()),
-                badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned())
+                badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned()),
             }),
             public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             system: None,
@@ -434,10 +438,12 @@ mod tests {
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
             primary_guild: Some(PrimaryGuild {
-                identity_guild_id: Some(Id::<GuildMarker>::new_checked(169256939211980800).unwrap()),
+                identity_guild_id: Some(
+                    Id::<GuildMarker>::new_checked(169256939211980800).unwrap(),
+                ),
                 identity_enabled: Some(true),
                 tag: Some("DISC".to_owned()),
-                badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned())
+                badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned()),
             }),
             public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             system: Some(true),

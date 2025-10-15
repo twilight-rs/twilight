@@ -14,7 +14,7 @@ pub struct RoleUpdate {
 mod tests {
     use super::{Role, RoleUpdate};
     use crate::{
-        guild::{Permissions, RoleFlags, RoleColors},
+        guild::{Permissions, RoleColors, RoleFlags},
         id::Id,
     };
     use serde_test::Token;

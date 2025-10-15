@@ -1,4 +1,5 @@
 use crate::DefaultInMemoryCache;
+use twilight_model::guild::RoleColors;
 use twilight_model::{
     channel::{
         Channel, ChannelType,
@@ -28,7 +29,6 @@ use twilight_model::{
     util::{ImageHash, Timestamp},
     voice::VoiceState,
 };
-use twilight_model::guild::RoleColors;
 
 pub fn cache() -> DefaultInMemoryCache {
     DefaultInMemoryCache::new()

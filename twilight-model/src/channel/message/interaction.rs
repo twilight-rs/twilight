@@ -28,6 +28,8 @@ pub struct MessageInteraction {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::id::marker::GuildMarker;
+    use crate::user::PrimaryGuild;
     use crate::{
         guild::MemberFlags,
         test::image_hash,
@@ -36,8 +38,6 @@ mod tests {
     };
     use serde_test::Token;
     use std::{error::Error, str::FromStr};
-    use crate::id::marker::GuildMarker;
-    use crate::user::PrimaryGuild;
 
     #[allow(clippy::too_many_lines)]
     #[test]
@@ -79,10 +79,12 @@ mod tests {
                 name: "test".to_owned(),
                 premium_type: Some(PremiumType::Nitro),
                 primary_guild: Some(PrimaryGuild {
-                    identity_guild_id: Some(Id::<GuildMarker>::new_checked(169256939211980800).unwrap()),
+                    identity_guild_id: Some(
+                        Id::<GuildMarker>::new_checked(169256939211980800).unwrap(),
+                    ),
                     identity_enabled: Some(true),
                     tag: Some("DISC".to_owned()),
-                    badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned())
+                    badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned()),
                 }),
                 public_flags: Some(
                     UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
