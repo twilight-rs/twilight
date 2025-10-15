@@ -1,4 +1,4 @@
-use super::{RoleFlags, RoleTags};
+use super::{RoleColors, RoleFlags, RoleTags};
 use crate::{
     guild::Permissions,
     id::{marker::RoleMarker, Id},
@@ -9,7 +9,9 @@ use std::cmp::Ordering;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
+    #[deprecated(since = "0.17.0", note = "Deprecated by Discord, use `colors` instead.")]
     pub color: u32,
+    pub colors: RoleColors,
     pub hoist: bool,
     /// Icon image hash.
     ///
@@ -149,7 +151,7 @@ impl PartialOrd for Role {
 #[cfg(test)]
 mod tests {
     use super::{Permissions, Role};
-    use crate::{guild::RoleFlags, id::Id};
+    use crate::{guild::{RoleColors, RoleFlags}, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -183,6 +185,11 @@ mod tests {
     fn role() {
         let role = Role {
             color: 0,
+            colors: RoleColors {
+                primary_color: 0,
+                secondary_color: None,
+                tertiary_color: None,
+            },
             hoist: true,
             icon: None,
             id: Id::new(123),
@@ -205,6 +212,14 @@ mod tests {
                 },
                 Token::Str("color"),
                 Token::U32(0),
+                Token::Str("colors"),
+                Token::Struct {
+                    name: "RoleColors",
+                    len: 1,
+                },
+                Token::Str("primary_color"),
+                Token::U64(0),
+                Token::StructEnd,
                 Token::Str("hoist"),
                 Token::Bool(true),
                 Token::Str("id"),

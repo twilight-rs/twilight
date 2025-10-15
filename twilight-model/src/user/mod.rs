@@ -5,11 +5,13 @@ mod current_user;
 mod current_user_guild;
 mod flags;
 mod premium_type;
+mod primary_guild;
 
 pub use self::{
     avatar_decoration_data::AvatarDecorationData, connection::Connection,
     connection_visibility::ConnectionVisibility, current_user::CurrentUser,
     current_user_guild::CurrentUserGuild, flags::UserFlags, premium_type::PremiumType,
+    primary_guild::PrimaryGuild,
 };
 
 use crate::{
@@ -170,6 +172,7 @@ pub struct User {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_type: Option<PremiumType>,
+    pub primary_guild: PrimaryGuild,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub public_flags: Option<UserFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -190,7 +193,7 @@ impl User {
 
 #[cfg(test)]
 mod tests {
-    use super::{DiscriminatorDisplay, PremiumType, User, UserFlags};
+    use super::{DiscriminatorDisplay, PremiumType, PrimaryGuild, User, UserFlags};
     use crate::{id::Id, test::image_hash};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
@@ -309,6 +312,12 @@ mod tests {
             Token::Str("premium_type"),
             Token::Some,
             Token::U8(2),
+            Token::Str("primary_guild"),
+            Token::Struct {
+                name: "PrimaryGuild",
+                len: 0
+            },
+            Token::StructEnd,
             Token::Str("public_flags"),
             Token::Some,
             Token::U64(131_584),
@@ -350,6 +359,12 @@ mod tests {
             mfa_enabled: Some(true),
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
+            primary_guild: PrimaryGuild {
+                identity_guild_id: None,
+                identity_enabled: None,
+                tag: None,
+                badge: None,
+            },
             public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             system: None,
             verified: Some(true),
@@ -383,6 +398,12 @@ mod tests {
             mfa_enabled: Some(true),
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
+            primary_guild: PrimaryGuild {
+                identity_guild_id: None,
+                identity_enabled: None,
+                tag: None,
+                badge: None,
+            },
             public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             system: None,
             verified: Some(true),
@@ -413,6 +434,12 @@ mod tests {
             mfa_enabled: Some(true),
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
+            primary_guild: PrimaryGuild {
+                identity_guild_id: None,
+                identity_enabled: None,
+                tag: None,
+                badge: None,
+            },
             public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             system: Some(true),
             verified: Some(true),

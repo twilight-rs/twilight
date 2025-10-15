@@ -36,6 +36,7 @@ mod premium_tier;
 mod preview;
 mod prune;
 mod role;
+mod role_colors;
 mod role_flags;
 mod role_position;
 mod role_tags;
@@ -55,7 +56,7 @@ pub use self::{
     integration_expire_behavior::IntegrationExpireBehavior, integration_type::GuildIntegrationType,
     member::Member, member_flags::MemberFlags, mfa_level::MfaLevel, partial_guild::PartialGuild,
     partial_member::PartialMember, premium_tier::PremiumTier, preview::GuildPreview,
-    prune::GuildPrune, role::Role, role_flags::RoleFlags, role_position::RolePosition,
+    prune::GuildPrune, role::Role, role_colors::RoleColors, role_flags::RoleFlags, role_position::RolePosition,
     role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
     verification_level::VerificationLevel, widget::GuildWidget,
