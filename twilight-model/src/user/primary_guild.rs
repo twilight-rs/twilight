@@ -1,5 +1,5 @@
+use crate::id::{marker::GuildMarker, Id};
 use serde::{Deserialize, Serialize};
-use crate::id::{Id, marker::GuildMarker};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PrimaryGuild {

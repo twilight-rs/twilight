@@ -315,7 +315,7 @@ mod tests {
             Token::Str("primary_guild"),
             Token::Struct {
                 name: "PrimaryGuild",
-                len: 0
+                len: 0,
             },
             Token::StructEnd,
             Token::Str("public_flags"),

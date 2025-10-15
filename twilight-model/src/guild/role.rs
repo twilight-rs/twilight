@@ -9,7 +9,10 @@ use std::cmp::Ordering;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
-    #[deprecated(since = "0.17.0", note = "Deprecated by Discord, use `colors` instead.")]
+    #[deprecated(
+        since = "0.17.0",
+        note = "Deprecated by Discord, use `colors` instead."
+    )]
     pub color: u32,
     pub colors: RoleColors,
     pub hoist: bool,
@@ -151,7 +154,10 @@ impl PartialOrd for Role {
 #[cfg(test)]
 mod tests {
     use super::{Permissions, Role};
-    use crate::{guild::{RoleColors, RoleFlags}, id::Id};
+    use crate::{
+        guild::{RoleColors, RoleFlags},
+        id::Id,
+    };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
