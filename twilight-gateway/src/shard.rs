@@ -20,7 +20,7 @@ use crate::{
 };
 use futures_core::Stream;
 use futures_sink::Sink;
-use serde::{Deserialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     env::consts::OS,
     error::Error,
@@ -187,9 +187,11 @@ struct Pending {
 
 impl Pending {
     /// Constructor for a pending gateway event.
-    const fn text(json: String, is_heartbeat: bool) -> Option<Self> {
+    fn event<T: Serialize>(event: T, is_heartbeat: bool) -> Option<Self> {
         Some(Self {
-            gateway_event: Some(Message::Text(json)),
+            gateway_event: Some(Message::Text(
+                json::to_string(&event).expect("json serialization is infallible"),
+            )),
             is_heartbeat,
         })
     }
@@ -618,16 +620,14 @@ impl<Q: Queue> Shard<Q> {
             if let Some(pending) = self.pending.as_mut() {
                 ready!(Pin::new(self.connection.as_mut().unwrap()).poll_ready(cx))?;
 
-                if let Some(message) = &pending.gateway_event {
-                    if let Some(ratelimiter) = self.ratelimiter.as_mut()
-                        && message.is_text()
-                        && !pending.is_heartbeat
-                    {
-                        ready!(ratelimiter.poll_acquire(cx));
-                    }
+                let is_ratelimited = pending.gateway_event.as_ref().is_some_and(Message::is_text)
+                    && !pending.is_heartbeat;
+                if is_ratelimited && let Some(ratelimiter) = &mut self.ratelimiter {
+                    ready!(ratelimiter.poll_acquire(cx));
+                }
 
-                    let ws_message = pending.gateway_event.take().unwrap().into_websocket_msg();
-                    Pin::new(self.connection.as_mut().unwrap()).start_send(ws_message)?;
+                if let Some(msg) = pending.gateway_event.take().map(Message::into_websocket) {
+                    Pin::new(self.connection.as_mut().unwrap()).start_send(msg)?;
                 }
 
                 ready!(Pin::new(self.connection.as_mut().unwrap()).poll_flush(cx))?;
@@ -666,11 +666,8 @@ impl<Q: Queue> Shard<Q> {
                 }
 
                 tracing::debug!("sending heartbeat");
-                self.pending = Pending::text(
-                    json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                        .expect("serialization cannot fail"),
-                    true,
-                );
+                self.pending =
+                    Pending::event(Heartbeat::new(self.session().map(Session::sequence)), true);
                 self.heartbeat_interval_event = false;
 
                 continue;
@@ -694,8 +691,8 @@ impl<Q: Queue> Shard<Q> {
 
                 tracing::debug!("sending identify");
 
-                self.pending = Pending::text(
-                    json::to_string(&Identify::new(IdentifyInfo {
+                self.pending = Pending::event(
+                    Identify::new(IdentifyInfo {
                         compress: false,
                         intents: self.config.intents(),
                         large_threshold: self.config.large_threshold(),
@@ -707,8 +704,7 @@ impl<Q: Queue> Shard<Q> {
                             .unwrap_or_else(default_identify_properties),
                         shard: Some(self.id),
                         token: self.config.token().to_owned(),
-                    }))
-                    .expect("serialization cannot fail"),
+                    }),
                     false,
                 );
                 self.identify_rx = None;
@@ -792,11 +788,8 @@ impl<Q: Queue> Shard<Q> {
             }
             Some(OpCode::Heartbeat) => {
                 tracing::debug!("received heartbeat");
-                self.pending = Pending::text(
-                    json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                        .expect("serialization cannot fail"),
-                    true,
-                );
+                self.pending =
+                    Pending::event(Heartbeat::new(self.session().map(Session::sequence)), true);
             }
             Some(OpCode::HeartbeatAck) => {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
@@ -828,13 +821,8 @@ impl<Q: Queue> Shard<Q> {
                 self.latency = Latency::new();
 
                 if let Some(session) = &self.session {
-                    self.pending = Pending::text(
-                        json::to_string(&Resume::new(
-                            session.sequence(),
-                            session.id(),
-                            self.config.token(),
-                        ))
-                        .expect("serialization cannot fail"),
+                    self.pending = Pending::event(
+                        Resume::new(session.sequence(), session.id(), self.config.token()),
                         false,
                     );
                     self.state = ShardState::Resuming;
