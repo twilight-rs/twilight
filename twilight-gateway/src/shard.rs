@@ -649,10 +649,8 @@ impl<Q: Queue> Shard<Q> {
                 continue;
             }
 
-            if self
-                .heartbeat_interval
-                .as_mut()
-                .is_some_and(|heartbeater| heartbeater.poll_tick(cx).is_ready())
+            if let Some(heartbeater) = &mut self.heartbeat_interval
+                && heartbeater.poll_tick(cx).is_ready()
             {
                 // Discord never responded after the last heartbeat, connection
                 // is failed or "zombied", see
@@ -679,10 +677,8 @@ impl<Q: Queue> Shard<Q> {
                 .is_none_or(|ratelimiter| ratelimiter.poll_available(cx).is_ready());
 
             if not_ratelimited
-                && let Some(Poll::Ready(canceled)) = self
-                    .identify_rx
-                    .as_mut()
-                    .map(|rx| Pin::new(rx).poll(cx).map(|r| r.is_err()))
+                && let Some(rx) = &mut self.identify_rx
+                && let Poll::Ready(canceled) = Pin::new(rx).poll(cx).map(|r| r.is_err())
             {
                 if canceled {
                     self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
