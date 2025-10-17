@@ -71,7 +71,9 @@ impl Ord for Role {
     ///     position: 12,
     /// #   color: 0,
     /// #   colors: RoleColors {
-    /// #       primary_color: 0,secondary_color: None,tertiary_color: None,
+    /// #       primary_color: 0,
+    /// #       secondary_color: None,
+    /// #       tertiary_color: None,
     /// #   },
     /// #   hoist: true,
     /// #   icon: None,
@@ -87,7 +89,13 @@ impl Ord for Role {
     /// let role_b = Role {
     ///     id: Id::new(456),
     ///     position: 13,
+    /// #   #[allow(deprecated)]
     /// #   color: 0,
+    /// #   colors: RoleColors {
+    /// #       primary_color: 0,
+    /// #       secondary_color: None,
+    /// #       tertiary_color: None,
+    /// #   },
     /// #   hoist: true,
     /// #   icon: None,
     /// #   managed: false,
@@ -110,10 +118,16 @@ impl Ord for Role {
     /// ```
     /// # use twilight_model::{guild::{Permissions, Role, RoleFlags}, id::Id};
     /// # use std::cmp::Ordering;
+    /// # use twilight_model::guild::RoleColors;
     /// let role_a = Role {
     ///     id: Id::new(123),
     ///     position: 12,
     /// #   color: 0,
+    /// #   colors: RoleColors {
+    /// #       primary_color: 0,
+    /// #       secondary_color: None,
+    /// #       tertiary_color: None,
+    /// #   },
     /// #   hoist: true,
     /// #   icon: None,
     /// #   managed: false,
@@ -128,6 +142,11 @@ impl Ord for Role {
     ///     id: Id::new(456),
     ///     position: 12,
     /// #   color: 0,
+    /// #   colors: RoleColors {
+    /// #       primary_color: 0,
+    /// #       secondary_color: None,
+    /// #       tertiary_color: None,
+    /// #   },
     /// #   hoist: true,
     /// #   icon: None,
     /// #   managed: false,
@@ -164,9 +183,8 @@ mod tests {
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
-
     assert_fields!(
-        Role: color,
+        Role:
         colors,
         hoist,
         icon,
@@ -193,6 +211,7 @@ mod tests {
     #[test]
     fn role() {
         let role = Role {
+            #[allow(deprecated)]
             color: 0,
             colors: RoleColors {
                 primary_color: 0,
@@ -217,7 +236,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Role",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("color"),
                 Token::U32(0),

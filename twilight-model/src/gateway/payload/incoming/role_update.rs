@@ -24,6 +24,7 @@ mod tests {
         let value = RoleUpdate {
             guild_id: Id::new(1),
             role: Role {
+                #[allow(deprecated)]
                 color: 0,
                 colors: RoleColors {
                     primary_color: 0,
@@ -57,10 +58,18 @@ mod tests {
                 Token::Str("role"),
                 Token::Struct {
                     name: "Role",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("color"),
                 Token::U32(0),
+                Token::Str("colors"),
+                Token::Struct {
+                    name: "RoleColors",
+                    len: 1
+                },
+                Token::Str("primary_color"),
+                Token::U32(0),
+                Token::StructEnd,
                 Token::Str("hoist"),
                 Token::Bool(true),
                 Token::Str("id"),

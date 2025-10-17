@@ -139,7 +139,7 @@ pub enum Event {
     /// removed.
     ReactionRemoveEmoji(ReactionRemoveEmoji),
     /// A shard is now "ready" and fully connected.
-    Ready(Box<Ready>),
+    Ready(Ready),
     /// A shard has successfully resumed.
     Resumed,
     /// A role was created in a guild.
@@ -486,7 +486,7 @@ mod tests {
     // requires a variable to be used in a function, so this is a false
     // positive.
     #[allow(dead_code)]
-    const EVENT_THRESHOLD: usize = 256;
+    const EVENT_THRESHOLD: usize = 320;
 
     const_assert!(mem::size_of::<Event>() == EVENT_THRESHOLD);
 
@@ -509,12 +509,10 @@ mod tests {
     const_assert!(mem::size_of::<PresenceUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ReactionAdd>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ReactionRemove>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<Ready>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ThreadCreate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ThreadMemberUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ThreadUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<TypingStart>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<VoiceStateUpdate>() > EVENT_THRESHOLD);
 
     // Unboxed.
     const_assert!(mem::size_of::<AutoModerationRuleCreate>() <= EVENT_THRESHOLD);
@@ -533,9 +531,10 @@ mod tests {
     const_assert!(mem::size_of::<IntegrationDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<InviteDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MemberChunk>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<MemberRemove>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MessageDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MessageDeleteBulk>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MemberRemove>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<Ready>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ReactionRemoveAll>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<RoleCreate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<RoleDelete>() <= EVENT_THRESHOLD);

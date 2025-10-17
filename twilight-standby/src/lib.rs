@@ -1414,7 +1414,7 @@ mod tests {
             },
             version: 6,
         };
-        let event = Event::Ready(Box::new(ready));
+        let event = Event::Ready(ready);
 
         let standby = Standby::new();
         let wait = standby.wait_for_event(|event: &Event| match event {

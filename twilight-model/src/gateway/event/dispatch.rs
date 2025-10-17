@@ -61,7 +61,7 @@ pub enum DispatchEvent {
     ReactionRemove(Box<ReactionRemove>),
     ReactionRemoveAll(ReactionRemoveAll),
     ReactionRemoveEmoji(ReactionRemoveEmoji),
-    Ready(Box<Ready>),
+    Ready(Ready),
     Resumed,
     RoleCreate(RoleCreate),
     RoleDelete(RoleDelete),
@@ -389,7 +389,7 @@ impl<'de> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'_> {
             "PRESENCE_UPDATE" => {
                 DispatchEvent::PresenceUpdate(Box::new(PresenceUpdate::deserialize(deserializer)?))
             }
-            "READY" => DispatchEvent::Ready(Box::new(Ready::deserialize(deserializer)?)),
+            "READY" => DispatchEvent::Ready(Ready::deserialize(deserializer)?),
             "RESUMED" => {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
 

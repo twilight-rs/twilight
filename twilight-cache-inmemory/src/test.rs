@@ -315,6 +315,7 @@ pub fn member(id: Id<UserMarker>) -> Member {
 
 pub fn role(id: Id<RoleMarker>) -> Role {
     Role {
+        #[allow(deprecated)]
         color: 0,
         colors: RoleColors {
             primary_color: 0,
