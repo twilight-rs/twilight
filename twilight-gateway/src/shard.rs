@@ -29,12 +29,13 @@ use std::{
     io,
     pin::Pin,
     str,
+    sync::Arc,
     task::{Context, Poll, ready},
 };
 use tokio::{
     net::TcpStream,
     sync::oneshot,
-    time::{self, Duration, Instant, Interval, MissedTickBehavior, error::Elapsed, timeout},
+    time::{self, Duration, Instant, Interval, MissedTickBehavior},
 };
 use tokio_websockets::{ClientBuilder, Error as WebsocketError, Limits, MaybeTlsStream};
 use twilight_model::gateway::{
@@ -67,38 +68,11 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 /// [`tokio_websockets`] library Websocket connection.
 type Connection = tokio_websockets::WebSocketStream<MaybeTlsStream<TcpStream>>;
 
-/// Wrapper enum around [`WebsocketError`] with a timeout case.
-enum ConnectionError {
-    /// Connection attempt timed out.
-    Timeout(Elapsed),
-    /// Error from the websocket library, [`tokio_websockets`].
-    Websocket(WebsocketError),
-}
-
-impl ConnectionError {
-    /// Returns the boxed wrapped error.
-    fn into_boxed_error(self) -> Box<dyn Error + Send + Sync> {
-        match self {
-            Self::Websocket(e) => Box::new(e),
-            Self::Timeout(e) => Box::new(e),
-        }
-    }
-}
-
-impl From<WebsocketError> for ConnectionError {
-    fn from(value: WebsocketError) -> Self {
-        Self::Websocket(value)
-    }
-}
-
-impl From<Elapsed> for ConnectionError {
-    fn from(value: Elapsed) -> Self {
-        Self::Timeout(value)
-    }
-}
+/// Dynamically dispatched [`Error`].
+type GenericError = Box<dyn Error + Send + Sync>;
 
 /// Wrapper struct around an `async fn` with a `Debug` implementation.
-struct ConnectionFuture(Pin<Box<dyn Future<Output = Result<Connection, ConnectionError>> + Send>>);
+struct ConnectionFuture(Pin<Box<dyn Future<Output = Result<Connection, GenericError>> + Send>>);
 
 impl fmt::Debug for ConnectionFuture {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -568,6 +542,67 @@ impl<Q> Shard<Q> {
             source: Some(Box::new(source)),
         })
     }
+
+    /// Attempts to connect to the gateway.
+    ///
+    /// # Returns
+    ///
+    /// * `Poll::Pending` if connection is in progress
+    /// * `Poll::Ready(Ok)` if connected
+    /// * `Poll::Ready(Err)` if connecting to the gateway failed.
+    fn poll_connect(
+        &mut self,
+        cx: &mut Context<'_>,
+        attempt: u8,
+    ) -> Poll<Result<(), ReceiveMessageError>> {
+        let fut = self.connection_future.get_or_insert_with(|| {
+            let base_url = self
+                .resume_url
+                .as_deref()
+                .or_else(|| self.config.proxy_url())
+                .unwrap_or(GATEWAY_URL);
+            let base_url_len = base_url.len();
+            let uri = format!("{base_url}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}");
+
+            let tls = Arc::clone(&self.config.tls);
+            ConnectionFuture(Box::pin(async move {
+                let delay = Duration::from_secs(2u8.saturating_pow(attempt.into()).into());
+                time::sleep(delay).await;
+                tracing::debug!(url = &uri[..base_url_len], "connecting");
+
+                let builder = ClientBuilder::new()
+                    .uri(&uri)
+                    .expect("valid URL")
+                    .limits(Limits::unlimited())
+                    .connector(&tls);
+                Ok(time::timeout(CONNECT_TIMEOUT, builder.connect()).await??.0)
+            }))
+        });
+
+        let res = ready!(Pin::new(&mut fut.0).poll(cx));
+        self.connection_future = None;
+        match res {
+            Ok(connection) => {
+                self.connection = Some(connection);
+                self.state = ShardState::Identifying;
+                #[cfg(any(feature = "zlib", feature = "zstd"))]
+                self.decompressor.reset();
+            }
+            Err(source) => {
+                self.resume_url = None;
+                self.state = ShardState::Disconnected {
+                    reconnect_attempts: attempt + 1,
+                };
+
+                return Poll::Ready(Err(ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Reconnect,
+                    source: Some(source),
+                }));
+            }
+        }
+
+        Poll::Ready(Ok(()))
+    }
 }
 
 impl<Q: Queue> Shard<Q> {
@@ -830,7 +865,6 @@ impl<Q: Queue> Shard<Q> {
 impl<Q: Queue + Unpin> Stream for Shard<Q> {
     type Item = Result<Message, ReceiveMessageError>;
 
-    #[allow(clippy::too_many_lines)]
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let message = loop {
             match self.state {
@@ -847,59 +881,7 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                     return Poll::Ready(None);
                 }
                 ShardState::Disconnected { reconnect_attempts } if self.connection.is_none() => {
-                    if self.connection_future.is_none() {
-                        let base_url = self
-                            .resume_url
-                            .as_deref()
-                            .or_else(|| self.config.proxy_url())
-                            .unwrap_or(GATEWAY_URL);
-                        let uri = format!(
-                            "{base_url}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}"
-                        );
-
-                        tracing::debug!(url = base_url, "connecting to gateway");
-
-                        let tls = self.config.tls.clone();
-                        self.connection_future = Some(ConnectionFuture(Box::pin(async move {
-                            let secs = 2u8.saturating_pow(reconnect_attempts.into());
-                            time::sleep(Duration::from_secs(secs.into())).await;
-
-                            Ok(timeout(
-                                CONNECT_TIMEOUT,
-                                ClientBuilder::new()
-                                    .uri(&uri)
-                                    .expect("URL should be valid")
-                                    .limits(Limits::unlimited())
-                                    .connector(&tls)
-                                    .connect(),
-                            )
-                            .await??
-                            .0)
-                        })));
-                    }
-
-                    let res =
-                        ready!(Pin::new(&mut self.connection_future.as_mut().unwrap().0).poll(cx));
-                    self.connection_future = None;
-                    match res {
-                        Ok(connection) => {
-                            self.connection = Some(connection);
-                            self.state = ShardState::Identifying;
-                            #[cfg(any(feature = "zlib", feature = "zstd"))]
-                            self.decompressor.reset();
-                        }
-                        Err(source) => {
-                            self.resume_url = None;
-                            self.state = ShardState::Disconnected {
-                                reconnect_attempts: reconnect_attempts + 1,
-                            };
-
-                            return Poll::Ready(Some(Err(ReceiveMessageError {
-                                kind: ReceiveMessageErrorType::Reconnect,
-                                source: Some(source.into_boxed_error()),
-                            })));
-                        }
-                    }
+                    ready!(self.poll_connect(cx, reconnect_attempts))?;
                 }
                 _ => {}
             }
