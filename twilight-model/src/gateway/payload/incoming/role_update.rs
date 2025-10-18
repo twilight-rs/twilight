@@ -65,7 +65,7 @@ mod tests {
                 Token::Str("colors"),
                 Token::Struct {
                     name: "RoleColors",
-                    len: 1
+                    len: 1,
                 },
                 Token::Str("primary_color"),
                 Token::U32(0),
