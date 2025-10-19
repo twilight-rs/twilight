@@ -47,7 +47,10 @@ pub const LABEL_DESCRIPTION_LENGTH_MAX: usize = 100;
 ///
 /// # Errors
 ///
-/// For errors refer to the errors of the following functions:
+/// Returns an error of type [`InvalidRootComponent`] if the component cannot be a root
+/// component in both modals and messages.
+///
+/// For other errors refer to the errors of the following functions:
 /// - [`action_row`]
 /// - [`label`]
 /// - [`button`]
@@ -58,6 +61,8 @@ pub const LABEL_DESCRIPTION_LENGTH_MAX: usize = 100;
 /// - [`text_display`]
 /// - [`text_input`]
 /// - [`thumbnail`]
+///
+/// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
 pub fn component_v2(component: &Component) -> Result<(), ComponentValidationError> {
     match component {
         Component::ActionRow(ar) => action_row(ar, true)?,
@@ -68,7 +73,13 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::Section(s) => section(s)?,
         Component::SelectMenu(sm) => select_menu(sm)?,
         Component::TextDisplay(td) => text_display(td)?,
-        Component::TextInput(ti) => text_input(ti, true)?,
+        Component::TextInput(_) => {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::InvalidRootComponent {
+                    kind: ComponentType::TextInput,
+                },
+            });
+        }
         Component::Thumbnail(t) => thumbnail(t)?,
         Component::Separator(_) | Component::File(_) | Component::Unknown(_) => (),
     }
