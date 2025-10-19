@@ -99,7 +99,6 @@ pub struct InteractionMember {
 mod tests {
     use super::{InteractionChannel, InteractionDataResolved, InteractionMember};
     use crate::guild::RoleColors;
-    use crate::id::marker::GuildMarker;
     use crate::user::PrimaryGuild;
     use crate::{
         channel::{
@@ -292,7 +291,7 @@ mod tests {
                     premium_type: Some(PremiumType::Nitro),
                     primary_guild: Some(PrimaryGuild {
                         identity_guild_id: Some(
-                            Id::<GuildMarker>::new_checked(169256939211980800).unwrap(),
+                            Id::new(169_256_939_211_980_800),
                         ),
                         identity_enabled: Some(true),
                         tag: Some("DISC".to_owned()),
