@@ -11,7 +11,7 @@ use std::cmp::Ordering;
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
     #[deprecated(
-        since = "1.7.0",
+        since = "0.17.0",
         note = "Deprecated by Discord in favour for the new ``colors`` field."
     )]
     pub color: u32,
