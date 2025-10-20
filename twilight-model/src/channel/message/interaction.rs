@@ -78,9 +78,7 @@ mod tests {
                 name: "test".to_owned(),
                 premium_type: Some(PremiumType::Nitro),
                 primary_guild: Some(PrimaryGuild {
-                    identity_guild_id: Some(
-                        Id::new(169_256_939_211_980_800),
-                    ),
+                    identity_guild_id: Some(Id::new(169_256_939_211_980_800)),
                     identity_enabled: Some(true),
                     tag: Some("DISC".to_owned()),
                     badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned()),
