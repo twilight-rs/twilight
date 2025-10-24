@@ -191,6 +191,11 @@ impl RateLimitHeaders {
             reset_at: Instant::now() + Duration::from_secs(retry_after.into()),
         }
     }
+
+    /// Duration until the bucket resets.
+    pub(crate) fn reset_after(&self) -> Duration {
+        self.reset_at.saturating_duration_since(Instant::now())
+    }
 }
 
 /// Permit to send a Discord HTTP API request to the acquired endpoint.
