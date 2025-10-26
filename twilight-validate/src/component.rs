@@ -12,10 +12,11 @@ use twilight_model::channel::message::component::{
 };
 
 pub use component_v2::{
+    FILE_UPLOAD_MAXIMUM_VALUES_LIMIT, FILE_UPLOAD_MINIMUM_VALUES_LIMIT,
     LABEL_DESCRIPTION_LENGTH_MAX, LABEL_LABEL_LENGTH_MAX,
     MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN,
     SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX,
-    THUMBNAIL_DESCRIPTION_LENGTH_MAX, component_v2, container, label, media_gallery,
+    THUMBNAIL_DESCRIPTION_LENGTH_MAX, component_v2, container, file_upload, label, media_gallery,
     media_gallery_item, section, text_display, thumbnail,
 };
 
@@ -271,11 +272,11 @@ impl Display for ComponentValidationError {
                 Display::fmt(&SELECT_MAXIMUM_VALUES_LIMIT, f)
             }
             ComponentValidationErrorType::SelectMinimumValuesCount { count } => {
-                f.write_str("maximum number of values that must be chosen is ")?;
+                f.write_str("minimum number of values that must be chosen is ")?;
                 Display::fmt(count, f)?;
                 f.write_str(", but must be less than or equal to ")?;
 
-                Display::fmt(&SELECT_MAXIMUM_VALUES_LIMIT, f)
+                Display::fmt(&SELECT_MINIMUM_VALUES_LIMIT, f)
             }
             ComponentValidationErrorType::SelectNotEnoughDefaultValues { provided, min } => {
                 f.write_str("a select menu provided ")?;
@@ -436,6 +437,20 @@ impl Display for ComponentValidationError {
                 f.write_str(" characters long, but the max is ")?;
 
                 Display::fmt(&LABEL_DESCRIPTION_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::FileUploadMaximumValuesCount { count } => {
+                f.write_str("maximum number of files that can be uploaded is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but must be less than or equal to ")?;
+
+                Display::fmt(&FILE_UPLOAD_MAXIMUM_VALUES_LIMIT, f)
+            }
+            ComponentValidationErrorType::FileUploadMinimumValuesCount { count } => {
+                f.write_str("minimum number of files that must be uploaded is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but must be less than or equal to ")?;
+
+                Display::fmt(&FILE_UPLOAD_MINIMUM_VALUES_LIMIT, f)
             }
         }
     }
@@ -624,6 +639,22 @@ pub enum ComponentValidationErrorType {
         /// Length of the provided description.
         len: usize,
     },
+    /// Maximum number of files that can be uploaded is larger than
+    /// [the maximum][`FILE_UPLOAD_MAXIMUM_VALUES_LIMIT`].
+    FileUploadMaximumValuesCount {
+        /// Provided value for [`FileUpload::max_values`].
+        ///
+        /// [`FileUpload::max_values`]: twilight_model::channel::message::component::FileUpload::max_values
+        count: u8,
+    },
+    /// Minimum number of files that must be uploaded is larger than
+    /// [the maximum][`FILE_UPLOAD_MINIMUM_VALUES_LIMIT`].
+    FileUploadMinimumValuesCount {
+        /// Value provided for [`FileUpload::min_values`].
+        ///
+        /// [`FileUpload::min_values`]: twilight_model::channel::message::component::FileUpload::min_values
+        count: u8,
+    },
 }
 
 /// Ensure that a top-level request component is correct in V1.
@@ -740,7 +771,8 @@ pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentVa
             | Component::File(_)
             | Component::Section(_)
             | Component::Container(_)
-            | Component::Thumbnail(_) => {
+            | Component::Thumbnail(_)
+            | Component::FileUpload(_) => {
                 return Err(ComponentValidationError {
                     kind: if is_v2 {
                         ComponentValidationErrorType::DisallowedChildren

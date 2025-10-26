@@ -3,6 +3,7 @@
 //!
 //! [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
 mod action_row;
+mod file_upload;
 mod label;
 mod select_menu;
 mod text_display;
@@ -10,6 +11,7 @@ mod text_input;
 
 pub use self::{
     action_row::ModalInteractionActionRow,
+    file_upload::ModalInteractionFileUpload,
     label::ModalInteractionLabel,
     select_menu::{
         ModalInteractionChannelSelect, ModalInteractionMentionableSelect,
@@ -73,6 +75,8 @@ pub enum ModalInteractionComponent {
     TextInput(ModalInteractionTextInput),
     /// Markdown text.
     TextDisplay(ModalInteractionTextDisplay),
+    /// File upload component.
+    FileUpload(ModalInteractionFileUpload),
     /// Variant value is unknown to the library in the context of modals.
     Unknown(u8),
 }
@@ -90,6 +94,7 @@ impl ModalInteractionComponent {
             ModalInteractionComponent::ChannelSelect(_) => ComponentType::ChannelSelectMenu,
             ModalInteractionComponent::TextInput(_) => ComponentType::TextInput,
             ModalInteractionComponent::TextDisplay(_) => ComponentType::TextDisplay,
+            ModalInteractionComponent::FileUpload(_) => ComponentType::FileUpload,
             ModalInteractionComponent::Unknown(unknown) => ComponentType::from(*unknown),
         }
     }
@@ -146,6 +151,12 @@ impl From<ModalInteractionTextInput> for ModalInteractionComponent {
 impl From<ModalInteractionTextDisplay> for ModalInteractionComponent {
     fn from(text_display: ModalInteractionTextDisplay) -> Self {
         Self::TextDisplay(text_display)
+    }
+}
+
+impl From<ModalInteractionFileUpload> for ModalInteractionComponent {
+    fn from(file_upload: ModalInteractionFileUpload) -> Self {
+        Self::FileUpload(file_upload)
     }
 }
 
@@ -325,6 +336,21 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
                     component: Box::new(component),
                 })
             }
+            ComponentType::FileUpload => {
+                let custom_id = custom_id.ok_or_else(|| DeError::missing_field("custom_id"))?;
+                let values = values
+                    .ok_or_else(|| DeError::missing_field("values"))?
+                    .into_iter()
+                    .map(Value::deserialize_into)
+                    .collect::<Result<_, _>>()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::FileUpload(ModalInteractionFileUpload {
+                    id,
+                    custom_id,
+                    values,
+                })
+            }
             ComponentType::Button
             | ComponentType::Section
             | ComponentType::Thumbnail
@@ -360,7 +386,8 @@ impl Serialize for ModalInteractionComponent {
             // - type
             // - id
             // - components
-            ModalInteractionComponent::ActionRow(_) => 3, // Required fields:
+            ModalInteractionComponent::ActionRow(_) => 3,
+            // Required fields:
             // - type
             // - id
             // - custom_id
@@ -380,6 +407,12 @@ impl Serialize for ModalInteractionComponent {
             // - type
             // - id
             ModalInteractionComponent::TextDisplay(_) => 2,
+            // Required fields:
+            // - type
+            // - id
+            // - custom_id
+            // - values
+            ModalInteractionComponent::FileUpload(_) => 4,
             // We are dropping all fields but type here but nothing we can do about that for
             // the time being
             ModalInteractionComponent::Unknown(_) => 1,
@@ -419,6 +452,11 @@ impl Serialize for ModalInteractionComponent {
             }
             ModalInteractionComponent::TextDisplay(text_display) => {
                 state.serialize_field("id", &text_display.id)?;
+            }
+            ModalInteractionComponent::FileUpload(file_upload) => {
+                state.serialize_field("custom_id", &file_upload.custom_id)?;
+                state.serialize_field("id", &file_upload.id)?;
+                state.serialize_field("values", &file_upload.values)?;
             }
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing

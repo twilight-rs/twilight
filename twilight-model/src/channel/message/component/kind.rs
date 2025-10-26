@@ -73,6 +73,10 @@ pub enum ComponentType {
     ///
     /// [`Label`]: super::Label
     Label,
+    /// Component is a [`FileUpload`] that allows uploading files in modals.
+    ///
+    /// [`FileUpload`]: super::FileUpload
+    FileUpload,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -96,6 +100,7 @@ impl From<u8> for ComponentType {
             14 => ComponentType::Separator,
             17 => ComponentType::Container,
             18 => ComponentType::Label,
+            19 => ComponentType::FileUpload,
             unknown => ComponentType::Unknown(unknown),
         }
     }
@@ -120,6 +125,7 @@ impl From<ComponentType> for u8 {
             ComponentType::Separator => 14,
             ComponentType::Container => 17,
             ComponentType::Label => 18,
+            ComponentType::FileUpload => 19,
             ComponentType::Unknown(unknown) => unknown,
         }
     }
@@ -159,6 +165,7 @@ impl ComponentType {
             ComponentType::Separator => "Separator",
             ComponentType::Container => "Container",
             ComponentType::Label => "Label",
+            ComponentType::FileUpload => "FileUpload",
             ComponentType::Unknown(_) => "Unknown",
         }
     }

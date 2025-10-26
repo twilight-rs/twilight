@@ -1,13 +1,13 @@
 //! Validates components V2.
 
 use super::{
-    ComponentValidationError, ComponentValidationErrorType, action_row, button, select_menu,
-    text_input,
+    ComponentValidationError, ComponentValidationErrorType, action_row, button,
+    component_custom_id, select_menu, text_input,
 };
 use twilight_model::channel::message::Component;
 use twilight_model::channel::message::component::{
-    ComponentType, Container, Label, MediaGallery, MediaGalleryItem, Section, TextDisplay,
-    Thumbnail,
+    ComponentType, Container, FileUpload, Label, MediaGallery, MediaGalleryItem, Section,
+    TextDisplay, Thumbnail,
 };
 
 /// Maximum length of text display content.
@@ -36,6 +36,16 @@ pub const LABEL_LABEL_LENGTH_MAX: usize = 45;
 
 /// Maximum length of a label description.
 pub const LABEL_DESCRIPTION_LENGTH_MAX: usize = 100;
+
+/// Maximum value of [`FileUpload::max_values`].
+///
+/// [`FileUpload::max_values`]: FileUpload::max_values
+pub const FILE_UPLOAD_MAXIMUM_VALUES_LIMIT: u8 = 10;
+
+/// Maximum value of [`FileUpload::min_values`].
+///
+/// [`FileUpload::min_values`]: FileUpload::min_values
+pub const FILE_UPLOAD_MINIMUM_VALUES_LIMIT: u8 = 25;
 
 /// Ensure that a top-level request component is correct in V2.
 ///
@@ -73,7 +83,7 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::Section(s) => section(s)?,
         Component::SelectMenu(sm) => select_menu(sm)?,
         Component::TextDisplay(td) => text_display(td)?,
-        Component::TextInput(_) => {
+        Component::TextInput(_) | Component::FileUpload(_) => {
             return Err(ComponentValidationError {
                 kind: ComponentValidationErrorType::InvalidRootComponent {
                     kind: ComponentType::TextInput,
@@ -122,6 +132,7 @@ pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
         }),
         Component::SelectMenu(select_menu) => self::select_menu(select_menu),
         Component::TextInput(text_input) => self::text_input(text_input, false),
+        Component::FileUpload(file_upload) => self::file_upload(file_upload),
         Component::Unknown(unknown) => Err(ComponentValidationError {
             kind: ComponentValidationErrorType::InvalidChildComponent {
                 kind: ComponentType::Unknown(*unknown),
@@ -292,6 +303,36 @@ pub const fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationE
     Ok(())
 }
 
+/// Validates a file upload component.
+///
+/// # Errors
+///
+/// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
+/// ID is too long.
+///
+/// Returns an error of type [`FileUploadMaximumValuesCount`] if the provided number
+/// of files that can be uploaded is larger than the maximum.
+///
+/// Returns an error of type [`FileUploadMinimumValuesCount`] if the provided number
+/// of files that must be uploaded is larger than the maximum.
+///
+/// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
+/// [`FileUploadMaximumValuesCount`]: ComponentValidationErrorType::FileUploadMaximumValuesCount
+/// [`FileUploadMaximumValuesCount`]: ComponentValidationErrorType::FileUploadMaximumValuesCount
+pub fn file_upload(file_upload: &FileUpload) -> Result<(), ComponentValidationError> {
+    component_custom_id(&file_upload.custom_id)?;
+
+    if let Some(min_values) = file_upload.min_values {
+        component_file_upload_min_values(min_values)?;
+    }
+
+    if let Some(max_value) = file_upload.max_values {
+        component_file_upload_max_values(max_value)?;
+    }
+
+    Ok(())
+}
+
 /// Validates a media gallery item
 ///
 /// # Errors
@@ -353,6 +394,46 @@ fn label_description(value: impl AsRef<str>) -> Result<(), ComponentValidationEr
             kind: ComponentValidationErrorType::LabelDescriptionTooLong { len: chars },
         })
     }
+}
+
+/// Validate a [`FileUpload::max_values`] amount.
+///
+/// # Errors
+///
+/// Returns an error of type [`FileUploadMaximumValuesCount`] if the provided number
+/// of values that can be chosen is larger than
+/// [the maximum][`FILE_UPLOAD_MAXIMUM_VALUES_LIMIT`].
+///
+/// [`FileUpload::max_values`]: twilight_model::channel::message::component::FileUpload::max_values
+/// [`FileUploadMaximumValuesCount`]: ComponentValidationErrorType::FileUploadMaximumValuesCount
+const fn component_file_upload_max_values(count: u8) -> Result<(), ComponentValidationError> {
+    if count > FILE_UPLOAD_MAXIMUM_VALUES_LIMIT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::FileUploadMaximumValuesCount { count },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`FileUpload::min_values`] amount.
+///
+/// # Errors
+///
+/// Returns an error of type [`FileUploadMinimumValuesCount`] if the provided number
+/// of values that must be chosen is larger than
+/// [the maximum][`FILE_UPLOAD_MINIMUM_VALUES_LIMIT`].
+///
+/// [`FileUpload::min_values`]: twilight_model::channel::message::component::FileUpload::min_values
+/// [`FileUploadMinimumValuesCount`]: ComponentValidationErrorType::FileUploadMinimumValuesCount
+const fn component_file_upload_min_values(count: u8) -> Result<(), ComponentValidationError> {
+    if count > FILE_UPLOAD_MINIMUM_VALUES_LIMIT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::FileUploadMinimumValuesCount { count },
+        });
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

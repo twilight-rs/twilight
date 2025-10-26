@@ -9,6 +9,7 @@ mod action_row;
 mod button;
 mod container;
 mod file_display;
+mod file_upload;
 mod kind;
 mod label;
 mod media_gallery;
@@ -25,6 +26,7 @@ pub use self::{
     button::{Button, ButtonStyle},
     container::Container,
     file_display::FileDisplay,
+    file_upload::FileUpload,
     kind::ComponentType,
     label::Label,
     media_gallery::{MediaGallery, MediaGalleryItem},
@@ -164,6 +166,8 @@ pub enum Component {
     Thumbnail(Thumbnail),
     /// Wrapper for modal components providing a label and an optional description.
     Label(Label),
+    /// Allows uploading files in a modal.
+    FileUpload(FileUpload),
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -205,11 +209,12 @@ impl Component {
             Component::MediaGallery(_) => ComponentType::MediaGallery,
             Component::Separator(_) => ComponentType::Separator,
             Component::File(_) => ComponentType::File,
-            Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
             Component::Section(_) => ComponentType::Section,
             Component::Container(_) => ComponentType::Container,
             Component::Thumbnail(_) => ComponentType::Thumbnail,
             Component::Label(_) => ComponentType::Label,
+            Component::FileUpload(_) => ComponentType::FileUpload,
+            Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
         }
     }
 
@@ -227,6 +232,7 @@ impl Component {
             | Component::Separator(_)
             | Component::File(_)
             | Component::Thumbnail(_)
+            | Component::FileUpload(_)
             | Component::Unknown(_) => 1,
             Component::Label(_) => 2,
         }
@@ -302,6 +308,12 @@ impl From<Thumbnail> for Component {
 impl From<Label> for Component {
     fn from(label: Label) -> Self {
         Self::Label(label)
+    }
+}
+
+impl From<FileUpload> for Component {
+    fn from(file_upload: FileUpload) -> Self {
+        Self::FileUpload(file_upload)
     }
 }
 
@@ -822,6 +834,21 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     component: Box::new(component),
                 })
             }
+            ComponentType::FileUpload => {
+                let custom_id = custom_id
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("custom_id"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::FileUpload(FileUpload {
+                    id,
+                    custom_id,
+                    max_values: max_values.unwrap_or_default(),
+                    min_values: min_values.unwrap_or_default(),
+                    required: required.unwrap_or_default(),
+                })
+            }
         })
     }
 }
@@ -980,6 +1007,20 @@ impl Serialize for Component {
             // - description
             Component::Label(label) => {
                 3 + usize::from(label.description.is_some()) + usize::from(label.id.is_some())
+            }
+            // Required fields:
+            // - type
+            // - custom_id
+            // Optional fields:
+            // - id
+            // - min_values
+            // - max_values
+            // - required
+            Component::FileUpload(file_upload) => {
+                2 + usize::from(file_upload.min_values.is_some())
+                    + usize::from(file_upload.max_values.is_some())
+                    + usize::from(file_upload.required.is_some())
+                    + usize::from(file_upload.id.is_some())
             }
             // We are dropping fields here but nothing we can do about that for
             // the time being.
@@ -1225,6 +1266,22 @@ impl Serialize for Component {
                     state.serialize_field("description", &label.description)?;
                 }
                 state.serialize_field("component", &label.component)?;
+            }
+            Component::FileUpload(file_upload) => {
+                state.serialize_field("type", &ComponentType::FileUpload)?;
+                if file_upload.id.is_some() {
+                    state.serialize_field("id", &file_upload.id)?;
+                }
+                state.serialize_field("custom_id", &file_upload.custom_id)?;
+                if file_upload.min_values.is_some() {
+                    state.serialize_field("min_values", &file_upload.min_values)?;
+                }
+                if file_upload.max_values.is_some() {
+                    state.serialize_field("max_values", &file_upload.max_values)?;
+                }
+                if file_upload.required.is_some() {
+                    state.serialize_field("required", &file_upload.required)?;
+                }
             }
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing
