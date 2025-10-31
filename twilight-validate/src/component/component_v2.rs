@@ -445,6 +445,15 @@ mod tests {
         Button, ButtonStyle, Label, SelectMenu, SelectMenuType, TextInput, TextInputStyle,
     };
 
+    fn wrap_in_label(component: Component) -> Component {
+        Component::Label(Label {
+            id: None,
+            label: "label".to_owned(),
+            description: None,
+            component: Box::new(component),
+        })
+    }
+
     #[test]
     fn component_label() {
         let button = Component::Button(Button {
@@ -535,12 +544,55 @@ mod tests {
 
         let invalid_label_component = Label {
             id: None,
-            label: "Label".to_string(),
+            label: "Label".to_owned(),
             description: None,
             component: Box::new(text_input_with_label),
         };
 
         assert!(label(&invalid_label_component).is_err());
         assert!(component_v2(&Component::Label(invalid_label_component)).is_err());
+    }
+
+    #[test]
+    fn component_file_upload() {
+        let valid = FileUpload {
+            id: Some(42),
+            custom_id: "custom_id".to_owned(),
+            max_values: Some(10),
+            min_values: Some(10),
+            required: None,
+        };
+
+        assert!(file_upload(&valid).is_ok());
+        assert!(component_v2(&wrap_in_label(Component::FileUpload(valid.clone()))).is_ok());
+
+        let invalid_custom_id = FileUpload {
+            custom_id: iter::repeat_n('a', 101).collect(),
+            ..valid.clone()
+        };
+
+        assert!(file_upload(&invalid_custom_id).is_err());
+        assert!(component_v2(&wrap_in_label(Component::FileUpload(invalid_custom_id))).is_err());
+
+        let invalid_min_values = FileUpload {
+            min_values: Some(11),
+            ..valid.clone()
+        };
+
+        assert!(file_upload(&invalid_min_values).is_err());
+        assert!(component_v2(&wrap_in_label(Component::FileUpload(invalid_min_values))).is_err());
+
+        let invalid_max_values_too_high = FileUpload {
+            max_values: Some(11),
+            ..valid
+        };
+
+        assert!(file_upload(&invalid_max_values_too_high).is_err());
+        assert!(
+            component_v2(&wrap_in_label(Component::FileUpload(
+                invalid_max_values_too_high
+            )))
+            .is_err()
+        );
     }
 }

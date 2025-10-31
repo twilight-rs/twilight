@@ -1739,4 +1739,34 @@ mod tests {
             ],
         );
     }
+
+    #[test]
+    fn file_upload() {
+        let value = Component::FileUpload(FileUpload {
+            id: None,
+            custom_id: "test".to_owned(),
+            max_values: None,
+            min_values: None,
+            required: Some(true),
+        });
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Component",
+                    len: 3,
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::FileUpload.into()),
+                Token::String("custom_id"),
+                Token::Some,
+                Token::String("test"),
+                Token::String("required"),
+                Token::Some,
+                Token::Bool(true),
+                Token::StructEnd,
+            ],
+        )
+    }
 }

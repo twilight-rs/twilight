@@ -728,4 +728,55 @@ mod tests {
 
         serde_test::assert_tokens(&value, &all_tokens);
     }
+
+    #[test]
+    fn modal_file_upload() {
+        let value = ModalInteractionData {
+            custom_id: "test-modal".to_owned(),
+            components: vec![ModalInteractionComponent::FileUpload(
+                ModalInteractionFileUpload {
+                    id: 42,
+                    custom_id: "file-upload".to_owned(),
+                    values: vec![Id::new(1), Id::new(2)],
+                },
+            )],
+            // Having a None resolved data for the file upload response is not realistic,
+            // but (de)serialization of InteractionDataResolved is already tested sufficiently.
+            resolved: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ModalInteractionData",
+                    len: 2,
+                },
+                Token::String("components"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "ModalInteractionComponent",
+                    len: 4,
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::FileUpload.into()),
+                Token::String("custom_id"),
+                Token::String("file-upload"),
+                Token::String("id"),
+                Token::I32(42),
+                Token::String("values"),
+                Token::Seq { len: Some(2) },
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::SeqEnd,
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::String("custom_id"),
+                Token::String("test-modal"),
+                Token::StructEnd,
+            ],
+        )
+    }
 }
