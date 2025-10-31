@@ -4,6 +4,7 @@ mod action_row;
 mod button;
 mod container;
 mod file_display;
+mod file_upload;
 mod label;
 mod section;
 mod select_menu;
@@ -16,6 +17,7 @@ pub use self::{
     button::ButtonBuilder,
     container::ContainerBuilder,
     file_display::FileDisplayBuilder,
+    file_upload::FileUploadBuilder,
     label::LabelBuilder,
     section::SectionBuilder,
     select_menu::{SelectMenuBuilder, SelectMenuOptionBuilder},
