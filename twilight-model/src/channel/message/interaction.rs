@@ -81,7 +81,7 @@ mod tests {
                     identity_guild_id: Some(Id::new(169_256_939_211_980_800)),
                     identity_enabled: Some(true),
                     tag: Some("DISC".to_owned()),
-                    badge: Some("1269e74af4df7417b13759eae50c83dc".to_owned()),
+                    badge: Some("1269e74af4df7417b13759eae50c83dc".parse().unwrap()),
                 }),
                 public_flags: Some(
                     UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
