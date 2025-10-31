@@ -45,7 +45,7 @@ pub const FILE_UPLOAD_MAXIMUM_VALUES_LIMIT: u8 = 10;
 /// Maximum value of [`FileUpload::min_values`].
 ///
 /// [`FileUpload::min_values`]: FileUpload::min_values
-pub const FILE_UPLOAD_MINIMUM_VALUES_LIMIT: u8 = 25;
+pub const FILE_UPLOAD_MINIMUM_VALUES_LIMIT: u8 = 10;
 
 /// Ensure that a top-level request component is correct in V2.
 ///

@@ -1272,7 +1272,10 @@ impl Serialize for Component {
                 if file_upload.id.is_some() {
                     state.serialize_field("id", &file_upload.id)?;
                 }
-                state.serialize_field("custom_id", &file_upload.custom_id)?;
+
+                // Due to `custom_id` being required in some variants and
+                // optional in others, serialize as an Option.
+                state.serialize_field("custom_id", &Some(&file_upload.custom_id))?;
                 if file_upload.min_values.is_some() {
                     state.serialize_field("min_values", &file_upload.min_values)?;
                 }
