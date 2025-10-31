@@ -6,7 +6,7 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    num::NonZeroU64,
+    num::NonZero,
 };
 use twilight_model::id::{Id, marker::WebhookMarker};
 
@@ -139,7 +139,7 @@ pub fn parse(url: &str) -> Result<(Id<WebhookMarker>, Option<&str>), WebhookPars
     }
 
     let id = id_segment
-        .parse::<NonZeroU64>()
+        .parse::<NonZero<u64>>()
         .map_err(|source| WebhookParseError {
             kind: WebhookParseErrorType::IdInvalid,
             source: Some(Box::new(source)),

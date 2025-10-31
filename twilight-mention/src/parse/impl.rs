@@ -2,11 +2,10 @@ use crate::timestamp::{Timestamp, TimestampStyle};
 
 use super::{MentionIter, MentionType, ParseMentionError, ParseMentionErrorType};
 use crate::fmt::CommandMention;
-use std::{num::NonZeroU64, str::Chars};
-use twilight_model::id::marker::CommandMarker;
+use std::{num::NonZero, str::Chars};
 use twilight_model::id::{
     Id,
-    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
+    marker::{ChannelMarker, CommandMarker, EmojiMarker, RoleMarker, UserMarker},
 };
 
 /// Parse mentions out of buffers.
@@ -407,7 +406,7 @@ fn parse_maybe_style(value: Option<&str>) -> Result<Option<TimestampStyle>, Pars
 fn parse_mention<'a>(
     buf: &'a str,
     sigils: &'a [&'a str],
-) -> Result<(NonZeroU64, Option<&'a str>, &'a str), ParseMentionError<'a>> {
+) -> Result<(NonZero<u64>, Option<&'a str>, &'a str), ParseMentionError<'a>> {
     let mut chars = buf.chars();
 
     let c = chars.next();

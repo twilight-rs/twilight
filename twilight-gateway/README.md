@@ -28,17 +28,10 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
     certificate facilities via [`rustls-platform-verifier`]
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
-* Crypto providers (required with [`rustls`])
-  * `rustls-ring` (*default*): [`ring`] as the crypto provider, recommended for
-    compatibility
-  * `rustls-aws_lc_rs`: [`aws-lc-rs`] as the crypto provider, recommended for
-    performance and widely used platforms
-  * none of the above: install your own via [`CryptoProvider::install_default`]
 * `twilight-http` (*default*): enable the `stream::create_recommended` function
-* Compression (mutually exclusive)
-  * `zlib-stock`: [`flate2`]'s stock zlib implementation (*deprecated*)
-  * `zlib-simd`: use [`zlib-ng`] for zlib, may have better performance (*deprecated*)
-  * `zstd` (*default*): enable zstd transport compression
+* Transport compression (mutually exclusive)
+  * `zlib`: Zlib transport compression using [`zlib-rs`][^1]
+  * `zstd` (*default*): Zstandard transport compression using [`zstd-sys`]
 
 ## Example
 
@@ -114,17 +107,17 @@ async fn runner(mut shard: Shard) {
 There are a few additional examples located in the
 [repository][github examples link].
 
-[`CryptoProvider::install_default`]: https://docs.rs/rustls/latest/rustls/crypto/struct.CryptoProvider.html#method.install_default
-[`aws-lc-rs`]: https://crates.io/crates/aws-lc-rs
-[`flate2`]: https://crates.io/crates/flate2
+[^1]: Except for the s390x arch, where [`zlib-ng-sys`] is used instead.
+
 [`native-tls`]: https://crates.io/crates/native-tls
-[`ring`]: https://crates.io/crates/ring
 [`rustls`]: https://crates.io/crates/rustls
 [`rustls-platform-verifier`]: https://crates.io/crates/rustls-platform-verifier
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
-[`zlib-ng`]: https://github.com/zlib-ng/zlib-ng
+[`zlib-ng-sys`]: https://crates.io/crates/libz-ng-sys
+[`zlib-rs`]: https://crates.io/crates/zlib-rs
+[`zstd-sys`]: https://crates.io/crates/zstd-sys
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
