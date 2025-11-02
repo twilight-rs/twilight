@@ -1,7 +1,7 @@
 use crate::id::Id;
 use crate::id::marker::GuildMarker;
-use serde::{Deserialize, Serialize};
 use crate::util::ImageHash;
+use serde::{Deserialize, Serialize};
 
 /// The Primary Guild data (also known as guild tag(s)) provided with the [`User`] object.
 ///
