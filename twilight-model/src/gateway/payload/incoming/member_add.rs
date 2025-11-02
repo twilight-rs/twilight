@@ -72,8 +72,9 @@ mod tests {
                     email: None,
                     flags: None,
                     premium_type: None,
-                    system: None,
+                    primary_guild: None,
                     public_flags: None,
+                    system: None,
                 },
             },
         };

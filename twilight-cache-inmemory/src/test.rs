@@ -1,4 +1,5 @@
 use crate::DefaultInMemoryCache;
+use twilight_model::guild::RoleColors;
 use twilight_model::{
     channel::{
         Channel, ChannelType,
@@ -61,6 +62,7 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
             mfa_enabled: None,
             name: "test".to_owned(),
             premium_type: None,
+            primary_guild: None,
             public_flags: None,
             system: None,
             verified: None,
@@ -145,6 +147,7 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
                 mfa_enabled: None,
                 name: "test".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,
@@ -187,6 +190,7 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
             mfa_enabled: None,
             name: "test".to_owned(),
             premium_type: None,
+            primary_guild: None,
             public_flags: None,
             system: None,
             verified: None,
@@ -311,7 +315,13 @@ pub fn member(id: Id<UserMarker>) -> Member {
 
 pub fn role(id: Id<RoleMarker>) -> Role {
     Role {
+        #[allow(deprecated)]
         color: 0,
+        colors: RoleColors {
+            primary_color: 0,
+            secondary_color: None,
+            tertiary_color: None,
+        },
         hoist: false,
         icon: None,
         id,
@@ -384,6 +394,7 @@ pub fn user(id: Id<UserMarker>) -> User {
         mfa_enabled: None,
         name: "user".to_owned(),
         premium_type: None,
+        primary_guild: None,
         public_flags: None,
         system: None,
         verified: None,

@@ -60,6 +60,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for InteractionCreat
 mod tests {
     use crate::DefaultInMemoryCache;
     use std::collections::HashMap;
+    use twilight_model::guild::RoleColors;
     use twilight_model::{
         application::{
             command::CommandType,
@@ -186,6 +187,7 @@ mod tests {
                                 mfa_enabled: None,
                                 name: "test".to_owned(),
                                 premium_type: None,
+                                primary_guild: None,
                                 public_flags: None,
                                 system: None,
                                 verified: None,
@@ -241,6 +243,11 @@ mod tests {
                         Id::new(8),
                         Role {
                             color: 0u32,
+                            colors: RoleColors {
+                                primary_color: 0,
+                                secondary_color: None,
+                                tertiary_color: None,
+                            },
                             hoist: false,
                             icon: None,
                             id: Id::new(8),
@@ -272,6 +279,7 @@ mod tests {
                             mfa_enabled: None,
                             name: "different name".into(),
                             premium_type: None,
+                            primary_guild: None,
                             public_flags: None,
                             system: None,
                             verified: None,
@@ -314,6 +322,7 @@ mod tests {
                     mfa_enabled: None,
                     name: "username".into(),
                     premium_type: None,
+                    primary_guild: None,
                     public_flags: None,
                     system: None,
                     verified: None,

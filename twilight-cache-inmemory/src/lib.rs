@@ -1000,7 +1000,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             Event::ReactionRemove(v) => cache.update(v.deref()),
             Event::ReactionRemoveAll(v) => cache.update(v),
             Event::ReactionRemoveEmoji(v) => cache.update(v),
-            Event::Ready(v) => cache.update(v.deref()),
+            Event::Ready(v) => cache.update(v),
             Event::RoleCreate(v) => cache.update(v),
             Event::RoleDelete(v) => cache.update(v),
             Event::RoleUpdate(v) => cache.update(v),
@@ -1051,6 +1051,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
 #[cfg(test)]
 mod tests {
     use crate::{DefaultInMemoryCache, test};
+    use twilight_model::guild::RoleColors;
     use twilight_model::{
         gateway::payload::incoming::RoleDelete,
         guild::{Member, MemberFlags, Permissions, Role, RoleFlags},
@@ -1105,7 +1106,13 @@ mod tests {
             guild_id,
             vec![
                 Role {
+                    #[allow(deprecated)]
                     color: 0,
+                    colors: RoleColors {
+                        primary_color: 0,
+                        secondary_color: None,
+                        tertiary_color: None,
+                    },
                     hoist: false,
                     icon: None,
                     id: Id::new(1),
@@ -1119,7 +1126,13 @@ mod tests {
                     unicode_emoji: None,
                 },
                 Role {
+                    #[allow(deprecated)]
                     color: 0,
+                    colors: RoleColors {
+                        primary_color: 0,
+                        secondary_color: None,
+                        tertiary_color: None,
+                    },
                     hoist: false,
                     icon: None,
                     id: Id::new(2),

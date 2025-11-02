@@ -28,6 +28,7 @@ pub struct MessageInteraction {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::user::PrimaryGuild;
     use crate::{
         guild::MemberFlags,
         test::image_hash,
@@ -76,6 +77,12 @@ mod tests {
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
                 premium_type: Some(PremiumType::Nitro),
+                primary_guild: Some(PrimaryGuild {
+                    identity_guild_id: Some(Id::new(169_256_939_211_980_800)),
+                    identity_enabled: Some(true),
+                    tag: Some("DISC".to_owned()),
+                    badge: Some("1269e74af4df7417b13759eae50c83dc".parse().unwrap()),
+                }),
                 public_flags: Some(
                     UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
                 ),
@@ -129,7 +136,7 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 17,
+                    len: 18,
                 },
                 Token::Str("accent_color"),
                 Token::None,
@@ -170,6 +177,26 @@ mod tests {
                 Token::Str("premium_type"),
                 Token::Some,
                 Token::U8(2),
+                Token::Str("primary_guild"),
+                Token::Some,
+                Token::Struct {
+                    name: "PrimaryGuild",
+                    len: 4,
+                },
+                Token::Str("identity_guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("169256939211980800"),
+                Token::Str("identity_enabled"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("tag"),
+                Token::Some,
+                Token::Str("DISC"),
+                Token::Str("badge"),
+                Token::Some,
+                Token::Str("1269e74af4df7417b13759eae50c83dc"),
+                Token::StructEnd,
                 Token::Str("public_flags"),
                 Token::Some,
                 Token::U64(131_584),
