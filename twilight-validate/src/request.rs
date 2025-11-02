@@ -56,7 +56,6 @@ pub const AUTO_MODERATION_EXEMPT_CHANNELS_MAX: usize = 50;
 /// Maximum length of a bio.
 pub const BIO_LIMIT_MAX: usize = 400;
 
-
 /// Minimum length of a bio.
 pub const BIO_LIMIT_MIN: usize = 1;
 
