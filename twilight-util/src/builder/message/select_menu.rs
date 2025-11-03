@@ -75,6 +75,7 @@ impl SelectMenuBuilder {
             channel_types: None,
             default_values: None,
             kind,
+            required: None,
         })
     }
 
@@ -139,6 +140,15 @@ impl SelectMenuBuilder {
         self
     }
 
+    /// Set whether this select menu is required in a modal.
+    ///
+    /// Ignored in messages.
+    pub const fn required(mut self, required: bool) -> Self {
+        self.0.required.replace(required);
+
+        self
+    }
+
     /// Build into a select menu,
     pub fn build(self) -> SelectMenu {
         self.0
@@ -181,6 +191,7 @@ mod tests {
             channel_types: None,
             default_values: None,
             kind: SelectMenuType::Text,
+            required: None,
         };
 
         let actual = SelectMenuBuilder::new("foo", SelectMenuType::Text)

@@ -474,7 +474,7 @@ pub enum InteractionData {
     /// Data received for the [`ModalSubmit`] interaction type.
     ///
     /// [`ModalSubmit`]: InteractionType::ModalSubmit
-    ModalSubmit(ModalInteractionData),
+    ModalSubmit(Box<ModalInteractionData>),
 }
 
 /// Partial guild containing only the fields sent in the partial guild

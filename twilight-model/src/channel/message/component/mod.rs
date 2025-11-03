@@ -9,7 +9,9 @@ mod action_row;
 mod button;
 mod container;
 mod file_display;
+mod file_upload;
 mod kind;
+mod label;
 mod media_gallery;
 mod section;
 mod select_menu;
@@ -24,7 +26,9 @@ pub use self::{
     button::{Button, ButtonStyle},
     container::Container,
     file_display::FileDisplay,
+    file_upload::FileUpload,
     kind::ComponentType,
+    label::Label,
     media_gallery::{MediaGallery, MediaGalleryItem},
     section::Section,
     select_menu::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
@@ -132,6 +136,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///             },
 ///         ])),
 ///         placeholder: Some("Choose a class".to_owned()),
+///         required: None,
 ///     })],
 /// });
 /// ```
@@ -159,6 +164,10 @@ pub enum Component {
     Container(Container),
     /// Small image that can be used as an accessory.
     Thumbnail(Thumbnail),
+    /// Wrapper for modal components providing a label and an optional description.
+    Label(Label),
+    /// Allows uploading files in a modal.
+    FileUpload(FileUpload),
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -200,10 +209,12 @@ impl Component {
             Component::MediaGallery(_) => ComponentType::MediaGallery,
             Component::Separator(_) => ComponentType::Separator,
             Component::File(_) => ComponentType::File,
-            Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
             Component::Section(_) => ComponentType::Section,
             Component::Container(_) => ComponentType::Container,
             Component::Thumbnail(_) => ComponentType::Thumbnail,
+            Component::Label(_) => ComponentType::Label,
+            Component::FileUpload(_) => ComponentType::FileUpload,
+            Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
         }
     }
 
@@ -221,7 +232,9 @@ impl Component {
             | Component::Separator(_)
             | Component::File(_)
             | Component::Thumbnail(_)
+            | Component::FileUpload(_)
             | Component::Unknown(_) => 1,
+            Component::Label(_) => 2,
         }
     }
 }
@@ -292,6 +305,18 @@ impl From<Thumbnail> for Component {
     }
 }
 
+impl From<Label> for Component {
+    fn from(label: Label) -> Self {
+        Self::Label(label)
+    }
+}
+
+impl From<FileUpload> for Component {
+    fn from(file_upload: FileUpload) -> Self {
+        Self::FileUpload(file_upload)
+    }
+}
+
 impl<'de> Deserialize<'de> for Component {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_any(ComponentVisitor)
@@ -331,6 +356,7 @@ enum Field {
     Media,
     Description,
     AccentColor,
+    Component,
 }
 
 struct ComponentVisitor;
@@ -380,6 +406,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut media: Option<UnfurledMediaItem> = None;
         let mut description: Option<Option<String>> = None;
         let mut accent_color: Option<Option<u32>> = None;
+        let mut component: Option<Component> = None;
 
         loop {
             let key = match map.next_key() {
@@ -603,6 +630,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
                     accent_color = Some(map.next_value()?);
                 }
+                Field::Component => {
+                    if component.is_some() {
+                        return Err(DeError::duplicate_field("component"));
+                    }
+
+                    component = Some(map.next_value()?);
+                }
             }
         }
 
@@ -660,6 +694,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             // - min_values
             // - placeholder
             // - channel_types (if this is a channel select menu)
+            // - required
             kind @ (ComponentType::TextSelectMenu
             | ComponentType::UserSelectMenu
             | ComponentType::RoleSelectMenu
@@ -700,14 +735,15 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     options,
                     placeholder: placeholder.unwrap_or_default(),
                     id,
+                    required: required.unwrap_or_default(),
                 })
             }
             // Required fields:
             // - custom_id
-            // - label
             // - style
             //
             // Optional fields:
+            // - label
             // - max_length
             // - min_length
             // - placeholder
@@ -720,18 +756,15 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
 
-                let label = label
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("label"))?;
-
                 let style = style
                     .ok_or_else(|| DeError::missing_field("style"))?
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
 
+                #[allow(deprecated)]
                 Self::Value::TextInput(TextInput {
                     custom_id,
-                    label,
+                    label: label.unwrap_or_default(),
                     max_length: max_length.unwrap_or_default(),
                     min_length: min_length.unwrap_or_default(),
                     placeholder: placeholder.unwrap_or_default(),
@@ -789,6 +822,33 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     components,
                 })
             }
+            ComponentType::Label => {
+                let label = label
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("label"))?;
+                let component = component.ok_or_else(|| DeError::missing_field("component"))?;
+                Self::Value::Label(Label {
+                    id,
+                    label,
+                    description: description.unwrap_or_default(),
+                    component: Box::new(component),
+                })
+            }
+            ComponentType::FileUpload => {
+                let custom_id = custom_id
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("custom_id"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::FileUpload(FileUpload {
+                    id,
+                    custom_id,
+                    max_values: max_values.unwrap_or_default(),
+                    min_values: min_values.unwrap_or_default(),
+                    required: required.unwrap_or_default(),
+                })
+            }
         })
     }
 }
@@ -838,6 +898,7 @@ impl Serialize for Component {
             // - max_values
             // - min_values
             // - placeholder
+            // - required
             Component::SelectMenu(select_menu) => {
                 // We ignore text menus that don't include the `options` field, as those are
                 // detected later in the serialization process
@@ -849,22 +910,25 @@ impl Serialize for Component {
                     + usize::from(select_menu.options.is_some())
                     + usize::from(select_menu.placeholder.is_some())
                     + usize::from(select_menu.id.is_some())
+                    + usize::from(select_menu.required.is_some())
             }
             // Required fields:
             // - custom_id
-            // - label
             // - style
             // - type
             //
             // Optional fields:
             // - id
+            // - label
             // - max_length
             // - min_length
             // - placeholder
             // - required
             // - value
+            #[allow(deprecated)]
             Component::TextInput(text_input) => {
-                4 + usize::from(text_input.max_length.is_some())
+                3 + usize::from(text_input.label.is_some())
+                    + usize::from(text_input.max_length.is_some())
                     + usize::from(text_input.min_length.is_some())
                     + usize::from(text_input.placeholder.is_some())
                     + usize::from(text_input.required.is_some())
@@ -931,8 +995,32 @@ impl Serialize for Component {
             // - spoiler
             Component::Thumbnail(thumbnail) => {
                 2 + usize::from(thumbnail.spoiler.is_some())
-                    + usize::from(thumbnail.id.is_some())
                     + usize::from(thumbnail.description.is_some())
+                    + usize::from(thumbnail.id.is_some())
+            }
+            // Required fields:
+            // - type
+            // - label
+            // - component
+            // Optional fields:
+            // - id
+            // - description
+            Component::Label(label) => {
+                3 + usize::from(label.description.is_some()) + usize::from(label.id.is_some())
+            }
+            // Required fields:
+            // - type
+            // - custom_id
+            // Optional fields:
+            // - id
+            // - min_values
+            // - max_values
+            // - required
+            Component::FileUpload(file_upload) => {
+                2 + usize::from(file_upload.min_values.is_some())
+                    + usize::from(file_upload.max_values.is_some())
+                    + usize::from(file_upload.required.is_some())
+                    + usize::from(file_upload.id.is_some())
             }
             // We are dropping fields here but nothing we can do about that for
             // the time being.
@@ -1048,6 +1136,10 @@ impl Serialize for Component {
                 if select_menu.placeholder.is_some() {
                     state.serialize_field("placeholder", &select_menu.placeholder)?;
                 }
+
+                if select_menu.required.is_some() {
+                    state.serialize_field("required", &select_menu.required)?;
+                }
             }
             Component::TextInput(text_input) => {
                 state.serialize_field("type", &ComponentType::TextInput)?;
@@ -1055,10 +1147,14 @@ impl Serialize for Component {
                     state.serialize_field("id", &id)?;
                 }
 
-                // Due to `custom_id` and `label` being required in some
+                // Due to `custom_id` being required in some
                 // variants and optional in others, serialize as an Option.
                 state.serialize_field("custom_id", &Some(&text_input.custom_id))?;
-                state.serialize_field("label", &Some(&text_input.label))?;
+
+                #[allow(deprecated)]
+                if text_input.label.is_some() {
+                    state.serialize_field("label", &text_input.label)?;
+                }
 
                 if text_input.max_length.is_some() {
                     state.serialize_field("max_length", &text_input.max_length)?;
@@ -1158,6 +1254,38 @@ impl Serialize for Component {
                     state.serialize_field("spoiler", &spoiler)?;
                 }
             }
+            Component::Label(label) => {
+                state.serialize_field("type", &ComponentType::Label)?;
+                if label.id.is_some() {
+                    state.serialize_field("id", &label.id)?;
+                }
+                // Due to `label` being required in some
+                // variants and optional in others, serialize as an Option.
+                state.serialize_field("label", &Some(&label.label))?;
+                if label.description.is_some() {
+                    state.serialize_field("description", &label.description)?;
+                }
+                state.serialize_field("component", &label.component)?;
+            }
+            Component::FileUpload(file_upload) => {
+                state.serialize_field("type", &ComponentType::FileUpload)?;
+                if file_upload.id.is_some() {
+                    state.serialize_field("id", &file_upload.id)?;
+                }
+
+                // Due to `custom_id` being required in some variants and
+                // optional in others, serialize as an Option.
+                state.serialize_field("custom_id", &Some(&file_upload.custom_id))?;
+                if file_upload.min_values.is_some() {
+                    state.serialize_field("min_values", &file_upload.min_values)?;
+                }
+                if file_upload.max_values.is_some() {
+                    state.serialize_field("max_values", &file_upload.max_values)?;
+                }
+                if file_upload.required.is_some() {
+                    state.serialize_field("required", &file_upload.required)?;
+                }
+            }
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing
             // incoming messages at this time.
@@ -1219,6 +1347,7 @@ mod tests {
                     }])),
                     placeholder: Some("test placeholder".into()),
                     id: None,
+                    required: Some(true),
                 }),
             ]),
             id: None,
@@ -1254,7 +1383,7 @@ mod tests {
                 Token::StructEnd,
                 Token::Struct {
                     name: "Component",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("type"),
                 Token::U8(ComponentType::TextSelectMenu.into()),
@@ -1289,6 +1418,9 @@ mod tests {
                 Token::Str("placeholder"),
                 Token::Some,
                 Token::Str("test placeholder"),
+                Token::Str("required"),
+                Token::Some,
+                Token::Bool(true),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::StructEnd,
@@ -1414,6 +1546,7 @@ mod tests {
                 options: None,
                 placeholder: None,
                 id: None,
+                required: None,
             });
             let mut tokens = vec![
                 Token::Struct {
@@ -1474,9 +1607,10 @@ mod tests {
 
     #[test]
     fn text_input() {
+        #[allow(deprecated)]
         let value = Component::TextInput(TextInput {
             custom_id: "test".to_owned(),
-            label: "The label".to_owned(),
+            label: Some("The label".to_owned()),
             max_length: Some(100),
             min_length: Some(1),
             placeholder: Some("Taking this place".to_owned()),
@@ -1554,5 +1688,88 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn label() {
+        #[allow(deprecated)]
+        let value = Component::Label(Label {
+            id: None,
+            label: "The label".to_owned(),
+            description: Some("The description".to_owned()),
+            component: Box::new(Component::TextInput(TextInput {
+                id: None,
+                custom_id: "The custom id".to_owned(),
+                label: None,
+                max_length: None,
+                min_length: None,
+                placeholder: None,
+                required: None,
+                style: TextInputStyle::Paragraph,
+                value: None,
+            })),
+        });
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Component",
+                    len: 4,
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::Label.into()),
+                Token::String("label"),
+                Token::Some,
+                Token::String("The label"),
+                Token::String("description"),
+                Token::Some,
+                Token::String("The description"),
+                Token::String("component"),
+                Token::Struct {
+                    name: "Component",
+                    len: 3,
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::TextInput.into()),
+                Token::String("custom_id"),
+                Token::Some,
+                Token::String("The custom id"),
+                Token::String("style"),
+                Token::U8(TextInputStyle::Paragraph as u8),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn file_upload() {
+        let value = Component::FileUpload(FileUpload {
+            id: None,
+            custom_id: "test".to_owned(),
+            max_values: None,
+            min_values: None,
+            required: Some(true),
+        });
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Component",
+                    len: 3,
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::FileUpload.into()),
+                Token::String("custom_id"),
+                Token::Some,
+                Token::String("test"),
+                Token::String("required"),
+                Token::Some,
+                Token::Bool(true),
+                Token::StructEnd,
+            ],
+        )
     }
 }

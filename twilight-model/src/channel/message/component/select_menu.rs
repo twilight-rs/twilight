@@ -34,6 +34,10 @@ pub struct SelectMenu {
     pub options: Option<Vec<SelectMenuOption>>,
     /// Custom placeholder text if no option is selected.
     pub placeholder: Option<String>,
+    /// Whether a selection is required in a modal.
+    ///
+    /// Ignored in messages.
+    pub required: Option<bool>,
 }
 
 /// A [`SelectMenu`]'s type.
@@ -101,7 +105,8 @@ mod tests {
         max_values,
         min_values,
         options,
-        placeholder
+        placeholder,
+        required
     );
     assert_impl_all!(SelectMenu: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
 
