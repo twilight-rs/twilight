@@ -1430,7 +1430,11 @@ impl Route<'_> {
 /// ```
 /// use twilight_http::routing::Route;
 ///
-/// let route = Route::GetPins { channel_id: 123, limit: None, before: None };
+/// let route = Route::GetPins {
+///     channel_id: 123,
+///     limit: None,
+///     before: None,
+/// };
 /// assert_eq!("channels/123/messages/pins", route.to_string());
 /// ```
 ///
