@@ -81,7 +81,7 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::Container(c) => container(c)?,
         Component::MediaGallery(mg) => media_gallery(mg)?,
         Component::Section(s) => section(s)?,
-        Component::SelectMenu(sm) => select_menu(sm)?,
+        Component::SelectMenu(sm) => select_menu(sm, true)?,
         Component::TextDisplay(td) => text_display(td)?,
         Component::TextInput(_) | Component::FileUpload(_) => {
             return Err(ComponentValidationError {
@@ -130,7 +130,7 @@ pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
                 kind: label.component.kind(),
             },
         }),
-        Component::SelectMenu(select_menu) => self::select_menu(select_menu),
+        Component::SelectMenu(select_menu) => self::select_menu(select_menu, false),
         Component::TextInput(text_input) => self::text_input(text_input, false),
         Component::FileUpload(file_upload) => self::file_upload(file_upload),
         Component::Unknown(unknown) => Err(ComponentValidationError {
@@ -472,7 +472,7 @@ mod tests {
             content: "Text display".to_owned(),
         });
 
-        let select_menu = Component::SelectMenu(SelectMenu {
+        let valid_select_menu = SelectMenu {
             channel_types: None,
             custom_id: "my_select".to_owned(),
             default_values: None,
@@ -484,25 +484,35 @@ mod tests {
             placeholder: None,
             id: None,
             required: None,
-        });
+        };
+
+        let disabled_select_menu = SelectMenu {
+            disabled: true,
+            ..valid_select_menu.clone()
+        };
 
         let valid_label = Label {
             id: None,
             label: "Label".to_owned(),
             description: Some("This is a description".to_owned()),
-            component: Box::new(select_menu),
+            component: Box::new(Component::SelectMenu(valid_select_menu)),
         };
 
-        let label_invalid_child = Label {
+        let label_invalid_child_button = Label {
             component: Box::new(button),
             ..valid_label.clone()
         };
 
-        let label_invalid_child_2 = Label {
+        let label_invalid_child_text_display = Label {
             id: None,
             label: "Another label".to_owned(),
             description: None,
             component: Box::new(text_display),
+        };
+
+        let label_invalid_child_disabled_select = Label {
+            component: Box::new(Component::SelectMenu(disabled_select_menu)),
+            ..valid_label.clone()
         };
 
         let label_too_long_description = Label {
@@ -517,10 +527,12 @@ mod tests {
 
         assert!(label(&valid_label).is_ok());
         assert!(component_v2(&Component::Label(valid_label)).is_ok());
-        assert!(label(&label_invalid_child).is_err());
-        assert!(component_v2(&Component::Label(label_invalid_child)).is_err());
-        assert!(label(&label_invalid_child_2).is_err());
-        assert!(component_v2(&Component::Label(label_invalid_child_2)).is_err());
+        assert!(label(&label_invalid_child_button).is_err());
+        assert!(component_v2(&Component::Label(label_invalid_child_button)).is_err());
+        assert!(label(&label_invalid_child_text_display).is_err());
+        assert!(component_v2(&Component::Label(label_invalid_child_text_display)).is_err());
+        assert!(label(&label_invalid_child_disabled_select).is_err());
+        assert!(component_v2(&Component::Label(label_invalid_child_disabled_select)).is_err());
         assert!(label(&label_too_long_description).is_err());
         assert!(component_v2(&Component::Label(label_too_long_description)).is_err());
         assert!(label(&label_too_long_label).is_err());
