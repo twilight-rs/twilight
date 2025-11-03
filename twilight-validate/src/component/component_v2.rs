@@ -401,7 +401,7 @@ fn label_description(value: impl AsRef<str>) -> Result<(), ComponentValidationEr
 /// # Errors
 ///
 /// Returns an error of type [`FileUploadMaximumValuesCount`] if the provided number
-/// of values that can be chosen is larger than
+/// of files that can be uploaded is larger than
 /// [the maximum][`FILE_UPLOAD_MAXIMUM_VALUES_LIMIT`].
 ///
 /// [`FileUpload::max_values`]: twilight_model::channel::message::component::FileUpload::max_values
@@ -421,7 +421,7 @@ const fn component_file_upload_max_values(count: u8) -> Result<(), ComponentVali
 /// # Errors
 ///
 /// Returns an error of type [`FileUploadMinimumValuesCount`] if the provided number
-/// of values that must be chosen is larger than
+/// of files that must be uploaded is larger than
 /// [the maximum][`FILE_UPLOAD_MINIMUM_VALUES_LIMIT`].
 ///
 /// [`FileUpload::min_values`]: twilight_model::channel::message::component::FileUpload::min_values

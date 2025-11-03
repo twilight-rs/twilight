@@ -6,13 +6,17 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct FileUpload {
     /// Optional identifier for the component.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i32>,
     /// Developer defined identifier.
     pub custom_id: String,
     /// Maximum number of items that can be uploaded.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_values: Option<u8>,
     /// Minimum number of items that can be uploaded.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min_values: Option<u8>,
     /// Whether files have to be uploaded.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<bool>,
 }

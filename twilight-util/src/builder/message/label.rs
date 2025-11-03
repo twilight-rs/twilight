@@ -7,7 +7,7 @@ use twilight_model::channel::message::component::Label;
 pub struct LabelBuilder(Label);
 
 impl LabelBuilder {
-    /// Create a new container builder.
+    /// Create a new label builder.
     pub fn new(label: impl Into<String>, component: Component) -> Self {
         Self(Label {
             id: None,

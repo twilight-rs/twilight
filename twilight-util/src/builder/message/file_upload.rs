@@ -24,21 +24,21 @@ impl FileUploadBuilder {
         self
     }
 
-    /// Set the max values of this file upload.
+    /// Set the maximum amount of files to upload.
     pub const fn max_values(mut self, max_values: u8) -> Self {
         self.0.max_values.replace(max_values);
 
         self
     }
 
-    /// Set the min values of this file upload.
+    /// Set the minimum amount of files to upload.
     pub const fn min_values(mut self, min_values: u8) -> Self {
         self.0.min_values.replace(min_values);
 
         self
     }
 
-    /// Set whether this file upload is required.
+    /// Set whether uploading a file is required.
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required.replace(required);
 
