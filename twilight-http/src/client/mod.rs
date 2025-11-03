@@ -53,12 +53,12 @@ use crate::{
             },
         },
         guild::{
-            CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
-            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
-            GetGuildPreview, GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions,
-            GetGuildWebhooks, GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings,
-            UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
-            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
+            CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads, GetAuditLog,
+            GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding, GetGuildPreview,
+            GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
+            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
+            UpdateGuildWidgetSettings,
             auto_moderation::{
                 CreateAutoModerationRule, DeleteAutoModerationRule, GetAutoModerationRule,
                 GetGuildAutoModerationRules, UpdateAutoModerationRule,
@@ -932,21 +932,6 @@ impl Client {
     /// Get information about a guild.
     pub const fn guild(&self, guild_id: Id<GuildMarker>) -> GetGuild<'_> {
         GetGuild::new(self, guild_id)
-    }
-
-    /// Create a new request to create a guild.
-    ///
-    /// The minimum length of the name is 2 UTF-16 characters and the maximum is 100 UTF-16
-    /// characters. This endpoint can only be used by bots in less than 10 guilds.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`CreateGuildErrorType::NameInvalid`] error type if the name
-    /// length is too short or too long.
-    ///
-    /// [`CreateGuildErrorType::NameInvalid`]: crate::request::guild::create_guild::CreateGuildErrorType::NameInvalid
-    pub fn create_guild(&self, name: String) -> CreateGuild<'_> {
-        CreateGuild::new(self, name)
     }
 
     /// Delete a guild permanently. The user must be the owner.

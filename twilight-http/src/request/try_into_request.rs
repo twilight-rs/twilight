@@ -58,12 +58,12 @@ mod private {
             },
         },
         guild::{
-            CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
-            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
-            GetGuildPreview, GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions,
-            GetGuildWebhooks, GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings,
-            UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
-            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
+            CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads, GetAuditLog,
+            GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding, GetGuildPreview,
+            GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
+            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
+            UpdateGuildWidgetSettings,
             auto_moderation::{
                 CreateAutoModerationRule, DeleteAutoModerationRule, GetAutoModerationRule,
                 GetGuildAutoModerationRules, UpdateAutoModerationRule,
@@ -122,7 +122,6 @@ mod private {
     impl Sealed for CreateGlobalCommand<'_> {}
     impl Sealed for CreateGlobalMessageCommand<'_> {}
     impl Sealed for CreateGlobalUserCommand<'_> {}
-    impl Sealed for CreateGuild<'_> {}
     impl Sealed for CreateGuildChannel<'_> {}
     impl Sealed for CreateGuildChatInputCommand<'_> {}
     impl Sealed for CreateGuildCommand<'_> {}
