@@ -105,7 +105,7 @@ impl<'a> UpdateCurrentMember<'a> {
     ///
     /// Set to [`None`] to clear the bio.
     ///
-    /// The minimum length is 1 UTF-16 character and the maximum is 400 UTF-16 characters.
+    /// The minimum length is 1 codepoint character and the maximum is 400 codepoint characters.
     ///
     /// # Errors
     ///
