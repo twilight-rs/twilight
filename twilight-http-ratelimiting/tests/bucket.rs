@@ -146,3 +146,26 @@ async fn bucket_shared() {
     assert_eq!(path2.limit, 3);
     assert_eq!(path2.remaining, 1);
 }
+
+#[tokio::test(start_paused = true)]
+async fn bucket_shared_resource() {
+    let rate_limiter = RateLimiter::default();
+
+    let now = Instant::now();
+    let permit_fut1 = rate_limiter.acquire(ENDPOINT());
+    let permit_fut2 = rate_limiter.acquire(ENDPOINT());
+
+    permit_fut1.await.complete(Some(RateLimitHeaders::shared(
+        BUCKET(),
+        RESET_AFTER.as_secs() as u16,
+    )));
+
+    let bucket = rate_limiter.bucket(ENDPOINT()).await.unwrap();
+    assert_eq!(bucket.limit, 0);
+    assert_eq!(bucket.remaining, 0);
+
+    time::advance(bucket.reset_at - now.into_std()).await;
+    assert!(rate_limiter.bucket(ENDPOINT()).await.is_none());
+
+    _ = permit_fut2.await;
+}
