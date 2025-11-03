@@ -13,6 +13,8 @@ mod flags;
 mod interaction;
 mod kind;
 mod mention;
+mod message_pin;
+mod pins_listing;
 mod reaction;
 mod reaction_type;
 mod reference;
@@ -31,6 +33,8 @@ pub use self::{
     interaction::MessageInteraction,
     kind::MessageType,
     mention::Mention,
+    message_pin::MessagePin,
+    pins_listing::PinsListing,
     reaction::{EmojiReactionType, Reaction, ReactionCountDetails},
     reaction_type::ReactionType,
     reference::MessageReference,

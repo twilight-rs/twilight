@@ -128,6 +128,12 @@ pub const NICKNAME_LIMIT_MAX: usize = 32;
 /// Minimum length of a nickname.
 pub const NICKNAME_LIMIT_MIN: usize = 1;
 
+/// Maximum pin limit.
+pub const PIN_LIMIT_MAX: i32 = 50;
+
+/// Minimum pin limit.
+pub const PIN_LIMIT_MIN: i32 = 1;
+
 /// Maximum length of a scheduled event's description.
 pub const SCHEDULED_EVENT_DESCRIPTION_MAX: usize = 1000;
 
@@ -450,6 +456,14 @@ impl Display for ValidationError {
 
                 Display::fmt(&NICKNAME_LIMIT_MAX, f)
             }
+            ValidationErrorType::Pin { limit } => {
+                f.write_str("provided pin limit is ")?;
+                Display::fmt(limit, f)?;
+                f.write_str(", but it must be at least ")?;
+                Display::fmt(&PIN_LIMIT_MIN, f)?;
+                f.write_str(" and at most ")?;
+                Display::fmt(&PIN_LIMIT_MAX, f)
+            }
             ValidationErrorType::ScheduledEventDescription { len } => {
                 f.write_str("provided scheduled event description is length is ")?;
                 Display::fmt(len, f)?;
@@ -696,6 +710,11 @@ pub enum ValidationErrorType {
     Nickname {
         /// Invalid length.
         len: usize,
+    },
+    /// Provided pin limit was invalid.
+    Pin {
+        /// Invalid limit.
+        limit: i32,
     },
     /// Scheduled event description is invalid.
     ScheduledEventDescription {
@@ -1480,6 +1499,27 @@ pub fn nickname(nickname: impl AsRef<str>) -> Result<(), ValidationError> {
     }
 }
 
+/// Ensure that the pin limit is correct.
+///
+/// The limit must be at least [`PIN_LIMIT_MIN`] and at most
+/// [`PIN_LIMIT_MAX`]. This is based on the documented [pin limit].
+///
+/// # Errors
+///
+/// Returns an error of type [`Pin`] if the limit is invalid.
+///
+/// [`Pin`]: ValidationErrorType::Pin
+/// [pin limit]: https://discord.com/developers/docs/resources/message#get-channel-pins-query-string-params
+pub fn pin_limit(limit: i32) -> Result<(), ValidationError> {
+    if (PIN_LIMIT_MIN..=PIN_LIMIT_MAX).contains(&limit) {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::Pin { limit },
+        })
+    }
+}
+
 /// Ensure that a scheduled event's description is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_DESCRIPTION_MIN`] and at most
@@ -2005,6 +2045,15 @@ mod tests {
 
         assert!(nickname("").is_err());
         assert!(nickname("a".repeat(33)).is_err());
+    }
+
+    #[test]
+    fn pin_limit_test() {
+        assert!(pin_limit(1).is_ok());
+        assert!(pin_limit(50).is_ok());
+
+        assert!(pin_limit(0).is_err());
+        assert!(pin_limit(51).is_err());
     }
 
     #[test]

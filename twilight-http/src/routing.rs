@@ -801,6 +801,10 @@ pub enum Route<'a> {
     GetPins {
         /// The ID of the channel.
         channel_id: u64,
+        /// Optionally the limit of pins to show in the response. (1-50) (default: 50)
+        limit: Option<i32>,
+        /// Optionally the timestamp as a filter to only show pins before the provided timestamp.
+        before: Option<String>,
     },
     /// Route information to get private archived threads in a channel.
     GetPrivateArchivedThreads {
@@ -1426,8 +1430,8 @@ impl Route<'_> {
 /// ```
 /// use twilight_http::routing::Route;
 ///
-/// let route = Route::GetPins { channel_id: 123 };
-/// assert_eq!("channels/123/pins", route.to_string());
+/// let route = Route::GetPins { channel_id: 123, limit: None, before: None };
+/// assert_eq!("channels/123/messages/pins", route.to_string());
 /// ```
 ///
 /// Create a formatted representation of the [`GetInvite`] route, which
@@ -2491,11 +2495,20 @@ impl Display for Route<'_> {
                 query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::GetNitroStickerPacks { .. } => f.write_str("sticker-packs"),
-            Route::GetPins { channel_id } => {
+            Route::GetPins {
+                channel_id,
+                limit,
+                before,
+            } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
 
-                f.write_str("/pins")
+                f.write_str("/messages/pins")?;
+
+                let mut query_formatter = QueryStringFormatter::new(f);
+
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())
             }
             Route::GetJoinedPrivateArchivedThreads {
                 before,
@@ -2627,7 +2640,7 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
-                f.write_str("/pins/")?;
+                f.write_str("/messages/pins/")?;
 
                 Display::fmt(message_id, f)
             }
@@ -4003,8 +4016,13 @@ mod tests {
     fn get_pins() {
         let route = Route::GetPins {
             channel_id: CHANNEL_ID,
+            limit: None,
+            before: None,
         };
-        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/pins"));
+        assert_eq!(
+            route.to_string(),
+            format!("channels/{CHANNEL_ID}/messages/pins")
+        );
     }
 
     #[test]
@@ -4112,7 +4130,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("channels/{CHANNEL_ID}/pins/{MESSAGE_ID}")
+            format!("channels/{CHANNEL_ID}/messages/pins/{MESSAGE_ID}")
         );
     }
 
@@ -4124,7 +4142,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("channels/{CHANNEL_ID}/pins/{MESSAGE_ID}")
+            format!("channels/{CHANNEL_ID}/messages/pins/{MESSAGE_ID}")
         );
     }
 
