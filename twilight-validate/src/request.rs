@@ -53,6 +53,12 @@ pub const AUTO_MODERATION_EXEMPT_ROLES_MAX: usize = 20;
 /// Maximum amount of exempt channels for the auto moderation rule.
 pub const AUTO_MODERATION_EXEMPT_CHANNELS_MAX: usize = 50;
 
+/// Maximum length of a bio.
+pub const BIO_LIMIT_MAX: usize = 400;
+
+/// Minimum length of a bio.
+pub const BIO_LIMIT_MIN: usize = 1;
+
 /// Maximum amount of seconds (`604_800` this is equivalent to `7` days) for messages to be deleted upon ban.
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
 
@@ -319,6 +325,16 @@ impl Display for ValidationError {
                 f.write_str(", but it must be at most ")?;
 
                 Display::fmt(&AUTO_MODERATION_EXEMPT_CHANNELS_MAX, f)
+            }
+            ValidationErrorType::Bio { len } => {
+                f.write_str("provided bio length is ")?;
+                Display::fmt(len, f)?;
+
+                f.write_str(", but it must be at least")?;
+                Display::fmt(&BIO_LIMIT_MIN, f)?;
+
+                f.write_str(" and at most ")?;
+                Display::fmt(&BIO_LIMIT_MAX, f)
             }
             ValidationErrorType::CreateGuildBanDeleteMessageSeconds {
                 seconds: delete_message_seconds,
@@ -603,6 +619,11 @@ pub enum ValidationErrorType {
     },
     /// Provided exempt channels was invalid.
     AutoModerationExemptChannels {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Provided bio length was invalid.
+    Bio {
         /// Invalid length.
         len: usize,
     },
@@ -1123,6 +1144,30 @@ pub const fn auto_moderation_exempt_channels(
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::AutoModerationExemptChannels { len },
+        })
+    }
+}
+
+/// Ensures that a bio is correct.
+///
+/// The bio's length must be at least [`BIO_LIMIT_MIN`], and at maximum [`BIO_LIMIT_MAX`]
+///
+/// This is based off the limitations enforced when setting a bio on the [developer portal].
+///
+/// # Errors
+///
+/// Returns an error of type [`Bio`] if the length is invalid.
+///
+/// [`Bio`]: ValidationErrorType::Bio
+/// [developer portal]: https://discord.dev
+pub fn bio(bio: impl AsRef<str>) -> Result<(), ValidationError> {
+    let len = bio.as_ref().chars().count();
+
+    if (BIO_LIMIT_MIN..=BIO_LIMIT_MAX).contains(&len) {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::Bio { len },
         })
     }
 }
@@ -1826,6 +1871,15 @@ mod tests {
         assert!(auto_moderation_action_metadata_duration_seconds(2_419_200).is_ok());
 
         assert!(auto_moderation_action_metadata_duration_seconds(2_419_201).is_err());
+    }
+
+    #[test]
+    fn bio_length() {
+        assert!(bio("a").is_ok());
+        assert!(bio("a".repeat(400)).is_ok());
+
+        assert!(bio("").is_err());
+        assert!(bio("b".repeat(401)).is_err());
     }
 
     #[test]
