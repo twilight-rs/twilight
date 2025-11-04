@@ -802,7 +802,7 @@ pub enum Route<'a> {
         /// The ID of the channel.
         channel_id: u64,
         /// Optionally the limit of pins to show in the response. (1-50) (default: 50)
-        limit: Option<i32>,
+        limit: Option<u16>,
         /// Optionally the timestamp as a filter to only show pins before the provided timestamp.
         before: Option<String>,
     },

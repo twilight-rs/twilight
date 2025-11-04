@@ -13,7 +13,7 @@ use twilight_validate::request::{ValidationError, pin_limit as validate_pin_limi
 
 pub struct GetPinsQueryFields {
     before: Option<Timestamp>,
-    limit: Option<i32>,
+    limit: Option<u16>,
 }
 
 /// Get the pins of a channel.
@@ -54,7 +54,7 @@ impl<'a> GetPins<'a> {
     /// [docs]
     ///
     /// [docs]: https://discord.com/developers/docs/resources/message#get-channel-pins-query-string-params
-    pub fn limit(mut self, limit: i32) -> Self {
+    pub fn limit(mut self, limit: u16) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
             validate_pin_limit(limit)?;
 

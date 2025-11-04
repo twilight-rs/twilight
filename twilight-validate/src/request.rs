@@ -129,10 +129,10 @@ pub const NICKNAME_LIMIT_MAX: usize = 32;
 pub const NICKNAME_LIMIT_MIN: usize = 1;
 
 /// Maximum pin limit.
-pub const PIN_LIMIT_MAX: i32 = 50;
+pub const PIN_LIMIT_MAX: u16 = 50;
 
 /// Minimum pin limit.
-pub const PIN_LIMIT_MIN: i32 = 1;
+pub const PIN_LIMIT_MIN: u16 = 1;
 
 /// Maximum length of a scheduled event's description.
 pub const SCHEDULED_EVENT_DESCRIPTION_MAX: usize = 1000;
@@ -714,7 +714,7 @@ pub enum ValidationErrorType {
     /// Provided pin limit was invalid.
     Pin {
         /// Invalid limit.
-        limit: i32,
+        limit: u16,
     },
     /// Scheduled event description is invalid.
     ScheduledEventDescription {
@@ -1510,7 +1510,7 @@ pub fn nickname(nickname: impl AsRef<str>) -> Result<(), ValidationError> {
 ///
 /// [`Pin`]: ValidationErrorType::Pin
 /// [pin limit]: https://discord.com/developers/docs/resources/message#get-channel-pins-query-string-params
-pub fn pin_limit(limit: i32) -> Result<(), ValidationError> {
+pub fn pin_limit(limit: u16) -> Result<(), ValidationError> {
     if (PIN_LIMIT_MIN..=PIN_LIMIT_MAX).contains(&limit) {
         Ok(())
     } else {
