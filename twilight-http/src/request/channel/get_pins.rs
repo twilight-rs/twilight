@@ -49,7 +49,7 @@ impl<'a> GetPins<'a> {
         self
     }
 
-    /// Sets the limit of pins to retrieve in a single request. (1-50) (default: 50)
+    /// Sets the limit of pins to retrieve in this request. (1-50) (default: 50)
     ///
     /// [docs]
     ///
