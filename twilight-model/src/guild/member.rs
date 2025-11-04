@@ -18,8 +18,10 @@ pub struct Member {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<ImageHash>,
+    /// Member's avatar decoration data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_decoration_data: Option<AvatarDecorationData>,
+    /// Member's banner hash.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub banner: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
