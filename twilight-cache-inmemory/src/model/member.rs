@@ -126,8 +126,11 @@ impl CachedMember {
 
 impl From<Member> for CachedMember {
     fn from(member: Member) -> Self {
+        #[allow(unused_variables)]
         let Member {
             avatar,
+            avatar_decoration_data,
+            banner,
             communication_disabled_until,
             deaf,
             flags,
@@ -366,6 +369,8 @@ mod tests {
 
         let member = Member {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,

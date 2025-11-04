@@ -44,6 +44,8 @@ mod tests {
             guild_id: Some(Id::new(1)),
             member: Some(Member {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
@@ -196,6 +198,8 @@ mod tests {
             guild_id: Some(Id::new(999_999)),
             member: Some(Member {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
