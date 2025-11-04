@@ -37,6 +37,10 @@ impl<'a> GetPins<'a> {
     }
 
     /// Sets the timestamp filter to only retrieve pins before the provided timestamp.
+    ///
+    /// [docs]
+    ///
+    /// [docs]: https://discord.com/developers/docs/resources/message#get-channel-pins-query-string-params
     pub const fn before(mut self, timestamp: Timestamp) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.before = Some(timestamp);
@@ -46,6 +50,10 @@ impl<'a> GetPins<'a> {
     }
 
     /// Sets the limit of pins to retrieve in a single request. (1-50) (default: 50)
+    ///
+    /// [docs]
+    ///
+    /// [docs]: https://discord.com/developers/docs/resources/message#get-channel-pins-query-string-params
     pub fn limit(mut self, limit: i32) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
             validate_pin_limit(limit)?;
