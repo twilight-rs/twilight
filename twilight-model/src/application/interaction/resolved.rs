@@ -1,3 +1,4 @@
+use crate::user::AvatarDecorationData;
 use crate::{
     channel::{Attachment, ChannelType, Message, thread::ThreadMetadata},
     guild::{MemberFlags, Permissions, Role},
@@ -73,6 +74,12 @@ pub struct InteractionMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<ImageHash>,
+    /// The member's guild avatar decoration.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar_decoration_data: Option<AvatarDecorationData>,
+    /// Member's guild banner.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub banner: Option<ImageHash>,
     /// If the member is timed out, when the timeout will expire.
     pub communication_disabled_until: Option<Timestamp>,
     /// Flags for the member.
@@ -161,6 +168,8 @@ mod tests {
                 Id::new(300),
                 InteractionMember {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     flags,
                     joined_at,
@@ -214,6 +223,8 @@ mod tests {
                     kind: MessageType::Regular,
                     member: Some(PartialMember {
                         avatar: None,
+                        avatar_decoration_data: None,
+                        banner: None,
                         communication_disabled_until: None,
                         flags,
                         deaf: false,

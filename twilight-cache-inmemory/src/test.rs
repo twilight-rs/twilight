@@ -81,6 +81,8 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
         kind: MessageType::Regular,
         member: Some(PartialMember {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,

@@ -21,7 +21,7 @@ pub struct Member {
     /// Member's avatar decoration data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_decoration_data: Option<AvatarDecorationData>,
-    /// Member's banner hash.
+    /// Member's guild banner.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub banner: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
@@ -37,7 +37,6 @@ pub struct Member {
     /// requirements.
     #[serde(default)]
     pub pending: bool,
-    // permissions - is voided because it only appears in Interaction objects, which we use PartialMember for.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
     pub roles: Vec<Id<RoleMarker>>,

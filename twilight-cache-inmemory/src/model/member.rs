@@ -1,6 +1,8 @@
 use std::ops::Deref;
 
+use crate::CacheableMember;
 use serde::Serialize;
+use twilight_model::user::AvatarDecorationData;
 use twilight_model::{
     application::interaction::InteractionMember,
     gateway::payload::incoming::MemberUpdate,
@@ -11,8 +13,6 @@ use twilight_model::{
     },
     util::{ImageHash, Timestamp},
 };
-
-use crate::CacheableMember;
 
 /// Computed components required to complete a full cached interaction member
 /// by implementing [`CacheableMember`].
@@ -44,6 +44,8 @@ impl Deref for ComputedInteractionMember {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
     pub(crate) avatar: Option<ImageHash>,
+    pub(crate) avatar_decoration_data: Option<AvatarDecorationData>,
+    pub(crate) banner: Option<ImageHash>,
     pub(crate) communication_disabled_until: Option<Timestamp>,
     pub(crate) deaf: Option<bool>,
     pub(crate) flags: MemberFlags,
@@ -126,7 +128,6 @@ impl CachedMember {
 
 impl From<Member> for CachedMember {
     fn from(member: Member) -> Self {
-        #[allow(unused_variables)]
         let Member {
             avatar,
             avatar_decoration_data,
@@ -145,6 +146,8 @@ impl From<Member> for CachedMember {
 
         Self {
             avatar,
+            avatar_decoration_data,
+            banner,
             communication_disabled_until,
             deaf: Some(deaf),
             flags,
@@ -170,6 +173,8 @@ impl From<ComputedInteractionMember> for CachedMember {
         } = member;
         let InteractionMember {
             avatar: _,
+            avatar_decoration_data,
+            banner,
             communication_disabled_until,
             flags,
             joined_at,
@@ -182,6 +187,8 @@ impl From<ComputedInteractionMember> for CachedMember {
 
         Self {
             avatar,
+            avatar_decoration_data,
+            banner,
             communication_disabled_until,
             deaf,
             flags,
@@ -200,6 +207,8 @@ impl From<(Id<UserMarker>, PartialMember)> for CachedMember {
     fn from((user_id, member): (Id<UserMarker>, PartialMember)) -> Self {
         let PartialMember {
             avatar,
+            avatar_decoration_data,
+            banner,
             communication_disabled_until,
             deaf,
             flags,
@@ -214,6 +223,8 @@ impl From<(Id<UserMarker>, PartialMember)> for CachedMember {
 
         Self {
             avatar,
+            avatar_decoration_data,
+            banner,
             communication_disabled_until,
             deaf: Some(deaf),
             flags,
@@ -325,6 +336,8 @@ mod tests {
         let flags = MemberFlags::BYPASSES_VERIFICATION | MemberFlags::DID_REJOIN;
         CachedMember {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: Some(false),
             flags,
@@ -393,6 +406,8 @@ mod tests {
 
         let member = PartialMember {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,

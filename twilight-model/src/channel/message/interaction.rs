@@ -49,6 +49,8 @@ mod tests {
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
