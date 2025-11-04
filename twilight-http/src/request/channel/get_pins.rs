@@ -2,32 +2,75 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{Response, ResponseFuture, marker::ListBody},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
-use twilight_model::{
-    channel::Message,
-    id::{Id, marker::ChannelMarker},
-};
+use twilight_model::channel::message::PinsListing;
+use twilight_model::id::{Id, marker::ChannelMarker};
+use twilight_model::util::Timestamp;
+use twilight_validate::request::{ValidationError, pin_limit as validate_pin_limit};
+
+pub struct GetPinsQueryFields {
+    before: Option<Timestamp>,
+    limit: Option<i32>,
+}
 
 /// Get the pins of a channel.
 #[must_use = "requests must be configured and executed"]
 pub struct GetPins<'a> {
     channel_id: Id<ChannelMarker>,
+    fields: Result<GetPinsQueryFields, ValidationError>,
     http: &'a Client,
 }
 
 impl<'a> GetPins<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
-        Self { channel_id, http }
+        Self {
+            channel_id,
+            fields: Ok(GetPinsQueryFields {
+                before: None,
+                limit: None,
+            }),
+            http,
+        }
+    }
+
+    /// Sets the timestamp filter to only retrieve pins before the provided timestamp.
+    ///
+    /// [docs]
+    ///
+    /// [docs]: https://discord.com/developers/docs/resources/message#get-channel-pins-query-string-params
+    pub const fn before(mut self, timestamp: Timestamp) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.before = Some(timestamp);
+        }
+
+        self
+    }
+
+    /// Sets the limit of pins to retrieve in this request. (1-50) (default: 50)
+    ///
+    /// [docs]
+    ///
+    /// [docs]: https://discord.com/developers/docs/resources/message#get-channel-pins-query-string-params
+    pub fn limit(mut self, limit: i32) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            validate_pin_limit(limit)?;
+
+            fields.limit = Some(limit);
+
+            Ok(fields)
+        });
+
+        self
     }
 }
 
 impl IntoFuture for GetPins<'_> {
-    type Output = Result<Response<ListBody<Message>>, Error>;
+    type Output = Result<Response<PinsListing>, Error>;
 
-    type IntoFuture = ResponseFuture<ListBody<Message>>;
+    type IntoFuture = ResponseFuture<PinsListing>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
@@ -41,8 +84,12 @@ impl IntoFuture for GetPins<'_> {
 
 impl TryIntoRequest for GetPins<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
+
         Ok(Request::from_route(&Route::GetPins {
             channel_id: self.channel_id.get(),
+            limit: fields.limit,
+            before: fields.before.map(|t| t.iso_8601().to_string()),
         }))
     }
 }
