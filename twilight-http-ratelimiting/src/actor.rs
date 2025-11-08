@@ -221,6 +221,7 @@ pub async fn runner(
                             old_queue.in_flight = false;
                             let (pending, old_pending) = mem::take(&mut old_queue.pending)
                                 .into_iter()
+                                .filter(|req| !req.notifier.is_closed())
                                 .partition::<VecDeque<_>, _>(|req| req.endpoint == *old_entry.key());
                             old_queue.pending = old_pending;
                             try_pop!(old_queue);
@@ -284,6 +285,10 @@ pub async fn runner(
                 }
             }
             Some((msg, pred)) = rx.recv() => {
+                if msg.notifier.is_closed() {
+                    continue;
+                }
+
                 if !msg.endpoint.is_valid() {
                     tracing::warn!(path = msg.endpoint.path, "improperly formatted path");
                 }
@@ -312,7 +317,7 @@ pub async fn runner(
                     drop(msg);
                 } else if queue_active || (global_remaining == 0 && !msg.endpoint.is_interaction()) {
                     queue.pending.push_back(msg);
-                } else if !msg.notifier.is_closed() {
+                } else {
                     let (tx, rx) = oneshot::channel();
                     if msg.notifier.send(tx).is_ok() {
                         tracing::debug!(path = msg.endpoint.path, "permitted");
