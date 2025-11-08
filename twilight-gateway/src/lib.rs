@@ -173,7 +173,7 @@ pub async fn create_recommended<F, Q>(
     client: &Client,
     config: Config<Q>,
     per_shard_config: F,
-) -> Result<impl ExactSizeIterator<Item = Shard<Q>>, StartRecommendedError>
+) -> Result<impl ExactSizeIterator<Item = Shard<Q>> + use<F, Q>, StartRecommendedError>
 where
     F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>,
     Q: Clone,
