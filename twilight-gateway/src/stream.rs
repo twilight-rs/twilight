@@ -110,17 +110,14 @@ mod private {
         type Output = Option<Result<Event, ReceiveMessageError>>;
 
         fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-            let events = self.events;
-            let try_from_message = |message| match message {
-                Message::Text(json) => parse(json, events).map(|opt| opt.map(Into::into)),
-                Message::Close(frame) => Ok(Some(Event::GatewayClose(frame))),
-            };
-
             loop {
-                match ready!(Pin::new(&mut self.stream).poll_next(cx)) {
-                    Some(item) => {
-                        if let Some(event) = item.and_then(try_from_message).transpose() {
-                            return Poll::Ready(Some(event));
+                match ready!(Pin::new(&mut self.stream).poll_next(cx)?) {
+                    Some(Message::Close(frame)) => {
+                        return Poll::Ready(Some(Ok(Event::GatewayClose(frame))));
+                    }
+                    Some(Message::Text(json)) => {
+                        if let Some(event) = parse(json, self.events).transpose() {
+                            return Poll::Ready(Some(event.map(Into::into)));
                         }
                     }
                     None => return Poll::Ready(None),

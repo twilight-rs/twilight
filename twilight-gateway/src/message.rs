@@ -58,7 +58,7 @@ impl Message {
 
     /// Convert a `twilight` websocket message into a `tokio-websockets` websocket
     /// message.
-    pub(crate) fn into_websocket_msg(self) -> WebsocketMessage {
+    pub(crate) fn into_websocket(self) -> WebsocketMessage {
         match self {
             Self::Close(frame) => WebsocketMessage::close(
                 frame
