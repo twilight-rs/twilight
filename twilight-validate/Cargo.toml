@@ -11,10 +11,10 @@ name = "twilight-validate"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.16.0"
+version = "0.17.0"
 
 [dependencies]
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.16.0" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.17.0" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1.1.0" }

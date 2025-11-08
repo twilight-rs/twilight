@@ -1,5 +1,29 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- resolve clippy 1.86 lints ([#2426](https://github.com/twilight-rs/twilight/issues/2426))
+
+### Features
+
+- [**breaking**] rewrite crate ([#2418](https://github.com/twilight-rs/twilight/issues/2418))
+- add /oauth2/token path ([#2452](https://github.com/twilight-rs/twilight/issues/2452))
+- [**breaking**] support unknown paths ([#2453](https://github.com/twilight-rs/twilight/issues/2453))
+
+### Refactor
+
+- [**breaking**] remove retry delay logic ([#2455](https://github.com/twilight-rs/twilight/issues/2455))
+
+### Testing
+
+- shared resource emulation ([#2457](https://github.com/twilight-rs/twilight/issues/2457))
+
+### Chore
+
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+
 ## [0.16.0] - 2025-01-12
 
 ### Bug Fixes

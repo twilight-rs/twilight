@@ -1,5 +1,25 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- resolve clippy 1.86 lints ([#2426](https://github.com/twilight-rs/twilight/issues/2426))
+- Quick Fix for Unnecessary Parentheses ([#2440](https://github.com/twilight-rs/twilight/issues/2440))
+- Some items were mistyped or private ([#2459](https://github.com/twilight-rs/twilight/issues/2459))
+- use smaller and unsigned integer for get-pins limit ([#2477](https://github.com/twilight-rs/twilight/issues/2477))
+
+### Features
+
+- Components V2 ([#2422](https://github.com/twilight-rs/twilight/issues/2422))
+- add support for new fields on modify_current_member ([#2473](https://github.com/twilight-rs/twilight/issues/2473))
+- [**breaking**] New modal components ([#2461](https://github.com/twilight-rs/twilight/issues/2461))
+- new pin endpoints and pagination for Get Channel Pins ([#2475](https://github.com/twilight-rs/twilight/issues/2475))
+
+### Chore
+
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+
 ## [0.16.0] - 2025-01-12
 
 ### Bug Fixes

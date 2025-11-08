@@ -1,5 +1,26 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- resolve clippy 1.86 lints ([#2426](https://github.com/twilight-rs/twilight/issues/2426))
+- doc_auto_cfg got merged into doc_cfg ([#2458](https://github.com/twilight-rs/twilight/issues/2458))
+
+### Features
+
+- `poll` Field for Interaction Callback and Followups ([#2439](https://github.com/twilight-rs/twilight/issues/2439))
+- Components V2 ([#2422](https://github.com/twilight-rs/twilight/issues/2422))
+- [**breaking**] New modal components ([#2461](https://github.com/twilight-rs/twilight/issues/2461))
+
+### Refactor
+
+- migrate from `NonZero` type aliases ([#2462](https://github.com/twilight-rs/twilight/issues/2462))
+
+### Chore
+
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+
 ## [0.16.0] - 2025-01-12
 
 ### Features

@@ -11,7 +11,7 @@ name = "twilight-gateway"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.16.0"
+version = "0.17.0"
 
 [dependencies]
 bitflags = { default-features = false, version = "2" }
@@ -23,10 +23,10 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.19" }
 tokio-websockets = { default-features = false, features = ["client", "fastrand", "sha1_smol"], version = "0.13" }
 tracing = { default-features = false, features = ["std"], version = "0.1" }
-twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.16.0" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.16.0" }
+twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.17.0" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.17.0" }
 
-twilight-http = { default-features = false, optional = true, path = "../twilight-http", version = "0.16.0" }
+twilight-http = { default-features = false, optional = true, path = "../twilight-http", version = "0.17.0" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.17" }
 zstd-safe = { default-features = false, optional = true, version = "7.2.1" }
 

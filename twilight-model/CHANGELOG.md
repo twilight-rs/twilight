@@ -1,5 +1,37 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- Add global_name to CurrentUser ([#2412](https://github.com/twilight-rs/twilight/issues/2412))
+- [**breaking**] incoming heartbeat has null data ([#2420](https://github.com/twilight-rs/twilight/issues/2420))
+- resolve clippy 1.86 lints ([#2426](https://github.com/twilight-rs/twilight/issues/2426))
+- resolve clippy 1.87 lints ([#2436](https://github.com/twilight-rs/twilight/issues/2436))
+- Role id sorting is ascending ([#2437](https://github.com/twilight-rs/twilight/issues/2437))
+
+### Features
+
+- Add associated types to CommandOption(Value). ([#2415](https://github.com/twilight-rs/twilight/issues/2415))
+- Add various From implementations for CommandOptionValue ([#2413](https://github.com/twilight-rs/twilight/issues/2413))
+- `poll` Field for Interaction Callback and Followups ([#2439](https://github.com/twilight-rs/twilight/issues/2439))
+- Components V2 ([#2422](https://github.com/twilight-rs/twilight/issues/2422))
+- add pin messages permission ([#2449](https://github.com/twilight-rs/twilight/issues/2449))
+- [**breaking**] support for role colors and primary guilds ([#2467](https://github.com/twilight-rs/twilight/issues/2467))
+- [**breaking**] New modal components ([#2461](https://github.com/twilight-rs/twilight/issues/2461))
+- new pin endpoints and pagination for Get Channel Pins ([#2475](https://github.com/twilight-rs/twilight/issues/2475))
+- add missing fields to Member ([#2476](https://github.com/twilight-rs/twilight/issues/2476))
+
+### Refactor
+
+- make message and guild_id fields in MessageSnapshot public ([#2427](https://github.com/twilight-rs/twilight/issues/2427))
+- migrate from `NonZero` type aliases ([#2462](https://github.com/twilight-rs/twilight/issues/2462))
+
+### Chore
+
+- fix missing id fields after merge
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+
 ## [0.16.0] - 2025-01-12
 
 ### Bug Fixes

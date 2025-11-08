@@ -22,7 +22,7 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
 tokio-websockets = { default-features = false, features = ["client", "fastrand", "sha1_smol"], version = "0.13" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.16.0" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.17.0" }
 
 # Optional dependencies.
 percent-encoding = { default-features = false, optional = true, version = "2" }
@@ -33,8 +33,8 @@ serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
-twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.16.0" }
-twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.16.0" }
+twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.17.0" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.17.0" }
 
 [features]
 default = ["http-support", "rustls-platform-verifier"]
