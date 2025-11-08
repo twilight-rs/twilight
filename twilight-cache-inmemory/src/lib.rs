@@ -1089,6 +1089,8 @@ mod tests {
             guild_id,
             Member {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,

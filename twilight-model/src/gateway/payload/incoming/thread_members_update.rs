@@ -113,6 +113,8 @@ mod tests {
 
         let member = Member {
             avatar: Some(image_hash::AVATAR),
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,

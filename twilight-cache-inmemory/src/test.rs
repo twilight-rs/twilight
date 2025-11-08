@@ -81,6 +81,8 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
         kind: MessageType::Regular,
         member: Some(PartialMember {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,
@@ -122,6 +124,8 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
         guild_id: Some(Id::new(1)),
         member: Some(Member {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,
@@ -165,6 +169,8 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
 
     reaction.member.replace(Member {
         avatar: None,
+        avatar_decoration_data: None,
+        banner: None,
         communication_disabled_until: None,
         deaf: false,
         flags,
@@ -300,6 +306,8 @@ pub fn member(id: Id<UserMarker>) -> Member {
 
     Member {
         avatar: None,
+        avatar_decoration_data: None,
+        banner: None,
         communication_disabled_until: None,
         deaf: false,
         flags,

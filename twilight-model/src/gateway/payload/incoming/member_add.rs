@@ -46,6 +46,8 @@ mod tests {
             guild_id: Id::<GuildMarker>::new(1),
             member: Member {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,

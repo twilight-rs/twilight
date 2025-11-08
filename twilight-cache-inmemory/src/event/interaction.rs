@@ -154,6 +154,8 @@ mod tests {
                         Id::new(7),
                         InteractionMember {
                             avatar: None,
+                            avatar_decoration_data: None,
+                            banner: None,
                             communication_disabled_until: None,
                             flags,
                             joined_at: Some(timestamp),
@@ -206,6 +208,8 @@ mod tests {
                             kind: MessageType::Regular,
                             member: Some(PartialMember {
                                 avatar: None,
+                                avatar_decoration_data: None,
+                                banner: None,
                                 communication_disabled_until: None,
                                 deaf: false,
                                 flags,
@@ -297,6 +301,8 @@ mod tests {
             locale: Some("en-GB".to_owned()),
             member: Some(PartialMember {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,

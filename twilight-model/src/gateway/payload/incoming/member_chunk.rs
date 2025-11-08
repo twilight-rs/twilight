@@ -296,6 +296,8 @@ mod tests {
             members: Vec::from([
                 Member {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     deaf: false,
                     flags,
@@ -329,6 +331,8 @@ mod tests {
                 },
                 Member {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     deaf: false,
                     flags,
@@ -362,6 +366,8 @@ mod tests {
                 },
                 Member {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     deaf: false,
                     flags,
@@ -395,6 +401,8 @@ mod tests {
                 },
                 Member {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     deaf: false,
                     flags,

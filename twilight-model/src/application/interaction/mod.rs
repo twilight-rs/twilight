@@ -583,6 +583,8 @@ mod tests {
                         Id::new(600),
                         InteractionMember {
                             avatar: None,
+                            avatar_decoration_data: None,
+                            banner: None,
                             communication_disabled_until: None,
                             flags,
                             joined_at,
@@ -644,6 +646,8 @@ mod tests {
             locale: Some("en-GB".to_owned()),
             member: Some(PartialMember {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
