@@ -64,6 +64,16 @@ impl CachedMember {
         self.avatar
     }
 
+    /// Member's guild avatar decoration data.
+    pub const fn avatar_decoration_data(&self) -> Option<&AvatarDecorationData> {
+        self.avatar_decoration_data.as_ref()
+    }
+
+    /// Member's guild banner.
+    pub const fn banner(&self) -> Option<ImageHash> {
+        self.banner
+    }
+
     /// When the user can resume communication in a guild again.
     ///
     /// Checking if this value is [`Some`] is not enough to know if a used is currently
