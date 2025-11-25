@@ -86,6 +86,8 @@ bitflags! {
         const USE_EXTERNAL_APPS = 1 << 50;
         /// Allows pinning and unpinning messages.
         const PIN_MESSAGES = 1 << 51;
+        /// Allows to bypass slowmode in channels with slowmode enabled.
+        const BYPASS_SLOWMODE = 1 << 52;
     }
 }
 
@@ -216,6 +218,7 @@ mod tests {
     const_assert_eq!(Permissions::SEND_POLLS.bits(), 1 << 49);
     const_assert_eq!(Permissions::USE_EXTERNAL_APPS.bits(), 1 << 50);
     const_assert_eq!(Permissions::PIN_MESSAGES.bits(), 1 << 51);
+    const_assert_eq!(Permissions::BYPASS_SLOWMODE.bits(), 1 << 52);
 
     #[test]
     fn serde() {
