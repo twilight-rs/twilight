@@ -20,7 +20,7 @@ use crate::{
 };
 use futures_core::Stream;
 use futures_sink::Sink;
-use serde::{Deserialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     env::consts::OS,
     error::Error,
@@ -29,12 +29,13 @@ use std::{
     io,
     pin::Pin,
     str,
+    sync::Arc,
     task::{Context, Poll, ready},
 };
 use tokio::{
     net::TcpStream,
     sync::oneshot,
-    time::{self, Duration, Instant, Interval, MissedTickBehavior, error::Elapsed, timeout},
+    time::{self, Duration, Instant, Interval, MissedTickBehavior},
 };
 use tokio_websockets::{ClientBuilder, Error as WebsocketError, Limits, MaybeTlsStream};
 use twilight_model::gateway::{
@@ -67,38 +68,11 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 /// [`tokio_websockets`] library Websocket connection.
 type Connection = tokio_websockets::WebSocketStream<MaybeTlsStream<TcpStream>>;
 
-/// Wrapper enum around [`WebsocketError`] with a timeout case.
-enum ConnectionError {
-    /// Connection attempt timed out.
-    Timeout(Elapsed),
-    /// Error from the websocket library, [`tokio_websockets`].
-    Websocket(WebsocketError),
-}
-
-impl ConnectionError {
-    /// Returns the boxed wrapped error.
-    fn into_boxed_error(self) -> Box<dyn Error + Send + Sync> {
-        match self {
-            Self::Websocket(e) => Box::new(e),
-            Self::Timeout(e) => Box::new(e),
-        }
-    }
-}
-
-impl From<WebsocketError> for ConnectionError {
-    fn from(value: WebsocketError) -> Self {
-        Self::Websocket(value)
-    }
-}
-
-impl From<Elapsed> for ConnectionError {
-    fn from(value: Elapsed) -> Self {
-        Self::Timeout(value)
-    }
-}
+/// Dynamically dispatched [`Error`].
+type GenericError = Box<dyn Error + Send + Sync>;
 
 /// Wrapper struct around an `async fn` with a `Debug` implementation.
-struct ConnectionFuture(Pin<Box<dyn Future<Output = Result<Connection, ConnectionError>> + Send>>);
+struct ConnectionFuture(Pin<Box<dyn Future<Output = Result<Connection, GenericError>> + Send>>);
 
 impl fmt::Debug for ConnectionFuture {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -213,9 +187,11 @@ struct Pending {
 
 impl Pending {
     /// Constructor for a pending gateway event.
-    const fn text(json: String, is_heartbeat: bool) -> Option<Self> {
+    fn event<T: Serialize>(event: T, is_heartbeat: bool) -> Option<Self> {
         Some(Self {
-            gateway_event: Some(Message::Text(json)),
+            gateway_event: Some(Message::Text(
+                json::to_string(&event).expect("json serialization is infallible"),
+            )),
             is_heartbeat,
         })
     }
@@ -568,6 +544,67 @@ impl<Q> Shard<Q> {
             source: Some(Box::new(source)),
         })
     }
+
+    /// Attempts to connect to the gateway.
+    ///
+    /// # Returns
+    ///
+    /// * `Poll::Pending` if connection is in progress
+    /// * `Poll::Ready(Ok)` if connected
+    /// * `Poll::Ready(Err)` if connecting to the gateway failed.
+    fn poll_connect(
+        &mut self,
+        cx: &mut Context<'_>,
+        attempt: u8,
+    ) -> Poll<Result<(), ReceiveMessageError>> {
+        let fut = self.connection_future.get_or_insert_with(|| {
+            let base_url = self
+                .resume_url
+                .as_deref()
+                .or_else(|| self.config.proxy_url())
+                .unwrap_or(GATEWAY_URL);
+            let base_url_len = base_url.len();
+            let uri = format!("{base_url}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}");
+
+            let tls = Arc::clone(&self.config.tls);
+            ConnectionFuture(Box::pin(async move {
+                let delay = Duration::from_secs(2u8.saturating_pow(attempt.into()).into());
+                time::sleep(delay).await;
+                tracing::debug!(url = &uri[..base_url_len], "connecting");
+
+                let builder = ClientBuilder::new()
+                    .uri(&uri)
+                    .expect("valid URL")
+                    .limits(Limits::unlimited())
+                    .connector(&tls);
+                Ok(time::timeout(CONNECT_TIMEOUT, builder.connect()).await??.0)
+            }))
+        });
+
+        let res = ready!(Pin::new(&mut fut.0).poll(cx));
+        self.connection_future = None;
+        match res {
+            Ok(connection) => {
+                self.connection = Some(connection);
+                self.state = ShardState::Identifying;
+                #[cfg(any(feature = "zlib", feature = "zstd"))]
+                self.decompressor.reset();
+            }
+            Err(source) => {
+                self.resume_url = None;
+                self.state = ShardState::Disconnected {
+                    reconnect_attempts: attempt + 1,
+                };
+
+                return Poll::Ready(Err(ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Reconnect,
+                    source: Some(source),
+                }));
+            }
+        }
+
+        Poll::Ready(Ok(()))
+    }
 }
 
 impl<Q: Queue> Shard<Q> {
@@ -583,16 +620,14 @@ impl<Q: Queue> Shard<Q> {
             if let Some(pending) = self.pending.as_mut() {
                 ready!(Pin::new(self.connection.as_mut().unwrap()).poll_ready(cx))?;
 
-                if let Some(message) = &pending.gateway_event {
-                    if let Some(ratelimiter) = self.ratelimiter.as_mut()
-                        && message.is_text()
-                        && !pending.is_heartbeat
-                    {
-                        ready!(ratelimiter.poll_acquire(cx));
-                    }
+                let is_ratelimited = pending.gateway_event.as_ref().is_some_and(Message::is_text)
+                    && !pending.is_heartbeat;
+                if is_ratelimited && let Some(ratelimiter) = &mut self.ratelimiter {
+                    ready!(ratelimiter.poll_acquire(cx));
+                }
 
-                    let ws_message = pending.gateway_event.take().unwrap().into_websocket_msg();
-                    Pin::new(self.connection.as_mut().unwrap()).start_send(ws_message)?;
+                if let Some(msg) = pending.gateway_event.take().map(Message::into_websocket) {
+                    Pin::new(self.connection.as_mut().unwrap()).start_send(msg)?;
                 }
 
                 ready!(Pin::new(self.connection.as_mut().unwrap()).poll_flush(cx))?;
@@ -614,10 +649,8 @@ impl<Q: Queue> Shard<Q> {
                 continue;
             }
 
-            if self
-                .heartbeat_interval
-                .as_mut()
-                .is_some_and(|heartbeater| heartbeater.poll_tick(cx).is_ready())
+            if let Some(heartbeater) = &mut self.heartbeat_interval
+                && heartbeater.poll_tick(cx).is_ready()
             {
                 // Discord never responded after the last heartbeat, connection
                 // is failed or "zombied", see
@@ -631,11 +664,8 @@ impl<Q: Queue> Shard<Q> {
                 }
 
                 tracing::debug!("sending heartbeat");
-                self.pending = Pending::text(
-                    json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                        .expect("serialization cannot fail"),
-                    true,
-                );
+                self.pending =
+                    Pending::event(Heartbeat::new(self.session().map(Session::sequence)), true);
                 self.heartbeat_interval_event = false;
 
                 continue;
@@ -647,10 +677,8 @@ impl<Q: Queue> Shard<Q> {
                 .is_none_or(|ratelimiter| ratelimiter.poll_available(cx).is_ready());
 
             if not_ratelimited
-                && let Some(Poll::Ready(canceled)) = self
-                    .identify_rx
-                    .as_mut()
-                    .map(|rx| Pin::new(rx).poll(cx).map(|r| r.is_err()))
+                && let Some(rx) = &mut self.identify_rx
+                && let Poll::Ready(canceled) = Pin::new(rx).poll(cx).map(|r| r.is_err())
             {
                 if canceled {
                     self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
@@ -659,8 +687,8 @@ impl<Q: Queue> Shard<Q> {
 
                 tracing::debug!("sending identify");
 
-                self.pending = Pending::text(
-                    json::to_string(&Identify::new(IdentifyInfo {
+                self.pending = Pending::event(
+                    Identify::new(IdentifyInfo {
                         compress: false,
                         intents: self.config.intents(),
                         large_threshold: self.config.large_threshold(),
@@ -672,8 +700,7 @@ impl<Q: Queue> Shard<Q> {
                             .unwrap_or_else(default_identify_properties),
                         shard: Some(self.id),
                         token: self.config.token().to_owned(),
-                    }))
-                    .expect("serialization cannot fail"),
+                    }),
                     false,
                 );
                 self.identify_rx = None;
@@ -757,11 +784,8 @@ impl<Q: Queue> Shard<Q> {
             }
             Some(OpCode::Heartbeat) => {
                 tracing::debug!("received heartbeat");
-                self.pending = Pending::text(
-                    json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                        .expect("serialization cannot fail"),
-                    true,
-                );
+                self.pending =
+                    Pending::event(Heartbeat::new(self.session().map(Session::sequence)), true);
             }
             Some(OpCode::HeartbeatAck) => {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
@@ -793,13 +817,8 @@ impl<Q: Queue> Shard<Q> {
                 self.latency = Latency::new();
 
                 if let Some(session) = &self.session {
-                    self.pending = Pending::text(
-                        json::to_string(&Resume::new(
-                            session.sequence(),
-                            session.id(),
-                            self.config.token(),
-                        ))
-                        .expect("serialization cannot fail"),
+                    self.pending = Pending::event(
+                        Resume::new(session.sequence(), session.id(), self.config.token()),
                         false,
                     );
                     self.state = ShardState::Resuming;
@@ -830,7 +849,6 @@ impl<Q: Queue> Shard<Q> {
 impl<Q: Queue + Unpin> Stream for Shard<Q> {
     type Item = Result<Message, ReceiveMessageError>;
 
-    #[allow(clippy::too_many_lines)]
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let message = loop {
             match self.state {
@@ -847,59 +865,7 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
                     return Poll::Ready(None);
                 }
                 ShardState::Disconnected { reconnect_attempts } if self.connection.is_none() => {
-                    if self.connection_future.is_none() {
-                        let base_url = self
-                            .resume_url
-                            .as_deref()
-                            .or_else(|| self.config.proxy_url())
-                            .unwrap_or(GATEWAY_URL);
-                        let uri = format!(
-                            "{base_url}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}"
-                        );
-
-                        tracing::debug!(url = base_url, "connecting to gateway");
-
-                        let tls = self.config.tls.clone();
-                        self.connection_future = Some(ConnectionFuture(Box::pin(async move {
-                            let secs = 2u8.saturating_pow(reconnect_attempts.into());
-                            time::sleep(Duration::from_secs(secs.into())).await;
-
-                            Ok(timeout(
-                                CONNECT_TIMEOUT,
-                                ClientBuilder::new()
-                                    .uri(&uri)
-                                    .expect("URL should be valid")
-                                    .limits(Limits::unlimited())
-                                    .connector(&tls)
-                                    .connect(),
-                            )
-                            .await??
-                            .0)
-                        })));
-                    }
-
-                    let res =
-                        ready!(Pin::new(&mut self.connection_future.as_mut().unwrap().0).poll(cx));
-                    self.connection_future = None;
-                    match res {
-                        Ok(connection) => {
-                            self.connection = Some(connection);
-                            self.state = ShardState::Identifying;
-                            #[cfg(any(feature = "zlib", feature = "zstd"))]
-                            self.decompressor.reset();
-                        }
-                        Err(source) => {
-                            self.resume_url = None;
-                            self.state = ShardState::Disconnected {
-                                reconnect_attempts: reconnect_attempts + 1,
-                            };
-
-                            return Poll::Ready(Some(Err(ReceiveMessageError {
-                                kind: ReceiveMessageErrorType::Reconnect,
-                                source: Some(source.into_boxed_error()),
-                            })));
-                        }
-                    }
+                    ready!(self.poll_connect(cx, reconnect_attempts))?;
                 }
                 _ => {}
             }
