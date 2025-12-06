@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 pub struct TeamMember {
     pub membership_state: TeamMembershipState,
     pub permissions: Vec<String>,
+    pub role: String,
     pub team_id: Id<OauthTeamMarker>,
     pub user: User,
 }
@@ -24,6 +25,7 @@ mod tests {
         let value = TeamMember {
             membership_state: TeamMembershipState::Accepted,
             permissions: vec!["*".to_owned()],
+            role: "".to_owned(),
             team_id: Id::new(1),
             user: User {
                 accent_color: None,
@@ -53,7 +55,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "TeamMember",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("membership_state"),
                 Token::U8(2),
@@ -61,6 +63,8 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Str("*"),
                 Token::SeqEnd,
+                Token::Str("role"),
+                Token::Str(""),
                 Token::Str("team_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
