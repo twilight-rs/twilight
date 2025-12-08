@@ -352,7 +352,7 @@ mod tests {
         assert_variant(EventType::MessagePollVoteAdd, "MESSAGE_POLL_VOTE_ADD");
         assert_variant(EventType::MessagePollVoteRemove, "MESSAGE_POLL_VOTE_REMOVE");
         assert_variant(EventType::PresenceUpdate, "PRESENCE_UPDATE");
-        assert_variant(EventType::RateLimited, "RATE_LIMITD");
+        assert_variant(EventType::RateLimited, "RATE_LIMITED");
         assert_variant(EventType::ReactionAdd, "MESSAGE_REACTION_ADD");
         assert_variant(EventType::ReactionRemove, "MESSAGE_REACTION_REMOVE");
         assert_variant(EventType::ReactionRemoveAll, "MESSAGE_REACTION_REMOVE_ALL");
