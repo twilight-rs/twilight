@@ -12,6 +12,7 @@
 //! [1]: https://discord.com/developers/docs/topics/gateway#commands-and-events-gateway-events
 
 pub mod invite_create;
+pub mod rate_limited;
 pub mod reaction_remove_emoji;
 
 mod auto_moderation_action_execution;
@@ -57,7 +58,6 @@ mod message_poll_vote_add;
 mod message_poll_vote_remove;
 mod message_update;
 mod presence_update;
-pub mod rate_limited;
 mod reaction_add;
 mod reaction_remove;
 mod reaction_remove_all;
