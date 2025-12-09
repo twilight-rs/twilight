@@ -11,6 +11,7 @@ pub enum EventWebhookStatus {
     Enabled,
     /// Event webhooks have been disabled by Discord due to inactivity.
     DisabledByDiscord,
+    /// Variant value is unknown to the library.
     Unknown(u8),
 }
 
@@ -21,6 +22,17 @@ impl From<u8> for EventWebhookStatus {
             2 => Self::Enabled,
             3 => Self::DisabledByDiscord,
             _ => Self::Unknown(value),
+        }
+    }
+}
+
+impl From<EventWebhookStatus> for u8 {
+    fn from(value: EventWebhookStatus) -> Self {
+        match value {
+            EventWebhookStatus::Disabled => 1,
+            EventWebhookStatus::Enabled => 2,
+            EventWebhookStatus::DisabledByDiscord => 3,
+            EventWebhookStatus::Unknown(v) => v,
         }
     }
 }
