@@ -35,7 +35,7 @@ pub struct CurrentAuthorizationInformation {
 mod tests {
     use crate::{
         id::Id,
-        oauth::{Application, scope},
+        oauth::{Application, EventWebhookStatus, scope},
         test::image_hash,
         util::{Timestamp, datetime::TimestampParseError},
     };
@@ -45,7 +45,6 @@ mod tests {
     use serde_test::{Token, assert_tokens};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
-    use crate::oauth::EventWebhookStatus;
 
     assert_fields!(
         CurrentAuthorizationInformation: application,
