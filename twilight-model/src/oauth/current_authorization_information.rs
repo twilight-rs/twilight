@@ -45,6 +45,7 @@ mod tests {
     use serde_test::{Token, assert_tokens};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
+    use crate::oauth::EventWebhookStatus;
 
     assert_fields!(
         CurrentAuthorizationInformation: application,
@@ -79,6 +80,8 @@ mod tests {
                 cover_image: None,
                 custom_install_url: None,
                 description: DESCRIPTION.to_owned(),
+                event_webhooks_url: None,
+                event_webhooks_status: EventWebhookStatus::Disabled,
                 flags: None,
                 guild: None,
                 guild_id: None,
@@ -115,7 +118,7 @@ mod tests {
                 Token::Str("application"),
                 Token::Struct {
                     name: "Application",
-                    len: 12,
+                    len: 13,
                 },
                 Token::Str("approximate_guild_count"),
                 Token::Some,
@@ -129,6 +132,8 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("description"),
                 Token::Str(DESCRIPTION),
+                Token::Str("event_webhooks_status"),
+                Token::U8(1),
                 Token::Str("flags"),
                 Token::None,
                 Token::Str("icon"),
