@@ -2780,6 +2780,9 @@ impl Client {
 
     /// Adds an emoji to an application
     ///
+    /// Needs to be base64 encoded and prefixed and tagged.
+    /// Can be up to 128x128 in size
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -2793,7 +2796,7 @@ impl Client {
     /// let application_id = Id::new(1);
     ///
     /// client
-    ///     .add_application_emoji(application_id, "emoji name", "emoji image")
+    ///     .add_application_emoji(application_id, "name", "data:image/png;base64,image_data")
     ///     .await?;
     ///
     /// # Ok(()) }
