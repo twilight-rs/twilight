@@ -190,7 +190,7 @@ fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u8 {
 mod tests {
     use super::{CommandRatelimiter, PERIOD, nonreserved_commands_per_reset};
     use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, future::poll_fn, time::Duration};
+    use std::{fmt::Debug, future::poll_fn, ops::Sub, time::Duration};
     use tokio::time;
 
     assert_impl_all!(CommandRatelimiter: Debug, Send, Sync);
@@ -227,7 +227,7 @@ mod tests {
         assert_eq!(ratelimiter.available(), 0);
 
         // Should not refill until PERIOD has passed.
-        time::advance(PERIOD - Duration::from_millis(100)).await;
+        time::advance(PERIOD.sub(Duration::from_millis(100))).await;
         assert_eq!(ratelimiter.available(), 0);
 
         // All should be refilled.
@@ -286,7 +286,7 @@ mod tests {
         }
         assert_eq!(ratelimiter.available(), ratelimiter.max() - 5);
 
-        time::advance(PERIOD - Duration::from_millis(80)).await;
+        time::advance(PERIOD.sub(Duration::from_millis(80))).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max() - 4);
 
         for _ in 0..4 {
