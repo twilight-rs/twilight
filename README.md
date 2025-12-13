@@ -129,6 +129,9 @@ async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
+    // Select rustls backend
+    rustls::crypto::ring::default_provider().install_default().unwrap();
+
     let token = env::var("DISCORD_TOKEN")?;
 
     // Use intents to only receive guild message events.

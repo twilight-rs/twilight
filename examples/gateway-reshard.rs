@@ -21,6 +21,9 @@ use twilight_http::Client;
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
+    // Select rustls backend
+    rustls::crypto::ring::default_provider().install_default().unwrap();
+
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
     let config = Config::new(token, Intents::GUILDS);
