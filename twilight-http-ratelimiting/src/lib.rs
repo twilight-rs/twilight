@@ -23,7 +23,7 @@ use tokio::sync::{mpsc, oneshot};
 /// resets to the global limit count.
 pub const GLOBAL_LIMIT_PERIOD: Duration = Duration::from_secs(1);
 
-/// User actionable description of the actor panicked.
+/// User actionable description that the actor panicked.
 const ACTOR_PANIC_MESSAGE: &str =
     "actor task panicked: report its panic message to the maintainers";
 
