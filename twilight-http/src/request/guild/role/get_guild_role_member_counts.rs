@@ -18,7 +18,7 @@ pub struct GetGuildRoleMemberCounts<'a> {
 }
 
 impl<'a> GetGuildRoleMemberCounts<'a> {
-    pub(crate) fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self { guild_id, http }
     }
 }
