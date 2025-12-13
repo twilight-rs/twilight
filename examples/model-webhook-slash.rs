@@ -174,7 +174,9 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     // Select rustls backend
-    rustls::crypto::ring::default_provider().install_default().unwrap();
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
 
     // Local address to bind the service to.
     let addr = SocketAddr::from(([127, 0, 0, 1], 3030));

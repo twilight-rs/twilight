@@ -45,7 +45,9 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     // Select rustls backend
-    rustls::crypto::ring::default_provider().install_default().unwrap();
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
 
     let (mut shard, state) = {
         let token = env::var("DISCORD_TOKEN")?;

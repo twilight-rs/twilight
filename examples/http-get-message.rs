@@ -9,7 +9,9 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     // Select rustls backend
-    rustls::crypto::ring::default_provider().install_default().unwrap();
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
 
     let client = Client::new(env::var("DISCORD_TOKEN")?);
     let channel_id = Id::new(381_926_291_785_383_946);
