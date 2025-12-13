@@ -71,7 +71,8 @@ use crate::{
                 RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
             },
             role::{
-                CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
+                CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRoles, GetRole,
+                UpdateRole, UpdateRolePositions,
             },
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
@@ -1669,6 +1670,14 @@ impl Client {
     /// Get the roles of a guild.
     pub const fn roles(&self, guild_id: Id<GuildMarker>) -> GetGuildRoles<'_> {
         GetGuildRoles::new(self, guild_id)
+    }
+
+    /// Get the role member counts of a guild.
+    pub const fn role_member_counts(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetGuildRoleMemberCounts<'_> {
+        GetGuildRoleMemberCounts::new(self, guild_id)
     }
 
     /// Get a role of a guild.

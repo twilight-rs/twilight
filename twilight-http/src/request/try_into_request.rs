@@ -76,7 +76,8 @@ mod private {
                 RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
             },
             role::{
-                CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
+                CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRoles, GetRole,
+                UpdateRole, UpdateRolePositions,
             },
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
@@ -221,6 +222,7 @@ mod private {
     impl Sealed for GetGuildOnboarding<'_> {}
     impl Sealed for GetGuildPreview<'_> {}
     impl Sealed for GetGuildPruneCount<'_> {}
+    impl Sealed for GetGuildRoleMemberCounts<'_> {}
     impl Sealed for GetGuildRoles<'_> {}
     impl Sealed for GetGuildScheduledEvent<'_> {}
     impl Sealed for GetGuildScheduledEventUsers<'_> {}
