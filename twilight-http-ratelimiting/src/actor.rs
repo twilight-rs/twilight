@@ -336,10 +336,9 @@ pub async fn runner(
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        ops::Sub,
-        time::{Duration, Instant},
-    };
+    #![allow(clippy::unchecked_time_subtraction)]
+
+    use std::time::{Duration, Instant};
     use tokio::time;
 
     use crate::{Endpoint, Method, RateLimitHeaders, RateLimiter, actor::GC_INTERVAL};
@@ -368,7 +367,7 @@ mod tests {
                 reset_at: Instant::now() + RESET_AFTER,
             }));
 
-        time::advance(GC_INTERVAL.sub(RESET_AFTER)).await;
+        time::advance(GC_INTERVAL - RESET_AFTER).await;
 
         rate_limiter
             .acquire(ENDPOINT2())
