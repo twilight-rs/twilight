@@ -1,10 +1,13 @@
-use crate::id::{Id, marker::GuildMarker};
+use crate::{
+    gateway::OpCode,
+    id::{Id, marker::GuildMarker},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct RateLimited {
-    pub opcode: u8,
-    pub retry_after: f64,
+    pub opcode: OpCode,
+    pub retry_after: f32,
     pub meta: RateLimitMetadata,
 }
 
