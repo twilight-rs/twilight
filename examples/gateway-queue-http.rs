@@ -39,6 +39,11 @@ impl Queue for HttpQueue {
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
+    // Select rustls backend
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
+
     let token = env::var("DISCORD_TOKEN")?;
     let intents = Intents::GUILDS | Intents::GUILD_VOICE_STATES;
 
