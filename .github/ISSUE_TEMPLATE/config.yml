@@ -1,4 +1,4 @@
 contact_links:
-    - name: Support Server
-      url: https://discord.gg/7jj8n7D
-      about: Ask a question here before making an issue, if possible.
+  - name: Support Server
+    url: https://discord.gg/twilight-rs
+    about: Ask a question here before making an issue, if possible.
