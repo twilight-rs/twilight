@@ -336,6 +336,8 @@ pub async fn runner(
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unchecked_time_subtraction)]
+
     use std::time::{Duration, Instant};
     use tokio::time;
 
