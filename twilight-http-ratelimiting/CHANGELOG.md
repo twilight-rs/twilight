@@ -2,7 +2,7 @@
 
 ## [0.17.1] - 2025-12-13
 
-**NOTE**: We reccomend everyone to update to this version as soon as
+**NOTE**: We recommend everyone to update to this version as soon as
 possible as the ratelimiter may panic in some cases on version 0.17.0.
 
 ### Bug Fixes
