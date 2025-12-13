@@ -209,9 +209,7 @@ impl Permit {
     /// on receiving a response.
     #[allow(clippy::missing_panics_doc)]
     pub fn complete(self, headers: Option<RateLimitHeaders>) {
-        if self.0.send(headers).is_err() {
-            panic!("{ACTOR_PANIC_MESSAGE}");
-        }
+        assert!(self.0.send(headers).is_ok(), "{ACTOR_PANIC_MESSAGE}");
     }
 }
 
@@ -224,6 +222,7 @@ impl Future for PermitFuture {
     type Output = Permit;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        #[allow(clippy::match_wild_err_arm)]
         Pin::new(&mut self.0).poll(cx).map(|r| match r {
             Ok(sender) => Permit(sender),
             Err(_) => panic!("{ACTOR_PANIC_MESSAGE}"),
@@ -289,9 +288,10 @@ impl RateLimiter {
     pub fn acquire(&self, endpoint: Endpoint) -> PermitFuture {
         let (notifier, rx) = oneshot::channel();
         let message = actor::Message { endpoint, notifier };
-        if self.tx.send((message, None)).is_err() {
-            panic!("{ACTOR_PANIC_MESSAGE}");
-        }
+        assert!(
+            self.tx.send((message, None)).is_ok(),
+            "{ACTOR_PANIC_MESSAGE}"
+        );
 
         PermitFuture(rx)
     }
@@ -334,9 +334,10 @@ impl RateLimiter {
     {
         let (notifier, rx) = oneshot::channel();
         let message = actor::Message { endpoint, notifier };
-        if self.tx.send((message, Some(Box::new(predicate)))).is_err() {
-            panic!("{ACTOR_PANIC_MESSAGE}");
-        }
+        assert!(
+            self.tx.send((message, Some(Box::new(predicate)))).is_ok(),
+            "{ACTOR_PANIC_MESSAGE}"
+        );
 
         MaybePermitFuture(rx)
     }
@@ -354,6 +355,7 @@ impl RateLimiter {
         })
         .await;
 
+        #[allow(clippy::match_wild_err_arm)]
         match rx.await {
             Ok(bucket) => bucket,
             Err(_) => panic!("{ACTOR_PANIC_MESSAGE}"),
