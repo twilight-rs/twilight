@@ -60,6 +60,7 @@ pub enum EventType {
     MessagePollVoteRemove,
     MessageUpdate,
     PresenceUpdate,
+    RateLimited,
     #[serde(rename = "MESSAGE_REACTION_ADD")]
     ReactionAdd,
     #[serde(rename = "MESSAGE_REACTION_REMOVE")]
@@ -139,6 +140,7 @@ impl EventType {
             Self::MessagePollVoteAdd => Some("MESSAGE_POLL_VOTE_ADD"),
             Self::MessagePollVoteRemove => Some("MESSAGE_POLL_VOTE_REMOVE"),
             Self::PresenceUpdate => Some("PRESENCE_UPDATE"),
+            Self::RateLimited => Some("RATE_LIMITED"),
             Self::ReactionAdd => Some("MESSAGE_REACTION_ADD"),
             Self::ReactionRemove => Some("MESSAGE_REACTION_REMOVE"),
             Self::ReactionRemoveAll => Some("MESSAGE_REACTION_REMOVE_ALL"),
@@ -222,6 +224,7 @@ impl<'a> TryFrom<&'a str> for EventType {
             "MESSAGE_REACTION_REMOVE" => Ok(Self::ReactionRemove),
             "MESSAGE_REACTION_REMOVE_ALL" => Ok(Self::ReactionRemoveAll),
             "MESSAGE_REACTION_REMOVE_EMOJI" => Ok(Self::ReactionRemoveEmoji),
+            "RATE_LIMITED" => Ok(Self::RateLimited),
             "READY" => Ok(Self::Ready),
             "RESUMED" => Ok(Self::Resumed),
             "GUILD_ROLE_CREATE" => Ok(Self::RoleCreate),
@@ -349,6 +352,7 @@ mod tests {
         assert_variant(EventType::MessagePollVoteAdd, "MESSAGE_POLL_VOTE_ADD");
         assert_variant(EventType::MessagePollVoteRemove, "MESSAGE_POLL_VOTE_REMOVE");
         assert_variant(EventType::PresenceUpdate, "PRESENCE_UPDATE");
+        assert_variant(EventType::RateLimited, "RATE_LIMITED");
         assert_variant(EventType::ReactionAdd, "MESSAGE_REACTION_ADD");
         assert_variant(EventType::ReactionRemove, "MESSAGE_REACTION_REMOVE");
         assert_variant(EventType::ReactionRemoveAll, "MESSAGE_REACTION_REMOVE_ALL");

@@ -57,6 +57,7 @@ pub enum DispatchEvent {
     MessagePollVoteRemove(MessagePollVoteRemove),
     MessageUpdate(Box<MessageUpdate>),
     PresenceUpdate(Box<PresenceUpdate>),
+    RateLimited(RateLimited),
     ReactionAdd(Box<ReactionAdd>),
     ReactionRemove(Box<ReactionRemove>),
     ReactionRemoveAll(ReactionRemoveAll),
@@ -130,6 +131,7 @@ impl DispatchEvent {
             Self::MessagePollVoteRemove(_) => EventType::MessagePollVoteRemove,
             Self::MessageUpdate(_) => EventType::MessageUpdate,
             Self::PresenceUpdate(_) => EventType::PresenceUpdate,
+            Self::RateLimited(_) => EventType::RateLimited,
             Self::ReactionAdd(_) => EventType::ReactionAdd,
             Self::ReactionRemove(_) => EventType::ReactionRemove,
             Self::ReactionRemoveAll(_) => EventType::ReactionRemoveAll,
@@ -389,6 +391,7 @@ impl<'de> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'_> {
             "PRESENCE_UPDATE" => {
                 DispatchEvent::PresenceUpdate(Box::new(PresenceUpdate::deserialize(deserializer)?))
             }
+            "RATE_LIMITED" => DispatchEvent::RateLimited(RateLimited::deserialize(deserializer)?),
             "READY" => DispatchEvent::Ready(Ready::deserialize(deserializer)?),
             "RESUMED" => {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
