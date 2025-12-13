@@ -23,6 +23,10 @@ use tokio::sync::{mpsc, oneshot};
 /// resets to the global limit count.
 pub const GLOBAL_LIMIT_PERIOD: Duration = Duration::from_secs(1);
 
+/// User actionable description of the actor panicked.
+const ACTOR_PANIC_MESSAGE: &str =
+    "actor task panicked: report its panic message to the maintainers";
+
 /// HTTP request [method].
 ///
 /// [method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
@@ -205,7 +209,9 @@ impl Permit {
     /// on receiving a response.
     #[allow(clippy::missing_panics_doc)]
     pub fn complete(self, headers: Option<RateLimitHeaders>) {
-        self.0.send(headers).expect("actor is alive");
+        if self.0.send(headers).is_err() {
+            panic!("{ACTOR_PANIC_MESSAGE}");
+        }
     }
 }
 
@@ -218,9 +224,10 @@ impl Future for PermitFuture {
     type Output = Permit;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        Pin::new(&mut self.0)
-            .poll(cx)
-            .map(|r| Permit(r.expect("actor is alive")))
+        Pin::new(&mut self.0).poll(cx).map(|r| match r {
+            Ok(sender) => Permit(sender),
+            Err(_) => panic!("{ACTOR_PANIC_MESSAGE}"),
+        })
     }
 }
 
@@ -280,16 +287,11 @@ impl RateLimiter {
     /// Permits are queued per endpoint in the order they were requested.
     #[allow(clippy::missing_panics_doc)]
     pub fn acquire(&self, endpoint: Endpoint) -> PermitFuture {
-        let (tx, rx) = oneshot::channel();
-        self.tx
-            .send((
-                actor::Message {
-                    endpoint,
-                    notifier: tx,
-                },
-                None,
-            ))
-            .expect("actor is alive");
+        let (notifier, rx) = oneshot::channel();
+        let message = actor::Message { endpoint, notifier };
+        if self.tx.send((message, None)).is_err() {
+            panic!("{ACTOR_PANIC_MESSAGE}");
+        }
 
         PermitFuture(rx)
     }
@@ -330,16 +332,11 @@ impl RateLimiter {
     where
         P: FnOnce(Option<Bucket>) -> bool + Send + 'static,
     {
-        let (tx, rx) = oneshot::channel();
-        self.tx
-            .send((
-                actor::Message {
-                    endpoint,
-                    notifier: tx,
-                },
-                Some(Box::new(predicate)),
-            ))
-            .expect("actor is alive");
+        let (notifier, rx) = oneshot::channel();
+        let message = actor::Message { endpoint, notifier };
+        if self.tx.send((message, Some(Box::new(predicate)))).is_err() {
+            panic!("{ACTOR_PANIC_MESSAGE}");
+        }
 
         MaybePermitFuture(rx)
     }
@@ -351,12 +348,16 @@ impl RateLimiter {
     pub async fn bucket(&self, endpoint: Endpoint) -> Option<Bucket> {
         let (tx, rx) = oneshot::channel();
         self.acquire_if(endpoint, |bucket| {
+            // Ignore cancellation error.
             _ = tx.send(bucket);
             false
         })
         .await;
 
-        rx.await.expect("actor is alive")
+        match rx.await {
+            Ok(bucket) => bucket,
+            Err(_) => panic!("{ACTOR_PANIC_MESSAGE}"),
+        }
     }
 }
 
