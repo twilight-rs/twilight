@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.17.1] - 2025-12-13
+
+### Bug Fixes
+
+- fix new clippy errors in the tests ([#2486](https://github.com/twilight-rs/twilight/issues/2486))
+
+### Features
+
+- add gateway ratelimited event ([#2483](https://github.com/twilight-rs/twilight/issues/2483))
+
+### Refactor
+
+- misc shard clean up ([#2468](https://github.com/twilight-rs/twilight/issues/2468))
+
 ## [0.17.0] - 2025-11-08
 
 ### Bug Fixes
