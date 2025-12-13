@@ -16,6 +16,7 @@ pub struct RateLimited {
 pub enum RateLimitMetadata {
     RequestGuildMembers {
         guild_id: Id<GuildMarker>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         nonce: Option<String>,
     },
 }
