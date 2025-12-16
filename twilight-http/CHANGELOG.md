@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.17.1] - 2025-12-13
+
+### Documentation
+
+- clarify add application emoji example ([#2485](https://github.com/twilight-rs/twilight/issues/2485))
+
+### Features
+
+- get guild role member counts ([#2489](https://github.com/twilight-rs/twilight/issues/2489))
+
 ## [0.17.0] - 2025-11-08
 
 ### Bug Fixes

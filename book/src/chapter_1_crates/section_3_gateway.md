@@ -89,6 +89,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
+    // Select rustls backend
+    rustls::crypto::ring::default_provider().install_default().unwrap();
+
     let token = env::var("DISCORD_TOKEN")?;
     let intents = Intents::GUILD_MESSAGES;
     let mut shard = Shard::new(ShardId::ONE, token, intents);

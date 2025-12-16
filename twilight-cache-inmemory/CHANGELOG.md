@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.17.1] - 2025-12-13
+
+### Features
+
+- add gateway ratelimited event ([#2483](https://github.com/twilight-rs/twilight/issues/2483))
+
 ## [0.17.0] - 2025-11-08
 
 ### Bug Fixes

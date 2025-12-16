@@ -648,6 +648,10 @@ pub enum Route<'a> {
         /// pruned.
         include_roles: &'a [Id<RoleMarker>],
     },
+    /// Route information to get guild's roles' member counts.
+    GetGuildRoleMemberCounts {
+        guild_id: u64,
+    },
     /// Route information to get guild's roles.
     GetGuildRoles {
         /// The ID of the guild.
@@ -1304,6 +1308,7 @@ impl Route<'_> {
             | Self::GetGuildPreview { .. }
             | Self::GetGuildPruneCount { .. }
             | Self::GetGuildRoles { .. }
+            | Self::GetGuildRoleMemberCounts { .. }
             | Self::GetGuildScheduledEvent { .. }
             | Self::GetGuildScheduledEventUsers { .. }
             | Self::GetGuildScheduledEvents { .. }
@@ -1714,6 +1719,12 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/roles")
+            }
+            Route::GetGuildRoleMemberCounts { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/roles/member-counts")
             }
             Route::CreateStageInstance { .. } => f.write_str("stage-instances"),
             Route::CreateTemplate { guild_id } | Route::GetTemplates { guild_id } => {

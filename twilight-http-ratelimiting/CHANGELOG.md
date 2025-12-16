@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.17.1] - 2025-12-13
+
+**NOTE**: We recommend everyone to update to this version as soon as
+possible as the ratelimiter may panic in some cases on version 0.17.0.
+
+### Bug Fixes
+
+- fix new clippy errors in the tests ([#2486](https://github.com/twilight-rs/twilight/issues/2486))
+- filter removed queues in actor gc ([#2490](https://github.com/twilight-rs/twilight/issues/2490))
+
+### Features
+
+- improve actor panic message ([#2487](https://github.com/twilight-rs/twilight/issues/2487))
+
+### Performance
+
+- drop stale requests early ([#2469](https://github.com/twilight-rs/twilight/issues/2469))
+
 ## [0.17.0] - 2025-11-08
 
 ### Bug Fixes

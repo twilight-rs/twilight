@@ -188,6 +188,8 @@ fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u8 {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unchecked_time_subtraction)]
+
     use super::{CommandRatelimiter, PERIOD, nonreserved_commands_per_reset};
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, future::poll_fn, time::Duration};

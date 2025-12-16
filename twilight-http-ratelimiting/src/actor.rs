@@ -166,16 +166,21 @@ pub async fn runner(
                 let _span = tracing::debug_span!("gc").entered();
                 buckets.retain(|endpoint, bucket| {
                     let hash = hasher.bucket(bucket, endpoint);
-                    let entry = queues.find_entry(hash, |&(key, _)| key == hash).unwrap();
-                    let (_, queue) = entry.get();
+                    match queues.find_entry(hash, |&(key, _)| key == hash) {
+                        Ok(entry) => {
+                            let (_, queue) = entry.get();
 
-                    let retain = queue.in_flight || !queue.pending.is_empty() || queue.reset.is_some();
-                    if !retain {
-                        entry.remove();
-                        tracing::debug!(hash, "removed");
+                            let retain = queue.in_flight || !queue.pending.is_empty() || queue.reset.is_some();
+                            if !retain {
+                                entry.remove();
+                                tracing::debug!(hash, "removed");
+                            }
+
+                            retain
+                        }
+                        // Already removed.
+                        Err(_) => false,
                     }
-
-                    retain
                 });
                 gc_interval.as_mut().reset(Instant::now() + GC_INTERVAL);
             }
@@ -336,6 +341,8 @@ pub async fn runner(
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unchecked_time_subtraction)]
+
     use std::time::{Duration, Instant};
     use tokio::time;
 

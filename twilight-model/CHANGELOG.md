@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.1] - 2025-12-13
+
+### Features
+
+- add bypass slowmode permission ([#2480](https://github.com/twilight-rs/twilight/issues/2480))
+- split guild expressions and events permission ([#2482](https://github.com/twilight-rs/twilight/issues/2482))
+- add gateway ratelimited event ([#2483](https://github.com/twilight-rs/twilight/issues/2483))
+
 ## [0.17.0] - 2025-11-08
 
 ### Bug Fixes

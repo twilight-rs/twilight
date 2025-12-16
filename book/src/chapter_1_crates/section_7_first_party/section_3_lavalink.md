@@ -61,6 +61,12 @@ use twilight_lavalink::Lavalink;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
+
+    // Select rustls backend
+    rustls::crypto::ring::default_provider().install_default().unwrap();
+
     let token = env::var("DISCORD_TOKEN")?;
     let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
     let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;

@@ -12,6 +12,7 @@ pub use self::{
 };
 
 use super::{CloseFrame, payload::incoming::*};
+use crate::gateway::payload::incoming::rate_limited::RateLimitMetadata;
 use crate::id::{Id, marker::GuildMarker};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
@@ -129,6 +130,8 @@ pub enum Event {
     MessageUpdate(Box<MessageUpdate>),
     /// A user's active presence (such as game or online status) was updated.
     PresenceUpdate(Box<PresenceUpdate>),
+    /// A shard was rate limited for a gateway opcode.
+    RateLimited(RateLimited),
     /// A reaction was added to a message.
     ReactionAdd(Box<ReactionAdd>),
     /// A reaction was removed from a message.
@@ -225,6 +228,10 @@ impl Event {
             Event::MessagePollVoteAdd(e) => e.guild_id,
             Event::MessagePollVoteRemove(e) => e.guild_id,
             Event::PresenceUpdate(e) => Some(e.0.guild_id),
+            Event::RateLimited(RateLimited {
+                meta: RateLimitMetadata::RequestGuildMembers { guild_id, .. },
+                ..
+            }) => Some(*guild_id),
             Event::ReactionAdd(e) => e.0.guild_id,
             Event::ReactionRemove(e) => e.0.guild_id,
             Event::ReactionRemoveAll(e) => e.guild_id,
@@ -312,6 +319,7 @@ impl Event {
             Self::MessagePollVoteRemove(_) => EventType::MessagePollVoteRemove,
             Self::MessageUpdate(_) => EventType::MessageUpdate,
             Self::PresenceUpdate(_) => EventType::PresenceUpdate,
+            Self::RateLimited(_) => EventType::RateLimited,
             Self::ReactionAdd(_) => EventType::ReactionAdd,
             Self::ReactionRemove(_) => EventType::ReactionRemove,
             Self::ReactionRemoveAll(_) => EventType::ReactionRemoveAll,
@@ -393,6 +401,7 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::MessagePollVoteRemove(v) => Self::MessagePollVoteRemove(v),
             DispatchEvent::MessageUpdate(v) => Self::MessageUpdate(v),
             DispatchEvent::PresenceUpdate(v) => Self::PresenceUpdate(v),
+            DispatchEvent::RateLimited(v) => Self::RateLimited(v),
             DispatchEvent::ReactionAdd(v) => Self::ReactionAdd(v),
             DispatchEvent::ReactionRemove(v) => Self::ReactionRemove(v),
             DispatchEvent::ReactionRemoveAll(v) => Self::ReactionRemoveAll(v),
@@ -464,7 +473,7 @@ impl Error for EventConversionError {}
 
 #[cfg(test)]
 mod tests {
-    //! `EVENT_THRESHOLD` is equivalent to 192 bytes. This was decided based on
+    //! `EVENT_THRESHOLD` is equivalent to 312 bytes. This was decided based on
     //! the size of `Event` at the time of writing. The assertions here are to
     //! ensure that in the case the events themselves grow or shrink past the
     //! threshold, they are properly boxed or unboxed respectively.
@@ -534,6 +543,7 @@ mod tests {
     const_assert!(mem::size_of::<MessageDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MessageDeleteBulk>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MemberRemove>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<RateLimited>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<Ready>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ReactionRemoveAll>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<RoleCreate>() <= EVENT_THRESHOLD);

@@ -71,7 +71,8 @@ use crate::{
                 RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
             },
             role::{
-                CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
+                CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRoles, GetRole,
+                UpdateRole, UpdateRolePositions,
             },
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
@@ -1671,6 +1672,14 @@ impl Client {
         GetGuildRoles::new(self, guild_id)
     }
 
+    /// Get the role member counts of a guild.
+    pub const fn role_member_counts(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetGuildRoleMemberCounts<'_> {
+        GetGuildRoleMemberCounts::new(self, guild_id)
+    }
+
     /// Get a role of a guild.
     pub const fn role(&self, guild_id: Id<GuildMarker>, role_id: Id<RoleMarker>) -> GetRole<'_> {
         GetRole::new(self, guild_id, role_id)
@@ -2780,6 +2789,9 @@ impl Client {
 
     /// Adds an emoji to an application
     ///
+    /// Needs to be base64 encoded and prefixed and tagged.
+    /// Can be up to 128x128 in size
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -2793,7 +2805,7 @@ impl Client {
     /// let application_id = Id::new(1);
     ///
     /// client
-    ///     .add_application_emoji(application_id, "emoji name", "emoji image")
+    ///     .add_application_emoji(application_id, "name", "data:image/png;base64,image_data")
     ///     .await?;
     ///
     /// # Ok(()) }
