@@ -30,8 +30,8 @@
 //!
 //! ```
 //! use twilight_model::id::{
-//!     marker::{GuildMarker, RoleMarker},
 //!     Id,
+//!     marker::{GuildMarker, RoleMarker},
 //! };
 //!
 //! // Often Rust's type inference will be able to infer the type of ID.
@@ -57,7 +57,7 @@ use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     hash::{Hash, Hasher},
     marker::PhantomData,
-    num::{NonZeroI64, NonZeroU64, ParseIntError, TryFromIntError},
+    num::{NonZero, ParseIntError, TryFromIntError},
     str::FromStr,
 };
 
@@ -78,11 +78,11 @@ use std::{
 #[repr(transparent)]
 pub struct Id<T> {
     phantom: PhantomData<fn(T) -> T>,
-    value: NonZeroU64,
+    value: NonZero<u64>,
 }
 
 impl<T> Id<T> {
-    const fn from_nonzero(value: NonZeroU64) -> Self {
+    const fn from_nonzero(value: NonZero<u64>) -> Self {
         Self {
             phantom: PhantomData,
             value,
@@ -98,7 +98,7 @@ impl<T> Id<T> {
     /// # Examples
     ///
     /// ```
-    /// use twilight_model::id::{marker::GenericMarker, Id};
+    /// use twilight_model::id::{Id, marker::GenericMarker};
     ///
     /// const ID: Id<GenericMarker> = Id::new(123);
     ///
@@ -128,7 +128,7 @@ impl<T> Id<T> {
     /// The value must not be zero.
     #[allow(unsafe_code)]
     pub const unsafe fn new_unchecked(n: u64) -> Self {
-        Self::from_nonzero(NonZeroU64::new_unchecked(n))
+        Self::from_nonzero(unsafe { NonZero::new_unchecked(n) })
     }
 
     /// Create an ID if the provided value is not zero.
@@ -136,7 +136,7 @@ impl<T> Id<T> {
     /// # Examples
     ///
     /// ```
-    /// use twilight_model::id::{marker::GenericMarker, Id};
+    /// use twilight_model::id::{Id, marker::GenericMarker};
     ///
     /// assert!(Id::<GenericMarker>::new_checked(123).is_some());
     /// assert!(Id::<GenericMarker>::new_checked(0).is_none());
@@ -144,7 +144,7 @@ impl<T> Id<T> {
     ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new_checked(n: u64) -> Option<Self> {
-        if let Some(n) = NonZeroU64::new(n) {
+        if let Some(n) = NonZero::new(n) {
             Some(Self::from_nonzero(n))
         } else {
             None
@@ -160,7 +160,7 @@ impl<T> Id<T> {
     /// Create an ID with a value and then confirm its inner value:
     ///
     /// ```
-    /// use twilight_model::id::{marker::ChannelMarker, Id};
+    /// use twilight_model::id::{Id, marker::ChannelMarker};
     ///
     /// let channel_id = Id::<ChannelMarker>::new(7);
     ///
@@ -178,13 +178,13 @@ impl<T> Id<T> {
     ///
     /// ```
     /// use std::num::NonZeroU64;
-    /// use twilight_model::id::{marker::ChannelMarker, Id};
+    /// use twilight_model::id::{Id, marker::ChannelMarker};
     ///
     /// let channel_id = Id::<ChannelMarker>::new(7);
     ///
     /// assert_eq!(NonZeroU64::new(7).unwrap(), channel_id.into_nonzero());
     /// ```
-    pub const fn into_nonzero(self) -> NonZeroU64 {
+    pub const fn into_nonzero(self) -> NonZero<u64> {
         self.value
     }
 
@@ -196,8 +196,8 @@ impl<T> Id<T> {
     ///
     /// ```
     /// use twilight_model::id::{
-    ///     marker::{GuildMarker, RoleMarker},
     ///     Id,
+    ///     marker::{GuildMarker, RoleMarker},
     /// };
     ///
     /// let role_id: Id<RoleMarker> = Id::new(1);
@@ -226,12 +226,12 @@ impl<T> Debug for Id<T> {
         // `any::type_name` will usually provide an FQN, so we'll do our best
         // (and simplest) method here of removing it to only get the type name
         // itself.
-        if let Some(position) = type_name.rfind("::") {
-            if let Some(slice) = type_name.get(position + 2..) {
-                f.write_str("<")?;
-                f.write_str(slice)?;
-                f.write_str(">")?;
-            }
+        if let Some(position) = type_name.rfind("::")
+            && let Some(slice) = type_name.get(position + 2..)
+        {
+            f.write_str("<")?;
+            f.write_str(slice)?;
+            f.write_str(">")?;
         }
 
         f.write_str("(")?;
@@ -263,7 +263,7 @@ impl<'de, T> Deserialize<'de> for Id<T> {
             }
 
             fn visit_u64<E: DeError>(self, value: u64) -> Result<Self::Value, E> {
-                let value = NonZeroU64::new(value).ok_or_else(|| {
+                let value = NonZero::new(value).ok_or_else(|| {
                     DeError::invalid_value(Unexpected::Unsigned(value), &"non zero u64")
                 })?;
 
@@ -312,13 +312,13 @@ impl<T> From<Id<T>> for u64 {
     }
 }
 
-impl<T> From<NonZeroU64> for Id<T> {
-    fn from(id: NonZeroU64) -> Self {
+impl<T> From<NonZero<u64>> for Id<T> {
+    fn from(id: NonZero<u64>) -> Self {
         Self::from_nonzero(id)
     }
 }
 
-impl<T> From<Id<T>> for NonZeroU64 {
+impl<T> From<Id<T>> for NonZero<u64> {
     fn from(id: Id<T>) -> Self {
         id.into_nonzero()
     }
@@ -328,7 +328,7 @@ impl<T> FromStr for Id<T> {
     type Err = ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        NonZeroU64::from_str(s).map(Self::from_nonzero)
+        NonZero::from_str(s).map(Self::from_nonzero)
     }
 }
 
@@ -392,8 +392,8 @@ impl<T> TryFrom<i64> for Id<T> {
     type Error = TryFromIntError;
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        let signed_nonzero = NonZeroI64::try_from(value)?;
-        let unsigned_nonzero = NonZeroU64::try_from(signed_nonzero)?;
+        let signed_nonzero = NonZero::try_from(value)?;
+        let unsigned_nonzero = NonZero::try_from(signed_nonzero)?;
 
         Ok(Self::from_nonzero(unsigned_nonzero))
     }
@@ -403,7 +403,7 @@ impl<T> TryFrom<u64> for Id<T> {
     type Error = TryFromIntError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        let nonzero = NonZeroU64::try_from(value)?;
+        let nonzero = NonZero::try_from(value)?;
 
         Ok(Self::from_nonzero(nonzero))
     }
@@ -412,13 +412,13 @@ impl<T> TryFrom<u64> for Id<T> {
 #[cfg(test)]
 mod tests {
     use super::{
+        Id,
         marker::{
             ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
             CommandVersionMarker, EmojiMarker, EntitlementMarker, GenericMarker, GuildMarker,
             IntegrationMarker, InteractionMarker, MessageMarker, RoleMarker,
             RoleSubscriptionSkuMarker, SkuMarker, StageMarker, UserMarker, WebhookMarker,
         },
-        Id,
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;

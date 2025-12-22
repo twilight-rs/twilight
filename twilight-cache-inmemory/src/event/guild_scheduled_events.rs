@@ -4,11 +4,11 @@ use twilight_model::{
         GuildScheduledEventUserAdd, GuildScheduledEventUserRemove,
     },
     guild::scheduled_event::GuildScheduledEvent,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 use crate::{
-    traits::CacheableGuildScheduledEvent, CacheableModels, InMemoryCache, ResourceType, UpdateCache,
+    CacheableModels, InMemoryCache, ResourceType, UpdateCache, traits::CacheableGuildScheduledEvent,
 };
 
 impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
@@ -57,10 +57,10 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildScheduledEv
             return;
         }
 
-        if cache.scheduled_events.remove(&self.id).is_some() {
-            if let Some(mut events) = cache.guild_scheduled_events.get_mut(&self.guild_id) {
-                events.remove(&self.id);
-            }
+        if cache.scheduled_events.remove(&self.id).is_some()
+            && let Some(mut events) = cache.guild_scheduled_events.get_mut(&self.guild_id)
+        {
+            events.remove(&self.id);
         }
     }
 }
@@ -103,7 +103,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for GuildScheduledEv
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use twilight_model::{
         gateway::payload::incoming::{
             GuildScheduledEventCreate, GuildScheduledEventUserAdd, GuildScheduledEventUserRemove,

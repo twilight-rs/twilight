@@ -1,6 +1,4 @@
 use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
-use http::Response;
-use hyper::body::Incoming;
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -9,8 +7,8 @@ use std::{
 
 #[derive(Debug)]
 pub struct Error {
-    pub(super) source: Option<Box<dyn StdError + Send + Sync>>,
     pub(super) kind: ErrorType,
+    pub(super) source: Option<Box<dyn StdError + Send + Sync>>,
 }
 
 impl Error {
@@ -51,16 +49,15 @@ impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
             ErrorType::BuildingRequest => f.write_str("failed to build the request"),
-            ErrorType::ChunkingResponse => f.write_str("Chunking the response failed"),
             ErrorType::CreatingHeader { name, .. } => {
-                f.write_str("Parsing the value for header {}")?;
+                f.write_str("parsing the value for header ")?;
                 f.write_str(name)?;
 
                 f.write_str(" failed")
             }
-            ErrorType::Json => f.write_str("Given value couldn't be serialized"),
+            ErrorType::Json => f.write_str("given value couldn't be serialized"),
             ErrorType::Parsing { body, .. } => {
-                f.write_str("Response body couldn't be deserialized: ")?;
+                f.write_str("response body couldn't be deserialized: ")?;
 
                 if let Ok(body) = str::from_utf8(body) {
                     f.write_str(body)
@@ -68,21 +65,17 @@ impl Display for Error {
                     Debug::fmt(body, f)
                 }
             }
-            ErrorType::RatelimiterTicket => f.write_str("Failed to get ratelimiter ticket"),
             ErrorType::RequestCanceled => {
-                f.write_str("Request was canceled either before or while being sent")
+                f.write_str("request was canceled either before or while being sent")
             }
-            ErrorType::RequestError => f.write_str("Parsing or sending the response failed"),
+            ErrorType::RequestError => f.write_str("parsing or receiving the response failed"),
             ErrorType::RequestTimedOut => f.write_str("request timed out"),
             ErrorType::Response { body, status, .. } => {
-                f.write_str("Response error: status code ")?;
+                f.write_str("response error: status code ")?;
                 Display::fmt(status, f)?;
                 f.write_str(", error: ")?;
 
                 f.write_str(&String::from_utf8_lossy(body))
-            }
-            ErrorType::ServiceUnavailable { .. } => {
-                f.write_str("api may be temporarily unavailable (received a 503)")
             }
             ErrorType::Unauthorized => {
                 f.write_str("token in use is invalid, expired, or is revoked")
@@ -104,7 +97,6 @@ impl StdError for Error {
 #[non_exhaustive]
 pub enum ErrorType {
     BuildingRequest,
-    ChunkingResponse,
     CreatingHeader {
         name: String,
     },
@@ -112,7 +104,6 @@ pub enum ErrorType {
     Parsing {
         body: Vec<u8>,
     },
-    RatelimiterTicket,
     RequestCanceled,
     RequestError,
     RequestTimedOut,
@@ -120,13 +111,6 @@ pub enum ErrorType {
         body: Vec<u8>,
         error: ApiError,
         status: StatusCode,
-    },
-    /// API service is unavailable. Consider re-sending the request at a
-    /// later time.
-    ///
-    /// This may occur during Discord API stability incidents.
-    ServiceUnavailable {
-        response: Response<Incoming>,
     },
     /// Token in use has become revoked or is otherwise invalid.
     ///
@@ -196,7 +180,6 @@ impl Debug for ErrorType {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::BuildingRequest => f.write_str("BuildingRequest"),
-            Self::ChunkingResponse => f.write_str("ChunkingResponse"),
             Self::CreatingHeader { name } => f
                 .debug_struct("CreatingHeader")
                 .field("name", name)
@@ -211,7 +194,6 @@ impl Debug for ErrorType {
 
                 debug.field("body", body).finish()
             }
-            Self::RatelimiterTicket => f.write_str("RatelimiterTicket"),
             Self::RequestCanceled => f.write_str("RequestCanceled"),
             Self::RequestError => f.write_str("RequestError"),
             Self::RequestTimedOut => f.write_str("RequestTimedOut"),
@@ -232,10 +214,6 @@ impl Debug for ErrorType {
                     .field("status", status)
                     .finish()
             }
-            Self::ServiceUnavailable { response } => f
-                .debug_struct("ServiceUnavailable")
-                .field("response", response)
-                .finish(),
             Self::Unauthorized => f.write_str("Unauthorized"),
             Self::Validation => f.write_str("Validation"),
         }

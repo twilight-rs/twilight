@@ -1,4 +1,4 @@
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 #![warn(
     clippy::missing_const_for_fn,
@@ -17,15 +17,10 @@ pub mod error;
 
 mod channel;
 mod command;
-#[cfg(any(feature = "zlib-stock", feature = "zlib-simd", feature = "zstd"))]
+#[cfg(any(feature = "zlib", feature = "zstd"))]
 mod compression;
 mod config;
 mod event;
-#[cfg(all(
-    any(feature = "zlib-stock", feature = "zlib-simd"),
-    not(feature = "zstd")
-))]
-mod inflater;
 mod json;
 mod latency;
 mod message;
@@ -34,12 +29,6 @@ mod session;
 mod shard;
 mod stream;
 
-#[allow(deprecated)]
-#[cfg(all(
-    any(feature = "zlib-stock", feature = "zlib-simd"),
-    not(feature = "zstd")
-))]
-pub use self::inflater::Inflater;
 pub use self::{
     channel::MessageSender,
     command::Command,
@@ -184,7 +173,7 @@ pub async fn create_recommended<F, Q>(
     client: &Client,
     config: Config<Q>,
     per_shard_config: F,
-) -> Result<impl ExactSizeIterator<Item = Shard<Q>>, StartRecommendedError>
+) -> Result<impl ExactSizeIterator<Item = Shard<Q>> + use<F, Q>, StartRecommendedError>
 where
     F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>,
     Q: Clone,

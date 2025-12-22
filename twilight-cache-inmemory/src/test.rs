@@ -1,28 +1,29 @@
 use crate::DefaultInMemoryCache;
+use twilight_model::guild::RoleColors;
 use twilight_model::{
     channel::{
-        message::{
-            sticker::{Sticker, StickerFormatType, StickerType},
-            EmojiReactionType, Message, MessageFlags, MessageType,
-        },
         Channel, ChannelType,
+        message::{
+            EmojiReactionType, Message, MessageFlags, MessageType,
+            sticker::{Sticker, StickerFormatType, StickerType},
+        },
     },
     gateway::{
-        payload::incoming::{MessageCreate, ReactionAdd},
         GatewayReaction,
+        payload::incoming::{MessageCreate, ReactionAdd},
     },
     guild::{
-        scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
         AfkTimeout, DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member,
         MemberFlags, MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role, RoleFlags,
         SystemChannelFlags, VerificationLevel,
+        scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
     },
     id::{
+        Id,
         marker::{
             ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, ScheduledEventMarker,
             StickerMarker, UserMarker,
         },
-        Id,
     },
     user::{CurrentUser, User},
     util::{ImageHash, Timestamp},
@@ -61,6 +62,7 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
             mfa_enabled: None,
             name: "test".to_owned(),
             premium_type: None,
+            primary_guild: None,
             public_flags: None,
             system: None,
             verified: None,
@@ -79,6 +81,8 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
         kind: MessageType::Regular,
         member: Some(PartialMember {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,
@@ -120,6 +124,8 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
         guild_id: Some(Id::new(1)),
         member: Some(Member {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,
@@ -145,6 +151,7 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
                 mfa_enabled: None,
                 name: "test".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,
@@ -162,6 +169,8 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
 
     reaction.member.replace(Member {
         avatar: None,
+        avatar_decoration_data: None,
+        banner: None,
         communication_disabled_until: None,
         deaf: false,
         flags,
@@ -187,6 +196,7 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
             mfa_enabled: None,
             name: "test".to_owned(),
             premium_type: None,
+            primary_guild: None,
             public_flags: None,
             system: None,
             verified: None,
@@ -296,6 +306,8 @@ pub fn member(id: Id<UserMarker>) -> Member {
 
     Member {
         avatar: None,
+        avatar_decoration_data: None,
+        banner: None,
         communication_disabled_until: None,
         deaf: false,
         flags,
@@ -311,7 +323,13 @@ pub fn member(id: Id<UserMarker>) -> Member {
 
 pub fn role(id: Id<RoleMarker>) -> Role {
     Role {
+        #[allow(deprecated)]
         color: 0,
+        colors: RoleColors {
+            primary_color: 0,
+            secondary_color: None,
+            tertiary_color: None,
+        },
         hoist: false,
         icon: None,
         id,
@@ -384,6 +402,7 @@ pub fn user(id: Id<UserMarker>) -> User {
         mfa_enabled: None,
         name: "user".to_owned(),
         premium_type: None,
+        primary_guild: None,
         public_flags: None,
         system: None,
         verified: None,

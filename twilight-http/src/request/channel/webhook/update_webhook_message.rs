@@ -4,8 +4,8 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        attachment::{AttachmentManager, PartialAttachment},
         Nullable, Request, TryIntoRequest,
+        attachment::{AttachmentManager, PartialAttachment},
     },
     response::{Response, ResponseFuture},
     routing::Route,
@@ -14,18 +14,18 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{
-        message::{AllowedMentions, Component, Embed},
         Message,
+        message::{AllowedMentions, Component, Embed},
     },
     http::attachment::Attachment,
     id::{
-        marker::{AttachmentMarker, ChannelMarker, MessageMarker, WebhookMarker},
         Id,
+        marker::{AttachmentMarker, ChannelMarker, MessageMarker, WebhookMarker},
     },
 };
 use twilight_validate::message::{
-    attachment as validate_attachment, components as validate_components,
-    content as validate_content, embeds as validate_embeds, MessageValidationError,
+    MessageValidationError, attachment as validate_attachment, content as validate_content,
+    embeds as validate_embeds,
 };
 
 #[derive(Serialize)]
@@ -118,7 +118,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
-    pub fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.allowed_mentions = Some(Nullable(allowed_mentions));
         }
@@ -164,20 +164,15 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// Pass [`None`] to clear existing components.
     ///
-    /// # Errors
+    /// # Manual Validation
     ///
-    /// Refer to the errors section of
-    /// [`twilight_validate::component::component`] for a list of errors that
-    /// may be returned as a result of validating each provided component.
+    /// Validation of components is not done automatically here, as we don't know which component
+    /// version is in use, you can validate them manually using the [`twilight_validate::component::component_v1`]
+    /// or [`twilight_validate::component::component_v2`] functions.
     pub fn components(mut self, components: Option<&'a [Component]>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            if let Some(components) = components {
-                validate_components(components)?;
-            }
-
+        self.fields = self.fields.map(|mut fields| {
             fields.components = Some(Nullable(components));
-
-            Ok(fields)
+            fields
         });
 
         self
@@ -318,7 +313,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// [`attachments`]: Self::attachments
     /// [`ExecuteWebhook::payload_json`]: super::ExecuteWebhook::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.payload_json = Some(payload_json);
         }
@@ -328,7 +323,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     /// Update in a thread belonging to the channel instead of the channel
     /// itself.
-    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
+    pub const fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
         self.thread_id.replace(thread_id);
 
         self
@@ -365,10 +360,10 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
         request = request.use_authorization_token(false);
 
         // Set the default allowed mentions if required.
-        if fields.allowed_mentions.is_none() {
-            if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
-            }
+        if fields.allowed_mentions.is_none()
+            && let Some(allowed_mentions) = self.http.default_allowed_mentions()
+        {
+            fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON

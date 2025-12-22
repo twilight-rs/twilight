@@ -2,19 +2,18 @@ use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{marker::EmptyBody, Response, ResponseFuture},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::id::{
-    marker::{GuildMarker, UserMarker},
     Id,
+    marker::{GuildMarker, UserMarker},
 };
 use twilight_validate::request::{
-    audit_reason as validate_audit_reason,
+    ValidationError, audit_reason as validate_audit_reason,
     create_guild_ban_delete_message_seconds as validate_create_guild_ban_delete_message_seconds,
-    ValidationError,
 };
 
 #[derive(Serialize)]
@@ -32,7 +31,7 @@ struct CreateBanFields {
 /// 1 day's (`86_400` second's) worth of messages, for the reason `"memes"`:
 ///
 /// ```no_run
-/// use twilight_http::{request::AuditLogReason, Client};
+/// use twilight_http::{Client, request::AuditLogReason};
 /// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
@@ -140,14 +139,14 @@ impl TryIntoRequest for CreateBan<'_> {
 mod tests {
     use crate::{
         client::Client,
-        request::{AuditLogReason, TryIntoRequest, REASON_HEADER_NAME},
+        request::{AuditLogReason, REASON_HEADER_NAME, TryIntoRequest},
     };
     use http::header::HeaderValue;
     use std::error::Error;
     use twilight_http_ratelimiting::Method;
     use twilight_model::id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     };
 
     #[test]

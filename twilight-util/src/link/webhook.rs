@@ -6,9 +6,9 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    num::NonZeroU64,
+    num::NonZero,
 };
-use twilight_model::id::{marker::WebhookMarker, Id};
+use twilight_model::id::{Id, marker::WebhookMarker};
 
 /// Error when [parsing] a webhook URL.
 ///
@@ -139,7 +139,7 @@ pub fn parse(url: &str) -> Result<(Id<WebhookMarker>, Option<&str>), WebhookPars
     }
 
     let id = id_segment
-        .parse::<NonZeroU64>()
+        .parse::<NonZero<u64>>()
         .map_err(|source| WebhookParseError {
             kind: WebhookParseErrorType::IdInvalid,
             source: Some(Box::new(source)),
@@ -176,10 +176,12 @@ mod tests {
             (Id::new(123), None),
             super::parse("https://discord.com/api/webhooks/123").unwrap(),
         );
-        assert!(super::parse("https://discord.com/api/webhooks/123/")
-            .unwrap()
-            .1
-            .is_none());
+        assert!(
+            super::parse("https://discord.com/api/webhooks/123/")
+                .unwrap()
+                .1
+                .is_none()
+        );
     }
 
     #[test]

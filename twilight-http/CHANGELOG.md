@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.17.1] - 2025-12-13
+
+### Documentation
+
+- clarify add application emoji example ([#2485](https://github.com/twilight-rs/twilight/issues/2485))
+
+### Features
+
+- get guild role member counts ([#2489](https://github.com/twilight-rs/twilight/issues/2489))
+
+## [0.17.0] - 2025-11-08
+
+### Bug Fixes
+
+- resolve clippy 1.86 lints ([#2426](https://github.com/twilight-rs/twilight/issues/2426))
+- resolve clippy 1.87 lints ([#2436](https://github.com/twilight-rs/twilight/issues/2436))
+- forwarding allows references from other channels ([#2429](https://github.com/twilight-rs/twilight/issues/2429))
+- use smaller and unsigned integer for get-pins limit ([#2477](https://github.com/twilight-rs/twilight/issues/2477))
+
+### Documentation
+
+- fix entitlements doc examples ([#2447](https://github.com/twilight-rs/twilight/issues/2447))
+
+### Features
+
+- Make it possible to use callback?with_response=true ([#2407](https://github.com/twilight-rs/twilight/issues/2407))
+- [**breaking**] rewrite crate ([#2418](https://github.com/twilight-rs/twilight/issues/2418))
+- `poll` Field for Interaction Callback and Followups ([#2439](https://github.com/twilight-rs/twilight/issues/2439))
+- [**breaking**] rewrite ResponseFuture to retry on 429 ([#2424](https://github.com/twilight-rs/twilight/issues/2424))
+- Components V2 ([#2422](https://github.com/twilight-rs/twilight/issues/2422))
+- [**breaking**] support unknown paths ([#2453](https://github.com/twilight-rs/twilight/issues/2453))
+- add support for new fields on modify_current_member ([#2473](https://github.com/twilight-rs/twilight/issues/2473))
+- new pin endpoints and pagination for Get Channel Pins ([#2475](https://github.com/twilight-rs/twilight/issues/2475))
+
+### Refactor
+
+- [**breaking**] remove retry delay logic ([#2455](https://github.com/twilight-rs/twilight/issues/2455))
+- remove create_guild endpoint ([#2474](https://github.com/twilight-rs/twilight/issues/2474))
+
+### Chore
+
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+
 ## [0.16.0] - 2025-01-12
 
 ### Bug Fixes

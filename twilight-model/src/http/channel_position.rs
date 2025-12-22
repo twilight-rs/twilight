@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::id::{marker::ChannelMarker, Id};
+use crate::id::{Id, marker::ChannelMarker};
 
 /// Used to update the position of channels over HTTP.
 ///

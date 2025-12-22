@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.17.1] - 2025-12-13
+
+### Bug Fixes
+
+- fix new clippy errors in the tests ([#2486](https://github.com/twilight-rs/twilight/issues/2486))
+
+### Features
+
+- add gateway ratelimited event ([#2483](https://github.com/twilight-rs/twilight/issues/2483))
+
+### Refactor
+
+- misc shard clean up ([#2468](https://github.com/twilight-rs/twilight/issues/2468))
+
+## [0.17.0] - 2025-11-08
+
+### Bug Fixes
+
+- resolve clippy 1.86 lints ([#2426](https://github.com/twilight-rs/twilight/issues/2426))
+- handle repeat recv errors ([#2428](https://github.com/twilight-rs/twilight/issues/2428))
+- resolve clippy 1.87 lints ([#2436](https://github.com/twilight-rs/twilight/issues/2436))
+- terminate zombied connections ([#2435](https://github.com/twilight-rs/twilight/issues/2435))
+- Add a connection timeout of 10s ([#2448](https://github.com/twilight-rs/twilight/issues/2448))
+- doc_auto_cfg got merged into doc_cfg ([#2458](https://github.com/twilight-rs/twilight/issues/2458))
+- Use precise capturing syntax ([#2478](https://github.com/twilight-rs/twilight/issues/2478))
+
+### Features
+
+- support `zstd-stream` ([#2400](https://github.com/twilight-rs/twilight/issues/2400))
+- [**breaking**] update & un-deprecate Zlib ([#2464](https://github.com/twilight-rs/twilight/issues/2464))
+
+### Refactor
+
+- remove instrument from shard::poll_next ([#2401](https://github.com/twilight-rs/twilight/issues/2401))
+
+### Chore
+
+- resolve rust 1.89 warnings ([#2442](https://github.com/twilight-rs/twilight/issues/2442))
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+- [**breaking**] bump deps ([#2463](https://github.com/twilight-rs/twilight/issues/2463))
+
 ## [0.16.0] - 2025-01-12
 
 ### Bug Fixes

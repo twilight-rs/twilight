@@ -1,5 +1,5 @@
 mod builder;
-mod connector;
+pub(crate) mod connector;
 mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
@@ -19,18 +19,23 @@ use crate::request::{
 };
 #[allow(deprecated)]
 use crate::{
+    API_VERSION,
     client::connector::Connector,
     error::{Error, ErrorType},
     request::{
+        GetCurrentAuthorizationInformation, GetGateway, GetUserApplicationInfo, GetVoiceRegions,
+        Method, Request, UpdateCurrentUserApplication,
         channel::{
+            CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission, DeletePin,
+            FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
             invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
             message::{
                 CreateMessage, CrosspostMessage, DeleteMessage, DeleteMessages, GetChannelMessages,
                 GetMessage, UpdateMessage,
             },
             reaction::{
-                delete_reaction::TargetUser, CreateReaction, DeleteAllReaction, DeleteAllReactions,
-                DeleteReaction, GetReactions, RequestReactionType,
+                CreateReaction, DeleteAllReaction, DeleteAllReactions, DeleteReaction,
+                GetReactions, RequestReactionType, delete_reaction::TargetUser,
             },
             stage::{
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
@@ -46,10 +51,14 @@ use crate::{
                 GetChannelWebhooks, GetWebhook, GetWebhookMessage, UpdateWebhook,
                 UpdateWebhookMessage, UpdateWebhookWithToken,
             },
-            CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission, DeletePin,
-            FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
         },
         guild::{
+            CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads, GetAuditLog,
+            GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding, GetGuildPreview,
+            GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
+            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
+            UpdateGuildWidgetSettings,
             auto_moderation::{
                 CreateAutoModerationRule, DeleteAutoModerationRule, GetAutoModerationRule,
                 GetGuildAutoModerationRules, UpdateAutoModerationRule,
@@ -62,7 +71,8 @@ use crate::{
                 RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
             },
             role::{
-                CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
+                CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRoles, GetRole,
+                UpdateRole, UpdateRolePositions,
             },
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
@@ -70,12 +80,6 @@ use crate::{
             },
             update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingFields},
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
-            CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
-            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
-            GetGuildPreview, GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions,
-            GetGuildWebhooks, GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings,
-            UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
-            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
         },
         poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
@@ -92,14 +96,11 @@ use crate::{
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetCurrentAuthorizationInformation, GetGateway, GetUserApplicationInfo, GetVoiceRegions,
-        Method, Request, UpdateCurrentUserApplication,
     },
     response::ResponseFuture,
-    API_VERSION,
 };
 use http::header::{
-    HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT,
+    AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, HeaderMap, HeaderValue, USER_AGENT,
 };
 use http_body_util::Full;
 use hyper::body::Bytes;
@@ -108,27 +109,26 @@ use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     ops::Deref,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };
-use tokio::time;
-use twilight_http_ratelimiting::Ratelimiter;
+use twilight_http_ratelimiting::{Endpoint, RateLimiter};
 use twilight_model::{
-    channel::{message::AllowedMentions, ChannelType},
+    channel::{ChannelType, message::AllowedMentions},
     guild::{
-        auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel,
-        RolePosition,
+        MfaLevel, RolePosition, auto_moderation::AutoModerationEventType,
+        scheduled_event::PrivacyLevel,
     },
     http::{channel_position::Position, permission_overwrite::PermissionOverwrite},
     id::{
+        Id,
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
             EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
             ScheduledEventMarker, SkuMarker, StickerMarker, UserMarker, WebhookMarker,
         },
-        Id,
     },
 };
 
@@ -246,9 +246,9 @@ pub struct Client {
     default_headers: Option<HeaderMap>,
     http: HyperClient<Connector, Full<Bytes>>,
     proxy: Option<Box<str>>,
-    ratelimiter: Option<Box<dyn Ratelimiter>>,
+    ratelimiter: Option<RateLimiter>,
     timeout: Duration,
-    /// Whether the token has been invalidated.
+    /// Whether the token is invalidated.
     ///
     /// Whether an invalid token is tracked can be configured via
     /// [`ClientBuilder::remember_invalid_token`].
@@ -333,8 +333,8 @@ impl Client {
     ///
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
-    pub fn ratelimiter(&self) -> Option<&dyn Ratelimiter> {
-        self.ratelimiter.as_ref().map(AsRef::as_ref)
+    pub const fn ratelimiter(&self) -> Option<&RateLimiter> {
+        self.ratelimiter.as_ref()
     }
 
     /// Get an auto moderation rule in a guild.
@@ -655,7 +655,7 @@ impl Client {
     /// use twilight_model::{
     ///     guild::Permissions,
     ///     http::permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
-    ///     id::{marker::RoleMarker, Id},
+    ///     id::{Id, marker::RoleMarker},
     /// };
     ///
     /// let channel_id = Id::new(123);
@@ -811,7 +811,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// Get emojis for the application `100`:
+    /// Get entitlements for the application `100`:
     ///
     /// ```no_run
     /// # use twilight_http::Client;
@@ -933,21 +933,6 @@ impl Client {
     /// Get information about a guild.
     pub const fn guild(&self, guild_id: Id<GuildMarker>) -> GetGuild<'_> {
         GetGuild::new(self, guild_id)
-    }
-
-    /// Create a new request to create a guild.
-    ///
-    /// The minimum length of the name is 2 UTF-16 characters and the maximum is 100 UTF-16
-    /// characters. This endpoint can only be used by bots in less than 10 guilds.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`CreateGuildErrorType::NameInvalid`] error type if the name
-    /// length is too short or too long.
-    ///
-    /// [`CreateGuildErrorType::NameInvalid`]: crate::request::guild::create_guild::CreateGuildErrorType::NameInvalid
-    pub fn create_guild(&self, name: String) -> CreateGuild<'_> {
-        CreateGuild::new(self, name)
     }
 
     /// Delete a guild permanently. The user must be the owner.
@@ -1685,6 +1670,14 @@ impl Client {
     /// Get the roles of a guild.
     pub const fn roles(&self, guild_id: Id<GuildMarker>) -> GetGuildRoles<'_> {
         GetGuildRoles::new(self, guild_id)
+    }
+
+    /// Get the role member counts of a guild.
+    pub const fn role_member_counts(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetGuildRoleMemberCounts<'_> {
+        GetGuildRoleMemberCounts::new(self, guild_id)
     }
 
     /// Get a role of a guild.
@@ -2796,6 +2789,9 @@ impl Client {
 
     /// Adds an emoji to an application
     ///
+    /// Needs to be base64 encoded and prefixed and tagged.
+    /// Can be up to 128x128 in size
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -2809,7 +2805,7 @@ impl Client {
     /// let application_id = Id::new(1);
     ///
     /// client
-    ///     .add_application_emoji(application_id, "emoji name", "emoji image")
+    ///     .add_application_emoji(application_id, "name", "data:image/png;base64,image_data")
     ///     .await?;
     ///
     /// # Ok(()) }
@@ -2898,13 +2894,13 @@ impl Client {
     }
 
     fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
-        if let Some(token_invalidated) = self.token_invalidated.as_ref() {
-            if token_invalidated.load(Ordering::Relaxed) {
-                return Err(Error {
-                    kind: ErrorType::Unauthorized,
-                    source: None,
-                });
-            }
+        if let Some(token_invalidated) = self.token_invalidated.as_ref()
+            && token_invalidated.load(Ordering::Relaxed)
+        {
+            return Err(Error {
+                kind: ErrorType::Unauthorized,
+                source: None,
+            });
         }
 
         let Request {
@@ -2912,8 +2908,7 @@ impl Client {
             form,
             headers: req_headers,
             method,
-            path,
-            ratelimit_path,
+            mut path,
             use_authorization_token,
         } = request;
 
@@ -2921,24 +2916,21 @@ impl Client {
         let host = self.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{protocol}://{host}/api/v{API_VERSION}/{path}");
-        tracing::debug!(?url);
 
         let mut builder = hyper::Request::builder().method(method.name()).uri(&url);
 
-        if use_authorization_token {
-            if let Some(token) = self.token.as_deref() {
-                let value = HeaderValue::from_str(token).map_err(|source| {
-                    let name = AUTHORIZATION.to_string();
+        if use_authorization_token && let Some(token) = self.token.as_deref() {
+            let value = HeaderValue::from_str(token).map_err(|source| {
+                let name = AUTHORIZATION.to_string();
 
-                    Error {
-                        kind: ErrorType::CreatingHeader { name },
-                        source: Some(Box::new(source)),
-                    }
-                })?;
-
-                if let Some(headers) = builder.headers_mut() {
-                    headers.insert(AUTHORIZATION, value);
+                Error {
+                    kind: ErrorType::CreatingHeader { name },
+                    source: Some(Box::new(source)),
                 }
+            })?;
+
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(AUTHORIZATION, value);
             }
         }
 
@@ -2986,10 +2978,10 @@ impl Client {
             builder.body(Full::default())
         };
 
-        let inner = self.http.request(try_req.map_err(|source| Error {
+        let http_request = try_req.map_err(|source| Error {
             kind: ErrorType::BuildingRequest,
             source: Some(Box::new(source)),
-        })?);
+        })?;
 
         // For requests that don't use an authorization token we don't need to
         // remember whether the token is invalid. This may be for requests such
@@ -2998,13 +2990,20 @@ impl Client {
             .then(|| self.token_invalidated.clone())
             .flatten();
 
-        Ok(if let Some(ratelimiter) = &self.ratelimiter {
-            let tx_future = ratelimiter.wait_for_ticket(ratelimit_path);
+        if let Some(i) = path.find('?') {
+            path.truncate(i);
+        }
+        let response = ResponseFuture::new(
+            self.http.clone(),
+            invalid_token,
+            http_request,
+            tracing::info_span!("req", method = method.name(), url = url),
+            self.timeout,
+            self.ratelimiter.clone(),
+            Endpoint { method, path },
+        );
 
-            ResponseFuture::ratelimit(invalid_token, inner, self.timeout, tx_future)
-        } else {
-            ResponseFuture::new(Box::pin(time::timeout(self.timeout, inner)), invalid_token)
-        })
+        Ok(response)
     }
 }
 

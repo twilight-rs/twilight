@@ -8,7 +8,7 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::{
     channel::thread::ThreadsListing,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 
 /// Returns all active threads in the guild.

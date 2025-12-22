@@ -5,10 +5,13 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TextInput {
+    /// Optional id for the text input.
+    pub id: Option<i32>,
     /// User defined identifier for the input text.
     pub custom_id: String,
     /// Text appearing over the input field.
-    pub label: String,
+    #[deprecated = "Deprecated by Discord in favor of label and description on the Label component."]
+    pub label: Option<String>,
     /// The maximum length of the text.
     pub max_length: Option<u16>,
     /// The minimum length of the text.
@@ -39,6 +42,7 @@ pub enum TextInputStyle {
 }
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use super::*;
     use serde::{Deserialize, Serialize};

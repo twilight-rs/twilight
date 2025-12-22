@@ -5,15 +5,17 @@ mod current_user;
 mod current_user_guild;
 mod flags;
 mod premium_type;
+mod primary_guild;
 
 pub use self::{
     avatar_decoration_data::AvatarDecorationData, connection::Connection,
     connection_visibility::ConnectionVisibility, current_user::CurrentUser,
     current_user_guild::CurrentUserGuild, flags::UserFlags, premium_type::PremiumType,
+    primary_guild::PrimaryGuild,
 };
 
 use crate::{
-    id::{marker::UserMarker, Id},
+    id::{Id, marker::UserMarker},
     util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
@@ -171,6 +173,8 @@ pub struct User {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_type: Option<PremiumType>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub primary_guild: Option<PrimaryGuild>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub public_flags: Option<UserFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system: Option<bool>,
@@ -191,6 +195,7 @@ impl User {
 #[cfg(test)]
 mod tests {
     use super::{DiscriminatorDisplay, PremiumType, User, UserFlags};
+    use crate::user::primary_guild::PrimaryGuild;
     use crate::{id::Id, test::image_hash};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
@@ -208,62 +213,6 @@ mod tests {
     );
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
-        vec![
-            Token::Struct {
-                name: "User",
-                len: 17,
-            },
-            Token::Str("accent_color"),
-            Token::None,
-            Token::Str("avatar"),
-            Token::Some,
-            Token::Str(image_hash::AVATAR_INPUT),
-            Token::Str("avatar_decoration"),
-            Token::Some,
-            Token::Str(image_hash::AVATAR_DECORATION_INPUT),
-            Token::Str("avatar_decoration_data"),
-            Token::None,
-            Token::Str("banner"),
-            Token::Some,
-            Token::Str(image_hash::BANNER_INPUT),
-            Token::Str("bot"),
-            Token::Bool(false),
-            Token::Str("discriminator"),
-            discriminator_token,
-            Token::Str("email"),
-            Token::Some,
-            Token::Str("address@example.com"),
-            Token::Str("flags"),
-            Token::Some,
-            Token::U64(131_584),
-            Token::Str("global_name"),
-            Token::Some,
-            Token::Str("test"),
-            Token::Str("id"),
-            Token::NewtypeStruct { name: "Id" },
-            Token::Str("1"),
-            Token::Str("locale"),
-            Token::Some,
-            Token::Str("en-us"),
-            Token::Str("mfa_enabled"),
-            Token::Some,
-            Token::Bool(true),
-            Token::Str("username"),
-            Token::Str("test"),
-            Token::Str("premium_type"),
-            Token::Some,
-            Token::U8(2),
-            Token::Str("public_flags"),
-            Token::Some,
-            Token::U64(131_584),
-            Token::Str("verified"),
-            Token::Some,
-            Token::Bool(true),
-            Token::StructEnd,
-        ]
-    }
-
-    fn user_tokens_complete(discriminator_token: Token) -> Vec<Token> {
         vec![
             Token::Struct {
                 name: "User",
@@ -309,6 +258,102 @@ mod tests {
             Token::Str("premium_type"),
             Token::Some,
             Token::U8(2),
+            Token::Str("primary_guild"),
+            Token::Some,
+            Token::Struct {
+                name: "PrimaryGuild",
+                len: 4,
+            },
+            Token::Str("identity_guild_id"),
+            Token::Some,
+            Token::NewtypeStruct { name: "Id" },
+            Token::Str("169256939211980800"),
+            Token::Str("identity_enabled"),
+            Token::Some,
+            Token::Bool(true),
+            Token::Str("tag"),
+            Token::Some,
+            Token::Str("DISC"),
+            Token::Str("badge"),
+            Token::Some,
+            Token::Str("1269e74af4df7417b13759eae50c83dc"),
+            Token::StructEnd,
+            Token::Str("public_flags"),
+            Token::Some,
+            Token::U64(131_584),
+            Token::Str("verified"),
+            Token::Some,
+            Token::Bool(true),
+            Token::StructEnd,
+        ]
+    }
+
+    fn user_tokens_complete(discriminator_token: Token) -> Vec<Token> {
+        vec![
+            Token::Struct {
+                name: "User",
+                len: 19,
+            },
+            Token::Str("accent_color"),
+            Token::None,
+            Token::Str("avatar"),
+            Token::Some,
+            Token::Str(image_hash::AVATAR_INPUT),
+            Token::Str("avatar_decoration"),
+            Token::Some,
+            Token::Str(image_hash::AVATAR_DECORATION_INPUT),
+            Token::Str("avatar_decoration_data"),
+            Token::None,
+            Token::Str("banner"),
+            Token::Some,
+            Token::Str(image_hash::BANNER_INPUT),
+            Token::Str("bot"),
+            Token::Bool(false),
+            Token::Str("discriminator"),
+            discriminator_token,
+            Token::Str("email"),
+            Token::Some,
+            Token::Str("address@example.com"),
+            Token::Str("flags"),
+            Token::Some,
+            Token::U64(131_584),
+            Token::Str("global_name"),
+            Token::Some,
+            Token::Str("test"),
+            Token::Str("id"),
+            Token::NewtypeStruct { name: "Id" },
+            Token::Str("1"),
+            Token::Str("locale"),
+            Token::Some,
+            Token::Str("en-us"),
+            Token::Str("mfa_enabled"),
+            Token::Some,
+            Token::Bool(true),
+            Token::Str("username"),
+            Token::Str("test"),
+            Token::Str("premium_type"),
+            Token::Some,
+            Token::U8(2),
+            Token::Str("primary_guild"),
+            Token::Some,
+            Token::Struct {
+                name: "PrimaryGuild",
+                len: 4,
+            },
+            Token::Str("identity_guild_id"),
+            Token::Some,
+            Token::NewtypeStruct { name: "Id" },
+            Token::Str("169256939211980800"),
+            Token::Str("identity_enabled"),
+            Token::Some,
+            Token::Bool(true),
+            Token::Str("tag"),
+            Token::Some,
+            Token::Str("DISC"),
+            Token::Str("badge"),
+            Token::Some,
+            Token::Str("1269e74af4df7417b13759eae50c83dc"),
+            Token::StructEnd,
             Token::Str("public_flags"),
             Token::Some,
             Token::U64(131_584),
@@ -350,6 +395,12 @@ mod tests {
             mfa_enabled: Some(true),
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
+            primary_guild: Some(PrimaryGuild {
+                identity_guild_id: Some(Id::new(169_256_939_211_980_800)),
+                identity_enabled: Some(true),
+                tag: Some("DISC".to_owned()),
+                badge: Some("1269e74af4df7417b13759eae50c83dc".parse().unwrap()),
+            }),
             public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             system: None,
             verified: Some(true),
@@ -383,6 +434,12 @@ mod tests {
             mfa_enabled: Some(true),
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
+            primary_guild: Some(PrimaryGuild {
+                identity_guild_id: Some(Id::new(169_256_939_211_980_800)),
+                identity_enabled: Some(true),
+                tag: Some("DISC".to_owned()),
+                badge: Some("1269e74af4df7417b13759eae50c83dc".parse().unwrap()),
+            }),
             public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             system: None,
             verified: Some(true),
@@ -413,6 +470,12 @@ mod tests {
             mfa_enabled: Some(true),
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
+            primary_guild: Some(PrimaryGuild {
+                identity_guild_id: Some(Id::new(169_256_939_211_980_800)),
+                identity_enabled: Some(true),
+                tag: Some("DISC".to_owned()),
+                badge: Some("1269e74af4df7417b13759eae50c83dc".parse().unwrap()),
+            }),
             public_flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
             system: Some(true),
             verified: Some(true),

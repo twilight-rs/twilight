@@ -1,8 +1,8 @@
 use crate::{
     guild::MemberFlags,
     id::{
-        marker::{GuildMarker, RoleMarker},
         Id,
+        marker::{GuildMarker, RoleMarker},
     },
     user::User,
     util::{ImageHash, Timestamp},
@@ -68,7 +68,6 @@ mod tests {
                 avatar_decoration_data: None,
                 banner: None,
                 name: "Twilight Sparkle".to_string(),
-                public_flags: None,
                 id: Id::new(424_242),
                 discriminator: 1234,
                 avatar: Some(image_hash::AVATAR),
@@ -79,6 +78,8 @@ mod tests {
                 locale: None,
                 mfa_enabled: None,
                 premium_type: None,
+                primary_guild: None,
+                public_flags: None,
                 system: None,
                 verified: None,
             },

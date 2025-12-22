@@ -16,7 +16,7 @@ functionality. Please use the individual crates listed below instead!
 
 ## Installation
 
-Twilight supports a MSRV of Rust 1.79. We do not consider changes to the MSRV
+Twilight supports a MSRV of Rust 1.89. We do not consider changes to the MSRV
 semver-incompatible, therefore it may change in minor or patch releases.
 
 We recommend that most users start out with these crates:
@@ -115,7 +115,7 @@ The following example is a template for bootstrapping a new bot using
 Twilight's HTTP and gateway clients with its in-memory cache. In order to
 run this, replace the contents of a new project's `main.rs` file with the
 following. Be sure to set the `DISCORD_TOKEN` environment variable to your
-bot's token. You must also depend on `tokio`, `twilight-cache-inmemory`,
+bot's token. You must also depend on `rustls`, `tokio`, `twilight-cache-inmemory`,
 `twilight-gateway`, `twilight-http`, and `twilight-model` in your `Cargo.toml`.
 
 ```rust,no_run
@@ -128,6 +128,9 @@ use twilight_http::Client as HttpClient;
 async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
+
+    // Select rustls backend
+    rustls::crypto::ring::default_provider().install_default().unwrap();
 
     let token = env::var("DISCORD_TOKEN")?;
 

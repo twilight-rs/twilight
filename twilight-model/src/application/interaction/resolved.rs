@@ -1,9 +1,10 @@
+use crate::user::AvatarDecorationData;
 use crate::{
-    channel::{thread::ThreadMetadata, Attachment, ChannelType, Message},
+    channel::{Attachment, ChannelType, Message, thread::ThreadMetadata},
     guild::{MemberFlags, Permissions, Role},
     id::{
-        marker::{AttachmentMarker, ChannelMarker, MessageMarker, RoleMarker, UserMarker},
         Id,
+        marker::{AttachmentMarker, ChannelMarker, MessageMarker, RoleMarker, UserMarker},
     },
     user::User,
     util::{ImageHash, Timestamp},
@@ -73,6 +74,12 @@ pub struct InteractionMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<ImageHash>,
+    /// The member's guild avatar decoration.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar_decoration_data: Option<AvatarDecorationData>,
+    /// Member's guild banner.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub banner: Option<ImageHash>,
     /// If the member is timed out, when the timeout will expire.
     pub communication_disabled_until: Option<Timestamp>,
     /// Flags for the member.
@@ -98,13 +105,15 @@ pub struct InteractionMember {
 #[cfg(test)]
 mod tests {
     use super::{InteractionChannel, InteractionDataResolved, InteractionMember};
+    use crate::guild::RoleColors;
+    use crate::user::PrimaryGuild;
     use crate::{
         channel::{
-            message::{
-                sticker::{MessageSticker, StickerFormatType},
-                MessageFlags, MessageType,
-            },
             Attachment, ChannelType, Message,
+            message::{
+                MessageFlags, MessageType,
+                sticker::{MessageSticker, StickerFormatType},
+            },
         },
         guild::{MemberFlags, PartialMember, Permissions, Role, RoleFlags},
         id::Id,
@@ -159,6 +168,8 @@ mod tests {
                 Id::new(300),
                 InteractionMember {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     flags,
                     joined_at,
@@ -193,6 +204,7 @@ mod tests {
                         mfa_enabled: None,
                         name: "test".to_owned(),
                         premium_type: None,
+                        primary_guild: None,
                         public_flags: None,
                         system: None,
                         verified: None,
@@ -211,6 +223,8 @@ mod tests {
                     kind: MessageType::Regular,
                     member: Some(PartialMember {
                         avatar: None,
+                        avatar_decoration_data: None,
+                        banner: None,
                         communication_disabled_until: None,
                         flags,
                         deaf: false,
@@ -249,6 +263,11 @@ mod tests {
                 Id::new(400),
                 Role {
                     color: 0,
+                    colors: RoleColors {
+                        primary_color: 0,
+                        secondary_color: None,
+                        tertiary_color: None,
+                    },
                     hoist: true,
                     icon: None,
                     id: Id::new(400),
@@ -281,6 +300,12 @@ mod tests {
                     mfa_enabled: Some(true),
                     name: "test".to_owned(),
                     premium_type: Some(PremiumType::Nitro),
+                    primary_guild: Some(PrimaryGuild {
+                        identity_guild_id: Some(Id::new(169_256_939_211_980_800)),
+                        identity_enabled: Some(true),
+                        tag: Some("DISC".to_owned()),
+                        badge: Some("1269e74af4df7417b13759eae50c83dc".parse().unwrap()),
+                    }),
                     public_flags: Some(
                         UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
                     ),
@@ -502,10 +527,22 @@ mod tests {
                 Token::Str("400"),
                 Token::Struct {
                     name: "Role",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("color"),
                 Token::U32(0),
+                Token::Str("colors"),
+                Token::Struct {
+                    name: "RoleColors",
+                    len: 3,
+                },
+                Token::Str("primary_color"),
+                Token::U32(0),
+                Token::Str("secondary_color"),
+                Token::None,
+                Token::Str("tertiary_color"),
+                Token::None,
+                Token::StructEnd,
                 Token::Str("hoist"),
                 Token::Bool(true),
                 Token::Str("id"),
@@ -531,7 +568,7 @@ mod tests {
                 Token::Str("300"),
                 Token::Struct {
                     name: "User",
-                    len: 17,
+                    len: 18,
                 },
                 Token::Str("accent_color"),
                 Token::None,
@@ -571,6 +608,26 @@ mod tests {
                 Token::Str("premium_type"),
                 Token::Some,
                 Token::U8(2),
+                Token::Str("primary_guild"),
+                Token::Some,
+                Token::Struct {
+                    name: "PrimaryGuild",
+                    len: 4,
+                },
+                Token::Str("identity_guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("169256939211980800"),
+                Token::Str("identity_enabled"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("tag"),
+                Token::Some,
+                Token::Str("DISC"),
+                Token::Str("badge"),
+                Token::Some,
+                Token::Str("1269e74af4df7417b13759eae50c83dc"),
+                Token::StructEnd,
                 Token::Str("public_flags"),
                 Token::Some,
                 Token::U64(131_584),

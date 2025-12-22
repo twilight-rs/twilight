@@ -73,11 +73,11 @@ pub use self::{
     try_into_request::TryIntoRequest,
     update_user_application::UpdateCurrentUserApplication,
 };
-pub use twilight_http_ratelimiting::request::Method;
+pub use twilight_http_ratelimiting::Method;
 
 use crate::error::{Error, ErrorType};
 use http::header::{HeaderName, HeaderValue};
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use serde::Serialize;
 use std::iter;
 

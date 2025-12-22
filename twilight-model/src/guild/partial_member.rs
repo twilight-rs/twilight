@@ -1,18 +1,22 @@
+use super::MemberFlags;
+use crate::user::AvatarDecorationData;
 use crate::{
     guild::Permissions,
-    id::{marker::RoleMarker, Id},
+    id::{Id, marker::RoleMarker},
     user::User,
     util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
-
-use super::MemberFlags;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<ImageHash>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar_decoration_data: Option<AvatarDecorationData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub banner: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub flags: MemberFlags,
@@ -50,6 +54,8 @@ mod tests {
 
         let value = PartialMember {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,

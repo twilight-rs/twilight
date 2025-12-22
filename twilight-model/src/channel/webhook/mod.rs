@@ -6,8 +6,8 @@ pub use self::{channel::WebhookChannel, guild::WebhookGuild, kind::WebhookType};
 
 use crate::{
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, WebhookMarker},
         Id,
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, WebhookMarker},
     },
     user::User,
     util::image_hash::ImageHash,
@@ -170,6 +170,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "test".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,

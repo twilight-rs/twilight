@@ -6,15 +6,10 @@
 //! information about what a shard is in the context of Discord's gateway API,
 //! refer to the documentation for [`Shard`].
 
-#[cfg(feature = "zstd")]
+#[cfg(any(feature = "zlib", feature = "zstd"))]
 use crate::compression::Decompressor;
-#[allow(deprecated)]
-#[cfg(all(
-    any(feature = "zlib-stock", feature = "zlib-simd"),
-    not(feature = "zstd")
-))]
-use crate::inflater::Inflater;
 use crate::{
+    API_VERSION, Command, Config, Message, ShardId,
     channel::{MessageChannel, MessageSender},
     error::{ReceiveMessageError, ReceiveMessageErrorType},
     json,
@@ -22,19 +17,20 @@ use crate::{
     queue::{InMemoryQueue, Queue},
     ratelimiter::CommandRatelimiter,
     session::Session,
-    Command, Config, Message, ShardId, API_VERSION,
 };
 use futures_core::Stream;
 use futures_sink::Sink;
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     env::consts::OS,
+    error::Error,
     fmt,
     future::Future,
     io,
     pin::Pin,
     str,
-    task::{ready, Context, Poll},
+    sync::Arc,
+    task::{Context, Poll, ready},
 };
 use tokio::{
     net::TcpStream,
@@ -43,15 +39,15 @@ use tokio::{
 };
 use tokio_websockets::{ClientBuilder, Error as WebsocketError, Limits, MaybeTlsStream};
 use twilight_model::gateway::{
+    CloseCode, CloseFrame, Intents, OpCode,
     event::GatewayEventDeserializer,
     payload::{
         incoming::Hello,
         outgoing::{
-            identify::{IdentifyInfo, IdentifyProperties},
             Heartbeat, Identify, Resume,
+            identify::{IdentifyInfo, IdentifyProperties},
         },
     },
-    CloseCode, CloseFrame, Intents, OpCode,
 };
 
 /// URL of the Discord gateway.
@@ -60,17 +56,23 @@ const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 /// Query argument depending on enabled compression features.
 const COMPRESSION_FEATURES: &str = if cfg!(feature = "zstd") {
     "&compress=zstd-stream"
-} else if cfg!(feature = "zlib-stock") || cfg!(feature = "zlib-simd") {
+} else if cfg!(feature = "zlib") {
     "&compress=zlib-stream"
 } else {
     ""
 };
 
+/// Timeout for connecting to the gateway.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
 /// [`tokio_websockets`] library Websocket connection.
 type Connection = tokio_websockets::WebSocketStream<MaybeTlsStream<TcpStream>>;
 
+/// Dynamically dispatched [`Error`].
+type GenericError = Box<dyn Error + Send + Sync>;
+
 /// Wrapper struct around an `async fn` with a `Debug` implementation.
-struct ConnectionFuture(Pin<Box<dyn Future<Output = Result<Connection, WebsocketError>> + Send>>);
+struct ConnectionFuture(Pin<Box<dyn Future<Output = Result<Connection, GenericError>> + Send>>);
 
 impl fmt::Debug for ConnectionFuture {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -185,9 +187,11 @@ struct Pending {
 
 impl Pending {
     /// Constructor for a pending gateway event.
-    const fn text(json: String, is_heartbeat: bool) -> Option<Self> {
+    fn event<T: Serialize>(event: T, is_heartbeat: bool) -> Option<Self> {
         Some(Self {
-            gateway_event: Some(Message::Text(json)),
+            gateway_event: Some(Message::Text(
+                json::to_string(&event).expect("json serialization is infallible"),
+            )),
             is_heartbeat,
         })
     }
@@ -272,8 +276,8 @@ pub struct Shard<Q = InMemoryQueue> {
     /// The connection should only be dropped after it has returned `Ok(None)`
     /// to comply with the WebSocket protocol.
     connection: Option<Connection>,
-    /// Zstd decompressor.
-    #[cfg(feature = "zstd")]
+    /// Event decompressor.
+    #[cfg(any(feature = "zlib", feature = "zstd"))]
     decompressor: Decompressor,
     /// Interval of how often the gateway would like the shard to send
     /// heartbeats.
@@ -290,13 +294,6 @@ pub struct Shard<Q = InMemoryQueue> {
     id: ShardId,
     /// Identify queue receiver.
     identify_rx: Option<oneshot::Receiver<()>>,
-    /// Zlib decompressor.
-    #[allow(deprecated)]
-    #[cfg(all(
-        any(feature = "zlib-stock", feature = "zlib-simd"),
-        not(feature = "zstd")
-    ))]
-    inflater: Inflater,
     /// Potentially pending outgoing message.
     pending: Option<Pending>,
     /// Recent heartbeat latency statistics.
@@ -344,18 +341,12 @@ impl<Q> Shard<Q> {
             config,
             connection_future: None,
             connection: None,
-            #[cfg(feature = "zstd")]
+            #[cfg(any(feature = "zlib", feature = "zstd"))]
             decompressor: Decompressor::new(),
             heartbeat_interval: None,
             heartbeat_interval_event: false,
             id: shard_id,
             identify_rx: None,
-            #[allow(deprecated)]
-            #[cfg(all(
-                any(feature = "zlib-stock", feature = "zlib-simd"),
-                not(feature = "zstd")
-            ))]
-            inflater: Inflater::new(),
             pending: None,
             latency: Latency::new(),
             ratelimiter: None,
@@ -376,19 +367,6 @@ impl<Q> Shard<Q> {
     /// ID of the shard.
     pub const fn id(&self) -> ShardId {
         self.id
-    }
-
-    /// Zlib decompressor statistics.
-    ///
-    /// Reset when reconnecting to the gateway.
-    #[allow(deprecated)]
-    #[cfg(all(
-        any(feature = "zlib-stock", feature = "zlib-simd"),
-        not(feature = "zstd")
-    ))]
-    #[deprecated(since = "0.16.1", note = "replaced by zstd compression")]
-    pub const fn inflater(&self) -> &Inflater {
-        &self.inflater
     }
 
     /// State of the shard.
@@ -468,7 +446,7 @@ impl<Q> Shard<Q> {
     /// # #[tokio::main] async fn main() {
     /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
     /// use tokio_stream::StreamExt;
-    /// use twilight_gateway::{error::ReceiveMessageErrorType, CloseFrame, Message};
+    /// use twilight_gateway::{CloseFrame, Message, error::ReceiveMessageErrorType};
     ///
     /// shard.close(CloseFrame::NORMAL);
     ///
@@ -566,6 +544,67 @@ impl<Q> Shard<Q> {
             source: Some(Box::new(source)),
         })
     }
+
+    /// Attempts to connect to the gateway.
+    ///
+    /// # Returns
+    ///
+    /// * `Poll::Pending` if connection is in progress
+    /// * `Poll::Ready(Ok)` if connected
+    /// * `Poll::Ready(Err)` if connecting to the gateway failed.
+    fn poll_connect(
+        &mut self,
+        cx: &mut Context<'_>,
+        attempt: u8,
+    ) -> Poll<Result<(), ReceiveMessageError>> {
+        let fut = self.connection_future.get_or_insert_with(|| {
+            let base_url = self
+                .resume_url
+                .as_deref()
+                .or_else(|| self.config.proxy_url())
+                .unwrap_or(GATEWAY_URL);
+            let base_url_len = base_url.len();
+            let uri = format!("{base_url}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}");
+
+            let tls = Arc::clone(&self.config.tls);
+            ConnectionFuture(Box::pin(async move {
+                let delay = Duration::from_secs(2u8.saturating_pow(attempt.into()).into());
+                time::sleep(delay).await;
+                tracing::debug!(url = &uri[..base_url_len], "connecting");
+
+                let builder = ClientBuilder::new()
+                    .uri(&uri)
+                    .expect("valid URL")
+                    .limits(Limits::unlimited())
+                    .connector(&tls);
+                Ok(time::timeout(CONNECT_TIMEOUT, builder.connect()).await??.0)
+            }))
+        });
+
+        let res = ready!(Pin::new(&mut fut.0).poll(cx));
+        self.connection_future = None;
+        match res {
+            Ok(connection) => {
+                self.connection = Some(connection);
+                self.state = ShardState::Identifying;
+                #[cfg(any(feature = "zlib", feature = "zstd"))]
+                self.decompressor.reset();
+            }
+            Err(source) => {
+                self.resume_url = None;
+                self.state = ShardState::Disconnected {
+                    reconnect_attempts: attempt + 1,
+                };
+
+                return Poll::Ready(Err(ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Reconnect,
+                    source: Some(source),
+                }));
+            }
+        }
+
+        Poll::Ready(Ok(()))
+    }
 }
 
 impl<Q: Queue> Shard<Q> {
@@ -581,15 +620,14 @@ impl<Q: Queue> Shard<Q> {
             if let Some(pending) = self.pending.as_mut() {
                 ready!(Pin::new(self.connection.as_mut().unwrap()).poll_ready(cx))?;
 
-                if let Some(message) = &pending.gateway_event {
-                    if let Some(ratelimiter) = self.ratelimiter.as_mut() {
-                        if message.is_text() && !pending.is_heartbeat {
-                            ready!(ratelimiter.poll_acquire(cx));
-                        }
-                    }
+                let is_ratelimited = pending.gateway_event.as_ref().is_some_and(Message::is_text)
+                    && !pending.is_heartbeat;
+                if is_ratelimited && let Some(ratelimiter) = &mut self.ratelimiter {
+                    ready!(ratelimiter.poll_acquire(cx));
+                }
 
-                    let ws_message = pending.gateway_event.take().unwrap().into_websocket_msg();
-                    Pin::new(self.connection.as_mut().unwrap()).start_send(ws_message)?;
+                if let Some(msg) = pending.gateway_event.take().map(Message::into_websocket) {
+                    Pin::new(self.connection.as_mut().unwrap()).start_send(msg)?;
                 }
 
                 ready!(Pin::new(self.connection.as_mut().unwrap()).poll_flush(cx))?;
@@ -600,21 +638,19 @@ impl<Q: Queue> Shard<Q> {
                 self.pending = None;
             }
 
-            if !self.state.is_disconnected() {
-                if let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx) {
-                    let frame = frame.expect("shard owns channel");
+            if !self.state.is_disconnected()
+                && let Poll::Ready(frame) = self.user_channel.close_rx.poll_recv(cx)
+            {
+                let frame = frame.expect("shard owns channel");
 
-                    tracing::debug!("sending close frame from user channel");
-                    self.disconnect(CloseInitiator::Shard(frame));
+                tracing::debug!("sending close frame from user channel");
+                self.disconnect(CloseInitiator::Shard(frame));
 
-                    continue;
-                }
+                continue;
             }
 
-            if self
-                .heartbeat_interval
-                .as_mut()
-                .is_some_and(|heartbeater| heartbeater.poll_tick(cx).is_ready())
+            if let Some(heartbeater) = &mut self.heartbeat_interval
+                && heartbeater.poll_tick(cx).is_ready()
             {
                 // Discord never responded after the last heartbeat, connection
                 // is failed or "zombied", see
@@ -628,68 +664,63 @@ impl<Q: Queue> Shard<Q> {
                 }
 
                 tracing::debug!("sending heartbeat");
-                self.pending = Pending::text(
-                    json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                        .expect("serialization cannot fail"),
-                    true,
-                );
+                self.pending =
+                    Pending::event(Heartbeat::new(self.session().map(Session::sequence)), true);
                 self.heartbeat_interval_event = false;
 
                 continue;
             }
 
-            let not_ratelimited = self.ratelimiter.as_mut().map_or(true, |ratelimiter| {
-                ratelimiter.poll_available(cx).is_ready()
-            });
+            let not_ratelimited = self
+                .ratelimiter
+                .as_mut()
+                .is_none_or(|ratelimiter| ratelimiter.poll_available(cx).is_ready());
 
-            if not_ratelimited {
-                if let Some(Poll::Ready(canceled)) = self
-                    .identify_rx
-                    .as_mut()
-                    .map(|rx| Pin::new(rx).poll(cx).map(|r| r.is_err()))
-                {
-                    if canceled {
-                        self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
-                        continue;
-                    }
-
-                    tracing::debug!("sending identify");
-
-                    self.pending = Pending::text(
-                        json::to_string(&Identify::new(IdentifyInfo {
-                            compress: false,
-                            intents: self.config.intents(),
-                            large_threshold: self.config.large_threshold(),
-                            presence: self.config.presence().cloned(),
-                            properties: self
-                                .config
-                                .identify_properties()
-                                .cloned()
-                                .unwrap_or_else(default_identify_properties),
-                            shard: Some(self.id),
-                            token: self.config.token().to_owned(),
-                        }))
-                        .expect("serialization cannot fail"),
-                        false,
-                    );
-                    self.identify_rx = None;
-
+            if not_ratelimited
+                && let Some(rx) = &mut self.identify_rx
+                && let Poll::Ready(canceled) = Pin::new(rx).poll(cx).map(|r| r.is_err())
+            {
+                if canceled {
+                    self.identify_rx = Some(self.config.queue().enqueue(self.id.number()));
                     continue;
                 }
+
+                tracing::debug!("sending identify");
+
+                self.pending = Pending::event(
+                    Identify::new(IdentifyInfo {
+                        compress: false,
+                        intents: self.config.intents(),
+                        large_threshold: self.config.large_threshold(),
+                        presence: self.config.presence().cloned(),
+                        properties: self
+                            .config
+                            .identify_properties()
+                            .cloned()
+                            .unwrap_or_else(default_identify_properties),
+                        shard: Some(self.id),
+                        token: self.config.token().to_owned(),
+                    }),
+                    false,
+                );
+                self.identify_rx = None;
+
+                continue;
             }
 
-            if not_ratelimited && self.state.is_identified() {
-                if let Poll::Ready(command) = self.user_channel.command_rx.poll_recv(cx) {
-                    let command = command.expect("shard owns channel");
+            if not_ratelimited
+                && self.state.is_identified()
+                && let Poll::Ready(command) = self.user_channel.command_rx.poll_recv(cx)
+            {
+                let command = command.expect("shard owns channel");
 
-                    tracing::debug!("sending command from user channel");
-                    self.pending = Some(Pending {
-                        gateway_event: Some(Message::Text(command)),
-                        is_heartbeat: false,
-                    });
+                tracing::debug!("sending command from user channel");
+                self.pending = Some(Pending {
+                    gateway_event: Some(Message::Text(command)),
+                    is_heartbeat: false,
+                });
 
-                    continue;
-                }
+                continue;
             }
 
             return Poll::Ready(Ok(()));
@@ -753,11 +784,8 @@ impl<Q: Queue> Shard<Q> {
             }
             Some(OpCode::Heartbeat) => {
                 tracing::debug!("received heartbeat");
-                self.pending = Pending::text(
-                    json::to_string(&Heartbeat::new(self.session().map(Session::sequence)))
-                        .expect("serialization cannot fail"),
-                    true,
-                );
+                self.pending =
+                    Pending::event(Heartbeat::new(self.session().map(Session::sequence)), true);
             }
             Some(OpCode::HeartbeatAck) => {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
@@ -789,13 +817,8 @@ impl<Q: Queue> Shard<Q> {
                 self.latency = Latency::new();
 
                 if let Some(session) = &self.session {
-                    self.pending = Pending::text(
-                        json::to_string(&Resume::new(
-                            session.sequence(),
-                            session.id(),
-                            self.config.token(),
-                        ))
-                        .expect("serialization cannot fail"),
+                    self.pending = Pending::event(
+                        Resume::new(session.sequence(), session.id(), self.config.token()),
                         false,
                     );
                     self.state = ShardState::Resuming;
@@ -826,77 +849,23 @@ impl<Q: Queue> Shard<Q> {
 impl<Q: Queue + Unpin> Stream for Shard<Q> {
     type Item = Result<Message, ReceiveMessageError>;
 
-    #[allow(clippy::too_many_lines)]
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let message = loop {
             match self.state {
                 ShardState::FatallyClosed => {
-                    _ = ready!(Pin::new(
-                        self.connection
-                            .as_mut()
-                            .expect("poll_next called after Poll::Ready(None)")
-                    )
-                    .poll_close(cx));
+                    _ = ready!(
+                        Pin::new(
+                            self.connection
+                                .as_mut()
+                                .expect("poll_next called after Poll::Ready(None)")
+                        )
+                        .poll_close(cx)
+                    );
                     self.connection = None;
                     return Poll::Ready(None);
                 }
                 ShardState::Disconnected { reconnect_attempts } if self.connection.is_none() => {
-                    if self.connection_future.is_none() {
-                        let base_url = self
-                            .resume_url
-                            .as_deref()
-                            .or_else(|| self.config.proxy_url())
-                            .unwrap_or(GATEWAY_URL);
-                        let uri = format!(
-                            "{base_url}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}"
-                        );
-
-                        tracing::debug!(url = base_url, "connecting to gateway");
-
-                        let tls = self.config.tls.clone();
-                        self.connection_future = Some(ConnectionFuture(Box::pin(async move {
-                            let secs = 2u8.saturating_pow(reconnect_attempts.into());
-                            time::sleep(Duration::from_secs(secs.into())).await;
-
-                            Ok(ClientBuilder::new()
-                                .uri(&uri)
-                                .expect("URL should be valid")
-                                .limits(Limits::unlimited())
-                                .connector(&tls)
-                                .connect()
-                                .await?
-                                .0)
-                        })));
-                    }
-
-                    let res =
-                        ready!(Pin::new(&mut self.connection_future.as_mut().unwrap().0).poll(cx));
-                    self.connection_future = None;
-                    match res {
-                        Ok(connection) => {
-                            self.connection = Some(connection);
-                            self.state = ShardState::Identifying;
-                            #[cfg(feature = "zstd")]
-                            self.decompressor.reset();
-                            #[allow(deprecated)]
-                            #[cfg(all(
-                                not(feature = "zstd"),
-                                any(feature = "zlib-stock", feature = "zlib-simd")
-                            ))]
-                            self.inflater.reset();
-                        }
-                        Err(source) => {
-                            self.resume_url = None;
-                            self.state = ShardState::Disconnected {
-                                reconnect_attempts: reconnect_attempts + 1,
-                            };
-
-                            return Poll::Ready(Some(Err(ReceiveMessageError {
-                                kind: ReceiveMessageErrorType::Reconnect,
-                                source: Some(Box::new(source)),
-                            })));
-                        }
-                    }
+                    ready!(self.poll_connect(cx, reconnect_attempts))?;
                 }
                 _ => {}
             }
@@ -910,25 +879,14 @@ impl<Q: Queue + Unpin> Stream for Shard<Q> {
 
             match ready!(Pin::new(self.connection.as_mut().unwrap()).poll_next(cx)) {
                 Some(Ok(message)) => {
-                    #[cfg(feature = "zstd")]
+                    #[cfg(any(feature = "zlib", feature = "zstd"))]
                     if message.is_binary() {
                         match self.decompressor.decompress(message.as_payload()) {
+                            #[cfg(feature = "zstd")]
                             Ok(message) => break Message::Text(message),
-                            Err(source) => {
-                                self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));
-                                return Poll::Ready(Some(Err(
-                                    ReceiveMessageError::from_compression(source),
-                                )));
-                            }
-                        }
-                    }
-                    #[cfg(all(
-                        not(feature = "zstd"),
-                        any(feature = "zlib-stock", feature = "zlib-simd")
-                    ))]
-                    if message.is_binary() {
-                        match self.inflater.inflate(message.as_payload()) {
+                            #[cfg(all(not(feature = "zstd"), feature = "zlib"))]
                             Ok(Some(message)) => break Message::Text(message),
+                            #[cfg(all(not(feature = "zstd"), feature = "zlib"))]
                             Ok(None) => continue,
                             Err(source) => {
                                 self.disconnect(CloseInitiator::Shard(CloseFrame::RESUME));

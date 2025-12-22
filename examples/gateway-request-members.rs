@@ -6,6 +6,11 @@ use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
+    // Select rustls backend
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
+
     let mut shard = Shard::new(
         ShardId::ONE,
         env::var("DISCORD_TOKEN")?,
@@ -73,8 +78,7 @@ async fn main() -> anyhow::Result<()> {
                     Some("requesting two users") => {
                         println!(
                             "received response for requesting two members; found: {:?}; missing: {:?}",
-                            chunk.members,
-                            chunk.not_found,
+                            chunk.members, chunk.not_found,
                         );
                     }
                     Some("querying for members") => {

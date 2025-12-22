@@ -1,7 +1,13 @@
 mod private {
     use crate::request::{
+        GetCurrentAuthorizationInformation, GetGateway, GetGatewayAuthed, GetUserApplicationInfo,
+        GetVoiceRegions,
         application::{
             command::{
+                CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+                GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
+                GetGuildCommandPermissions, GetGuildCommands, SetGlobalCommands, SetGuildCommands,
+                UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
                 create_global_command::{
                     CreateGlobalChatInputCommand, CreateGlobalMessageCommand,
                     CreateGlobalUserCommand,
@@ -9,10 +15,6 @@ mod private {
                 create_guild_command::{
                     CreateGuildChatInputCommand, CreateGuildMessageCommand, CreateGuildUserCommand,
                 },
-                CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
-                GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
-                GetGuildCommandPermissions, GetGuildCommands, SetGlobalCommands, SetGuildCommands,
-                UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
             },
             emoji::{
                 AddApplicationEmoji, DeleteApplicationEmoji, ListApplicationEmojis,
@@ -23,11 +25,14 @@ mod private {
                 DeleteResponse, GetFollowup, GetResponse, UpdateFollowup, UpdateResponse,
             },
             monetization::{
-                create_test_entitlement::CreateTestEntitlement, get_entitlements::GetEntitlements,
-                DeleteTestEntitlement, GetSKUs,
+                DeleteTestEntitlement, GetSKUs, create_test_entitlement::CreateTestEntitlement,
+                get_entitlements::GetEntitlements,
             },
         },
         channel::{
+            CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission,
+            DeleteChannelPermissionConfigured, DeletePin, FollowNewsChannel, GetChannel, GetPins,
+            UpdateChannel, UpdateChannelPermission,
             invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
             message::{
                 CreateMessage, CrosspostMessage, DeleteMessage, DeleteMessages, GetChannelMessages,
@@ -40,21 +45,25 @@ mod private {
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
             },
             thread::{
-                create_forum_thread::CreateForumThreadMessage, AddThreadMember, CreateThread,
-                CreateThreadFromMessage, GetJoinedPrivateArchivedThreads,
-                GetPrivateArchivedThreads, GetPublicArchivedThreads, GetThreadMember,
-                GetThreadMembers, JoinThread, LeaveThread, RemoveThreadMember, UpdateThread,
+                AddThreadMember, CreateThread, CreateThreadFromMessage,
+                GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
+                GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
+                LeaveThread, RemoveThreadMember, UpdateThread,
+                create_forum_thread::CreateForumThreadMessage,
             },
             webhook::{
                 CreateWebhook, DeleteWebhook, DeleteWebhookMessage, ExecuteWebhook,
                 ExecuteWebhookAndWait, GetChannelWebhooks, GetWebhook, GetWebhookMessage,
                 UpdateWebhook, UpdateWebhookMessage, UpdateWebhookWithToken,
             },
-            CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission,
-            DeleteChannelPermissionConfigured, DeletePin, FollowNewsChannel, GetChannel, GetPins,
-            UpdateChannel, UpdateChannelPermission,
         },
         guild::{
+            CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads, GetAuditLog,
+            GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding, GetGuildPreview,
+            GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
+            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
+            UpdateGuildWidgetSettings,
             auto_moderation::{
                 CreateAutoModerationRule, DeleteAutoModerationRule, GetAutoModerationRule,
                 GetGuildAutoModerationRules, UpdateAutoModerationRule,
@@ -67,7 +76,8 @@ mod private {
                 RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
             },
             role::{
-                CreateRole, DeleteRole, GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
+                CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRoles, GetRole,
+                UpdateRole, UpdateRolePositions,
             },
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
@@ -78,12 +88,6 @@ mod private {
                 GetCurrentUserVoiceState, GetUserVoiceState, UpdateCurrentUserVoiceState,
                 UpdateUserVoiceState,
             },
-            CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
-            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildOnboarding,
-            GetGuildPreview, GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions,
-            GetGuildWebhooks, GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings,
-            UpdateCurrentMember, UpdateGuild, UpdateGuildChannelPositions, UpdateGuildMfa,
-            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
         },
         poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
@@ -102,8 +106,6 @@ mod private {
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetCurrentAuthorizationInformation, GetGateway, GetGatewayAuthed, GetUserApplicationInfo,
-        GetVoiceRegions,
     };
 
     pub trait Sealed {}
@@ -121,7 +123,6 @@ mod private {
     impl Sealed for CreateGlobalCommand<'_> {}
     impl Sealed for CreateGlobalMessageCommand<'_> {}
     impl Sealed for CreateGlobalUserCommand<'_> {}
-    impl Sealed for CreateGuild<'_> {}
     impl Sealed for CreateGuildChannel<'_> {}
     impl Sealed for CreateGuildChatInputCommand<'_> {}
     impl Sealed for CreateGuildCommand<'_> {}
@@ -221,6 +222,7 @@ mod private {
     impl Sealed for GetGuildOnboarding<'_> {}
     impl Sealed for GetGuildPreview<'_> {}
     impl Sealed for GetGuildPruneCount<'_> {}
+    impl Sealed for GetGuildRoleMemberCounts<'_> {}
     impl Sealed for GetGuildRoles<'_> {}
     impl Sealed for GetGuildScheduledEvent<'_> {}
     impl Sealed for GetGuildScheduledEventUsers<'_> {}

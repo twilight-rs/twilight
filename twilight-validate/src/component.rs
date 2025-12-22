@@ -1,5 +1,7 @@
 //! Constants, error types, and functions for validating [`Component`]s.
 
+mod component_v2;
+
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -9,21 +11,38 @@ use twilight_model::channel::message::component::{
     SelectMenuType, TextInput,
 };
 
+pub use component_v2::{
+    FILE_UPLOAD_MAXIMUM_VALUES_LIMIT, FILE_UPLOAD_MINIMUM_VALUES_LIMIT,
+    LABEL_DESCRIPTION_LENGTH_MAX, LABEL_LABEL_LENGTH_MAX,
+    MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN,
+    SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX,
+    THUMBNAIL_DESCRIPTION_LENGTH_MAX, component_v2, container, file_upload, label, media_gallery,
+    media_gallery_item, section, text_display, thumbnail,
+};
+
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
 ///
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Action Rows][1].
 ///
-/// [1]: https://discord.com/developers/docs/interactions/message-components#action-rows
+/// [1]: https://discord.com/developers/docs/components/reference#action-row
 pub const ACTION_ROW_COMPONENT_COUNT: usize = 5;
 
 /// Maximum number of root [`Component`]s in a message.
 ///
 /// This is defined in Discord's documentation, per
-/// [Discord Docs/Action Row][1].
+/// [Discord Docs][1].
 ///
-/// [1]: https://discord.com/developers/docs/interactions/message-components#action-rows
+/// [1]: https://discord.com/developers/docs/components/reference#legacy-message-component-behavior
 pub const COMPONENT_COUNT: usize = 5;
+
+/// Maximum total number of [`Component`]s in a component V2 message.
+///
+/// This is defined in Discord's documentation, per
+/// [Discord Docs][1].
+///
+/// [1]: https://discord.com/developers/docs/components/reference#component-reference
+pub const COMPONENT_V2_COUNT: usize = 40;
 
 /// Maximum length of a [`Component`] custom ID in codepoints.
 ///
@@ -253,11 +272,11 @@ impl Display for ComponentValidationError {
                 Display::fmt(&SELECT_MAXIMUM_VALUES_LIMIT, f)
             }
             ComponentValidationErrorType::SelectMinimumValuesCount { count } => {
-                f.write_str("maximum number of values that must be chosen is ")?;
+                f.write_str("minimum number of values that must be chosen is ")?;
                 Display::fmt(count, f)?;
                 f.write_str(", but must be less than or equal to ")?;
 
-                Display::fmt(&SELECT_MAXIMUM_VALUES_LIMIT, f)
+                Display::fmt(&SELECT_MINIMUM_VALUES_LIMIT, f)
             }
             ComponentValidationErrorType::SelectNotEnoughDefaultValues { provided, min } => {
                 f.write_str("a select menu provided ")?;
@@ -354,6 +373,87 @@ impl Display for ComponentValidationError {
                 f.write_str(" characters long, but the max is ")?;
 
                 Display::fmt(&TEXT_INPUT_PLACEHOLDER_MAX, f)
+            }
+            ComponentValidationErrorType::TextInputDisallowedLabel => {
+                f.write_str("a text input contained a label when disallowed")
+            }
+            ComponentValidationErrorType::DisallowedV2Components => {
+                f.write_str("a V2 component was used in a component V1 message")
+            }
+            ComponentValidationErrorType::DisallowedChildren => {
+                f.write_str("a component contains a disallowed child component")
+            }
+            ComponentValidationErrorType::TextDisplayContentTooLong { len: count } => {
+                f.write_str("a text display content length is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&TEXT_DISPLAY_CONTENT_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::MediaGalleryItemCountOutOfRange { count } => {
+                f.write_str("a media gallery has ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" items, but the min and max are ")?;
+                Display::fmt(&MEDIA_GALLERY_ITEMS_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&MEDIA_GALLERY_ITEMS_MAX, f)?;
+
+                f.write_str(" respectively")
+            }
+            ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong { len } => {
+                f.write_str("a media gallery item description length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::SectionComponentCountOutOfRange { count } => {
+                f.write_str("a section has ")?;
+                Display::fmt(count, f)?;
+                f.write_str(" components, but the min and max are ")?;
+                Display::fmt(&SECTION_COMPONENTS_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&SECTION_COMPONENTS_MAX, f)?;
+
+                f.write_str(" respectively")
+            }
+            ComponentValidationErrorType::SelectDisallowedDisabled => {
+                f.write_str("a select menu was disabled when disallowed")
+            }
+            ComponentValidationErrorType::ThumbnailDescriptionTooLong { len } => {
+                f.write_str("a thumbnail description length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&THUMBNAIL_DESCRIPTION_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::LabelLabelTooLong { len } => {
+                f.write_str("a label text of a label component is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&LABEL_LABEL_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::LabelDescriptionTooLong { len } => {
+                f.write_str("a label description length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&LABEL_DESCRIPTION_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::FileUploadMaximumValuesCount { count } => {
+                f.write_str("maximum number of files that can be uploaded is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but must be less than or equal to ")?;
+
+                Display::fmt(&FILE_UPLOAD_MAXIMUM_VALUES_LIMIT, f)
+            }
+            ComponentValidationErrorType::FileUploadMinimumValuesCount { count } => {
+                f.write_str("minimum number of files that must be uploaded is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but must be less than or equal to ")?;
+
+                Display::fmt(&FILE_UPLOAD_MINIMUM_VALUES_LIMIT, f)
             }
         }
     }
@@ -501,9 +601,101 @@ pub enum ComponentValidationErrorType {
         /// Provided number of codepoints.
         chars: usize,
     },
+    /// A [`TextInput`] component contained a label in a context where it is not allowed.
+    TextInputDisallowedLabel,
+    /// V2 components used in a V1 component.
+    DisallowedV2Components,
+    /// Disallowed children components are found in a root component.
+    DisallowedChildren,
+    /// Content of text display component is too long.
+    TextDisplayContentTooLong {
+        /// Length of the provided content.
+        len: usize,
+    },
+    /// The number of items in a media gallery is out of range.
+    MediaGalleryItemCountOutOfRange {
+        /// Number of items in the media gallery.
+        count: usize,
+    },
+    /// The description of a media gallery item is too long.
+    MediaGalleryItemDescriptionTooLong {
+        /// Length of the provided description.
+        len: usize,
+    },
+    /// The number of components in a section is out of range.
+    SectionComponentCountOutOfRange {
+        /// Number of components in the section.
+        count: usize,
+    },
+    /// A select component's `disabled` field was `true` in a context where disabled selects are
+    /// not allowed.
+    SelectDisallowedDisabled,
+    /// The length of the thumbnail description is too long.
+    ThumbnailDescriptionTooLong {
+        /// Length of the provided description.
+        len: usize,
+    },
+    /// The length of the label text of a label is too long.
+    LabelLabelTooLong {
+        /// Length of the provided label.
+        len: usize,
+    },
+    /// The length of the description of a label is too long.
+    LabelDescriptionTooLong {
+        /// Length of the provided description.
+        len: usize,
+    },
+    /// Maximum number of files that can be uploaded is larger than
+    /// [the maximum][`FILE_UPLOAD_MAXIMUM_VALUES_LIMIT`].
+    FileUploadMaximumValuesCount {
+        /// Provided value for [`FileUpload::max_values`].
+        ///
+        /// [`FileUpload::max_values`]: twilight_model::channel::message::component::FileUpload::max_values
+        count: u8,
+    },
+    /// Minimum number of files that must be uploaded is larger than
+    /// [the maximum][`FILE_UPLOAD_MINIMUM_VALUES_LIMIT`].
+    FileUploadMinimumValuesCount {
+        /// Value provided for [`FileUpload::min_values`].
+        ///
+        /// [`FileUpload::min_values`]: twilight_model::channel::message::component::FileUpload::min_values
+        count: u8,
+    },
 }
 
-/// Ensure that a top-level request component is correct.
+/// Ensure that a top-level request component is correct in V1.
+///
+/// Intended to ensure that a fully formed top-level component for requests
+/// is an action row.
+///
+/// Refer to other validators like [`button`] if you need to validate other
+/// components.
+///
+/// # Errors
+///
+/// Returns an error of type [`InvalidRootComponent`] if the component is not an
+/// [`ActionRow`].
+///
+/// Refer to [`action_row`] for potential errors when validating an action row
+/// component.
+///
+/// Returns an error if any components V2 components are used.
+///
+/// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
+pub fn component_v1(component: &Component) -> Result<(), ComponentValidationError> {
+    match component {
+        Component::ActionRow(action_row) => self::action_row(action_row, false)?,
+        other => {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
+            });
+        }
+    }
+
+    Ok(())
+}
+
+/// Ensure that a top-level request component is correct in V1.
 ///
 /// Intended to ensure that a fully formed top-level component for requests
 /// is an action row.
@@ -520,17 +712,9 @@ pub enum ComponentValidationErrorType {
 /// component.
 ///
 /// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
+#[deprecated(note = "Use component_v1 for old components and component_v2 for new ones")]
 pub fn component(component: &Component) -> Result<(), ComponentValidationError> {
-    match component {
-        Component::ActionRow(action_row) => self::action_row(action_row)?,
-        other => {
-            return Err(ComponentValidationError {
-                kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
-            });
-        }
-    }
-
-    Ok(())
+    component_v1(component)
 }
 
 /// Ensure that an action row is correct.
@@ -540,9 +724,15 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 /// Returns an error of type [`ActionRowComponentCount`] if the action row has
 /// too many components in it.
 ///
+/// Returns an error of type [`DisallowedChildren`] if the action row contains V2 components
+/// that are disallowed in action rows and `is_v2` is `true`.
+///
+/// Returns an error of type [`DisallowedV2Components`] if the action row contains V2 components
+/// and `is_v2` is `false`.
+///
 /// Returns an error of type [`InvalidChildComponent`] if the provided nested
-/// component is an [`ActionRow`]. Action rows can not contain another action
-/// row.
+/// component is an [`ActionRow`] or a [`Label`]. Action rows cannot contain other top-level
+/// components.
 ///
 /// Refer to [`button`] for potential errors when validating a button in the
 /// action row.
@@ -554,28 +744,48 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 /// the action row.
 ///
 /// [`ActionRowComponentCount`]: ComponentValidationErrorType::ActionRowComponentCount
+/// [`DisallowedChildren`]: ComponentValidationErrorType::DisallowedChildren
+/// [`DisallowedV2Components`]: ComponentValidationErrorType::DisallowedV2Components
 /// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
-pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError> {
+/// [`Label`]: twilight_model::channel::message::component::Label
+pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentValidationError> {
     self::component_action_row_components(&action_row.components)?;
 
     for component in &action_row.components {
         match component {
-            Component::ActionRow(_) => {
+            Component::ActionRow(_) | Component::Label(_) => {
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::InvalidChildComponent {
-                        kind: ComponentType::ActionRow,
+                        kind: component.kind(),
                     },
                 });
             }
             Component::Button(button) => self::button(button)?,
-            Component::SelectMenu(select_menu) => self::select_menu(select_menu)?,
-            Component::TextInput(text_input) => self::text_input(text_input)?,
+            Component::SelectMenu(select_menu) => self::select_menu(select_menu, true)?,
+            Component::TextInput(text_input) => self::text_input(text_input, true)?,
             Component::Unknown(unknown) => {
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::InvalidChildComponent {
                         kind: ComponentType::Unknown(*unknown),
                     },
-                })
+                });
+            }
+
+            Component::TextDisplay(_)
+            | Component::MediaGallery(_)
+            | Component::Separator(_)
+            | Component::File(_)
+            | Component::Section(_)
+            | Component::Container(_)
+            | Component::Thumbnail(_)
+            | Component::FileUpload(_) => {
+                return Err(ComponentValidationError {
+                    kind: if is_v2 {
+                        ComponentValidationErrorType::DisallowedChildren
+                    } else {
+                        ComponentValidationErrorType::DisallowedV2Components
+                    },
+                });
             }
         }
     }
@@ -606,6 +816,9 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
     let has_custom_id = button.custom_id.is_some();
+    let has_emoji = button.emoji.is_some();
+    let has_label = button.label.is_some();
+    let has_sku_id = button.sku_id.is_some();
     let has_url = button.url.is_some();
 
     // First check if a custom ID and URL are both set. If so this
@@ -616,7 +829,20 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
         });
     }
 
-    // Next, we check if the button is a link and a URL is not set.
+    // Next, we check if the button is a premium and a SKU ID is not set.
+    //
+    // Also, we check if the button is not a premium and custom ID, label,
+    // URL or emoji is set.
+    let is_premium = button.style == ButtonStyle::Premium;
+    if is_premium && (has_custom_id || has_url || has_label || has_emoji || !has_sku_id) {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::ButtonStyle {
+                style: button.style,
+            },
+        });
+    }
+
+    // Then, we check if the button is a link and a URL is not set.
     //
     // Lastly, we check if the button is not a link and a custom ID is
     // not set.
@@ -643,7 +869,14 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 
 /// Ensure that a select menu is correct.
 ///
+/// The `disabled_allowed` parameter determines whether the `disabled` field is allowed in this
+/// context.
+/// It should be disallowed if this component is placed in a modal.
+///
 /// # Errors
+///
+/// Returns an error of type [`SelectDisallowedDisabled`] if `disabled_allowed` is `false` and
+/// the provided select menu is disabled.
 ///
 /// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
 /// ID is too long.
@@ -679,6 +912,7 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 /// Returns an error of type [`SelectTooManyDefaultValues`] if the select menu specifies more
 /// default values than its maximum values property.
 ///
+/// [`SelectDisallowedDisabled`]: ComponentValidationErrorType::SelectDisallowedDisabled
 /// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 /// [`SelectMaximumValuesCount`]: ComponentValidationErrorType::SelectMaximumValuesCount
@@ -690,8 +924,17 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 /// [`SelectUnsupportedDefaultValues`]: ComponentValidationErrorType::SelectUnsupportedDefaultValues
 /// [`SelectNotEnoughDefaultValues`]: ComponentValidationErrorType::SelectNotEnoughDefaultValues
 /// [`SelectTooManyDefaultValues`]: ComponentValidationErrorType::SelectTooManyDefaultValues
-pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationError> {
+pub fn select_menu(
+    select_menu: &SelectMenu,
+    disabled_allowed: bool,
+) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&select_menu.custom_id)?;
+
+    if !disabled_allowed && select_menu.disabled {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::SelectDisallowedDisabled,
+        });
+    }
 
     // There aren't any requirements for channel_types that we could validate here
     if let SelectMenuType::Text = &select_menu.kind {
@@ -738,7 +981,14 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 
 /// Ensure that a text input is correct.
 ///
+/// The `label_allowed` parameter determines whether the deprecated [`TextInput::label`] field is
+/// allowed in this context.
+/// It should be disallowed if the text input component is place within a label component.
+///
 /// # Errors
+///
+/// Returns an error of type [`TextInputDisallowedLabel`] if `label_allowed` is `false` and
+/// the `label` field of this text input is set.
 ///
 /// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
 /// ID is too long.
@@ -755,15 +1005,29 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 ///
 /// Returns an error of type [`TextInputValueLength`] if the length is invalid.
 ///
+/// [`TextInputDisallowedLabel`]: ComponentValidationErrorType::TextInputDisallowedLabel
 /// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 /// [`TextInputMaxLength`]: ComponentValidationErrorType::TextInputMaxLength
 /// [`TextInputMinLength`]: ComponentValidationErrorType::TextInputMinLength
 /// [`TextInputPlaceholderLength`]: ComponentValidationErrorType::TextInputPlaceholderLength
 /// [`TextInputValueLength`]: ComponentValidationErrorType::TextInputValueLength
-pub fn text_input(text_input: &TextInput) -> Result<(), ComponentValidationError> {
+pub fn text_input(
+    text_input: &TextInput,
+    label_allowed: bool,
+) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&text_input.custom_id)?;
-    self::component_text_input_label(&text_input.label)?;
+
+    #[allow(deprecated)]
+    if let Some(label) = &text_input.label {
+        if !label_allowed {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::TextInputDisallowedLabel,
+            });
+        }
+
+        self::component_text_input_label(label)?;
+    }
 
     if let Some(max_length) = text_input.max_length {
         self::component_text_input_max(max_length)?;
@@ -1229,6 +1493,7 @@ mod tests {
             style: ButtonStyle::Link,
             url: Some("https://abebooks.com".into()),
             sku_id: None,
+            id: None,
         };
 
         let select_menu = SelectMenu {
@@ -1247,6 +1512,8 @@ mod tests {
                 value: "9780316129084".into(),
             }])),
             placeholder: Some("Choose a book".into()),
+            id: None,
+            required: None,
         };
 
         let action_row = ActionRow {
@@ -1254,13 +1521,14 @@ mod tests {
                 Component::SelectMenu(select_menu.clone()),
                 Component::Button(button),
             ]),
+            id: None,
         };
 
-        assert!(component(&Component::ActionRow(action_row.clone())).is_ok());
+        assert!(component_v1(&Component::ActionRow(action_row.clone())).is_ok());
 
-        assert!(component(&Component::SelectMenu(select_menu.clone())).is_err());
+        assert!(component_v1(&Component::SelectMenu(select_menu.clone())).is_err());
 
-        assert!(super::action_row(&action_row).is_ok());
+        assert!(super::action_row(&action_row, false).is_ok());
 
         let invalid_action_row = Component::ActionRow(ActionRow {
             components: Vec::from([
@@ -1271,9 +1539,10 @@ mod tests {
                 Component::SelectMenu(select_menu.clone()),
                 Component::SelectMenu(select_menu),
             ]),
+            id: None,
         });
 
-        assert!(component(&invalid_action_row).is_err());
+        assert!(component_v1(&invalid_action_row).is_err());
     }
 
     // Test that a button with both a custom ID and URL results in a
@@ -1288,6 +1557,7 @@ mod tests {
             style: ButtonStyle::Primary,
             url: Some("https://twilight.rs".to_owned()),
             sku_id: None,
+            id: None,
         };
 
         assert!(matches!(
@@ -1311,6 +1581,7 @@ mod tests {
                 style: *style,
                 url: None,
                 sku_id: None,
+                id: None,
             };
 
             assert!(matches!(

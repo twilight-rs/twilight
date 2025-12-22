@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.17.1] - 2025-12-13
+
+**NOTE**: We recommend everyone to update to this version as soon as
+possible as the ratelimiter may panic in some cases on version 0.17.0.
+
+### Bug Fixes
+
+- fix new clippy errors in the tests ([#2486](https://github.com/twilight-rs/twilight/issues/2486))
+- filter removed queues in actor gc ([#2490](https://github.com/twilight-rs/twilight/issues/2490))
+
+### Features
+
+- improve actor panic message ([#2487](https://github.com/twilight-rs/twilight/issues/2487))
+
+### Performance
+
+- drop stale requests early ([#2469](https://github.com/twilight-rs/twilight/issues/2469))
+
+## [0.17.0] - 2025-11-08
+
+### Bug Fixes
+
+- resolve clippy 1.86 lints ([#2426](https://github.com/twilight-rs/twilight/issues/2426))
+
+### Features
+
+- [**breaking**] rewrite crate ([#2418](https://github.com/twilight-rs/twilight/issues/2418))
+- add /oauth2/token path ([#2452](https://github.com/twilight-rs/twilight/issues/2452))
+- [**breaking**] support unknown paths ([#2453](https://github.com/twilight-rs/twilight/issues/2453))
+
+### Refactor
+
+- [**breaking**] remove retry delay logic ([#2455](https://github.com/twilight-rs/twilight/issues/2455))
+
+### Testing
+
+- shared resource emulation ([#2457](https://github.com/twilight-rs/twilight/issues/2457))
+
+### Chore
+
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+
 ## [0.16.0] - 2025-01-12
 
 ### Bug Fixes

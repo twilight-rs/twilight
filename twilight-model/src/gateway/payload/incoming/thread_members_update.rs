@@ -1,13 +1,13 @@
 use crate::{
     channel::thread::member::{ThreadMember, ThreadMemberIntermediary},
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
 };
 use serde::{
-    de::{value::MapAccessDeserializer, MapAccess, Visitor},
     Deserialize, Deserializer, Serialize,
+    de::{MapAccess, Visitor, value::MapAccessDeserializer},
 };
 use std::fmt::{Formatter, Result as FmtResult};
 
@@ -113,6 +113,8 @@ mod tests {
 
         let member = Member {
             avatar: Some(image_hash::AVATAR),
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,
@@ -138,6 +140,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,

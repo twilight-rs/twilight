@@ -318,8 +318,12 @@ mod tests {
 
     #[test]
     fn deletable_with_permissions() {
-        assert!(MessageType::AutoModerationAction
-            .deletable_with_permissions(Permissions::MANAGE_MESSAGES));
-        assert!(!MessageType::AutoModerationAction.deletable_with_permissions(Permissions::empty()));
+        assert!(
+            MessageType::AutoModerationAction
+                .deletable_with_permissions(Permissions::MANAGE_MESSAGES)
+        );
+        assert!(
+            !MessageType::AutoModerationAction.deletable_with_permissions(Permissions::empty())
+        );
     }
 }

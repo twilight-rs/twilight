@@ -1,6 +1,6 @@
 use crate::id::{
-    marker::{GuildMarker, RoleMarker},
     Id,
+    marker::{GuildMarker, RoleMarker},
 };
 use serde::{Deserialize, Serialize};
 

@@ -73,6 +73,12 @@ bitflags! {
         const VIEW_CREATOR_MONETIZATION_ANALYTICS = 1 << 41;
         /// Allows for using soundboard in a voice channel
         const USE_SOUNDBOARD = 1 << 42;
+        /// Allows for creating emojis, stickers, and soundboard sounds, and editing and
+        /// deleting those created by the current user.
+        const CREATE_GUILD_EXPRESSIONS = 1 << 43;
+        /// Allows for creating scheduled events, and editing and deleting those created
+        /// by the current user.
+        const CREATE_EVENTS = 1 << 44;
         /// Allows the usage of custom soundboard sounds from other servers
         const USE_EXTERNAL_SOUNDS = 1 << 45;
         /// Allows sending voice messages
@@ -84,6 +90,10 @@ bitflags! {
         /// but the responses will be ephemeral. This only applies to
         /// apps not also installed to the server.
         const USE_EXTERNAL_APPS = 1 << 50;
+        /// Allows pinning and unpinning messages.
+        const PIN_MESSAGES = 1 << 51;
+        /// Allows to bypass slowmode in channels with slowmode enabled.
+        const BYPASS_SLOWMODE = 1 << 52;
     }
 }
 
@@ -213,6 +223,8 @@ mod tests {
     const_assert_eq!(Permissions::SEND_VOICE_MESSAGES.bits(), 1 << 46);
     const_assert_eq!(Permissions::SEND_POLLS.bits(), 1 << 49);
     const_assert_eq!(Permissions::USE_EXTERNAL_APPS.bits(), 1 << 50);
+    const_assert_eq!(Permissions::PIN_MESSAGES.bits(), 1 << 51);
+    const_assert_eq!(Permissions::BYPASS_SLOWMODE.bits(), 1 << 52);
 
     #[test]
     fn serde() {

@@ -11,7 +11,7 @@ name = "twilight-http"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.16.0"
+version = "0.17.1"
 
 [dependencies]
 fastrand = { default-features = false, features = ["std"], version = "2" }
@@ -19,37 +19,35 @@ http = { default-features = false, version = "1" }
 http-body-util = { default-features = false, version = "0.1" }
 hyper = { default-features = false, version = "1" }
 hyper-util = { default-features = false, features = ["client-legacy", "http1", "http2", "tokio"], version = "0.1.2" }
-hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.27.3" }
+hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.27.7" }
 hyper-tls = { default-features = false, optional = true, features = ["alpn"], version = "0.6" }
-hyper-hickory = { default-features = false, optional = true, version = "0.7" }
+hyper-hickory = { default-features = false, optional = true, features = ["tokio"], version = "0.8" }
 percent-encoding = { default-features = false, version = "2" }
 rustls = { default-features = false, optional = true, version = "0.23" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
-tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.16.0" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.16.0" }
-twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.16.0" }
+tracing = { default-features = false, features = ["std", "attributes"], version = "0.1.36" }
+twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.17.0" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.17.0" }
+twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.17.0" }
 
 # Optional dependencies.
-brotli-decompressor = { default-features = false, features = ["std"], optional = true, version = "4" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.14.0-rc.3" }
+brotli-decompressor = { default-features = false, features = ["std"], optional = true, version = "5" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.17" }
 
 [features]
-default = ["decompression", "rustls-platform-verifier", "rustls-ring"]
+default = ["decompression", "rustls-platform-verifier"]
 decompression = ["dep:brotli-decompressor"]
 hickory = ["dep:hyper-hickory"]
 native-tls = ["dep:hyper-tls"]
 rustls-platform-verifier = ["dep:hyper-rustls", "dep:rustls", "hyper-rustls?/rustls-platform-verifier"]
 rustls-native-roots = ["dep:hyper-rustls", "dep:rustls", "hyper-rustls?/native-tokio"]
 rustls-webpki-roots = ["dep:hyper-rustls", "dep:rustls", "hyper-rustls?/webpki-tokio"]
-rustls-ring = ["hyper-rustls?/ring"]
-rustls-aws_lc_rs = ["hyper-rustls?/aws-lc-rs"]
-rustls-aws-lc-rs = ["rustls-aws_lc_rs"] # Alias for convenience, underscores are preferred in the rustls stack
 
 [dev-dependencies]
+rustls = { default-features = false, features = ["ring"], version = "0.23" }
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.16.0" }
+twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.17.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }

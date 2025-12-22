@@ -1,218 +1,155 @@
-use super::{Response, StatusCode};
+use super::{BytesFuture, Response};
 use crate::{
     api_error::ApiError,
+    client::connector::Connector,
     error::{Error, ErrorType},
 };
-use http::StatusCode as HyperStatusCode;
-use hyper_util::client::legacy::ResponseFuture as HyperResponseFuture;
+use http::{HeaderMap, HeaderValue, Request, StatusCode, header};
+use http_body_util::Full;
+use hyper::body::Bytes;
+use hyper_util::client::legacy::{Client as HyperClient, ResponseFuture as HyperResponseFuture};
 use std::{
-    future::Future,
+    future::{Future, Ready, ready},
     marker::PhantomData,
-    mem,
     pin::Pin,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
-    task::{Context, Poll},
-    time::Duration,
+    task::{Context, Poll, ready},
+    time::{Duration, Instant},
 };
 use tokio::time::{self, Timeout};
-use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
+use twilight_http_ratelimiting::{Endpoint, Permit, PermitFuture, RateLimitHeaders, RateLimiter};
 
-type Output<T> = Result<Response<T>, Error>;
+/// Parse ratelimit headers from a map of headers.
+///
+/// # Errors
+///
+/// Errors if a required header is missing or if a header value is of an
+/// invalid type.
+fn parse_ratelimit_headers(
+    headers: &HeaderMap,
+) -> Result<Option<RateLimitHeaders>, Box<dyn std::error::Error>> {
+    match headers
+        .get(RateLimitHeaders::SCOPE)
+        .map(HeaderValue::as_bytes)
+    {
+        Some(b"global") => {
+            tracing::info!("globally rate limited");
 
-enum InnerPoll<T> {
-    Advance(ResponseFutureStage),
-    Pending(ResponseFutureStage),
-    Ready(Output<T>),
-}
+            Ok(None)
+        }
+        Some(b"shared") => {
+            let bucket = headers
+                .get(RateLimitHeaders::BUCKET)
+                .ok_or("missing bucket header")?
+                .as_bytes()
+                .to_vec();
+            let retry_after = headers
+                .get(header::RETRY_AFTER)
+                .ok_or("missing retry-after header")?
+                .to_str()?
+                .parse()?;
 
-struct Chunking {
-    future: Pin<Box<dyn Future<Output = Result<Vec<u8>, Error>> + Send + Sync + 'static>>,
-    status: HyperStatusCode,
-}
+            Ok(Some(RateLimitHeaders::shared(bucket, retry_after)))
+        }
+        Some(b"user") => {
+            let bucket = headers
+                .get(RateLimitHeaders::BUCKET)
+                .ok_or("missing bucket header")?
+                .as_bytes()
+                .to_vec();
+            let limit = headers
+                .get(RateLimitHeaders::LIMIT)
+                .ok_or("missing limit header")?
+                .to_str()?
+                .parse()?;
+            let remaining = headers
+                .get(RateLimitHeaders::REMAINING)
+                .ok_or("missing remaining header")?
+                .to_str()?
+                .parse()?;
+            let reset_after = headers
+                .get(RateLimitHeaders::RESET_AFTER)
+                .ok_or("missing reset-after header")?
+                .to_str()?
+                .parse()?;
 
-impl Chunking {
-    fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let bytes = match Pin::new(&mut self.future).poll(cx) {
-            Poll::Ready(Ok(bytes)) => bytes,
-            Poll::Ready(Err(source)) => return InnerPoll::Ready(Err(source)),
-            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::Chunking(self)),
-        };
-
-        let error = match crate::json::from_bytes::<ApiError>(&bytes) {
-            Ok(error) => error,
-            Err(source) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::Parsing { body: bytes },
-                    source: Some(Box::new(source)),
-                }));
-            }
-        };
-
-        InnerPoll::Ready(Err(Error {
-            kind: ErrorType::Response {
-                body: bytes,
-                error,
-                status: StatusCode::new(self.status.as_u16()),
-            },
-            source: None,
-        }))
+            Ok(Some(RateLimitHeaders {
+                bucket,
+                limit,
+                remaining,
+                reset_at: Instant::now() + Duration::from_secs_f32(reset_after),
+            }))
+        }
+        _ => Ok(None),
     }
 }
 
-struct Failed {
-    source: Error,
+/// Sub-futures of [`ResponseFuture`].
+enum ResponseStageFuture {
+    /// Future that completes with an error response body.
+    Error {
+        /// Inner response body future.
+        fut: BytesFuture,
+        /// Erroneous response status code.
+        status: StatusCode,
+    },
+    /// Future that completes when a rate limit permit is ready.
+    RateLimitPermit(PermitFuture),
+    /// Future that completes with a response or timeout.
+    Response {
+        /// Inner timed response future.
+        fut: Pin<Box<Timeout<HyperResponseFuture>>>,
+        /// Optional rate limit permit.
+        permit: Option<Permit>,
+    },
 }
 
-impl Failed {
-    fn poll<T>(self, _: &mut Context<'_>) -> InnerPoll<T> {
-        InnerPoll::Ready(Err(self.source))
+/// [`PermitFuture`] generator.
+struct PermitFutureGenerator {
+    /// Rate limiter to acquire permits from.
+    rate_limiter: RateLimiter,
+    /// Rate limiter endpoint to acquire permits for.
+    endpoint: Endpoint,
+}
+
+impl PermitFutureGenerator {
+    /// Generates a permit future.
+    fn generate(&self) -> PermitFuture {
+        self.rate_limiter.acquire(self.endpoint.clone())
     }
 }
 
-struct InFlight {
-    future: Pin<Box<Timeout<HyperResponseFuture>>>,
-    invalid_token: Option<Arc<AtomicBool>>,
-    tx: Option<TicketSender>,
-}
-
-impl InFlight {
-    fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let resp = match Pin::new(&mut self.future).poll(cx) {
-            Poll::Ready(Ok(Ok(resp))) => resp,
-            Poll::Ready(Ok(Err(source))) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RequestError,
-                    source: Some(Box::new(source)),
-                }))
-            }
-            Poll::Ready(Err(source)) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RequestTimedOut,
-                    source: Some(Box::new(source)),
-                }))
-            }
-            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::InFlight(self)),
-        };
-
-        // If the API sent back an Unauthorized response, then the client's
-        // configured token is permanently invalid and future requests must be
-        // ignored to avoid API bans.
-        if resp.status() == HyperStatusCode::UNAUTHORIZED {
-            if let Some(invalid_token) = self.invalid_token {
-                invalid_token.store(true, Ordering::Relaxed);
-            }
-        }
-
-        if let Some(tx) = self.tx {
-            let headers = resp
-                .headers()
-                .iter()
-                .map(|(key, value)| (key.as_str(), value.as_bytes()));
-
-            match RatelimitHeaders::from_pairs(headers) {
-                Ok(v) => {
-                    let _res = tx.headers(Some(v));
-                }
-                Err(source) => {
-                    tracing::warn!("header parsing failed: {source:?}; {resp:?}");
-
-                    let _res = tx.headers(None);
-                }
-            }
-        }
-
-        let status = resp.status();
-
-        if status.is_success() {
-            #[cfg(feature = "decompression")]
-            let mut resp = resp;
-            // Inaccurate since end-users can only access the decompressed body.
-            #[cfg(feature = "decompression")]
-            resp.headers_mut().remove(http::header::CONTENT_LENGTH);
-
-            return InnerPoll::Ready(Ok(Response::new(resp)));
-        }
-
-        match status {
-            HyperStatusCode::TOO_MANY_REQUESTS => {
-                tracing::warn!("429 response: {resp:?}");
-            }
-            HyperStatusCode::SERVICE_UNAVAILABLE => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::ServiceUnavailable { response: resp },
-                    source: None,
-                }));
-            }
-            _ => {}
-        }
-
-        let fut = async {
-            Response::<()>::new(resp)
-                .bytes()
-                .await
-                .map_err(|source| Error {
-                    kind: ErrorType::ChunkingResponse,
-                    source: Some(Box::new(source)),
-                })
-        };
-
-        InnerPoll::Advance(ResponseFutureStage::Chunking(Chunking {
-            future: Box::pin(fut),
-            status,
-        }))
-    }
-}
-
-struct RatelimitQueue {
-    invalid_token: Option<Arc<AtomicBool>>,
-    response_future: HyperResponseFuture,
+/// [`Timeout<HyperResponseFuture>`] generator.
+struct TimedResponseFutureGenerator {
+    /// HTTP client to send requests from.
+    client: HyperClient<Connector, Full<Bytes>>,
+    /// HTTP request to send.
+    request: Request<Full<Bytes>>,
+    /// Duration after which the request times out.
     timeout: Duration,
-    pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
-    wait_for_sender: WaitForTicketFuture,
 }
 
-impl RatelimitQueue {
-    fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let tx = match Pin::new(&mut self.wait_for_sender).poll(cx) {
-            Poll::Ready(Ok(tx)) => tx,
-            Poll::Ready(Err(source)) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RatelimiterTicket,
-                    source: Some(source),
-                }))
-            }
-            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(self)),
-        };
-
-        if let Some(pre_flight_check) = self.pre_flight_check {
-            if !pre_flight_check() {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RequestCanceled,
-                    source: None,
-                }));
-            }
-        }
-
-        InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
-            future: Box::pin(time::timeout(self.timeout, self.response_future)),
-            invalid_token: self.invalid_token,
-            tx: Some(tx),
-        }))
+impl TimedResponseFutureGenerator {
+    /// Generates a timeout response future.
+    fn generate(&self) -> Pin<Box<Timeout<HyperResponseFuture>>> {
+        Box::pin(time::timeout(
+            self.timeout,
+            self.client.request(self.request.clone()),
+        ))
     }
 }
 
-enum ResponseFutureStage {
-    Chunking(Chunking),
-    Completed,
-    Failed(Failed),
-    InFlight(InFlight),
-    RatelimitQueue(RatelimitQueue),
-}
-
-/// Future that will resolve to a [`Response`].
+/// Future that completes when a [`Response`] is received.
+///
+/// # Rate limits
+///
+/// Requests that exceed a rate limit are automatically and immediately retried
+/// until they succeed or fail with another error. If configured without a
+/// [`RateLimiter`], care must be taken that an external service intercepts and
+/// delays these retry requests.
 ///
 /// # Canceling a response future pre-flight
 ///
@@ -223,9 +160,6 @@ enum ResponseFutureStage {
 /// to its documentation for more information.
 ///
 /// # Errors
-///
-/// Returns an [`ErrorType::Json`] error type if serializing the response body
-/// of the request failed.
 ///
 /// Returns an [`ErrorType::Parsing`] error type if the request failed and the
 /// error in the response body could not be deserialized.
@@ -241,9 +175,6 @@ enum ResponseFutureStage {
 ///
 /// Returns an [`ErrorType::Response`] error type if the request failed.
 ///
-/// Returns an [`ErrorType::ServiceUnavailable`] error type if the Discord API
-/// is unavailable.
-///
 /// [`ClientBuilder::timeout`]: crate::client::ClientBuilder::timeout
 /// [`ErrorType::Json`]: crate::error::ErrorType::Json
 /// [`ErrorType::Parsing`]: crate::error::ErrorType::Parsing
@@ -251,27 +182,45 @@ enum ResponseFutureStage {
 /// [`ErrorType::RequestError`]: crate::error::ErrorType::RequestError
 /// [`ErrorType::RequestTimedOut`]: crate::error::ErrorType::RequestTimedOut
 /// [`ErrorType::Response`]: crate::error::ErrorType::Response
-/// [`ErrorType::ServiceUnavailable`]: crate::error::ErrorType::ServiceUnavailable
 /// [`Response`]: super::Response
 #[must_use = "futures do nothing unless you `.await` or poll them"]
-pub struct ResponseFuture<T> {
-    phantom: PhantomData<T>,
-    stage: ResponseFutureStage,
-}
+pub struct ResponseFuture<T>(Result<Inner<T>, Ready<Error>>);
 
 impl<T> ResponseFuture<T> {
-    pub(crate) const fn new(
-        future: Pin<Box<Timeout<HyperResponseFuture>>>,
+    pub(crate) fn new(
+        client: HyperClient<Connector, Full<Bytes>>,
         invalid_token: Option<Arc<AtomicBool>>,
+        request: Request<Full<Bytes>>,
+        span: tracing::Span,
+        timeout: Duration,
+        rate_limiter: Option<RateLimiter>,
+        endpoint: Endpoint,
     ) -> Self {
-        Self {
+        let permit_generator = rate_limiter.map(|rate_limiter| PermitFutureGenerator {
+            rate_limiter,
+            endpoint,
+        });
+        let response_generator = TimedResponseFutureGenerator {
+            client,
+            request,
+            timeout,
+        };
+        let stage = permit_generator.as_ref().map_or_else(
+            || ResponseStageFuture::Response {
+                fut: response_generator.generate(),
+                permit: None,
+            },
+            |generator| ResponseStageFuture::RateLimitPermit(generator.generate()),
+        );
+        Self(Ok(Inner {
+            invalid_token,
+            permit_generator,
             phantom: PhantomData,
-            stage: ResponseFutureStage::InFlight(InFlight {
-                future,
-                invalid_token,
-                tx: None,
-            }),
-        }
+            pre_flight_check: None,
+            response_generator,
+            span,
+            stage,
+        }))
     }
 
     /// Set a function to call after clearing the ratelimiter but prior to
@@ -295,7 +244,7 @@ impl<T> ResponseFuture<T> {
     ///     future::IntoFuture,
     ///     sync::{Arc, Mutex},
     /// };
-    /// use twilight_http::{error::ErrorType, Client};
+    /// use twilight_http::{Client, error::ErrorType};
     /// use twilight_model::id::Id;
     ///
     /// let channel_id = Id::new(1);
@@ -312,13 +261,13 @@ impl<T> ResponseFuture<T> {
     /// let mut req = client.delete_message(channel_id, message_id).into_future();
     ///
     /// let channels_ignored_clone = channels_ignored.clone();
-    /// req.set_pre_flight(Box::new(move || {
+    /// req.set_pre_flight(move || {
     ///     // imagine you have some logic here to external state that checks
     ///     // whether the request should still be performed
     ///     let channels_ignored = channels_ignored_clone.lock().expect("channels poisoned");
     ///
     ///     !channels_ignored.contains(&channel_id)
-    /// }));
+    /// });
     ///
     /// // the pre-flight check will cancel the request
     /// assert!(matches!(
@@ -327,12 +276,15 @@ impl<T> ResponseFuture<T> {
     /// ));
     /// # Ok(()) }
     /// ```
-    pub fn set_pre_flight(
-        &mut self,
-        pre_flight: Box<dyn FnOnce() -> bool + Send + 'static>,
-    ) -> bool {
-        if let ResponseFutureStage::RatelimitQueue(queue) = &mut self.stage {
-            queue.pre_flight_check = Some(pre_flight);
+    pub fn set_pre_flight<P>(&mut self, predicate: P) -> bool
+    where
+        P: Fn() -> bool + Send + 'static,
+    {
+        if let Ok(inner) = &mut self.0
+            && inner.permit_generator.is_some()
+            && inner.pre_flight_check.is_none()
+        {
+            inner.pre_flight_check = Some(Box::new(predicate));
 
             true
         } else {
@@ -340,62 +292,135 @@ impl<T> ResponseFuture<T> {
         }
     }
 
-    pub(crate) const fn error(source: Error) -> Self {
-        Self {
-            phantom: PhantomData,
-            stage: ResponseFutureStage::Failed(Failed { source }),
-        }
-    }
-
-    pub(crate) fn ratelimit(
-        invalid_token: Option<Arc<AtomicBool>>,
-        response_future: HyperResponseFuture,
-        timeout: Duration,
-        wait_for_sender: WaitForTicketFuture,
-    ) -> Self {
-        Self {
-            phantom: PhantomData,
-            stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
-                invalid_token,
-                response_future,
-                timeout,
-                pre_flight_check: None,
-                wait_for_sender,
-            }),
-        }
+    /// Creates a future that is immediately ready with an error.
+    pub(crate) fn error(source: Error) -> Self {
+        Self(Err(ready(source)))
     }
 }
 
 impl<T: Unpin> Future for ResponseFuture<T> {
-    type Output = Output<T>;
+    type Output = Result<Response<T>, Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let inner = match &mut self.0 {
+            Ok(inner) => inner,
+            Err(err) => return Pin::new(err).poll(cx).map(Err),
+        };
+
+        let _entered = inner.span.enter();
+
         loop {
-            let stage = mem::replace(&mut self.stage, ResponseFutureStage::Completed);
+            match &mut inner.stage {
+                ResponseStageFuture::Error { fut, status } => {
+                    let body = ready!(Pin::new(fut).poll(cx)).map_err(|source| Error {
+                        kind: ErrorType::RequestError,
+                        source: Some(Box::new(source)),
+                    })?;
 
-            let result = match stage {
-                ResponseFutureStage::Chunking(chunking) => chunking.poll(cx),
-                ResponseFutureStage::Completed => panic!("future already completed"),
-                ResponseFutureStage::Failed(failed) => failed.poll(cx),
-                ResponseFutureStage::InFlight(in_flight) => in_flight.poll(cx),
-                ResponseFutureStage::RatelimitQueue(queue) => queue.poll(cx),
-            };
-
-            match result {
-                InnerPoll::Advance(stage) => {
-                    self.stage = stage;
+                    return Poll::Ready(Err(match crate::json::from_bytes::<ApiError>(&body) {
+                        Ok(error) => Error {
+                            kind: ErrorType::Response {
+                                body,
+                                error,
+                                status: super::StatusCode::new(status.as_u16()),
+                            },
+                            source: None,
+                        },
+                        Err(source) => Error {
+                            kind: ErrorType::Parsing { body },
+                            source: Some(Box::new(source)),
+                        },
+                    }));
                 }
-                InnerPoll::Pending(stage) => {
-                    self.stage = stage;
+                ResponseStageFuture::RateLimitPermit(fut) => {
+                    let permit = ready!(Pin::new(fut).poll(cx));
+                    if inner
+                        .pre_flight_check
+                        .as_ref()
+                        .is_some_and(|check| !check())
+                    {
+                        return Poll::Ready(Err(Error {
+                            kind: ErrorType::RequestCanceled,
+                            source: None,
+                        }));
+                    }
 
-                    return Poll::Pending;
+                    inner.stage = ResponseStageFuture::Response {
+                        fut: inner.response_generator.generate(),
+                        permit: Some(permit),
+                    };
                 }
-                InnerPoll::Ready(output) => {
-                    self.stage = ResponseFutureStage::Completed;
+                ResponseStageFuture::Response { fut, permit } => {
+                    let response = ready!(Pin::new(fut).poll(cx))
+                        .map_err(|source| Error {
+                            kind: ErrorType::RequestTimedOut,
+                            source: Some(Box::new(source)),
+                        })?
+                        .map_err(|source| Error {
+                            kind: ErrorType::RequestError,
+                            source: Some(Box::new(source)),
+                        })?;
 
-                    return Poll::Ready(output);
+                    if response.status() == StatusCode::UNAUTHORIZED
+                        && let Some(invalid) = &inner.invalid_token
+                    {
+                        invalid.store(true, Ordering::Relaxed);
+                    }
+
+                    if let Some(permit) = permit.take() {
+                        match parse_ratelimit_headers(response.headers()) {
+                            Ok(v) => permit.complete(v),
+                            Err(source) => {
+                                tracing::warn!("header parsing failed: {source}; {response:?}");
+
+                                permit.complete(None);
+                            }
+                        }
+                    }
+
+                    if response.status().is_success() {
+                        #[cfg(feature = "decompression")]
+                        let mut response = response;
+                        // Inaccurate since end-users can only access the decompressed body.
+                        #[cfg(feature = "decompression")]
+                        response.headers_mut().remove(header::CONTENT_LENGTH);
+
+                        return Poll::Ready(Ok(Response::new(response)));
+                    } else if response.status() == StatusCode::TOO_MANY_REQUESTS {
+                        inner.stage = match &inner.permit_generator {
+                            Some(generator) => {
+                                ResponseStageFuture::RateLimitPermit(generator.generate())
+                            }
+                            None => ResponseStageFuture::Response {
+                                fut: inner.response_generator.generate(),
+                                permit: None,
+                            },
+                        };
+                    } else {
+                        inner.stage = ResponseStageFuture::Error {
+                            status: response.status(),
+                            fut: Response::<()>::new(response).bytes(),
+                        };
+                    }
                 }
             }
         }
     }
+}
+
+/// Internal response future fields.
+struct Inner<T> {
+    /// Whether the client's token is invalidated.
+    invalid_token: Option<Arc<AtomicBool>>,
+    /// Optional [`PermitFuture`] generator, if registered.
+    permit_generator: Option<PermitFutureGenerator>,
+    phantom: PhantomData<T>,
+    /// Predicate to check after completing [`ResponseStageFuture::RateLimitPermit`].
+    pre_flight_check: Option<Box<dyn Fn() -> bool + Send + 'static>>,
+    /// [`Timeout<HyperResponseFuture>`] generator.
+    response_generator: TimedResponseFutureGenerator,
+    /// This future's span.
+    span: tracing::Span,
+    /// This future's current stage.
+    stage: ResponseStageFuture,
 }

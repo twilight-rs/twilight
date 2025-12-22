@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.17.0] - 2025-11-08
+
+### Bug Fixes
+
+- Add global_name to CurrentUser ([#2412](https://github.com/twilight-rs/twilight/issues/2412))
+- resolve clippy 1.87 lints ([#2436](https://github.com/twilight-rs/twilight/issues/2436))
+
+### Features
+
+- [**breaking**] support for role colors and primary guilds ([#2467](https://github.com/twilight-rs/twilight/issues/2467))
+
+### Chore
+
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+
 ## [0.16.0] - 2025-01-12
 
 ### Bug Fixes

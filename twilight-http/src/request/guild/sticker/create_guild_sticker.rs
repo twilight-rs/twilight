@@ -1,20 +1,20 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{multipart::Form, AuditLogReason, Request, TryIntoRequest},
+    request::{AuditLogReason, Request, TryIntoRequest, multipart::Form},
     response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     channel::message::Sticker,
-    id::{marker::GuildMarker, Id},
+    id::{Id, marker::GuildMarker},
 };
 use twilight_validate::{
-    request::{audit_reason as validate_audit_reason, ValidationError},
+    request::{ValidationError, audit_reason as validate_audit_reason},
     sticker::{
-        description as validate_description, name as validate_name, tags as validate_tags,
-        StickerValidationError,
+        StickerValidationError, description as validate_description, name as validate_name,
+        tags as validate_tags,
     },
 };
 

@@ -1,7 +1,7 @@
 use http_body_util::{BodyExt, Full};
-use hyper::{body::Bytes, Request};
+use hyper::{Request, body::Bytes};
 use hyper_util::{
-    client::legacy::{connect::HttpConnector, Client as HyperClient},
+    client::legacy::{Client as HyperClient, connect::HttpConnector},
     rt::TokioExecutor,
 };
 use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
@@ -10,9 +10,9 @@ use twilight_gateway::{
 };
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
+    Lavalink,
     http::LoadedTracks,
     model::{Destroy, Pause, Play, Seek, Stop, Volume},
-    Lavalink,
 };
 use twilight_model::{
     channel::Message,
@@ -43,6 +43,11 @@ fn spawn(fut: impl Future<Output = anyhow::Result<()>> + Send + 'static) {
 async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
+
+    // Select rustls backend
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
 
     let (mut shard, state) = {
         let token = env::var("DISCORD_TOKEN")?;

@@ -39,7 +39,7 @@ pub mod outgoing {
     use serde::{Deserialize, Serialize};
     use twilight_model::{
         gateway::payload::incoming::VoiceServerUpdate,
-        id::{marker::GuildMarker, Id},
+        id::{Id, marker::GuildMarker},
     };
 
     /// An outgoing event to send to Lavalink.
@@ -442,7 +442,7 @@ pub mod incoming {
 
     use super::Opcode;
     use serde::{Deserialize, Serialize};
-    use twilight_model::id::{marker::GuildMarker, Id};
+    use twilight_model::id::{Id, marker::GuildMarker};
 
     /// An incoming event from a Lavalink node.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -649,6 +649,7 @@ pub use self::{
 #[cfg(test)]
 mod tests {
     use super::{
+        Opcode,
         incoming::{
             IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsFrames,
             StatsMemory, TrackEnd, TrackEventType, TrackStart, WebsocketClosed,
@@ -657,7 +658,6 @@ mod tests {
             Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek, Stop, VoiceUpdate,
             Volume,
         },
-        Opcode,
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -665,7 +665,7 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         gateway::payload::incoming::VoiceServerUpdate,
-        id::{marker::GuildMarker, Id},
+        id::{Id, marker::GuildMarker},
     };
 
     assert_fields!(Destroy: guild_id, op);

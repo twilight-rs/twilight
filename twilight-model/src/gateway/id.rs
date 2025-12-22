@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    num::NonZeroU32,
+    num::NonZero,
 };
 
 pub struct ShardIdParseError {
@@ -97,7 +97,7 @@ pub struct ShardId {
     /// Number of the shard, 0-indexed.
     number: u32,
     /// Total number of shards used by the bot, 1-indexed.
-    total: NonZeroU32,
+    total: NonZero<u32>,
 }
 
 impl ShardId {
@@ -129,7 +129,7 @@ impl ShardId {
     /// of shards.
     pub const fn new(number: u32, total: u32) -> Self {
         assert!(number < total, "number must be less than total");
-        if let Some(total) = NonZeroU32::new(total) {
+        if let Some(total) = NonZero::new(total) {
             Self { number, total }
         } else {
             panic!("unreachable: total is at least 1")
@@ -143,7 +143,7 @@ impl ShardId {
             return None;
         }
 
-        if let Some(total) = NonZeroU32::new(total) {
+        if let Some(total) = NonZero::new(total) {
             Some(Self { number, total })
         } else {
             panic!("unreachable: total is at least 1")
@@ -191,7 +191,7 @@ impl From<ShardId> for [u32; 2] {
 #[cfg(test)]
 mod tests {
     use super::ShardId;
-    use serde::{de::DeserializeOwned, Serialize};
+    use serde::{Serialize, de::DeserializeOwned};
     use serde_test::Token;
     use static_assertions::{assert_impl_all, const_assert_eq};
     use std::{fmt::Debug, hash::Hash};

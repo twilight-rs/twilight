@@ -1,5 +1,5 @@
 use crate::{
-    id::{marker::OauthTeamMarker, Id},
+    id::{Id, marker::OauthTeamMarker},
     oauth::team::TeamMembershipState,
     user::User,
 };
@@ -43,6 +43,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "test".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,

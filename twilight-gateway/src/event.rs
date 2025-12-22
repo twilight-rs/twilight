@@ -1,7 +1,7 @@
 //! Optimization for skipping deserialization of unwanted events.
 
 use bitflags::bitflags;
-use twilight_model::gateway::{event::EventType, OpCode};
+use twilight_model::gateway::{OpCode, event::EventType};
 
 bitflags! {
     /// Important optimization for narrowing requested event types.
@@ -195,6 +195,9 @@ bitflags! {
         const VOICE_STATE_UPDATE = 1 << 43;
         /// Webhook in a guild has been updated.
         const WEBHOOKS_UPDATE = 1 << 44;
+        /// The shard encountered a gateway rate limit for an event, e.g.
+        /// request guild members.
+        const RATE_LIMITED = 1 << 79;
 
         /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_CONFIGURATION`].
         ///
@@ -384,6 +387,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::MessagePollVoteRemove => Self::MESSAGE_POLL_VOTE_REMOVE,
             EventType::MessageUpdate => Self::MESSAGE_UPDATE,
             EventType::PresenceUpdate => Self::PRESENCE_UPDATE,
+            EventType::RateLimited => Self::RATE_LIMITED,
             EventType::ReactionAdd => Self::REACTION_ADD,
             EventType::ReactionRemove => Self::REACTION_REMOVE,
             EventType::ReactionRemoveAll => Self::REACTION_REMOVE_ALL,

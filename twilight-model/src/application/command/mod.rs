@@ -23,8 +23,8 @@ pub use self::{
 use crate::{
     guild::Permissions,
     id::{
-        marker::{ApplicationMarker, CommandMarker, CommandVersionMarker, GuildMarker},
         Id,
+        marker::{ApplicationMarker, CommandMarker, CommandVersionMarker, GuildMarker},
     },
     oauth::ApplicationIntegrationType,
 };

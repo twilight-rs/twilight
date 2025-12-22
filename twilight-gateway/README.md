@@ -28,85 +28,96 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
     certificate facilities via [`rustls-platform-verifier`]
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
-* Crypto providers (required with [`rustls`])
-  * `rustls-ring` (*default*): [`ring`] as the crypto provider, recommended for
-    compatibility
-  * `rustls-aws_lc_rs`: [`aws-lc-rs`] as the crypto provider, recommended for
-    performance and widely used platforms
-  * none of the above: install your own via [`CryptoProvider::install_default`]
 * `twilight-http` (*default*): enable the `stream::create_recommended` function
-* Compression (mutually exclusive)
-  * `zlib-stock`: [`flate2`]'s stock zlib implementation (*deprecated*)
-  * `zlib-simd`: use [`zlib-ng`] for zlib, may have better performance (*deprecated*)
-  * `zstd` (*default*): enable zstd transport compression
+* Transport compression (mutually exclusive)
+  * `zlib`: Zlib transport compression using [`zlib-rs`][^1]
+  * `zstd` (*default*): Zstandard transport compression using [`zstd-sys`]
 
 ## Example
 
-Create the recommended number of shards and loop over their guild events in
-parallel
+Create the recommended number of shards and loop over their guild messages:
 
 ```rust,no_run
-use std::{
-    env,
-    sync::atomic::{AtomicBool, Ordering},
-};
-use tokio::signal;
+use std::{env, sync::Arc};
+use tokio::{signal, sync::watch};
 use twilight_gateway::{
-    error::ReceiveMessageErrorType, CloseFrame, Config, Event, EventTypeFlags, Intents, Shard,
-    StreamExt as _,
+    CloseFrame, Config, Event, EventTypeFlags, Intents, MessageSender, Shard, StreamExt as _,
 };
 use twilight_http::Client;
-
-static SHUTDOWN: AtomicBool = AtomicBool::new(false);
+use twilight_model::gateway::payload::{incoming::MessageCreate, outgoing::UpdateVoiceState};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
+    // Select rustls backend
+    rustls::crypto::ring::default_provider().install_default().unwrap();
+
     let token = env::var("DISCORD_TOKEN")?;
-    let client = Client::new(token.clone());
-    let config = Config::new(token, Intents::GUILDS);
 
-    let shards =
-        twilight_gateway::create_recommended(&client, config, |_, builder| builder.build()).await?;
-    let mut senders = Vec::with_capacity(shards.len());
-    let mut tasks = Vec::with_capacity(shards.len());
+    let (shutdown_tx, shutdown_rx) = watch::channel(false);
+    let client = Arc::new(Client::new(token.clone()));
+    let config = Config::new(token, Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT);
 
-    for shard in shards {
-        senders.push(shard.sender());
-        tasks.push(tokio::spawn(runner(shard)));
-    }
+    let tasks = twilight_gateway::create_recommended(&client, config, |_, builder| builder.build())
+        .await?
+        .map(|shard| tokio::spawn(dispatcher(Arc::clone(&client), shard, shutdown_rx.clone())))
+        .collect::<Vec<_>>();
 
     signal::ctrl_c().await?;
-    SHUTDOWN.store(true, Ordering::Relaxed);
-    for sender in senders {
-        // Ignore error if shard's already shutdown.
-        _ = sender.close(CloseFrame::NORMAL);
-    }
+    _ = shutdown_tx.send(true);
 
-    for jh in tasks {
-        _ = jh.await;
+    for task in tasks {
+        _ = task.await;
     }
 
     Ok(())
 }
 
 #[tracing::instrument(fields(shard = %shard.id()), skip_all)]
-async fn runner(mut shard: Shard) {
-    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
-        let event = match item {
-            Ok(Event::GatewayClose(_)) if SHUTDOWN.load(Ordering::Relaxed) => break,
-            Ok(event) => event,
-            Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+async fn dispatcher(client: Arc<Client>, mut shard: Shard, mut shutdown: watch::Receiver<bool>) {
+    loop {
+        tokio::select! {
+            _ = shutdown.changed() => shard.close(CloseFrame::NORMAL),
+            Some(item) = shard.next_event(EventTypeFlags::all()) => {
+                let event = match item {
+                    Ok(event) => event,
+                    Err(source) => {
+                        tracing::warn!(?source, "error receiving event");
+                        continue;
+                    }
+                };
 
-                continue;
+                match event {
+                    Event::GatewayClose(_) if *shutdown.borrow() => break,
+                    Event::MessageCreate(e) => {
+                        tokio::spawn(msg_handler(Arc::clone(&client), e, shard.sender()));
+                    }
+                    _ => {}
+                }
             }
-        };
+        }
+    }
+}
 
-        // You'd normally want to spawn a new tokio task for each event and
-        // handle the event there to not block the shard.
-        tracing::debug!(?event, shard = ?shard.id(), "received event");
+#[tracing::instrument(fields(id = %event.id), skip_all)]
+async fn msg_handler(client: Arc<Client>, event: Box<MessageCreate>, sender: MessageSender) {
+    match event.content.as_ref() {
+        "!join" if event.guild_id.is_some() => {
+            let _result = sender.command(&UpdateVoiceState::new(
+                event.guild_id.unwrap(),
+                Some(event.channel_id),
+                false,
+                false,
+            ));
+        }
+        "!ping" => {
+            let _result = client
+                .create_message(event.channel_id)
+                .content("pong!")
+                .await;
+        }
+        _ => {}
     }
 }
 ```
@@ -114,17 +125,17 @@ async fn runner(mut shard: Shard) {
 There are a few additional examples located in the
 [repository][github examples link].
 
-[`CryptoProvider::install_default`]: https://docs.rs/rustls/latest/rustls/crypto/struct.CryptoProvider.html#method.install_default
-[`aws-lc-rs`]: https://crates.io/crates/aws-lc-rs
-[`flate2`]: https://crates.io/crates/flate2
+[^1]: Except for the s390x arch, where [`zlib-ng-sys`] is used instead.
+
 [`native-tls`]: https://crates.io/crates/native-tls
-[`ring`]: https://crates.io/crates/ring
 [`rustls`]: https://crates.io/crates/rustls
 [`rustls-platform-verifier`]: https://crates.io/crates/rustls-platform-verifier
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
-[`zlib-ng`]: https://github.com/zlib-ng/zlib-ng
+[`zlib-ng-sys`]: https://crates.io/crates/libz-ng-sys
+[`zlib-rs`]: https://crates.io/crates/zlib-rs
+[`zstd-sys`]: https://crates.io/crates/zstd-sys
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge

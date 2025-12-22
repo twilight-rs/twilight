@@ -4,6 +4,18 @@
 
 ### Bug Fixes
 
+- resolve clippy 1.86 lints ([#2426](https://github.com/twilight-rs/twilight/issues/2426))
+- doc_auto_cfg got merged into doc_cfg ([#2458](https://github.com/twilight-rs/twilight/issues/2458))
+
+### Chore
+
+- resolve rust 1.89 warnings ([#2442](https://github.com/twilight-rs/twilight/issues/2442))
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+
+## [unreleased]
+
+### Bug Fixes
+
 - Address clippy 1.75 lints ([#2305](https://github.com/twilight-rs/twilight/issues/2305))
 
 ### Build

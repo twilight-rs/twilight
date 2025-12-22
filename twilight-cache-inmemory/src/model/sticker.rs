@@ -1,12 +1,12 @@
 use serde::Serialize;
 use twilight_model::{
     channel::message::{
-        sticker::{StickerFormatType, StickerType},
         Sticker,
+        sticker::{StickerFormatType, StickerType},
     },
     id::{
-        marker::{GuildMarker, StickerMarker, StickerPackMarker, UserMarker},
         Id,
+        marker::{GuildMarker, StickerMarker, StickerPackMarker, UserMarker},
     },
 };
 
@@ -161,14 +161,15 @@ mod tests {
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
+    use twilight_model::user::PrimaryGuild;
     use twilight_model::{
         channel::message::{
-            sticker::{StickerFormatType, StickerType},
             Sticker,
+            sticker::{StickerFormatType, StickerType},
         },
         id::Id,
         user::{PremiumType, User, UserFlags},
-        util::{image_hash::ImageHashParseError, ImageHash},
+        util::{ImageHash, image_hash::ImageHashParseError},
     };
 
     assert_fields!(
@@ -226,6 +227,12 @@ mod tests {
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
                 premium_type: Some(PremiumType::Nitro),
+                primary_guild: Some(PrimaryGuild {
+                    identity_guild_id: Some(Id::new(169_256_939_211_980_800)),
+                    identity_enabled: Some(true),
+                    tag: Some("DISC".to_owned()),
+                    badge: Some("1269e74af4df7417b13759eae50c83dc".parse().unwrap()),
+                }),
                 public_flags: Some(
                     UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
                 ),

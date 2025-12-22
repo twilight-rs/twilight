@@ -7,8 +7,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
-use twilight_model::id::marker::{ChannelMarker, RoleMarker};
 use twilight_model::id::Id;
+use twilight_model::id::marker::{ChannelMarker, RoleMarker};
 use twilight_model::util::Timestamp;
 
 /// The maximum audit log reason length in UTF-16 codepoints.
@@ -52,6 +52,12 @@ pub const AUTO_MODERATION_EXEMPT_ROLES_MAX: usize = 20;
 
 /// Maximum amount of exempt channels for the auto moderation rule.
 pub const AUTO_MODERATION_EXEMPT_CHANNELS_MAX: usize = 50;
+
+/// Maximum length of a bio.
+pub const BIO_LIMIT_MAX: usize = 400;
+
+/// Minimum length of a bio.
+pub const BIO_LIMIT_MIN: usize = 1;
 
 /// Maximum amount of seconds (`604_800` this is equivalent to `7` days) for messages to be deleted upon ban.
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
@@ -121,6 +127,12 @@ pub const NICKNAME_LIMIT_MAX: usize = 32;
 
 /// Minimum length of a nickname.
 pub const NICKNAME_LIMIT_MIN: usize = 1;
+
+/// Maximum pin limit.
+pub const PIN_LIMIT_MAX: u16 = 50;
+
+/// Minimum pin limit.
+pub const PIN_LIMIT_MIN: u16 = 1;
 
 /// Maximum length of a scheduled event's description.
 pub const SCHEDULED_EVENT_DESCRIPTION_MAX: usize = 1000;
@@ -320,6 +332,16 @@ impl Display for ValidationError {
 
                 Display::fmt(&AUTO_MODERATION_EXEMPT_CHANNELS_MAX, f)
             }
+            ValidationErrorType::Bio { len } => {
+                f.write_str("provided bio length is ")?;
+                Display::fmt(len, f)?;
+
+                f.write_str(", but it must be at least")?;
+                Display::fmt(&BIO_LIMIT_MIN, f)?;
+
+                f.write_str(" and at most ")?;
+                Display::fmt(&BIO_LIMIT_MAX, f)
+            }
             ValidationErrorType::CreateGuildBanDeleteMessageSeconds {
                 seconds: delete_message_seconds,
             } => {
@@ -433,6 +455,14 @@ impl Display for ValidationError {
                 f.write_str(" and at most ")?;
 
                 Display::fmt(&NICKNAME_LIMIT_MAX, f)
+            }
+            ValidationErrorType::Pin { limit } => {
+                f.write_str("provided pin limit is ")?;
+                Display::fmt(limit, f)?;
+                f.write_str(", but it must be at least ")?;
+                Display::fmt(&PIN_LIMIT_MIN, f)?;
+                f.write_str(" and at most ")?;
+                Display::fmt(&PIN_LIMIT_MAX, f)
             }
             ValidationErrorType::ScheduledEventDescription { len } => {
                 f.write_str("provided scheduled event description is length is ")?;
@@ -606,6 +636,11 @@ pub enum ValidationErrorType {
         /// Invalid length.
         len: usize,
     },
+    /// Provided bio length was invalid.
+    Bio {
+        /// Invalid length.
+        len: usize,
+    },
     /// Provided create guild ban delete message seconds was invalid.
     CreateGuildBanDeleteMessageSeconds {
         /// Invalid seconds.
@@ -675,6 +710,11 @@ pub enum ValidationErrorType {
     Nickname {
         /// Invalid length.
         len: usize,
+    },
+    /// Provided pin limit was invalid.
+    Pin {
+        /// Invalid limit.
+        limit: u16,
     },
     /// Scheduled event description is invalid.
     ScheduledEventDescription {
@@ -1127,6 +1167,30 @@ pub const fn auto_moderation_exempt_channels(
     }
 }
 
+/// Ensures that a bio is correct.
+///
+/// The bio's length must be at least [`BIO_LIMIT_MIN`], and at maximum [`BIO_LIMIT_MAX`]
+///
+/// This is based off the limitations enforced when setting a bio on the [developer portal].
+///
+/// # Errors
+///
+/// Returns an error of type [`Bio`] if the length is invalid.
+///
+/// [`Bio`]: ValidationErrorType::Bio
+/// [developer portal]: https://discord.dev
+pub fn bio(bio: impl AsRef<str>) -> Result<(), ValidationError> {
+    let len = bio.as_ref().chars().count();
+
+    if (BIO_LIMIT_MIN..=BIO_LIMIT_MAX).contains(&len) {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::Bio { len },
+        })
+    }
+}
+
 /// Ensure that the delete message seconds amount for the Create Guild Ban request
 /// is correct.
 ///
@@ -1431,6 +1495,27 @@ pub fn nickname(nickname: impl AsRef<str>) -> Result<(), ValidationError> {
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::Nickname { len },
+        })
+    }
+}
+
+/// Ensure that the pin limit is correct.
+///
+/// The limit must be at least [`PIN_LIMIT_MIN`] and at most
+/// [`PIN_LIMIT_MAX`]. This is based on the documented [pin limit].
+///
+/// # Errors
+///
+/// Returns an error of type [`Pin`] if the limit is invalid.
+///
+/// [`Pin`]: ValidationErrorType::Pin
+/// [pin limit]: https://discord.com/developers/docs/resources/message#get-channel-pins-query-string-params
+pub fn pin_limit(limit: u16) -> Result<(), ValidationError> {
+    if (PIN_LIMIT_MIN..=PIN_LIMIT_MAX).contains(&limit) {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::Pin { limit },
         })
     }
 }
@@ -1829,6 +1914,15 @@ mod tests {
     }
 
     #[test]
+    fn bio_length() {
+        assert!(bio("a").is_ok());
+        assert!(bio("a".repeat(400)).is_ok());
+
+        assert!(bio("").is_err());
+        assert!(bio("b".repeat(401)).is_err());
+    }
+
+    #[test]
     fn create_guild_ban_delete_message_seconds_max() {
         assert!(create_guild_ban_delete_message_seconds(0).is_ok());
         assert!(create_guild_ban_delete_message_seconds(1).is_ok());
@@ -1951,6 +2045,15 @@ mod tests {
 
         assert!(nickname("").is_err());
         assert!(nickname("a".repeat(33)).is_err());
+    }
+
+    #[test]
+    fn pin_limit_test() {
+        assert!(pin_limit(1).is_ok());
+        assert!(pin_limit(50).is_ok());
+
+        assert!(pin_limit(0).is_err());
+        assert!(pin_limit(51).is_err());
     }
 
     #[test]

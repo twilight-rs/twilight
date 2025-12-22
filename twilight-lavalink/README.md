@@ -20,27 +20,6 @@ with every Voice State Update and Voice Server Update you receive.
 The `http-support` feature adds support for the `http` module to return
 request types from the [`http`] crate. This is enabled by default.
 
-### Crypto provider
-
-Using [`rustls`] for TLS requires configuring a crypto provider via crate
-features or manually installing a global default. The default is `rustls-ring`.
-
-#### `rustls-ring`
-
-The `rustls-ring` feature will enable the use of [`ring`] as the crypto
-provider. This is recommended for platform compatibility.
-
-#### `rustls-aws_lc_rs`
-
-The `rustls-aws_lc_rs` feature will enable the use of [`aws-lc-rs`] as the
-crypto provider. This is recommended for performance and on widely used
-platforms.
-
-#### Manual installation
-
-If none of the other crypto providers are enabled, a custom one must be
-installed by the application using [`CryptoProvider::install_default`].
-
 ### TLS
 
 `twilight-lavalink` has features to enable [`tokio-websockets`]' TLS

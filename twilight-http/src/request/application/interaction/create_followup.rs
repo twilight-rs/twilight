@@ -2,8 +2,8 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        attachment::{AttachmentManager, PartialAttachment},
         Nullable, Request, TryIntoRequest,
+        attachment::{AttachmentManager, PartialAttachment},
     },
     response::{Response, ResponseFuture},
     routing::Route,
@@ -13,11 +13,12 @@ use std::future::IntoFuture;
 use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed, Message, MessageFlags},
     http::attachment::Attachment,
-    id::{marker::ApplicationMarker, Id},
+    id::{Id, marker::ApplicationMarker},
+    poll::Poll,
 };
 use twilight_validate::message::{
-    attachment as validate_attachment, components as validate_components,
-    content as validate_content, embeds as validate_embeds, MessageValidationError,
+    MessageValidationError, attachment as validate_attachment, components as validate_components,
+    content as validate_content, embeds as validate_embeds,
 };
 
 #[derive(Serialize)]
@@ -38,6 +39,8 @@ struct CreateFollowupFields<'a> {
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    poll: Option<Poll>,
 }
 
 /// Create a followup message to an interaction, by its token.
@@ -97,6 +100,7 @@ impl<'a> CreateFollowup<'a> {
                 payload_json: None,
                 tts: None,
                 flags: None,
+                poll: None,
             }),
             http,
             token,
@@ -107,7 +111,7 @@ impl<'a> CreateFollowup<'a> {
     ///
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
-    pub fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.allowed_mentions = Some(Nullable(allowed_mentions));
         }
@@ -154,7 +158,12 @@ impl<'a> CreateFollowup<'a> {
     /// may be returned as a result of validating each provided component.
     pub fn components(mut self, components: &'a [Component]) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
-            validate_components(components)?;
+            validate_components(
+                components,
+                fields
+                    .flags
+                    .is_some_and(|flags| flags.contains(MessageFlags::IS_COMPONENTS_V2)),
+            )?;
             fields.components = Some(components);
 
             Ok(fields)
@@ -217,11 +226,12 @@ impl<'a> CreateFollowup<'a> {
 
     /// Set the message's flags.
     ///
-    /// The only supported flags are [`EPHEMERAL`] and [`SUPPRESS_EMBEDS`].
+    /// The only supported flags are [`EPHEMERAL`], [`SUPPRESS_EMBEDS`] and [`IS_COMPONENTS_V2`].
     ///
     /// [`EPHEMERAL`]: MessageFlags::EPHEMERAL
-    /// [`SUPPRESS_EMBEDS`]: twilight_model::channel::message::MessageFlags::SUPPRESS_EMBEDS
-    pub fn flags(mut self, flags: MessageFlags) -> Self {
+    /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
+    /// [`IS_COMPONENTS_V2`]: MessageFlags::IS_COMPONENTS_V2
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.flags = Some(flags);
         }
@@ -241,7 +251,7 @@ impl<'a> CreateFollowup<'a> {
     /// [`attachments`]: Self::attachments
     /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
     /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.payload_json = Some(payload_json);
         }
@@ -250,9 +260,18 @@ impl<'a> CreateFollowup<'a> {
     }
 
     /// Specify true if the message is TTS.
-    pub fn tts(mut self, tts: bool) -> Self {
+    pub const fn tts(mut self, tts: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.tts = Some(tts);
+        }
+
+        self
+    }
+
+    /// Specify the poll for this followup message.
+    pub fn poll(mut self, poll: Poll) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.poll = Some(poll);
         }
 
         self
@@ -281,6 +300,11 @@ impl TryIntoRequest for CreateFollowup<'_> {
             thread_id: None,
             token: self.token,
             wait: None,
+            with_components: Some(
+                fields
+                    .components
+                    .is_some_and(|components| !components.is_empty()),
+            ),
             webhook_id: self.application_id.get(),
         });
 
@@ -289,10 +313,10 @@ impl TryIntoRequest for CreateFollowup<'_> {
         request = request.use_authorization_token(false);
 
         // Set the default allowed mentions if required.
-        if fields.allowed_mentions.is_none() {
-            if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
-            }
+        if fields.allowed_mentions.is_none()
+            && let Some(allowed_mentions) = self.http.default_allowed_mentions()
+        {
+            fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON
@@ -323,7 +347,6 @@ impl TryIntoRequest for CreateFollowup<'_> {
 mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
-    use twilight_http_ratelimiting::Path;
     use twilight_model::id::Id;
 
     #[test]
@@ -339,10 +362,6 @@ mod tests {
             .try_into_request()?;
 
         assert!(!req.use_authorization_token());
-        assert_eq!(
-            &Path::WebhooksIdToken(application_id.get(), token),
-            req.ratelimit_path()
-        );
 
         Ok(())
     }

@@ -36,6 +36,7 @@ mod premium_tier;
 mod preview;
 mod prune;
 mod role;
+mod role_colors;
 mod role_flags;
 mod role_position;
 mod role_tags;
@@ -55,26 +56,26 @@ pub use self::{
     integration_expire_behavior::IntegrationExpireBehavior, integration_type::GuildIntegrationType,
     member::Member, member_flags::MemberFlags, mfa_level::MfaLevel, partial_guild::PartialGuild,
     partial_member::PartialMember, premium_tier::PremiumTier, preview::GuildPreview,
-    prune::GuildPrune, role::Role, role_flags::RoleFlags, role_position::RolePosition,
-    role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
+    prune::GuildPrune, role::Role, role_colors::RoleColors, role_flags::RoleFlags,
+    role_position::RolePosition, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
     verification_level::VerificationLevel, widget::GuildWidget,
 };
 
 use super::gateway::presence::PresenceListDeserializer;
 use crate::{
-    channel::{message::sticker::Sticker, Channel, StageInstance},
+    channel::{Channel, StageInstance, message::sticker::Sticker},
     gateway::presence::Presence,
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
     },
     util::{ImageHash, Timestamp},
     voice::VoiceState,
 };
 use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
 };
 use std::fmt::{Formatter, Result as FmtResult};
 

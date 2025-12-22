@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.17.1] - 2025-12-13
+
+### Features
+
+- add gateway ratelimited event ([#2483](https://github.com/twilight-rs/twilight/issues/2483))
+
+## [0.17.0] - 2025-11-08
+
+### Bug Fixes
+
+- Add global_name to CurrentUser ([#2412](https://github.com/twilight-rs/twilight/issues/2412))
+- update User on MemberUpdate ([#2417](https://github.com/twilight-rs/twilight/issues/2417))
+- [**breaking**] incoming heartbeat has null data ([#2420](https://github.com/twilight-rs/twilight/issues/2420))
+- resolve clippy 1.86 lints ([#2426](https://github.com/twilight-rs/twilight/issues/2426))
+- resolve clippy 1.87 lints ([#2436](https://github.com/twilight-rs/twilight/issues/2436))
+- doc_auto_cfg got merged into doc_cfg ([#2458](https://github.com/twilight-rs/twilight/issues/2458))
+
+### Features
+
+- [**breaking**] support for role colors and primary guilds ([#2467](https://github.com/twilight-rs/twilight/issues/2467))
+- add missing fields to Member ([#2476](https://github.com/twilight-rs/twilight/issues/2476))
+
+### Chore
+
+- Update all dependencies ([#2450](https://github.com/twilight-rs/twilight/issues/2450))
+
 ## [0.16.0] - 2025-01-12
 
 ### Bug Fixes

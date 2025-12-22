@@ -9,9 +9,9 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::Webhook,
-    id::{marker::WebhookMarker, Id},
+    id::{Id, marker::WebhookMarker},
 };
-use twilight_validate::request::{webhook_username as validate_webhook_username, ValidationError};
+use twilight_validate::request::{ValidationError, webhook_username as validate_webhook_username};
 
 #[derive(Serialize)]
 struct UpdateWebhookWithTokenFields<'a> {
@@ -54,7 +54,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: Option<&'a str>) -> Self {
+    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.avatar = Some(Nullable(avatar));
         }

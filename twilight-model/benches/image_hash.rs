@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use twilight_model::util::image_hash::ImageHash;
 
 fn parse_hash(hash: &str) {

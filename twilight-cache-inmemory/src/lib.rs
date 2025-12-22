@@ -1,4 +1,4 @@
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 #![warn(
     clippy::missing_const_for_fn,
@@ -44,8 +44,8 @@ pub use self::permission::InMemoryCachePermissions;
 
 use self::iter::InMemoryCacheIter;
 use dashmap::{
-    mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
+    mapref::{entry::Entry, one::Ref},
 };
 use std::{
     collections::{HashSet, VecDeque},
@@ -57,13 +57,13 @@ use std::{
 use twilight_model::{
     channel::{Channel, StageInstance},
     gateway::event::Event,
-    guild::{scheduled_event::GuildScheduledEvent, GuildIntegration, Role},
+    guild::{GuildIntegration, Role, scheduled_event::GuildScheduledEvent},
     id::{
+        Id,
         marker::{
             ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
             ScheduledEventMarker, StageMarker, StickerMarker, UserMarker,
         },
-        Id,
     },
     user::{CurrentUser, User},
 };
@@ -797,11 +797,11 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
         for role_id in member.roles() {
             if let Some(role) = self.role(*role_id) {
-                if let Some((position, id)) = highest_role {
-                    if role.position() < position || (role.position() == position && role.id() > id)
-                    {
-                        continue;
-                    }
+                if let Some((position, id)) = highest_role
+                    && (role.position() < position
+                        || (role.position() == position && role.id() > id))
+                {
+                    continue;
                 }
 
                 highest_role = Some((role.position(), role.id()));
@@ -1000,7 +1000,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             Event::ReactionRemove(v) => cache.update(v.deref()),
             Event::ReactionRemoveAll(v) => cache.update(v),
             Event::ReactionRemoveEmoji(v) => cache.update(v),
-            Event::Ready(v) => cache.update(v.deref()),
+            Event::Ready(v) => cache.update(v),
             Event::RoleCreate(v) => cache.update(v),
             Event::RoleDelete(v) => cache.update(v),
             Event::RoleUpdate(v) => cache.update(v),
@@ -1038,6 +1038,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::InviteDelete(_)
             | Event::MessagePollVoteAdd(_)
             | Event::MessagePollVoteRemove(_)
+            | Event::RateLimited(_)
             | Event::Resumed
             | Event::ThreadMembersUpdate(_)
             | Event::ThreadMemberUpdate(_)
@@ -1050,7 +1051,8 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
+    use twilight_model::guild::RoleColors;
     use twilight_model::{
         gateway::payload::incoming::RoleDelete,
         guild::{Member, MemberFlags, Permissions, Role, RoleFlags},
@@ -1088,6 +1090,8 @@ mod tests {
             guild_id,
             Member {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
@@ -1105,7 +1109,13 @@ mod tests {
             guild_id,
             vec![
                 Role {
+                    #[allow(deprecated)]
                     color: 0,
+                    colors: RoleColors {
+                        primary_color: 0,
+                        secondary_color: None,
+                        tertiary_color: None,
+                    },
                     hoist: false,
                     icon: None,
                     id: Id::new(1),
@@ -1119,7 +1129,13 @@ mod tests {
                     unicode_emoji: None,
                 },
                 Role {
+                    #[allow(deprecated)]
                     color: 0,
+                    colors: RoleColors {
+                        primary_color: 0,
+                        secondary_color: None,
+                        tertiary_color: None,
+                    },
                     hoist: false,
                     icon: None,
                     id: Id::new(2),

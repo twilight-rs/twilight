@@ -1,18 +1,18 @@
 use std::borrow::Cow;
 
 use crate::{
+    CacheableModels, InMemoryCache, UpdateCache,
     config::ResourceType,
     model::member::ComputedInteractionMember,
     traits::{CacheableGuild, CacheableMember},
-    CacheableModels, InMemoryCache, UpdateCache,
 };
 use twilight_model::{
     application::interaction::InteractionMember,
     gateway::payload::incoming::{MemberAdd, MemberChunk, MemberRemove, MemberUpdate},
     guild::{Member, PartialMember},
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 
@@ -31,10 +31,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         let member_id = member.user.id;
         let id = (guild_id, member_id);
 
-        if let Some(m) = self.members.get(&id) {
-            if *m == member {
-                return;
-            }
+        if let Some(m) = self.members.get(&id)
+            && *m == member
+        {
+            return;
         }
 
         self.cache_user(Cow::Borrowed(&member.user), Some(guild_id));
@@ -54,10 +54,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     ) {
         let id = (guild_id, user_id);
 
-        if let Some(m) = self.members.get(&id) {
-            if &*m == member {
-                return;
-            }
+        if let Some(m) = self.members.get(&id)
+            && &*m == member
+        {
+            return;
         }
 
         self.guild_members
@@ -102,10 +102,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
 impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberAdd {
     fn update(&self, cache: &InMemoryCache<CacheModels>) {
-        if cache.wants(ResourceType::GUILD) {
-            if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
-                guild.increase_member_count(1);
-            }
+        if cache.wants(ResourceType::GUILD)
+            && let Some(mut guild) = cache.guilds.get_mut(&self.guild_id)
+        {
+            guild.increase_member_count(1);
         }
 
         if !cache.wants(ResourceType::MEMBER) {
@@ -132,10 +132,10 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberChunk {
 
 impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberRemove {
     fn update(&self, cache: &InMemoryCache<CacheModels>) {
-        if cache.wants(ResourceType::GUILD) {
-            if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
-                guild.decrease_member_count(1);
-            }
+        if cache.wants(ResourceType::GUILD)
+            && let Some(mut guild) = cache.guilds.get_mut(&self.guild_id)
+        {
+            guild.decrease_member_count(1);
         }
 
         if !cache.wants(ResourceType::MEMBER) {
@@ -181,7 +181,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MemberUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, DefaultInMemoryCache};
+    use crate::{DefaultInMemoryCache, test};
     use std::borrow::Cow;
     use twilight_model::{
         gateway::payload::incoming::{MemberRemove, MemberUpdate},
@@ -212,9 +212,11 @@ mod tests {
             assert!(guild_1_user_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached members
-            assert!(guild_1_user_ids
-                .iter()
-                .all(|id| cache.member(Id::new(1), *id).is_some()));
+            assert!(
+                guild_1_user_ids
+                    .iter()
+                    .all(|id| cache.member(Id::new(1), *id).is_some())
+            );
 
             // Check for the cached users
             assert!(guild_1_user_ids.iter().all(|id| cache.user(*id).is_some()));
@@ -236,10 +238,12 @@ mod tests {
             assert!(guild_2_user_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached members
-            assert!(guild_2_user_ids
-                .iter()
-                .copied()
-                .all(|id| cache.member(Id::new(1), id).is_some()));
+            assert!(
+                guild_2_user_ids
+                    .iter()
+                    .copied()
+                    .all(|id| cache.member(Id::new(1), id).is_some())
+            );
 
             // Check for the cached users
             assert!(guild_2_user_ids.iter().all(|id| cache.user(*id).is_some()));
@@ -298,6 +302,8 @@ mod tests {
 
         let member = Member {
             avatar: None,
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags: MemberFlags::empty(),

@@ -26,7 +26,7 @@ use futures_util::{
     sink::SinkExt,
     stream::{Stream, StreamExt},
 };
-use http::header::{HeaderName, AUTHORIZATION};
+use http::header::{AUTHORIZATION, HeaderName};
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -41,9 +41,9 @@ use tokio::{
     time as tokio_time,
 };
 use tokio_websockets::{
-    upgrade, ClientBuilder, Error as WebsocketError, MaybeTlsStream, Message, WebSocketStream,
+    ClientBuilder, Error as WebsocketError, MaybeTlsStream, Message, WebSocketStream, upgrade,
 };
-use twilight_model::id::{marker::UserMarker, Id};
+use twilight_model::id::{Id, marker::UserMarker};
 
 /// An error occurred while either initializing a connection or while running
 /// its event loop.
@@ -610,7 +610,7 @@ impl Drop for Connection {
     }
 }
 
-fn connect_request(state: &NodeConfig) -> Result<ClientBuilder, NodeError> {
+fn connect_request(state: &NodeConfig) -> Result<ClientBuilder<'_>, NodeError> {
     let mut builder = ClientBuilder::new()
         .uri(&format!("ws://{}", state.address))
         .map_err(|source| NodeError {
@@ -745,7 +745,7 @@ mod tests {
     #[test]
     fn node_config_debug() {
         let config = NodeConfig {
-            address: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 1312)),
+            address: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 1312)),
             authorization: "some auth".to_owned(),
             resume: None,
             user_id: Id::new(123),

@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use std::borrow::Cow;
 use twilight_model::gateway::payload::incoming::{
     MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
@@ -28,10 +28,10 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MessageCreate {
         // requested then we pop a message ID out. Once we have the popped ID we
         // can remove it from the message cache. This prevents the cache from
         // filling up with old messages that aren't in any channel cache.
-        if channel_messages.len() >= cache.config.message_cache_size() {
-            if let Some(popped_id) = channel_messages.pop_back() {
-                cache.messages.remove(&popped_id);
-            }
+        if channel_messages.len() >= cache.config.message_cache_size()
+            && let Some(popped_id) = channel_messages.pop_back()
+        {
+            cache.messages.remove(&popped_id);
         }
 
         channel_messages.push_front(self.0.id);
@@ -112,10 +112,10 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MessageUpdate {
 
         // If this channel cache is full, we pop an message ID out of
         // the channel cache and also remove it from the message cache.
-        if channel_messages.len() >= cache.config.message_cache_size() {
-            if let Some(popped_id) = channel_messages.pop_back() {
-                cache.messages.remove(&popped_id);
-            }
+        if channel_messages.len() >= cache.config.message_cache_size()
+            && let Some(popped_id) = channel_messages.pop_back()
+        {
+            cache.messages.remove(&popped_id);
         }
 
         channel_messages.push_front(self.0.id);
@@ -131,7 +131,7 @@ mod tests {
         guild::{MemberFlags, PartialMember},
         id::Id,
         user::User,
-        util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
+        util::{ImageHash, Timestamp, image_hash::ImageHashParseError},
     };
 
     #[allow(deprecated)]
@@ -166,6 +166,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "test".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,
@@ -184,6 +185,8 @@ mod tests {
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,

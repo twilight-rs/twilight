@@ -2,6 +2,7 @@ use twilight_model::{
     application::command::CommandOptionChoice,
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::{attachment::Attachment, interaction::InteractionResponseData},
+    poll::Poll,
 };
 
 /// Create an [`InteractionResponseData`] with a builder.
@@ -9,13 +10,15 @@ use twilight_model::{
 /// # Example
 /// ```
 /// use twilight_model::channel::message::{
-///     component::{ActionRow, Button, ButtonStyle, Component},
 ///     MessageFlags,
+///     component::{ActionRow, Button, ButtonStyle, Component},
 /// };
 /// use twilight_util::builder::InteractionResponseDataBuilder;
 ///
 /// let component = Component::ActionRow(ActionRow {
+///     id: None,
 ///     components: Vec::from([Component::Button(Button {
+///         id: None,
 ///         style: ButtonStyle::Primary,
 ///         emoji: None,
 ///         label: Some("Button label".to_string()),
@@ -52,6 +55,7 @@ impl InteractionResponseDataBuilder {
             flags: None,
             title: None,
             tts: None,
+            poll: None,
         })
     }
 
@@ -160,6 +164,13 @@ impl InteractionResponseDataBuilder {
 
         self
     }
+
+    /// Set the poll of the callback.
+    pub fn poll(mut self, poll: Poll) -> Self {
+        self.0.poll = Some(poll);
+
+        self
+    }
 }
 
 impl Default for InteractionResponseDataBuilder {
@@ -175,9 +186,10 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         channel::message::{
-            component::{Button, ButtonStyle},
             MentionType,
+            component::{Button, ButtonStyle},
         },
+        poll::{PollLayoutType, PollMedia},
         util::Timestamp,
     };
 
@@ -204,6 +216,7 @@ mod tests {
             url: None,
             disabled: false,
             sku_id: None,
+            id: None,
         });
 
         let embed = Embed {
@@ -222,6 +235,18 @@ mod tests {
             video: None,
         };
 
+        let poll = Poll {
+            answers: vec![],
+            allow_multiselect: false,
+            expiry: None,
+            layout_type: PollLayoutType::Default,
+            question: PollMedia {
+                emoji: None,
+                text: Some("lorem ipsum".to_owned()),
+            },
+            results: None,
+        };
+
         let value = InteractionResponseDataBuilder::new()
             .allowed_mentions(allowed_mentions.clone())
             .components([component.clone()])
@@ -229,6 +254,7 @@ mod tests {
             .embeds([embed.clone()])
             .flags(MessageFlags::empty())
             .tts(false)
+            .poll(poll.clone())
             .build();
 
         let expected = InteractionResponseData {
@@ -242,6 +268,7 @@ mod tests {
             flags: Some(MessageFlags::empty()),
             title: None,
             tts: Some(false),
+            poll: Some(poll),
         };
 
         assert_eq!(value, expected);

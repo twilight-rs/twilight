@@ -10,11 +10,11 @@ use std::{collections::HashMap, future::IntoFuture};
 use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
     guild::Permissions,
-    id::{marker::ApplicationMarker, Id},
+    id::{Id, marker::ApplicationMarker},
 };
 use twilight_validate::command::{
-    chat_input_name as validate_chat_input_name, description as validate_description,
-    options as validate_options, CommandValidationError,
+    CommandValidationError, chat_input_name as validate_chat_input_name,
+    description as validate_description, options as validate_options,
 };
 
 struct CreateGlobalChatInputCommandFields<'a> {
@@ -101,7 +101,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     /// Default permissions required for a member to run the command.
     ///
     /// Defaults to [`None`].
-    pub fn default_member_permissions(mut self, default: Permissions) -> Self {
+    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.default_member_permissions = Some(default);
         }
@@ -112,7 +112,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     /// Set whether the command is available in DMs.
     ///
     /// Defaults to [`None`].
-    pub fn dm_permission(mut self, dm_permission: bool) -> Self {
+    pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.dm_permission = Some(dm_permission);
         }
@@ -175,7 +175,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     /// Set whether the command is age-restricted.
     ///
     /// Defaults to not being specified, which uses Discord's default.
-    pub fn nsfw(mut self, nsfw: bool) -> Self {
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.nsfw = Some(nsfw);
         }

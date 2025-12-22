@@ -59,6 +59,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
+    // Select rustls backend
+    rustls::crypto::ring::default_provider().install_default().unwrap();
+
     let client = Client::new(env::var("DISCORD_TOKEN")?);
 
     let me = client.current_user().await?.model().await?;

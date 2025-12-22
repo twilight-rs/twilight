@@ -3,8 +3,8 @@ use super::{
 };
 use crate::{
     id::{
-        marker::{GuildMarker, IntegrationMarker, RoleMarker},
         Id,
+        marker::{GuildMarker, IntegrationMarker, RoleMarker},
     },
     user::User,
     util::Timestamp,
@@ -111,6 +111,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "user".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,
@@ -262,6 +263,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "user".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,

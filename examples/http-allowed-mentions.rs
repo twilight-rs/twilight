@@ -7,6 +7,11 @@ async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
+    // Select rustls backend
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
+
     //if we want to set the default for allowed mentions we need to use the builder, keep in mind these calls can't be chained!
     let client = Client::builder()
         .token(env::var("DISCORD_TOKEN")?)

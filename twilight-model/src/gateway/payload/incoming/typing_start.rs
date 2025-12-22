@@ -1,8 +1,8 @@
 use crate::{
     guild::Member,
     id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
 };
 use serde::{Deserialize, Serialize};
@@ -42,6 +42,8 @@ mod tests {
             guild_id: Some(Id::new(1)),
             member: Some(Member {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
@@ -68,8 +70,9 @@ mod tests {
                     email: None,
                     flags: None,
                     premium_type: None,
-                    system: None,
+                    primary_guild: None,
                     public_flags: None,
+                    system: None,
                 },
             }),
             timestamp: 1_500_000_000,

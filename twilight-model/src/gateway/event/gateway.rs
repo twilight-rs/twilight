@@ -3,12 +3,12 @@ use super::{
 };
 use crate::gateway::payload::incoming::Hello;
 use serde::{
+    Deserialize, Serialize,
     de::{
-        value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,
-        IntoDeserializer, MapAccess, Unexpected, Visitor,
+        DeserializeSeed, Deserializer, Error as DeError, IgnoredAny, IntoDeserializer, MapAccess,
+        Unexpected, Visitor, value::U8Deserializer,
     },
     ser::{SerializeStruct, Serializer},
-    Deserialize, Serialize,
 };
 use std::{
     borrow::Cow,
@@ -330,14 +330,14 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 return Err(DeError::unknown_variant(
                     "RequestGuildMembers",
                     VALID_OPCODES,
-                ))
+                ));
             }
             OpCode::Resume => return Err(DeError::unknown_variant("Resume", VALID_OPCODES)),
             OpCode::PresenceUpdate => {
-                return Err(DeError::unknown_variant("PresenceUpdate", VALID_OPCODES))
+                return Err(DeError::unknown_variant("PresenceUpdate", VALID_OPCODES));
             }
             OpCode::VoiceStateUpdate => {
-                return Err(DeError::unknown_variant("VoiceStateUpdate", VALID_OPCODES))
+                return Err(DeError::unknown_variant("VoiceStateUpdate", VALID_OPCODES));
             }
         })
     }
@@ -478,6 +478,9 @@ mod tests {
     "roles": [
       {{
         "color": 0,
+        "colors": {{
+            "primary_color": 0
+        }},
         "hoist": false,
         "id": "13312",
         "managed": false,
@@ -554,6 +557,9 @@ mod tests {
     "roles": [
       {{
         "color": 0,
+        "colors": {{
+            "primary_color": 0
+        }},
         "hoist": false,
         "id": "47",
         "managed": false,

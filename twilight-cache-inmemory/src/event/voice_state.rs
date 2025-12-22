@@ -1,5 +1,5 @@
 use crate::CacheableVoiceState;
-use crate::{config::ResourceType, CacheableModels, InMemoryCache, UpdateCache};
+use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use twilight_model::gateway::payload::incoming::VoiceStateUpdate;
 use twilight_model::voice::VoiceState;
 
@@ -88,17 +88,17 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for VoiceStateUpdate
 
 #[cfg(test)]
 mod tests {
-    use crate::{model::CachedVoiceState, test, DefaultInMemoryCache, ResourceType};
+    use crate::{DefaultInMemoryCache, ResourceType, model::CachedVoiceState, test};
     use std::str::FromStr;
     use twilight_model::{
         gateway::payload::incoming::VoiceStateUpdate,
         guild::{Member, MemberFlags},
         id::{
-            marker::{ChannelMarker, GuildMarker, UserMarker},
             Id,
+            marker::{ChannelMarker, GuildMarker, UserMarker},
         },
         user::User,
-        util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
+        util::{ImageHash, Timestamp, image_hash::ImageHashParseError},
         voice::VoiceState,
     };
 
@@ -292,6 +292,8 @@ mod tests {
             guild_id: Some(Id::new(2)),
             member: Some(Member {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
@@ -317,6 +319,7 @@ mod tests {
                     mfa_enabled: None,
                     name: "test".to_owned(),
                     premium_type: None,
+                    primary_guild: None,
                     public_flags: None,
                     system: None,
                     verified: None,

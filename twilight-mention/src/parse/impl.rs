@@ -2,11 +2,10 @@ use crate::timestamp::{Timestamp, TimestampStyle};
 
 use super::{MentionIter, MentionType, ParseMentionError, ParseMentionErrorType};
 use crate::fmt::CommandMention;
-use std::{num::NonZeroU64, str::Chars};
-use twilight_model::id::marker::CommandMarker;
+use std::{num::NonZero, str::Chars};
 use twilight_model::id::{
-    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
     Id,
+    marker::{ChannelMarker, CommandMarker, EmojiMarker, RoleMarker, UserMarker},
 };
 
 /// Parse mentions out of buffers.
@@ -34,8 +33,8 @@ pub trait ParseMention: private::Sealed {
     /// ```
     /// use twilight_mention::ParseMention;
     /// use twilight_model::id::{
-    ///     marker::{ChannelMarker, UserMarker},
     ///     Id,
+    ///     marker::{ChannelMarker, UserMarker},
     /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -98,7 +97,7 @@ impl ParseMention for CommandMention {
         let mut echars = buf.chars().enumerate();
 
         let c = echars.next();
-        if c.map_or(true, |(_, c)| c != '<') {
+        if c.is_none_or(|(_, c)| c != '<') {
             return Err(ParseMentionError {
                 kind: ParseMentionErrorType::LeadingArrow {
                     found: c.map(|(_, c)| c),
@@ -108,7 +107,7 @@ impl ParseMention for CommandMention {
         }
 
         let c = echars.next();
-        if c.map_or(true, |(_, c)| c != '/') {
+        if c.is_none_or(|(_, c)| c != '/') {
             return Err(ParseMentionError {
                 kind: ParseMentionErrorType::Sigil {
                     expected: Self::SIGILS,
@@ -143,7 +142,7 @@ impl ParseMention for CommandMention {
                                     found: &buf[current_segment..],
                                 },
                                 source: None,
-                            })
+                            });
                         }
                     };
 
@@ -178,14 +177,14 @@ impl ParseMention for CommandMention {
                     return Err(ParseMentionError {
                         kind: ParseMentionErrorType::TrailingArrow { found: None },
                         source: None,
-                    })
+                    });
                 }
                 Some((i, '>')) => break &buf[(id_sep + 1)..i],
                 Some((_, c)) if !c.is_numeric() => {
                     return Err(ParseMentionError {
                         kind: ParseMentionErrorType::TrailingArrow { found: Some(c) },
                         source: None,
-                    })
+                    });
                 }
                 _ => (),
             }
@@ -197,7 +196,7 @@ impl ParseMention for CommandMention {
                 return Err(ParseMentionError {
                     kind: ParseMentionErrorType::IdNotU64 { found: id },
                     source: Some(Box::new(e)),
-                })
+                });
             }
         };
 
@@ -407,7 +406,7 @@ fn parse_maybe_style(value: Option<&str>) -> Result<Option<TimestampStyle>, Pars
 fn parse_mention<'a>(
     buf: &'a str,
     sigils: &'a [&'a str],
-) -> Result<(NonZeroU64, Option<&'a str>, &'a str), ParseMentionError<'a>> {
+) -> Result<(NonZero<u64>, Option<&'a str>, &'a str), ParseMentionError<'a>> {
     let mut chars = buf.chars();
 
     let c = chars.next();
@@ -509,8 +508,8 @@ mod private {
     use crate::fmt::CommandMention;
     use crate::timestamp::Timestamp;
     use twilight_model::id::{
-        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
     };
 
     pub trait Sealed {}
@@ -528,8 +527,8 @@ mod private {
 mod tests {
     use super::{
         super::{MentionType, ParseMentionErrorType},
-        private::Sealed,
         ParseMention,
+        private::Sealed,
     };
     use crate::fmt::CommandMention;
     use crate::{
@@ -538,8 +537,8 @@ mod tests {
     };
     use static_assertions::assert_impl_all;
     use twilight_model::id::{
-        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
     };
 
     assert_impl_all!(Id<ChannelMarker>: ParseMention, Sealed);

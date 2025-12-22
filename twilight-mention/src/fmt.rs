@@ -6,8 +6,8 @@ use twilight_model::{
     channel::Channel,
     guild::{Emoji, Member, Role},
     id::{
-        marker::{ChannelMarker, CommandMarker, EmojiMarker, RoleMarker, UserMarker},
         Id,
+        marker::{ChannelMarker, CommandMarker, EmojiMarker, RoleMarker, UserMarker},
     },
     user::{CurrentUser, User},
 };
@@ -20,7 +20,7 @@ use twilight_model::{
 ///
 /// ```
 /// use twilight_mention::Mention;
-/// use twilight_model::id::{marker::UserMarker, Id};
+/// use twilight_model::id::{Id, marker::UserMarker};
 ///
 /// assert_eq!("<@123>", Id::<UserMarker>::new(123).mention().to_string());
 /// ```
@@ -143,7 +143,7 @@ impl Display for MentionFormat<Id<UserMarker>> {
 ///
 /// ```
 /// use twilight_mention::Mention;
-/// use twilight_model::id::{marker::ChannelMarker, Id};
+/// use twilight_model::id::{Id, marker::ChannelMarker};
 ///
 /// let id = Id::<ChannelMarker>::new(123);
 /// assert_eq!("<#123>", id.mention().to_string());
@@ -314,8 +314,8 @@ mod tests {
         channel::Channel,
         guild::{Emoji, Member, Role},
         id::{
-            marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
             Id,
+            marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
         },
         user::{CurrentUser, User},
     };

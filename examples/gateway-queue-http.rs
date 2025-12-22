@@ -1,13 +1,13 @@
 use http_body_util::Empty;
 use hyper::body::Bytes;
 use hyper_util::{
-    client::legacy::{connect::HttpConnector, Client},
+    client::legacy::{Client, connect::HttpConnector},
     rt::TokioExecutor,
 };
 use std::env;
 use tokio::sync::oneshot;
 use twilight_gateway::{
-    queue::Queue, ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _,
+    ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _, queue::Queue,
 };
 
 #[derive(Debug)]
@@ -38,6 +38,11 @@ impl Queue for HttpQueue {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
+
+    // Select rustls backend
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
 
     let token = env::var("DISCORD_TOKEN")?;
     let intents = Intents::GUILDS | Intents::GUILD_VOICE_STATES;

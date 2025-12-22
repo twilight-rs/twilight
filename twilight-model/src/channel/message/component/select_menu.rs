@@ -1,6 +1,6 @@
-use crate::channel::{message::EmojiReactionType, ChannelType};
-use crate::id::marker::{ChannelMarker, RoleMarker, UserMarker};
+use crate::channel::{ChannelType, message::EmojiReactionType};
 use crate::id::Id;
+use crate::id::marker::{ChannelMarker, RoleMarker, UserMarker};
 use serde::{Deserialize, Serialize};
 
 /// Dropdown-style [`Component`] that renders below messages.
@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SelectMenu {
+    /// Optional identifier for this select menu.
+    pub id: Option<i32>,
     /// An optional list of channel types.
     ///
     /// This is only applicable to [channel select menus](SelectMenuType::Channel).
@@ -32,6 +34,10 @@ pub struct SelectMenu {
     pub options: Option<Vec<SelectMenuOption>>,
     /// Custom placeholder text if no option is selected.
     pub placeholder: Option<String>,
+    /// Whether a selection is required in a modal.
+    ///
+    /// Ignored in messages.
+    pub required: Option<bool>,
 }
 
 /// A [`SelectMenu`]'s type.
@@ -99,7 +105,8 @@ mod tests {
         max_values,
         min_values,
         options,
-        placeholder
+        placeholder,
+        required
     );
     assert_impl_all!(SelectMenu: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
 

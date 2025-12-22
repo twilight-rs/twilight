@@ -8,13 +8,13 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::{thread::AutoArchiveDuration, Channel},
+    channel::{Channel, thread::AutoArchiveDuration},
     id::{
-        marker::{ChannelMarker, MessageMarker},
         Id,
+        marker::{ChannelMarker, MessageMarker},
     },
 };
-use twilight_validate::channel::{name as validate_name, ChannelValidationError};
+use twilight_validate::channel::{ChannelValidationError, name as validate_name};
 
 #[derive(Serialize)]
 struct CreateThreadFromMessageFields<'a> {
@@ -79,7 +79,10 @@ impl<'a> CreateThreadFromMessage<'a> {
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
-    pub fn auto_archive_duration(mut self, auto_archive_duration: AutoArchiveDuration) -> Self {
+    pub const fn auto_archive_duration(
+        mut self,
+        auto_archive_duration: AutoArchiveDuration,
+    ) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.auto_archive_duration = Some(auto_archive_duration);
         }

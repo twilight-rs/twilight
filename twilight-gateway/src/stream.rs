@@ -1,6 +1,6 @@
 //! Convenient `Stream` extension trait for message deserialization.
 
-use crate::{error::ReceiveMessageError, EventTypeFlags, Message};
+use crate::{EventTypeFlags, Message, error::ReceiveMessageError};
 use futures_core::Stream;
 
 /// An extension trait for the [`Stream`] trait.
@@ -64,7 +64,7 @@ pub trait StreamExt: Stream {
     /// [`Event::GatewayClose`]: crate::Event::GatewayClose
     /// [`parse`]: crate::parse
     /// [`pin!`]: std::pin::pin
-    fn next_event(&mut self, wanted_event_types: EventTypeFlags) -> private::NextEvent<Self>
+    fn next_event(&mut self, wanted_event_types: EventTypeFlags) -> private::NextEvent<'_, Self>
     where
         Self: Unpin,
     {
@@ -80,12 +80,12 @@ mod private {
     //!
     //! Effectively disallows consumers from implementing the trait.
 
-    use crate::{error::ReceiveMessageError, json::parse, EventTypeFlags, Message};
+    use crate::{EventTypeFlags, Message, error::ReceiveMessageError, json::parse};
     use futures_core::Stream;
     use std::{
         future::Future,
         pin::Pin,
-        task::{ready, Context, Poll},
+        task::{Context, Poll, ready},
     };
     use twilight_model::gateway::event::Event;
 
@@ -99,7 +99,7 @@ mod private {
 
     impl<'a, St: ?Sized> NextEvent<'a, St> {
         /// Create a new future.
-        pub fn new(stream: &'a mut St, events: EventTypeFlags) -> Self {
+        pub const fn new(stream: &'a mut St, events: EventTypeFlags) -> Self {
             Self { events, stream }
         }
     }
@@ -110,17 +110,14 @@ mod private {
         type Output = Option<Result<Event, ReceiveMessageError>>;
 
         fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-            let events = self.events;
-            let try_from_message = |message| match message {
-                Message::Text(json) => parse(json, events).map(|opt| opt.map(Into::into)),
-                Message::Close(frame) => Ok(Some(Event::GatewayClose(frame))),
-            };
-
             loop {
-                match ready!(Pin::new(&mut self.stream).poll_next(cx)) {
-                    Some(item) => {
-                        if let Some(event) = item.and_then(try_from_message).transpose() {
-                            return Poll::Ready(Some(event));
+                match ready!(Pin::new(&mut self.stream).poll_next(cx)?) {
+                    Some(Message::Close(frame)) => {
+                        return Poll::Ready(Some(Ok(Event::GatewayClose(frame))));
+                    }
+                    Some(Message::Text(json)) => {
+                        if let Some(event) = parse(json, self.events).transpose() {
+                            return Poll::Ready(Some(event.map(Into::into)));
                         }
                     }
                     None => return Poll::Ready(None),

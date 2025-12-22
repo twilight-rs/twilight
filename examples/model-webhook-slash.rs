@@ -1,13 +1,13 @@
-use ed25519_dalek::{Verifier, VerifyingKey, PUBLIC_KEY_LENGTH};
+use ed25519_dalek::{PUBLIC_KEY_LENGTH, Verifier, VerifyingKey};
 use hex::FromHex;
 use http_body_util::{BodyExt, Full};
 use hyper::{
+    Method, Request, Response,
     body::{Bytes, Incoming},
     header::CONTENT_TYPE,
     http::StatusCode,
     server::conn::http1,
     service::service_fn,
-    Method, Request, Response,
 };
 use hyper_util::rt::TokioIo;
 use once_cell::sync::Lazy;
@@ -15,7 +15,7 @@ use std::{future::Future, net::SocketAddr};
 use tokio::net::TcpListener;
 use twilight_model::{
     application::interaction::{
-        application_command::CommandData, Interaction, InteractionData, InteractionType,
+        Interaction, InteractionData, InteractionType, application_command::CommandData,
     },
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
@@ -172,6 +172,11 @@ async fn vroom(_: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
 async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
+
+    // Select rustls backend
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
 
     // Local address to bind the service to.
     let addr = SocketAddr::from(([127, 0, 0, 1], 3030));

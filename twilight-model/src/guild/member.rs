@@ -2,11 +2,12 @@
 
 use super::MemberFlags;
 use crate::{
-    id::{marker::RoleMarker, Id},
+    id::{Id, marker::RoleMarker},
     user::User,
     util::{ImageHash, Timestamp},
 };
 
+use crate::user::AvatarDecorationData;
 use serde::{Deserialize, Serialize};
 
 /// [`User`] that is in a [`Guild`].
@@ -17,6 +18,12 @@ pub struct Member {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<ImageHash>,
+    /// Member's avatar decoration data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar_decoration_data: Option<AvatarDecorationData>,
+    /// Member's guild banner.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub banner: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     /// Flags for the member.
@@ -50,6 +57,7 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn member_deserializer() -> Result<(), TimestampParseError> {
         let joined_at = Some(Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?);
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
@@ -57,6 +65,8 @@ mod tests {
 
         let value = Member {
             avatar: Some(image_hash::AVATAR),
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: None,
             deaf: false,
             flags,
@@ -82,6 +92,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,
@@ -165,6 +176,8 @@ mod tests {
 
         let value = Member {
             avatar: Some(image_hash::AVATAR),
+            avatar_decoration_data: None,
+            banner: None,
             communication_disabled_until: Some(communication_disabled_until),
             deaf: false,
             flags,
@@ -190,6 +203,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,

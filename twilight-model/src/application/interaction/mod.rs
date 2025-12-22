@@ -28,15 +28,15 @@ use crate::{
     channel::{Channel, Message},
     guild::{GuildFeature, PartialMember, Permissions},
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         AnonymizableId, Id,
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
     },
     oauth::ApplicationIntegrationMap,
     user::User,
 };
 use serde::{
-    de::{Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Deserializer, Serialize,
+    de::{Error as DeError, IgnoredAny, MapAccess, Visitor},
 };
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
@@ -486,7 +486,7 @@ pub enum InteractionData {
     /// Data received for the [`ModalSubmit`] interaction type.
     ///
     /// [`ModalSubmit`]: InteractionType::ModalSubmit
-    ModalSubmit(ModalInteractionData),
+    ModalSubmit(Box<ModalInteractionData>),
 }
 
 /// Partial guild containing only the fields sent in the partial guild
@@ -508,13 +508,13 @@ pub struct InteractionPartialGuild {
 #[cfg(test)]
 mod tests {
     use super::{
-        application_command::{CommandData, CommandDataOption, CommandOptionValue},
         Interaction, InteractionData, InteractionDataResolved, InteractionMember, InteractionType,
+        application_command::{CommandData, CommandDataOption, CommandOptionValue},
     };
     use crate::{
         application::{
             command::{CommandOptionType, CommandType},
-            monetization::{entitlement::Entitlement, EntitlementType},
+            monetization::{EntitlementType, entitlement::Entitlement},
         },
         channel::Channel,
         guild::{MemberFlags, PartialMember, Permissions},
@@ -595,6 +595,8 @@ mod tests {
                         Id::new(600),
                         InteractionMember {
                             avatar: None,
+                            avatar_decoration_data: None,
+                            banner: None,
                             communication_disabled_until: None,
                             flags,
                             joined_at,
@@ -626,6 +628,7 @@ mod tests {
                             mfa_enabled: None,
                             name: "username".into(),
                             premium_type: None,
+                            primary_guild: None,
                             public_flags: None,
                             system: None,
                             verified: None,
@@ -655,6 +658,8 @@ mod tests {
             locale: Some("en-GB".to_owned()),
             member: Some(PartialMember {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
@@ -680,6 +685,7 @@ mod tests {
                     mfa_enabled: None,
                     name: "username".into(),
                     premium_type: None,
+                    primary_guild: None,
                     public_flags: None,
                     system: None,
                     verified: None,

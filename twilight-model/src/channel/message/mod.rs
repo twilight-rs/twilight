@@ -13,6 +13,8 @@ mod flags;
 mod interaction;
 mod kind;
 mod mention;
+mod message_pin;
+mod pins_listing;
 mod reaction;
 mod reaction_type;
 mod reference;
@@ -31,6 +33,8 @@ pub use self::{
     interaction::MessageInteraction,
     kind::MessageType,
     mention::Mention,
+    message_pin::MessagePin,
+    pins_listing::PinsListing,
     reaction::{EmojiReactionType, Reaction, ReactionCountDetails},
     reaction_type::ReactionType,
     reference::MessageReference,
@@ -45,10 +49,10 @@ use crate::{
     channel::{Attachment, Channel, ChannelMention},
     guild::PartialMember,
     id::{
+        Id,
         marker::{
             ApplicationMarker, ChannelMarker, GuildMarker, MessageMarker, RoleMarker, WebhookMarker,
         },
-        Id,
     },
     poll::Poll,
     user::User,
@@ -219,11 +223,11 @@ pub struct Message {
 #[cfg(test)]
 mod tests {
     use super::{
+        EmojiReactionType, Message, MessageActivity, MessageActivityType, MessageApplication,
+        MessageCall, MessageFlags, MessageReference, MessageType, Reaction,
         reaction::ReactionCountDetails,
         reference_type::MessageReferenceType,
         sticker::{MessageSticker, StickerFormatType},
-        EmojiReactionType, Message, MessageActivity, MessageActivityType, MessageApplication,
-        MessageCall, MessageFlags, MessageReference, MessageType, Reaction,
     };
     use crate::{
         channel::{ChannelMention, ChannelType},
@@ -231,7 +235,7 @@ mod tests {
         id::Id,
         test::image_hash,
         user::User,
-        util::{datetime::TimestampParseError, Timestamp},
+        util::{Timestamp, datetime::TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;
@@ -264,6 +268,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "test".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,
@@ -284,6 +289,8 @@ mod tests {
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,
@@ -489,6 +496,7 @@ mod tests {
                 mfa_enabled: None,
                 name: "test".to_owned(),
                 premium_type: None,
+                primary_guild: None,
                 public_flags: None,
                 system: None,
                 verified: None,
@@ -506,6 +514,8 @@ mod tests {
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
                 communication_disabled_until: None,
                 deaf: false,
                 flags,

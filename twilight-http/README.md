@@ -11,27 +11,6 @@ repository][github examples link].
 
 ## Features
 
-### Crypto provider
-
-Using [`rustls`] for TLS requires configuring a crypto provider via crate
-features or manually installing a global default. The default is `rustls-ring`.
-
-#### `rustls-ring`
-
-The `rustls-ring` feature will enable the use of [`ring`] as the crypto
-provider. This is recommended for platform compatibility.
-
-#### `rustls-aws_lc_rs`
-
-The `rustls-aws_lc_rs` feature will enable the use of [`aws-lc-rs`] as the
-crypto provider. This is recommended for performance and on widely used
-platforms.
-
-#### Manual installation
-
-If none of the other crypto providers are enabled, a custom one must be
-installed by the application using [`CryptoProvider::install_default`].
-
 ### Decompression
 
 The `decompression` feature enables brotli decompression support via the [`brotli`] crate.

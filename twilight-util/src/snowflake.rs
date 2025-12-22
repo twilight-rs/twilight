@@ -1,6 +1,7 @@
 //! Provides the Snowflake trait for defining extractable information from a Discord Snowflake.
 
 use twilight_model::id::{
+    Id,
     marker::{
         ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
         CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
@@ -8,7 +9,6 @@ use twilight_model::id::{
         RoleSubscriptionSkuMarker, ScheduledEventEntityMarker, ScheduledEventMarker, StageMarker,
         StickerMarker, StickerPackMarker, StickerPackSkuMarker, UserMarker, WebhookMarker,
     },
-    Id,
 };
 
 /// Snowflake is a trait for defining extractable information from a Snowflake. A Snowflake is a
@@ -27,7 +27,7 @@ pub trait Snowflake {
     ///
     /// ```
     /// use chrono::{TimeZone, Utc};
-    /// use twilight_model::id::{marker::UserMarker, Id};
+    /// use twilight_model::id::{Id, marker::UserMarker};
     /// use twilight_util::snowflake::Snowflake;
     ///
     /// let id = Id::<UserMarker>::new(105484726235607040);
@@ -41,8 +41,8 @@ pub trait Snowflake {
     /// See when a user was created using [`time`](https://docs.rs/time):
     ///
     /// ```
-    /// use time::{format_description::well_known::Rfc3339, Duration, OffsetDateTime};
-    /// use twilight_model::id::{marker::UserMarker, Id};
+    /// use time::{Duration, OffsetDateTime, format_description::well_known::Rfc3339};
+    /// use twilight_model::id::{Id, marker::UserMarker};
     /// use twilight_util::snowflake::Snowflake;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

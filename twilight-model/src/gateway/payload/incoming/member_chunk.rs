@@ -2,13 +2,13 @@ use crate::{
     gateway::presence::{Presence, PresenceListDeserializer},
     guild::Member,
     id::{
-        marker::{GuildMarker, UserMarker},
         Id,
+        marker::{GuildMarker, UserMarker},
     },
 };
 use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
 };
 use std::fmt::{Formatter, Result as FmtResult};
 
@@ -296,6 +296,8 @@ mod tests {
             members: Vec::from([
                 Member {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     deaf: false,
                     flags,
@@ -322,12 +324,15 @@ mod tests {
                         flags: None,
                         global_name: Some("test".to_owned()),
                         premium_type: None,
-                        system: None,
+                        primary_guild: None,
                         public_flags: None,
+                        system: None,
                     },
                 },
                 Member {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     deaf: false,
                     flags,
@@ -354,12 +359,15 @@ mod tests {
                         flags: None,
                         global_name: Some("test".to_owned()),
                         premium_type: None,
-                        system: None,
+                        primary_guild: None,
                         public_flags: None,
+                        system: None,
                     },
                 },
                 Member {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     deaf: false,
                     flags,
@@ -386,12 +394,15 @@ mod tests {
                         flags: None,
                         global_name: Some("test".to_owned()),
                         premium_type: None,
-                        system: None,
+                        primary_guild: None,
                         public_flags: Some(UserFlags::VERIFIED_DEVELOPER),
+                        system: None,
                     },
                 },
                 Member {
                     avatar: None,
+                    avatar_decoration_data: None,
+                    banner: None,
                     communication_disabled_until: None,
                     deaf: false,
                     flags,
@@ -418,8 +429,9 @@ mod tests {
                         flags: None,
                         global_name: Some("test".to_owned()),
                         premium_type: None,
-                        system: None,
+                        primary_guild: None,
                         public_flags: None,
+                        system: None,
                     },
                 },
             ]),
