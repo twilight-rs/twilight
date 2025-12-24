@@ -7,6 +7,7 @@ use crate::{
 };
 use std::future::IntoFuture;
 use twilight_model::{
+    application::interaction::callback::response::InteractionCallbackResponse,
     http::interaction::InteractionResponse,
     id::{Id, marker::InteractionMarker},
 };
@@ -39,9 +40,9 @@ impl<'a> CreateResponseWithResponse<'a> {
 }
 
 impl IntoFuture for CreateResponseWithResponse<'_> {
-    type Output = Result<Response<InteractionResponse>, Error>;
+    type Output = Result<Response<InteractionCallbackResponse>, Error>;
 
-    type IntoFuture = ResponseFuture<InteractionResponse>;
+    type IntoFuture = ResponseFuture<InteractionCallbackResponse>;
 
     fn into_future(self) -> Self::IntoFuture {
         let http = self.http;

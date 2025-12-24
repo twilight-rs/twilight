@@ -5,6 +5,7 @@
 //! [Discord Docs/Receiving and Responding]: https://discord.com/developers/docs/interactions/receiving-and-responding
 
 pub mod application_command;
+pub mod callback;
 pub mod message_component;
 pub mod modal;
 
