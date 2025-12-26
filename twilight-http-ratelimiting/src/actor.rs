@@ -10,14 +10,12 @@ use std::{
     pin::pin,
 };
 use tokio::{
-    sync::{
-        mpsc,
-        oneshot::{self, error::RecvError},
-    },
+    sync::{mpsc, oneshot},
     task::JoinSet,
     time::{Duration, Instant, sleep},
 };
 use tokio_util::time::delay_queue::{DelayQueue, Key};
+use tracing::Span;
 
 /// Rate limiter hasher.
 #[derive(Debug)]
@@ -76,8 +74,17 @@ struct Queue {
 
 impl Queue {
     /// Whether the queue is exhausted.
-    const fn is_exhasted(&self) -> bool {
-        self.remaining == 0
+    const fn is_exhausted(&self) -> bool {
+        self.reset.is_some() && self.remaining == 0
+    }
+
+    /// Convert the queue into a bucket.
+    fn to_bucket(&self, f: impl FnOnce(Key) -> Instant) -> Option<crate::Bucket> {
+        self.reset.map(|key| crate::Bucket {
+            limit: self.limit,
+            remaining: self.remaining,
+            reset_at: f(key).into(),
+        })
     }
 }
 
@@ -102,22 +109,18 @@ pub async fn runner(
     global_limit: u16,
     mut rx: mpsc::UnboundedReceiver<(Message, Option<crate::Predicate>)>,
 ) {
+    let mut buckets = HashMap::<Endpoint, Vec<u8>>::new();
+    let mut gc_interval = pin!(sleep(GC_INTERVAL));
     let mut global_remaining = global_limit;
     let mut global_timer = pin!(sleep(Duration::ZERO));
-
-    let mut buckets = HashMap::<Endpoint, Vec<u8>>::new();
-    // Invariants: may never contain more than one task per endpoint at once.
-    let mut in_flight = JoinSet::<(Endpoint, Result<Option<RateLimitHeaders>, RecvError>)>::new();
-
-    let mut gc_interval = pin!(sleep(GC_INTERVAL));
-    let mut reset = DelayQueue::<u64>::new();
-    let mut queues = HashTable::<(u64, Queue)>::new();
     let hasher = Hasher(RandomState::new());
+    let mut in_flight = JoinSet::<(Endpoint, Result<Option<RateLimitHeaders>, ()>, Span)>::new();
+    let mut queues = HashTable::<(u64, Queue)>::new();
+    let mut resets = DelayQueue::<u64>::new();
 
     /// Updates global rate limit state.
     macro_rules! on_global {
-        () => {
-            debug_assert_ne!(global_remaining, 0);
+        () => {{
             if global_remaining == global_limit {
                 global_timer
                     .as_mut()
@@ -129,97 +132,97 @@ pub async fn runner(
                 );
             }
             global_remaining -= 1;
-        };
+        }};
     }
 
     /// Tries to pop a pending request off a queue.
     macro_rules! try_pop {
-        ($queue:ident) => {
-            let (mut tx, rx) = oneshot::channel();
-            while let Some(req) = $queue
-                .pending
-                .front()
-                .is_some_and(|req| global_remaining != 0 || req.endpoint.is_interaction())
-                .then(|| $queue.pending.pop_front())
-                .flatten()
+        ($queue:ident) => {{
+            while let Some(req) = $queue.pending.front()
+                && (global_remaining != 0 || req.endpoint.is_interaction())
+                && let Some(req) = $queue.pending.pop_front()
             {
-                match req.notifier.send(tx) {
-                    Ok(()) => {
-                        tracing::debug!(path = req.endpoint.path, "permitted");
-                        if !req.endpoint.is_interaction() {
-                            on_global!();
-                        }
-                        in_flight.spawn(async move { (req.endpoint, rx.await) });
-                        $queue.in_flight = true;
-                        break;
-                    }
-                    Err(recover) => tx = recover,
+                if req.notifier.is_closed() {
+                    continue;
                 }
+
+                let (tx, rx) = oneshot::channel();
+                if req.notifier.send(tx).is_err() {
+                    continue;
+                }
+
+                let span = tracing::info_span!("token", endpoint = %req.endpoint);
+                span.in_scope(|| tracing::debug!("permitted"));
+                if !req.endpoint.is_interaction() {
+                    on_global!();
+                }
+                in_flight.spawn(async move { (req.endpoint, rx.await.map_err(|_| ()), span) });
+                $queue.in_flight = true;
+                break;
             }
-        };
+        }};
     }
 
     loop {
         tokio::select! {
             biased;
             () = &mut gc_interval => {
-                let _span = tracing::debug_span!("gc").entered();
                 buckets.retain(|endpoint, bucket| {
                     let hash = hasher.bucket(bucket, endpoint);
-                    match queues.find_entry(hash, |&(key, _)| key == hash) {
-                        Ok(entry) => {
-                            let (_, queue) = entry.get();
-
-                            let retain = queue.in_flight || !queue.pending.is_empty() || queue.reset.is_some();
-                            if !retain {
-                                entry.remove();
-                                tracing::debug!(hash, "removed");
-                            }
-
-                            retain
-                        }
+                    let Ok(entry) = queues.find_entry(hash, |&(key, _)| key == hash) else {
                         // Already removed.
-                        Err(_) => false,
+                        return false;
+                    };
+                    let (_, queue) = entry.get();
+
+                    let retain = queue.in_flight || !queue.pending.is_empty() || queue.reset.is_some();
+                    if !retain {
+                        entry.remove();
                     }
+
+                    retain
                 });
                 gc_interval.as_mut().reset(Instant::now() + GC_INTERVAL);
             }
             () = &mut global_timer, if global_remaining != global_limit => {
+                let globally_exhausted = global_remaining == 0;
                 global_remaining = global_limit;
-                // Try resume all stopped queues.
-                for (_, queue) in queues.iter_mut().filter(|(_, queue)| {
-                    !queue.in_flight && (!queue.is_exhasted() || queue.reset.is_none())
-                }) {
-                    try_pop!(queue);
+                if globally_exhausted {
+                    // Resume stopped queues.
+                    queues
+                        .iter_mut()
+                        .map(|(_, queue)| queue)
+                        .filter(|queue| !queue.in_flight && !queue.is_exhausted())
+                        .for_each(|queue| try_pop!(queue));
                 }
             }
-            Some(hash) = poll_fn(|cx| reset.poll_expired(cx)) => {
+            Some(hash) = poll_fn(|cx| resets.poll_expired(cx)) => {
                 let hash = hash.into_inner();
                 let (_, queue) = queues.find_mut(hash, |&(key, _)| key == hash).unwrap();
 
                 debug_assert!(!queue.in_flight);
-                queue.reset = None;
                 // Note that non-exhausted queues are not stopped.
-                if queue.is_exhasted() {
+                if queue.is_exhausted() {
                     try_pop!(queue);
                 }
+                queue.reset = None;
             }
-            Some(Ok((endpoint, headers))) = in_flight.join_next() => {
-                let _span = tracing::info_span!("resp", ?endpoint).entered();
+            Some(Ok((endpoint, headers, span))) = in_flight.join_next() => {
                 if let Ok(Some(headers)) = headers {
-                    tracing::trace!(?headers);
+                    span.in_scope(|| tracing::trace!(?headers));
 
                     let hash = hasher.bucket(&headers.bucket, &endpoint);
-                    let queue = match buckets.entry(endpoint.clone()) {
+                    let queue = match buckets.entry(endpoint) {
                         MapEntry::Occupied(entry) if *entry.get() == headers.bucket => {
                             &mut queues.find_mut(hash, |&(key, _)| key == hash).unwrap().1
                         }
-                        old_entry => {
-                            let old_hash = match &old_entry {
+                        entry => {
+                            let old_hash = match &entry {
                                 MapEntry::Occupied(entry) => hasher.bucket(entry.get(), entry.key()),
                                 MapEntry::Vacant(entry) => hasher.endpoint(entry.key()),
                             };
-                            tracing::debug!(new = hash, previous = old_hash, "updated bucket");
+                            let entry = entry.insert_entry(headers.bucket);
+                            let endpoint = entry.key();
 
                             // Retrieve this endpoint's requests.
                             let (_, old_queue) = queues.find_mut(old_hash, |&(key, _)| key == old_hash).unwrap();
@@ -227,29 +230,22 @@ pub async fn runner(
                             let (pending, old_pending) = mem::take(&mut old_queue.pending)
                                 .into_iter()
                                 .filter(|req| !req.notifier.is_closed())
-                                .partition::<VecDeque<_>, _>(|req| req.endpoint == *old_entry.key());
+                                .partition::<VecDeque<_>, _>(|req| req.endpoint == *endpoint);
                             old_queue.pending = old_pending;
                             try_pop!(old_queue);
 
-                            match old_entry {
-                                MapEntry::Occupied(mut entry) => {
-                                    entry.insert(headers.bucket);
-                                }
-                                MapEntry::Vacant(entry) => {
-                                    entry.insert(headers.bucket);
-                                }
-                            }
                             // And move them into the new queue.
                             match queues.entry(hash, |&(key, _)| key == hash, |&(key, _)| key) {
                                 TableEntry::Occupied(entry) => {
-                                    let (_, incoming_queue) = entry.into_mut();
-                                    incoming_queue.pending.extend(pending);
+                                    let (_, queue) = entry.into_mut();
+                                    queue.pending.extend(pending);
 
-                                    if incoming_queue.in_flight {
+                                    // Yield to existing driver.
+                                    if queue.in_flight {
                                         continue;
                                     }
 
-                                    incoming_queue
+                                    queue
                                 }
                                 TableEntry::Vacant(entry) => &mut entry.insert((hash, Queue::from(pending))).into_mut().1,
                             }
@@ -259,37 +255,39 @@ pub async fn runner(
                     queue.in_flight = false;
                     queue.limit = headers.limit;
                     queue.remaining = headers.remaining;
-                    if let Some(key) = &queue.reset {
-                        reset.reset_at(key, headers.reset_at.into());
-                    } else {
-                        queue.reset = Some(reset.insert_at(hash, headers.reset_at.into()));
-                    }
-                    if queue.is_exhasted() {
-                        tracing::info!(
-                            reset_after = ?headers.reset_at.saturating_duration_since(Instant::now().into()),
-                            "exhausted"
-                        );
-                        continue;
+                    match &queue.reset {
+                        Some(key) => resets.reset_at(key, headers.reset_at.into()),
+                        None => queue.reset = Some(resets.insert_at(hash, headers.reset_at.into())),
                     }
 
-                    try_pop!(queue);
+                    if queue.is_exhausted() {
+                        span.in_scope(|| tracing::info!(
+                            reset_after = ?headers.reset_at.saturating_duration_since(Instant::now().into()),
+                            "exhausted"
+                        ));
+                    } else {
+                        try_pop!(queue);
+                    }
                 } else {
                     if headers.is_err() {
-                        tracing::debug!("cancelled");
+                        span.in_scope(|| tracing::debug!("cancelled"));
                         if global_remaining != global_limit {
                             global_remaining += 1;
                         }
                     } else {
-                        tracing::debug!(headers = "None");
+                        span.in_scope(|| tracing::debug!(headers = "None"));
                     }
 
-                    let hash = buckets.get(&endpoint).map_or_else(|| hasher.endpoint(&endpoint), |bucket| hasher.bucket(bucket, &endpoint));
+                    let hash = match buckets.get(&endpoint) {
+                        Some(bucket) => hasher.bucket(bucket, &endpoint),
+                        None => hasher.endpoint(&endpoint),
+                    };
                     let (_, queue) = queues.find_mut(hash, |&(key, _)| key == hash).unwrap();
                     queue.in_flight = false;
                     try_pop!(queue);
                 }
             }
-            Some((msg, pred)) = rx.recv() => {
+            Some((msg, predicate)) = rx.recv() => {
                 if msg.notifier.is_closed() {
                     continue;
                 }
@@ -297,41 +295,39 @@ pub async fn runner(
                 if !msg.endpoint.is_valid() {
                     tracing::warn!(path = msg.endpoint.path, "improperly formatted path");
                 }
-                let (_, queue) = if let Some(bucket) = buckets.get(&msg.endpoint) {
-                    let hash = hasher.bucket(bucket, &msg.endpoint);
-                    queues.find_mut(hash, |&(key, _)| key == hash).unwrap()
-                } else {
-                    let hash = hasher.endpoint(&msg.endpoint);
-                    match queues.entry(hash, |&(key, _)| key == hash, |&(key, _)| key) {
-                        TableEntry::Occupied(entry) => entry.into_mut(),
-                        TableEntry::Vacant(entry) => {
-                            tracing::debug!(path = msg.endpoint.path, "new queue");
-                            entry.insert((hash, Queue::default())).into_mut()
-                        }
-                    }
+
+                let hash = match buckets.get(&msg.endpoint) {
+                    Some(bucket) => hasher.bucket(bucket, &msg.endpoint),
+                    None => hasher.endpoint(&msg.endpoint),
                 };
+                let (_, queue) = queues
+                    .entry(hash, |&(key, _)| key == hash, |&(key, _)| key)
+                    .or_insert_with(|| (hash, Queue::default()))
+                    .into_mut();
 
-                let is_cancelled = pred.is_some_and(|p| !p(queue.reset.map(|key| crate::Bucket {
-                    limit: queue.limit,
-                    remaining: queue.remaining,
-                    reset_at: reset.deadline(&key).into(),
-                })));
+                if let Some(predicate) = predicate {
+                    let bucket = queue.to_bucket(|key| resets.deadline(&key));
+                    if !predicate(bucket) {
+                        continue;
+                    }
+                }
 
-                let queue_active = queue.in_flight || (queue.is_exhasted() && queue.reset.is_some());
-                if is_cancelled {
-                    drop(msg);
-                } else if queue_active || (global_remaining == 0 && !msg.endpoint.is_interaction()) {
+                let globally_exhausted = global_remaining == 0 && !msg.endpoint.is_interaction();
+                if globally_exhausted || queue.in_flight || queue.is_exhausted() {
                     queue.pending.push_back(msg);
                 } else {
                     let (tx, rx) = oneshot::channel();
-                    if msg.notifier.send(tx).is_ok() {
-                        tracing::debug!(path = msg.endpoint.path, "permitted");
-                        if !msg.endpoint.is_interaction() {
-                            on_global!();
-                        }
-                        in_flight.spawn(async move { (msg.endpoint, rx.await) });
-                        queue.in_flight = true;
+                    if msg.notifier.send(tx).is_err() {
+                        continue;
                     }
+
+                    let span = tracing::info_span!("token", endpoint = %msg.endpoint);
+                    span.in_scope(|| tracing::debug!("permitted"));
+                    if !msg.endpoint.is_interaction() {
+                        on_global!();
+                    }
+                    in_flight.spawn(async move { (msg.endpoint, rx.await.map_err(|_| ()), span) });
+                    queue.in_flight = true;
                 }
             }
             else => break,

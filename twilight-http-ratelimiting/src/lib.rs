@@ -11,6 +11,7 @@
 mod actor;
 
 use std::{
+    fmt,
     future::Future,
     hash::{Hash as _, Hasher},
     pin::Pin,
@@ -144,6 +145,14 @@ impl Endpoint {
     }
 }
 
+impl fmt::Display for Endpoint {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.method.name())?;
+        f.write_str(" /")?;
+        f.write_str(&self.path)
+    }
+}
+
 /// Parsed user response rate limit headers.
 ///
 /// A `limit` of zero marks the [`Bucket`] as exhausted until `reset_at` elapses.
@@ -254,6 +263,18 @@ pub struct Bucket {
     pub remaining: u16,
     /// Time at which the bucket resets.
     pub reset_at: Instant,
+}
+
+impl Bucket {
+    /// Whether the bucket is exhausted.
+    pub const fn is_exhausted(&self) -> bool {
+        self.remaining == 0
+    }
+
+    /// Duration until the bucket resets.
+    pub fn reset_after(&self) -> Duration {
+        self.reset_at.saturating_duration_since(Instant::now())
+    }
 }
 
 /// Actor run closure pre-enqueue for early [`MaybePermitFuture`] cancellation.
