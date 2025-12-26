@@ -8,7 +8,7 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    channel::{Channel, thread::AutoArchiveDuration},
+    channel::{Channel, ChannelFlags, thread::AutoArchiveDuration},
     id::{
         Id,
         marker::{ChannelMarker, TagMarker},
@@ -30,6 +30,8 @@ struct UpdateThreadFields<'a> {
     archived: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     auto_archive_duration: Option<AutoArchiveDuration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<Nullable<ChannelFlags>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     invitable: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -60,6 +62,7 @@ impl<'a> UpdateThread<'a> {
                 applied_tags: None,
                 archived: None,
                 auto_archive_duration: None,
+                flags: None,
                 invitable: None,
                 locked: None,
                 name: None,
@@ -104,6 +107,15 @@ impl<'a> UpdateThread<'a> {
     ) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.auto_archive_duration = Some(auto_archive_duration);
+        }
+
+        self
+    }
+
+    /// Sets the thread's flags.
+    pub const fn flags(mut self, flags: Option<ChannelFlags>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.flags = Some(Nullable(flags));
         }
 
         self
@@ -243,6 +255,7 @@ mod tests {
             applied_tags: None,
             archived: None,
             auto_archive_duration: None,
+            flags: None,
             invitable: None,
             locked: None,
             name: None,
