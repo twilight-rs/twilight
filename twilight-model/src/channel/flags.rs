@@ -11,6 +11,8 @@ bitflags! {
         const PINNED = 1 << 1;
         /// New threads in a forum channel require a tag.
         const REQUIRE_TAG = 1 << 4;
+        /// Hide the download options for this post in a media channel.
+        const HIDE_MEDIA_DOWNLOAD_OPTIONS = 1 << 15;
     }
 }
 
