@@ -119,12 +119,51 @@ bot's token. You must also depend on `rustls`, `tokio`, `twilight-cache-inmemory
 `twilight-gateway`, `twilight-http`, and `twilight-model` in your `Cargo.toml`.
 
 ```rust,no_run
-use std::{env, error::Error, sync::Arc};
+mod context {
+    use std::{ops::Deref, sync::OnceLock};
+    use twilight_cache_inmemory::DefaultInMemoryCache;
+    use twilight_http::Client;
+
+    pub static CONTEXT: Handle = Handle(OnceLock::new());
+
+    #[derive(Debug)]
+    pub struct Context {
+        pub cache: DefaultInMemoryCache,
+        pub http: Client,
+    }
+
+    pub fn initialize(cache: DefaultInMemoryCache, http: Client) {
+        let context = Context { cache, http };
+        assert!(CONTEXT.0.set(context).is_ok());
+    }
+
+    pub struct Handle(OnceLock<Context>);
+    impl Deref for Handle {
+        type Target = Context;
+
+        fn deref(&self) -> &Self::Target {
+            self.0.get().unwrap()
+        }
+    }
+}
+
+use context::CONTEXT;
+use std::env;
 use twilight_cache_inmemory::{DefaultInMemoryCache, ResourceType};
 use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
-use twilight_http::Client as HttpClient;
+use twilight_http::Client;
+use twilight_model::gateway::payload::incoming::MessageCreate;
 
-#[tokio::main]
+// Use event type flags to only deserialize message create events.
+const EVENT_TYPES: EventTypeFlags = EventTypeFlags::MESSAGE_CREATE;
+
+// Use intents to only receive guild message events.
+const INTENTS: Intents = Intents::GUILD_MESSAGES.union(Intents::MESSAGE_CONTENT);
+
+// Cache only new messages.
+const RESOURCE_TYPES: ResourceType = ResourceType::MESSAGE;
+
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
@@ -134,50 +173,58 @@ async fn main() -> anyhow::Result<()> {
 
     let token = env::var("DISCORD_TOKEN")?;
 
-    // Use intents to only receive guild message events.
-    let mut shard = Shard::new(
-        ShardId::ONE,
-        token.clone(),
-        Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT,
-    );
-
-    // HTTP is separate from the gateway, so create a new client.
-    let http = Arc::new(HttpClient::new(token));
-
-    // Since we only care about new messages, make the cache only
-    // cache new messages.
     let cache = DefaultInMemoryCache::builder()
-        .resource_types(ResourceType::MESSAGE)
+        .resource_types(RESOURCE_TYPES)
         .build();
+    let http = Client::new(token.clone());
+    // Initialize the bot context.
+    context::initialize(cache, http);
 
-    // Process each event as they come in.
-    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
-        let Ok(event) = item else {
-            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
-
-            continue;
-        };
-
-        // Update the cache with the event.
-        cache.update(&event);
-
-        tokio::spawn(handle_event(event, Arc::clone(&http)));
-    }
+    let shard = Shard::new(ShardId::ONE, token, INTENTS);
+    dispatcher(shard).await;
 
     Ok(())
 }
 
-async fn handle_event(
-    event: Event,
-    http: Arc<HttpClient>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
-    match event {
-        Event::MessageCreate(msg) if msg.content == "!ping" => {
-            http.create_message(msg.channel_id)
+#[tracing::instrument(fields(shard = %shard.id()), skip_all)]
+async fn dispatcher(mut shard: Shard) {
+    loop {
+        let event = match shard.next_event(EVENT_TYPES).await {
+            Some(Ok(event)) => event,
+            Some(Err(source)) => {
+                tracing::warn!(?source, "error receiving event");
+                continue;
+            }
+            None => break,
+        };
+
+        // Update the cache with the event.
+        CONTEXT.cache.update(&event);
+
+        // Route the event to a handler.
+        let handler = match event {
+            Event::MessageCreate(event) => message_handler(event),
+            _ => continue,
+        };
+
+        tokio::spawn(async move {
+            if let Err(source) = handler.await {
+                tracing::warn!(?source, "error handling event");
+            }
+        });
+    }
+}
+
+#[tracing::instrument(fields(id = %event.id), skip_all)]
+async fn message_handler(event: Box<MessageCreate>) -> anyhow::Result<()> {
+    match event.content.as_ref() {
+        "!ping" => {
+            CONTEXT
+                .http
+                .create_message(event.channel_id)
                 .content("Pong!")
                 .await?;
         }
-        // Other events here...
         _ => {}
     }
 
