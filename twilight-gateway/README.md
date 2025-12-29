@@ -66,7 +66,8 @@ mod context {
 
 use context::CONTEXT;
 use std::{env, pin::pin};
-use tokio::{signal, task::JoinHandle};
+use tokio::signal;
+use tokio_util::task::TaskTracker;
 use twilight_gateway::{
     CloseFrame, Config, Event, EventTypeFlags, Intents, MessageSender, Shard, StreamExt as _,
 };
@@ -92,14 +93,12 @@ async fn main() -> anyhow::Result<()> {
         twilight_gateway::create_recommended(&http, config, |_, builder| builder.build()).await?;
     context::initialize(http);
 
-    let tasks = shards
-        .map(|shard| tokio::spawn(dispatcher(shard)))
-        .collect::<Vec<_>>();
-
-    // Await shutdown.
-    for task in tasks {
-        _ = task.await;
+    let tracker = TaskTracker::new();
+    for shard in shards {
+        tracker.spawn(dispatcher(shard));
     }
+    tracker.close();
+    tracker.wait().await;
 
     Ok(())
 }
@@ -108,7 +107,7 @@ async fn main() -> anyhow::Result<()> {
 async fn dispatcher(mut shard: Shard) {
     let mut ctrl_c = pin!(signal::ctrl_c());
     let mut shutdown = false;
-    let mut tasks = Vec::<JoinHandle<()>>::new();
+    let tracker = TaskTracker::new();
     loop {
         tokio::select! {
             // Do not poll ctrl_c after it's completed.
@@ -133,21 +132,17 @@ async fn dispatcher(mut shard: Shard) {
                     _ => continue,
                 };
 
-                // Do not grow the list infinitely.
-                tasks.retain(|task| !task.is_finished());
-                tasks.push(tokio::spawn(async move {
+                tracker.spawn(async move {
                     if let Err(source) = handler.await {
                         tracing::warn!(?source, "error handling event");
                     }
-                }));
+                });
             }
         }
     }
 
-    // Await shutdown.
-    for task in tasks {
-        _ = task.await;
-    }
+    tracker.close();
+    tracker.wait().await;
 }
 
 #[tracing::instrument(fields(id = %event.id), skip_all)]
