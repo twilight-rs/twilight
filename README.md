@@ -217,7 +217,7 @@ async fn dispatcher(mut shard: Shard) {
 
 #[tracing::instrument(fields(id = %event.id), skip_all)]
 async fn message(event: Box<MessageCreate>) -> anyhow::Result<()> {
-    match event.content.as_ref() {
+    match &*event.content {
         "!ping" => {
             CONTEXT
                 .http
