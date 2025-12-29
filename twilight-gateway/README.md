@@ -38,16 +38,48 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
 Create the recommended number of shards and loop over their guild messages:
 
 ```rust,no_run
-use std::{env, sync::Arc};
-use tokio::{signal, sync::watch};
+mod context {
+    use std::{ops::Deref, sync::OnceLock};
+    use twilight_http::Client;
+
+    pub static CONTEXT: Handle = Handle(OnceLock::new());
+
+    #[derive(Debug)]
+    pub struct Context {
+        pub http: Client,
+    }
+
+    pub fn initialize(http: Client) {
+        let context = Context { http };
+        assert!(CONTEXT.0.set(context).is_ok());
+    }
+
+    pub struct Handle(OnceLock<Context>);
+    impl Deref for Handle {
+        type Target = Context;
+
+        fn deref(&self) -> &Self::Target {
+            self.0.get().unwrap()
+        }
+    }
+}
+
+use context::CONTEXT;
+use std::{env, pin::pin};
+use tokio::signal;
+use tokio_util::task::TaskTracker;
 use twilight_gateway::{
     CloseFrame, Config, Event, EventTypeFlags, Intents, MessageSender, Shard, StreamExt as _,
 };
 use twilight_http::Client;
 use twilight_model::gateway::payload::{incoming::MessageCreate, outgoing::UpdateVoiceState};
 
+const EVENT_TYPES: EventTypeFlags = EventTypeFlags::MESSAGE_CREATE;
+const INTENTS: Intents = Intents::GUILD_MESSAGES.union(Intents::MESSAGE_CONTENT);
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
     // Select rustls backend
@@ -55,31 +87,36 @@ async fn main() -> anyhow::Result<()> {
 
     let token = env::var("DISCORD_TOKEN")?;
 
-    let (shutdown_tx, shutdown_rx) = watch::channel(false);
-    let client = Arc::new(Client::new(token.clone()));
-    let config = Config::new(token, Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT);
+    let config = Config::new(token.clone(), INTENTS);
+    let http = Client::new(token);
+    let shards =
+        twilight_gateway::create_recommended(&http, config, |_, builder| builder.build()).await?;
+    context::initialize(http);
 
-    let tasks = twilight_gateway::create_recommended(&client, config, |_, builder| builder.build())
-        .await?
-        .map(|shard| tokio::spawn(dispatcher(Arc::clone(&client), shard, shutdown_rx.clone())))
-        .collect::<Vec<_>>();
-
-    signal::ctrl_c().await?;
-    _ = shutdown_tx.send(true);
-
-    for task in tasks {
-        _ = task.await;
+    let tracker = TaskTracker::new();
+    for shard in shards {
+        tracker.spawn(dispatcher(shard));
     }
+    tracker.close();
+    tracker.wait().await;
 
     Ok(())
 }
 
 #[tracing::instrument(fields(shard = %shard.id()), skip_all)]
-async fn dispatcher(client: Arc<Client>, mut shard: Shard, mut shutdown: watch::Receiver<bool>) {
+async fn dispatcher(mut shard: Shard) {
+    let mut ctrl_c = pin!(signal::ctrl_c());
+    let mut shutdown = false;
+    let tracker = TaskTracker::new();
     loop {
         tokio::select! {
-            _ = shutdown.changed() => shard.close(CloseFrame::NORMAL),
-            Some(item) = shard.next_event(EventTypeFlags::all()) => {
+            // Do not poll ctrl_c after it's completed.
+            _ = &mut ctrl_c, if !shutdown => {
+                // Cleanly shut down once we receive the echo close frame.
+                shard.close(CloseFrame::NORMAL);
+                shutdown = true;
+            },
+            Some(item) = shard.next_event(EVENT_TYPES) => {
                 let event = match item {
                     Ok(event) => event,
                     Err(source) => {
@@ -88,37 +125,48 @@ async fn dispatcher(client: Arc<Client>, mut shard: Shard, mut shutdown: watch::
                     }
                 };
 
-                match event {
-                    Event::GatewayClose(_) if *shutdown.borrow() => break,
-                    Event::MessageCreate(e) => {
-                        tokio::spawn(msg_handler(Arc::clone(&client), e, shard.sender()));
+                let handler = match event {
+                    // Clean shutdown exit condition.
+                    Event::GatewayClose(_) if shutdown => break,
+                    Event::MessageCreate(e) => message(e, shard.sender()),
+                    _ => continue,
+                };
+
+                tracker.spawn(async move {
+                    if let Err(source) = handler.await {
+                        tracing::warn!(?source, "error handling event");
                     }
-                    _ => {}
-                }
+                });
             }
         }
     }
+
+    tracker.close();
+    tracker.wait().await;
 }
 
 #[tracing::instrument(fields(id = %event.id), skip_all)]
-async fn msg_handler(client: Arc<Client>, event: Box<MessageCreate>, sender: MessageSender) {
+async fn message(event: Box<MessageCreate>, sender: MessageSender) -> anyhow::Result<()> {
     match event.content.as_ref() {
         "!join" if event.guild_id.is_some() => {
-            let _result = sender.command(&UpdateVoiceState::new(
+            sender.command(&UpdateVoiceState::new(
                 event.guild_id.unwrap(),
                 Some(event.channel_id),
                 false,
                 false,
-            ));
+            ))?;
         }
         "!ping" => {
-            let _result = client
+            CONTEXT
+                .http
                 .create_message(event.channel_id)
-                .content("pong!")
-                .await;
+                .content("Pong!")
+                .await?;
         }
         _ => {}
     }
+
+    Ok(())
 }
 ```
 
