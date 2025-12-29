@@ -161,56 +161,20 @@ impl Standby {
                 if e.kind == InteractionType::MessageComponent
                     && let Some(message) = &e.message
                 {
-                    let remove =
-                        self.components
-                            .get_mut(&message.id)
-                            .is_some_and(|mut bystanders| {
-                                completions.add_with(&Self::bystander_iter(&mut bystanders, e));
-                                bystanders.is_empty()
-                            });
-                    if remove {
-                        self.components.remove(&message.id);
-                    }
+                    Self::process_event(&self.components, message.id, &mut completions, e);
                 }
             }
             Event::MessageCreate(e) => {
-                let remove = self
-                    .messages
-                    .get_mut(&e.channel_id)
-                    .is_some_and(|mut bystanders| {
-                        completions.add_with(&Self::bystander_iter(&mut bystanders, e));
-                        bystanders.is_empty()
-                    });
-                if remove {
-                    self.messages.remove(&e.channel_id);
-                }
+                Self::process_event(&self.messages, e.channel_id, &mut completions, e);
             }
             Event::ReactionAdd(e) => {
-                let remove = self
-                    .reactions
-                    .get_mut(&e.message_id)
-                    .is_some_and(|mut bystanders| {
-                        completions.add_with(&Self::bystander_iter(&mut bystanders, e));
-                        bystanders.is_empty()
-                    });
-                if remove {
-                    self.reactions.remove(&e.message_id);
-                }
+                Self::process_event(&self.reactions, e.message_id, &mut completions, e);
             }
             _ => {}
         }
 
         if let Some(guild_id) = event.guild_id() {
-            let remove = self
-                .guilds
-                .get_mut(&guild_id)
-                .is_some_and(|mut bystanders| {
-                    completions.add_with(&Self::bystander_iter(&mut bystanders, event));
-                    bystanders.is_empty()
-                });
-            if remove {
-                self.guilds.remove(&guild_id);
-            }
+            Self::process_event(&self.guilds, guild_id, &mut completions, event);
         }
 
         self.events.retain(|_, bystander| {
@@ -850,6 +814,22 @@ impl Standby {
     /// Next event ID in [`Standby::event_counter`].
     fn next_event_id(&self) -> u64 {
         self.event_counter.fetch_add(1, Ordering::Relaxed)
+    }
+
+    /// Process a general event.
+    fn process_event<IdKind, E: Clone>(
+        map: &DashMap<Id<IdKind>, Vec<Bystander<E>>>,
+        id: Id<IdKind>,
+        completions: &mut ProcessResults,
+        event: &E,
+    ) {
+        let remove = map.get_mut(&id).is_some_and(|mut bystanders| {
+            completions.add_with(&Self::bystander_iter(&mut bystanders, event));
+            bystanders.is_empty()
+        });
+        if remove {
+            map.remove(&id);
+        }
     }
 
     /// Iterate over bystanders and remove the ones that match the predicate.
