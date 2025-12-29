@@ -128,7 +128,7 @@ async fn dispatcher(mut shard: Shard) {
                 let handler = match event {
                     // Clean shutdown exit condition.
                     Event::GatewayClose(_) if shutdown => break,
-                    Event::MessageCreate(e) => message_handler(e, shard.sender()),
+                    Event::MessageCreate(e) => message(e, shard.sender()),
                     _ => continue,
                 };
 
@@ -146,7 +146,7 @@ async fn dispatcher(mut shard: Shard) {
 }
 
 #[tracing::instrument(fields(id = %event.id), skip_all)]
-async fn message_handler(event: Box<MessageCreate>, sender: MessageSender) -> anyhow::Result<()> {
+async fn message(event: Box<MessageCreate>, sender: MessageSender) -> anyhow::Result<()> {
     match event.content.as_ref() {
         "!join" if event.guild_id.is_some() => {
             sender.command(&UpdateVoiceState::new(

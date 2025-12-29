@@ -203,7 +203,7 @@ async fn dispatcher(mut shard: Shard) {
 
         // Route the event to a handler.
         let handler = match event {
-            Event::MessageCreate(event) => message_handler(event),
+            Event::MessageCreate(event) => message(event),
             _ => continue,
         };
 
@@ -216,7 +216,7 @@ async fn dispatcher(mut shard: Shard) {
 }
 
 #[tracing::instrument(fields(id = %event.id), skip_all)]
-async fn message_handler(event: Box<MessageCreate>) -> anyhow::Result<()> {
+async fn message(event: Box<MessageCreate>) -> anyhow::Result<()> {
     match event.content.as_ref() {
         "!ping" => {
             CONTEXT
