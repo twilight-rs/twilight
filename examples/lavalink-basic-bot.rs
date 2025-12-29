@@ -11,8 +11,11 @@ use twilight_gateway::{
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
     Lavalink,
-    http::LoadedTracks,
-    model::{Destroy, Pause, Play, Seek, Stop, Volume},
+    http::{
+        LoadResultData::{Playlist, Search, Track},
+        LoadedTracks,
+    },
+    model::{Destroy, Equalizer, EqualizerBand, Pause, Play, Seek, Stop, Volume},
 };
 use twilight_model::{
     channel::Message,
@@ -50,9 +53,11 @@ async fn main() -> anyhow::Result<()> {
         .unwrap();
 
     let (mut shard, state) = {
-        let token = env::var("DISCORD_TOKEN")?;
-        let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
-        let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
+        let token = env::var("DISCORD_TOKEN").expect("Missing DISCORD_TOKEN");
+        let lavalink_host =
+            SocketAddr::from_str(&env::var("LAVALINK_HOST").expect("Missing LAVALINK_HOST"))?;
+        let lavalink_auth =
+            env::var("LAVALINK_AUTHORIZATION").expect("Missing LAVALINK_AUTHORIZATION");
         let shard_count = 1u32;
 
         let http = HttpClient::new(token.clone());
@@ -86,6 +91,7 @@ async fn main() -> anyhow::Result<()> {
         };
 
         state.standby.process(&event);
+
         state.lavalink.process(&event).await?;
 
         if let Event::MessageCreate(msg) = event {
@@ -101,6 +107,7 @@ async fn main() -> anyhow::Result<()> {
                 Some("!seek") => spawn(seek(msg.0, Arc::clone(&state))),
                 Some("!stop") => spawn(stop(msg.0, Arc::clone(&state))),
                 Some("!volume") => spawn(volume(msg.0, Arc::clone(&state))),
+                Some("!equalize") => spawn(equalize(msg.0, Arc::clone(&state))),
                 _ => continue,
             }
         }
@@ -199,13 +206,21 @@ async fn play(msg: Message, state: State) -> anyhow::Result<()> {
 
     let loaded = serde_json::from_slice::<LoadedTracks>(&response_bytes)?;
 
-    if let Some(track) = loaded.tracks.first() {
-        player.send(Play::from((guild_id, &track.track)))?;
+    let track = match loaded.data {
+        Track(track) => Some(track),
+        Playlist(top_track) => top_track.tracks.first().cloned(),
+        Search(result) => result.first().cloned(),
+        _ => None,
+    };
+
+    if let Some(track) = track {
+        player.send(Play::from((guild_id, &track.encoded)))?;
 
         let content = format!(
             "Playing **{:?}** by **{:?}**",
             track.info.title, track.info.author
         );
+
         state
             .http
             .create_message(msg.channel_id)
@@ -274,6 +289,57 @@ async fn seek(msg: Message, state: State) -> anyhow::Result<()> {
         .http
         .create_message(msg.channel_id)
         .content(&format!("Seeked to {position}s"))
+        .await?;
+
+    Ok(())
+}
+
+async fn equalize(msg: Message, state: State) -> anyhow::Result<()> {
+    tracing::debug!(
+        "equalize command in channel {} by {}",
+        msg.channel_id,
+        msg.author.name
+    );
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content("What band do you want to equalize (0-14)?")
+        .await?;
+
+    let author_id = msg.author.id;
+    let band_msg = state
+        .standby
+        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
+            new_msg.author.id == author_id
+        })
+        .await?;
+    let guild_id = msg.guild_id.unwrap();
+    let band = band_msg.content.parse::<i64>()?;
+
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content("What gain do you want to equalize (-0.25 to 1.0)?")
+        .await?;
+
+    let gain_msg = state
+        .standby
+        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
+            new_msg.author.id == author_id
+        })
+        .await?;
+    let gain = gain_msg.content.parse::<f64>()?;
+
+    let player = state.lavalink.player(guild_id).await.unwrap();
+    player.send(Equalizer::from((
+        guild_id,
+        vec![EqualizerBand::new(band, gain)],
+    )))?;
+
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content(&format!("Changed gain level to {gain} on band {band}."))
         .await?;
 
     Ok(())

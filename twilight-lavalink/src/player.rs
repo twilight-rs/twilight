@@ -149,7 +149,7 @@ impl Player {
         tracing::debug!("sending event on guild player {}: {event:?}", self.guild_id);
 
         match &event {
-            OutgoingEvent::Pause(event) => self.paused.store(event.pause, Ordering::Release),
+            OutgoingEvent::Pause(event) => self.paused.store(event.paused, Ordering::Release),
             OutgoingEvent::Volume(event) => {
                 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
                 self.volume.store(event.volume, Ordering::Release);
