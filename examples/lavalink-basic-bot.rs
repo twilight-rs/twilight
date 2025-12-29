@@ -1,10 +1,52 @@
+mod context {
+    use http_body_util::Full;
+    use hyper::body::Bytes;
+    use hyper_util::client::legacy::{Client as HyperClient, connect::HttpConnector};
+    use std::{ops::Deref, sync::OnceLock};
+    use twilight_http::Client as HttpClient;
+    use twilight_lavalink::Lavalink;
+    use twilight_standby::Standby;
+
+    pub static CONTEXT: Handle = Handle(OnceLock::new());
+
+    #[derive(Debug)]
+    pub struct Context {
+        pub http: HttpClient,
+        pub hyper: HyperClient<HttpConnector, Full<Bytes>>,
+        pub lavalink: Lavalink,
+        pub standby: Standby,
+    }
+
+    pub fn initialize(
+        http: HttpClient,
+        hyper: HyperClient<HttpConnector, Full<Bytes>>,
+        lavalink: Lavalink,
+        standby: Standby,
+    ) {
+        let context = Context {
+            http,
+            hyper,
+            lavalink,
+            standby,
+        };
+        assert!(CONTEXT.0.set(context).is_ok());
+    }
+
+    pub struct Handle(OnceLock<Context>);
+    impl Deref for Handle {
+        type Target = Context;
+
+        fn deref(&self) -> &Self::Target {
+            self.0.get().unwrap()
+        }
+    }
+}
+
+use context::CONTEXT;
 use http_body_util::{BodyExt, Full};
-use hyper::{Request, body::Bytes};
-use hyper_util::{
-    client::legacy::{Client as HyperClient, connect::HttpConnector},
-    rt::TokioExecutor,
-};
-use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
+use hyper::Request;
+use hyper_util::{client::legacy::Client as HyperClient, rt::TokioExecutor};
+use std::{borrow::Cow, env};
 use twilight_gateway::{
     Event, EventTypeFlags, Intents, MessageSender, Shard, ShardId, StreamExt as _,
 };
@@ -18,31 +60,21 @@ use twilight_lavalink::{
     model::{Destroy, Equalizer, EqualizerBand, Pause, Play, Seek, Stop, Volume},
 };
 use twilight_model::{
-    channel::Message,
     gateway::payload::{incoming::MessageCreate, outgoing::UpdateVoiceState},
+    id::{
+        Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
+    },
 };
 use twilight_standby::Standby;
 
-type State = Arc<StateRef>;
+const EVENT_TYPES: EventTypeFlags = EventTypeFlags::all();
 
-#[derive(Debug)]
-struct StateRef {
-    http: HttpClient,
-    lavalink: Lavalink,
-    hyper: HyperClient<HttpConnector, Full<Bytes>>,
-    sender: MessageSender,
-    standby: Standby,
-}
+const INTENTS: Intents = Intents::GUILD_MESSAGES
+    .union(Intents::GUILD_VOICE_STATES)
+    .union(Intents::MESSAGE_CONTENT);
 
-fn spawn(fut: impl Future<Output = anyhow::Result<()>> + Send + 'static) {
-    tokio::spawn(async move {
-        if let Err(why) = fut.await {
-            tracing::debug!("handler error: {why:?}");
-        }
-    });
-}
-
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
@@ -52,158 +84,251 @@ async fn main() -> anyhow::Result<()> {
         .install_default()
         .unwrap();
 
-    let (mut shard, state) = {
-        let token = env::var("DISCORD_TOKEN").expect("Missing DISCORD_TOKEN");
-        let lavalink_host =
-            SocketAddr::from_str(&env::var("LAVALINK_HOST").expect("Missing LAVALINK_HOST"))?;
-        let lavalink_auth =
-            env::var("LAVALINK_AUTHORIZATION").expect("Missing LAVALINK_AUTHORIZATION");
-        let shard_count = 1u32;
+    let token = env::var("DISCORD_TOKEN")?;
+    let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
+    let lavalink_host = env::var("LAVALINK_HOST")?.parse()?;
 
-        let http = HttpClient::new(token.clone());
-        let user_id = http.current_user().await?.model().await?.id;
+    let http = HttpClient::new(token.clone());
+    let user = http.current_user().await?.model().await?;
+    let hyper = HyperClient::builder(TokioExecutor::new()).build_http();
+    let lavalink = Lavalink::new(user.id, 1);
+    lavalink.add(lavalink_host, lavalink_auth).await?;
+    let standby = Standby::new();
+    context::initialize(http, hyper, lavalink, standby);
 
-        let lavalink = Lavalink::new(user_id, shard_count);
-        lavalink.add(lavalink_host, lavalink_auth).await?;
+    let shard = Shard::new(ShardId::ONE, token, INTENTS);
+    dispatcher(shard).await;
 
-        let intents =
-            Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES | Intents::MESSAGE_CONTENT;
-        let shard = Shard::new(ShardId::ONE, token, intents);
-        let sender = shard.sender();
+    Ok(())
+}
 
-        (
-            shard,
-            Arc::new(StateRef {
-                http,
-                lavalink,
-                hyper: HyperClient::builder(TokioExecutor::new()).build_http(),
-                sender,
-                standby: Standby::new(),
-            }),
-        )
-    };
-
-    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
-        let Ok(event) = item else {
-            tracing::warn!(source = ?item.unwrap_err(), "error receiving event");
-
-            continue;
-        };
-
-        state.standby.process(&event);
-
-        state.lavalink.process(&event).await?;
-
-        if let Event::MessageCreate(msg) = event {
-            if msg.guild_id.is_none() || !msg.content.starts_with('!') {
+#[tracing::instrument(fields(shard = %shard.id()), skip_all)]
+async fn dispatcher(mut shard: Shard) {
+    loop {
+        let event = match shard.next_event(EVENT_TYPES).await {
+            Some(Ok(event)) => event,
+            Some(Err(source)) => {
+                tracing::warn!(?source, "error receiving event");
                 continue;
             }
+            None => break,
+        };
 
-            match msg.content.split_whitespace().next() {
-                Some("!join") => spawn(join(msg.0, Arc::clone(&state))),
-                Some("!leave") => spawn(leave(msg.0, Arc::clone(&state))),
-                Some("!pause") => spawn(pause(msg.0, Arc::clone(&state))),
-                Some("!play") => spawn(play(msg.0, Arc::clone(&state))),
-                Some("!seek") => spawn(seek(msg.0, Arc::clone(&state))),
-                Some("!stop") => spawn(stop(msg.0, Arc::clone(&state))),
-                Some("!volume") => spawn(volume(msg.0, Arc::clone(&state))),
-                Some("!equalize") => spawn(equalize(msg.0, Arc::clone(&state))),
-                _ => continue,
+        CONTEXT.lavalink.process(&event).await.unwrap();
+        CONTEXT.standby.process(&event);
+
+        let handler = match event {
+            Event::MessageCreate(event) => message(event, shard.sender()),
+            _ => continue,
+        };
+
+        tokio::spawn(async move {
+            if let Err(source) = handler.await {
+                tracing::warn!(?source, "error handling event");
             }
+        });
+    }
+}
+
+#[tracing::instrument(fields(id = %event.id), skip_all)]
+async fn message(event: Box<MessageCreate>, sender: MessageSender) -> anyhow::Result<()> {
+    match &*event.content {
+        "!equalize" if event.guild_id.is_some() => {
+            equalize(event.channel_id, event.guild_id.unwrap(), event.author.id).await?;
         }
+        "!join" if event.guild_id.is_some() => {
+            join(
+                event.channel_id,
+                event.guild_id.unwrap(),
+                sender,
+                event.author.id,
+            )
+            .await?;
+        }
+        "!leave" if event.guild_id.is_some() => {
+            leave(
+                event.channel_id,
+                event.guild_id.unwrap(),
+                sender,
+                event.author.id,
+            )
+            .await?;
+        }
+        "!pause" if event.guild_id.is_some() => {
+            pause(event.channel_id, event.guild_id.unwrap(), event.author.id).await?;
+        }
+        "!play" if event.guild_id.is_some() => {
+            play(event.channel_id, event.guild_id.unwrap(), event.author.id).await?;
+        }
+        "!seek" if event.guild_id.is_some() => {
+            seek(event.channel_id, event.guild_id.unwrap(), event.author.id).await?;
+        }
+        "!stop" if event.guild_id.is_some() => {
+            stop(event.channel_id, event.guild_id.unwrap(), event.author.id).await?;
+        }
+        "!volume" if event.guild_id.is_some() => {
+            volume(event.channel_id, event.guild_id.unwrap(), event.author.id).await?;
+        }
+        _ => {}
     }
 
     Ok(())
 }
 
-async fn join(msg: Message, state: State) -> anyhow::Result<()> {
-    state
+async fn equalize(
+    channel: Id<ChannelMarker>,
+    guild: Id<GuildMarker>,
+    user: Id<UserMarker>,
+) -> anyhow::Result<()> {
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content("What's the channel ID you want me to join?")
+        .create_message(channel)
+        .content("What band should I equalize? (0–14)")
         .await?;
 
-    let author_id = msg.author.id;
-    let msg = state
+    let band_message = CONTEXT
         .standby
-        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
-            new_msg.author.id == author_id
+        .wait_for_message(channel, move |message: &MessageCreate| {
+            message.author.id == user
         })
         .await?;
-    let channel_id = msg.content.parse()?;
-    let guild_id = msg.guild_id.expect("known to be present");
+    let band = band_message.content.parse::<i64>()?;
 
-    state.sender.command(&UpdateVoiceState::new(
-        guild_id,
-        Some(channel_id),
+    CONTEXT
+        .http
+        .create_message(channel)
+        .content("What gain should I set? (-0.25–1.0)")
+        .await?;
+
+    let gain_message = CONTEXT
+        .standby
+        .wait_for_message(channel, move |message: &MessageCreate| {
+            message.author.id == user
+        })
+        .await?;
+    let gain = gain_message.content.parse::<f64>()?;
+
+    let player = CONTEXT.lavalink.player(guild).await.unwrap();
+    player.send(Equalizer::from((
+        guild,
+        vec![EqualizerBand::new(band, gain)],
+    )))?;
+
+    CONTEXT
+        .http
+        .create_message(channel)
+        .content(&format!("Setting the gain to {gain} on band {band}"))
+        .await?;
+
+    Ok(())
+}
+
+async fn join(
+    channel: Id<ChannelMarker>,
+    guild: Id<GuildMarker>,
+    sender: MessageSender,
+    user: Id<UserMarker>,
+) -> anyhow::Result<()> {
+    CONTEXT
+        .http
+        .create_message(channel)
+        .content("What channel ID should I join?")
+        .await?;
+
+    let message = CONTEXT
+        .standby
+        .wait_for_message(channel, move |message: &MessageCreate| {
+            message.author.id == user
+        })
+        .await?;
+    let join_channel = message.content.parse()?;
+
+    tracing::debug!(channel = %join_channel, %guild, %user, "joining");
+    sender.command(&UpdateVoiceState::new(
+        guild,
+        Some(join_channel),
         false,
         false,
     ))?;
 
-    state
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content(&format!("Joined <#{channel_id}>!"))
+        .create_message(channel)
+        .content(&format!("Joining <#{join_channel}>"))
         .await?;
 
     Ok(())
 }
 
-async fn leave(msg: Message, state: State) -> anyhow::Result<()> {
-    tracing::debug!(
-        "leave command in channel {} by {}",
-        msg.channel_id,
-        msg.author.name
-    );
+async fn leave(
+    channel: Id<ChannelMarker>,
+    guild: Id<GuildMarker>,
+    sender: MessageSender,
+    user: Id<UserMarker>,
+) -> anyhow::Result<()> {
+    tracing::debug!(%guild, %user, "leaving");
+    let player = CONTEXT.lavalink.player(guild).await.unwrap();
+    player.send(Destroy::from(guild))?;
+    sender.command(&UpdateVoiceState::new(guild, None, false, false))?;
 
-    let guild_id = msg.guild_id.unwrap();
-    let player = state.lavalink.player(guild_id).await.unwrap();
-    player.send(Destroy::from(guild_id))?;
-    state
-        .sender
-        .command(&UpdateVoiceState::new(guild_id, None, false, false))?;
-
-    state
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content("Left the channel")
+        .create_message(channel)
+        .content("Leaving")
         .await?;
 
     Ok(())
 }
 
-async fn play(msg: Message, state: State) -> anyhow::Result<()> {
-    tracing::debug!(
-        "play command in channel {} by {}",
-        msg.channel_id,
-        msg.author.name
-    );
-    state
+async fn pause(
+    channel: Id<ChannelMarker>,
+    guild: Id<GuildMarker>,
+    user: Id<UserMarker>,
+) -> anyhow::Result<()> {
+    tracing::debug!(%guild, %user, "pausing");
+    let player = CONTEXT.lavalink.player(guild).await.unwrap();
+    let paused = player.paused();
+    player.send(Pause::from((guild, !paused)))?;
+
+    let content = if paused { "Unpaused" } else { "Paused" };
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content("What's the URL of the audio to play?")
+        .create_message(channel)
+        .content(content)
         .await?;
 
-    let author_id = msg.author.id;
-    let msg = state
+    Ok(())
+}
+
+async fn play(
+    channel: Id<ChannelMarker>,
+    guild: Id<GuildMarker>,
+    user: Id<UserMarker>,
+) -> anyhow::Result<()> {
+    CONTEXT
+        .http
+        .create_message(channel)
+        .content("What URL should I play?")
+        .await?;
+
+    let message = CONTEXT
         .standby
-        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
-            new_msg.author.id == author_id
+        .wait_for_message(channel, move |message: &MessageCreate| {
+            message.author.id == user
         })
         .await?;
-    let guild_id = msg.guild_id.unwrap();
 
-    let player = state.lavalink.player(guild_id).await.unwrap();
+    tracing::debug!(%guild, url = message.content, %user, "playing");
+    let player = CONTEXT.lavalink.player(guild).await.unwrap();
     let (parts, body) = twilight_lavalink::http::load_track(
         player.node().config().address,
-        &msg.content,
+        &message.content,
         &player.node().config().authorization,
     )?
     .into_parts();
     let req = Request::from_parts(parts, Full::from(body));
-    let res = state.hyper.request(req).await?;
+    let res = CONTEXT.hyper.request(req).await?;
     let response_bytes = res.collect().await?.to_bytes();
-
     let loaded = serde_json::from_slice::<LoadedTracks>(&response_bytes)?;
 
     let track = match loaded.data {
@@ -212,198 +337,110 @@ async fn play(msg: Message, state: State) -> anyhow::Result<()> {
         Search(result) => result.first().cloned(),
         _ => None,
     };
-
-    if let Some(track) = track {
-        player.send(Play::from((guild_id, &track.encoded)))?;
-
-        let content = format!(
-            "Playing **{:?}** by **{:?}**",
-            track.info.title, track.info.author
-        );
-
-        state
-            .http
-            .create_message(msg.channel_id)
-            .content(&content)
-            .await?;
-    } else {
-        state
-            .http
-            .create_message(msg.channel_id)
-            .content("Didn't find any results")
-            .await?;
-    }
-
-    Ok(())
-}
-
-async fn pause(msg: Message, state: State) -> anyhow::Result<()> {
-    tracing::debug!(
-        "pause command in channel {} by {}",
-        msg.channel_id,
-        msg.author.name
-    );
-
-    let guild_id = msg.guild_id.unwrap();
-    let player = state.lavalink.player(guild_id).await.unwrap();
-    let paused = player.paused();
-    player.send(Pause::from((guild_id, !paused)))?;
-
-    let action = if paused { "Unpaused " } else { "Paused" };
-
-    state
+    let content = match track {
+        Some(track) => {
+            player.send(Play::from((guild, &track.encoded)))?;
+            Cow::Owned(format!(
+                "Playing **{}** by **{}**",
+                track.info.title, track.info.title
+            ))
+        }
+        None => Cow::Borrowed("Found no results"),
+    };
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content(&format!("{action} the track"))
+        .create_message(channel)
+        .content(&content)
         .await?;
 
     Ok(())
 }
 
-async fn seek(msg: Message, state: State) -> anyhow::Result<()> {
-    tracing::debug!(
-        "seek command in channel {} by {}",
-        msg.channel_id,
-        msg.author.name
-    );
-    state
+async fn seek(
+    channel: Id<ChannelMarker>,
+    guild: Id<GuildMarker>,
+    user: Id<UserMarker>,
+) -> anyhow::Result<()> {
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content("Where in the track do you want to seek to (in seconds)?")
+        .create_message(channel)
+        .content("Where should I seek to? (s)")
         .await?;
 
-    let author_id = msg.author.id;
-    let msg = state
+    let message = CONTEXT
         .standby
-        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
-            new_msg.author.id == author_id
+        .wait_for_message(channel, move |message: &MessageCreate| {
+            message.author.id == user
         })
         .await?;
-    let guild_id = msg.guild_id.unwrap();
-    let position = msg.content.parse::<i64>()?;
+    let position = message.content.parse::<i64>()?;
 
-    let player = state.lavalink.player(guild_id).await.unwrap();
-    player.send(Seek::from((guild_id, position * 1000)))?;
+    tracing::debug!(%guild, %position, %user, "seeking");
+    let player = CONTEXT.lavalink.player(guild).await.unwrap();
+    player.send(Seek::from((guild, position * 1000)))?;
 
-    state
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content(&format!("Seeked to {position}s"))
+        .create_message(channel)
+        .content(&format!("Seeking to {position} s"))
         .await?;
 
     Ok(())
 }
 
-async fn equalize(msg: Message, state: State) -> anyhow::Result<()> {
-    tracing::debug!(
-        "equalize command in channel {} by {}",
-        msg.channel_id,
-        msg.author.name
-    );
-    state
+async fn stop(
+    channel: Id<ChannelMarker>,
+    guild: Id<GuildMarker>,
+    user: Id<UserMarker>,
+) -> anyhow::Result<()> {
+    tracing::debug!(%guild, %user, "stopping");
+
+    let player = CONTEXT.lavalink.player(guild).await.unwrap();
+    player.send(Stop::from(guild))?;
+
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content("What band do you want to equalize (0-14)?")
-        .await?;
-
-    let author_id = msg.author.id;
-    let band_msg = state
-        .standby
-        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
-            new_msg.author.id == author_id
-        })
-        .await?;
-    let guild_id = msg.guild_id.unwrap();
-    let band = band_msg.content.parse::<i64>()?;
-
-    state
-        .http
-        .create_message(msg.channel_id)
-        .content("What gain do you want to equalize (-0.25 to 1.0)?")
-        .await?;
-
-    let gain_msg = state
-        .standby
-        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
-            new_msg.author.id == author_id
-        })
-        .await?;
-    let gain = gain_msg.content.parse::<f64>()?;
-
-    let player = state.lavalink.player(guild_id).await.unwrap();
-    player.send(Equalizer::from((
-        guild_id,
-        vec![EqualizerBand::new(band, gain)],
-    )))?;
-
-    state
-        .http
-        .create_message(msg.channel_id)
-        .content(&format!("Changed gain level to {gain} on band {band}."))
+        .create_message(channel)
+        .content("Stopping")
         .await?;
 
     Ok(())
 }
 
-async fn stop(msg: Message, state: State) -> anyhow::Result<()> {
-    tracing::debug!(
-        "stop command in channel {} by {}",
-        msg.channel_id,
-        msg.author.name
-    );
-
-    let guild_id = msg.guild_id.unwrap();
-    let player = state.lavalink.player(guild_id).await.unwrap();
-    player.send(Stop::from(guild_id))?;
-
-    state
+async fn volume(
+    channel: Id<ChannelMarker>,
+    guild: Id<GuildMarker>,
+    user: Id<UserMarker>,
+) -> anyhow::Result<()> {
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content("Stopped the track")
+        .create_message(channel)
+        .content("What volume should I set? (0–1000) [default: 100]")
         .await?;
 
-    Ok(())
-}
-
-async fn volume(msg: Message, state: State) -> anyhow::Result<()> {
-    tracing::debug!(
-        "volume command in channel {} by {}",
-        msg.channel_id,
-        msg.author.name
-    );
-    state
-        .http
-        .create_message(msg.channel_id)
-        .content("What's the volume you want to set (0-1000, 100 being the default)?")
-        .await?;
-
-    let author_id = msg.author.id;
-    let msg = state
+    let message = CONTEXT
         .standby
-        .wait_for_message(msg.channel_id, move |new_msg: &MessageCreate| {
-            new_msg.author.id == author_id
+        .wait_for_message(channel, move |message: &MessageCreate| {
+            message.author.id == user
         })
         .await?;
-    let guild_id = msg.guild_id.unwrap();
-    let volume = msg.content.parse::<i64>()?;
+    let volume = message.content.parse::<i64>()?;
 
-    if !(0..=1000).contains(&volume) {
-        state
-            .http
-            .create_message(msg.channel_id)
-            .content("That's more than 1000")
-            .await?;
+    let content = match volume {
+        0..=1000 => {
+            tracing::debug!(%guild, %user, volume, "modifying volume");
+            let player = CONTEXT.lavalink.player(guild).await.unwrap();
+            player.send(Volume::from((guild, volume)))?;
 
-        return Ok(());
-    }
+            Cow::Owned(format!("Setting the volume to {volume}"))
+        }
+        _ => Cow::Borrowed("Invalid volume"),
+    };
 
-    let player = state.lavalink.player(guild_id).await.unwrap();
-    player.send(Volume::from((guild_id, volume)))?;
-
-    state
+    CONTEXT
         .http
-        .create_message(msg.channel_id)
-        .content(&format!("Set the volume to {volume}"))
+        .create_message(channel)
+        .content(&content)
         .await?;
 
     Ok(())
