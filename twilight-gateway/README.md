@@ -113,7 +113,7 @@ async fn dispatcher(mut shard: Shard) {
         tokio::select! {
             // Do not poll ctrl_c after it's completed.
             _ = &mut ctrl_c, if !shutdown => {
-                // Cleanly shut down once we recieve the echo close frame.
+                // Cleanly shut down once we receive the echo close frame.
                 shard.close(CloseFrame::NORMAL);
                 shutdown = true;
             },
