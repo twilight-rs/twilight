@@ -220,7 +220,6 @@ impl Standby {
     /// [`Standby`] instance is dropped.
     ///
     /// [`BanAdd`]: twilight_model::gateway::payload::incoming::BanAdd
-    /// [`Canceled`]: future::Canceled
     /// [`wait_for_stream`]: Self::wait_for_stream
     pub fn wait_for<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
@@ -309,7 +308,6 @@ impl Standby {
     /// The returned future resolves to a [`Canceled`] error if the associated
     /// [`Standby`] instance is dropped.
     ///
-    /// [`Canceled`]: future::Canceled
     /// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
     /// [`wait_for_event_stream`]: Self::wait_for_event_stream
     pub fn wait_for_event<F: Fn(&Event) -> bool + Send + Sync + 'static>(
@@ -395,7 +393,6 @@ impl Standby {
     /// The returned future resolves to a [`Canceled`] error if the associated
     /// [`Standby`] instance is dropped.
     ///
-    /// [`Canceled`]: future::Canceled
     /// [`wait_for_message_stream`]: Self::wait_for_message_stream
     pub fn wait_for_message<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
         &self,
@@ -482,7 +479,6 @@ impl Standby {
     /// The returned future resolves to a [`Canceled`] error if the associated
     /// [`Standby`] instance is dropped.
     ///
-    /// [`Canceled`]: future::Canceled
     /// [`wait_for_reaction_stream`]: Self::wait_for_reaction_stream
     pub fn wait_for_reaction<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
         &self,
@@ -542,10 +538,8 @@ impl Standby {
 
     /// Wait for a component on a certain message.
     ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for multiple components matching the given predicate,
-    /// use [`wait_for_component_stream`].
+    /// To wait for multiple components matching the given predicate use
+    /// [`wait_for_component_stream`].
     ///
     /// # Examples
     ///
@@ -565,6 +559,11 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// The returned future resolves to a [`Canceled`] error if the associated
+    /// [`Standby`] instance is dropped.
+    ///
     /// [`wait_for_component_stream`]: Self::wait_for_component_stream
     pub fn wait_for_component<F: Fn(&InteractionCreate) -> bool + Send + Sync + 'static>(
         &self,
@@ -576,10 +575,8 @@ impl Standby {
 
     /// Wait for a stream of components on a certain message.
     ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for only one component matching the given predicate,
-    /// use [`wait_for_component`].
+    /// To wait for only one component matching the given predicate use
+    /// [`wait_for_component`].
     ///
     /// # Examples
     ///
@@ -607,6 +604,11 @@ impl Standby {
     /// }
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// The returned stream ends when the associated [`Standby`] instance is
+    /// dropped.
     ///
     /// [`wait_for_component`]: Self::wait_for_component
     pub fn wait_for_component_stream<F: Fn(&InteractionCreate) -> bool + Send + Sync + 'static>(
