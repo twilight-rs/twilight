@@ -739,9 +739,7 @@ impl Standby {
     fn bystander_process<T: Clone>(bystander: &mut Bystander<T>, event: &T) -> ProcessStatus {
         // We need to take the sender out because `OneshotSender`s consume
         // themselves when calling `OneshotSender::send`.
-        let Some(sender) = bystander.sender.take() else {
-            return ProcessStatus::AlreadyComplete;
-        };
+        let sender = bystander.sender.take().unwrap();
 
         // The channel may have closed due to the receiver dropping their end,
         // in which case we can say we're done.
@@ -772,7 +770,7 @@ impl Standby {
                 // still open then we need to retain the bystander, otherwise we
                 // need to mark it for removal.
                 if tx.send(event.clone()).is_ok() {
-                    bystander.sender.replace(Sender::Stream(tx));
+                    bystander.sender = Some(Sender::Stream(tx));
 
                     ProcessStatus::SentStream
                 } else {
@@ -871,7 +869,7 @@ impl ProcessResults {
             ProcessStatus::SentStream => {
                 self.sent += 1;
             }
-            ProcessStatus::AlreadyComplete | ProcessStatus::Skip => {}
+            ProcessStatus::Skip => {}
         }
     }
 }
@@ -879,9 +877,6 @@ impl ProcessResults {
 /// Status result of processing a bystander via [`Standby::bystander_process`].
 #[derive(Clone, Copy, Debug)]
 enum ProcessStatus {
-    /// Call matched but already matched previously and was not removed, so the
-    /// subject must be removed and not counted towards results.
-    AlreadyComplete,
     /// Call matched but the receiver dropped their end.
     Dropped,
     /// Call matched a oneshot.
@@ -895,10 +890,7 @@ enum ProcessStatus {
 impl ProcessStatus {
     /// Whether the call is complete.
     const fn is_complete(self) -> bool {
-        matches!(
-            self,
-            Self::AlreadyComplete | Self::Dropped | Self::SentFuture
-        )
+        matches!(self, Self::Dropped | Self::SentFuture)
     }
 }
 
