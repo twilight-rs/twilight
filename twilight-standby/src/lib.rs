@@ -227,25 +227,7 @@ impl Standby {
         guild_id: Id<GuildMarker>,
         check: F,
     ) -> WaitForFuture<Event> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for(guild_id, Box::new(check))
-    }
-
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for(
-        &self,
-        guild_id: Id<GuildMarker>,
-        check: Box<dyn Fn(&Event) -> bool + Send + Sync + 'static>,
-    ) -> WaitForFuture<Event> {
-        let (tx, rx) = oneshot::channel();
-
-        let mut entry = self.guilds.entry(guild_id).or_default();
-        entry.push(Bystander {
-            func: check,
-            sender: Some(Sender::Future(tx)),
-        });
-
-        WaitForFuture { rx }
+        Self::wait_for_inner(&self.guilds, guild_id, Box::new(check))
     }
 
     /// Wait for a stream of events in a certain guild.
@@ -293,25 +275,7 @@ impl Standby {
         guild_id: Id<GuildMarker>,
         check: F,
     ) -> WaitForStream<Event> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for_stream(guild_id, Box::new(check))
-    }
-
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for_stream(
-        &self,
-        guild_id: Id<GuildMarker>,
-        check: Box<dyn Fn(&Event) -> bool + Send + Sync + 'static>,
-    ) -> WaitForStream<Event> {
-        let (tx, rx) = mpsc::unbounded_channel();
-
-        let mut entry = self.guilds.entry(guild_id).or_default();
-        entry.push(Bystander {
-            func: check,
-            sender: Some(Sender::Stream(tx)),
-        });
-
-        WaitForStream { rx }
+        Self::wait_for_stream_inner(&self.guilds, guild_id, Box::new(check))
     }
 
     /// Wait for an event not in a certain guild. This must be filtered by an
@@ -356,26 +320,7 @@ impl Standby {
         &self,
         check: F,
     ) -> WaitForFuture<Event> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for_event(Box::new(check))
-    }
-
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for_event(
-        &self,
-        func: Box<dyn Fn(&Event) -> bool + Send + Sync + 'static>,
-    ) -> WaitForFuture<Event> {
-        let (tx, rx) = oneshot::channel();
-
-        self.events.insert(
-            self.next_event_id(),
-            Bystander {
-                func,
-                sender: Some(Sender::Future(tx)),
-            },
-        );
-
-        WaitForFuture { rx }
+        self.wait_for_event_inner(Box::new(check))
     }
 
     /// Wait for a stream of events not in a certain guild. This must be
@@ -422,26 +367,7 @@ impl Standby {
         &self,
         check: F,
     ) -> WaitForStream<Event> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for_event_stream(Box::new(check))
-    }
-
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for_event_stream(
-        &self,
-        check: Box<dyn Fn(&Event) -> bool + Send + Sync + 'static>,
-    ) -> WaitForStream<Event> {
-        let (tx, rx) = mpsc::unbounded_channel();
-
-        self.events.insert(
-            self.next_event_id(),
-            Bystander {
-                func: check,
-                sender: Some(Sender::Stream(tx)),
-            },
-        );
-
-        WaitForStream { rx }
+        self.wait_for_event_stream_inner(Box::new(check))
     }
 
     /// Wait for a message in a certain channel.
@@ -484,25 +410,7 @@ impl Standby {
         channel_id: Id<ChannelMarker>,
         check: F,
     ) -> WaitForFuture<MessageCreate> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for_message(channel_id, Box::new(check))
-    }
-
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for_message(
-        &self,
-        channel_id: Id<ChannelMarker>,
-        check: Box<dyn Fn(&MessageCreate) -> bool + Send + Sync + 'static>,
-    ) -> WaitForFuture<MessageCreate> {
-        let (tx, rx) = oneshot::channel();
-
-        let mut entry = self.messages.entry(channel_id).or_default();
-        entry.push(Bystander {
-            func: check,
-            sender: Some(Sender::Future(tx)),
-        });
-
-        WaitForFuture { rx }
+        Self::wait_for_inner(&self.messages, channel_id, Box::new(check))
     }
 
     /// Wait for a stream of message in a certain channel.
@@ -548,25 +456,7 @@ impl Standby {
         channel_id: Id<ChannelMarker>,
         check: F,
     ) -> WaitForStream<MessageCreate> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for_message_stream(channel_id, Box::new(check))
-    }
-
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for_message_stream(
-        &self,
-        channel_id: Id<ChannelMarker>,
-        check: Box<dyn Fn(&MessageCreate) -> bool + Send + Sync + 'static>,
-    ) -> WaitForStream<MessageCreate> {
-        let (tx, rx) = mpsc::unbounded_channel();
-
-        let mut entry = self.messages.entry(channel_id).or_default();
-        entry.push(Bystander {
-            func: check,
-            sender: Some(Sender::Stream(tx)),
-        });
-
-        WaitForStream { rx }
+        Self::wait_for_stream_inner(&self.messages, channel_id, Box::new(check))
     }
 
     /// Wait for a reaction on a certain message.
@@ -607,25 +497,7 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: F,
     ) -> WaitForFuture<ReactionAdd> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for_reaction(message_id, Box::new(check))
-    }
-
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for_reaction(
-        &self,
-        message_id: Id<MessageMarker>,
-        check: Box<dyn Fn(&ReactionAdd) -> bool + Send + Sync + 'static>,
-    ) -> WaitForFuture<ReactionAdd> {
-        let (tx, rx) = oneshot::channel();
-
-        let mut entry = self.reactions.entry(message_id).or_default();
-        entry.push(Bystander {
-            func: check,
-            sender: Some(Sender::Future(tx)),
-        });
-
-        WaitForFuture { rx }
+        Self::wait_for_inner(&self.reactions, message_id, Box::new(check))
     }
 
     /// Wait for a stream of reactions on a certain message.
@@ -673,25 +545,7 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: F,
     ) -> WaitForStream<ReactionAdd> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for_reaction_stream(message_id, Box::new(check))
-    }
-
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for_reaction_stream(
-        &self,
-        message_id: Id<MessageMarker>,
-        check: Box<dyn Fn(&ReactionAdd) -> bool + Send + Sync + 'static>,
-    ) -> WaitForStream<ReactionAdd> {
-        let (tx, rx) = mpsc::unbounded_channel();
-
-        let mut entry = self.reactions.entry(message_id).or_default();
-        entry.push(Bystander {
-            func: check,
-            sender: Some(Sender::Stream(tx)),
-        });
-
-        WaitForStream { rx }
+        Self::wait_for_stream_inner(&self.reactions, message_id, Box::new(check))
     }
 
     /// Wait for a component on a certain message.
@@ -725,25 +579,7 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: F,
     ) -> WaitForFuture<InteractionCreate> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for_component(message_id, Box::new(check))
-    }
-
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for_component(
-        &self,
-        message_id: Id<MessageMarker>,
-        check: Box<dyn Fn(&InteractionCreate) -> bool + Send + Sync + 'static>,
-    ) -> WaitForFuture<InteractionCreate> {
-        let (tx, rx) = oneshot::channel();
-
-        let mut entry = self.components.entry(message_id).or_default();
-        entry.push(Bystander {
-            func: check,
-            sender: Some(Sender::Future(tx)),
-        });
-
-        WaitForFuture { rx }
+        Self::wait_for_inner(&self.components, message_id, Box::new(check))
     }
 
     /// Wait for a stream of components on a certain message.
@@ -790,19 +626,40 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: F,
     ) -> WaitForStream<InteractionCreate> {
-        #[allow(clippy::used_underscore_items)]
-        self._wait_for_component_stream(message_id, Box::new(check))
+        Self::wait_for_stream_inner(&self.components, message_id, Box::new(check))
     }
 
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn _wait_for_component_stream(
-        &self,
-        message_id: Id<MessageMarker>,
-        check: Box<dyn Fn(&InteractionCreate) -> bool + Send + Sync + 'static>,
-    ) -> WaitForStream<InteractionCreate> {
+    /// Next event ID in [`Standby::event_counter`].
+    fn next_event_id(&self) -> u64 {
+        self.event_counter.fetch_add(1, Ordering::Relaxed)
+    }
+
+    /// Wait for a `T`.
+    fn wait_for_inner<IdKind, T>(
+        map: &DashMap<Id<IdKind>, Vec<Bystander<T>>>,
+        id: Id<IdKind>,
+        check: Box<dyn Fn(&T) -> bool + Send + Sync + 'static>,
+    ) -> WaitForFuture<T> {
+        let (tx, rx) = oneshot::channel();
+
+        let mut entry = map.entry(id).or_default();
+        entry.push(Bystander {
+            func: check,
+            sender: Some(Sender::Future(tx)),
+        });
+
+        WaitForFuture { rx }
+    }
+
+    /// Wait for a stream of `T`.
+    fn wait_for_stream_inner<IdKind, T>(
+        map: &DashMap<Id<IdKind>, Vec<Bystander<T>>>,
+        id: Id<IdKind>,
+        check: Box<dyn Fn(&T) -> bool + Send + Sync + 'static>,
+    ) -> WaitForStream<T> {
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let mut entry = self.components.entry(message_id).or_default();
+        let mut entry = map.entry(id).or_default();
         entry.push(Bystander {
             func: check,
             sender: Some(Sender::Stream(tx)),
@@ -811,9 +668,40 @@ impl Standby {
         WaitForStream { rx }
     }
 
-    /// Next event ID in [`Standby::event_counter`].
-    fn next_event_id(&self) -> u64 {
-        self.event_counter.fetch_add(1, Ordering::Relaxed)
+    /// Wait for an event.
+    fn wait_for_event_inner(
+        &self,
+        check: Box<dyn Fn(&Event) -> bool + Send + Sync + 'static>,
+    ) -> WaitForFuture<Event> {
+        let (tx, rx) = oneshot::channel();
+
+        self.events.insert(
+            self.next_event_id(),
+            Bystander {
+                func: check,
+                sender: Some(Sender::Future(tx)),
+            },
+        );
+
+        WaitForFuture { rx }
+    }
+
+    /// Wait for a stream of events.
+    fn wait_for_event_stream_inner(
+        &self,
+        check: Box<dyn Fn(&Event) -> bool + Send + Sync + 'static>,
+    ) -> WaitForStream<Event> {
+        let (tx, rx) = mpsc::unbounded_channel();
+
+        self.events.insert(
+            self.next_event_id(),
+            Bystander {
+                func: check,
+                sender: Some(Sender::Stream(tx)),
+            },
+        );
+
+        WaitForStream { rx }
     }
 
     /// Process a general event.
