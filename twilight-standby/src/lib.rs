@@ -737,8 +737,8 @@ impl Standby {
     /// Returns whether the bystander is fulfilled; if the bystander has been
     /// fulfilled then the channel is now closed.
     fn bystander_process<T: Clone>(bystander: &mut Bystander<T>, event: &T) -> ProcessStatus {
-        // We need to take the sender out because `OneshotSender`s consume
-        // themselves when calling `OneshotSender::send`.
+        // We need to take the sender out because `oneshot::Sender`s consume
+        // themselves when calling `oneshot::Sender::send`.
         let sender = bystander.sender.take().unwrap();
 
         // The channel may have closed due to the receiver dropping their end,
@@ -752,7 +752,7 @@ impl Standby {
         if !(bystander.func)(event) {
             // Put the sender back into its bystander since we'll still need it
             // next time around.
-            bystander.sender.replace(sender);
+            bystander.sender = Some(sender);
 
             return ProcessStatus::Skip;
         }
