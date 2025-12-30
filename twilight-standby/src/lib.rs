@@ -298,11 +298,7 @@ impl Standby {
     ///
     /// let ready = standby
     ///     .wait_for_event(|event| {
-    ///         if let Event::Ready(ready) = event {
-    ///             ready.shard.map_or(false, |id| id.number() == 5)
-    ///         } else {
-    ///             false
-    ///         }
+    ///         matches!(event, Event::Ready(ready) if ready.shard.is_some_and(|id| id.number() == 5))
     ///     })
     ///     .await?;
     /// # Ok(()) }
@@ -343,11 +339,7 @@ impl Standby {
     /// let standby = Standby::new();
     ///
     /// let mut events = standby.wait_for_event_stream(|event| {
-    ///     if let Event::Ready(ready) = event {
-    ///         ready.shard.map_or(false, |id| id.number() == 5)
-    ///     } else {
-    ///         false
-    ///     }
+    ///     matches!(event, Event::Ready(ready) if ready.shard.is_some_and(|id| id.number() == 5))
     /// });
     ///
     /// while let Some(event) = events.next().await {
@@ -607,11 +599,7 @@ impl Standby {
     /// let message_id = Id::new(123);
     ///
     /// let mut components = standby.wait_for_component_stream(message_id, |event| {
-    ///     if let Some(InteractionData::MessageComponent(data)) = &event.data {
-    ///         data.custom_id == "Click".to_string()
-    ///     } else {
-    ///         false
-    ///     }
+    ///     matches!(&event.data, Some(InteractionData::MessageComponent(data)) if data.custom_id == "Click")
     /// });
     ///
     /// while let Some(component) = components.next().await {
