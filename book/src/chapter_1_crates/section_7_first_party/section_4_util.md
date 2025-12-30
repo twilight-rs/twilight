@@ -81,6 +81,36 @@ let embed = EmbedBuilder::new()
 # }
 ```
 
+When using `ImageSource::attachment`, the image must also be sent as a message attachment. Here's a more complete example demonstrating how to send a message with an attachment and an embed that references it:
+
+```rust
+# #[allow(unused_variables)]
+# async fn main() -> Result<(), Box<dyn std::error::Error>> {
+use twilight_http::Client;
+use twilight_model::id::Id;
+use twilight_model::id::marker::ChannelMarker;
+use twilight_util::builder::embed::{EmbedBuilder, ImageSource};
+use twilight_model::channel::message::MessageFlags;
+
+let client = Client::new("my token".to_owned());
+let channel_id = Id::<ChannelMarker>::new(123); // Replace with your channel ID
+
+let embed = EmbedBuilder::new()
+    .description("Here's a cool image of Twilight Sparkle as an attachment!")
+    .image(ImageSource::attachment("bestpony.png")?)
+    .build();
+
+let message = client
+    .create_message(channel_id)
+    .attachments(&[("bestpony.png".as_bytes(), "bestpony.png".to_owned(), 0)])?
+    .embeds(&[embed.build()])?
+    .exec()
+    .await?;
+
+#     Ok(())
+# }
+```
+
 ### Link
 
 The `link` feature enables the parsing and formatting of URLs to resources, such
