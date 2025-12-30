@@ -19,7 +19,7 @@ use dashmap::DashMap;
 use std::{
     fmt,
     hash::Hash,
-    sync::atomic::{AtomicU64, Ordering},
+    sync::atomic::{AtomicUsize, Ordering},
 };
 use tokio::sync::{mpsc, oneshot};
 use twilight_model::{
@@ -112,11 +112,11 @@ pub struct Standby {
     /// The key is generated via [`event_counter`].
     ///
     /// [`event_counter`]: Self::event_counter
-    events: DashMap<u64, Bystander<Event>>,
+    events: DashMap<usize, Bystander<Event>>,
     /// Event counter to be used as the key of [`events`].
     ///
     /// [`events`]: Self::events
-    event_counter: AtomicU64,
+    event_counter: AtomicUsize,
     /// List of bystanders where the ID of the guild is known beforehand.
     guilds: DashMap<Id<GuildMarker>, Vec<Bystander<Event>>>,
     /// List of message bystanders where the ID of the channel is known
@@ -618,7 +618,7 @@ impl Standby {
     }
 
     /// Next event ID in [`Standby::event_counter`].
-    fn next_event_id(&self) -> u64 {
+    fn next_event_id(&self) -> usize {
         self.event_counter.fetch_add(1, Ordering::Relaxed)
     }
 
