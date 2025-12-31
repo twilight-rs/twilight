@@ -169,6 +169,21 @@ impl Interaction {
         }
     }
 
+    /// The user that invoked the interaction.
+    ///
+    /// This will first check for the [`member`]'s
+    /// [`user`][`PartialMember::user`] and then, if not present, check the
+    /// [`user`].
+    ///
+    /// [`member`]: Self::member
+    /// [`user`]: Self::user
+    pub fn into_author(self) -> Option<User> {
+        match self.member {
+            Some(member) if member.user.is_some() => member.user,
+            _ => self.user,
+        }
+    }
+
     /// Whether the interaction was invoked in a DM.
     pub const fn is_dm(&self) -> bool {
         self.user.is_some()
@@ -477,6 +492,57 @@ pub enum InteractionData {
     ModalSubmit(Box<ModalInteractionData>),
 }
 
+impl From<Box<CommandData>> for InteractionData {
+    fn from(value: Box<CommandData>) -> Self {
+        InteractionData::ApplicationCommand(value)
+    }
+}
+
+impl From<Box<MessageComponentInteractionData>> for InteractionData {
+    fn from(value: Box<MessageComponentInteractionData>) -> Self {
+        InteractionData::MessageComponent(value)
+    }
+}
+
+impl From<Box<ModalInteractionData>> for InteractionData {
+    fn from(value: Box<ModalInteractionData>) -> Self {
+        InteractionData::ModalSubmit(value)
+    }
+}
+
+impl TryFrom<InteractionData> for Box<CommandData> {
+    type Error = InteractionData;
+
+    fn try_from(value: InteractionData) -> Result<Self, Self::Error> {
+        match value {
+            InteractionData::ApplicationCommand(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<InteractionData> for Box<MessageComponentInteractionData> {
+    type Error = InteractionData;
+
+    fn try_from(value: InteractionData) -> Result<Self, Self::Error> {
+        match value {
+            InteractionData::MessageComponent(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<InteractionData> for Box<ModalInteractionData> {
+    type Error = InteractionData;
+
+    fn try_from(value: InteractionData) -> Result<Self, Self::Error> {
+        match value {
+            InteractionData::ModalSubmit(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
 /// Partial guild containing only the fields sent in the partial guild
 /// in interactions.
 ///
@@ -486,10 +552,10 @@ pub enum InteractionData {
 /// info.
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize, Hash)]
 pub struct InteractionPartialGuild {
-    /// Id of the guild.
-    pub id: Option<Id<GuildMarker>>,
     /// Enabled guild features
     pub features: Option<Vec<GuildFeature>>,
+    /// Id of the guild.
+    pub id: Option<Id<GuildMarker>>,
     pub locale: Option<String>,
 }
 
@@ -570,8 +636,8 @@ mod tests {
             data: Some(InteractionData::ApplicationCommand(Box::new(CommandData {
                 guild_id: None,
                 id: Id::new(300),
-                name: "command name".into(),
                 kind: CommandType::ChatInput,
+                name: "command name".into(),
                 options: Vec::from([CommandDataOption {
                     name: "member".into(),
                     value: CommandOptionValue::User(Id::new(600)),
@@ -729,10 +795,10 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
-                Token::Str("name"),
-                Token::Str("command name"),
                 Token::Str("type"),
                 Token::U8(1),
+                Token::Str("name"),
+                Token::Str("command name"),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

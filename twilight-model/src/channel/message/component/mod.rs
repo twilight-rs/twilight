@@ -146,28 +146,28 @@ pub enum Component {
     ActionRow(ActionRow),
     /// Clickable item that renders below messages.
     Button(Button),
-    /// Dropdown-style item that renders below messages.
-    SelectMenu(SelectMenu),
-    /// Pop-up item that renders on modals.
-    TextInput(TextInput),
-    /// Markdown text.
-    TextDisplay(TextDisplay),
-    /// Display images and other media.
-    MediaGallery(MediaGallery),
-    /// Component to add vertical padding between other components.
-    Separator(Separator),
-    /// Displays an attached file.
-    File(FileDisplay),
-    /// Container to display text alongside an accessory component.
-    Section(Section),
     /// Container that visually groups a set of components.
     Container(Container),
-    /// Small image that can be used as an accessory.
-    Thumbnail(Thumbnail),
-    /// Wrapper for modal components providing a label and an optional description.
-    Label(Label),
+    /// Displays an attached file.
+    File(FileDisplay),
     /// Allows uploading files in a modal.
     FileUpload(FileUpload),
+    /// Wrapper for modal components providing a label and an optional description.
+    Label(Label),
+    /// Display images and other media.
+    MediaGallery(MediaGallery),
+    /// Container to display text alongside an accessory component.
+    Section(Section),
+    /// Dropdown-style item that renders below messages.
+    SelectMenu(SelectMenu),
+    /// Component to add vertical padding between other components.
+    Separator(Separator),
+    /// Markdown text.
+    TextDisplay(TextDisplay),
+    /// Pop-up item that renders on modals.
+    TextInput(TextInput),
+    /// Small image that can be used as an accessory.
+    Thumbnail(Thumbnail),
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -197,23 +197,23 @@ impl Component {
         match self {
             Component::ActionRow(_) => ComponentType::ActionRow,
             Component::Button(_) => ComponentType::Button,
+            Component::Container(_) => ComponentType::Container,
+            Component::File(_) => ComponentType::File,
+            Component::FileUpload(_) => ComponentType::FileUpload,
+            Component::Label(_) => ComponentType::Label,
+            Component::MediaGallery(_) => ComponentType::MediaGallery,
+            Component::Section(_) => ComponentType::Section,
             Component::SelectMenu(SelectMenu { kind, .. }) => match kind {
+                SelectMenuType::Channel => ComponentType::ChannelSelectMenu,
+                SelectMenuType::Mentionable => ComponentType::MentionableSelectMenu,
+                SelectMenuType::Role => ComponentType::RoleSelectMenu,
                 SelectMenuType::Text => ComponentType::TextSelectMenu,
                 SelectMenuType::User => ComponentType::UserSelectMenu,
-                SelectMenuType::Role => ComponentType::RoleSelectMenu,
-                SelectMenuType::Mentionable => ComponentType::MentionableSelectMenu,
-                SelectMenuType::Channel => ComponentType::ChannelSelectMenu,
             },
-            Component::TextInput(_) => ComponentType::TextInput,
-            Component::TextDisplay(_) => ComponentType::TextDisplay,
-            Component::MediaGallery(_) => ComponentType::MediaGallery,
             Component::Separator(_) => ComponentType::Separator,
-            Component::File(_) => ComponentType::File,
-            Component::Section(_) => ComponentType::Section,
-            Component::Container(_) => ComponentType::Container,
+            Component::TextDisplay(_) => ComponentType::TextDisplay,
+            Component::TextInput(_) => ComponentType::TextInput,
             Component::Thumbnail(_) => ComponentType::Thumbnail,
-            Component::Label(_) => ComponentType::Label,
-            Component::FileUpload(_) => ComponentType::FileUpload,
             Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
         }
     }
@@ -222,19 +222,19 @@ impl Component {
     pub const fn component_count(&self) -> usize {
         match self {
             Component::ActionRow(action_row) => 1 + action_row.components.len(),
-            Component::Section(section) => 1 + section.components.len(),
-            Component::Container(container) => 1 + container.components.len(),
             Component::Button(_)
-            | Component::SelectMenu(_)
-            | Component::TextInput(_)
-            | Component::TextDisplay(_)
-            | Component::MediaGallery(_)
-            | Component::Separator(_)
             | Component::File(_)
-            | Component::Thumbnail(_)
             | Component::FileUpload(_)
+            | Component::MediaGallery(_)
+            | Component::SelectMenu(_)
+            | Component::Separator(_)
+            | Component::TextDisplay(_)
+            | Component::TextInput(_)
+            | Component::Thumbnail(_)
             | Component::Unknown(_) => 1,
+            Component::Container(container) => 1 + container.components.len(),
             Component::Label(_) => 2,
+            Component::Section(section) => 1 + section.components.len(),
         }
     }
 }
@@ -260,6 +260,18 @@ impl From<Container> for Component {
 impl From<FileDisplay> for Component {
     fn from(file_display: FileDisplay) -> Self {
         Self::File(file_display)
+    }
+}
+
+impl From<FileUpload> for Component {
+    fn from(file_upload: FileUpload) -> Self {
+        Self::FileUpload(file_upload)
+    }
+}
+
+impl From<Label> for Component {
+    fn from(label: Label) -> Self {
+        Self::Label(label)
     }
 }
 
@@ -305,15 +317,146 @@ impl From<Thumbnail> for Component {
     }
 }
 
-impl From<Label> for Component {
-    fn from(label: Label) -> Self {
-        Self::Label(label)
+impl TryFrom<Component> for ActionRow {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::ActionRow(inner) => Ok(inner),
+            _ => Err(value),
+        }
     }
 }
 
-impl From<FileUpload> for Component {
-    fn from(file_upload: FileUpload) -> Self {
-        Self::FileUpload(file_upload)
+impl TryFrom<Component> for Button {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::Button(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for Container {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::Container(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for FileDisplay {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::File(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for FileUpload {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::FileUpload(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for Label {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::Label(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for MediaGallery {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::MediaGallery(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for Section {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::Section(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for SelectMenu {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::SelectMenu(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for Separator {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::Separator(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for TextDisplay {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::TextDisplay(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for TextInput {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::TextInput(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for Thumbnail {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::Thumbnail(inner) => Ok(inner),
+            _ => Err(value),
+        }
     }
 }
 
@@ -326,37 +469,37 @@ impl<'de> Deserialize<'de> for Component {
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum Field {
+    AccentColor,
+    Accessory,
     ChannelTypes,
+    Component,
     Components,
+    Content,
     CustomId,
     DefaultValues,
+    Description,
     Disabled,
+    Divider,
     Emoji,
+    File,
+    Id,
+    Items,
     Label,
     MaxLength,
     MaxValues,
+    Media,
     MinLength,
     MinValues,
     Options,
     Placeholder,
     Required,
+    SkuId,
+    Spacing,
+    Spoiler,
     Style,
     Type,
     Url,
-    SkuId,
     Value,
-    Id,
-    Content,
-    Items,
-    Divider,
-    Spacing,
-    File,
-    Spoiler,
-    Accessory,
-    Media,
-    Description,
-    AccentColor,
-    Component,
 }
 
 struct ComponentVisitor;

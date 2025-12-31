@@ -8,8 +8,6 @@ use serde::{Deserialize, Serialize};
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SelectMenu {
-    /// Optional identifier for this select menu.
-    pub id: Option<i32>,
     /// An optional list of channel types.
     ///
     /// This is only applicable to [channel select menus](SelectMenuType::Channel).
@@ -22,6 +20,8 @@ pub struct SelectMenu {
     ///
     /// Defaults to `false`.
     pub disabled: bool,
+    /// Optional identifier for this select menu.
+    pub id: Option<i32>,
     /// This select menu's type.
     pub kind: SelectMenuType,
     /// Maximum number of options that may be chosen.
@@ -44,6 +44,12 @@ pub struct SelectMenu {
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum SelectMenuType {
+    /// Channel select menus.
+    Channel,
+    /// Mentionable select menus.
+    Mentionable,
+    /// Role select menus.
+    Role,
     /// Select menus with a text-based `options` list.
     ///
     /// Select menus of this `kind` *must* set the `options` field to specify the options users
@@ -51,12 +57,6 @@ pub enum SelectMenuType {
     Text,
     /// User select menus.
     User,
-    /// Role select menus.
-    Role,
-    /// Mentionable select menus.
-    Mentionable,
-    /// Channel select menus.
-    Channel,
 }
 
 /// Dropdown options that are part of [`SelectMenu`].
@@ -82,12 +82,12 @@ pub struct SelectMenuOption {
 #[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(tag = "type", content = "id", rename_all = "snake_case")]
 pub enum SelectDefaultValue {
-    /// Default user.
-    User(Id<UserMarker>),
-    /// Default role.
-    Role(Id<RoleMarker>),
     /// Default channel.
     Channel(Id<ChannelMarker>),
+    /// Default role.
+    Role(Id<RoleMarker>),
+    /// Default user.
+    User(Id<UserMarker>),
 }
 
 #[cfg(test)]
@@ -101,6 +101,7 @@ mod tests {
         custom_id,
         default_values,
         disabled,
+        id,
         kind,
         max_values,
         min_values,

@@ -57,52 +57,46 @@ pub struct ModalInteractionData {
 /// User filled in modal component.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ModalInteractionComponent {
-    /// Top-level layout component including a string label and optional description.
-    Label(ModalInteractionLabel),
     /// Top-level layout component. In modals, layout components are preferred over action rows.
     ActionRow(ModalInteractionActionRow),
-    /// Dropdown selection component for text.
-    StringSelect(ModalInteractionStringSelect),
-    /// Dropdown selection component for users.
-    UserSelect(ModalInteractionUserSelect),
-    /// Dropdown selection component for roles.
-    RoleSelect(ModalInteractionRoleSelect),
-    /// Dropdown selection component for mentionables.
-    MentionableSelect(ModalInteractionMentionableSelect),
     /// Dropdown selection component for channels.
     ChannelSelect(ModalInteractionChannelSelect),
-    /// Text input component.
-    TextInput(ModalInteractionTextInput),
-    /// Markdown text.
-    TextDisplay(ModalInteractionTextDisplay),
     /// File upload component.
     FileUpload(ModalInteractionFileUpload),
+    /// Top-level layout component including a string label and optional description.
+    Label(ModalInteractionLabel),
+    /// Dropdown selection component for mentionables.
+    MentionableSelect(ModalInteractionMentionableSelect),
+    /// Dropdown selection component for roles.
+    RoleSelect(ModalInteractionRoleSelect),
+    /// Dropdown selection component for text.
+    StringSelect(ModalInteractionStringSelect),
+    /// Markdown text.
+    TextDisplay(ModalInteractionTextDisplay),
+    /// Text input component.
+    TextInput(ModalInteractionTextInput),
     /// Variant value is unknown to the library in the context of modals.
     Unknown(u8),
+    /// Dropdown selection component for users.
+    UserSelect(ModalInteractionUserSelect),
 }
 
 impl ModalInteractionComponent {
     /// Type of component that this is.
     pub fn kind(&self) -> ComponentType {
         match self {
-            ModalInteractionComponent::Label(_) => ComponentType::Label,
             ModalInteractionComponent::ActionRow(_) => ComponentType::ActionRow,
-            ModalInteractionComponent::StringSelect(_) => ComponentType::TextSelectMenu,
-            ModalInteractionComponent::UserSelect(_) => ComponentType::UserSelectMenu,
-            ModalInteractionComponent::RoleSelect(_) => ComponentType::RoleSelectMenu,
-            ModalInteractionComponent::MentionableSelect(_) => ComponentType::MentionableSelectMenu,
             ModalInteractionComponent::ChannelSelect(_) => ComponentType::ChannelSelectMenu,
-            ModalInteractionComponent::TextInput(_) => ComponentType::TextInput,
-            ModalInteractionComponent::TextDisplay(_) => ComponentType::TextDisplay,
             ModalInteractionComponent::FileUpload(_) => ComponentType::FileUpload,
+            ModalInteractionComponent::Label(_) => ComponentType::Label,
+            ModalInteractionComponent::MentionableSelect(_) => ComponentType::MentionableSelectMenu,
+            ModalInteractionComponent::RoleSelect(_) => ComponentType::RoleSelectMenu,
+            ModalInteractionComponent::StringSelect(_) => ComponentType::TextSelectMenu,
+            ModalInteractionComponent::TextDisplay(_) => ComponentType::TextDisplay,
+            ModalInteractionComponent::TextInput(_) => ComponentType::TextInput,
             ModalInteractionComponent::Unknown(unknown) => ComponentType::from(*unknown),
+            ModalInteractionComponent::UserSelect(_) => ComponentType::UserSelectMenu,
         }
-    }
-}
-
-impl From<ModalInteractionLabel> for ModalInteractionComponent {
-    fn from(label: ModalInteractionLabel) -> Self {
-        Self::Label(label)
     }
 }
 
@@ -112,21 +106,21 @@ impl From<ModalInteractionActionRow> for ModalInteractionComponent {
     }
 }
 
-impl From<ModalInteractionStringSelect> for ModalInteractionComponent {
-    fn from(select: ModalInteractionStringSelect) -> Self {
-        Self::StringSelect(select)
+impl From<ModalInteractionChannelSelect> for ModalInteractionComponent {
+    fn from(select: ModalInteractionChannelSelect) -> Self {
+        Self::ChannelSelect(select)
     }
 }
 
-impl From<ModalInteractionUserSelect> for ModalInteractionComponent {
-    fn from(select: ModalInteractionUserSelect) -> Self {
-        Self::UserSelect(select)
+impl From<ModalInteractionFileUpload> for ModalInteractionComponent {
+    fn from(file_upload: ModalInteractionFileUpload) -> Self {
+        Self::FileUpload(file_upload)
     }
 }
 
-impl From<ModalInteractionRoleSelect> for ModalInteractionComponent {
-    fn from(select: ModalInteractionRoleSelect) -> Self {
-        Self::RoleSelect(select)
+impl From<ModalInteractionLabel> for ModalInteractionComponent {
+    fn from(label: ModalInteractionLabel) -> Self {
+        Self::Label(label)
     }
 }
 
@@ -136,15 +130,15 @@ impl From<ModalInteractionMentionableSelect> for ModalInteractionComponent {
     }
 }
 
-impl From<ModalInteractionChannelSelect> for ModalInteractionComponent {
-    fn from(select: ModalInteractionChannelSelect) -> Self {
-        Self::ChannelSelect(select)
+impl From<ModalInteractionRoleSelect> for ModalInteractionComponent {
+    fn from(select: ModalInteractionRoleSelect) -> Self {
+        Self::RoleSelect(select)
     }
 }
 
-impl From<ModalInteractionTextInput> for ModalInteractionComponent {
-    fn from(text_input: ModalInteractionTextInput) -> Self {
-        Self::TextInput(text_input)
+impl From<ModalInteractionStringSelect> for ModalInteractionComponent {
+    fn from(select: ModalInteractionStringSelect) -> Self {
+        Self::StringSelect(select)
     }
 }
 
@@ -154,9 +148,125 @@ impl From<ModalInteractionTextDisplay> for ModalInteractionComponent {
     }
 }
 
-impl From<ModalInteractionFileUpload> for ModalInteractionComponent {
-    fn from(file_upload: ModalInteractionFileUpload) -> Self {
-        Self::FileUpload(file_upload)
+impl From<ModalInteractionTextInput> for ModalInteractionComponent {
+    fn from(text_input: ModalInteractionTextInput) -> Self {
+        Self::TextInput(text_input)
+    }
+}
+
+impl From<ModalInteractionUserSelect> for ModalInteractionComponent {
+    fn from(select: ModalInteractionUserSelect) -> Self {
+        Self::UserSelect(select)
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionActionRow {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::ActionRow(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionChannelSelect {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::ChannelSelect(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionFileUpload {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::FileUpload(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionLabel {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::Label(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionMentionableSelect {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::MentionableSelect(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionRoleSelect {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::RoleSelect(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionStringSelect {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::StringSelect(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionTextDisplay {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::TextDisplay(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionTextInput {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::TextInput(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionUserSelect {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::UserSelect(inner) => Ok(inner),
+            _ => Err(value),
+        }
     }
 }
 
@@ -380,11 +490,6 @@ impl Serialize for ModalInteractionComponent {
             // Required fields:
             // - type
             // - id
-            // - component
-            ModalInteractionComponent::Label(_) => 3,
-            // Required fields:
-            // - type
-            // - id
             // - components
             ModalInteractionComponent::ActionRow(_) => 3,
             // Required fields:
@@ -392,17 +497,22 @@ impl Serialize for ModalInteractionComponent {
             // - id
             // - custom_id
             // - values
-            ModalInteractionComponent::StringSelect(_)
-            | ModalInteractionComponent::UserSelect(_)
-            | ModalInteractionComponent::RoleSelect(_)
+            ModalInteractionComponent::ChannelSelect(_)
             | ModalInteractionComponent::MentionableSelect(_)
-            | ModalInteractionComponent::ChannelSelect(_) => 4,
+            | ModalInteractionComponent::RoleSelect(_)
+            | ModalInteractionComponent::UserSelect(_)
+            | ModalInteractionComponent::StringSelect(_) => 4,
             // Required fields:
             // - type
             // - id
             // - custom_id
-            // - value
-            ModalInteractionComponent::TextInput(_) => 4,
+            // - values
+            ModalInteractionComponent::FileUpload(_) => 4,
+            // Required fields:
+            // - type
+            // - id
+            // - component
+            ModalInteractionComponent::Label(_) => 3,
             // Required fields:
             // - type
             // - id
@@ -411,8 +521,8 @@ impl Serialize for ModalInteractionComponent {
             // - type
             // - id
             // - custom_id
-            // - values
-            ModalInteractionComponent::FileUpload(_) => 4,
+            // - value
+            ModalInteractionComponent::TextInput(_) => 4,
             // We are dropping all fields but type here but nothing we can do about that for
             // the time being
             ModalInteractionComponent::Unknown(_) => 1,
