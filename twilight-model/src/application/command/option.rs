@@ -275,6 +275,7 @@ impl TryFrom<CommandOptionValue> for i64 {
     type Error = CommandOptionValue;
 
     fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        #[allow(clippy::match_wildcard_for_single_variants)]
         match value {
             CommandOptionValue::Integer(inner) => Ok(inner),
             _ => Err(value),
@@ -286,6 +287,7 @@ impl TryFrom<CommandOptionValue> for f64 {
     type Error = CommandOptionValue;
 
     fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        #[allow(clippy::match_wildcard_for_single_variants)]
         match value {
             CommandOptionValue::Number(inner) => Ok(inner),
             _ => Err(value),

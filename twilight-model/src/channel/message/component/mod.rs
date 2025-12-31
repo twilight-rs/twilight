@@ -791,7 +791,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             ComponentType::ActionRow => {
                 let components = components.ok_or_else(|| DeError::missing_field("components"))?;
 
-                Self::Value::ActionRow(ActionRow { id, components })
+                Self::Value::ActionRow(ActionRow { components, id })
             }
             // Required fields:
             // - style
@@ -920,7 +920,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             ComponentType::TextDisplay => {
                 let content = content.ok_or_else(|| DeError::missing_field("content"))?;
 
-                Self::Value::TextDisplay(TextDisplay { id, content })
+                Self::Value::TextDisplay(TextDisplay { content, id })
             }
             ComponentType::MediaGallery => {
                 let items = items.ok_or_else(|| DeError::missing_field("items"))?;
@@ -928,14 +928,14 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                 Self::Value::MediaGallery(MediaGallery { id, items })
             }
             ComponentType::Separator => Self::Value::Separator(Separator {
-                id,
                 divider,
+                id,
                 spacing,
             }),
             ComponentType::File => {
                 let file = file.ok_or_else(|| DeError::missing_field("file"))?;
 
-                Self::Value::File(FileDisplay { id, file, spoiler })
+                Self::Value::File(FileDisplay { file, id, spoiler })
             }
             ComponentType::Unknown(unknown) => Self::Value::Unknown(unknown),
             ComponentType::Section => {
@@ -950,19 +950,19 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             ComponentType::Thumbnail => {
                 let media = media.ok_or_else(|| DeError::missing_field("media"))?;
                 Self::Value::Thumbnail(Thumbnail {
+                    description,
                     id,
                     media,
-                    description,
                     spoiler,
                 })
             }
             ComponentType::Container => {
                 let components = components.ok_or_else(|| DeError::missing_field("components"))?;
                 Self::Value::Container(Container {
-                    id,
                     accent_color,
-                    spoiler,
                     components,
+                    id,
+                    spoiler,
                 })
             }
             ComponentType::Label => {

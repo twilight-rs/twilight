@@ -402,7 +402,7 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
             ComponentType::ActionRow => {
                 let components = components.ok_or_else(|| DeError::missing_field("components"))?;
 
-                Self::Value::ActionRow(ModalInteractionActionRow { id, components })
+                Self::Value::ActionRow(ModalInteractionActionRow { components, id })
             }
             ComponentType::TextSelectMenu => {
                 Self::Value::StringSelect(deserialize_select_menu::<String, _>(
@@ -456,8 +456,8 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
                     .map_err(DeserializerError::into_error)?;
 
                 Self::Value::FileUpload(ModalInteractionFileUpload {
-                    id,
                     custom_id,
+                    id,
                     values,
                 })
             }
