@@ -1,5 +1,4 @@
 pub mod activity_instance_resource;
-pub mod interaction_callback_type;
 pub mod resource;
 pub mod response;
 
@@ -13,9 +12,9 @@ use crate::id::{
 use super::InteractionType;
 
 /// Interaction object associated with the interaction response.
-/// 
+///
 /// See [Discord Docs/Interaction Callback Object]
-/// 
+///
 /// [Discord Docs/Interaction Callback Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-callback-interaction-callback-object
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct InteractionCallback {

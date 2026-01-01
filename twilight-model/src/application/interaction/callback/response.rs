@@ -23,11 +23,9 @@ mod tests {
     use crate::{
         application::interaction::{
             InteractionType,
-            callback::{
-                InteractionCallback, interaction_callback_type::InteractionCallbackType,
-                resource::InteractionCallbackResource,
-            },
+            callback::{InteractionCallback, resource::InteractionCallbackResource},
         },
+        http::interaction::InteractionResponseType,
         id::Id,
     };
 
@@ -46,7 +44,7 @@ mod tests {
                 response_message_ephemeral: Some(false),
             },
             resource: InteractionCallbackResource {
-                kind: InteractionCallbackType::ChannelMessageWithSource,
+                kind: InteractionResponseType::ChannelMessageWithSource,
                 activity_instance: None,
                 message: None,
             },
@@ -86,7 +84,7 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("type"),
-                Token::U8(InteractionCallbackType::ChannelMessageWithSource as u8),
+                Token::U8(InteractionResponseType::ChannelMessageWithSource as u8),
                 Token::StructEnd,
                 Token::StructEnd,
             ],
