@@ -12,7 +12,8 @@ pub struct InteractionCallbackResponse {
     /// The interaction object associated with the interaction response.
     pub interaction: InteractionCallback,
     /// The resource that was created by the interaction response.
-    pub resource: InteractionCallbackResource,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resource: Option<InteractionCallbackResource>,
 }
 
 #[cfg(test)]
@@ -43,11 +44,11 @@ mod tests {
                 response_message_loading: Some(false),
                 response_message_ephemeral: Some(false),
             },
-            resource: InteractionCallbackResource {
+            resource: Some(InteractionCallbackResource {
                 kind: InteractionResponseType::ChannelMessageWithSource,
                 activity_instance: None,
                 message: None,
-            },
+            }),
         };
 
         serde_test::assert_de_tokens(
@@ -79,6 +80,7 @@ mod tests {
                 Token::Bool(false),
                 Token::StructEnd,
                 Token::Str("resource"),
+                Token::Some,
                 Token::Struct {
                     name: "InteractionCallbackResource",
                     len: 3,
