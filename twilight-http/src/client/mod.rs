@@ -2997,7 +2997,7 @@ impl Client {
             self.http.clone(),
             invalid_token,
             http_request,
-            tracing::info_span!("req", method = method.name(), url = url),
+            tracing::info_span!("request", method = method.name(), path),
             self.timeout,
             self.ratelimiter.clone(),
             Endpoint { method, path },

@@ -145,7 +145,11 @@ pub async fn runner(
             {
                 match req.notifier.send(tx) {
                     Ok(()) => {
-                        tracing::debug!(path = req.endpoint.path, "permitted");
+                        tracing::debug!(
+                            method = req.endpoint.method.name(),
+                            path = req.endpoint.path,
+                            "permitted",
+                        );
                         if !req.endpoint.is_interaction() {
                             on_global!();
                         }
@@ -205,7 +209,7 @@ pub async fn runner(
                 }
             }
             Some(Ok((endpoint, headers))) = in_flight.join_next() => {
-                let _span = tracing::info_span!("resp", ?endpoint).entered();
+                let _span = tracing::info_span!("response", method = endpoint.method.name(), path = endpoint.path).entered();
                 if let Ok(Some(headers)) = headers {
                     tracing::trace!(?headers);
 
@@ -325,7 +329,11 @@ pub async fn runner(
                 } else {
                     let (tx, rx) = oneshot::channel();
                     if msg.notifier.send(tx).is_ok() {
-                        tracing::debug!(path = msg.endpoint.path, "permitted");
+                        tracing::debug!(
+                            method = msg.endpoint.method.name(),
+                            path = msg.endpoint.path,
+                            "permitted",
+                        );
                         if !msg.endpoint.is_interaction() {
                             on_global!();
                         }
