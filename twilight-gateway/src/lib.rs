@@ -78,7 +78,7 @@ pub fn create_bucket<F, Q>(
     per_shard_config: F,
 ) -> impl ExactSizeIterator<Item = Shard<Q>>
 where
-    F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>,
+    F: FnMut(ShardId, ConfigBuilder<Q>) -> Config<Q>,
     Q: Clone,
 {
     assert!(
@@ -134,10 +134,10 @@ pub fn create_iterator<F, Q>(
     numbers: impl ExactSizeIterator<Item = u32>,
     total: u32,
     config: Config<Q>,
-    per_shard_config: F,
+    mut per_shard_config: F,
 ) -> impl ExactSizeIterator<Item = Shard<Q>>
 where
-    F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>,
+    F: FnMut(ShardId, ConfigBuilder<Q>) -> Config<Q>,
     Q: Clone,
 {
     numbers.map(move |index| {
@@ -175,7 +175,7 @@ pub async fn create_recommended<F, Q>(
     per_shard_config: F,
 ) -> Result<impl ExactSizeIterator<Item = Shard<Q>> + use<F, Q>, StartRecommendedError>
 where
-    F: Fn(ShardId, ConfigBuilder<Q>) -> Config<Q>,
+    F: FnMut(ShardId, ConfigBuilder<Q>) -> Config<Q>,
     Q: Clone,
 {
     let request = client.gateway().authed();
