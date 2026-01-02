@@ -7,7 +7,7 @@ use crate::{
 };
 use std::future::IntoFuture;
 use twilight_model::{
-    application::interaction::callback::response::InteractionCallbackResponse,
+    application::interaction::callback::InteractionCallbackResponse,
     http::interaction::InteractionResponse,
     id::{Id, marker::InteractionMarker},
 };

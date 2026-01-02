@@ -1,6 +1,19 @@
-pub mod activity_instance_resource;
-pub mod resource;
-pub mod response;
+//! [`InteractionCallbackResponse`] that is returned when creating an interaction response, only when querying with it.
+//!
+//! See [Discord Docs/Interaction Callback].
+//!
+//! [`InteractionCallbackResponse`]: crate::application::interaction::callback::response::InteractionCallbackResponse
+//! [Discord Docs/Interaction Callback]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-callback
+
+mod activity_instance_resource;
+mod resource;
+mod response;
+
+pub use activity_instance_resource::ActivityInstanceResource;
+
+pub use resource::InteractionCallbackResource;
+
+pub use response::InteractionCallbackResponse;
 
 use serde::Deserialize;
 
