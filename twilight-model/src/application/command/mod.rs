@@ -51,13 +51,6 @@ pub struct Command {
     /// Setting this [`Permissions::empty()`] will prohibit anyone from running
     /// the command, except for guild administrators.
     pub default_member_permissions: Option<Permissions>,
-    /// Whether the command is available in DMs.
-    ///
-    /// This is only relevant for globally-scoped commands. By default, commands
-    /// are visible in DMs.
-    #[deprecated(note = "use contexts instead")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dm_permission: Option<bool>,
     /// Description of the command.
     ///
     /// For [`User`] and [`Message`] commands, this will be an empty string.
@@ -72,6 +65,13 @@ pub struct Command {
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_localizations: Option<HashMap<String, String>>,
+    /// Whether the command is available in DMs.
+    ///
+    /// This is only relevant for globally-scoped commands. By default, commands
+    /// are visible in DMs.
+    #[deprecated(note = "use contexts instead")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dm_permission: Option<bool>,
     /// Guild ID of the command, if not global.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -119,12 +119,12 @@ mod tests {
             application_id: Some(Id::new(100)),
             contexts: None,
             default_member_permissions: Some(Permissions::ADMINISTRATOR),
-            dm_permission: Some(false),
             description: "this command is a test".into(),
             description_localizations: Some(HashMap::from([(
                 "en-US".into(),
                 "this command is a test".into(),
             )])),
+            dm_permission: Some(false),
             guild_id: Some(Id::new(300)),
             id: Some(Id::new(200)),
             integration_types: None,
@@ -338,9 +338,6 @@ mod tests {
                 Token::Str("default_member_permissions"),
                 Token::Some,
                 Token::Str("8"),
-                Token::Str("dm_permission"),
-                Token::Some,
-                Token::Bool(false),
                 Token::Str("description"),
                 Token::Str("this command is a test"),
                 Token::Str("description_localizations"),
@@ -349,6 +346,9 @@ mod tests {
                 Token::Str("en-US"),
                 Token::Str("this command is a test"),
                 Token::MapEnd,
+                Token::Str("dm_permission"),
+                Token::Some,
+                Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },

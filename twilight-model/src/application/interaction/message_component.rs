@@ -14,14 +14,14 @@ use serde::{Deserialize, Serialize};
 /// [Discord Docs/Message Component Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-message-component-data-structure
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct MessageComponentInteractionData {
+    /// Type of the component.
+    pub component_type: ComponentType,
     /// User defined identifier for the component.
     ///
     /// See [Discord Docs/Custom ID].
     ///
     /// [Discord Docs/Custom ID]: https://discord.com/developers/docs/interactions/message-components#custom-id
     pub custom_id: String,
-    /// Type of the component.
-    pub component_type: ComponentType,
     /// Converted users, roles, channels, or attachments.
     ///
     /// Only used for [`SelectMenu`] components.
@@ -47,8 +47,9 @@ mod tests {
     use std::fmt::Debug;
 
     assert_fields!(
-        MessageComponentInteractionData: custom_id,
-        component_type,
+        MessageComponentInteractionData: component_type,
+        custom_id,
+        resolved,
         values
     );
     assert_impl_all!(
@@ -64,8 +65,8 @@ mod tests {
     #[test]
     fn message_component_interaction_data() {
         let value = MessageComponentInteractionData {
-            custom_id: "test".to_owned(),
             component_type: ComponentType::Button,
+            custom_id: "test".to_owned(),
             resolved: None,
             values: Vec::from(["1".to_owned(), "2".to_owned()]),
         };
@@ -77,10 +78,10 @@ mod tests {
                     name: "MessageComponentInteractionData",
                     len: 4,
                 },
-                Token::String("custom_id"),
-                Token::String("test"),
                 Token::String("component_type"),
                 Token::U8(ComponentType::Button.into()),
+                Token::String("custom_id"),
+                Token::String("test"),
                 Token::String("resolved"),
                 Token::None,
                 Token::String("values"),
