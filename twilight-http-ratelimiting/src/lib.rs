@@ -332,14 +332,22 @@ impl RateLimiter {
     where
         P: FnOnce(Option<Bucket>) -> bool + Send + 'static,
     {
-        let (notifier, rx) = oneshot::channel();
-        let message = actor::Message { endpoint, notifier };
-        assert!(
-            self.tx.send((message, Some(Box::new(predicate)))).is_ok(),
-            "{ACTOR_PANIC_MESSAGE}"
-        );
+        fn acquire_if(
+            tx: &mpsc::UnboundedSender<(actor::Message, Option<Predicate>)>,
+            endpoint: Endpoint,
+            predicate: Predicate,
+        ) -> MaybePermitFuture {
+            let (notifier, rx) = oneshot::channel();
+            let message = actor::Message { endpoint, notifier };
+            assert!(
+                tx.send((message, Some(predicate))).is_ok(),
+                "{ACTOR_PANIC_MESSAGE}"
+            );
 
-        MaybePermitFuture(rx)
+            MaybePermitFuture(rx)
+        }
+
+        acquire_if(&self.tx, endpoint, Box::new(predicate))
     }
 
     /// Retrieve the [`Bucket`] for this endpoint.
