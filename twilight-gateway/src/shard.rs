@@ -568,8 +568,10 @@ impl<Q> Shard<Q> {
 
             let tls = Arc::clone(&self.config.tls);
             ConnectionFuture(Box::pin(async move {
-                let delay = Duration::from_secs(2u8.saturating_pow(attempt.into()).into());
-                time::sleep(delay).await;
+                if attempt != 0 {
+                    let secs = 2u8.saturating_pow(u32::from(attempt) - 1);
+                    time::sleep(Duration::from_secs(secs.into())).await;
+                }
                 tracing::debug!(url = &uri[..base_url_len], "connecting");
 
                 let builder = ClientBuilder::new()
@@ -593,7 +595,7 @@ impl<Q> Shard<Q> {
             Err(source) => {
                 self.resume_url = None;
                 self.state = ShardState::Disconnected {
-                    reconnect_attempts: attempt + 1,
+                    reconnect_attempts: attempt.saturating_add(1),
                 };
 
                 return Poll::Ready(Err(ReceiveMessageError {
