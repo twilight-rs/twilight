@@ -1,4 +1,6 @@
-//! Create message components with a builder.
+//! Create message [`Component`]s with builders.
+//!
+//! [`Component`]: twilight_model::channel::message::Component
 
 mod action_row;
 mod button;

@@ -12,10 +12,12 @@ enabled via feature flags.
 ### Builder
 
 The `builder` feature enables builders for large structs. At the time of
-writing, it contains the following builders:
+writing, it contains the following:
+
 - [`CommandBuilder`]
 - [`EmbedBuilder`]
-- [`InteractionResponseData`]
+- [`interaction_response`] builders module
+- [`message`] component builders module
 
 #### Command example
 
@@ -145,4 +147,5 @@ let timestamp = user.timestamp();
 
 [`CommandBuilder`]: https://api.twilight.rs/twilight_util/builder/command/struct.CommandBuilder.html
 [`EmbedBuilder`]: https://api.twilight.rs/twilight_util/builder/embed/struct.EmbedBuilder.html
-[`InteractionResponseDataBuilder`]: https://api.twilight.rs/twilight_util/builder/struct.InteractionResponseDataBuilder.html
+[`interaction_response`]: https://api.twilight.rs/twilight_util/builder/interaction_response/index.html
+[`message`]: https://api.twilight.rs/twilight_util/builder/message/index.html

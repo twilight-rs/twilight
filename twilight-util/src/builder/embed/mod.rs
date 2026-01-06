@@ -79,7 +79,6 @@ impl EmbedBuilder {
     }
 
     /// Build this into an embed.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used as part of something like a message"]
     pub fn build(self) -> Embed {
         self.0
@@ -237,7 +236,6 @@ impl EmbedBuilder {
     ///     .build();
     /// # Ok(()) }
     /// ```
-    #[allow(clippy::missing_const_for_fn)]
     pub fn image(mut self, image_source: ImageSource) -> Self {
         self.0.image = Some(EmbedImage {
             height: None,
@@ -267,7 +265,6 @@ impl EmbedBuilder {
     ///     .build();
     /// # Ok(()) }
     /// ```
-    #[allow(clippy::missing_const_for_fn)]
     pub fn thumbnail(mut self, image_source: ImageSource) -> Self {
         self.0.thumbnail = Some(EmbedThumbnail {
             height: None,
