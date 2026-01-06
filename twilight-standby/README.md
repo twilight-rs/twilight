@@ -47,10 +47,7 @@ detailed on the [`Standby`] type.
 Wait for a message in channel 123 by user 456 with the content "test":
 
 ```rust,no_run
-use twilight_model::{
-    gateway::payload::incoming::MessageCreate,
-    id::Id,
-};
+use twilight_model::id::Id;
 use twilight_standby::Standby;
 
 #[tokio::main]
@@ -59,9 +56,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let channel_id = Id::new(123);
 
-    let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
-        event.author.id.get() == 456 && event.content == "test"
-    }).await?;
+    let message = standby
+        .wait_for_message(channel_id, |event| {
+            event.author.id.get() == 456 && event.content == "test"
+        })
+        .await?;
 
     Ok(())
 }
@@ -75,10 +74,7 @@ including a handler to wait for reactions:
 ```rust,no_run
 use std::{env, sync::Arc};
 use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
-use twilight_model::{
-    channel::Message,
-    gateway::payload::incoming::ReactionAdd,
-};
+use twilight_model::channel::Message;
 use twilight_standby::Standby;
 
 #[tokio::main]
@@ -118,9 +114,9 @@ async fn main() -> anyhow::Result<()> {
 async fn react(msg: Message, standby: Arc<Standby>) -> anyhow::Result<()> {
     let author_id = msg.author.id;
 
-    let reaction = standby.wait_for_reaction(msg.id, move |event: &ReactionAdd| {
-        event.user_id == author_id
-    }).await?;
+    let reaction = standby
+        .wait_for_reaction(msg.id, move |event| event.user_id == author_id)
+        .await?;
 
     println!("user reacted with {:?}", reaction.emoji);
 
