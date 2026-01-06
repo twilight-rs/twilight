@@ -63,14 +63,14 @@ impl<'a> InteractionClient<'a> {
     /// Respond to an interaction, by its ID and token.
     ///
     /// For variants of [`InteractionResponse`] that contain
-    /// [`InteractionResponseData`], there is an [associated builder] in the
+    /// [`InteractionResponseData`], there are [associated builders] in the
     /// [`twilight-util`] crate.
     ///
     /// This endpoint is not bound to the application's global rate limit.
     ///
     /// [`InteractionResponseData`]: twilight_model::http::interaction::InteractionResponseData
     /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-    /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/struct.InteractionResponseDataBuilder.html
+    /// [associated builders]: https://docs.rs/twilight-util/latest/twilight_util/builder/interaction_response/index.html
     pub const fn create_response(
         &'a self,
         interaction_id: Id<InteractionMarker>,

@@ -34,7 +34,6 @@ impl EmbedFieldBuilder {
     }
 
     /// Build into an embed field.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used as part of an embed builder"]
     pub fn build(self) -> EmbedField {
         self.0

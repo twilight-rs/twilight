@@ -89,7 +89,6 @@ impl CommandBuilder {
     }
 
     /// Consume the builder, returning a [`Command`].
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "must be built into a command"]
     pub fn build(self) -> Command {
         self.0
@@ -245,7 +244,6 @@ impl AttachmentBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -329,7 +327,6 @@ impl BooleanBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -413,7 +410,6 @@ impl ChannelBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -505,7 +501,6 @@ impl IntegerBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -674,7 +669,6 @@ impl MentionableBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -758,7 +752,6 @@ impl NumberBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -927,7 +920,6 @@ impl RoleBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -1011,7 +1003,6 @@ impl StringBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -1183,7 +1174,6 @@ impl SubCommandBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -1275,7 +1265,6 @@ impl SubCommandGroupBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
@@ -1359,7 +1348,6 @@ impl UserBuilder {
     }
 
     /// Consume the builder, returning the built command option.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         self.0
