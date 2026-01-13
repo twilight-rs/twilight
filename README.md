@@ -109,128 +109,12 @@ A trait and some implementations that are used by the gateway to ratelimit
 identify calls. Developers should prefer to use the re-exports of these
 crates through the gateway.
 
-## Examples
+## Quick Start
 
-The following example is a template for bootstrapping a new bot using
-Twilight's HTTP and gateway clients with its in-memory cache. In order to
-run this, replace the contents of a new project's `main.rs` file with the
-following. Be sure to set the `DISCORD_TOKEN` environment variable to your
-bot's token. You must also depend on `rustls`, `tokio`, `twilight-cache-inmemory`,
-`twilight-gateway`, `twilight-http`, and `twilight-model` in your `Cargo.toml`.
+Twilight provides a [template] to help you get started quickly.
 
-```rust,no_run
-mod context {
-    use std::{ops::Deref, sync::OnceLock};
-    use twilight_cache_inmemory::DefaultInMemoryCache;
-    use twilight_http::Client;
-
-    pub static CONTEXT: Handle = Handle(OnceLock::new());
-
-    #[derive(Debug)]
-    pub struct Context {
-        pub cache: DefaultInMemoryCache,
-        pub http: Client,
-    }
-
-    pub fn initialize(cache: DefaultInMemoryCache, http: Client) {
-        let context = Context { cache, http };
-        assert!(CONTEXT.0.set(context).is_ok());
-    }
-
-    pub struct Handle(OnceLock<Context>);
-    impl Deref for Handle {
-        type Target = Context;
-
-        fn deref(&self) -> &Self::Target {
-            self.0.get().unwrap()
-        }
-    }
-}
-
-use context::CONTEXT;
-use std::env;
-use twilight_cache_inmemory::{DefaultInMemoryCache, ResourceType};
-use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
-use twilight_http::Client;
-use twilight_model::gateway::payload::incoming::MessageCreate;
-
-// Use event type flags to only deserialize message create events.
-const EVENT_TYPES: EventTypeFlags = EventTypeFlags::MESSAGE_CREATE;
-
-// Use intents to only receive guild message events.
-const INTENTS: Intents = Intents::GUILD_MESSAGES.union(Intents::MESSAGE_CONTENT);
-
-// Cache only new messages.
-const RESOURCE_TYPES: ResourceType = ResourceType::MESSAGE;
-
-#[tokio::main(flavor = "current_thread")]
-async fn main() -> anyhow::Result<()> {
-    // Initialize the tracing subscriber.
-    tracing_subscriber::fmt::init();
-
-    // Select rustls backend
-    rustls::crypto::ring::default_provider().install_default().unwrap();
-
-    let token = env::var("DISCORD_TOKEN")?;
-
-    let cache = DefaultInMemoryCache::builder()
-        .resource_types(RESOURCE_TYPES)
-        .build();
-    let http = Client::new(token.clone());
-    // Initialize the bot context.
-    context::initialize(cache, http);
-
-    let shard = Shard::new(ShardId::ONE, token, INTENTS);
-    dispatcher(shard).await;
-
-    Ok(())
-}
-
-#[tracing::instrument(fields(shard = %shard.id()), skip_all)]
-async fn dispatcher(mut shard: Shard) {
-    loop {
-        let event = match shard.next_event(EVENT_TYPES).await {
-            Some(Ok(event)) => event,
-            Some(Err(source)) => {
-                tracing::warn!(?source, "error receiving event");
-                continue;
-            }
-            None => break,
-        };
-
-        // Update the cache with the event.
-        CONTEXT.cache.update(&event);
-
-        // Route the event to a handler.
-        let handler = match event {
-            Event::MessageCreate(event) => message(event),
-            _ => continue,
-        };
-
-        tokio::spawn(async move {
-            if let Err(source) = handler.await {
-                tracing::warn!(?source, "error handling event");
-            }
-        });
-    }
-}
-
-#[tracing::instrument(fields(id = %event.id), skip_all)]
-async fn message(event: Box<MessageCreate>) -> anyhow::Result<()> {
-    match &*event.content {
-        "!ping" => {
-            CONTEXT
-                .http
-                .create_message(event.channel_id)
-                .content("Pong!")
-                .await?;
-        }
-        _ => {}
-    }
-
-    Ok(())
-}
-```
+1. Install [cargo-generate]: `cargo install cargo-generate`
+1. Create a bot based upon the template: `cargo generate twilight-rs/template`
 
 ## License
 
@@ -239,6 +123,7 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [Lavalink]: https://github.com/freyacodes/Lavalink
 [`http`]: https://crates.io/crates/http
+[cargo-generate]: https://github.com/cargo-generate/cargo-generate
 [crates:cache-inmemory]: https://crates.io/crates/twilight-cache-inmemory
 [crates:gateway]: https://crates.io/crates/twilight-gateway
 [crates:http]: https://crates.io/crates/twilight-http
@@ -253,6 +138,7 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
 [rust badge]: https://img.shields.io/badge/rust-1.79+-93450a.svg?style=for-the-badge&logo=rust
+[template]: https://github.com/twilight-rs/template
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
 [`twilight-gateway-queue`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_5_gateway_queue.html
 [`twilight-gateway`]: https://twilight.rs/chapter_1_crates/section_3_gateway.html
