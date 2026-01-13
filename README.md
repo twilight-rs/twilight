@@ -114,7 +114,7 @@ crates through the gateway.
 Twilight provides a [template] to help you get started quickly.
 
 1. Install [cargo-generate]: `cargo install cargo-generate`
-1. Create a bot based upon the template: `cargo generate twilight-rs/twilight`
+1. Create a bot based upon the template: `cargo generate twilight-rs/template`
 
 ## License
 
