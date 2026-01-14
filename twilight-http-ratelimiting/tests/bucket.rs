@@ -32,11 +32,11 @@ async fn bucket_limit() {
         })),
     }
 
-    time::advance(RESET_AFTER / 2).await;
+    time::sleep(RESET_AFTER / 2).await;
 
     assert!(rate_limiter.bucket(ENDPOINT()).await.is_some());
 
-    time::advance(RESET_AFTER / 2).await;
+    time::sleep(RESET_AFTER / 2).await;
 
     assert!(rate_limiter.bucket(ENDPOINT()).await.is_none());
     _ = permit_fut2.await;
@@ -164,7 +164,7 @@ async fn bucket_shared_resource() {
     assert_eq!(bucket.limit, 0);
     assert_eq!(bucket.remaining, 0);
 
-    time::advance(bucket.reset_at - now.into_std()).await;
+    time::sleep(bucket.reset_at - now.into_std()).await;
     assert!(rate_limiter.bucket(ENDPOINT()).await.is_none());
 
     _ = permit_fut2.await;
