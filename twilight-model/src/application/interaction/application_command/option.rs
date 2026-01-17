@@ -76,11 +76,11 @@ impl<'de> Deserialize<'de> for CommandDataOption {
         #[derive(Debug, Deserialize)]
         #[serde(field_identifier, rename_all = "snake_case")]
         enum Fields {
+            Focused,
             Name,
+            Options,
             Type,
             Value,
-            Options,
-            Focused,
         }
 
         // An `Id` variant is purposely not present here to prevent wrongly
@@ -146,12 +146,26 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     };
 
                     match key {
+                        Fields::Focused => {
+                            if focused.is_some() {
+                                return Err(DeError::duplicate_field("focused"));
+                            }
+
+                            focused = map.next_value()?;
+                        }
                         Fields::Name => {
                             if name_opt.is_some() {
                                 return Err(DeError::duplicate_field("name"));
                             }
 
                             name_opt = Some(map.next_value()?);
+                        }
+                        Fields::Options => {
+                            if !options.is_empty() {
+                                return Err(DeError::duplicate_field("options"));
+                            }
+
+                            options = map.next_value()?;
                         }
                         Fields::Type => {
                             if kind_opt.is_some() {
@@ -166,20 +180,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             }
 
                             value_opt = Some(map.next_value()?);
-                        }
-                        Fields::Options => {
-                            if !options.is_empty() {
-                                return Err(DeError::duplicate_field("options"));
-                            }
-
-                            options = map.next_value()?;
-                        }
-                        Fields::Focused => {
-                            if focused.is_some() {
-                                return Err(DeError::duplicate_field("focused"));
-                            }
-
-                            focused = map.next_value()?;
                         }
                     }
                 }
@@ -361,6 +361,25 @@ pub enum CommandOptionValue {
     User(Id<UserMarker>),
 }
 
+impl CommandOptionValue {
+    pub const fn kind(&self) -> CommandOptionType {
+        match self {
+            CommandOptionValue::Attachment(_) => CommandOptionType::Attachment,
+            CommandOptionValue::Boolean(_) => CommandOptionType::Boolean,
+            CommandOptionValue::Channel(_) => CommandOptionType::Channel,
+            CommandOptionValue::Focused(_, t) => *t,
+            CommandOptionValue::Integer(_) => CommandOptionType::Integer,
+            CommandOptionValue::Mentionable(_) => CommandOptionType::Mentionable,
+            CommandOptionValue::Number(_) => CommandOptionType::Number,
+            CommandOptionValue::Role(_) => CommandOptionType::Role,
+            CommandOptionValue::String(_) => CommandOptionType::String,
+            CommandOptionValue::SubCommand(_) => CommandOptionType::SubCommand,
+            CommandOptionValue::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
+            CommandOptionValue::User(_) => CommandOptionType::User,
+        }
+    }
+}
+
 impl From<Id<AttachmentMarker>> for CommandOptionValue {
     fn from(value: Id<AttachmentMarker>) -> Self {
         CommandOptionValue::Attachment(value)
@@ -379,9 +398,21 @@ impl From<Id<ChannelMarker>> for CommandOptionValue {
     }
 }
 
+impl From<(String, CommandOptionType)> for CommandOptionValue {
+    fn from((value, kind): (String, CommandOptionType)) -> Self {
+        CommandOptionValue::Focused(value, kind)
+    }
+}
+
 impl From<i64> for CommandOptionValue {
     fn from(value: i64) -> Self {
         CommandOptionValue::Integer(value)
+    }
+}
+
+impl From<Id<GenericMarker>> for CommandOptionValue {
+    fn from(value: Id<GenericMarker>) -> Self {
+        CommandOptionValue::Mentionable(value)
     }
 }
 
@@ -409,21 +440,112 @@ impl From<Id<UserMarker>> for CommandOptionValue {
     }
 }
 
-impl CommandOptionValue {
-    pub const fn kind(&self) -> CommandOptionType {
-        match self {
-            CommandOptionValue::Attachment(_) => CommandOptionType::Attachment,
-            CommandOptionValue::Boolean(_) => CommandOptionType::Boolean,
-            CommandOptionValue::Channel(_) => CommandOptionType::Channel,
-            CommandOptionValue::Focused(_, t) => *t,
-            CommandOptionValue::Integer(_) => CommandOptionType::Integer,
-            CommandOptionValue::Mentionable(_) => CommandOptionType::Mentionable,
-            CommandOptionValue::Number(_) => CommandOptionType::Number,
-            CommandOptionValue::Role(_) => CommandOptionType::Role,
-            CommandOptionValue::String(_) => CommandOptionType::String,
-            CommandOptionValue::SubCommand(_) => CommandOptionType::SubCommand,
-            CommandOptionValue::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
-            CommandOptionValue::User(_) => CommandOptionType::User,
+impl TryFrom<CommandOptionValue> for Id<AttachmentMarker> {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::Attachment(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for bool {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::Boolean(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for Id<ChannelMarker> {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::Channel(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for (String, CommandOptionType) {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::Focused(value, kind) => Ok((value, kind)),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for i64 {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::Integer(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for Id<GenericMarker> {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::Mentionable(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for f64 {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::Number(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for Id<RoleMarker> {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::Role(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for String {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::String(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for Id<UserMarker> {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionValue::User(inner) => Ok(inner),
+            _ => Err(value),
         }
     }
 }
@@ -446,8 +568,8 @@ mod tests {
         let value = CommandData {
             guild_id: Some(Id::new(2)),
             id: Id::new(1),
-            name: "permissions".to_owned(),
             kind: CommandType::ChatInput,
+            name: "permissions".to_owned(),
             options: Vec::new(),
             resolved: None,
             target_id: None,
@@ -466,10 +588,10 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
-                Token::Str("name"),
-                Token::Str("permissions"),
                 Token::Str("type"),
                 Token::U8(CommandType::ChatInput.into()),
+                Token::Str("name"),
+                Token::Str("permissions"),
                 Token::StructEnd,
             ],
         )
@@ -480,8 +602,8 @@ mod tests {
         let value = CommandData {
             guild_id: Some(Id::new(2)),
             id: Id::new(1),
-            name: "permissions".to_owned(),
             kind: CommandType::ChatInput,
+            name: "permissions".to_owned(),
             options: Vec::from([CommandDataOption {
                 name: "cat".to_owned(),
                 value: CommandOptionValue::Integer(42),
@@ -504,10 +626,10 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
-                Token::Str("name"),
-                Token::Str("permissions"),
                 Token::Str("type"),
                 Token::U8(CommandType::ChatInput.into()),
+                Token::Str("name"),
+                Token::Str("permissions"),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -532,8 +654,8 @@ mod tests {
         let value = CommandData {
             guild_id: Some(Id::new(2)),
             id: Id::new(1),
-            name: "permissions".to_owned(),
             kind: CommandType::ChatInput,
+            name: "permissions".to_owned(),
             options: Vec::from([
                 CommandDataOption {
                     name: "cat".to_owned(),
@@ -565,10 +687,10 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
-                Token::Str("name"),
-                Token::Str("permissions"),
                 Token::Str("type"),
                 Token::U8(CommandType::ChatInput.into()),
+                Token::Str("name"),
+                Token::Str("permissions"),
                 Token::Str("options"),
                 Token::Seq { len: Some(2) },
                 Token::Struct {
@@ -607,8 +729,8 @@ mod tests {
         let value = CommandData {
             guild_id: None,
             id: Id::new(1),
-            name: "photo".to_owned(),
             kind: CommandType::ChatInput,
+            name: "photo".to_owned(),
             options: Vec::from([CommandDataOption {
                 name: "cat".to_owned(),
                 value: CommandOptionValue::SubCommand(Vec::new()),
@@ -627,10 +749,10 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
-                Token::Str("name"),
-                Token::Str("photo"),
                 Token::Str("type"),
                 Token::U8(CommandType::ChatInput.into()),
+                Token::Str("name"),
+                Token::Str("photo"),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

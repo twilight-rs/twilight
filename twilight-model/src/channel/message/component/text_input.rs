@@ -5,10 +5,10 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TextInput {
-    /// Optional id for the text input.
-    pub id: Option<i32>,
     /// User defined identifier for the input text.
     pub custom_id: String,
+    /// Optional id for the text input.
+    pub id: Option<i32>,
     /// Text appearing over the input field.
     #[deprecated = "Deprecated by Discord in favor of label and description on the Label component."]
     pub label: Option<String>,
