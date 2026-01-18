@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use twilight_model::{
     application::command::CommandOptionChoice,
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
@@ -38,6 +40,7 @@ use twilight_model::{
 /// assert_eq!(interaction_response_data.components, Some(vec![component]));
 /// ```
 #[derive(Clone, Debug)]
+#[deprecated = "use the `interaction_response` builders instead"]
 #[must_use = "builders have no effect if unused"]
 pub struct InteractionResponseDataBuilder(InteractionResponseData);
 
@@ -60,7 +63,6 @@ impl InteractionResponseDataBuilder {
     }
 
     /// Consume the builder, returning an [`InteractionResponseData`].
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
     pub fn build(self) -> InteractionResponseData {
         self.0
@@ -69,7 +71,6 @@ impl InteractionResponseDataBuilder {
     /// Set the [`AllowedMentions`] of the callback.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
     pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
         self.0.allowed_mentions = Some(allowed_mentions);
 
