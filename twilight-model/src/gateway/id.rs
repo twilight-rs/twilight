@@ -129,24 +129,22 @@ impl ShardId {
     /// of shards.
     pub const fn new(number: u32, total: u32) -> Self {
         assert!(number < total, "number must be less than total");
-        if let Some(total) = NonZero::new(total) {
-            Self { number, total }
-        } else {
-            panic!("unreachable: total is at least 1")
+        Self {
+            number,
+            total: NonZero::new(total).expect("total is at least 1"),
         }
     }
 
     /// Create a new shard identifier if the shard indexes are valid.
     #[allow(clippy::missing_panics_doc)]
     pub const fn new_checked(number: u32, total: u32) -> Option<Self> {
-        if number >= total {
-            return None;
-        }
-
-        if let Some(total) = NonZero::new(total) {
-            Some(Self { number, total })
+        if number < total {
+            Some(Self {
+                number,
+                total: NonZero::new(total).expect("total is at least 1"),
+            })
         } else {
-            panic!("unreachable: total is at least 1")
+            None
         }
     }
 
@@ -166,9 +164,7 @@ impl ShardId {
 /// Formats as `[{number}, {total}]`.
 impl Display for ShardId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.debug_list()
-            .entries(Into::<[u32; 2]>::into(*self))
-            .finish()
+        f.debug_list().entries(<[u32; 2]>::from(*self)).finish()
     }
 }
 
