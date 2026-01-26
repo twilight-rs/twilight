@@ -98,7 +98,8 @@ pub const API_VERSION: u8 = 10;
 ///
 /// # Panics
 ///
-/// Panics if not `id < buckets <= total`.
+/// Panics if the bucket id is greater than or equal to the total number of
+/// buckets.
 #[track_caller]
 pub fn bucket(
     bucket_id: u16,
@@ -108,7 +109,6 @@ pub fn bucket(
     let bucket_id = u32::from(bucket_id);
     let buckets = u32::from(buckets);
     assert!(bucket_id < buckets, "bucket_id must be less than buckets");
-    assert!(buckets <= total, "buckets must be less or equal to total");
 
     let (q, r) = (total / buckets, total % buckets);
 
