@@ -1,8 +1,9 @@
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
@@ -89,6 +90,7 @@ impl<'a> AuditLogReason<'a> for CreateWebhook<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for CreateWebhook<'_> {
     type Output = Result<Response<Webhook>, Error>;
 

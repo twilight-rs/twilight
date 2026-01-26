@@ -1,8 +1,9 @@
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture, marker::EmptyBody};
 use crate::{
     client::Client,
     error::Error,
     request::{Nullable, Request, TryIntoRequest},
-    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use serde::Serialize;
@@ -87,6 +88,7 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateCurrentUserVoiceState<'_> {
     type Output = Result<Response<EmptyBody>, Error>;
 

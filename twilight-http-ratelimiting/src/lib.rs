@@ -10,6 +10,7 @@
 
 mod actor;
 
+#[cfg(not(target_os = "wasi"))]
 use std::{
     future::Future,
     hash::{Hash as _, Hasher},
@@ -17,13 +18,16 @@ use std::{
     task::{Context, Poll},
     time::{Duration, Instant},
 };
+#[cfg(not(target_os = "wasi"))]
 use tokio::sync::{mpsc, oneshot};
 
 /// Duration from the first globally limited request until the remaining count
 /// resets to the global limit count.
+#[cfg(not(target_os = "wasi"))]
 pub const GLOBAL_LIMIT_PERIOD: Duration = Duration::from_secs(1);
 
 /// User actionable description that the actor panicked.
+#[cfg(not(target_os = "wasi"))]
 const ACTOR_PANIC_MESSAGE: &str =
     "actor task panicked: report its panic message to the maintainers";
 
@@ -85,6 +89,7 @@ impl Method {
 /// # });
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg(not(target_os = "wasi"))]
 pub struct Endpoint {
     /// Method of the endpoint.
     pub method: Method,
@@ -94,6 +99,7 @@ pub struct Endpoint {
     pub path: String,
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl Endpoint {
     /// Whether the endpoint is properly structured.
     pub(crate) fn is_valid(&self) -> bool {
@@ -158,6 +164,7 @@ impl Endpoint {
 /// the [`Permit`] with [`RateLimitHeaders::shared`], but are not required to
 /// since these limits do not count towards the invalid request limit.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg(not(target_os = "wasi"))]
 pub struct RateLimitHeaders {
     /// Bucket identifier.
     pub bucket: Vec<u8>,
@@ -169,6 +176,7 @@ pub struct RateLimitHeaders {
     pub reset_at: Instant,
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl RateLimitHeaders {
     /// Lowercased name for the bucket header.
     pub const BUCKET: &'static str = "x-ratelimit-bucket";
@@ -200,8 +208,10 @@ impl RateLimitHeaders {
 /// Permit to send a Discord HTTP API request to the acquired endpoint.
 #[derive(Debug)]
 #[must_use = "dropping the permit immediately cancels itself"]
+#[cfg(not(target_os = "wasi"))]
 pub struct Permit(oneshot::Sender<Option<RateLimitHeaders>>);
 
+#[cfg(not(target_os = "wasi"))]
 impl Permit {
     /// Update the [`RateLimiter`] based on the response headers.
     ///
@@ -216,8 +226,10 @@ impl Permit {
 /// Future that completes when a permit is ready.
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[cfg(not(target_os = "wasi"))]
 pub struct PermitFuture(oneshot::Receiver<oneshot::Sender<Option<RateLimitHeaders>>>);
 
+#[cfg(not(target_os = "wasi"))]
 impl Future for PermitFuture {
     type Output = Permit;
 
@@ -233,8 +245,10 @@ impl Future for PermitFuture {
 /// Future that completes when a permit is ready or cancelled.
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[cfg(not(target_os = "wasi"))]
 pub struct MaybePermitFuture(oneshot::Receiver<oneshot::Sender<Option<RateLimitHeaders>>>);
 
+#[cfg(not(target_os = "wasi"))]
 impl Future for MaybePermitFuture {
     type Output = Option<Permit>;
 
@@ -247,6 +261,7 @@ impl Future for MaybePermitFuture {
 /// [`RateLimitHeaders`].
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[cfg(not(target_os = "wasi"))]
 pub struct Bucket {
     /// Total number of permits until the bucket becomes exhausted.
     pub limit: u16,
@@ -257,6 +272,7 @@ pub struct Bucket {
 }
 
 /// Actor run closure pre-enqueue for early [`MaybePermitFuture`] cancellation.
+#[cfg(not(target_os = "wasi"))]
 type Predicate = Box<dyn FnOnce(Option<Bucket>) -> bool + Send>;
 
 /// Discord HTTP client API rate limiter.
@@ -267,11 +283,13 @@ type Predicate = Box<dyn FnOnce(Option<Bucket>) -> bool + Send>;
 /// Cloning a [`RateLimiter`] increments just the amount of senders for the actor.
 /// The actor completes when there are no senders and non-completed permits left.
 #[derive(Clone, Debug)]
+#[cfg(not(target_os = "wasi"))]
 pub struct RateLimiter {
     /// Actor message sender.
     tx: mpsc::UnboundedSender<(actor::Message, Option<Predicate>)>,
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl RateLimiter {
     /// Create a new [`RateLimiter`] with a custom global limit.
     pub fn new(global_limit: u16) -> Self {
@@ -363,6 +381,7 @@ impl RateLimiter {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl Default for RateLimiter {
     /// Create a new [`RateLimiter`] with Discord's default global limit.
     ///

@@ -9,10 +9,14 @@ use twilight_model::{
 };
 
 use crate::{
-    Client, Error, Response,
+    Client, Error,
     request::{Request, TryIntoRequest},
-    response::{ResponseFuture, marker::ListBody},
     routing::Route,
+};
+#[cfg(not(target_os = "wasi"))]
+use crate::{
+    Response,
+    response::{ResponseFuture, marker::ListBody},
 };
 
 use twilight_validate::request::{
@@ -115,6 +119,7 @@ impl<'a> GetEntitlements<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for GetEntitlements<'_> {
     type Output = Result<Response<ListBody<Entitlement>>, Error>;
 

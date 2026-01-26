@@ -6,10 +6,14 @@ use twilight_model::{
 };
 
 use crate::{
-    Client, Error, Response,
+    Client, Error,
     request::{Request, TryIntoRequest},
-    response::{ResponseFuture, marker::ListBody},
     routing::Route,
+};
+#[cfg(not(target_os = "wasi"))]
+use crate::{
+    Response,
+    response::{ResponseFuture, marker::ListBody},
 };
 
 pub struct GetSKUs<'a> {
@@ -26,6 +30,7 @@ impl<'a> GetSKUs<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for GetSKUs<'_> {
     type Output = Result<Response<ListBody<Sku>>, Error>;
     type IntoFuture = ResponseFuture<ListBody<Sku>>;
