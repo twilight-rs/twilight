@@ -3,11 +3,13 @@ mod message;
 pub use self::message::CreateForumThreadMessage;
 
 use self::message::CreateForumThreadMessageFields;
+
+#[cfg(not(target_os = "wasi"))]
+use crate::response::ResponseFuture;
 use crate::{
     client::Client,
     error::Error,
     request::{Nullable, Request, attachment::AttachmentManager},
-    response::ResponseFuture,
     routing::Route,
 };
 use serde::{Deserialize, Serialize};
@@ -108,6 +110,7 @@ impl<'a> CreateForumThread<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
+    #[cfg(not(target_os = "wasi"))]
     fn exec(self) -> ResponseFuture<ForumThread> {
         let http = self.http;
 

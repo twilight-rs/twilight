@@ -1,8 +1,9 @@
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture, marker::ListBody};
 use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -79,6 +80,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for GetChannelMessagesConfigured<'_> {
     type Output = Result<Response<ListBody<Message>>, Error>;
 

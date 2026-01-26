@@ -13,11 +13,12 @@ use twilight_model::{
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{Response, ResponseFuture},
     routing::Route,
 };
 
@@ -86,6 +87,7 @@ impl<'a> AuditLogReason<'a> for UpdateGuildOnboarding<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateGuildOnboarding<'_> {
     type Output = Result<Response<Onboarding>, Error>;
 

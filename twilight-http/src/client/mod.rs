@@ -20,7 +20,6 @@ use crate::request::{
 #[allow(deprecated)]
 use crate::{
     API_VERSION,
-    client::connector::Connector,
     error::{Error, ErrorType},
     request::{
         GetCurrentAuthorizationInformation, GetGateway, GetUserApplicationInfo, GetVoiceRegions,
@@ -97,13 +96,16 @@ use crate::{
             UpdateCurrentUser,
         },
     },
-    response::ResponseFuture,
 };
+#[cfg(not(target_os = "wasi"))]
+use crate::{client::connector::Connector, response::ResponseFuture};
 use http::header::{
     AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, HeaderMap, HeaderValue, USER_AGENT,
 };
 use http_body_util::Full;
+#[cfg(not(target_os = "wasi"))]
 use hyper::body::Bytes;
+#[cfg(not(target_os = "wasi"))]
 use hyper_util::client::legacy::Client as HyperClient;
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -114,6 +116,7 @@ use std::{
     },
     time::Duration,
 };
+#[cfg(not(target_os = "wasi"))]
 use twilight_http_ratelimiting::{Endpoint, RateLimiter};
 use twilight_model::{
     channel::{ChannelType, message::AllowedMentions},
@@ -241,6 +244,7 @@ impl Deref for Token {
 ///
 /// [here]: https://discord.com/developers/applications
 #[derive(Debug)]
+#[cfg(not(target_os = "wasi"))]
 pub struct Client {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
@@ -257,8 +261,40 @@ pub struct Client {
     use_http: bool,
 }
 
+/// Twilight's http client.
+///
+/// # Interactions
+///
+/// HTTP interaction requests may be accessed via the [`Client::interaction`]
+/// method.
+///
+/// # Using the client in multiple tasks
+///
+/// To use a client instance in multiple tasks, consider wrapping it in an
+/// [`std::sync::Arc`] or [`std::rc::Rc`].
+///
+/// # Examples
+///
+/// Use [`ClientBuilder`] to create a client called `client`:
+/// ```no_run
+/// use twilight_http::Client;
+///
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let client = Client::builder().build();
+/// # Ok(()) }
+/// ```
+///
+/// All the examples on this page assume you have already created a client, and have named it
+/// `client`.
+#[derive(Debug)]
+#[cfg(target_os = "wasi")]
+pub struct Client {
+    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
+}
+
 impl Client {
     /// Create a new client with a token.
+    #[cfg(not(target_os = "wasi"))]
     pub fn new(token: String) -> Self {
         ClientBuilder::default().token(token).build()
     }
@@ -274,6 +310,7 @@ impl Client {
     ///
     /// If the initial token provided is not prefixed with `Bot `, it will be, and this method
     /// reflects that.
+    #[cfg(not(target_os = "wasi"))]
     pub fn token(&self) -> Option<&str> {
         self.token.as_deref()
     }
@@ -333,6 +370,7 @@ impl Client {
     ///
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
+    #[cfg(not(target_os = "wasi"))]
     pub const fn ratelimiter(&self) -> Option<&RateLimiter> {
         self.ratelimiter.as_ref()
     }
@@ -2886,6 +2924,7 @@ impl Client {
     /// token has become invalid due to expiration, revocation, etc.
     ///
     /// [`Response`]: super::response::Response
+    #[cfg(not(target_os = "wasi"))]
     pub fn request<T>(&self, request: Request) -> ResponseFuture<T> {
         match self.try_request::<T>(request) {
             Ok(future) => future,
@@ -2893,6 +2932,7 @@ impl Client {
         }
     }
 
+    #[cfg(not(target_os = "wasi"))]
     fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
         if let Some(token_invalidated) = self.token_invalidated.as_ref()
             && token_invalidated.load(Ordering::Relaxed)

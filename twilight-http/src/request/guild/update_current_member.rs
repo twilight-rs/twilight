@@ -1,8 +1,9 @@
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture, marker::EmptyBody};
 use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
-    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use serde::Serialize;
@@ -135,6 +136,7 @@ impl<'a> AuditLogReason<'a> for UpdateCurrentMember<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateCurrentMember<'_> {
     type Output = Result<Response<EmptyBody>, Error>;
 

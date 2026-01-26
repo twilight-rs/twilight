@@ -4,10 +4,11 @@ use twilight_model::id::{
     marker::{ApplicationMarker, EmojiMarker},
 };
 
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture};
 use crate::{
     Client, Error,
     request::{Request, TryIntoRequest},
-    response::{Response, ResponseFuture},
     routing::Route,
 };
 
@@ -31,6 +32,7 @@ impl<'a> DeleteApplicationEmoji<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for DeleteApplicationEmoji<'_> {
     type Output = Result<Response<()>, Error>;
 
