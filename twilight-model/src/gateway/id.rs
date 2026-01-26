@@ -168,6 +168,12 @@ impl Display for ShardId {
     }
 }
 
+impl PartialOrd for ShardId {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        (self.total == other.total).then(|| self.number.cmp(&other.number))
+    }
+}
+
 impl TryFrom<[u32; 2]> for ShardId {
     type Error = ShardIdParseError;
 
@@ -202,6 +208,7 @@ mod tests {
         Eq,
         Hash,
         PartialEq,
+        PartialOrd,
         Send,
         Serialize,
         Sync
