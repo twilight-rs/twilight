@@ -1,5 +1,6 @@
 use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
 use std::{
+    array::TryFromSliceError,
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     str,
@@ -30,6 +31,13 @@ impl Error {
         (self.kind, self.source)
     }
 
+    pub(super) fn multipart(source: TryFromSliceError) -> Self {
+        Self {
+            kind: ErrorType::Multipart,
+            source: Some(Box::new(source)),
+        }
+    }
+
     pub(super) fn json(source: JsonError) -> Self {
         Self {
             kind: ErrorType::Json,
@@ -55,6 +63,7 @@ impl Display for Error {
 
                 f.write_str(" failed")
             }
+            ErrorType::Multipart => f.write_str("buffer could not get turned into a valid form"),
             ErrorType::Json => f.write_str("given value couldn't be serialized"),
             ErrorType::Parsing { body, .. } => {
                 f.write_str("response body couldn't be deserialized: ")?;
@@ -100,6 +109,7 @@ pub enum ErrorType {
     CreatingHeader {
         name: String,
     },
+    Multipart,
     Json,
     Parsing {
         body: Vec<u8>,
@@ -184,6 +194,7 @@ impl Debug for ErrorType {
                 .debug_struct("CreatingHeader")
                 .field("name", name)
                 .finish(),
+            Self::Multipart => f.write_str("Multipart"),
             Self::Json => f.write_str("Json"),
             Self::Parsing { body } => {
                 let mut debug = f.debug_struct("Parsing");

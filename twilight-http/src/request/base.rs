@@ -90,14 +90,20 @@ impl RequestBuilder {
         self
     }
 
-    /// Set the multipart form.
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn form(mut self, form: Form) -> Self {
+    /// Set the the multipart form from an existing buffer.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`ErrorType::Multipart`] error type buffer input could not get turned into a
+    /// valid form.
+    ///
+    /// [`ErrorType::Multipart`]: crate::error::ErrorType::Multipart
+    pub fn multipart(mut self, form_buffer: Vec<u8>) -> Result<Self, Error> {
         if let Ok(request) = self.0.as_mut() {
-            request.form = Some(form);
+            request.form = Some(Form::from_buffer(form_buffer).map_err(Error::multipart)?);
         }
 
-        self
+        Ok(self)
     }
 
     /// Set the headers to add.
@@ -117,6 +123,15 @@ impl RequestBuilder {
 
             Ok(request)
         });
+
+        self
+    }
+
+    /// Set the multipart form.
+    pub fn form(mut self, form: Form) -> Self {
+        if let Ok(request) = self.0.as_mut() {
+            request.form = Some(form);
+        }
 
         self
     }
