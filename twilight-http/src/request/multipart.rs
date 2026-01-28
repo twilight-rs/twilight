@@ -1,3 +1,5 @@
+use std::array::TryFromSliceError;
+
 #[derive(Clone, Debug)]
 #[must_use = "has no effect if not built into a Form"]
 pub struct Form {
@@ -17,6 +19,14 @@ impl Form {
 
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub(crate) fn from_buffer(mut buffer: Vec<u8>) -> Result<Self, TryFromSliceError> {
+        let boundary: [u8; 15] = buffer[(buffer.len() - 17)..(buffer.len() - 2)].try_into()?;
+
+        buffer.truncate(buffer.len() - 2);
+
+        Ok(Self { boundary, buffer })
     }
 
     /// Consume the form, returning the buffer's contents.
