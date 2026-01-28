@@ -64,8 +64,8 @@ pub const API_VERSION: u8 = 10;
 ///
 /// # Strategy
 ///
-/// Shards are usually bucketed per-machine for horizontal scaling. Single
-/// machine setups should use a single bucket, i.e. `(0, 1, total)`.
+/// Shards may be bucketed per-thread for a thread-per-core architecture and/or
+/// per-machine for horizontal scaling.
 ///
 /// # Examples
 ///
