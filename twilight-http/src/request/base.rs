@@ -90,11 +90,10 @@ impl RequestBuilder {
         self
     }
 
-    /// Set the multipart form.
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn form(mut self, form: Form) -> Self {
+    /// Set the the multipart form from an existing boundary and buffer.
+    pub fn multipart(mut self, boundary: [u8; 15], buffer: Vec<u8>) -> Self {
         if let Ok(request) = self.0.as_mut() {
-            request.form = Some(form);
+            request.form = Some(Form::from_parts(boundary, buffer));
         }
 
         self
@@ -117,6 +116,15 @@ impl RequestBuilder {
 
             Ok(request)
         });
+
+        self
+    }
+
+    /// Set the multipart form.
+    pub fn form(mut self, form: Form) -> Self {
+        if let Ok(request) = self.0.as_mut() {
+            request.form = Some(form);
+        }
 
         self
     }
