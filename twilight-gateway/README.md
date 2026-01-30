@@ -33,51 +33,15 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
   * `zlib`: Zlib transport compression using [`zlib-rs`][^1]
   * `zstd` (*default*): Zstandard transport compression using [`zstd-sys`]
 
-## Example
+## Examples
 
-Create the recommended number of shards and loop over their guild messages:
+Create a shard and loop over guild events:
 
 ```rust,no_run
-mod context {
-    use std::{ops::Deref, sync::OnceLock};
-    use twilight_http::Client;
+use std::env;
+use twilight_gateway::{EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 
-    pub static CONTEXT: Handle = Handle(OnceLock::new());
-
-    #[derive(Debug)]
-    pub struct Context {
-        pub http: Client,
-    }
-
-    pub fn initialize(http: Client) {
-        let context = Context { http };
-        assert!(CONTEXT.0.set(context).is_ok());
-    }
-
-    pub struct Handle(OnceLock<Context>);
-    impl Deref for Handle {
-        type Target = Context;
-
-        fn deref(&self) -> &Self::Target {
-            self.0.get().unwrap()
-        }
-    }
-}
-
-use context::CONTEXT;
-use std::{env, pin::pin};
-use tokio::signal;
-use tokio_util::task::TaskTracker;
-use twilight_gateway::{
-    CloseFrame, Config, Event, EventTypeFlags, Intents, MessageSender, Shard, StreamExt as _,
-};
-use twilight_http::Client;
-use twilight_model::gateway::payload::{incoming::MessageCreate, outgoing::UpdateVoiceState};
-
-const EVENT_TYPES: EventTypeFlags = EventTypeFlags::MESSAGE_CREATE;
-const INTENTS: Intents = Intents::GUILD_MESSAGES.union(Intents::MESSAGE_CONTENT);
-
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
@@ -85,85 +49,18 @@ async fn main() -> anyhow::Result<()> {
     // Select rustls backend
     rustls::crypto::ring::default_provider().install_default().unwrap();
 
-    let token = env::var("DISCORD_TOKEN")?;
+    let token = env::var("TOKEN")?;
 
-    let config = Config::new(token.clone(), INTENTS);
-    let http = Client::new(token);
-    let shards =
-        twilight_gateway::create_recommended(&http, config, |_, builder| builder.build()).await?;
-    context::initialize(http);
+    // Initialize the first and only shard in use by a bot.
+    let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILDS);
 
-    let tracker = TaskTracker::new();
-    for shard in shards {
-        tracker.spawn(dispatcher(shard));
-    }
-    tracker.close();
-    tracker.wait().await;
+    tracing::info!("started shard");
 
-    Ok(())
-}
-
-#[tracing::instrument(fields(shard = %shard.id()), skip_all)]
-async fn dispatcher(mut shard: Shard) {
-    let mut ctrl_c = pin!(signal::ctrl_c());
-    let mut shutdown = false;
-    let tracker = TaskTracker::new();
-    loop {
-        tokio::select! {
-            // Do not poll ctrl_c after it's completed.
-            _ = &mut ctrl_c, if !shutdown => {
-                // Cleanly shut down once we receive the echo close frame.
-                shard.close(CloseFrame::NORMAL);
-                shutdown = true;
-            },
-            Some(item) = shard.next_event(EVENT_TYPES) => {
-                let event = match item {
-                    Ok(event) => event,
-                    Err(source) => {
-                        tracing::warn!(?source, "error receiving event");
-                        continue;
-                    }
-                };
-
-                let handler = match event {
-                    // Clean shutdown exit condition.
-                    Event::GatewayClose(_) if shutdown => break,
-                    Event::MessageCreate(e) => message(e, shard.sender()),
-                    _ => continue,
-                };
-
-                tracker.spawn(async move {
-                    if let Err(source) = handler.await {
-                        tracing::warn!(?source, "error handling event");
-                    }
-                });
-            }
+    while let Some(event) = shard.next_event(EventTypeFlags::all()).await {
+        match event {
+            Ok(event) => tracing::info!(?event, "received event"),
+            Err(source) => tracing::warn!(?source, "failed to receive event"),
         }
-    }
-
-    tracker.close();
-    tracker.wait().await;
-}
-
-#[tracing::instrument(fields(id = %event.id), skip_all)]
-async fn message(event: Box<MessageCreate>, sender: MessageSender) -> anyhow::Result<()> {
-    match &*event.content {
-        "!join" if event.guild_id.is_some() => {
-            sender.command(&UpdateVoiceState::new(
-                event.guild_id.unwrap(),
-                Some(event.channel_id),
-                false,
-                false,
-            ))?;
-        }
-        "!ping" => {
-            CONTEXT
-                .http
-                .create_message(event.channel_id)
-                .content("Pong!")
-                .await?;
-        }
-        _ => {}
     }
 
     Ok(())
@@ -171,7 +68,8 @@ async fn message(event: Box<MessageCreate>, sender: MessageSender) -> anyhow::Re
 ```
 
 There are a few additional examples located in the
-[repository][github examples link].
+[repository][github examples link]. Check out our [template] to get started
+quickly.
 
 [^1]: Except for the s390x arch, where [`zlib-ng-sys`] is used instead.
 
@@ -194,3 +92,4 @@ There are a few additional examples located in the
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.79+-93450a.svg?style=for-the-badge&logo=rust
+[template]: https://github.com/twilight-rs/template

@@ -229,7 +229,7 @@ impl Pending {
 /// use std::env;
 /// use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _};
 ///
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main(flavor = "current_thread")] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
 /// // token. Of course, this value may be passed into the program however is
 /// // preferred.
@@ -443,7 +443,7 @@ impl<Q> Shard<Q> {
     ///
     /// ```no_run
     /// # use twilight_gateway::{Intents, Shard, ShardId};
-    /// # #[tokio::main] async fn main() {
+    /// # #[tokio::main(flavor = "current_thread")] async fn main() {
     /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
     /// use tokio_stream::StreamExt;
     /// use twilight_gateway::{CloseFrame, Message, error::ReceiveMessageErrorType};
@@ -476,7 +476,7 @@ impl<Q> Shard<Q> {
     ///
     /// ```no_run
     /// # use twilight_gateway::{Intents, Shard, ShardId};
-    /// # #[tokio::main] async fn main() {
+    /// # #[tokio::main(flavor = "current_thread")] async fn main() {
     /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
     /// use tokio_stream::StreamExt;
     ///
