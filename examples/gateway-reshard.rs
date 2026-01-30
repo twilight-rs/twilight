@@ -1,5 +1,5 @@
 use std::{
-    env,
+    env, iter,
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
@@ -12,9 +12,7 @@ use tokio::{
 };
 use tokio_stream::StreamExt as _;
 use tokio_util::sync::CancellationToken;
-use twilight_gateway::{
-    Config, ConfigBuilder, EventTypeFlags, Intents, Shard, ShardId, StreamExt as _,
-};
+use twilight_gateway::{Config, EventTypeFlags, Intents, Shard, StreamExt as _};
 use twilight_http::Client;
 
 #[tokio::main]
@@ -29,10 +27,12 @@ async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
     let config = Config::new(token, Intents::GUILDS);
-    let config_callback = |_, builder: ConfigBuilder| builder.build();
 
-    let mut shards = twilight_gateway::create_recommended(&client, config.clone(), config_callback)
-        .await?
+    let info = client.gateway().authed().await?.model().await?;
+
+    let mut shards = twilight_gateway::bucket(0, 1, info.shards)
+        .zip(iter::repeat_n(config.clone(), info.shards as usize))
+        .map(|(shard_id, config)| Shard::with_config(shard_id, config))
         .collect::<Vec<_>>();
 
     loop {
@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
             set.spawn(runner(shard));
         }
 
-        shards = reshard(&client, config.clone(), config_callback).await?;
+        shards = reshard(&client, config.clone()).await?;
     }
 }
 
@@ -62,11 +62,7 @@ async fn runner(mut shard: Shard) {
 }
 
 // Instrument to differentiate between the logs produced here and in `runner`.
-async fn reshard(
-    client: &Client,
-    config: Config,
-    config_callback: impl Fn(ShardId, ConfigBuilder) -> Config,
-) -> anyhow::Result<Vec<Shard>> {
+async fn reshard(client: &Client, config: Config) -> anyhow::Result<Vec<Shard>> {
     // Reshard every eight hours. This is an arbitrary number.
     const RESHARD_DURATION: Duration = Duration::from_secs(60 * 60 * 8);
 
@@ -74,9 +70,10 @@ async fn reshard(
 
     let info = client.gateway().authed().await?.model().await?;
 
-    let shards =
-        twilight_gateway::create_iterator(0..info.shards, info.shards, config, config_callback)
-            .collect::<Vec<_>>();
+    let shards = twilight_gateway::bucket(0, 1, info.shards)
+        .zip(iter::repeat_n(config, info.shards as usize))
+        .map(|(shard_id, config)| Shard::with_config(shard_id, config))
+        .collect::<Vec<_>>();
 
     let expected_duration = estimate_identifed(
         info.shards,

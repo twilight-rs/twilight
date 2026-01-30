@@ -57,6 +57,67 @@ use twilight_http::Client;
 /// Discord Gateway API version used by this crate.
 pub const API_VERSION: u8 = 10;
 
+/// Creates an iterator of a single bucket's worth of shard identifiers.
+///
+/// Each bucket holds a consecutive range of identifiers and all identifiers
+/// share the same `total` value.
+///
+/// # Strategy
+///
+/// Shards may be bucketed per-thread for a thread-per-core architecture and/or
+/// per-machine for horizontal scaling.
+///
+/// # Examples
+///
+/// Create 1 bucket with the recommended shard count:
+///
+/// ```no_run
+/// use std::env;
+/// use twilight_http::Client;
+///
+/// # #[tokio::main(flavor = "current_thread")]
+/// # async fn main() -> anyhow::Result<()> {
+/// let http = Client::new(env::var("TOKEN")?);
+/// let info = http.gateway().authed().await?.model().await?;
+///
+/// let shards = twilight_gateway::bucket(0, 1, info.shards);
+/// assert_eq!(shards.len(), info.shards as usize);
+/// # anyhow::Ok(())
+/// # }
+/// ```
+///
+/// Create 2 buckets with 25 identifiers:
+///
+/// ```
+/// let bucket_1 = twilight_gateway::bucket(0, 2, 25);
+/// let bucket_2 = twilight_gateway::bucket(1, 2, 25);
+///
+/// assert_eq!(bucket_1.len(), 13);
+/// assert_eq!(bucket_2.len(), 12);
+/// ```
+///
+/// # Panics
+///
+/// Panics if the bucket id is greater than or equal to the total number of
+/// buckets.
+#[track_caller]
+pub fn bucket(
+    bucket_id: u16,
+    buckets: u16,
+    shards: u32,
+) -> impl DoubleEndedIterator<Item = ShardId> + ExactSizeIterator {
+    let bucket_id = u32::from(bucket_id);
+    let buckets = u32::from(buckets);
+    assert!(bucket_id < buckets, "bucket_id must be less than buckets");
+
+    let (q, r) = (shards / buckets, shards % buckets);
+
+    let len = q + u32::from(bucket_id < r);
+    let start = bucket_id * q + r.min(bucket_id);
+
+    (start..start + len).map(move |id| ShardId::new(id, shards))
+}
+
 /// Create a single bucket's worth of shards.
 ///
 /// Passing a primary config is required. Further customization of this config
@@ -69,6 +130,7 @@ pub const API_VERSION: u8 = 10;
 /// Panics if `bucket_id >= total`, `bucket_id >= concurrency`, or `concurrency >= total`.
 ///
 /// Panics if loading TLS certificates fails.
+#[deprecated = "creates non-consecutive shards; use `bucket` instead"]
 #[track_caller]
 pub fn create_bucket<F, Q>(
     bucket_id: u16,
@@ -94,6 +156,7 @@ where
         "concurrency must be less than the total"
     );
 
+    #[allow(deprecated)]
     create_iterator(
         (u32::from(bucket_id)..total).step_by(concurrency.into()),
         total,
@@ -129,6 +192,7 @@ where
 /// Panics if `range` contains values larger than `total`.
 ///
 /// Panics if loading TLS certificates fails.
+#[deprecated = "use `bucket` instead"]
 #[track_caller]
 pub fn create_iterator<F, Q>(
     numbers: impl ExactSizeIterator<Item = u32>,
@@ -191,6 +255,7 @@ where
             source: Some(Box::new(source)),
         })?;
 
+    #[allow(deprecated)]
     Ok(create_iterator(
         0..info.shards,
         info.shards,
