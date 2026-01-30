@@ -33,7 +33,7 @@ from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
   * `zlib`: Zlib transport compression using [`zlib-rs`][^1]
   * `zstd` (*default*): Zstandard transport compression using [`zstd-sys`]
 
-## Example
+## Examples
 
 Create a shard and loop over guild events:
 
@@ -68,7 +68,8 @@ async fn main() -> anyhow::Result<()> {
 ```
 
 There are a few additional examples located in the
-[repository][github examples link].
+[repository][github examples link]. Check out our [template] to get started
+quickly.
 
 [^1]: Except for the s390x arch, where [`zlib-ng-sys`] is used instead.
 
@@ -91,3 +92,4 @@ There are a few additional examples located in the
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.79+-93450a.svg?style=for-the-badge&logo=rust
+[template]: https://github.com/twilight-rs/template
