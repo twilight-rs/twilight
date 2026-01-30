@@ -69,7 +69,7 @@ pub const API_VERSION: u8 = 10;
 ///
 /// # Examples
 ///
-/// Create 1 bucket with the recommended shards count:
+/// Create 1 bucket with the recommended shard count:
 ///
 /// ```no_run
 /// use std::env;
