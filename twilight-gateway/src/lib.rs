@@ -104,18 +104,18 @@ pub const API_VERSION: u8 = 10;
 pub fn bucket(
     bucket_id: u16,
     buckets: u16,
-    total: u32,
+    shards: u32,
 ) -> impl DoubleEndedIterator<Item = ShardId> + ExactSizeIterator {
     let bucket_id = u32::from(bucket_id);
     let buckets = u32::from(buckets);
     assert!(bucket_id < buckets, "bucket_id must be less than buckets");
 
-    let (q, r) = (total / buckets, total % buckets);
+    let (q, r) = (shards / buckets, shards % buckets);
 
     let len = q + u32::from(bucket_id < r);
     let start = bucket_id * q + r.min(bucket_id);
 
-    (start..start + len).map(move |id| ShardId::new(id, total))
+    (start..start + len).map(move |id| ShardId::new(id, shards))
 }
 
 /// Create a single bucket's worth of shards.
