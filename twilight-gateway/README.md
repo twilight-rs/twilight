@@ -22,8 +22,10 @@ fn shared(config: Config, shards: u32) -> impl Iterator<Item = Shard> {
 }
 
 fn unique(iter: impl ExactSizeIterator<Item = Config>) -> impl Iterator<Item = Shard> {
+    let bucket_id = 0;
+    let buckets = 1;
     let shards = iter.len() as u32;
-    iter.zip(twilight_gateway::bucket(0, 1, shards))
+    iter.zip(twilight_gateway::bucket(bucket_id, buckets, shards))
         .map(|(config, shard_id)| Shard::with_config(shard_id, config))
 }
 ```
