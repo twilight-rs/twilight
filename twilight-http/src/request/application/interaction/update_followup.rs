@@ -1,5 +1,7 @@
 //! Update a followup message created from a interaction.
 
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
@@ -7,7 +9,6 @@ use crate::{
         Nullable, Request, TryIntoRequest,
         attachment::{AttachmentManager, PartialAttachment},
     },
-    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
@@ -324,6 +325,7 @@ impl<'a> UpdateFollowup<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateFollowup<'_> {
     type Output = Result<Response<Message>, Error>;
 

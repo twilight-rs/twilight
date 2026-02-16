@@ -1,8 +1,9 @@
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Deserialize;
@@ -41,6 +42,7 @@ impl<'a> GetNitroStickerPacks<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for GetNitroStickerPacks<'_> {
     type Output = Result<Response<StickerPackListing>, Error>;
 

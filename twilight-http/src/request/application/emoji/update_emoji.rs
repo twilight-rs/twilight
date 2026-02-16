@@ -8,10 +8,11 @@ use twilight_model::{
     },
 };
 
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture};
 use crate::{
     Client, Error,
     request::{Request, TryIntoRequest},
-    response::{Response, ResponseFuture},
     routing::Route,
 };
 
@@ -43,6 +44,7 @@ impl<'a> UpdateApplicationEmoji<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateApplicationEmoji<'_> {
     type Output = Result<Response<Emoji>, Error>;
 

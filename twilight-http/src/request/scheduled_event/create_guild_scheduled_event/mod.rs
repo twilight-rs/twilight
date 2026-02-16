@@ -8,11 +8,12 @@ pub use self::{
 };
 
 use super::EntityMetadataFields;
+#[cfg(not(target_os = "wasi"))]
+use crate::response::ResponseFuture;
 use crate::{
     client::Client,
     error::Error,
     request::{AuditLogReason, Request},
-    response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
@@ -229,6 +230,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         CreateGuildVoiceScheduledEvent::new(self, channel_id, name, scheduled_start_time)
     }
 
+    #[cfg(not(target_os = "wasi"))]
     fn exec(self) -> ResponseFuture<GuildScheduledEvent> {
         let http = self.http;
 

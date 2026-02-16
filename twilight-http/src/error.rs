@@ -1,4 +1,6 @@
-use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
+#[cfg(not(target_os = "wasi"))]
+use crate::response::StatusCode;
+use crate::{api_error::ApiError, json::JsonError};
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -70,6 +72,7 @@ impl Display for Error {
             }
             ErrorType::RequestError => f.write_str("parsing or receiving the response failed"),
             ErrorType::RequestTimedOut => f.write_str("request timed out"),
+            #[cfg(not(target_os = "wasi"))]
             ErrorType::Response { body, status, .. } => {
                 f.write_str("response error: status code ")?;
                 Display::fmt(status, f)?;
@@ -107,6 +110,7 @@ pub enum ErrorType {
     RequestCanceled,
     RequestError,
     RequestTimedOut,
+    #[cfg(not(target_os = "wasi"))]
     Response {
         body: Vec<u8>,
         error: ApiError,
@@ -197,6 +201,7 @@ impl Debug for ErrorType {
             Self::RequestCanceled => f.write_str("RequestCanceled"),
             Self::RequestError => f.write_str("RequestError"),
             Self::RequestTimedOut => f.write_str("RequestTimedOut"),
+            #[cfg(not(target_os = "wasi"))]
             Self::Response {
                 body,
                 error,

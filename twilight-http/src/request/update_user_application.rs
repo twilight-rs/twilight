@@ -6,11 +6,12 @@ use twilight_model::oauth::{
     InstallParams,
 };
 
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{Nullable, Request, TryIntoRequest},
-    response::{Response, ResponseFuture},
     routing::Route,
 };
 
@@ -178,6 +179,8 @@ impl<'a> UpdateCurrentUserApplication<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateCurrentUserApplication<'_> {
     type Output = Result<Response<Application>, Error>;
 
