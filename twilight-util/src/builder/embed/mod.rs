@@ -237,6 +237,28 @@ impl EmbedBuilder {
     ///     .build();
     /// # Ok(()) }
     /// ```
+    ///
+    /// Set the image source to a file attachment:
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_model::http::attachment::Attachment;
+    /// use twilight_util::builder::embed::{EmbedBuilder, ImageSource};
+    ///
+    /// let filename = "hello.txt";
+    /// let bytes = vec![104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]; // "hello world" in unicode code points
+    ///
+    /// let attachment = Attachment::from_bytes(filename.to_string(), bytes, 1);
+    ///
+    /// let source = ImageSource::attachment(filename)?;
+    /// let embed = EmbedBuilder::new()
+    ///     .image(source)
+    ///     .validate()?
+    ///     .build();
+    ///
+    /// // Then, send both the embed and the attachment with your message
+    /// # Ok(()) }
+    /// ```
     #[allow(clippy::missing_const_for_fn)]
     pub fn image(mut self, image_source: ImageSource) -> Self {
         self.0.image = Some(EmbedImage {
