@@ -11,11 +11,24 @@ connection to Discord's gateway. Much of its functionality can be configured,
 and it's used to receive gateway events or raw Websocket messages, useful for
 load balancing and microservices.
 
-Multiple shards may easily be created at once, with a per shard config created
-from a `Fn(ShardId, ConfigBuilder) -> Config` closure, with the help of the
-`create_` set of functions. These functions will reuse shards' TLS context and
-[session queue][queue], something otherwise achieved by cloning an existing
-[`Config`].
+Multiple shards may be created with the `bucket` function, and optionally with a
+per-shard config.
+
+```rust
+use twilight_gateway::{Config, Shard};
+
+fn shared(config: Config, shards: u32) -> impl Iterator<Item = Shard> {
+    unique(std::iter::repeat_n(config, shards as usize))
+}
+
+fn unique(iter: impl ExactSizeIterator<Item = Config>) -> impl Iterator<Item = Shard> {
+    let bucket_id = 0;
+    let buckets = 1;
+    let shards = iter.len() as u32;
+    iter.zip(twilight_gateway::bucket(bucket_id, buckets, shards))
+        .map(|(config, shard_id)| Shard::with_config(shard_id, config))
+}
+```
 
 ## Features
 
