@@ -1,0 +1,15 @@
+use serde::{Deserialize, Serialize};
+
+/// A component allowing uploading files in a modal.
+///
+/// File uploads are only available in modals and must be placed inside a label.
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
+pub struct Checkbox {
+    /// Optional identifier for the component.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<i32>,
+    /// Developer defined identifier.
+    pub custom_id: String,
+    /// Maximum number of items that can be uploaded.
+    pub default: Option<bool>,
+}

@@ -6,8 +6,8 @@ use super::{
 };
 use twilight_model::channel::message::Component;
 use twilight_model::channel::message::component::{
-    ComponentType, Container, FileUpload, Label, MediaGallery, MediaGalleryItem, Section,
-    TextDisplay, Thumbnail,
+    Checkbox, CheckboxGroup, ComponentType, Container, FileUpload, Label, MediaGallery,
+    MediaGalleryItem, Section, TextDisplay, Thumbnail,
 };
 
 /// Maximum length of text display content.
@@ -83,7 +83,10 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::Section(s) => section(s)?,
         Component::SelectMenu(sm) => select_menu(sm, true)?,
         Component::TextDisplay(td) => text_display(td)?,
-        Component::TextInput(_) | Component::FileUpload(_) => {
+        Component::TextInput(_)
+        | Component::FileUpload(_)
+        | Component::Checkbox(_)
+        | Component::CheckboxGroup(_) => {
             return Err(ComponentValidationError {
                 kind: ComponentValidationErrorType::InvalidRootComponent {
                     kind: ComponentType::TextInput,
@@ -133,6 +136,8 @@ pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
         Component::SelectMenu(select_menu) => self::select_menu(select_menu, false),
         Component::TextInput(text_input) => self::text_input(text_input, false),
         Component::FileUpload(file_upload) => self::file_upload(file_upload),
+        Component::CheckboxGroup(cg) => self::checkbox_group(cg),
+        Component::Checkbox(c) => self::checkbox(c),
         Component::Unknown(unknown) => Err(ComponentValidationError {
             kind: ComponentValidationErrorType::InvalidChildComponent {
                 kind: ComponentType::Unknown(*unknown),
@@ -330,6 +335,26 @@ pub fn file_upload(file_upload: &FileUpload) -> Result<(), ComponentValidationEr
         component_file_upload_max_values(max_value)?;
     }
 
+    Ok(())
+}
+
+pub fn checkbox_group(checkbox_group: &CheckboxGroup) -> Result<(), ComponentValidationError> {
+    // custom_id length must be valid
+    component_custom_id(&checkbox_group.custom_id)?;
+
+    // must have at least one option
+    if checkbox_group.options.is_empty() {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::DisallowedChildren,
+        });
+    }
+
+    Ok(())
+}
+
+pub fn checkbox(checkbox: &Checkbox) -> Result<(), ComponentValidationError> {
+    // custom_id length must be valid
+    component_custom_id(&checkbox.custom_id)?;
     Ok(())
 }
 

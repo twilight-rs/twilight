@@ -3,6 +3,8 @@
 //!
 //! [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
 mod action_row;
+mod checkbox;
+mod checkbox_group;
 mod file_upload;
 mod label;
 mod select_menu;
@@ -11,6 +13,8 @@ mod text_input;
 
 pub use self::{
     action_row::ModalInteractionActionRow,
+    checkbox::ModalInteractionCheckbox,
+    checkbox_group::ModalInteractionCheckboxGroup,
     file_upload::ModalInteractionFileUpload,
     label::ModalInteractionLabel,
     select_menu::{
@@ -77,6 +81,10 @@ pub enum ModalInteractionComponent {
     TextDisplay(ModalInteractionTextDisplay),
     /// File upload component.
     FileUpload(ModalInteractionFileUpload),
+    /// Checkbox Group Component.
+    CheckboxGroup(ModalInteractionCheckboxGroup),
+
+    Checkbox(ModalInteractionCheckbox),
     /// Variant value is unknown to the library in the context of modals.
     Unknown(u8),
 }
@@ -95,6 +103,8 @@ impl ModalInteractionComponent {
             ModalInteractionComponent::TextInput(_) => ComponentType::TextInput,
             ModalInteractionComponent::TextDisplay(_) => ComponentType::TextDisplay,
             ModalInteractionComponent::FileUpload(_) => ComponentType::FileUpload,
+            ModalInteractionComponent::Checkbox(_) => ComponentType::Checkbox,
+            ModalInteractionComponent::CheckboxGroup(_) => ComponentType::CheckboxGroup,
             ModalInteractionComponent::Unknown(unknown) => ComponentType::from(*unknown),
         }
     }
@@ -351,6 +361,31 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
                     values,
                 })
             }
+            ComponentType::CheckboxGroup => {
+                let custom_id = custom_id.ok_or_else(|| DeError::missing_field("custom_id"))?;
+                let values = values
+                    .ok_or_else(|| DeError::missing_field("values"))?
+                    .into_iter()
+                    .map(Value::deserialize_into)
+                    .collect::<Result<_, _>>()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::CheckboxGroup(ModalInteractionCheckboxGroup {
+                    id,
+                    custom_id,
+                    values,
+                })
+            }
+            ComponentType::Checkbox => {
+                let custom_id = custom_id.ok_or_else(|| DeError::missing_field("custom_id"))?;
+                let value = value.ok_or_else(|| DeError::missing_field("value"))?;
+
+                Self::Value::TextInput(ModalInteractionTextInput {
+                    custom_id,
+                    id,
+                    value,
+                })
+            }
             ComponentType::Button
             | ComponentType::Section
             | ComponentType::Thumbnail
@@ -413,6 +448,8 @@ impl Serialize for ModalInteractionComponent {
             // - custom_id
             // - values
             ModalInteractionComponent::FileUpload(_) => 4,
+            ModalInteractionComponent::CheckboxGroup(_) => 4,
+            ModalInteractionComponent::Checkbox(_) => 4,
             // We are dropping all fields but type here but nothing we can do about that for
             // the time being
             ModalInteractionComponent::Unknown(_) => 1,
@@ -457,6 +494,16 @@ impl Serialize for ModalInteractionComponent {
                 state.serialize_field("custom_id", &file_upload.custom_id)?;
                 state.serialize_field("id", &file_upload.id)?;
                 state.serialize_field("values", &file_upload.values)?;
+            }
+            ModalInteractionComponent::CheckboxGroup(checkbox_group) => {
+                state.serialize_field("custom_id", &checkbox_group.custom_id)?;
+                state.serialize_field("id", &checkbox_group.id)?;
+                state.serialize_field("values", &checkbox_group.values)?;
+            }
+            ModalInteractionComponent::Checkbox(checkbox) => {
+                state.serialize_field("custom_id", &checkbox.custom_id)?;
+                state.serialize_field("id", &checkbox.id)?;
+                state.serialize_field("value", &checkbox.value)?;
             }
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing
