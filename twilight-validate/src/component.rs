@@ -778,6 +778,8 @@ pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentVa
             | Component::Section(_)
             | Component::Container(_)
             | Component::Thumbnail(_)
+            | Component::Checkbox(_)
+            | Component::CheckboxGroup(_)
             | Component::FileUpload(_) => {
                 return Err(ComponentValidationError {
                     kind: if is_v2 {

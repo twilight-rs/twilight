@@ -77,6 +77,10 @@ pub enum ComponentType {
     ///
     /// [`FileUpload`]: super::FileUpload
     FileUpload,
+
+    CheckboxGroup,
+
+    Checkbox,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -101,6 +105,8 @@ impl From<u8> for ComponentType {
             17 => ComponentType::Container,
             18 => ComponentType::Label,
             19 => ComponentType::FileUpload,
+            22 => ComponentType::CheckboxGroup,
+            23 => ComponentType::Checkbox,
             unknown => ComponentType::Unknown(unknown),
         }
     }
@@ -126,6 +132,8 @@ impl From<ComponentType> for u8 {
             ComponentType::Container => 17,
             ComponentType::Label => 18,
             ComponentType::FileUpload => 19,
+            ComponentType::CheckboxGroup => 22,
+            ComponentType::Checkbox => 23,
             ComponentType::Unknown(unknown) => unknown,
         }
     }
@@ -166,6 +174,8 @@ impl ComponentType {
             ComponentType::Container => "Container",
             ComponentType::Label => "Label",
             ComponentType::FileUpload => "FileUpload",
+            ComponentType::CheckboxGroup => "CheckboxGroup",
+            ComponentType::Checkbox => "Checkbox",
             ComponentType::Unknown(_) => "Unknown",
         }
     }
