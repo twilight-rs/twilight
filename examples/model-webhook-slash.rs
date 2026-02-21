@@ -14,9 +14,7 @@ use once_cell::sync::Lazy;
 use std::{future::Future, net::SocketAddr};
 use tokio::net::TcpListener;
 use twilight_model::{
-    application::interaction::{
-        Interaction, InteractionData, InteractionType, application_command::CommandData,
-    },
+    application::interaction::{Interaction, InteractionType, application_command::CommandData},
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
 
@@ -114,11 +112,7 @@ where
         // Respond to a slash command.
         InteractionType::ApplicationCommand => {
             // Run the handler to gain a response.
-            let data = match interaction.data {
-                Some(InteractionData::ApplicationCommand(data)) => Some(data),
-                _ => None,
-            }
-            .expect("`InteractionType::ApplicationCommand` has data");
+            let data = interaction.data.unwrap().try_into().unwrap();
             let response = f(data).await?;
 
             // Serialize the response and return it back to Discord.

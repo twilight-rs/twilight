@@ -48,7 +48,7 @@ use twilight_model::{
     application::{
         command::{
             Command, CommandOption, CommandOptionChoice, CommandOptionChoiceValue,
-            CommandOptionType, CommandOptionValue, CommandType,
+            CommandOptionType, CommandType,
         },
         interaction::InteractionContextType,
     },
@@ -570,7 +570,7 @@ impl IntegerBuilder {
                 .map(|(name, value, ..)| CommandOptionChoice {
                     name: name.into(),
                     name_localizations: None,
-                    value: CommandOptionChoiceValue::Integer(value),
+                    value: value.into(),
                 })
                 .collect(),
         );
@@ -598,8 +598,8 @@ impl IntegerBuilder {
     /// Set the maximum allowed value.
     ///
     /// Defaults to no limit.
-    pub const fn max_value(mut self, value: i64) -> Self {
-        self.0.max_value = Some(CommandOptionValue::Integer(value));
+    pub fn max_value(mut self, value: i64) -> Self {
+        self.0.max_value = Some(value.into());
 
         self
     }
@@ -607,8 +607,8 @@ impl IntegerBuilder {
     /// Set the minimum allowed value.
     ///
     /// Defaults to no limit.
-    pub const fn min_value(mut self, value: i64) -> Self {
-        self.0.min_value = Some(CommandOptionValue::Integer(value));
+    pub fn min_value(mut self, value: i64) -> Self {
+        self.0.min_value = Some(value.into());
 
         self
     }
@@ -823,7 +823,7 @@ impl NumberBuilder {
                 .map(|(name, value, ..)| CommandOptionChoice {
                     name: name.into(),
                     name_localizations: None,
-                    value: CommandOptionChoiceValue::Number(value),
+                    value: value.into(),
                 })
                 .collect(),
         );
@@ -851,8 +851,8 @@ impl NumberBuilder {
     /// Set the maximum allowed value.
     ///
     /// Defaults to no limit.
-    pub const fn max_value(mut self, value: f64) -> Self {
-        self.0.max_value = Some(CommandOptionValue::Number(value));
+    pub fn max_value(mut self, value: f64) -> Self {
+        self.0.max_value = Some(value.into());
 
         self
     }
@@ -860,8 +860,8 @@ impl NumberBuilder {
     /// Set the minimum allowed value.
     ///
     /// Defaults to no limit.
-    pub const fn min_value(mut self, value: f64) -> Self {
-        self.0.min_value = Some(CommandOptionValue::Number(value));
+    pub fn min_value(mut self, value: f64) -> Self {
+        self.0.min_value = Some(value.into());
 
         self
     }
@@ -1079,7 +1079,7 @@ impl StringBuilder {
                 .map(|(name, value, ..)| CommandOptionChoice {
                     name: name.into(),
                     name_localizations: None,
-                    value: CommandOptionChoiceValue::String(value.into()),
+                    value: CommandOptionChoiceValue::from(value.into()),
                 })
                 .collect(),
         );

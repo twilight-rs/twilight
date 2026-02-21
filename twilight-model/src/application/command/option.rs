@@ -187,12 +187,63 @@ pub struct CommandOptionChoice {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoiceValue {
-    /// String choice. Must be 100 characters or less.
-    String(String),
     /// Integer choice.
     Integer(i64),
     /// Number choice.
     Number(f64),
+    /// String choice. Must be 100 characters or less.
+    String(String),
+}
+
+impl From<i64> for CommandOptionChoiceValue {
+    fn from(value: i64) -> Self {
+        CommandOptionChoiceValue::Integer(value)
+    }
+}
+
+impl From<f64> for CommandOptionChoiceValue {
+    fn from(value: f64) -> Self {
+        CommandOptionChoiceValue::Number(value)
+    }
+}
+
+impl From<String> for CommandOptionChoiceValue {
+    fn from(value: String) -> Self {
+        CommandOptionChoiceValue::String(value)
+    }
+}
+
+impl TryFrom<CommandOptionChoiceValue> for i64 {
+    type Error = CommandOptionChoiceValue;
+
+    fn try_from(value: CommandOptionChoiceValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionChoiceValue::Integer(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionChoiceValue> for f64 {
+    type Error = CommandOptionChoiceValue;
+
+    fn try_from(value: CommandOptionChoiceValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionChoiceValue::Number(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionChoiceValue> for String {
+    type Error = CommandOptionChoiceValue;
+
+    fn try_from(value: CommandOptionChoiceValue) -> Result<Self, Self::Error> {
+        match value {
+            CommandOptionChoiceValue::String(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
 }
 
 /// Type used in the `max_value` and `min_value` [`CommandOption`] field.
@@ -206,6 +257,42 @@ pub enum CommandOptionValue {
     Integer(i64),
     /// Number type.
     Number(f64),
+}
+
+impl From<i64> for CommandOptionValue {
+    fn from(value: i64) -> Self {
+        CommandOptionValue::Integer(value)
+    }
+}
+
+impl From<f64> for CommandOptionValue {
+    fn from(value: f64) -> Self {
+        CommandOptionValue::Number(value)
+    }
+}
+
+impl TryFrom<CommandOptionValue> for i64 {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        #[allow(clippy::match_wildcard_for_single_variants)]
+        match value {
+            CommandOptionValue::Integer(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<CommandOptionValue> for f64 {
+    type Error = CommandOptionValue;
+
+    fn try_from(value: CommandOptionValue) -> Result<Self, Self::Error> {
+        #[allow(clippy::match_wildcard_for_single_variants)]
+        match value {
+            CommandOptionValue::Number(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
 }
 
 impl CommandOptionValue {
