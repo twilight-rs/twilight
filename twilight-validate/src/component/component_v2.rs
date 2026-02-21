@@ -6,9 +6,44 @@ use super::{
 };
 use twilight_model::channel::message::Component;
 use twilight_model::channel::message::component::{
-    Checkbox, CheckboxGroup, ComponentType, Container, FileUpload, Label, MediaGallery,
-    MediaGalleryItem, Section, TextDisplay, Thumbnail,
+    Checkbox, CheckboxGroup, CheckboxGroupOption, ComponentType, Container, FileUpload, Label,
+    MediaGallery, MediaGalleryItem, Section, TextDisplay, Thumbnail,
 };
+
+/// Maximum number of [`CheckboxGroupOption`]s in a [`CheckboxGroup`].
+///
+/// This is defined in Discord's documentation, per
+/// [Discord Docs/Checkbox Group][1].
+///
+/// [1]: https://docs.discord.com/developers/components/reference#checkbox-group
+pub const CHECKBOXGROUP_OPTION_COUNT: usize = 10;
+
+/// Maximum number of [`CheckboxGroupOption`]s that can be chosen in a
+/// [`CheckboxGroup`].
+///
+/// This is defined in Dicsord's documentation, per
+/// [Discord Docs/Checkbox Group][1].
+///
+/// [1]: https://docs.discord.com/developers/components/reference#checkbox-group
+pub const CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT: usize = 10;
+
+/// Minimum number of [`CheckboxGroupOption`]s that can be chosen in a
+/// [`CheckboxGroup`].
+///
+/// This is defined in Dicsord's documentation, per
+/// [Discord Docs/Checkbox Group][1].
+///
+/// [1]: https://docs.discord.com/developers/components/reference#checkbox-group
+pub const CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT: usize = 1;
+
+/// Maximum number of [`CheckboxGroupOption`]s that must be chosen in a
+/// [`CheckboxGroup`].
+///
+/// This is defined in Dicsord's documentation, per
+/// [Discord Docs/Checkbox Group][1].
+///
+/// [1]: https://docs.discord.com/developers/components/reference#checkbox-group
+pub const CHECKBOXGROUP_MINIMUM_VALUES_LIMIT: usize = 10;
 
 /// Maximum length of text display content.
 pub const TEXT_DISPLAY_CONTENT_LENGTH_MAX: usize = 2000;
@@ -345,7 +380,56 @@ pub fn checkbox_group(checkbox_group: &CheckboxGroup) -> Result<(), ComponentVal
     // must have at least one option
     if checkbox_group.options.is_empty() {
         return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::DisallowedChildren,
+            kind: ComponentValidationErrorType::CheckboxGroupOptionsMissing,
+        });
+    }
+
+    if let Some(max_values) = checkbox_group.max_values {
+        self::component_checkbox_group_max_values(usize::from(max_values))?;
+    }
+
+    if let Some(min_values) = checkbox_group.min_values {
+        self::component_checkbox_group_min_values(usize::from(min_values))?;
+        let required = checkbox_group.required.unwrap_or(true); //If required isn't provided discord sets required to true
+        component_checkbox_group_required(required, usize::from(min_values))?;
+    }
+
+    Ok(())
+}
+
+const fn component_checkbox_group_max_values(count: usize) -> Result<(), ComponentValidationError> {
+    if count > CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::CheckboxGroupMaximumValuesCount { count },
+        });
+    }
+
+    if count < CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::CheckboxGroupMaximumValuesCount { count },
+        });
+    }
+
+    Ok(())
+}
+
+const fn component_checkbox_group_min_values(count: usize) -> Result<(), ComponentValidationError> {
+    if count > CHECKBOXGROUP_MINIMUM_VALUES_LIMIT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::CheckboxGroupMinimumValuesCount { count },
+        });
+    }
+
+    Ok(())
+}
+
+const fn component_checkbox_group_required(
+    required: bool,
+    min_values: usize,
+) -> Result<(), ComponentValidationError> {
+    if required && min_values == 0 {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::CheckboxGroupRequiredWithNoMin,
         });
     }
 

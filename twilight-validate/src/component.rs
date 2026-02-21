@@ -7,11 +7,13 @@ use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 use twilight_model::channel::message::component::{
-    ActionRow, Button, ButtonStyle, Component, ComponentType, SelectMenu, SelectMenuOption,
-    SelectMenuType, TextInput,
+    ActionRow, Button, ButtonStyle, CheckboxGroup, CheckboxGroupOption, Component, ComponentType,
+    SelectMenu, SelectMenuOption, SelectMenuType, TextInput,
 };
 
 pub use component_v2::{
+    CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT, CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT,
+    CHECKBOXGROUP_MINIMUM_VALUES_LIMIT, CHECKBOXGROUP_OPTION_COUNT,
     FILE_UPLOAD_MAXIMUM_VALUES_LIMIT, FILE_UPLOAD_MINIMUM_VALUES_LIMIT,
     LABEL_DESCRIPTION_LENGTH_MAX, LABEL_LABEL_LENGTH_MAX,
     MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN,
@@ -230,6 +232,35 @@ impl Display for ComponentValidationError {
 
                 f.write_str(" configured")
             }
+            ComponentValidationErrorType::CheckboxGroupMaximumValuesCount { count } => {
+                f.write_str("maximum number of values that can be chosen is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but must be greater than or equal to ")?;
+                Display::fmt(&CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT, f)?;
+                f.write_str("and less than or equal to ")?;
+
+                Display::fmt(&CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT, f)
+            }
+            ComponentValidationErrorType::CheckboxGroupMinimumValuesCount { count } => {
+                f.write_str("minimum number of values that must be chosen is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but must be less than or equal to ")?;
+
+                Display::fmt(&CHECKBOXGROUP_MINIMUM_VALUES_LIMIT, f)
+            }
+            ComponentValidationErrorType::CheckboxGroupOptionCount { count } => {
+                f.write_str("a checkbox group has ")?;
+                Display::fmt(&count, f)?;
+                f.write_str(" options, but the max is ")?;
+
+                Display::fmt(&CHECKBOXGROUP_OPTION_COUNT, f)
+            }
+            ComponentValidationErrorType::CheckboxGroupOptionsMissing => {
+                f.write_str("a checkbox group is missing it's options field")
+            }
+            ComponentValidationErrorType::CheckboxGroupRequiredWithNoMin => f.write_str(
+                "a checkbox group is marked required but has a min of 0 selected options",
+            ),
             ComponentValidationErrorType::ComponentCount { count } => {
                 Display::fmt(count, f)?;
                 f.write_str(" components were provided, but the max is ")?;
@@ -481,6 +512,28 @@ pub enum ComponentValidationErrorType {
         /// Style of the button.
         style: ButtonStyle,
     },
+    /// Maximum number of items that can be chosen is smaller than
+    /// [the minimum][`CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT`] or larger than
+    /// [the maximum][`CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT`].
+    CheckboxGroupMaximumValuesCount {
+        /// Number of options that were provided.
+        count: usize,
+    },
+    /// Number of checkbox group options provided is larger than
+    /// [the maximum][`CHECKBOXGROUP_OPTION_COUNT`]
+    CheckboxGroupOptionCount {
+        /// Number of options that were provided
+        count: usize,
+    },
+    /// Minimum values exceeds limit
+    CheckboxGroupMinimumValuesCount {
+        /// Number of options that were provided.
+        count: usize,
+    },
+    /// Checkbox group is missing options
+    CheckboxGroupOptionsMissing,
+    /// Checkbox group minimum is set to 0 but marked as required
+    CheckboxGroupRequiredWithNoMin,
     /// Number of components provided is larger than
     /// [the maximum][`COMPONENT_COUNT`].
     ComponentCount {
