@@ -24,7 +24,6 @@ impl EmbedAuthorBuilder {
     }
 
     /// Build into an embed author.
-    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used as part of an embed builder"]
     pub fn build(self) -> EmbedAuthor {
         self.0
