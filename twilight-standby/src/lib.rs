@@ -188,6 +188,11 @@ impl Standby {
         completions
     }
 
+    /// Returns whether or not the bystander is shutdown.
+    pub fn is_shutdown(&self) -> bool {
+        self.shutdown.load(Ordering::Relaxed)
+    }
+
     /// Cancels all this instance's [`WaitForFuture`] and [`WaitForStream`].
     ///
     /// # Example
@@ -675,9 +680,9 @@ impl Standby {
     ///
     /// If shutdown during invocation, `action`'s added bystanders are removed.
     fn cancellable(&self, action: impl FnOnce()) {
-        if !self.shutdown.load(Ordering::Relaxed) {
+        if !self.is_shutdown() {
             action();
-            if self.shutdown.load(Ordering::Relaxed) {
+            if self.is_shutdown() {
                 self.clear();
             }
         }
