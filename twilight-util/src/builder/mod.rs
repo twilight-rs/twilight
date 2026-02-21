@@ -1,5 +1,5 @@
 //! Builders for large structs.
-#![allow(clippy::missing_const_for_fn)]
+#![expect(clippy::missing_const_for_fn)]
 
 pub mod command;
 pub mod embed;
