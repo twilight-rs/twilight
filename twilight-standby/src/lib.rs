@@ -220,9 +220,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     pub fn shutdown(&self) {
-        // Signal shutdown with release ordering: all future loads are ordered
-        // _after_ this store.
-        self.shutdown.store(true, Ordering::Release);
+        self.shutdown.store(true, Ordering::Relaxed);
 
         // Cancel the bystanders.
         self.components.clear();
@@ -684,11 +682,9 @@ impl Standby {
     ///
     /// Runs a cleanup action `C` if cancellation occurs during invocation.
     fn cancellable<C: FnOnce(), F: FnOnce() -> C>(shutdown: &AtomicBool, action: F) {
-        // Check the shutdown signal with acquire ordering: all previous stores
-        // are ordered _before_ this load.
-        if !shutdown.load(Ordering::Acquire) {
+        if !shutdown.load(Ordering::Relaxed) {
             let cleanup = action();
-            if shutdown.load(Ordering::Acquire) {
+            if shutdown.load(Ordering::Relaxed) {
                 cleanup();
             }
         }
