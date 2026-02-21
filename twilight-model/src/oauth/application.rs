@@ -1,5 +1,5 @@
 use super::{
-    ApplicationFlags, InstallParams,
+    ApplicationFlags, EventWebhookStatus, InstallParams,
     application_integration_type::{ApplicationIntegrationMap, ApplicationIntegrationTypeConfig},
     team::Team,
 };
@@ -38,6 +38,11 @@ pub struct Application {
     pub custom_install_url: Option<String>,
     /// Description of the application.
     pub description: String,
+    /// If webhook events are enabled for the app.
+    pub event_webhooks_status: EventWebhookStatus,
+    /// Event webhooks URL for the app to receive webhook events.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event_webhooks_url: Option<String>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
     /// Partial object of the associated guild.
@@ -98,6 +103,7 @@ pub struct Application {
 #[cfg(test)]
 mod tests {
     use super::{Application, ApplicationFlags, Team, User};
+    use crate::oauth::EventWebhookStatus;
     use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -149,6 +155,8 @@ mod tests {
             cover_image: Some(image_hash::COVER),
             custom_install_url: None,
             description: "a pretty cool application".to_owned(),
+            event_webhooks_url: Some("https://eventwebhooks".into()),
+            event_webhooks_status: EventWebhookStatus::Enabled,
             flags: Some(ApplicationFlags::EMBEDDED),
             guild: None,
             guild_id: Some(Id::new(1)),
@@ -207,7 +215,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Application",
-                    len: 22,
+                    len: 24,
                 },
                 Token::Str("approximate_guild_count"),
                 Token::Some,
@@ -224,6 +232,11 @@ mod tests {
                 Token::Str(image_hash::COVER_INPUT),
                 Token::Str("description"),
                 Token::Str("a pretty cool application"),
+                Token::Str("event_webhooks_status"),
+                Token::U8(2),
+                Token::Str("event_webhooks_url"),
+                Token::Some,
+                Token::Str("https://eventwebhooks"),
                 Token::Str("flags"),
                 Token::Some,
                 Token::U64(131_072),
