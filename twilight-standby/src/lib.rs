@@ -221,13 +221,7 @@ impl Standby {
     /// ```
     pub fn shutdown(&self) {
         self.shutdown.store(true, Ordering::Relaxed);
-
-        // Cancel the bystanders.
-        self.components.clear();
-        self.events.clear();
-        self.guilds.clear();
-        self.messages.clear();
-        self.reactions.clear();
+        self.clear();
     }
 
     /// Wait for an event in a certain guild.
@@ -270,7 +264,7 @@ impl Standby {
         guild_id: Id<GuildMarker>,
         check: F,
     ) -> WaitForFuture<Event> {
-        Self::wait_for_inner(&self.guilds, guild_id, Box::new(check), &self.shutdown)
+        self.wait_for_inner(&self.guilds, guild_id, Box::new(check))
     }
 
     /// Wait for a stream of events in a certain guild.
@@ -318,7 +312,7 @@ impl Standby {
         guild_id: Id<GuildMarker>,
         check: F,
     ) -> WaitForStream<Event> {
-        Self::wait_for_stream_inner(&self.guilds, guild_id, Box::new(check), &self.shutdown)
+        self.wait_for_stream_inner(&self.guilds, guild_id, Box::new(check))
     }
 
     /// Wait for an event not in a certain guild. This must be filtered by an
@@ -358,7 +352,7 @@ impl Standby {
         &self,
         check: F,
     ) -> WaitForFuture<Event> {
-        self.wait_for_event_inner(Box::new(check), &self.shutdown)
+        self.wait_for_event_inner(Box::new(check))
     }
 
     /// Wait for a stream of events not in a certain guild. This must be
@@ -401,7 +395,7 @@ impl Standby {
         &self,
         check: F,
     ) -> WaitForStream<Event> {
-        self.wait_for_event_stream_inner(Box::new(check), &self.shutdown)
+        self.wait_for_event_stream_inner(Box::new(check))
     }
 
     /// Wait for a message in a certain channel.
@@ -443,7 +437,7 @@ impl Standby {
         channel_id: Id<ChannelMarker>,
         check: F,
     ) -> WaitForFuture<MessageCreate> {
-        Self::wait_for_inner(&self.messages, channel_id, Box::new(check), &self.shutdown)
+        self.wait_for_inner(&self.messages, channel_id, Box::new(check))
     }
 
     /// Wait for a stream of message in a certain channel.
@@ -489,7 +483,7 @@ impl Standby {
         channel_id: Id<ChannelMarker>,
         check: F,
     ) -> WaitForStream<MessageCreate> {
-        Self::wait_for_stream_inner(&self.messages, channel_id, Box::new(check), &self.shutdown)
+        self.wait_for_stream_inner(&self.messages, channel_id, Box::new(check))
     }
 
     /// Wait for a reaction on a certain message.
@@ -529,7 +523,7 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: F,
     ) -> WaitForFuture<ReactionAdd> {
-        Self::wait_for_inner(&self.reactions, message_id, Box::new(check), &self.shutdown)
+        self.wait_for_inner(&self.reactions, message_id, Box::new(check))
     }
 
     /// Wait for a stream of reactions on a certain message.
@@ -577,7 +571,7 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: F,
     ) -> WaitForStream<ReactionAdd> {
-        Self::wait_for_stream_inner(&self.reactions, message_id, Box::new(check), &self.shutdown)
+        self.wait_for_stream_inner(&self.reactions, message_id, Box::new(check))
     }
 
     /// Wait for a component on a certain message.
@@ -614,12 +608,7 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: F,
     ) -> WaitForFuture<InteractionCreate> {
-        Self::wait_for_inner(
-            &self.components,
-            message_id,
-            Box::new(check),
-            &self.shutdown,
-        )
+        self.wait_for_inner(&self.components, message_id, Box::new(check))
     }
 
     /// Wait for a stream of components on a certain message.
@@ -665,12 +654,16 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: F,
     ) -> WaitForStream<InteractionCreate> {
-        Self::wait_for_stream_inner(
-            &self.components,
-            message_id,
-            Box::new(check),
-            &self.shutdown,
-        )
+        self.wait_for_stream_inner(&self.components, message_id, Box::new(check))
+    }
+
+    /// Clears all bystanders.
+    fn clear(&self) {
+        self.components.clear();
+        self.events.clear();
+        self.guilds.clear();
+        self.messages.clear();
+        self.reactions.clear();
     }
 
     /// Next event ID in [`Standby::event_counter`].
@@ -678,36 +671,33 @@ impl Standby {
         self.event_counter.fetch_add(1, Ordering::Relaxed)
     }
 
-    /// Run a specified action `F`, checking for cancellation.
+    /// Run a specified action if not shutdown.
     ///
-    /// Runs a cleanup action `C` if cancellation occurs during invocation.
-    fn cancellable<C: FnOnce(), F: FnOnce() -> C>(shutdown: &AtomicBool, action: F) {
-        if !shutdown.load(Ordering::Relaxed) {
-            let cleanup = action();
-            if shutdown.load(Ordering::Relaxed) {
-                cleanup();
+    /// If shutdown during invocation, `action`'s added bystanders are removed.
+    fn cancellable(&self, action: impl FnOnce()) {
+        if !self.shutdown.load(Ordering::Relaxed) {
+            action();
+            if self.shutdown.load(Ordering::Relaxed) {
+                self.clear();
             }
         }
     }
 
     /// Wait for a `T`.
     fn wait_for_inner<IdKind, T>(
+        &self,
         map: &DashMap<Id<IdKind>, Vec<Bystander<T>>>,
         id: Id<IdKind>,
         check: Box<dyn Fn(&T) -> bool + Send + Sync + 'static>,
-        shutdown: &AtomicBool,
     ) -> WaitForFuture<T> {
         let (tx, rx) = oneshot::channel();
 
-        Self::cancellable(shutdown, || {
+        self.cancellable(|| {
             let mut entry = map.entry(id).or_default();
             entry.push(Bystander {
                 func: check,
                 sender: Some(Sender::Future(tx)),
             });
-            || {
-                map.remove(&id);
-            }
         });
 
         WaitForFuture { rx }
@@ -715,22 +705,19 @@ impl Standby {
 
     /// Wait for a stream of `T`.
     fn wait_for_stream_inner<IdKind, T>(
+        &self,
         map: &DashMap<Id<IdKind>, Vec<Bystander<T>>>,
         id: Id<IdKind>,
         check: Box<dyn Fn(&T) -> bool + Send + Sync + 'static>,
-        shutdown: &AtomicBool,
     ) -> WaitForStream<T> {
         let (tx, rx) = mpsc::unbounded_channel();
 
-        Self::cancellable(shutdown, || {
+        self.cancellable(|| {
             let mut entry = map.entry(id).or_default();
             entry.push(Bystander {
                 func: check,
                 sender: Some(Sender::Stream(tx)),
             });
-            || {
-                map.remove(&id);
-            }
         });
 
         WaitForStream { rx }
@@ -740,23 +727,17 @@ impl Standby {
     fn wait_for_event_inner(
         &self,
         check: Box<dyn Fn(&Event) -> bool + Send + Sync + 'static>,
-        shutdown: &AtomicBool,
     ) -> WaitForFuture<Event> {
         let (tx, rx) = oneshot::channel();
 
-        let map = &self.events;
-        let id = self.next_event_id();
-        Self::cancellable(shutdown, || {
-            map.insert(
-                id,
+        self.cancellable(|| {
+            self.events.insert(
+                self.next_event_id(),
                 Bystander {
                     func: check,
                     sender: Some(Sender::Future(tx)),
                 },
             );
-            || {
-                map.remove(&id);
-            }
         });
 
         WaitForFuture { rx }
@@ -766,23 +747,17 @@ impl Standby {
     fn wait_for_event_stream_inner(
         &self,
         check: Box<dyn Fn(&Event) -> bool + Send + Sync + 'static>,
-        shutdown: &AtomicBool,
     ) -> WaitForStream<Event> {
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let map = &self.events;
-        let id = self.next_event_id();
-        Self::cancellable(shutdown, || {
-            map.insert(
-                id,
+        self.cancellable(|| {
+            self.events.insert(
+                self.next_event_id(),
                 Bystander {
                     func: check,
                     sender: Some(Sender::Stream(tx)),
                 },
             );
-            || {
-                map.remove(&id);
-            }
         });
 
         WaitForStream { rx }
