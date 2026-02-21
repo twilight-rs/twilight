@@ -188,9 +188,7 @@ async fn equalize(
 
     let band_message = CONTEXT
         .standby
-        .wait_for_message(channel, move |message: &MessageCreate| {
-            message.author.id == user
-        })
+        .wait_for_message(channel, move |message| message.author.id == user)
         .await?;
     let band = band_message.content.parse::<i64>()?;
 
@@ -202,9 +200,7 @@ async fn equalize(
 
     let gain_message = CONTEXT
         .standby
-        .wait_for_message(channel, move |message: &MessageCreate| {
-            message.author.id == user
-        })
+        .wait_for_message(channel, move |message| message.author.id == user)
         .await?;
     let gain = gain_message.content.parse::<f64>()?;
 
@@ -237,9 +233,7 @@ async fn join(
 
     let message = CONTEXT
         .standby
-        .wait_for_message(channel, move |message: &MessageCreate| {
-            message.author.id == user
-        })
+        .wait_for_message(channel, move |message| message.author.id == user)
         .await?;
     let join_channel = message.content.parse()?;
 
@@ -313,9 +307,7 @@ async fn play(
 
     let message = CONTEXT
         .standby
-        .wait_for_message(channel, move |message: &MessageCreate| {
-            message.author.id == user
-        })
+        .wait_for_message(channel, move |message| message.author.id == user)
         .await?;
 
     tracing::debug!(%guild, url = message.content, %user, "playing");
@@ -369,9 +361,7 @@ async fn seek(
 
     let message = CONTEXT
         .standby
-        .wait_for_message(channel, move |message: &MessageCreate| {
-            message.author.id == user
-        })
+        .wait_for_message(channel, move |message| message.author.id == user)
         .await?;
     let position = message.content.parse::<i64>()?;
 
@@ -420,9 +410,7 @@ async fn volume(
 
     let message = CONTEXT
         .standby
-        .wait_for_message(channel, move |message: &MessageCreate| {
-            message.author.id == user
-        })
+        .wait_for_message(channel, move |message| message.author.id == user)
         .await?;
     let volume = message.content.parse::<i64>()?;
 
