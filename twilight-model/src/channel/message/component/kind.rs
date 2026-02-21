@@ -77,9 +77,13 @@ pub enum ComponentType {
     ///
     /// [`FileUpload`]: super::FileUpload
     FileUpload,
-
+    /// Component is a [`CheckboxGroup`] that allows adding checkboxes in modals.
+    ///
+    /// [`CheckboxGroup`]: super::CheckboxGroup
     CheckboxGroup,
-
+    /// Component is a [`Checkbox`] that allows adding a checkbox in modals.
+    ///
+    /// [`Checkbox`]: super::Checkbox
     Checkbox,
     /// Variant value is unknown to the library.
     Unknown(u8),

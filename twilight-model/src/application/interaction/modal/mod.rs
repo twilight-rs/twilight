@@ -81,9 +81,9 @@ pub enum ModalInteractionComponent {
     TextDisplay(ModalInteractionTextDisplay),
     /// File upload component.
     FileUpload(ModalInteractionFileUpload),
-    /// Checkbox Group Component.
+    /// Checkbox group component.
     CheckboxGroup(ModalInteractionCheckboxGroup),
-
+    /// Checkbox component
     Checkbox(ModalInteractionCheckbox),
     /// Variant value is unknown to the library in the context of modals.
     Unknown(u8),

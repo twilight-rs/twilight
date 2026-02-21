@@ -8,6 +8,6 @@ pub struct ModalInteractionCheckbox {
     pub id: i32,
     /// [Discord Docs/Custom ID]: https://discord.com/developers/docs/components/reference#anatomy-of-a-component-custom-id
     pub custom_id: String,
-    /// Value submitted by the user.
+    /// The state of the checkbox (`true` if checked, `false` if unchecked).
     pub value: bool,
 }
