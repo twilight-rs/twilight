@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-/// A component allowing uploading files in a modal.
+/// A component allowing a checkbox in a modal.
 ///
-/// File uploads are only available in modals and must be placed inside a label.
+/// checkboxes are only available in modals and must be placed inside a label.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct Checkbox {
     /// Optional identifier for the component.

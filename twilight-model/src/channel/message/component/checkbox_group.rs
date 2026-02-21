@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-/// A component allowing uploading files in a modal.
+/// A component for groups of checkboxes in a modal.
 ///
-/// File uploads are only available in modals and must be placed inside a label.
+/// Checkbox groups are only available in modals and must be placed inside a label.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct CheckboxGroup {
     /// Optional identifier for the component.
@@ -23,10 +23,17 @@ pub struct CheckboxGroup {
     pub required: Option<bool>,
 }
 
+/// Checkboxes put into the checkbox group
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CheckboxGroupOption {
+    /// Developer defined identifier
     pub value: String,
+    /// User-facing label of the option
     pub label: String,
+    /// Optional description for the option
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    /// Shows the option as selected by default
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub default: Option<bool>,
 }
