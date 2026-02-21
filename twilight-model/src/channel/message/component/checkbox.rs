@@ -10,6 +10,7 @@ pub struct Checkbox {
     pub id: Option<i32>,
     /// Developer defined identifier.
     pub custom_id: String,
-    /// Maximum number of items that can be uploaded.
+    /// Whether the checkbox is selected by default.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub default: Option<bool>,
 }

@@ -10,7 +10,7 @@ pub struct CheckboxGroup {
     pub id: Option<i32>,
     /// Developer defined identifier.
     pub custom_id: String,
-    /// List of chekbox options
+    /// List of checkbox options
     pub options: Vec<CheckboxGroupOption>,
     /// Minimum number of items that can be checked.
     #[serde(skip_serializing_if = "Option::is_none")]
