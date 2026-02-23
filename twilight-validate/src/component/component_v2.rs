@@ -6,8 +6,8 @@ use super::{
 };
 use twilight_model::channel::message::Component;
 use twilight_model::channel::message::component::{
-    Checkbox, CheckboxGroup, CheckboxGroupOption, ComponentType, Container, FileUpload, Label,
-    MediaGallery, MediaGalleryItem, Section, TextDisplay, Thumbnail,
+    Checkbox, CheckboxGroup, ComponentType, Container, FileUpload, Label, MediaGallery,
+    MediaGalleryItem, Section, TextDisplay, Thumbnail,
 };
 
 /// Maximum number of [`CheckboxGroupOption`]s in a [`CheckboxGroup`].

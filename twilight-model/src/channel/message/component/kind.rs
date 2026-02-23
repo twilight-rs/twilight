@@ -77,9 +77,13 @@ pub enum ComponentType {
     ///
     /// [`FileUpload`]: super::FileUpload
     FileUpload,
-
+    /// Component is a [`CheckboxGroup`].
+    ///
+    /// [`CheckboxGroup`]: super::CheckboxGroup
     CheckboxGroup,
-
+    /// Component is a [`Checkbox`].
+    ///
+    /// [`Checkbox`]: super::Checkbox
     Checkbox,
     /// Variant value is unknown to the library.
     Unknown(u8),

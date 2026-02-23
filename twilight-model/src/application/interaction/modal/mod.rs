@@ -280,6 +280,18 @@ impl TryFrom<ModalInteractionComponent> for ModalInteractionUserSelect {
     }
 }
 
+impl From<ModalInteractionCheckbox> for ModalInteractionComponent {
+    fn from(checkbox: ModalInteractionCheckbox) -> Self {
+        Self::Checkbox(checkbox)
+    }
+}
+
+impl From<ModalInteractionCheckboxGroup> for ModalInteractionComponent {
+    fn from(checkbox_group: ModalInteractionCheckboxGroup) -> Self {
+        Self::CheckboxGroup(checkbox_group)
+    }
+}
+
 impl<'de> Deserialize<'de> for ModalInteractionComponent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

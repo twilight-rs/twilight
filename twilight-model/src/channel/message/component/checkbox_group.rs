@@ -1,39 +1,66 @@
 use serde::{Deserialize, Serialize};
 
-/// A component for groups of checkboxes in a modal.
+/// A group of selectable checkboxes within a modal.
+/// Checkbox groups are only available in modals and must be put inside a label
 ///
-/// Checkbox groups are only available in modals and must be placed inside a label.
+/// Fields' default values may be used by setting them to [`None`].
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct CheckboxGroup {
     /// Optional identifier for the component.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i32>,
     /// Developer defined identifier.
+    ///
+    /// Between 1-100 characters
     pub custom_id: String,
-    /// List of checkbox options
+    /// List of checkbox options.
+    ///
+    /// Must be between 1-10 options.
     pub options: Vec<CheckboxGroupOption>,
-    /// Minimum number of items that can be checked.
+    /// Minimum number of options that must be selected.
+    ///
+    /// Must be between 0 and 10, inclusive.
+    ///
+    /// Defaults to `1`.
+    ///
+    /// If set to `0`, [`required`] must be `false`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_values: Option<u8>,
-    /// Maximum number of items that can be checked
+    /// Maximum number of items that can be checked.
+    ///
+    /// Must be between 1-10.
+    ///
+    /// Defaults to the number of options given.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_values: Option<u8>,
-    /// Whether files have to be uploaded.
+    /// Whether at least one option must be selected.
+    ///
+    /// Defaults to `true`.
+    ///
+    /// If [`min_values`] is set to `0`, this must be `false`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<bool>,
 }
 
-/// Checkboxes put into the checkbox group
+/// Selectable checkbox options put into the checkbox group
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CheckboxGroupOption {
-    /// Developer defined identifier
+    /// Developer defined identifier.
+    ///
+    /// Must be between 1-100 characters
     pub value: String,
-    /// User-facing label of the option
+    /// User-facing label of the option.
+    ///
+    /// Must be between 1-100 characters
     pub label: String,
-    /// Optional description for the option
+    /// Optional description for the option.
+    ///
+    /// Up to 100 characters
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    /// Shows the option as selected by default
+    /// If the option is selected by default.
+    ///
+    /// Set to false if None is given
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default: Option<bool>,
 }

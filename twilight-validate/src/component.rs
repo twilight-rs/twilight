@@ -7,8 +7,8 @@ use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 use twilight_model::channel::message::component::{
-    ActionRow, Button, ButtonStyle, CheckboxGroup, CheckboxGroupOption, Component, ComponentType,
-    SelectMenu, SelectMenuOption, SelectMenuType, TextInput,
+    ActionRow, Button, ButtonStyle, Component, ComponentType, SelectMenu, SelectMenuOption,
+    SelectMenuType, TextInput,
 };
 
 pub use component_v2::{

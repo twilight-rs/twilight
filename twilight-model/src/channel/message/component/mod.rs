@@ -172,9 +172,11 @@ pub enum Component {
     TextInput(TextInput),
     /// Small image that can be used as an accessory.
     Thumbnail(Thumbnail),
-    /// Variant value is unknown to the library.
+    /// A group of selectable checkboxes in a modal
     CheckboxGroup(CheckboxGroup),
+    /// A selectable checkbox in a modal
     Checkbox(Checkbox),
+    /// Variant value is unknown to the library.
     Unknown(u8),
 }
 
@@ -467,6 +469,18 @@ impl TryFrom<Component> for Thumbnail {
             Component::Thumbnail(inner) => Ok(inner),
             _ => Err(value),
         }
+    }
+}
+
+impl From<Checkbox> for Component {
+    fn from(checkbox: Checkbox) -> Self {
+        Self::Checkbox(checkbox)
+    }
+}
+
+impl From<CheckboxGroup> for Component {
+    fn from(checkbox_group: CheckboxGroup) -> Self {
+        Self::CheckboxGroup(checkbox_group)
     }
 }
 
