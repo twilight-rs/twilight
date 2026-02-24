@@ -500,6 +500,7 @@ enum Field {
     Components,
     Content,
     CustomId,
+    Default,
     DefaultValues,
     Description,
     Disabled,
@@ -608,6 +609,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     }
 
                     custom_id = Some(map.next_value()?);
+                }
+                Field::Default => {
+                    if default.is_some() {
+                        return Err(DeError::duplicate_field("default"));
+                    }
+
+                    default = Some(map.next_value()?)
                 }
                 Field::DefaultValues => {
                     if default_values.is_some() {
