@@ -141,11 +141,10 @@ impl TryIntoRequest for CreateBan<'_> {
 mod tests {
     use crate::{
         client::Client,
-        request::{AuditLogReason, REASON_HEADER_NAME, TryIntoRequest},
+        request::{AuditLogReason, Method, REASON_HEADER_NAME, TryIntoRequest},
     };
     use http::header::HeaderValue;
     use std::error::Error;
-    use twilight_http_ratelimiting::Method;
     use twilight_model::id::{
         Id,
         marker::{GuildMarker, UserMarker},

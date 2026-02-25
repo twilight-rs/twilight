@@ -76,10 +76,12 @@ impl TryIntoRequest for GetCurrentAuthorizationInformation<'_> {
 #[cfg(test)]
 mod tests {
     use super::GetCurrentAuthorizationInformation;
-    use crate::{client::Client, request::TryIntoRequest};
+    use crate::{
+        client::Client,
+        request::{Method, TryIntoRequest},
+    };
     use static_assertions::assert_impl_all;
     use std::{error::Error, future::IntoFuture};
-    use twilight_http_ratelimiting::Method;
 
     assert_impl_all!(GetCurrentAuthorizationInformation<'_>: IntoFuture, Send, Sync, TryIntoRequest);
 
