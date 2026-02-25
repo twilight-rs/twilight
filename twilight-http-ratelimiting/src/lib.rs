@@ -256,6 +256,18 @@ pub struct Bucket {
     pub reset_at: Instant,
 }
 
+impl Bucket {
+    /// Whether the bucket is exhausted.
+    pub const fn is_exhausted(&self) -> bool {
+        self.remaining == 0
+    }
+
+    /// Duration until the bucket resets.
+    pub fn reset_after(&self) -> Duration {
+        self.reset_at.saturating_duration_since(Instant::now())
+    }
+}
+
 /// Actor run closure pre-enqueue for early [`MaybePermitFuture`] cancellation.
 type Predicate = Box<dyn FnOnce(Option<Bucket>) -> bool + Send>;
 
