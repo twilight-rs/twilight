@@ -1,5 +1,3 @@
-#![cfg(not(target_os = "wasi"))]
-
 //! Rate limiting state manager.
 
 use crate::{Endpoint, GLOBAL_LIMIT_PERIOD, RateLimitHeaders};
