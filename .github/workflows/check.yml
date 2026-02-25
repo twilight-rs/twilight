@@ -203,3 +203,25 @@ jobs:
 
       - name: Check feature combinations
         run: cargo hack check --feature-powerset
+
+  wasi:
+    name: WASI
+    needs: [MSRV]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Add problem matchers
+        run: echo "::add-matchers::.github/rust.json"
+
+      - run: cargo check --package twilight-http --package twilight-http-ratelimiting --target wasm32-wasip2
