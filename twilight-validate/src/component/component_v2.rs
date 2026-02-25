@@ -358,7 +358,7 @@ pub const fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationE
 ///
 /// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
 /// [`FileUploadMaximumValuesCount`]: ComponentValidationErrorType::FileUploadMaximumValuesCount
-/// [`FileUploadMaximumValuesCount`]: ComponentValidationErrorType::FileUploadMaximumValuesCount
+/// [`FileUploadMinimumValuesCount`]: ComponentValidationErrorType::FileUploadMaximumValuesCount
 pub fn file_upload(file_upload: &FileUpload) -> Result<(), ComponentValidationError> {
     component_custom_id(&file_upload.custom_id)?;
 
@@ -373,6 +373,29 @@ pub fn file_upload(file_upload: &FileUpload) -> Result<(), ComponentValidationEr
     Ok(())
 }
 
+/// Validates a checkbox group item
+///
+/// # Errors
+///
+/// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
+/// ID is too long.
+///
+/// Returns an error of type [`CheckboxGroupOptionsMissing`] if the provided
+/// options vector is empty
+///
+/// Returns an error of type [`CheckboxGroupMaximumValuesCount`] if the set maximum value
+/// is greater than [`CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT`] or less than [`CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT`]
+///
+/// Returns an error of type [`CheckboxGroupMinimumValuesCount`] if the set minimum value is greater than
+/// [`CHECKBOXGROUP_MINIMUM_VALUES_LIMIT`]
+///
+/// Returns an error of type [`CheckboxGroupRequiredWithNoMin`] if the set minimum is 0 but required is set to true
+///
+/// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
+/// [`CheckboxGroupOptionsMissing`]: ComponentValidationErrorType::CheckboxGroupOptionsMissing
+/// [`CheckboxGroupMaximumValuesCount`]: ComponentValidationErrorType::CheckboxGroupMaximumValuesCount
+/// [`CheckboxGroupMinimumValuesCount`]: ComponentValidationErrorType::CheckboxGroupMinimumValuesCount
+/// [`CheckboxGroupRequiredWithNoMin`]: ComponentValidationErrorType::CheckboxGroupRequiredWithNoMin
 pub fn checkbox_group(checkbox_group: &CheckboxGroup) -> Result<(), ComponentValidationError> {
     // custom_id length must be valid
     component_custom_id(&checkbox_group.custom_id)?;
@@ -397,45 +420,14 @@ pub fn checkbox_group(checkbox_group: &CheckboxGroup) -> Result<(), ComponentVal
     Ok(())
 }
 
-const fn component_checkbox_group_max_values(count: usize) -> Result<(), ComponentValidationError> {
-    if count > CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT {
-        return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::CheckboxGroupMaximumValuesCount { count },
-        });
-    }
-
-    if count < CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT {
-        return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::CheckboxGroupMaximumValuesCount { count },
-        });
-    }
-
-    Ok(())
-}
-
-const fn component_checkbox_group_min_values(count: usize) -> Result<(), ComponentValidationError> {
-    if count > CHECKBOXGROUP_MINIMUM_VALUES_LIMIT {
-        return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::CheckboxGroupMinimumValuesCount { count },
-        });
-    }
-
-    Ok(())
-}
-
-const fn component_checkbox_group_required(
-    required: bool,
-    min_values: usize,
-) -> Result<(), ComponentValidationError> {
-    if required && min_values == 0 {
-        return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::CheckboxGroupRequiredWithNoMin,
-        });
-    }
-
-    Ok(())
-}
-
+/// Validates a checkbox component.
+///
+/// # Errors
+///
+/// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
+/// ID is too long.
+///
+/// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
 pub fn checkbox(checkbox: &Checkbox) -> Result<(), ComponentValidationError> {
     // custom_id length must be valid
     component_custom_id(&checkbox.custom_id)?;
@@ -539,6 +531,73 @@ const fn component_file_upload_min_values(count: u8) -> Result<(), ComponentVali
     if count > FILE_UPLOAD_MINIMUM_VALUES_LIMIT {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::FileUploadMinimumValuesCount { count },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`CheckboxGroup::max_values`] amount.
+///
+/// # Errors
+///
+/// Returns an error of type [`CheckboxGroupMaximumValuesCount`] if the provided maximum value
+/// number is greater than [`CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT`] or less than [`CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT`]
+///
+/// [the maximum][`CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT`].
+/// [the minimum][`CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT`]
+///
+/// [`CheckboxGroupMaximumValuesCount`]: ComponentValidationErrorType::CheckboxGroupMaximumValuesCount
+const fn component_checkbox_group_max_values(count: usize) -> Result<(), ComponentValidationError> {
+    if count > CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::CheckboxGroupMaximumValuesCount { count },
+        });
+    }
+
+    if count < CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::CheckboxGroupMaximumValuesCount { count },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`CheckboxGroup::min_values`] amount.
+///
+/// # Errors
+///
+/// Returns an error of type [`CheckboxGroupMinimumValuesCount`] if the provided minimum
+/// selected value count is greater than
+/// [the maximum][`CHECKBOXGROUP_MINIMUM_VALUES_LIMIT`].
+///
+/// [`CheckboxGroupMinimumValuesCount`]: ComponentValidationErrorType::CheckboxGroupMinimumValuesCount
+const fn component_checkbox_group_min_values(count: usize) -> Result<(), ComponentValidationError> {
+    if count > CHECKBOXGROUP_MINIMUM_VALUES_LIMIT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::CheckboxGroupMinimumValuesCount { count },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`CheckboxGroup::required`] boolean.
+///
+/// # Errors
+///
+/// Returns an error of type [`CheckboxGroupRequiredWithNoMin`] if the provided minimum
+/// selected values is 0 while required is set to true
+///
+/// [`CheckboxGroupRequiredWithNoMin`]: ComponentValidationErrorType::CheckboxGroupRequiredWithNoMin
+const fn component_checkbox_group_required(
+    required: bool,
+    min_values: usize,
+) -> Result<(), ComponentValidationError> {
+    if required && min_values == 0 {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::CheckboxGroupRequiredWithNoMin,
         });
     }
 
