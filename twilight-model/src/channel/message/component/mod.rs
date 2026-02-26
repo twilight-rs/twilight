@@ -2054,16 +2054,12 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "CheckboxGroupOption",
-                    len: 4, // value, label, description, default
+                    len: 2, // value, label
                 },
                 Token::Str("value"),
                 Token::Str("a"),
                 Token::Str("label"),
                 Token::Str("Option A"),
-                Token::Str("description"),
-                Token::None,
-                Token::Str("default"),
-                Token::None,
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::StructEnd,
