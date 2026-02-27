@@ -7,6 +7,8 @@
 
 mod action_row;
 mod button;
+mod checkbox;
+mod checkbox_group;
 mod container;
 mod file_display;
 mod file_upload;
@@ -24,6 +26,8 @@ mod unfurled_media;
 pub use self::{
     action_row::ActionRow,
     button::{Button, ButtonStyle},
+    checkbox::Checkbox,
+    checkbox_group::{CheckboxGroup, CheckboxGroupOption},
     container::Container,
     file_display::FileDisplay,
     file_upload::FileUpload,
@@ -146,6 +150,10 @@ pub enum Component {
     ActionRow(ActionRow),
     /// Clickable item that renders below messages.
     Button(Button),
+    /// A selectable checkbox in a modal
+    Checkbox(Checkbox),
+    /// A group of selectable checkboxes in a modal
+    CheckboxGroup(CheckboxGroup),
     /// Container that visually groups a set of components.
     Container(Container),
     /// Displays an attached file.
@@ -197,6 +205,8 @@ impl Component {
         match self {
             Component::ActionRow(_) => ComponentType::ActionRow,
             Component::Button(_) => ComponentType::Button,
+            Component::Checkbox(_) => ComponentType::Checkbox,
+            Component::CheckboxGroup(_) => ComponentType::CheckboxGroup,
             Component::Container(_) => ComponentType::Container,
             Component::File(_) => ComponentType::File,
             Component::FileUpload(_) => ComponentType::FileUpload,
@@ -223,6 +233,8 @@ impl Component {
         match self {
             Component::ActionRow(action_row) => 1 + action_row.components.len(),
             Component::Button(_)
+            | Component::Checkbox(_)
+            | Component::CheckboxGroup(_)
             | Component::File(_)
             | Component::FileUpload(_)
             | Component::MediaGallery(_)
@@ -248,6 +260,18 @@ impl From<ActionRow> for Component {
 impl From<Button> for Component {
     fn from(button: Button) -> Self {
         Self::Button(button)
+    }
+}
+
+impl From<Checkbox> for Component {
+    fn from(checkbox: Checkbox) -> Self {
+        Self::Checkbox(checkbox)
+    }
+}
+
+impl From<CheckboxGroup> for Component {
+    fn from(checkbox_group: CheckboxGroup) -> Self {
+        Self::CheckboxGroup(checkbox_group)
     }
 }
 
@@ -334,6 +358,28 @@ impl TryFrom<Component> for Button {
     fn try_from(value: Component) -> Result<Self, Self::Error> {
         match value {
             Component::Button(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for Checkbox {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::Checkbox(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for CheckboxGroup {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::CheckboxGroup(inner) => Ok(inner),
             _ => Err(value),
         }
     }
@@ -476,6 +522,7 @@ enum Field {
     Components,
     Content,
     CustomId,
+    Default,
     DefaultValues,
     Description,
     Disabled,
@@ -516,7 +563,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         // Required fields.
         let mut components: Option<Vec<Component>> = None;
         let mut kind: Option<ComponentType> = None;
-        let mut options: Option<Vec<SelectMenuOption>> = None;
+        let mut options: Option<Value> = None;
         let mut style: Option<Value> = None;
 
         // Liminal fields.
@@ -537,6 +584,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut url: Option<Option<String>> = None;
         let mut sku_id: Option<Id<SkuMarker>> = None;
         let mut value: Option<Option<String>> = None;
+        let mut default: Option<bool> = None;
 
         let mut id: Option<i32> = None;
         let mut content: Option<String> = None;
@@ -583,6 +631,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     }
 
                     custom_id = Some(map.next_value()?);
+                }
+                Field::Default => {
+                    if default.is_some() {
+                        return Err(DeError::duplicate_field("default"));
+                    }
+
+                    default = Some(map.next_value()?)
                 }
                 Field::DefaultValues => {
                     if default_values.is_some() {
@@ -844,9 +899,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             | ComponentType::MentionableSelectMenu
             | ComponentType::ChannelSelectMenu) => {
                 // Verify the individual variants' required fields
-                if let ComponentType::TextSelectMenu = kind
-                    && options.is_none()
-                {
+                if kind == ComponentType::TextSelectMenu && options.is_none() {
                     return Err(DeError::missing_field("options"));
                 }
 
@@ -875,7 +928,10 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     },
                     max_values: max_values.unwrap_or_default(),
                     min_values: min_values.unwrap_or_default(),
-                    options,
+                    options: options
+                        .map(Value::deserialize_into)
+                        .transpose()
+                        .map_err(DeserializerError::into_error)?,
                     placeholder: placeholder.unwrap_or_default(),
                     id,
                     required: required.unwrap_or_default(),
@@ -990,6 +1046,39 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     max_values: max_values.unwrap_or_default(),
                     min_values: min_values.unwrap_or_default(),
                     required: required.unwrap_or_default(),
+                })
+            }
+            ComponentType::CheckboxGroup => {
+                let custom_id = custom_id
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("custom_id"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                let options = options
+                    .ok_or_else(|| DeError::missing_field("options"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::CheckboxGroup(CheckboxGroup {
+                    id,
+                    custom_id,
+                    options,
+                    min_values: min_values.unwrap_or_default(),
+                    max_values: max_values.unwrap_or_default(),
+                    required: required.unwrap_or_default(),
+                })
+            }
+            ComponentType::Checkbox => {
+                let custom_id = custom_id
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("custom_id"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+                Self::Value::Checkbox(Checkbox {
+                    custom_id,
+                    default,
+                    id,
                 })
             }
         })
@@ -1164,6 +1253,15 @@ impl Serialize for Component {
                     + usize::from(file_upload.max_values.is_some())
                     + usize::from(file_upload.required.is_some())
                     + usize::from(file_upload.id.is_some())
+            }
+            Component::CheckboxGroup(checkbox_group) => {
+                3 + usize::from(checkbox_group.id.is_some())
+                    + usize::from(checkbox_group.min_values.is_some())
+                    + usize::from(checkbox_group.max_values.is_some())
+                    + usize::from(checkbox_group.required.is_some())
+            }
+            Component::Checkbox(checkbox) => {
+                2 + usize::from(checkbox.id.is_some()) + usize::from(checkbox.default.is_some())
             }
             // We are dropping fields here but nothing we can do about that for
             // the time being.
@@ -1429,6 +1527,34 @@ impl Serialize for Component {
                     state.serialize_field("required", &file_upload.required)?;
                 }
             }
+            Component::CheckboxGroup(checkbox_group) => {
+                state.serialize_field("type", &ComponentType::CheckboxGroup)?;
+                if checkbox_group.id.is_some() {
+                    state.serialize_field("id", &checkbox_group.id)?;
+                }
+                state.serialize_field("custom_id", &Some(&checkbox_group.custom_id))?;
+                state.serialize_field("options", &checkbox_group.options)?;
+                if checkbox_group.min_values.is_some() {
+                    state.serialize_field("min_values", &checkbox_group.min_values)?;
+                }
+                if checkbox_group.max_values.is_some() {
+                    state.serialize_field("max_values", &checkbox_group.max_values)?;
+                }
+                if checkbox_group.required.is_some() {
+                    state.serialize_field("required", &checkbox_group.required)?;
+                }
+            }
+            Component::Checkbox(checkbox) => {
+                state.serialize_field("type", &ComponentType::Checkbox)?;
+                if checkbox.id.is_some() {
+                    state.serialize_field("id", &checkbox.id)?;
+                }
+                state.serialize_field("custom_id", &Some(&checkbox.custom_id))?;
+                if checkbox.default.is_some() {
+                    state.serialize_field("default", &checkbox.default)?;
+                }
+            }
+
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing
             // incoming messages at this time.
@@ -1911,6 +2037,75 @@ mod tests {
                 Token::String("required"),
                 Token::Some,
                 Token::Bool(true),
+                Token::StructEnd,
+            ],
+        )
+    }
+
+    #[test]
+    fn checkbox_group() {
+        let value = Component::CheckboxGroup(CheckboxGroup {
+            id: None,
+            custom_id: "group".to_owned(),
+            options: vec![CheckboxGroupOption {
+                default: None,
+                description: None,
+                label: "Option A".to_owned(),
+                value: "a".to_owned(),
+            }],
+            min_values: None,
+            max_values: None,
+            required: None,
+        });
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Component",
+                    len: 3, // type, custom_id, options
+                },
+                Token::Str("type"),
+                Token::U8(ComponentType::CheckboxGroup.into()),
+                Token::Str("custom_id"),
+                Token::Some,
+                Token::Str("group"),
+                Token::Str("options"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CheckboxGroupOption",
+                    len: 2, // value, label
+                },
+                Token::Str("label"),
+                Token::Str("Option A"),
+                Token::Str("value"),
+                Token::Str("a"),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
+    #[test]
+    fn checkbox() {
+        let value = Component::Checkbox(Checkbox {
+            custom_id: "test".to_owned(),
+            default: None,
+            id: None,
+        });
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Component",
+                    len: 2,
+                },
+                Token::Str("type"),
+                Token::U8(ComponentType::Checkbox.into()),
+                Token::Str("custom_id"),
+                Token::Some,
+                Token::Str("test"),
                 Token::StructEnd,
             ],
         )
