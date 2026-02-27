@@ -150,6 +150,10 @@ pub enum Component {
     ActionRow(ActionRow),
     /// Clickable item that renders below messages.
     Button(Button),
+    /// A selectable checkbox in a modal
+    Checkbox(Checkbox),
+    /// A group of selectable checkboxes in a modal
+    CheckboxGroup(CheckboxGroup),
     /// Container that visually groups a set of components.
     Container(Container),
     /// Displays an attached file.
@@ -172,10 +176,6 @@ pub enum Component {
     TextInput(TextInput),
     /// Small image that can be used as an accessory.
     Thumbnail(Thumbnail),
-    /// A group of selectable checkboxes in a modal
-    CheckboxGroup(CheckboxGroup),
-    /// A selectable checkbox in a modal
-    Checkbox(Checkbox),
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -205,6 +205,8 @@ impl Component {
         match self {
             Component::ActionRow(_) => ComponentType::ActionRow,
             Component::Button(_) => ComponentType::Button,
+            Component::Checkbox(_) => ComponentType::Checkbox,
+            Component::CheckboxGroup(_) => ComponentType::CheckboxGroup,
             Component::Container(_) => ComponentType::Container,
             Component::File(_) => ComponentType::File,
             Component::FileUpload(_) => ComponentType::FileUpload,
@@ -222,8 +224,6 @@ impl Component {
             Component::TextDisplay(_) => ComponentType::TextDisplay,
             Component::TextInput(_) => ComponentType::TextInput,
             Component::Thumbnail(_) => ComponentType::Thumbnail,
-            Component::CheckboxGroup(_) => ComponentType::CheckboxGroup,
-            Component::Checkbox(_) => ComponentType::Checkbox,
             Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
         }
     }
@@ -233,6 +233,8 @@ impl Component {
         match self {
             Component::ActionRow(action_row) => 1 + action_row.components.len(),
             Component::Button(_)
+            | Component::Checkbox(_)
+            | Component::CheckboxGroup(_)
             | Component::File(_)
             | Component::FileUpload(_)
             | Component::MediaGallery(_)
@@ -241,8 +243,6 @@ impl Component {
             | Component::TextDisplay(_)
             | Component::TextInput(_)
             | Component::Thumbnail(_)
-            | Component::Checkbox(_)
-            | Component::CheckboxGroup(_)
             | Component::Unknown(_) => 1,
             Component::Container(container) => 1 + container.components.len(),
             Component::Label(_) => 2,
@@ -260,6 +260,18 @@ impl From<ActionRow> for Component {
 impl From<Button> for Component {
     fn from(button: Button) -> Self {
         Self::Button(button)
+    }
+}
+
+impl From<Checkbox> for Component {
+    fn from(checkbox: Checkbox) -> Self {
+        Self::Checkbox(checkbox)
+    }
+}
+
+impl From<CheckboxGroup> for Component {
+    fn from(checkbox_group: CheckboxGroup) -> Self {
+        Self::CheckboxGroup(checkbox_group)
     }
 }
 
@@ -346,6 +358,28 @@ impl TryFrom<Component> for Button {
     fn try_from(value: Component) -> Result<Self, Self::Error> {
         match value {
             Component::Button(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for Checkbox {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::Checkbox(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for CheckboxGroup {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::CheckboxGroup(inner) => Ok(inner),
             _ => Err(value),
         }
     }
@@ -469,18 +503,6 @@ impl TryFrom<Component> for Thumbnail {
             Component::Thumbnail(inner) => Ok(inner),
             _ => Err(value),
         }
-    }
-}
-
-impl From<Checkbox> for Component {
-    fn from(checkbox: Checkbox) -> Self {
-        Self::Checkbox(checkbox)
-    }
-}
-
-impl From<CheckboxGroup> for Component {
-    fn from(checkbox_group: CheckboxGroup) -> Self {
-        Self::CheckboxGroup(checkbox_group)
     }
 }
 
@@ -876,21 +898,16 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             | ComponentType::RoleSelectMenu
             | ComponentType::MentionableSelectMenu
             | ComponentType::ChannelSelectMenu) => {
+                // Verify the individual variants' required fields
+                if kind == ComponentType::TextSelectMenu && options.is_none() {
+                    return Err(DeError::missing_field("options"));
+                }
+
                 let custom_id = custom_id
                     .flatten()
                     .ok_or_else(|| DeError::missing_field("custom_id"))?
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
-                let options = if let ComponentType::TextSelectMenu = kind {
-                    Some(
-                        options
-                            .ok_or_else(|| DeError::missing_field("options"))?
-                            .deserialize_into()
-                            .map_err(DeserializerError::into_error)?,
-                    )
-                } else {
-                    None
-                };
 
                 Self::Value::SelectMenu(SelectMenu {
                     channel_types,
@@ -911,7 +928,10 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     },
                     max_values: max_values.unwrap_or_default(),
                     min_values: min_values.unwrap_or_default(),
-                    options,
+                    options: options
+                        .map(Value::deserialize_into)
+                        .transpose()
+                        .map_err(DeserializerError::into_error)?,
                     placeholder: placeholder.unwrap_or_default(),
                     id,
                     required: required.unwrap_or_default(),
@@ -2069,9 +2089,9 @@ mod tests {
     #[test]
     fn checkbox() {
         let value = Component::Checkbox(Checkbox {
-            id: None,
             custom_id: "test".to_owned(),
             default: None,
+            id: None,
         });
 
         serde_test::assert_tokens(
