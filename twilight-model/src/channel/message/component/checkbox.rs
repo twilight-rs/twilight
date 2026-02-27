@@ -7,9 +7,6 @@ use serde::{Deserialize, Serialize};
 /// Fields' default values may be used by setting them to [`None`].
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct Checkbox {
-    /// Optional identifier for the component.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<i32>,
     /// Developer defined identifier.
     ///
     /// Must be between 1-100 characters
@@ -19,4 +16,7 @@ pub struct Checkbox {
     /// Set to false if None is given
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default: Option<bool>,
+    /// Optional identifier for the component.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<i32>,
 }
