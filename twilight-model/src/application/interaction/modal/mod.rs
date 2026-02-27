@@ -515,8 +515,8 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
                     .map_err(DeserializerError::into_error)?;
 
                 Self::Value::CheckboxGroup(ModalInteractionCheckboxGroup {
-                    id,
                     custom_id,
+                    id,
                     values,
                 })
             }

@@ -1076,9 +1076,9 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
                 Self::Value::Checkbox(Checkbox {
-                    id,
                     custom_id,
                     default,
+                    id,
                 })
             }
         })
