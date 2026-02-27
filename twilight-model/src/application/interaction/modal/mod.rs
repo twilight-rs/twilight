@@ -192,6 +192,28 @@ impl TryFrom<ModalInteractionComponent> for ModalInteractionChannelSelect {
     }
 }
 
+impl TryFrom<ModalInteractionComponent> for ModalInteractionCheckbox {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::Checkbox(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionCheckboxGroup {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::CheckboxGroup(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
 impl TryFrom<ModalInteractionComponent> for ModalInteractionFileUpload {
     type Error = ModalInteractionComponent;
 
