@@ -9,10 +9,12 @@ use twilight_model::{
     },
 };
 
+#[cfg(not(target_os = "wasi"))]
+use crate::{Response, response::ResponseFuture};
+
 use crate::{
-    Client, Error, Response,
+    Client, Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
     routing::Route,
 };
 
@@ -77,6 +79,7 @@ impl<'a> CreateTestEntitlement<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for CreateTestEntitlement<'_> {
     type Output = Result<Response<Entitlement>, Error>;
 

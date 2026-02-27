@@ -41,7 +41,7 @@ pub trait StreamExt: Stream {
     ///
     /// ```no_run
     /// # use twilight_gateway::{Intents, Shard, ShardId};
-    /// # #[tokio::main] async fn main() {
+    /// # #[tokio::main(flavor = "current_thread")] async fn main() {
     /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
     /// use twilight_gateway::{Event, EventTypeFlags, StreamExt as _};
     ///

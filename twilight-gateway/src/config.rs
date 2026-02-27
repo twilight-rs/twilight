@@ -274,7 +274,7 @@ impl<Q> ConfigBuilder<Q> {
     ///     presence::{ActivityType, MinimalActivity, Status},
     /// };
     ///
-    /// # #[tokio::main]
+    /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let config = ConfigBuilder::new(env::var("DISCORD_TOKEN")?, Intents::empty())
     ///     .presence(UpdatePresencePayload::new(

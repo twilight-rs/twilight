@@ -1,3 +1,5 @@
+#![cfg(not(target_os = "wasi"))]
+
 //! Rate limiting state manager.
 
 use crate::{Endpoint, GLOBAL_LIMIT_PERIOD, RateLimitHeaders};
@@ -380,7 +382,7 @@ mod tests {
                 reset_at: Instant::now() + RESET_AFTER,
             }));
 
-        time::advance(GC_INTERVAL - RESET_AFTER).await;
+        time::sleep(GC_INTERVAL - RESET_AFTER).await;
 
         rate_limiter
             .acquire(ENDPOINT2())
@@ -392,7 +394,7 @@ mod tests {
                 reset_at: Instant::now() + RESET_AFTER,
             }));
 
-        time::advance(RESET_AFTER).await;
+        time::sleep(RESET_AFTER).await;
 
         rate_limiter.acquire(ENDPOINT()).await.complete(None);
         rate_limiter.acquire(ENDPOINT2()).await.complete(None);

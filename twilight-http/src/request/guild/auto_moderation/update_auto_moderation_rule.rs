@@ -1,8 +1,9 @@
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
@@ -21,12 +22,19 @@ use twilight_validate::request::{ValidationError, audit_reason as validate_audit
 
 #[derive(Serialize)]
 struct UpdateAutoModerationRuleFields<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
     actions: Option<&'a [AutoModerationAction]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     event_type: Option<AutoModerationEventType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     exempt_channels: Option<&'a [Id<ChannelMarker>]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     exempt_roles: Option<&'a [Id<RoleMarker>]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     trigger_metadata: Option<&'a AutoModerationTriggerMetadata>,
 }
 
@@ -130,6 +138,7 @@ impl<'a> AuditLogReason<'a> for UpdateAutoModerationRule<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateAutoModerationRule<'_> {
     type Output = Result<Response<AutoModerationRule>, Error>;
 

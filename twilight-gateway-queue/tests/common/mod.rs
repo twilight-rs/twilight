@@ -1,4 +1,4 @@
-use tokio::time::{Duration, Instant, advance};
+use tokio::time::{self, Duration, Instant};
 use twilight_gateway_queue::{IDENTIFY_DELAY, LIMIT_PERIOD, Queue};
 
 pub async fn same_id_is_serial(queue: impl Queue) {
@@ -46,7 +46,7 @@ pub async fn reset_after_refills(queue: impl Queue, reset_after: Duration) {
 
 /// Requires a fresh queue with `remaining` of 1.
 pub async fn reset_after_started(queue: impl Queue) {
-    advance(LIMIT_PERIOD / 2).await;
+    time::sleep(LIMIT_PERIOD / 2).await;
 
     let t1 = queue.enqueue(0);
     let t2 = queue.enqueue(0);

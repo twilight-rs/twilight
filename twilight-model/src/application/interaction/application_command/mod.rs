@@ -30,11 +30,11 @@ pub struct CommandData {
     pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the command.
     pub id: Id<CommandMarker>,
-    /// Name of the command.
-    pub name: String,
     /// Type of the command.
     #[serde(rename = "type")]
     pub kind: CommandType,
+    /// Name of the command.
+    pub name: String,
     /// List of options specified by the user.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub options: Vec<CommandDataOption>,

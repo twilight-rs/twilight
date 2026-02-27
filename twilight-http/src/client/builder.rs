@@ -1,17 +1,23 @@
+#[cfg(not(target_os = "wasi"))]
 use super::Token;
-use crate::{Client, client::connector};
+use crate::Client;
+#[cfg(not(target_os = "wasi"))]
+use crate::client::connector;
 use http::header::HeaderMap;
+#[cfg(not(target_os = "wasi"))]
 use hyper_util::rt::TokioExecutor;
 use std::{
     sync::{Arc, atomic::AtomicBool},
     time::Duration,
 };
+#[cfg(not(target_os = "wasi"))]
 use twilight_http_ratelimiting::RateLimiter;
 use twilight_model::channel::message::AllowedMentions;
 
 /// A builder for [`Client`].
 #[derive(Debug)]
 #[must_use = "has no effect if not built into a Client"]
+#[cfg(not(target_os = "wasi"))]
 pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Box<str>>,
@@ -23,6 +29,14 @@ pub struct ClientBuilder {
     pub(crate) use_http: bool,
 }
 
+/// A builder for [`Client`].
+#[derive(Debug)]
+#[must_use = "has no effect if not built into a Client"]
+#[cfg(target_os = "wasi")]
+pub struct ClientBuilder {
+    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
+}
+
 impl ClientBuilder {
     /// Create a new builder to create a [`Client`].
     pub fn new() -> Self {
@@ -30,6 +44,7 @@ impl ClientBuilder {
     }
 
     /// Build the [`Client`].
+    #[cfg(not(target_os = "wasi"))]
     pub fn build(self) -> Client {
         let connector = connector::create();
 
@@ -52,6 +67,14 @@ impl ClientBuilder {
             token: self.token,
             default_allowed_mentions: self.default_allowed_mentions,
             use_http: self.use_http,
+        }
+    }
+
+    /// Build the [`Client`].
+    #[cfg(target_os = "wasi")]
+    pub fn build(self) -> Client {
+        Client {
+            default_allowed_mentions: self.default_allowed_mentions,
         }
     }
 
@@ -83,6 +106,7 @@ impl ClientBuilder {
     /// ```
     ///
     /// [twilight's HTTP proxy server]: https://github.com/twilight-rs/http-proxy
+    #[cfg(not(target_os = "wasi"))]
     pub fn proxy(mut self, proxy_url: String, use_http: bool) -> Self {
         self.proxy.replace(proxy_url.into_boxed_str());
         self.use_http = use_http;
@@ -98,6 +122,7 @@ impl ClientBuilder {
     /// If not called, then a default [`RateLimiter`] will be created by
     /// [`ClientBuilder::build`].
     #[allow(clippy::missing_const_for_fn)]
+    #[cfg(not(target_os = "wasi"))]
     pub fn ratelimiter(mut self, ratelimiter: Option<RateLimiter>) -> Self {
         self.ratelimiter = ratelimiter;
 
@@ -107,6 +132,7 @@ impl ClientBuilder {
     /// Set the timeout for HTTP requests.
     ///
     /// The default is 10 seconds.
+    #[cfg(not(target_os = "wasi"))]
     pub const fn timeout(mut self, duration: Duration) -> Self {
         self.timeout = duration;
 
@@ -114,6 +140,7 @@ impl ClientBuilder {
     }
 
     /// Set a group headers which are sent in every request.
+    #[cfg(not(target_os = "wasi"))]
     pub fn default_headers(mut self, headers: HeaderMap) -> Self {
         self.default_headers.replace(headers);
 
@@ -127,6 +154,7 @@ impl ClientBuilder {
     /// will not process future requests.
     ///
     /// Defaults to true.
+    #[cfg(not(target_os = "wasi"))]
     pub const fn remember_invalid_token(mut self, remember: bool) -> Self {
         self.remember_invalid_token = remember;
 
@@ -134,6 +162,7 @@ impl ClientBuilder {
     }
 
     /// Set the token to use for HTTP requests.
+    #[cfg(not(target_os = "wasi"))]
     pub fn token(mut self, mut token: String) -> Self {
         let is_bot = token.starts_with("Bot ");
         let is_bearer = token.starts_with("Bearer ");
@@ -151,6 +180,7 @@ impl ClientBuilder {
 }
 
 impl Default for ClientBuilder {
+    #[cfg(not(target_os = "wasi"))]
     fn default() -> Self {
         Self {
             default_allowed_mentions: None,
@@ -161,6 +191,13 @@ impl Default for ClientBuilder {
             timeout: Duration::from_secs(10),
             token: None,
             use_http: false,
+        }
+    }
+
+    #[cfg(target_os = "wasi")]
+    fn default() -> Self {
+        Self {
+            default_allowed_mentions: None,
         }
     }
 }

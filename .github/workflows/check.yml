@@ -25,9 +25,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Get latest compatible dependencies for MSRV
-        run: CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS=fallback cargo update
-
       - name: Retrieve rust-version
         run: echo rust-version=$(awk '/rust-version/{print $NF}' Cargo.toml | tr -d '"') >> $GITHUB_ENV
 

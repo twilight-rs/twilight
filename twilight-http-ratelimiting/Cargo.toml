@@ -15,10 +15,14 @@ version = "0.17.1"
 
 [dependencies]
 hashbrown = { default-features = false, version = "0.16" }
+tracing = { default-features = false, features = ["std"], version = "0.1.23" }
+
+[target.'cfg(not(target_os = "wasi"))'.dependencies]
 tokio = { default-features = false, features = ["macros", "rt", "sync", "time"], version = "1.29" }
 tokio-util = { default-features = false, features = ["time"], version = "0.7.11" }
-tracing = { default-features = false, features = ["std"], version = "0.1.23" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1.1.0" }
+
+[target.'cfg(not(target_os = "wasi"))'.dev-dependencies]
 tokio = { default-features = false, features = ["test-util"], version = "1.0" }

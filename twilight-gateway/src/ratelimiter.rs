@@ -229,11 +229,11 @@ mod tests {
         assert_eq!(ratelimiter.available(), 0);
 
         // Should not refill until PERIOD has passed.
-        time::advance(PERIOD - Duration::from_millis(100)).await;
+        time::sleep(PERIOD - Duration::from_millis(100)).await;
         assert_eq!(ratelimiter.available(), 0);
 
         // All should be refilled.
-        time::advance(Duration::from_millis(100)).await;
+        time::sleep(Duration::from_millis(100)).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max());
     }
 
@@ -247,7 +247,7 @@ mod tests {
         }
         assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
 
-        time::advance(PERIOD / 2).await;
+        time::sleep(PERIOD / 2).await;
 
         assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
         for _ in 0..ratelimiter.max() / 2 {
@@ -256,11 +256,11 @@ mod tests {
         assert_eq!(ratelimiter.available(), 0);
 
         // Half should be refilled.
-        time::advance(PERIOD / 2).await;
+        time::sleep(PERIOD / 2).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
 
         // All should be refilled.
-        time::advance(PERIOD / 2).await;
+        time::sleep(PERIOD / 2).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max());
     }
 
@@ -283,17 +283,17 @@ mod tests {
         let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
 
         for _ in 0..5 {
-            time::advance(Duration::from_millis(20)).await;
+            time::sleep(Duration::from_millis(20)).await;
             poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
         }
         assert_eq!(ratelimiter.available(), ratelimiter.max() - 5);
 
-        time::advance(PERIOD - Duration::from_millis(80)).await;
+        time::sleep(PERIOD - Duration::from_millis(80)).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max() - 4);
 
         for _ in 0..4 {
             poll_fn(|cx| ratelimiter.poll_acquire(cx)).await;
-            time::advance(Duration::from_millis(20)).await;
+            time::sleep(Duration::from_millis(20)).await;
             assert_eq!(ratelimiter.available(), ratelimiter.max() - 4);
         }
     }

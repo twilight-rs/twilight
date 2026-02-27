@@ -1,8 +1,9 @@
+#[cfg(not(target_os = "wasi"))]
+use crate::response::ResponseFuture;
 use crate::{
     client::Client,
     error::Error as HttpError,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
@@ -320,6 +321,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// [`ValidationErrorType::AutoModerationMetadataAllowListItem`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataAllowListItem
     /// [`ValidationErrorType::AutoModerationMetadataRegexPatterns`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataRegexPatterns
     /// [`ValidationErrorType::AutoModerationMetadataRegexPatternsItem`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataRegexPatternsItem
+    #[cfg(not(target_os = "wasi"))]
     pub fn with_keyword(
         mut self,
         keyword_filter: &'a [&'a str],
@@ -349,6 +351,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// Create the request with the trigger type [`Spam`], then execute it.
     ///
     /// [`Spam`]: AutoModerationTriggerType::Spam
+    #[cfg(not(target_os = "wasi"))]
     pub fn with_spam(mut self) -> ResponseFuture<AutoModerationRule> {
         self.fields = self.fields.map(|mut fields| {
             fields.trigger_type = Some(AutoModerationTriggerType::Spam);
@@ -377,6 +380,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     /// [`ValidationErrorType::AutoModerationMetadataPresetAllowList`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataPresetAllowList
     /// [`ValidationErrorType::AutoModerationMetadataPresetAllowListItem`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataPresetAllowListItem
+    #[cfg(not(target_os = "wasi"))]
     pub fn with_keyword_preset(
         mut self,
         presets: &'a [AutoModerationKeywordPresetType],
@@ -414,6 +418,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// [`MentionSpam`]: AutoModerationTriggerType::MentionSpam
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     /// [`ValidationErrorType::AutoModerationMetadataMentionTotalLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataMentionTotalLimit
+    #[cfg(not(target_os = "wasi"))]
     pub fn with_mention_spam(
         mut self,
         mention_total_limit: u8,
@@ -438,6 +443,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
+    #[cfg(not(target_os = "wasi"))]
     fn exec(self) -> ResponseFuture<AutoModerationRule> {
         let http = self.http;
 

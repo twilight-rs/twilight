@@ -1,9 +1,10 @@
 use super::ExecuteWebhook;
+#[cfg(not(target_os = "wasi"))]
+use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{Response, ResponseFuture},
 };
 use std::future::IntoFuture;
 use twilight_model::channel::Message;
@@ -45,6 +46,7 @@ impl<'a> ExecuteWebhookAndWait<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for ExecuteWebhookAndWait<'_> {
     type Output = Result<Response<Message>, Error>;
 

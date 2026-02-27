@@ -1,15 +1,15 @@
 use std::future::IntoFuture;
 
+use crate::{
+    Client, Error,
+    request::{Request, TryIntoRequest},
+    routing::Route,
+};
+#[cfg(not(target_os = "wasi"))]
+use crate::{Response, response::ResponseFuture};
 use twilight_model::{
     guild::onboarding::Onboarding,
     id::{Id, marker::GuildMarker},
-};
-
-use crate::{
-    Client, Error, Response,
-    request::{Request, TryIntoRequest},
-    response::ResponseFuture,
-    routing::Route,
 };
 
 /// Get the onboarding information for a guild.
@@ -43,6 +43,7 @@ impl<'a> GetGuildOnboarding<'a> {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for GetGuildOnboarding<'_> {
     type Output = Result<Response<Onboarding>, Error>;
 

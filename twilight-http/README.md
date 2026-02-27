@@ -6,8 +6,8 @@ HTTP support for the twilight ecosystem.
 
 ## Examples
 
-There are a few usage examples located in the [root of the `twilight`
-repository][github examples link].
+There are a few examples located in the [repository][github examples link].
+Check out our [template] to get started quickly.
 
 ## Features
 
@@ -118,3 +118,4 @@ DNS resolver on the application level.
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.79+-93450a.svg?style=for-the-badge&logo=rust
+[template]: https://github.com/twilight-rs/template
