@@ -65,6 +65,10 @@ pub enum ModalInteractionComponent {
     ActionRow(ModalInteractionActionRow),
     /// Dropdown selection component for channels.
     ChannelSelect(ModalInteractionChannelSelect),
+    /// Checkbox Component
+    Checkbox(ModalInteractionCheckbox),
+    /// Checkbox Group Component.
+    CheckboxGroup(ModalInteractionCheckboxGroup),
     /// File upload component.
     FileUpload(ModalInteractionFileUpload),
     /// Top-level layout component including a string label and optional description.
@@ -79,10 +83,6 @@ pub enum ModalInteractionComponent {
     TextDisplay(ModalInteractionTextDisplay),
     /// Text input component.
     TextInput(ModalInteractionTextInput),
-    /// Checkbox Group Component.
-    CheckboxGroup(ModalInteractionCheckboxGroup),
-    /// Checkbox Component
-    Checkbox(ModalInteractionCheckbox),
     /// Variant value is unknown to the library in the context of modals.
     Unknown(u8),
     /// Dropdown selection component for users.
@@ -95,6 +95,8 @@ impl ModalInteractionComponent {
         match self {
             ModalInteractionComponent::ActionRow(_) => ComponentType::ActionRow,
             ModalInteractionComponent::ChannelSelect(_) => ComponentType::ChannelSelectMenu,
+            ModalInteractionComponent::Checkbox(_) => ComponentType::Checkbox,
+            ModalInteractionComponent::CheckboxGroup(_) => ComponentType::CheckboxGroup,
             ModalInteractionComponent::FileUpload(_) => ComponentType::FileUpload,
             ModalInteractionComponent::Label(_) => ComponentType::Label,
             ModalInteractionComponent::MentionableSelect(_) => ComponentType::MentionableSelectMenu,
@@ -102,8 +104,6 @@ impl ModalInteractionComponent {
             ModalInteractionComponent::StringSelect(_) => ComponentType::TextSelectMenu,
             ModalInteractionComponent::TextDisplay(_) => ComponentType::TextDisplay,
             ModalInteractionComponent::TextInput(_) => ComponentType::TextInput,
-            ModalInteractionComponent::Checkbox(_) => ComponentType::Checkbox,
-            ModalInteractionComponent::CheckboxGroup(_) => ComponentType::CheckboxGroup,
             ModalInteractionComponent::Unknown(unknown) => ComponentType::from(*unknown),
             ModalInteractionComponent::UserSelect(_) => ComponentType::UserSelectMenu,
         }
@@ -119,6 +119,18 @@ impl From<ModalInteractionActionRow> for ModalInteractionComponent {
 impl From<ModalInteractionChannelSelect> for ModalInteractionComponent {
     fn from(select: ModalInteractionChannelSelect) -> Self {
         Self::ChannelSelect(select)
+    }
+}
+
+impl From<ModalInteractionCheckbox> for ModalInteractionComponent {
+    fn from(checkbox: ModalInteractionCheckbox) -> Self {
+        Self::Checkbox(checkbox)
+    }
+}
+
+impl From<ModalInteractionCheckboxGroup> for ModalInteractionComponent {
+    fn from(checkbox_group: ModalInteractionCheckboxGroup) -> Self {
+        Self::CheckboxGroup(checkbox_group)
     }
 }
 
@@ -299,18 +311,6 @@ impl TryFrom<ModalInteractionComponent> for ModalInteractionUserSelect {
             ModalInteractionComponent::UserSelect(inner) => Ok(inner),
             _ => Err(value),
         }
-    }
-}
-
-impl From<ModalInteractionCheckbox> for ModalInteractionComponent {
-    fn from(checkbox: ModalInteractionCheckbox) -> Self {
-        Self::Checkbox(checkbox)
-    }
-}
-
-impl From<ModalInteractionCheckboxGroup> for ModalInteractionComponent {
-    fn from(checkbox_group: ModalInteractionCheckboxGroup) -> Self {
-        Self::CheckboxGroup(checkbox_group)
     }
 }
 
@@ -575,6 +575,18 @@ impl Serialize for ModalInteractionComponent {
             // - type
             // - id
             // - custom_id
+            // - value
+            ModalInteractionComponent::Checkbox(_) => 4,
+            // Required fields:
+            // - type
+            // - id
+            // - custom_id
+            // - values
+            ModalInteractionComponent::CheckboxGroup(_) => 4,
+            // Required fields:
+            // - type
+            // - id
+            // - custom_id
             // - values
             ModalInteractionComponent::FileUpload(_) => 4,
             // Required fields:
@@ -592,9 +604,6 @@ impl Serialize for ModalInteractionComponent {
             // - custom_id
             // - value
             ModalInteractionComponent::TextInput(_) => 4,
-            // - values
-            ModalInteractionComponent::CheckboxGroup(_) => 4,
-            ModalInteractionComponent::Checkbox(_) => 4,
             // We are dropping all fields but type here but nothing we can do about that for
             // the time being
             ModalInteractionComponent::Unknown(_) => 1,
@@ -604,56 +613,56 @@ impl Serialize for ModalInteractionComponent {
         state.serialize_field("type", &self.kind())?;
 
         match self {
-            ModalInteractionComponent::Label(label) => {
-                state.serialize_field("id", &label.id)?;
-                state.serialize_field("component", &label.component)?;
-            }
             ModalInteractionComponent::ActionRow(action_row) => {
                 state.serialize_field("id", &action_row.id)?;
                 state.serialize_field("components", &action_row.components)?;
             }
-            ModalInteractionComponent::StringSelect(select) => {
-                serialize_select_menu(&mut state, select)?;
-            }
-            ModalInteractionComponent::UserSelect(select) => {
-                serialize_select_menu(&mut state, select)?;
-            }
-            ModalInteractionComponent::RoleSelect(select) => {
-                serialize_select_menu(&mut state, select)?;
-            }
-            ModalInteractionComponent::MentionableSelect(select) => {
-                serialize_select_menu(&mut state, select)?;
-            }
             ModalInteractionComponent::ChannelSelect(select) => {
                 serialize_select_menu(&mut state, select)?;
-            }
-            ModalInteractionComponent::TextInput(text_input) => {
-                state.serialize_field("custom_id", &text_input.custom_id)?;
-                state.serialize_field("id", &text_input.id)?;
-                state.serialize_field("value", &text_input.value)?;
-            }
-            ModalInteractionComponent::TextDisplay(text_display) => {
-                state.serialize_field("id", &text_display.id)?;
-            }
-            ModalInteractionComponent::FileUpload(file_upload) => {
-                state.serialize_field("custom_id", &file_upload.custom_id)?;
-                state.serialize_field("id", &file_upload.id)?;
-                state.serialize_field("values", &file_upload.values)?;
-            }
-            ModalInteractionComponent::CheckboxGroup(checkbox_group) => {
-                state.serialize_field("custom_id", &checkbox_group.custom_id)?;
-                state.serialize_field("id", &checkbox_group.id)?;
-                state.serialize_field("values", &checkbox_group.values)?;
             }
             ModalInteractionComponent::Checkbox(checkbox) => {
                 state.serialize_field("custom_id", &checkbox.custom_id)?;
                 state.serialize_field("id", &checkbox.id)?;
                 state.serialize_field("value", &checkbox.value)?;
             }
+            ModalInteractionComponent::CheckboxGroup(checkbox_group) => {
+                state.serialize_field("custom_id", &checkbox_group.custom_id)?;
+                state.serialize_field("id", &checkbox_group.id)?;
+                state.serialize_field("values", &checkbox_group.values)?;
+            }
+            ModalInteractionComponent::FileUpload(file_upload) => {
+                state.serialize_field("custom_id", &file_upload.custom_id)?;
+                state.serialize_field("id", &file_upload.id)?;
+                state.serialize_field("values", &file_upload.values)?;
+            }
+            ModalInteractionComponent::Label(label) => {
+                state.serialize_field("id", &label.id)?;
+                state.serialize_field("component", &label.component)?;
+            }
+            ModalInteractionComponent::MentionableSelect(select) => {
+                serialize_select_menu(&mut state, select)?;
+            }
+            ModalInteractionComponent::RoleSelect(select) => {
+                serialize_select_menu(&mut state, select)?;
+            }
+            ModalInteractionComponent::StringSelect(select) => {
+                serialize_select_menu(&mut state, select)?;
+            }
+            ModalInteractionComponent::TextDisplay(text_display) => {
+                state.serialize_field("id", &text_display.id)?;
+            }
+            ModalInteractionComponent::TextInput(text_input) => {
+                state.serialize_field("custom_id", &text_input.custom_id)?;
+                state.serialize_field("id", &text_input.id)?;
+                state.serialize_field("value", &text_input.value)?;
+            }
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing
             // incoming messages at this time.
             ModalInteractionComponent::Unknown(_) => {}
+            ModalInteractionComponent::UserSelect(select) => {
+                serialize_select_menu(&mut state, select)?;
+            }
         }
 
         state.end()
