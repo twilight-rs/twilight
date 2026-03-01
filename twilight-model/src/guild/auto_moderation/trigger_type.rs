@@ -10,7 +10,7 @@ pub enum AutoModerationTriggerType {
     Keyword,
     /// Check if content represents generic spam.
     ///
-    /// Currently unreleased. Maximum of 1 per guild.
+    /// Maximum of 1 per guild.
     Spam,
     /// Check if content contains words from internal pre-defined wordsets.
     ///
