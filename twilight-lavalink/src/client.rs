@@ -275,12 +275,50 @@ impl Lavalink {
         address: SocketAddr,
         authorization: impl Into<String>,
     ) -> Result<(Arc<Node>, IncomingEvents), NodeError> {
+        self.add_with_session_id(address, authorization, None).await
+    }
+
+    /// Add a new node with an optional session ID to resume.
+    ///
+    /// If `session_id` is provided, the client will attempt to resume the existing
+    /// Lavalink session instead of creating a new one. This allows reconnecting
+    /// without interrupting active players.
+    ///
+    /// If a node already exists with the provided address, then it will be
+    /// replaced.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use twilight_lavalink::Lavalink;
+    /// # use twilight_model::id::Id;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let lavalink = Lavalink::new(Id::new(1), 1);
+    /// # let address = "127.0.0.1:2333".parse()?;
+    /// # let auth = "youshallnotpass";
+    /// // Resume existing session
+    /// let old_session_id = Some("existing-session-id".to_string());
+    /// lavalink.add_with_session_id(address, auth, old_session_id).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// See the errors section of [`Node::connect`].
+    pub async fn add_with_session_id(
+        &self,
+        address: SocketAddr,
+        authorization: impl Into<String>,
+        session_id: Option<String>,
+    ) -> Result<(Arc<Node>, IncomingEvents), NodeError> {
         let config = NodeConfig {
             address,
             authorization: authorization.into(),
             resume: self.resume.clone(),
             user_id: self.user_id,
             enable_tls: cfg!(feature = "tls"),
+            session_id,
         };
 
         let (node, rx) = Node::connect(config, self.players.clone()).await?;

@@ -257,6 +257,11 @@ pub struct NodeConfig {
     pub user_id: Id<UserMarker>,
     /// Weather or not to enable TLS
     pub enable_tls: bool,
+    /// Optional session ID to resume an existing Lavalink session.
+    ///
+    /// If provided, the client will attempt to resume this session instead of creating a new one.
+    /// This is only applicable for Lavalink v4+.
+    pub session_id: Option<String>,
 }
 
 impl Debug for NodeConfig {
@@ -278,6 +283,7 @@ impl Debug for NodeConfig {
             .field("resume", &self.resume)
             .field("user_id", &self.user_id)
             .field("enable_tls", &self.enable_tls)
+            .field("session_id", &self.session_id)
             .finish()
     }
 }
@@ -344,6 +350,7 @@ impl NodeConfig {
             resume,
             user_id,
             enable_tls,
+            session_id: None,
         }
     }
 }
@@ -742,20 +749,19 @@ fn connect_request(state: &NodeConfig) -> Result<ClientBuilder<'_>, NodeError> {
         )
         .expect("Unable to crate builder");
 
-    if state.resume.is_some() {
+    // Add Session-Id header if we have a previous session to resume (Lavalink v4)
+    if let Some(session_id) = &state.session_id {
         builder = builder
             .add_header(
-                HeaderName::from_static("resume-key"),
-                state
-                    .address
-                    .to_string()
+                HeaderName::from_static("session-id"),
+                session_id
                     .parse()
                     .map_err(|source| NodeError {
                         kind: NodeErrorType::BuildingConnectionRequest,
                         source: Some(Box::new(source)),
                     })?,
             )
-            .expect("Unable to build state header");
+            .expect("Unable to add Session-Id header");
     }
 
     Ok(builder)
@@ -764,35 +770,21 @@ fn connect_request(state: &NodeConfig) -> Result<ClientBuilder<'_>, NodeError> {
 async fn reconnect(
     config: &NodeConfig,
 ) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, NodeError> {
-    let (mut stream, res) = backoff(config).await?;
+    let (stream, res) = backoff(config).await?;
 
     let headers = res.headers();
 
-    if let Some(resume) = config.resume.as_ref() {
-        let header = HeaderName::from_static("session-resumed");
-
-        if let Some(value) = headers.get(header) {
-            if value.as_bytes() == b"false" {
-                tracing::debug!("session to node {} didn't resume", config.address);
-
-                let payload = serde_json::json!({
-                    "op": "configureResuming",
-                    "key": config.address,
-                    "timeout": resume.timeout,
-                });
-                let msg = Message::text(
-                    serde_json::to_string(&payload).expect("serialize can't panic here"),
-                );
-
-                stream.send(msg).await.map_err(|source| NodeError {
-                    kind: NodeErrorType::Connecting,
-                    source: Some(Box::new(source)),
-                })?;
-            } else {
-                tracing::debug!("session to {} resumed", config.address);
-            }
+    // Check if session was resumed via response header (Lavalink v4)
+    let header = HeaderName::from_static("session-resumed");
+    if let Some(value) = headers.get(header) {
+        if value.as_bytes() == b"true" {
+            tracing::info!("Successfully resumed Lavalink session for node {}", config.address);
+        } else {
+            tracing::debug!("New Lavalink session created for node {} (did not resume)", config.address);
         }
     }
+    // Note: Session resume configuration is now done via REST API PATCH /v4/sessions/{sessionId}
+    // This should be called AFTER receiving the Ready OP with the new session ID
 
     Ok(stream)
 }
@@ -861,7 +853,7 @@ mod tests {
     };
     use twilight_model::id::Id;
 
-    assert_fields!(NodeConfig: address, authorization, resume, user_id, enable_tls);
+    assert_fields!(NodeConfig: address, authorization, resume, user_id, enable_tls, session_id);
     assert_impl_all!(NodeConfig: Clone, Debug, Send, Sync);
     assert_fields!(NodeErrorType::SerializingMessage: message);
     assert_fields!(NodeErrorType::Unauthorized: address, authorization);
@@ -879,6 +871,7 @@ mod tests {
             resume: None,
             user_id: Id::new(123),
             enable_tls: false,
+            session_id: None,
         };
 
         assert!(format!("{config:?}").contains("authorization: <redacted>"));
