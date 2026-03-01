@@ -16,7 +16,10 @@ pub enum Opcode {
 }
 
 use serde::{Deserialize, Serialize};
-use twilight_model::id::{Id, marker::{ChannelMarker, GuildMarker}};
+use twilight_model::id::{
+    Id,
+    marker::{ChannelMarker, GuildMarker},
+};
 
 /// The levels of severity that an exception can have.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

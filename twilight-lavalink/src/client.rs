@@ -300,7 +300,9 @@ impl Lavalink {
     /// # let auth = "youshallnotpass";
     /// // Resume existing session
     /// let old_session_id = Some("existing-session-id".to_string());
-    /// lavalink.add_with_session_id(address, auth, old_session_id).await?;
+    /// lavalink
+    ///     .add_with_session_id(address, auth, old_session_id)
+    ///     .await?;
     /// # Ok(())
     /// # }
     /// ```

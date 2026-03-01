@@ -23,7 +23,6 @@ use crate::{
 };
 use futures_util::{
     lock::BiLock,
-    sink::SinkExt,
     stream::{Stream, StreamExt},
 };
 use http::header::{AUTHORIZATION, HeaderName, HeaderValue};
@@ -754,12 +753,10 @@ fn connect_request(state: &NodeConfig) -> Result<ClientBuilder<'_>, NodeError> {
         builder = builder
             .add_header(
                 HeaderName::from_static("session-id"),
-                session_id
-                    .parse()
-                    .map_err(|source| NodeError {
-                        kind: NodeErrorType::BuildingConnectionRequest,
-                        source: Some(Box::new(source)),
-                    })?,
+                session_id.parse().map_err(|source| NodeError {
+                    kind: NodeErrorType::BuildingConnectionRequest,
+                    source: Some(Box::new(source)),
+                })?,
             )
             .expect("Unable to add Session-Id header");
     }
@@ -778,9 +775,15 @@ async fn reconnect(
     let header = HeaderName::from_static("session-resumed");
     if let Some(value) = headers.get(header) {
         if value.as_bytes() == b"true" {
-            tracing::info!("Successfully resumed Lavalink session for node {}", config.address);
+            tracing::info!(
+                "Successfully resumed Lavalink session for node {}",
+                config.address
+            );
         } else {
-            tracing::debug!("New Lavalink session created for node {} (did not resume)", config.address);
+            tracing::debug!(
+                "New Lavalink session created for node {} (did not resume)",
+                config.address
+            );
         }
     }
     // Note: Session resume configuration is now done via REST API PATCH /v4/sessions/{sessionId}

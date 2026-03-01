@@ -2,7 +2,10 @@
 use serde::{Deserialize, Serialize};
 use twilight_model::{
     gateway::payload::incoming::VoiceServerUpdate,
-    id::{Id, marker::{ChannelMarker, GuildMarker}},
+    id::{
+        Id,
+        marker::{ChannelMarker, GuildMarker},
+    },
 };
 
 /// The track on the player. The encoded and identifier are mutually exclusive.
@@ -420,8 +423,13 @@ impl VoiceUpdate {
     }
 }
 
-impl<T: Into<String>> From<(Id<GuildMarker>, T, Option<Id<ChannelMarker>>, VoiceServerUpdate)>
-    for VoiceUpdate
+impl<T: Into<String>>
+    From<(
+        Id<GuildMarker>,
+        T,
+        Option<Id<ChannelMarker>>,
+        VoiceServerUpdate,
+    )> for VoiceUpdate
 {
     fn from(
         (guild_id, session_id, channel_id, event): (

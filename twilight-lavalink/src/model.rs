@@ -401,7 +401,7 @@ mod lavalink_outgoing_model_tests {
             &voice,
             r#"{"voice":{"endpoint":"eu-centra654863.discord.media:443","sessionId":"asdf5w1efa65feaf315e8a8effsa1e5f","token":"863ea8ef2ads8ef2"}}"#,
         );
-        
+
         let voice_dave = VoiceUpdate {
             guild_id: Id::<GuildMarker>::new(987_654_321),
             voice: Voice {
