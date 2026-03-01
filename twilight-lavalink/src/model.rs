@@ -391,6 +391,7 @@ mod lavalink_outgoing_model_tests {
         let voice = VoiceUpdate {
             guild_id: Id::<GuildMarker>::new(987_654_321),
             voice: Voice {
+                channel_id: None,
                 token: String::from("863ea8ef2ads8ef2"),
                 endpoint: String::from("eu-centra654863.discord.media:443"),
                 session_id: String::from("asdf5w1efa65feaf315e8a8effsa1e5f"),
@@ -399,6 +400,20 @@ mod lavalink_outgoing_model_tests {
         compare_json_payload(
             &voice,
             r#"{"voice":{"endpoint":"eu-centra654863.discord.media:443","sessionId":"asdf5w1efa65feaf315e8a8effsa1e5f","token":"863ea8ef2ads8ef2"}}"#,
+        );
+        
+        let voice_dave = VoiceUpdate {
+            guild_id: Id::<GuildMarker>::new(987_654_321),
+            voice: Voice {
+                channel_id: Some(Id::new(111_222_333)),
+                token: String::from("863ea8ef2ads8ef2"),
+                endpoint: String::from("eu-centra654863.discord.media:443"),
+                session_id: String::from("asdf5w1efa65feaf315e8a8effsa1e5f"),
+            },
+        };
+        compare_json_payload(
+            &voice_dave,
+            r#"{"voice":{"channelId":"111222333","endpoint":"eu-centra654863.discord.media:443","sessionId":"asdf5w1efa65feaf315e8a8effsa1e5f","token":"863ea8ef2ads8ef2"}}"#,
         );
     }
 

@@ -16,7 +16,7 @@ use twilight_model::{
     gateway::{ShardId, event::Event, payload::incoming::VoiceServerUpdate},
     id::{
         Id,
-        marker::{GuildMarker, UserMarker},
+        marker::{ChannelMarker, GuildMarker, UserMarker},
     },
 };
 
@@ -103,7 +103,7 @@ pub struct Lavalink {
     shard_count: u32,
     user_id: Id<UserMarker>,
     server_updates: DashMap<Id<GuildMarker>, VoiceServerUpdate>,
-    discord_sessions: DashMap<Id<GuildMarker>, Box<str>>,
+    discord_sessions: DashMap<Id<GuildMarker>, (Box<str>, Option<Id<ChannelMarker>>)>,
 }
 
 impl Lavalink {
@@ -202,8 +202,10 @@ impl Lavalink {
                         self.discord_sessions.remove(&guild_id);
                         self.server_updates.remove(&guild_id);
                     } else {
-                        self.discord_sessions
-                            .insert(guild_id, e.session_id.clone().into_boxed_str());
+                        self.discord_sessions.insert(
+                            guild_id,
+                            (e.session_id.clone().into_boxed_str(), e.channel_id),
+                        );
                     }
                     guild_id
                 } else {
@@ -222,11 +224,11 @@ impl Lavalink {
             match (server, session) {
                 (Some(server), Some(session)) => {
                     let server = server.value();
-                    let session = session.value();
+                    let (session_id, channel_id) = session.value();
                     tracing::debug!(
-                        "got both halves for {guild_id}: {server:?}; Session ID: {session:?}",
+                        "got both halves for {guild_id}: {server:?}; Session ID: {session_id:?}",
                     );
-                    VoiceUpdate::new(guild_id, session.as_ref(), server.clone())
+                    VoiceUpdate::new(guild_id, session_id.as_ref(), *channel_id, server.clone())
                 }
                 (Some(server), None) => {
                     tracing::debug!(

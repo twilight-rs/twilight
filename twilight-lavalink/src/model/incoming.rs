@@ -16,7 +16,7 @@ pub enum Opcode {
 }
 
 use serde::{Deserialize, Serialize};
-use twilight_model::id::{Id, marker::GuildMarker};
+use twilight_model::id::{Id, marker::{ChannelMarker, GuildMarker}};
 
 /// The levels of severity that an exception can have.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -99,6 +99,8 @@ impl From<Stats> for IncomingEvent {
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub struct VoiceState {
+    /// The Discord voice channel id the bot is connected to.
+    pub channel_id: Option<Id<ChannelMarker>>,
     /// The Discord voice endpoint to connect to.
     pub endpoint: String,
     /// The Discord voice session id to authenticate with. Note this is separate
