@@ -12,7 +12,7 @@ use std::{
 };
 use tokio::sync::{mpsc, oneshot};
 
-/// Future canceled due to Standby being dropped.
+/// Future canceled due to Standby being dropped or shutdown.
 #[derive(Debug)]
 pub struct Canceled(());
 
