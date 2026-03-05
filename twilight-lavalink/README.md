@@ -117,7 +117,7 @@ async fn main() -> anyhow::Result<()> {
     let user_id = http.current_user().await?.model().await?.id;
 
     let lavalink = Lavalink::new(user_id, shard_count);
-    lavalink.add(lavalink_host, lavalink_auth).await?;
+    lavalink.add(lavalink_host, lavalink_auth, None).await?;
 
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
     let mut shard = Shard::new(ShardId::ONE, token, intents);

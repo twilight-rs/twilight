@@ -375,8 +375,15 @@ mod lavalink_outgoing_model_tests {
     use super::EqualizerBand;
     use super::outgoing::{OutgoingEvent, UpdatePlayerTrack, Voice, VoiceUpdate};
 
+    // Arbitrary fixture values used across tests.
+    const TEST_GUILD_ID: u64 = 987_654_321;
+    const TEST_CHANNEL_ID: u64 = 111_222_333;
+    const TEST_TOKEN: &str = "863ea8ef2ads8ef2";
+    const TEST_ENDPOINT: &str = "eu-centra654863.discord.media:443";
+    const TEST_SESSION_ID: &str = "asdf5w1efa65feaf315e8a8effsa1e5f";
+
     // For some of the outgoing we have fields that don't get deserialized. We only need
-    // to check weather the serialization is working.
+    // to check whether the serialization is working.
     fn compare_json_payload<T: serde::Serialize + std::fmt::Debug + std::cmp::PartialEq>(
         data_struct: &T,
         json_payload: &str,
@@ -389,16 +396,31 @@ mod lavalink_outgoing_model_tests {
     #[test]
     fn should_serialize_an_outgoing_voice_update() {
         let voice = VoiceUpdate {
-            guild_id: Id::<GuildMarker>::new(987_654_321),
+            guild_id: Id::<GuildMarker>::new(TEST_GUILD_ID),
             voice: Voice {
-                token: String::from("863ea8ef2ads8ef2"),
-                endpoint: String::from("eu-centra654863.discord.media:443"),
-                session_id: String::from("asdf5w1efa65feaf315e8a8effsa1e5f"),
+                channel_id: None,
+                token: String::from(TEST_TOKEN),
+                endpoint: String::from(TEST_ENDPOINT),
+                session_id: String::from(TEST_SESSION_ID),
             },
         };
         compare_json_payload(
             &voice,
             r#"{"voice":{"endpoint":"eu-centra654863.discord.media:443","sessionId":"asdf5w1efa65feaf315e8a8effsa1e5f","token":"863ea8ef2ads8ef2"}}"#,
+        );
+
+        let voice_dave = VoiceUpdate {
+            guild_id: Id::<GuildMarker>::new(TEST_GUILD_ID),
+            voice: Voice {
+                channel_id: Some(Id::new(TEST_CHANNEL_ID)),
+                token: String::from(TEST_TOKEN),
+                endpoint: String::from(TEST_ENDPOINT),
+                session_id: String::from(TEST_SESSION_ID),
+            },
+        };
+        compare_json_payload(
+            &voice_dave,
+            r#"{"voice":{"channelId":"111222333","endpoint":"eu-centra654863.discord.media:443","sessionId":"asdf5w1efa65feaf315e8a8effsa1e5f","token":"863ea8ef2ads8ef2"}}"#,
         );
     }
 
@@ -412,7 +434,7 @@ mod lavalink_outgoing_model_tests {
             end_time: Some(None),
             volume: None,
             paused: None,
-            guild_id: Id::<GuildMarker>::new(987_654_321),
+            guild_id: Id::<GuildMarker>::new(TEST_GUILD_ID),
             no_replace: true,
         });
         compare_json_payload(
@@ -427,7 +449,7 @@ mod lavalink_outgoing_model_tests {
             track: UpdatePlayerTrack {
                 track_string: TrackOption::Encoded(None),
             },
-            guild_id: Id::<GuildMarker>::new(987_654_321),
+            guild_id: Id::<GuildMarker>::new(TEST_GUILD_ID),
         });
         compare_json_payload(&stop, r#"{"track":{"encoded":null}}"#);
     }
@@ -436,7 +458,7 @@ mod lavalink_outgoing_model_tests {
     fn should_serialize_an_outgoing_pause() {
         let pause = OutgoingEvent::Pause(Pause {
             paused: true,
-            guild_id: Id::<GuildMarker>::new(987_654_321),
+            guild_id: Id::<GuildMarker>::new(TEST_GUILD_ID),
         });
         compare_json_payload(&pause, r#"{"guildId":"987654321","paused":true}"#);
     }
@@ -445,7 +467,7 @@ mod lavalink_outgoing_model_tests {
     fn should_serialize_an_outgoing_seek() {
         let seek = OutgoingEvent::Seek(Seek {
             position: 66000,
-            guild_id: Id::<GuildMarker>::new(987_654_321),
+            guild_id: Id::<GuildMarker>::new(TEST_GUILD_ID),
         });
         compare_json_payload(&seek, r#"{"position":66000}"#);
     }
@@ -454,7 +476,7 @@ mod lavalink_outgoing_model_tests {
     fn should_serialize_an_outgoing_volume() {
         let volume = OutgoingEvent::Volume(Volume {
             volume: 50,
-            guild_id: Id::<GuildMarker>::new(987_654_321),
+            guild_id: Id::<GuildMarker>::new(TEST_GUILD_ID),
         });
         compare_json_payload(&volume, r#"{"volume":50}"#);
     }
@@ -462,7 +484,7 @@ mod lavalink_outgoing_model_tests {
     #[test]
     fn should_serialize_an_outgoing_destroy_aka_leave() {
         let destroy = OutgoingEvent::Destroy(Destroy {
-            guild_id: Id::<GuildMarker>::new(987_654_321),
+            guild_id: Id::<GuildMarker>::new(TEST_GUILD_ID),
         });
         compare_json_payload(&destroy, r#"{"guildId":"987654321"}"#);
     }
@@ -471,7 +493,7 @@ mod lavalink_outgoing_model_tests {
     fn should_serialize_an_outgoing_equalize() {
         let equalize = OutgoingEvent::Equalizer(Equalizer {
             equalizer: vec![EqualizerBand::new(5, -0.15)],
-            guild_id: Id::<GuildMarker>::new(987_654_321),
+            guild_id: Id::<GuildMarker>::new(TEST_GUILD_ID),
         });
         compare_json_payload(&equalize, r#"{"equalizer":[{"band":5,"gain":-0.15}]}"#);
     }

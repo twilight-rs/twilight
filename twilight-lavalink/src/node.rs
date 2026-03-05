@@ -23,7 +23,6 @@ use crate::{
 };
 use futures_util::{
     lock::BiLock,
-    sink::SinkExt,
     stream::{Stream, StreamExt},
 };
 use http::header::{AUTHORIZATION, HeaderName, HeaderValue};
@@ -249,14 +248,15 @@ pub struct NodeConfig {
     pub address: SocketAddr,
     /// The password to use when authenticating.
     pub authorization: String,
-    /// The details for resuming a Lavalink session, if any.
-    ///
-    /// Set this to `None` to disable resume capability.
-    pub resume: Option<Resume>,
     /// The user ID of the bot.
     pub user_id: Id<UserMarker>,
-    /// Weather or not to enable TLS
+    /// Whether or not to enable TLS.
     pub enable_tls: bool,
+    /// Optional session ID to resume an existing Lavalink session.
+    ///
+    /// If provided, the client will attempt to resume this session instead of creating a new one.
+    /// This is only applicable for Lavalink v4+.
+    pub session_id: Option<String>,
 }
 
 impl Debug for NodeConfig {
@@ -275,35 +275,10 @@ impl Debug for NodeConfig {
         f.debug_struct("NodeConfig")
             .field("address", &self.address)
             .field("authorization", &Redacted)
-            .field("resume", &self.resume)
             .field("user_id", &self.user_id)
             .field("enable_tls", &self.enable_tls)
+            .field("session_id", &self.session_id)
             .finish()
-    }
-}
-
-/// Configuration for a session which can be resumed.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
-pub struct Resume {
-    /// The number of seconds that the Lavalink server will allow the session to
-    /// be resumed for after a disconnect.
-    ///
-    /// The default is 60.
-    pub timeout: u64,
-}
-
-impl Resume {
-    /// Configure resume capability, providing the number of seconds that the
-    /// Lavalink server should queue events for when the connection is resumed.
-    pub const fn new(seconds: u64) -> Self {
-        Self { timeout: seconds }
-    }
-}
-
-impl Default for Resume {
-    fn default() -> Self {
-        Self { timeout: 60 }
     }
 }
 
@@ -319,31 +294,23 @@ impl NodeConfig {
         user_id: Id<UserMarker>,
         address: impl Into<SocketAddr>,
         authorization: impl Into<String>,
-        resume: impl Into<Option<Resume>>,
         enable_tls: bool,
     ) -> Self {
-        Self::_new(
-            user_id,
-            address.into(),
-            authorization.into(),
-            resume.into(),
-            enable_tls,
-        )
+        Self::_new(user_id, address.into(), authorization.into(), enable_tls)
     }
 
     const fn _new(
         user_id: Id<UserMarker>,
         address: SocketAddr,
         authorization: String,
-        resume: Option<Resume>,
         enable_tls: bool,
     ) -> Self {
         Self {
             address,
             authorization,
-            resume,
             user_id,
             enable_tls,
+            session_id: None,
         }
     }
 }
@@ -730,7 +697,7 @@ fn connect_request(state: &NodeConfig) -> Result<ClientBuilder<'_>, NodeError> {
                 source: Some(Box::new(source)),
             })?,
         )
-        .expect("Unable to crate authorization header")
+        .expect("Unable to create authorization header")
         .add_header(
             HeaderName::from_static("user-id"),
             state.user_id.get().into(),
@@ -740,58 +707,74 @@ fn connect_request(state: &NodeConfig) -> Result<ClientBuilder<'_>, NodeError> {
             HeaderName::from_static("client-name"),
             HeaderValue::from_static(TWILIGHT_CLIENT_NAME),
         )
-        .expect("Unable to crate builder");
+        .expect("Unable to create builder");
 
-    if state.resume.is_some() {
+    // Add Session-Id header if we have a previous session to resume (Lavalink v4)
+    if let Some(session_id) = &state.session_id {
         builder = builder
             .add_header(
-                HeaderName::from_static("resume-key"),
-                state
-                    .address
-                    .to_string()
-                    .parse()
-                    .map_err(|source| NodeError {
-                        kind: NodeErrorType::BuildingConnectionRequest,
-                        source: Some(Box::new(source)),
-                    })?,
+                HeaderName::from_static("session-id"),
+                session_id.parse().map_err(|source| NodeError {
+                    kind: NodeErrorType::BuildingConnectionRequest,
+                    source: Some(Box::new(source)),
+                })?,
             )
-            .expect("Unable to build state header");
+            .expect("Unable to add Session-Id header");
     }
 
     Ok(builder)
 }
 
+/// Reconnect to a Lavalink node via exponential backoff.
+///
+/// If `config.session_id` is set, the reconnection will attempt to resume
+/// the existing session. If the server indicates the session was not resumed
+/// (for example, via a `Session-Resumed: false` header or by omitting the
+/// `Session-Resumed` header entirely), this function returns a
+/// [`Connecting`] error. The caller can retry with `session_id` set to
+/// `None` to create a fresh session.
+///
+/// Note: Session resume configuration (timeout, etc.) is done via the
+/// Lavalink REST API `PATCH /v4/sessions/{sessionId}`. This should be
+/// called after receiving the `Ready` event with the new session ID.
+///
+/// [`Connecting`]: NodeErrorType::Connecting
 async fn reconnect(
     config: &NodeConfig,
 ) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, NodeError> {
-    let (mut stream, res) = backoff(config).await?;
+    let (stream, res) = backoff(config).await?;
 
     let headers = res.headers();
 
-    if let Some(resume) = config.resume.as_ref() {
-        let header = HeaderName::from_static("session-resumed");
-
-        if let Some(value) = headers.get(header) {
-            if value.as_bytes() == b"false" {
-                tracing::debug!("session to node {} didn't resume", config.address);
-
-                let payload = serde_json::json!({
-                    "op": "configureResuming",
-                    "key": config.address,
-                    "timeout": resume.timeout,
-                });
-                let msg = Message::text(
-                    serde_json::to_string(&payload).expect("serialize can't panic here"),
-                );
-
-                stream.send(msg).await.map_err(|source| NodeError {
-                    kind: NodeErrorType::Connecting,
-                    source: Some(Box::new(source)),
-                })?;
-            } else {
-                tracing::debug!("session to {} resumed", config.address);
-            }
+    // Check if session was resumed via response header (Lavalink v4)
+    let header = HeaderName::from_static("session-resumed");
+    if let Some(value) = headers.get(header) {
+        if value.as_bytes() == b"true" {
+            tracing::info!(
+                "Successfully resumed Lavalink session for node {}",
+                config.address
+            );
+        } else if config.session_id.is_some() {
+            tracing::warn!(
+                "Failed to resume Lavalink session for node {} (session not resumed)",
+                config.address,
+            );
+            return Err(NodeError {
+                kind: NodeErrorType::Connecting,
+                source: None,
+            });
+        } else {
+            tracing::debug!("New Lavalink session created for node {}", config.address);
         }
+    } else if config.session_id.is_some() {
+        tracing::warn!(
+            "Session-Resumed header not present for node {}; resume may have failed",
+            config.address,
+        );
+        return Err(NodeError {
+            kind: NodeErrorType::Connecting,
+            source: None,
+        });
     }
 
     Ok(stream)
@@ -852,7 +835,7 @@ async fn backoff(
 
 #[cfg(test)]
 mod tests {
-    use super::{Node, NodeConfig, NodeError, NodeErrorType, Resume};
+    use super::{Node, NodeConfig, NodeError, NodeErrorType};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
         error::Error,
@@ -861,24 +844,22 @@ mod tests {
     };
     use twilight_model::id::Id;
 
-    assert_fields!(NodeConfig: address, authorization, resume, user_id, enable_tls);
+    assert_fields!(NodeConfig: address, authorization, user_id, enable_tls, session_id);
     assert_impl_all!(NodeConfig: Clone, Debug, Send, Sync);
     assert_fields!(NodeErrorType::SerializingMessage: message);
     assert_fields!(NodeErrorType::Unauthorized: address, authorization);
     assert_impl_all!(NodeErrorType: Debug, Send, Sync);
     assert_impl_all!(NodeError: Error, Send, Sync);
     assert_impl_all!(Node: Debug, Send, Sync);
-    assert_fields!(Resume: timeout);
-    assert_impl_all!(Resume: Clone, Debug, Default, Eq, PartialEq, Send, Sync);
 
     #[test]
     fn node_config_debug() {
         let config = NodeConfig {
             address: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 1312)),
             authorization: "some auth".to_owned(),
-            resume: None,
             user_id: Id::new(123),
             enable_tls: false,
+            session_id: None,
         };
 
         assert!(format!("{config:?}").contains("authorization: <redacted>"));
