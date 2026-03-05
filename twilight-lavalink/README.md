@@ -87,44 +87,6 @@ This requires configuring a crypto provider.
 
 This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 
-## Session Resuming (Lavalink v4)
-
-Lavalink v4 supports session resuming, allowing your bot to reconnect without
-interrupting active music players. This is useful when:
-- Restarting your gateway process
-- Recovering from network interruptions
-- Deploying updates without stopping music
-
-### How it Works
-
-1. **Configure resuming timeout** via REST API after connecting:
-   ```rust
-   // After receiving Ready OP with session_id from IncomingEvents
-   let url = format!("http://{}/v4/sessions/{}", lavalink_host, session_id);
-   client.patch(&url)
-       .header("Authorization", lavalink_auth)
-       .json(&json!({"resuming": true, "timeout": 120}))
-       .send()
-       .await?;
-   ```
-
-2. **Store the session ID** (e.g., in Redis) for later retrieval
-
-3. **Resume on reconnect** by providing the old session ID:
-   ```rust
-   let old_session = retrieve_stored_session_id().await?;
-   lavalink.add_with_session_id(address, auth, old_session).await?;
-   ```
-
-4. **Check if resumed** via the Ready OP `resumed` field or response header `Session-Resumed`
-
-### Important Notes
-
-- Session resume is only possible within the configured timeout (default 60 seconds)
-- Players continue playing during disconnection
-- Events are queued and replayed upon resumption
-- If resuming fails, a new session is created automatically
-
 ## Examples
 
 Create a [client], add a [node], and give events to the client to [process]
@@ -155,7 +117,7 @@ async fn main() -> anyhow::Result<()> {
     let user_id = http.current_user().await?.model().await?.id;
 
     let lavalink = Lavalink::new(user_id, shard_count);
-    lavalink.add(lavalink_host, lavalink_auth).await?;
+    lavalink.add(lavalink_host, lavalink_auth, None).await?;
 
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
     let mut shard = Shard::new(ShardId::ONE, token, intents);
