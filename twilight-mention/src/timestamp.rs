@@ -169,50 +169,63 @@ impl PartialOrd for Timestamp {
 
 /// Style modifier denoting how to display a timestamp.
 ///
-/// The default variant is [`ShortDateTime`].
+/// The default variant is [`LongDateShortTime`].
 ///
-/// [`ShortDateTime`]: Self::ShortDateTime
+/// [`LongDateShortTime`]: Self::LongDateShortTime
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum TimestampStyle {
-    /// Style modifier to display a timestamp as a long date/time.
+    /// Style modifier to display a timestamp as a full date with a short time.
     ///
     /// Correlates to the style `F`.
     ///
     /// Causes mentions to display in clients as `Tuesday, 1 April 2021 01:20`.
-    LongDateTime,
+    FullDateShortTime,
     /// Style modifier to display a timestamp as a long date.
     ///
     /// Correlates to the style `D`.
     ///
     /// Causes mentions to display in clients as `1 April 2021`.
     LongDate,
-    /// Style modifier to display a timestamp as a long date/time.
-    ///
-    /// Correlates to the style `T`.
-    ///
-    /// Causes mentions to display in clients as `01:20:30`.
-    LongTime,
-    /// Style modifier to display a timestamp as a relative timestamp.
-    ///
-    /// Correlates to the style `R`.
-    ///
-    /// Causes mentions to display in clients as `2 months ago`.
-    RelativeTime,
-    /// Style modifier to display a timestamp as a short date/time.
+    /// Style modifier to display a timestamp as a long date with a short time.
     ///
     /// Correlates to the style `f`.
     ///
     /// Causes mentions to display in clients as `1 April 2021 01:20`.
     ///
     /// This is the default style when left unspecified.
-    ShortDateTime,
-    /// Style modifier to display a timestamp as a short date/time.
+    LongDateShortTime,
+    /// Style modifier to display a timestamp as a medium time.
+    ///
+    /// Correlates to the style `T`.
+    ///
+    /// Causes mentions to display in clients as `01:20:30`.
+    MediumTime,
+    /// Style modifier to display a timestamp as a relative timestamp.
+    ///
+    /// Correlates to the style `R`.
+    ///
+    /// Causes mentions to display in clients as `2 months ago`.
+    RelativeTime,
+    /// Style modifier to display a timestamp as a short date.
     ///
     /// Correlates to the style `d`.
     ///
     /// Causes mentions to display in clients as `1/4/2021`.
     ShortDate,
-    /// Style modifier to display a timestamp as a short date/time.
+    /// Style modifier to display a timestamp as a short date with a medium time.
+    ///
+    /// Correlates to the style `S`.
+    ///
+    /// Causes mentions to display in clients as `1/4/2021 16:20:30`.
+    ShortDateMediumTime,
+    /// Style modifier to display a timestamp as a short date and time.
+    ///
+    /// Correlates to the style `s`.
+    ///
+    /// Causes mentions to display in clients as `1/4/2021 16:20`.
+    ShortDateTime,
+    /// Style modifier to display a timestamp as a short time.
     ///
     /// Correlates to the style `t`.
     ///
@@ -228,18 +241,20 @@ impl TimestampStyle {
     /// ```
     /// use twilight_mention::timestamp::TimestampStyle;
     ///
-    /// assert_eq!("F", TimestampStyle::LongDateTime.style());
+    /// assert_eq!("F", TimestampStyle::FullDateShortTime.style());
     /// assert_eq!("R", TimestampStyle::RelativeTime.style());
     /// ```
     #[must_use = "retrieving the character of a style does nothing on its own"]
     pub const fn style(self) -> &'static str {
         match self {
-            Self::LongDateTime => "F",
+            Self::FullDateShortTime => "F",
             Self::LongDate => "D",
-            Self::LongTime => "T",
+            Self::LongDateShortTime => "f",
+            Self::MediumTime => "T",
             Self::RelativeTime => "R",
-            Self::ShortDateTime => "f",
             Self::ShortDate => "d",
+            Self::ShortDateMediumTime => "S",
+            Self::ShortDateTime => "s",
             Self::ShortTime => "t",
         }
     }
@@ -257,12 +272,14 @@ impl TryFrom<&str> for TimestampStyle {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Ok(match value {
-            "F" => Self::LongDateTime,
+            "F" => Self::FullDateShortTime,
             "D" => Self::LongDate,
-            "T" => Self::LongTime,
+            "f" => Self::LongDateShortTime,
+            "T" => Self::MediumTime,
             "R" => Self::RelativeTime,
-            "f" => Self::ShortDateTime,
             "d" => Self::ShortDate,
+            "S" => Self::ShortDateMediumTime,
+            "s" => Self::ShortDateTime,
             "t" => Self::ShortTime,
             _ => {
                 return Err(TimestampStyleConversionError {
@@ -312,27 +329,40 @@ mod tests {
     /// Test the corresponding style modifiers.
     #[test]
     fn timestamp_style_modifiers() {
-        assert_eq!("F", TimestampStyle::LongDateTime.style());
+        assert_eq!("F", TimestampStyle::FullDateShortTime.style());
         assert_eq!("D", TimestampStyle::LongDate.style());
-        assert_eq!("T", TimestampStyle::LongTime.style());
+        assert_eq!("f", TimestampStyle::LongDateShortTime.style());
+        assert_eq!("T", TimestampStyle::MediumTime.style());
         assert_eq!("R", TimestampStyle::RelativeTime.style());
-        assert_eq!("f", TimestampStyle::ShortDateTime.style());
         assert_eq!("d", TimestampStyle::ShortDate.style());
+        assert_eq!("S", TimestampStyle::ShortDateMediumTime.style());
+        assert_eq!("s", TimestampStyle::ShortDateTime.style());
         assert_eq!("t", TimestampStyle::ShortTime.style());
     }
 
     /// Test that style modifiers correctly parse from their string slice variants.
     #[test]
     fn timestamp_style_try_from() -> Result<(), TimestampStyleConversionError> {
-        assert_eq!(TimestampStyle::try_from("F")?, TimestampStyle::LongDateTime);
+        assert_eq!(
+            TimestampStyle::try_from("F")?,
+            TimestampStyle::FullDateShortTime
+        );
         assert_eq!(TimestampStyle::try_from("D")?, TimestampStyle::LongDate);
-        assert_eq!(TimestampStyle::try_from("T")?, TimestampStyle::LongTime);
-        assert_eq!(TimestampStyle::try_from("R")?, TimestampStyle::RelativeTime);
         assert_eq!(
             TimestampStyle::try_from("f")?,
+            TimestampStyle::LongDateShortTime
+        );
+        assert_eq!(TimestampStyle::try_from("T")?, TimestampStyle::MediumTime);
+        assert_eq!(TimestampStyle::try_from("R")?, TimestampStyle::RelativeTime);
+        assert_eq!(TimestampStyle::try_from("d")?, TimestampStyle::ShortDate);
+        assert_eq!(
+            TimestampStyle::try_from("S")?,
+            TimestampStyle::ShortDateMediumTime
+        );
+        assert_eq!(
+            TimestampStyle::try_from("s")?,
             TimestampStyle::ShortDateTime
         );
-        assert_eq!(TimestampStyle::try_from("d")?, TimestampStyle::ShortDate);
         assert_eq!(TimestampStyle::try_from("t")?, TimestampStyle::ShortTime);
 
         Ok(())
