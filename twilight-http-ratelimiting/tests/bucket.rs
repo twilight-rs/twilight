@@ -44,6 +44,44 @@ async fn bucket_limit() {
 }
 
 #[tokio::test(start_paused = true)]
+async fn bucket_reset_delay() {
+    let rate_limiter = RateLimiter::default();
+    let now = Instant::now();
+
+    rate_limiter
+        .acquire(ENDPOINT())
+        .await
+        .complete(Some(RateLimitHeaders {
+            bucket: BUCKET(),
+            limit: 2,
+            remaining: 1,
+            reset_at: now.into_std() + RESET_AFTER,
+        }));
+    let _permit = rate_limiter.acquire(ENDPOINT()).await;
+
+    time::sleep(RESET_AFTER).await;
+    assert!(rate_limiter.bucket(ENDPOINT()).await.is_none());
+}
+
+#[tokio::test(start_paused = true)]
+async fn bucket_reset_past() {
+    let rate_limiter = RateLimiter::default();
+    let now = Instant::now();
+
+    let permit = rate_limiter.acquire(ENDPOINT()).await;
+    let permit_fut = rate_limiter.acquire(ENDPOINT());
+    permit.complete(Some(RateLimitHeaders {
+        bucket: BUCKET(),
+        limit: 2,
+        remaining: 1,
+        reset_at: now.into_std() - RESET_AFTER,
+    }));
+
+    _ = permit_fut.await;
+    assert!(rate_limiter.bucket(ENDPOINT()).await.is_none());
+}
+
+#[tokio::test(start_paused = true)]
 async fn bucket_sublimit() {
     let rate_limiter = RateLimiter::default();
 

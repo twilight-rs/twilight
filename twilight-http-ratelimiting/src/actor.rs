@@ -203,7 +203,6 @@ pub async fn runner(
                 let hash = hash.into_inner();
                 let (_, queue) = queues.find_mut(hash, |&(key, _)| key == hash).unwrap();
 
-                debug_assert!(!queue.in_flight);
                 queue.reset = None;
                 // Note that non-exhausted queues are not stopped.
                 if queue.is_exhasted() {
