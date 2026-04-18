@@ -1,10 +1,9 @@
 use std::future::IntoFuture;
 
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture};
 use crate::{
     Client, Error,
     request::{Request, TryIntoRequest},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 
@@ -41,7 +40,6 @@ impl<'a> AddApplicationEmoji<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for AddApplicationEmoji<'_> {
     type Output = Result<Response<Emoji>, Error>;
 

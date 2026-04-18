@@ -1,9 +1,8 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{GetGatewayAuthed, Request, TryIntoRequest},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -62,7 +61,6 @@ impl<'a> GetGateway<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for GetGateway<'_> {
     type Output = Result<Response<ConnectionInfo>, Error>;
 

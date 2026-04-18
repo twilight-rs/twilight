@@ -20,6 +20,4 @@ mod query_formatter;
 /// Discord API version used by this crate.
 pub const API_VERSION: u8 = 10;
 
-#[cfg(not(target_os = "wasi"))]
-pub use crate::response::Response;
-pub use crate::{client::Client, error::Error};
+pub use crate::{client::Client, error::Error, response::Response};

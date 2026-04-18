@@ -1,9 +1,8 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture, marker::EmptyBody};
 use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -49,7 +48,6 @@ impl<'a> AuditLogReason<'a> for DeleteAutoModerationRule<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for DeleteAutoModerationRule<'_> {
     type Output = Result<Response<EmptyBody>, Error>;
 

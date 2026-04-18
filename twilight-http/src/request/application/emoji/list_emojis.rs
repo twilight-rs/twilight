@@ -1,11 +1,9 @@
 use std::future::IntoFuture;
 
-#[cfg(not(target_os = "wasi"))]
-use crate::{Response, response::ResponseFuture};
-
 use crate::{
-    Client, Error,
+    Client, Error, Response,
     request::{Request, TryIntoRequest},
+    response::ResponseFuture,
     routing::Route,
 };
 use twilight_model::{
@@ -28,7 +26,6 @@ impl<'a> ListApplicationEmojis<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for ListApplicationEmojis<'_> {
     type Output = Result<Response<EmojiList>, Error>;
 

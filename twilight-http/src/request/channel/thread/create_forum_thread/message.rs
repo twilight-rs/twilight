@@ -1,9 +1,8 @@
 use super::{CreateForumThread, ForumThread};
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture};
 use crate::{
     Error,
     request::{Nullable, TryIntoRequest, attachment::PartialAttachment},
+    response::{Response, ResponseFuture},
 };
 use serde::Serialize;
 use std::{future::IntoFuture, mem};
@@ -223,7 +222,6 @@ impl<'a> CreateForumThreadMessage<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for CreateForumThreadMessage<'_> {
     type Output = Result<Response<ForumThread>, Error>;
 

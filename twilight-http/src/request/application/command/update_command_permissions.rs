@@ -1,9 +1,8 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture, marker::ListBody};
 use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
+    response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
 use serde::Serialize;
@@ -64,7 +63,6 @@ impl<'a> UpdateCommandPermissions<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateCommandPermissions<'_> {
     type Output = Result<Response<ListBody<CommandPermission>>, Error>;
 

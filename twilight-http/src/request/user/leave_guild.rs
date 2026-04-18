@@ -1,9 +1,8 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture, marker::EmptyBody};
 use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -22,7 +21,6 @@ impl<'a> LeaveGuild<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for LeaveGuild<'_> {
     type Output = Result<Response<EmptyBody>, Error>;
 

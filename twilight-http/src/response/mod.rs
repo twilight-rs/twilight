@@ -1,5 +1,3 @@
-#![cfg(not(target_os = "wasi"))]
-
 //! Response utility type and related types.
 //!
 //! The heart of the response module is the [`Response`] itself: it's a wrapper

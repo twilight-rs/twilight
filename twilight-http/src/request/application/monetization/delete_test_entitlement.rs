@@ -6,14 +6,10 @@ use twilight_model::id::{
 };
 
 use crate::{
-    Client, Error,
+    Client, Error, Response,
     request::{Request, TryIntoRequest},
-    routing::Route,
-};
-#[cfg(not(target_os = "wasi"))]
-use crate::{
-    Response,
     response::{ResponseFuture, marker::EmptyBody},
+    routing::Route,
 };
 
 pub struct DeleteTestEntitlement<'a> {
@@ -36,7 +32,6 @@ impl<'a> DeleteTestEntitlement<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for DeleteTestEntitlement<'_> {
     type Output = Result<Response<EmptyBody>, Error>;
 

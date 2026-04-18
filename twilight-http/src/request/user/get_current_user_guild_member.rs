@@ -1,9 +1,8 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture};
 use crate::{
     Error,
     client::Client,
     request::{Request, TryIntoRequest},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use std::future::IntoFuture;
@@ -25,7 +24,6 @@ impl<'a> GetCurrentUserGuildMember<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for GetCurrentUserGuildMember<'_> {
     type Output = Result<Response<Member>, Error>;
 

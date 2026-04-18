@@ -1,5 +1,3 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture, marker::EmptyBody};
 use crate::{
     client::Client,
     error::Error,
@@ -8,6 +6,7 @@ use crate::{
         attachment::{AttachmentManager, PartialAttachment},
         channel::webhook::ExecuteWebhookAndWait,
     },
+    response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
 use serde::Serialize;
@@ -390,7 +389,6 @@ impl<'a> ExecuteWebhook<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for ExecuteWebhook<'_> {
     type Output = Result<Response<EmptyBody>, Error>;
 

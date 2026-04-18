@@ -1,9 +1,8 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
@@ -76,7 +75,6 @@ impl<'a> AuditLogReason<'a> for UpdateEmoji<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateEmoji<'_> {
     type Output = Result<Response<Emoji>, Error>;
 

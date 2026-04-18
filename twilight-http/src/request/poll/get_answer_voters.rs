@@ -1,9 +1,8 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::{Deserialize, Serialize};
@@ -73,7 +72,6 @@ impl<'a> GetAnswerVoters<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for GetAnswerVoters<'_> {
     type Output = Result<Response<GetAnswerVotersResponse>, Error>;
     type IntoFuture = ResponseFuture<GetAnswerVotersResponse>;

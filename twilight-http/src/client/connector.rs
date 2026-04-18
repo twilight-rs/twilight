@@ -1,5 +1,3 @@
-#![cfg(not(target_os = "wasi"))]
-
 //! HTTP connectors with different features.
 
 /// HTTPS connector using `rustls` as a TLS backend.

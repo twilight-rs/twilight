@@ -1,9 +1,8 @@
 use super::{CreateGuildScheduledEvent, CreateGuildScheduledEventFields};
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture};
 use crate::{
     error::Error,
     request::{AuditLogReason, Request, TryIntoRequest},
+    response::{Response, ResponseFuture},
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -98,7 +97,6 @@ impl<'a> AuditLogReason<'a> for CreateGuildVoiceScheduledEvent<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for CreateGuildVoiceScheduledEvent<'_> {
     type Output = Result<Response<GuildScheduledEvent>, Error>;
 

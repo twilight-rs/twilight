@@ -1,9 +1,8 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
@@ -66,7 +65,6 @@ impl<'a> CreateGuildFromTemplate<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for CreateGuildFromTemplate<'_> {
     type Output = Result<Response<Guild>, Error>;
 

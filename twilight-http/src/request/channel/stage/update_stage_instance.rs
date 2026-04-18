@@ -1,9 +1,8 @@
-#[cfg(not(target_os = "wasi"))]
-use crate::response::{Response, ResponseFuture};
 use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
@@ -72,7 +71,6 @@ impl<'a> UpdateStageInstance<'a> {
     }
 }
 
-#[cfg(not(target_os = "wasi"))]
 impl IntoFuture for UpdateStageInstance<'_> {
     type Output = Result<Response<StageInstance>, Error>;
 
