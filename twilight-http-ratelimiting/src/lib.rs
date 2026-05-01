@@ -284,16 +284,8 @@ impl RateLimiter {
     /// Await a single permit for this endpoint.
     ///
     /// Permits are queued per endpoint in the order they were requested.
-    #[allow(clippy::missing_panics_doc)]
     pub fn acquire(&self, endpoint: Endpoint) -> PermitFuture {
-        let (notifier, rx) = oneshot::channel();
-        let message = actor::Message { endpoint, notifier };
-        assert!(
-            self.tx.send((message, None)).is_ok(),
-            "{ACTOR_PANIC_MESSAGE}"
-        );
-
-        PermitFuture(rx)
+        PermitFuture(self.acquire_inner(endpoint, None))
     }
 
     /// Await a single permit for this endpoint, but only if the predicate evaluates
@@ -327,27 +319,27 @@ impl RateLimiter {
     /// }
     /// # });
     /// ```
-    #[allow(clippy::missing_panics_doc)]
     pub fn acquire_if<P>(&self, endpoint: Endpoint, predicate: P) -> MaybePermitFuture
     where
         P: FnOnce(Option<Bucket>) -> bool + Send + 'static,
     {
-        fn acquire_if(
-            tx: &mpsc::UnboundedSender<(actor::Message, Option<Predicate>)>,
-            endpoint: Endpoint,
-            predicate: Predicate,
-        ) -> MaybePermitFuture {
-            let (notifier, rx) = oneshot::channel();
-            let message = actor::Message { endpoint, notifier };
-            assert!(
-                tx.send((message, Some(predicate))).is_ok(),
-                "{ACTOR_PANIC_MESSAGE}"
-            );
+        MaybePermitFuture(self.acquire_inner(endpoint, Some(Box::new(predicate))))
+    }
 
-            MaybePermitFuture(rx)
-        }
+    /// Requests a permit for this endpoint.
+    #[allow(clippy::missing_panics_doc)]
+    fn acquire_inner(
+        &self,
+        endpoint: Endpoint,
+        predicate: Option<Predicate>,
+    ) -> oneshot::Receiver<oneshot::Sender<Option<RateLimitHeaders>>> {
+        let (notifier, rx) = oneshot::channel();
+        let message = actor::Message { endpoint, notifier };
 
-        acquire_if(&self.tx, endpoint, Box::new(predicate))
+        let res = self.tx.send((message, predicate));
+        assert!(res.is_ok(), "{ACTOR_PANIC_MESSAGE}");
+
+        rx
     }
 
     /// Retrieve the [`Bucket`] for this endpoint.
