@@ -118,6 +118,7 @@ struct PermitFutureGenerator {
 impl PermitFutureGenerator {
     /// Generates a permit future.
     fn generate(&self) -> PermitFuture {
+        tracing::debug!("awaiting permit");
         self.rate_limiter.acquire(self.endpoint.clone())
     }
 }
@@ -135,6 +136,7 @@ struct TimedResponseFutureGenerator {
 impl TimedResponseFutureGenerator {
     /// Generates a timeout response future.
     fn generate(&self) -> Pin<Box<Timeout<HyperResponseFuture>>> {
+        tracing::debug!("awaiting response");
         Box::pin(time::timeout(
             self.timeout,
             self.client.request(self.request.clone()),
@@ -196,6 +198,8 @@ impl<T> ResponseFuture<T> {
         rate_limiter: Option<RateLimiter>,
         endpoint: Endpoint,
     ) -> Self {
+        let entered = span.entered();
+
         let permit_generator = rate_limiter.map(|rate_limiter| PermitFutureGenerator {
             rate_limiter,
             endpoint,
@@ -218,7 +222,7 @@ impl<T> ResponseFuture<T> {
             phantom: PhantomData,
             pre_flight_check: None,
             response_generator,
-            span,
+            span: entered.exit(),
             stage,
         }))
     }
@@ -387,6 +391,7 @@ impl<T: Unpin> Future for ResponseFuture<T> {
 
                         return Poll::Ready(Ok(Response::new(response)));
                     } else if response.status() == StatusCode::TOO_MANY_REQUESTS {
+                        tracing::info!("rate limited; retrying");
                         inner.stage = match &inner.permit_generator {
                             Some(generator) => {
                                 ResponseStageFuture::RateLimitPermit(generator.generate())
