@@ -79,6 +79,11 @@ mod private {
                 CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRoles, GetRole,
                 UpdateRole, UpdateRolePositions,
             },
+            soundboard::{
+                CreateGuildSoundboardSound, DeleteGuildSoundboardSound, GetGuildSoundboardSound,
+                ListDefaultSoundboardSounds, ListGuildSoundboardSounds, SendSoundboardSound,
+                UpdateGuildSoundboardSound,
+            },
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
@@ -130,6 +135,7 @@ mod private {
     impl Sealed for CreateGuildFromTemplate<'_> {}
     impl Sealed for CreateGuildMessageCommand<'_> {}
     impl Sealed for CreateGuildPrune<'_> {}
+    impl Sealed for CreateGuildSoundboardSound<'_> {}
     impl Sealed for CreateGuildStageInstanceScheduledEvent<'_> {}
     impl Sealed for CreateGuildSticker<'_> {}
     impl Sealed for CreateGuildUserCommand<'_> {}
@@ -152,6 +158,7 @@ mod private {
     impl Sealed for CrosspostMessage<'_> {}
     impl Sealed for DeleteAllReaction<'_> {}
     impl Sealed for DeleteAllReactions<'_> {}
+    impl Sealed for DeleteApplicationEmoji<'_> {}
     impl Sealed for DeleteAutoModerationRule<'_> {}
     impl Sealed for DeleteBan<'_> {}
     impl Sealed for DeleteChannel<'_> {}
@@ -164,6 +171,7 @@ mod private {
     impl Sealed for DeleteGuildCommand<'_> {}
     impl Sealed for DeleteGuildIntegration<'_> {}
     impl Sealed for DeleteGuildScheduledEvent<'_> {}
+    impl Sealed for DeleteGuildSoundboardSound<'_> {}
     impl Sealed for DeleteGuildSticker<'_> {}
     impl Sealed for DeleteInvite<'_> {}
     impl Sealed for DeleteMessage<'_> {}
@@ -174,17 +182,14 @@ mod private {
     impl Sealed for DeleteRole<'_> {}
     impl Sealed for DeleteStageInstance<'_> {}
     impl Sealed for DeleteTemplate<'_> {}
+    impl Sealed for DeleteTestEntitlement<'_> {}
     impl Sealed for DeleteWebhook<'_> {}
     impl Sealed for DeleteWebhookMessage<'_> {}
-    impl Sealed for DeleteTestEntitlement<'_> {}
-    impl Sealed for DeleteApplicationEmoji<'_> {}
-    impl Sealed for UpdateApplicationEmoji<'_> {}
     impl Sealed for EndPoll<'_> {}
     impl Sealed for ExecuteWebhook<'_> {}
     impl Sealed for ExecuteWebhookAndWait<'_> {}
     impl Sealed for FollowNewsChannel<'_> {}
     impl Sealed for GetActiveThreads<'_> {}
-    impl Sealed for ListApplicationEmojis<'_> {}
     impl Sealed for GetAnswerVoters<'_> {}
     impl Sealed for GetAuditLog<'_> {}
     impl Sealed for GetAutoModerationRule<'_> {}
@@ -196,8 +201,8 @@ mod private {
     impl Sealed for GetChannelMessagesConfigured<'_> {}
     impl Sealed for GetChannelWebhooks<'_> {}
     impl Sealed for GetCommandPermissions<'_> {}
-    impl Sealed for GetCurrentUser<'_> {}
     impl Sealed for GetCurrentAuthorizationInformation<'_> {}
+    impl Sealed for GetCurrentUser<'_> {}
     impl Sealed for GetCurrentUserConnections<'_> {}
     impl Sealed for GetCurrentUserGuildMember<'_> {}
     impl Sealed for GetCurrentUserGuilds<'_> {}
@@ -227,6 +232,7 @@ mod private {
     impl Sealed for GetGuildScheduledEvent<'_> {}
     impl Sealed for GetGuildScheduledEventUsers<'_> {}
     impl Sealed for GetGuildScheduledEvents<'_> {}
+    impl Sealed for GetGuildSoundboardSound<'_> {}
     impl Sealed for GetGuildSticker<'_> {}
     impl Sealed for GetGuildStickers<'_> {}
     impl Sealed for GetGuildVanityUrl<'_> {}
@@ -262,19 +268,25 @@ mod private {
     impl Sealed for JoinThread<'_> {}
     impl Sealed for LeaveGuild<'_> {}
     impl Sealed for LeaveThread<'_> {}
+    impl Sealed for ListApplicationEmojis<'_> {}
+    impl Sealed for ListDefaultSoundboardSounds<'_> {}
+    impl Sealed for ListGuildSoundboardSounds<'_> {}
     impl Sealed for RemoveMember<'_> {}
     impl Sealed for RemoveRoleFromMember<'_> {}
     impl Sealed for RemoveThreadMember<'_> {}
     impl Sealed for SearchGuildMembers<'_> {}
+    impl Sealed for SendSoundboardSound<'_> {}
     impl Sealed for SetGlobalCommands<'_> {}
     impl Sealed for SetGuildCommands<'_> {}
     impl Sealed for SyncTemplate<'_> {}
+    impl Sealed for UpdateApplicationEmoji<'_> {}
     impl Sealed for UpdateAutoModerationRule<'_> {}
     impl Sealed for UpdateChannel<'_> {}
     impl Sealed for UpdateChannelPermission<'_> {}
     impl Sealed for UpdateCommandPermissions<'_> {}
     impl Sealed for UpdateCurrentMember<'_> {}
     impl Sealed for UpdateCurrentUser<'_> {}
+    impl Sealed for UpdateCurrentUserApplication<'_> {}
     impl Sealed for UpdateCurrentUserVoiceState<'_> {}
     impl Sealed for UpdateEmoji<'_> {}
     impl Sealed for UpdateFollowup<'_> {}
@@ -286,6 +298,7 @@ mod private {
     impl Sealed for UpdateGuildMfa<'_> {}
     impl Sealed for UpdateGuildOnboarding<'_> {}
     impl Sealed for UpdateGuildScheduledEvent<'_> {}
+    impl Sealed for UpdateGuildSoundboardSound<'_> {}
     impl Sealed for UpdateGuildSticker<'_> {}
     impl Sealed for UpdateGuildWelcomeScreen<'_> {}
     impl Sealed for UpdateGuildWidgetSettings<'_> {}
@@ -300,7 +313,6 @@ mod private {
     impl Sealed for UpdateWebhook<'_> {}
     impl Sealed for UpdateWebhookMessage<'_> {}
     impl Sealed for UpdateWebhookWithToken<'_> {}
-    impl Sealed for UpdateCurrentUserApplication<'_> {}
 }
 
 use super::base::Request;
