@@ -43,7 +43,7 @@ impl<'a> SendSoundboardSound<'a> {
         }
     }
 
-    /// Set the source guild, this is nessecary if you use the sound from an external guild.
+    /// Set the source guild, this is necessary if you use the sound from an external guild.
     pub const fn source_guild_id(mut self, source_guild_id: Id<GuildMarker>) -> Self {
         self.fields.source_guild_id = Some(source_guild_id);
 

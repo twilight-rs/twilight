@@ -70,11 +70,16 @@ pub enum SoundboardValidationErrorType {
     /// The length of the name is either fewer than 2 characters or more than 32
     /// characters.
     NameInvalid,
-    /// The volume can be between 0 and 1 inlusive.
+    /// The volume can be between 0 and 1 inclusive.
     VolumeInvalid,
 }
 
 /// The name of a soundboard sound can have a length between 2 and 32 characters.
+///
+/// # Errors
+/// Returns a [`SoundboardValidationError`] with the type
+/// [`SoundboardValidationErrorType::NameInvalid`] if the name fails
+/// to validate.
 pub fn name(value: impl AsRef<str>) -> Result<(), SoundboardValidationError> {
     let len = value.as_ref().chars().count();
 
@@ -88,8 +93,13 @@ pub fn name(value: impl AsRef<str>) -> Result<(), SoundboardValidationError> {
 }
 
 /// The volume of a soundboard sound must be between 0 and 1 inclusive.
+///
+/// # Errors
+/// Returns a [`SoundboardValidationError`] with the type
+/// [`SoundboardValidationErrorType::VolumeInvalid`] if the volume fails
+/// to validate.
 pub fn volume(value: f64) -> Result<(), SoundboardValidationError> {
-    if value >= SOUNDBOARD_SOUND_VOLUME_MIN && value <= SOUNDBOARD_SOUND_VOLUME_MAX {
+    if (SOUNDBOARD_SOUND_VOLUME_MIN..=SOUNDBOARD_SOUND_VOLUME_MAX).contains(&value) {
         Ok(())
     } else {
         Err(SoundboardValidationError {

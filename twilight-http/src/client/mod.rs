@@ -2931,7 +2931,8 @@ impl Client {
     /// let list = client
     ///     .list_default_soundboard_sounds()
     ///     .await?
-    ///     .model().await?;
+    ///     .model()
+    ///     .await?;
     ///
     /// for sound in list {
     ///     println!("{:?}", sound);
@@ -2956,7 +2957,8 @@ impl Client {
     /// let list = client
     ///     .list_guild_soundboard_sounds(Id::new(123456))
     ///     .await?
-    ///     .model().await?;
+    ///     .model()
+    ///     .await?;
     ///
     /// for sound in list.items {
     ///     println!("{:?}", sound);
@@ -2984,7 +2986,8 @@ impl Client {
     /// let sound = client
     ///     .get_guild_soundboard_sound(Id::new(123456), Id::new(78910))
     ///     .await?
-    ///     .model().await?;
+    ///     .model()
+    ///     .await?;
     ///
     /// println!("{:?}", sound);
     /// # Ok(()) }
@@ -3016,11 +3019,8 @@ impl Client {
     /// const LOW_RESOLUTION_IRON_PIPE: &str = "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU...";
     ///
     /// client
-    ///     .create_guild_soundboard_sound(
-    ///         Id::new(12345),
-    ///         "IRON_PIPE",
-    ///         LOW_RESOLUTION_IRON_PIPE
-    ///     ).await?;
+    ///     .create_guild_soundboard_sound(Id::new(12345), "IRON_PIPE", LOW_RESOLUTION_IRON_PIPE)
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     pub fn create_guild_soundboard_sound<'a>(
@@ -3044,10 +3044,9 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     ///
     /// client
-    ///     .update_guild_soundboard_sound(
-    ///         Id::new(12345),
-    ///         Id::new(67890),
-    ///     ).name("LOUD iron pipe").await?;
+    ///     .update_guild_soundboard_sound(Id::new(12345), Id::new(67890))
+    ///     .name("LOUD iron pipe")
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     pub const fn update_guild_soundboard_sound(

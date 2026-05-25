@@ -47,7 +47,7 @@ impl<'a> CreateGuildSoundboardSound<'a> {
         name: &'a str,
         sound: &'a str,
     ) -> Self {
-        let fields = soundboard::name(&name).map(|_| CreateGuildSoundboardSoundFields {
+        let fields = soundboard::name(name).map(|()| CreateGuildSoundboardSoundFields {
             name,
             sound,
             volume: None,
