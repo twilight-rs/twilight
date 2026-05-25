@@ -6,7 +6,10 @@ use twilight_model::{
         marker::{EmojiMarker, GuildMarker, SoundboardMarker},
     },
 };
-use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
+use twilight_validate::{
+    request::{ValidationError, audit_reason as validate_audit_reason},
+    soundboard::{self, SoundboardValidationError},
+};
 
 use crate::{
     Client, Error, Response,
@@ -32,7 +35,7 @@ pub struct UpdateGuildSoundboardSound<'a> {
     http: &'a Client,
     guild_id: Id<GuildMarker>,
     sound_id: Id<SoundboardMarker>,
-    fields: UpdateGuildSoundboardSoundFields<'a>,
+    fields: Result<UpdateGuildSoundboardSoundFields<'a>, SoundboardValidationError>,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -42,12 +45,12 @@ impl<'a> UpdateGuildSoundboardSound<'a> {
         guild_id: Id<GuildMarker>,
         sound_id: Id<SoundboardMarker>,
     ) -> Self {
-        let fields = UpdateGuildSoundboardSoundFields {
+        let fields = Ok(UpdateGuildSoundboardSoundFields {
             name: None,
             volume: None,
             emoji_id: None,
             emoji_name: None,
-        };
+        });
 
         Self {
             fields,
@@ -59,29 +62,43 @@ impl<'a> UpdateGuildSoundboardSound<'a> {
     }
 
     /// Set the name of the soundboard sound (2-32 characters)
-    pub const fn name(mut self, name: &'a str) -> Self {
-        self.fields.name = Some(name);
+    pub fn name(mut self, name: &'a str) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            soundboard::name(name)?;
+            fields.name = Some(name);
+            Ok(fields)
+        });
 
         self
     }
 
     /// Set the volume of the soundboard sound, from 0 to 1, defaults to 1.
-    pub const fn volume(mut self, volume: Option<f64>) -> Self {
-        self.fields.volume = Some(Nullable(volume));
+    pub fn volume(mut self, volume: Option<f64>) -> Self {
+        self.fields = self.fields.and_then(|mut fields| {
+            if let Some(volume) = volume {
+                soundboard::volume(volume)?;
+            }
+            fields.volume = Some(Nullable(volume));
+            Ok(fields)
+        });
 
         self
     }
 
     /// Set the id of the custom emoji for the soundboard sound.
     pub const fn emoji_id(mut self, emoji_id: Option<Id<EmojiMarker>>) -> Self {
-        self.fields.emoji_id = Some(Nullable(emoji_id));
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.emoji_id = Some(Nullable(emoji_id));
+        }
 
         self
     }
 
     /// Set the unicode character of a standard emoji for the soundboard sound.
     pub const fn emoji_name(mut self, emoji_name: Option<&'a str>) -> Self {
-        self.fields.emoji_name = Some(Nullable(emoji_name));
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.emoji_name = Some(Nullable(emoji_name));
+        }
 
         self
     }
@@ -112,11 +129,12 @@ impl IntoFuture for UpdateGuildSoundboardSound<'_> {
 
 impl TryIntoRequest for UpdateGuildSoundboardSound<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateGuildSoundboardSound {
             guild_id: self.guild_id.get(),
             sound_id: self.sound_id.get(),
         })
-        .json(&self.fields);
+        .json(&fields);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
