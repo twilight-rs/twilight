@@ -1,7 +1,7 @@
 //! Optimization for skipping deserialization of unwanted events.
 
 use bitflags::bitflags;
-use twilight_model::gateway::{OpCode, event::EventType};
+use twilight_model::gateway::{Intents, OpCode, event::EventType};
 
 bitflags! {
     /// Important optimization for narrowing requested event types.
@@ -332,6 +332,40 @@ bitflags! {
         /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
         const GUILD_WEBHOOKS = Self::WEBHOOKS_UPDATE.bits();
 
+    }
+}
+
+impl From<Intents> for EventTypeFlags {
+    fn from(intents: Intents) -> Self {
+        let mut event_type_flags = Self::empty();
+
+        for (_, intent) in intents.iter_names() {
+            event_type_flags |= match intent {
+                Intents::AUTO_MODERATION_CONFIGURATION => Self::AUTO_MODERATION_CONFIGURATION,
+                Intents::AUTO_MODERATION_EXECUTION => Self::AUTO_MODERATION_EXECUTION,
+                Intents::DIRECT_MESSAGES => Self::DIRECT_MESSAGES,
+                Intents::DIRECT_MESSAGE_REACTIONS => Self::DIRECT_MESSAGE_REACTIONS,
+                Intents::DIRECT_MESSAGE_TYPING => Self::DIRECT_MESSAGE_TYPING,
+                Intents::GUILDS => Self::GUILDS,
+                Intents::GUILD_MODERATION => Self::GUILD_MODERATION,
+                Intents::GUILD_EMOJIS_AND_STICKERS => Self::GUILD_EMOJIS_AND_STICKERS,
+                Intents::GUILD_INTEGRATIONS => Self::GUILD_INTEGRATIONS,
+                Intents::GUILD_INVITES => Self::GUILD_INVITES,
+                Intents::GUILD_MEMBERS => Self::GUILD_MEMBERS,
+                Intents::GUILD_MESSAGES => Self::GUILD_MESSAGES,
+                Intents::GUILD_MESSAGE_POLLS | Intents::DIRECT_MESSAGE_POLLS => Self::MESSAGE_POLLS,
+                Intents::GUILD_MESSAGE_REACTIONS => Self::GUILD_MESSAGE_REACTIONS,
+                Intents::GUILD_MESSAGE_TYPING => Self::GUILD_MESSAGE_TYPING,
+                Intents::GUILD_PRESENCES => Self::GUILD_PRESENCES,
+                Intents::GUILD_SCHEDULED_EVENTS => Self::GUILD_SCHEDULED_EVENTS,
+                Intents::GUILD_VOICE_STATES => Self::GUILD_VOICE_STATES,
+                Intents::GUILD_WEBHOOKS => Self::GUILD_WEBHOOKS,
+                Intents::MESSAGE_CONTENT => Self::empty(),
+                _ => unimplemented!("Unimplemented Intent to EventTypeFlags mapping"),
+            }
+        }
+
+        event_type_flags
     }
 }
 
