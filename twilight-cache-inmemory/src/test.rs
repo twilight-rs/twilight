@@ -112,7 +112,10 @@ pub fn cache_with_message_and_reactions() -> DefaultInMemoryCache {
         webhook_id: None,
     };
 
-    cache.update(&MessageCreate(msg));
+    cache.update(&MessageCreate {
+        message: msg,
+        channel_type: None,
+    });
 
     let mut reaction = ReactionAdd(GatewayReaction {
         burst: false,
