@@ -13,12 +13,12 @@ impl Deref for MessageCreate {
     type Target = Message;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.message
     }
 }
 
 impl DerefMut for MessageCreate {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        &mut self.message
     }
 }
