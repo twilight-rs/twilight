@@ -1,9 +1,13 @@
-use crate::channel::Message;
+use crate::channel::{ChannelType, Message};
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct MessageCreate(pub Message);
+pub struct MessageCreate {
+    pub channel_type: Option<ChannelType>,
+    #[serde(flatten)]
+    pub message: Message,
+}
 
 impl Deref for MessageCreate {
     type Target = Message;
