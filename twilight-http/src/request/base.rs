@@ -90,20 +90,13 @@ impl RequestBuilder {
         self
     }
 
-    /// Set the the multipart form from an existing buffer.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`ErrorType::Multipart`] error type buffer input could not get turned into a
-    /// valid form.
-    ///
-    /// [`ErrorType::Multipart`]: crate::error::ErrorType::Multipart
-    pub fn multipart(mut self, form_buffer: Vec<u8>) -> Result<Self, Error> {
+    /// Set the the multipart form from an existing boundary and buffer.
+    pub fn multipart(mut self, boundary: [u8; 15], buffer: Vec<u8>) -> Self {
         if let Ok(request) = self.0.as_mut() {
-            request.form = Some(Form::from_buffer(form_buffer).map_err(Error::multipart)?);
+            request.form = Some(Form::from_parts(boundary, buffer));
         }
 
-        Ok(self)
+        self
     }
 
     /// Set the headers to add.
