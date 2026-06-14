@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let channel_id = Id::new(123);
 
     let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
-        event.author.id.get() == 456 && event.content == "test"
+        event.message.author.id.get() == 456 && event.message.content == "test"
     }).await?;
 
     Ok(())
@@ -103,8 +103,8 @@ async fn main() -> anyhow::Result<()> {
         standby.process(&event);
 
         match event {
-            Event::MessageCreate(msg) if msg.content == "!react" => {
-                tokio::spawn(react(msg.0, Arc::clone(&standby)));
+            Event::MessageCreate(msg_create) if msg_create.message.content == "!react" => {
+                tokio::spawn(react(msg_create.message, Arc::clone(&standby)));
             },
             _ => {},
         }
