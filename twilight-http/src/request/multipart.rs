@@ -19,6 +19,10 @@ impl Form {
         Self::default()
     }
 
+    pub(crate) const fn from_parts(boundary: [u8; 15], buffer: Vec<u8>) -> Self {
+        Self { boundary, buffer }
+    }
+
     /// Consume the form, returning the buffer's contents.
     pub fn build(mut self) -> Vec<u8> {
         self.buffer.extend(Self::BOUNDARY_TERMINATOR);
@@ -105,6 +109,10 @@ impl Form {
         self.buffer.extend(self.boundary);
 
         self
+    }
+
+    pub fn into_parts(self) -> ([u8; 15], Vec<u8>) {
+        (self.boundary, self.buffer)
     }
 }
 
