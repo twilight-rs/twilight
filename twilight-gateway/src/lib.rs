@@ -115,6 +115,8 @@ pub fn bucket(
     let len = q + u32::from(bucket_id < r);
     let start = bucket_id * q + r.min(bucket_id);
 
+    // Compiler hint deduced from mathematical proof.
+    assert!(start + len <= shards, "");
     (start..start + len).map(move |id| ShardId::new(id, shards))
 }
 
