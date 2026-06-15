@@ -41,10 +41,13 @@ fn unique(iter: impl ExactSizeIterator<Item = Config>) -> impl Iterator<Item = S
     certificate facilities via [`rustls-platform-verifier`]
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
-* `twilight-http` (*default*): enable the `stream::create_recommended` function
 * Transport compression (mutually exclusive)
   * `zlib`: Zlib transport compression using [`zlib-rs`][^1]
   * `zstd` (*default*): Zstandard transport compression using [`zstd-sys`]
+
+### Deprecated
+
+* `twilight-http` (*default*): enable the `create_recommended` function
 
 ## Examples
 
