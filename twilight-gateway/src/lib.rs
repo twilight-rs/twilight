@@ -116,7 +116,9 @@ pub fn bucket(
     let start = bucket_id * q + r.min(bucket_id);
 
     // Compiler hint deduced from mathematical proof.
-    assert!(start + len <= shards, "");
+    if shards < start + len {
+        std::process::abort();
+    }
     (start..start + len).map(move |id| ShardId::new(id, shards))
 }
 
