@@ -332,12 +332,30 @@ bitflags! {
         /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
         const GUILD_WEBHOOKS = Self::WEBHOOKS_UPDATE.bits();
 
+        /// All [`EventTypeFlags`] not gated behind any [`Intents`].
+        const NO_INTENT_REQUIRED = Self::COMMAND_PERMISSIONS_UPDATE.bits()
+            | Self::ENTITLEMENT_CREATE.bits()
+            | Self::ENTITLEMENT_DELETE.bits()
+            | Self::ENTITLEMENT_UPDATE.bits()
+            | Self::GATEWAY_HEARTBEAT.bits()
+            | Self::GATEWAY_HEARTBEAT_ACK.bits()
+            | Self::GATEWAY_HELLO.bits()
+            | Self::GATEWAY_INVALIDATE_SESSION.bits()
+            | Self::GATEWAY_RECONNECT.bits()
+            | Self::INTERACTION_CREATE.bits()
+            | Self::MEMBER_CHUNK.bits()
+            | Self::RATE_LIMITED.bits()
+            | Self::READY.bits()
+            | Self::RESUMED.bits()
+            | Self::USER_UPDATE.bits()
+            | Self::VOICE_SERVER_UPDATE.bits();
+
     }
 }
 
 impl From<Intents> for EventTypeFlags {
     fn from(intents: Intents) -> Self {
-        let mut event_type_flags = Self::empty();
+        let mut event_type_flags = Self::NO_INTENT_REQUIRED;
 
         for (_, intent) in intents.iter_names() {
             event_type_flags |= match intent {
