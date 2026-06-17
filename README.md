@@ -1,8 +1,8 @@
-# twilight
+<p align="center">
+    <img src="assets/logo.png">
+</p>
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
-
-![project logo][logo]
 
 `twilight` is a powerful, flexible, and scalable ecosystem of Rust libraries
 for the Discord API.
