@@ -1,7 +1,7 @@
 //! Optimization for skipping deserialization of unwanted events.
 
 use bitflags::bitflags;
-use twilight_model::gateway::{OpCode, event::EventType};
+use twilight_model::gateway::{Intents, OpCode, event::EventType};
 
 bitflags! {
     /// Important optimization for narrowing requested event types.
@@ -203,12 +203,32 @@ bitflags! {
         ///
         /// [`Intents::AUTO_MODERATION_CONFIGURATION`]: crate::Intents::AUTO_MODERATION_CONFIGURATION
         const AUTO_MODERATION_CONFIGURATION = Self::AUTO_MODERATION_RULE_CREATE.bits()
-                | Self::AUTO_MODERATION_RULE_DELETE.bits()
-                | Self::AUTO_MODERATION_RULE_UPDATE.bits();
+            | Self::AUTO_MODERATION_RULE_DELETE.bits()
+            | Self::AUTO_MODERATION_RULE_UPDATE.bits();
+
         /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_EXECUTION`].
         ///
         /// [`Intents::AUTO_MODERATION_EXECUTION`]: crate::Intents::AUTO_MODERATION_EXECUTION
         const AUTO_MODERATION_EXECUTION = Self::AUTO_MODERATION_ACTION_EXECUTION.bits();
+
+        /// All [`EventTypeFlags`] not in any [`Intents`] flag.
+        const BASE = Self::COMMAND_PERMISSIONS_UPDATE.bits()
+            | Self::ENTITLEMENT_CREATE.bits()
+            | Self::ENTITLEMENT_DELETE.bits()
+            | Self::ENTITLEMENT_UPDATE.bits()
+            | Self::GATEWAY_HEARTBEAT.bits()
+            | Self::GATEWAY_HEARTBEAT_ACK.bits()
+            | Self::GATEWAY_HELLO.bits()
+            | Self::GATEWAY_INVALIDATE_SESSION.bits()
+            | Self::GATEWAY_RECONNECT.bits()
+            | Self::INTERACTION_CREATE.bits()
+            | Self::MEMBER_CHUNK.bits()
+            | Self::RATE_LIMITED.bits()
+            | Self::READY.bits()
+            | Self::RESUMED.bits()
+            | Self::USER_UPDATE.bits()
+            | Self::VOICE_SERVER_UPDATE.bits();
+
         /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
         ///
         /// [`Intents::DIRECT_MESSAGES`]: crate::Intents::DIRECT_MESSAGES
@@ -216,6 +236,7 @@ bitflags! {
             | Self::MESSAGE_DELETE.bits()
             | Self::MESSAGE_DELETE_BULK.bits()
             | Self::MESSAGE_UPDATE.bits();
+
         /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_REACTIONS`].
         ///
         /// [`Intents::DIRECT_MESSAGE_REACTIONS`]: crate::Intents::DIRECT_MESSAGE_REACTIONS
@@ -223,10 +244,12 @@ bitflags! {
             | Self::REACTION_REMOVE.bits()
             | Self::REACTION_REMOVE_ALL.bits()
             | Self::REACTION_REMOVE_EMOJI.bits();
+
         /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_TYPING`].
         ///
         /// [`Intents::DIRECT_MESSAGE_TYPING`]: crate::Intents::DIRECT_MESSAGE_TYPING
         const DIRECT_MESSAGE_TYPING = Self::TYPING_START.bits();
+
         /// All [`EventTypeFlags`] in [`Intents::GUILDS`].
         ///
         /// [`Intents::GUILDS`]: crate::Intents::GUILDS
@@ -249,10 +272,12 @@ bitflags! {
             | Self::THREAD_LIST_SYNC.bits()
             | Self::THREAD_MEMBER_UPDATE.bits()
             | Self::THREAD_MEMBERS_UPDATE.bits();
+
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MODERATION`].
         ///
         /// [`Intents::GUILD_MODERATION`]: crate::Intents::GUILD_MODERATION
         const GUILD_MODERATION = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits() | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits();
+
         /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS_AND_STICKERS`].
         ///
         /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
@@ -279,7 +304,6 @@ bitflags! {
             | Self::MEMBER_REMOVE.bits()
             | Self::MEMBER_UPDATE.bits()
             | Self::THREAD_MEMBERS_UPDATE.bits();
-
 
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGES`].
         ///
@@ -331,7 +355,44 @@ bitflags! {
         ///
         /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
         const GUILD_WEBHOOKS = Self::WEBHOOKS_UPDATE.bits();
+    }
+}
 
+impl EventTypeFlags {
+    /// Applies every intent's flags.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use twilight_gateway::{EventTypeFlags, Intents};
+    ///
+    /// let flags = EventTypeFlags::empty();
+    /// assert_eq!(flags.apply(Intents::GUILDS), EventTypeFlags::GUILDS);
+    /// ```
+    #[must_use]
+    pub fn apply(self, intents: Intents) -> Self {
+        intents.into_iter().fold(self, |acc, x| match x {
+            Intents::AUTO_MODERATION_CONFIGURATION => Self::AUTO_MODERATION_CONFIGURATION,
+            Intents::AUTO_MODERATION_EXECUTION => Self::AUTO_MODERATION_EXECUTION,
+            Intents::DIRECT_MESSAGE_POLLS | Intents::GUILD_MESSAGE_POLLS => Self::MESSAGE_POLLS,
+            Intents::DIRECT_MESSAGE_REACTIONS => Self::DIRECT_MESSAGE_REACTIONS,
+            Intents::DIRECT_MESSAGE_TYPING => Self::DIRECT_MESSAGE_TYPING,
+            Intents::DIRECT_MESSAGES => Self::DIRECT_MESSAGES,
+            Intents::GUILDS => Self::GUILDS,
+            Intents::GUILD_MODERATION => Self::GUILD_MODERATION,
+            Intents::GUILD_EMOJIS_AND_STICKERS => Self::GUILD_EMOJIS_AND_STICKERS,
+            Intents::GUILD_INTEGRATIONS => Self::GUILD_INTEGRATIONS,
+            Intents::GUILD_INVITES => Self::GUILD_INVITES,
+            Intents::GUILD_MEMBERS => Self::GUILD_MEMBERS,
+            Intents::GUILD_MESSAGE_REACTIONS => Self::GUILD_MESSAGE_REACTIONS,
+            Intents::GUILD_MESSAGE_TYPING => Self::GUILD_MESSAGE_TYPING,
+            Intents::GUILD_MESSAGES => Self::GUILD_MESSAGES,
+            Intents::GUILD_PRESENCES => Self::GUILD_PRESENCES,
+            Intents::GUILD_SCHEDULED_EVENTS => Self::GUILD_SCHEDULED_EVENTS,
+            Intents::GUILD_VOICE_STATES => Self::GUILD_VOICE_STATES,
+            Intents::GUILD_WEBHOOKS => Self::GUILD_WEBHOOKS,
+            _ => Self::empty(),
+        } | acc)
     }
 }
 
