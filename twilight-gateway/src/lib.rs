@@ -240,7 +240,7 @@ where
 #[cfg(feature = "twilight-http")]
 #[deprecated(
     since = "0.17.2",
-    note = "fetch the recommended shard count via `client.gateway().authed()` instead"
+    note = "fetch the recommended shard count via `client.gateway().authed()` instead (from `twilight_http::Client`)"
 )]
 pub async fn create_recommended<F, Q>(
     client: &Client,
