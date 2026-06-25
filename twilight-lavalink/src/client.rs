@@ -75,6 +75,12 @@ pub enum ClientErrorType {
     SendingVoiceUpdate,
 }
 
+#[derive(Debug)]
+struct DiscordSession {
+    channel_id: Option<Id<ChannelMarker>>,
+    id: Box<str>,
+}
+
 /// The lavalink client that manages nodes, players, and processes events from
 /// Discord to tie it all together.
 ///
@@ -102,7 +108,7 @@ pub struct Lavalink {
     shard_count: u32,
     user_id: Id<UserMarker>,
     server_updates: DashMap<Id<GuildMarker>, VoiceServerUpdate>,
-    discord_sessions: DashMap<Id<GuildMarker>, (Box<str>, Option<Id<ChannelMarker>>)>,
+    discord_sessions: DashMap<Id<GuildMarker>, DiscordSession>,
 }
 
 impl Lavalink {
@@ -177,10 +183,11 @@ impl Lavalink {
                         self.discord_sessions.remove(&guild_id);
                         self.server_updates.remove(&guild_id);
                     } else {
-                        self.discord_sessions.insert(
-                            guild_id,
-                            (e.session_id.clone().into_boxed_str(), e.channel_id),
-                        );
+                        let session = DiscordSession {
+                            channel_id: e.channel_id,
+                            id: e.session_id.clone().into_boxed_str(),
+                        };
+                        self.discord_sessions.insert(guild_id, session);
                     }
                     guild_id
                 } else {
@@ -199,7 +206,10 @@ impl Lavalink {
             match (server, session) {
                 (Some(server), Some(session)) => {
                     let server = server.value();
-                    let (session_id, channel_id) = session.value();
+                    let DiscordSession {
+                        channel_id,
+                        id: session_id,
+                    } = session.value();
                     tracing::debug!(
                         "got both halves for {guild_id}: {server:?}; Session ID: {session_id:?}; Channel ID: {channel_id:?}",
                     );
