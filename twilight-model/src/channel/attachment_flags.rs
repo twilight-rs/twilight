@@ -7,8 +7,16 @@ use serde::{
 bitflags! {
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct AttachmentFlags: u64 {
-        /// This attachment has been edited using the remix feature on mobile
+        /// This attachment is a Clip from a stream
+        const IS_CLIP = 1 << 0;
+        /// This attachment is the thumbnail of a thread in a media channel, displayed in the grid but not on the message
+        const IS_THUMBNAIL = 1 << 1;
+        /// This attachment has been edited using the remix feature on mobile (deprecated)
         const IS_REMIX = 1 << 2;
+        /// This attachment was marked as a spoiler and is blurred until clicked
+        const IS_SPOILER = 1 << 3;
+        /// This attachment is an animated image
+        const IS_ANIMATED = 1 << 5;
     }
 }
 
