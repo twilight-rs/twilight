@@ -22,7 +22,7 @@ struct CreateRoleFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    icon: Option<&'a [u8]>,
+    icon: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     mentionable: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -114,7 +114,7 @@ impl<'a> CreateRole<'a> {
     /// See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn icon(mut self, icon: &'a [u8]) -> Self {
+    pub const fn icon(mut self, icon: &'a str) -> Self {
         self.fields.icon = Some(icon);
 
         self
