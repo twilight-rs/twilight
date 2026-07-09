@@ -35,6 +35,11 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ReactionAdd {
             }
 
             reaction.count += 1;
+            if self.0.burst {
+                reaction.count_details.burst += 1;
+            } else {
+                reaction.count_details.normal += 1;
+            }
         } else {
             let me = cache
                 .current_user()
@@ -79,6 +84,11 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for ReactionRemove {
 
             if reaction.count > 1 {
                 reaction.count -= 1;
+                if self.0.burst {
+                    reaction.count_details.burst -= 1;
+                } else {
+                    reaction.count_details.normal -= 1;
+                }
             } else {
                 message.retain_reactions(|e| !(reactions_eq(&e.emoji, &self.0.emoji)));
             }
@@ -140,12 +150,15 @@ mod tests {
     use super::reactions_eq;
     use crate::{model::CachedMessage, test};
     use twilight_model::{
-        channel::message::{EmojiReactionType, Reaction},
+        channel::message::{EmojiReactionType, Message, MessageType, Reaction},
         gateway::{
             GatewayReaction,
-            payload::incoming::{ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
+            payload::incoming::{
+                MessageCreate, ReactionAdd, ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji,
+            },
         },
         id::Id,
+        user::User,
     };
 
     fn find_custom_react(msg: &CachedMessage) -> Option<&Reaction> {
@@ -293,5 +306,284 @@ mod tests {
         assert_eq!(world_react.unwrap().count, 1);
         assert!(smiley_react.is_none());
         assert!(custom_react.is_none());
+    }
+
+    fn make_message() -> Message {
+        Message {
+            activity: None,
+            application: None,
+            application_id: None,
+            attachments: Vec::new(),
+            author: User {
+                accent_color: None,
+                avatar: None,
+                avatar_decoration: None,
+                avatar_decoration_data: None,
+                banner: None,
+                bot: false,
+                discriminator: 1,
+                email: None,
+                flags: None,
+                global_name: None,
+                id: Id::new(1),
+                locale: None,
+                mfa_enabled: None,
+                name: "test".to_owned(),
+                premium_type: None,
+                primary_guild: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            },
+            call: None,
+            channel_id: Id::new(2),
+            components: Vec::new(),
+            content: "ping".to_owned(),
+            edited_timestamp: None,
+            embeds: Vec::new(),
+            flags: None,
+            guild_id: Some(Id::new(1)),
+            id: Id::new(3),
+            #[allow(deprecated)]
+            interaction: None,
+            interaction_metadata: None,
+            kind: MessageType::Regular,
+            member: None,
+            mention_channels: Vec::new(),
+            mention_everyone: false,
+            mention_roles: Vec::new(),
+            mentions: Vec::new(),
+            message_snapshots: Vec::new(),
+            pinned: false,
+            poll: None,
+            reactions: Vec::new(),
+            reference: None,
+            referenced_message: None,
+            role_subscription_data: None,
+            sticker_items: Vec::new(),
+            timestamp: twilight_model::util::Timestamp::from_secs(1_632_072_645).expect("non zero"),
+            thread: None,
+            tts: false,
+            webhook_id: None,
+        }
+    }
+
+    fn cache_with_message() -> crate::DefaultInMemoryCache {
+        let cache = crate::DefaultInMemoryCache::new();
+        cache.update(&MessageCreate(make_message()));
+        cache
+    }
+
+    #[test]
+    fn reaction_add_burst_count_details() {
+        let cache = cache_with_message();
+        // Seed with a normal reaction so the reaction already exists.
+        cache.update(&ReactionAdd(GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(9),
+        }));
+        // Add a burst reaction on the same emoji.
+        cache.update(&ReactionAdd(GatewayReaction {
+            burst: true,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(10),
+        }));
+
+        let msg = cache.message(Id::new(3)).unwrap();
+        let reaction = &msg.reactions[0];
+        assert_eq!(reaction.count, 2);
+        assert_eq!(reaction.count_details.burst, 1);
+        assert_eq!(reaction.count_details.normal, 1);
+    }
+
+    #[test]
+    fn reaction_add_normal_count_details() {
+        let cache = cache_with_message();
+        cache.update(&ReactionAdd(GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(10),
+        }));
+
+        let msg = cache.message(Id::new(3)).unwrap();
+        let reaction = &msg.reactions[0];
+        assert_eq!(reaction.count, 1);
+        assert_eq!(reaction.count_details.burst, 0);
+        assert_eq!(reaction.count_details.normal, 1);
+    }
+
+    #[test]
+    fn reaction_remove_burst_count_details() {
+        let cache = cache_with_message();
+        // Seed with a normal reaction so the reaction already exists.
+        cache.update(&ReactionAdd(GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(9),
+        }));
+        // Add a burst reaction on top.
+        cache.update(&ReactionAdd(GatewayReaction {
+            burst: true,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(10),
+        }));
+        // Remove the burst reaction.
+        cache.update(&ReactionRemove(GatewayReaction {
+            burst: true,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(10),
+        }));
+
+        let msg = cache.message(Id::new(3)).unwrap();
+        let reaction = &msg.reactions[0];
+        assert_eq!(reaction.count, 1);
+        assert_eq!(reaction.count_details.burst, 0);
+        assert_eq!(reaction.count_details.normal, 1);
+    }
+
+    #[test]
+    fn reaction_remove_normal_count_details() {
+        let cache = cache_with_message();
+        cache.update(&ReactionAdd(GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(10),
+        }));
+        cache.update(&ReactionAdd(GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(11),
+        }));
+        cache.update(&ReactionRemove(GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(10),
+        }));
+
+        let msg = cache.message(Id::new(3)).unwrap();
+        let reaction = &msg.reactions[0];
+        assert_eq!(reaction.count, 1);
+        assert_eq!(reaction.count_details.burst, 0);
+        assert_eq!(reaction.count_details.normal, 1);
+    }
+
+    #[test]
+    fn reaction_add_preserves_count_details_on_second_add() {
+        let cache = cache_with_message();
+        cache.update(&ReactionAdd(GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(10),
+        }));
+
+        {
+            let msg = cache.message(Id::new(3)).unwrap();
+            let reaction = &msg.reactions[0];
+            assert_eq!(reaction.count, 1);
+            assert_eq!(reaction.count_details.burst, 0);
+            assert_eq!(reaction.count_details.normal, 1);
+        }
+
+        // Second normal add on same emoji.
+        cache.update(&ReactionAdd(GatewayReaction {
+            burst: false,
+            burst_colors: Vec::new(),
+            channel_id: Id::new(2),
+            emoji: EmojiReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_author_id: None,
+            message_id: Id::new(3),
+            user_id: Id::new(11),
+        }));
+
+        let msg = cache.message(Id::new(3)).unwrap();
+        let reaction = &msg.reactions[0];
+        assert_eq!(reaction.count, 2);
+        assert_eq!(reaction.count_details.normal, 2);
+        assert_eq!(reaction.count_details.burst, 0);
     }
 }
