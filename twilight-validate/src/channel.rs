@@ -212,10 +212,10 @@ pub const fn is_thread(kind: ChannelType) -> Result<(), ChannelValidationError> 
 ///
 /// # Errors
 ///
-/// Returns an error of type [`TopicInvalid`] if the
-/// topic is invalid.
+/// Returns an error of type [`ForumTopicInvalid`] if the
+/// forum topic is invalid.
 ///
-/// [`TopicInvalid`]: ChannelValidationErrorType::TopicInvalid
+/// [`ForumTopicInvalid`]: ChannelValidationErrorType::ForumTopicInvalid
 pub fn forum_topic(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
     let count = value.as_ref().chars().count();
 
@@ -223,7 +223,7 @@ pub fn forum_topic(value: impl AsRef<str>) -> Result<(), ChannelValidationError>
         Ok(())
     } else {
         Err(ChannelValidationError {
-            kind: ChannelValidationErrorType::TopicInvalid,
+            kind: ChannelValidationErrorType::ForumTopicInvalid,
         })
     }
 }
@@ -409,6 +409,18 @@ mod tests {
         assert!(topic("a".repeat(1_024)).is_ok());
 
         assert!(topic("a".repeat(1_025)).is_err());
+    }
+
+    #[test]
+    fn forum_topic_length() {
+        assert!(forum_topic("").is_ok());
+        assert!(forum_topic("a").is_ok());
+        assert!(forum_topic("a".repeat(4_096)).is_ok());
+
+        assert!(matches!(
+            forum_topic("a".repeat(4_097)).unwrap_err().kind(),
+            ChannelValidationErrorType::ForumTopicInvalid
+        ));
     }
 
     #[test]
