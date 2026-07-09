@@ -14,7 +14,7 @@ pub mod sticker;
 pub mod thread;
 pub mod voice_state;
 
-use std::{borrow::Cow, collections::HashSet};
+use std::borrow::Cow;
 
 use crate::{CacheableModels, InMemoryCache, UpdateCache, config::ResourceType};
 use twilight_model::{
@@ -50,9 +50,7 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         self.users.insert(user_id, CacheModels::User::from(user));
 
         if let Some(guild_id) = guild_id {
-            let mut guild_id_set = HashSet::new();
-            guild_id_set.insert(guild_id);
-            self.user_guilds.insert(user_id, guild_id_set);
+            self.user_guilds.entry(user_id).or_default().insert(guild_id);
         }
     }
 
