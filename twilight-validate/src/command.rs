@@ -520,24 +520,25 @@ pub fn chat_input_name(value: impl AsRef<str>) -> Result<(), CommandValidationEr
 ///
 /// # Errors
 ///
-/// Returns an error of type [`NameLengthInvalid`] if the length is invalid.
+/// Returns an error of type [`OptionNameLengthInvalid`] if the length is
+/// invalid.
 ///
-/// Returns an error of type [`NameCharacterInvalid`] if the name contains a
-/// non-alphanumeric character or an uppercase character for which a lowercase
+/// Returns an error of type [`OptionNameCharacterInvalid`] if the name contains
+/// a non-alphanumeric character or an uppercase character for which a lowercase
 /// variant exists.
 ///
-/// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
-/// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
+/// [`OptionNameLengthInvalid`]: CommandValidationErrorType::OptionNameLengthInvalid
+/// [`OptionNameCharacterInvalid`]: CommandValidationErrorType::OptionNameCharacterInvalid
 pub fn option_name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     let len = value.as_ref().chars().count();
 
     if !(OPTION_NAME_LENGTH_MIN..=OPTION_NAME_LENGTH_MAX).contains(&len) {
         return Err(CommandValidationError {
-            kind: CommandValidationErrorType::NameLengthInvalid,
+            kind: CommandValidationErrorType::OptionNameLengthInvalid,
         });
     }
 
-    self::name_characters(value)?;
+    self::option_name_characters(value)?;
 
     Ok(())
 }
@@ -569,6 +570,38 @@ fn name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError>
         if char.to_lowercase().next() != Some(char) {
             return Err(CommandValidationError {
                 kind: CommandValidationErrorType::NameCharacterInvalid { character: char },
+            });
+        }
+    }
+
+    Ok(())
+}
+
+/// Validate the characters of a [`CommandOption`] name.
+///
+/// The name can only contain alphanumeric characters and lowercase variants
+/// must be used where possible. Special characters `-` and `_` are allowed.
+///
+/// # Errors
+///
+/// Returns an error of type [`OptionNameCharacterInvalid`] if the name contains
+/// a non-alphanumeric character or an uppercase character for which a lowercase
+/// variant exists.
+///
+/// [`OptionNameCharacterInvalid`]: CommandValidationErrorType::OptionNameCharacterInvalid
+fn option_name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
+    let chars = value.as_ref().chars();
+
+    for char in chars {
+        if !char.is_alphanumeric() && char != '_' && char != '-' {
+            return Err(CommandValidationError {
+                kind: CommandValidationErrorType::OptionNameCharacterInvalid { character: char },
+            });
+        }
+
+        if char.to_lowercase().next() != Some(char) {
+            return Err(CommandValidationError {
+                kind: CommandValidationErrorType::OptionNameCharacterInvalid { character: char },
             });
         }
     }
@@ -1083,5 +1116,46 @@ mod tests {
         assert!(option(&tooshort).is_err());
         assert!(option(&maxlen).is_ok());
         assert!(option(&minlen).is_ok());
+    }
+
+    /// Test that option_name validates length with the correct error variant.
+    #[test]
+    fn option_name_length() {
+        // Valid lengths.
+        assert!(option_name("a").is_ok());
+        assert!(option_name("a".repeat(32)).is_ok());
+
+        // Too short.
+        assert!(matches!(
+            option_name("").unwrap_err().kind(),
+            CommandValidationErrorType::OptionNameLengthInvalid,
+        ));
+
+        // Too long.
+        assert!(matches!(
+            option_name("a".repeat(33)).unwrap_err().kind(),
+            CommandValidationErrorType::OptionNameLengthInvalid,
+        ));
+    }
+
+    /// Test that option_name validates characters with the correct error variant.
+    #[test]
+    fn option_name_allowed_characters() {
+        // Valid characters.
+        assert!(option_name("hello-command").is_ok());
+        assert!(option_name("hello_command").is_ok());
+        assert!(option_name("hello123").is_ok());
+
+        // Uppercase rejected.
+        assert!(matches!(
+            option_name("Hello").unwrap_err().kind(),
+            CommandValidationErrorType::OptionNameCharacterInvalid { character: 'H' },
+        ));
+
+        // Non-alphanumeric rejected.
+        assert!(matches!(
+            option_name("hello!").unwrap_err().kind(),
+            CommandValidationErrorType::OptionNameCharacterInvalid { character: '!' },
+        ));
     }
 }
