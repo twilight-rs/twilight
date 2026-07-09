@@ -80,6 +80,7 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn delete_guild(&self, id: Id<GuildMarker>, unavailable: bool) {
         fn remove_ids<T: Eq + Hash, U>(
             guild_map: &DashMap<Id<GuildMarker>, HashSet<T>>,
@@ -93,50 +94,113 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
             }
         }
 
+        let Self {
+            config: _,
+            channels,
+            channel_messages: _,
+            current_user: _,
+            emojis,
+            guilds,
+            guild_channels,
+            guild_emojis,
+            guild_integrations,
+            guild_members,
+            guild_presences,
+            guild_roles,
+            guild_scheduled_events,
+            guild_stage_instances,
+            guild_stickers,
+            integrations,
+            members,
+            messages: _,
+            presences,
+            roles,
+            scheduled_events,
+            stage_instances,
+            stickers,
+            unavailable_guilds: _,
+            users: _,
+            user_guilds,
+            voice_state_channels,
+            voice_state_guilds,
+            voice_states,
+        } = self;
+
         if self.wants(ResourceType::GUILD) {
             if unavailable {
-                if let Some(mut guild) = self.guilds.get_mut(&id) {
+                if let Some(mut guild) = guilds.get_mut(&id) {
                     guild.set_unavailable(Some(true));
                 }
             } else {
-                self.guilds.remove(&id);
+                guilds.remove(&id);
             }
         }
 
         if self.wants(ResourceType::CHANNEL) {
-            remove_ids(&self.guild_channels, &self.channels, id);
+            remove_ids(guild_channels, channels, id);
         }
 
         if self.wants(ResourceType::EMOJI) {
-            remove_ids(&self.guild_emojis, &self.emojis, id);
+            remove_ids(guild_emojis, emojis, id);
         }
 
         if self.wants(ResourceType::ROLE) {
-            remove_ids(&self.guild_roles, &self.roles, id);
+            remove_ids(guild_roles, roles, id);
         }
 
         if self.wants(ResourceType::STICKER) {
-            remove_ids(&self.guild_stickers, &self.stickers, id);
+            remove_ids(guild_stickers, stickers, id);
+        }
+
+        if self.wants(ResourceType::GUILD_SCHEDULED_EVENT) {
+            remove_ids(guild_scheduled_events, scheduled_events, id);
+        }
+
+        if self.wants(ResourceType::STAGE_INSTANCE) {
+            remove_ids(guild_stage_instances, stage_instances, id);
+        }
+
+        if self.wants(ResourceType::INTEGRATION)
+            && let Some((_, ids)) = guild_integrations.remove(&id)
+        {
+            for integration_id in ids {
+                integrations.remove(&(id, integration_id));
+            }
         }
 
         if self.wants(ResourceType::VOICE_STATE) {
-            // Clear out a guilds voice states when a guild leaves
-            self.voice_state_guilds.remove(&id);
+            if let Some((_, user_ids)) = voice_state_guilds.remove(&id) {
+                for user_id in user_ids {
+                    voice_states.remove(&(id, user_id));
+                }
+            }
+
+            voice_state_channels.retain(|_, user_ids| {
+                user_ids.retain(|(guild_id, _)| *guild_id != id);
+                !user_ids.is_empty()
+            });
         }
 
         if self.wants(ResourceType::MEMBER)
-            && let Some((_, ids)) = self.guild_members.remove(&id)
+            && let Some((_, ids)) = guild_members.remove(&id)
         {
-            for user_id in ids {
-                self.members.remove(&(id, user_id));
+            for user_id in &ids {
+                members.remove(&(id, *user_id));
+                if let Some(mut entry) = user_guilds.get_mut(user_id) {
+                    entry.remove(&id);
+                    if entry.is_empty() {
+                        drop(entry);
+                        user_guilds.remove(user_id);
+                    }
+                }
             }
         }
 
         if self.wants(ResourceType::PRESENCE)
-            && let Some((_, ids)) = self.guild_presences.remove(&id)
+            && let Some((_, ids)) = guild_presences.remove(&id)
         {
             for user_id in ids {
-                self.presences.remove(&(id, user_id));
+                presences.remove(&(id, user_id));
             }
         }
     }
