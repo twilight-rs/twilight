@@ -80,7 +80,7 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for VoiceStateUpdate
 
         cache.cache_voice_state(self.0.clone());
 
-        if let (Some(guild_id), Some(member)) = (self.0.guild_id, &self.0.member) {
+        if cache.wants(ResourceType::MEMBER) && let (Some(guild_id), Some(member)) = (self.0.guild_id, &self.0.member) {
             cache.cache_member(guild_id, member.clone());
         }
     }
@@ -275,6 +275,70 @@ mod tests {
                 Timestamp::from_str("2021-04-21T22:16:50+00:00").expect("proper datetime"),
             ),
         }));
+    }
+
+    /// Test that a VoiceStateUpdate containing a member does not cache the
+    /// member when the VOICE_STATE resource type is enabled but the MEMBER
+    /// resource type is not.
+    #[test]
+    fn voice_state_update_with_member_no_member_resource() {
+        let cache = DefaultInMemoryCache::builder()
+            .resource_types(ResourceType::VOICE_STATE)
+            .build();
+
+        let user = User {
+            accent_color: None,
+            avatar: None,
+            avatar_decoration: None,
+            avatar_decoration_data: None,
+            banner: None,
+            bot: false,
+            discriminator: 1,
+            email: None,
+            flags: None,
+            global_name: Some("test".to_owned()),
+            id: Id::new(1),
+            locale: None,
+            mfa_enabled: None,
+            name: "test".to_owned(),
+            premium_type: None,
+            primary_guild: None,
+            public_flags: None,
+            system: None,
+            verified: None,
+        };
+
+        cache.update(&VoiceStateUpdate(VoiceState {
+            channel_id: Some(Id::new(2)),
+            deaf: false,
+            guild_id: Some(Id::new(3)),
+            member: Some(Member {
+                avatar: None,
+                avatar_decoration_data: None,
+                banner: None,
+                communication_disabled_until: None,
+                deaf: false,
+                flags: MemberFlags::empty(),
+                joined_at: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),
+                mute: false,
+                nick: None,
+                pending: false,
+                premium_since: None,
+                roles: Vec::new(),
+                user,
+            }),
+            mute: false,
+            self_deaf: false,
+            self_mute: false,
+            self_stream: false,
+            self_video: false,
+            session_id: "abc123".to_string(),
+            suppress: false,
+            user_id: Id::new(1),
+            request_to_speak_timestamp: None,
+        }));
+
+        assert!(cache.members.is_empty());
     }
 
     #[test]
