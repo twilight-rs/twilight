@@ -287,33 +287,69 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     /// This is equal to creating a new empty cache.
     #[allow(clippy::missing_panics_doc)]
     pub fn clear(&self) {
-        self.channels.clear();
-        self.channel_messages.clear();
-        self.current_user
+        let Self {
+            config: _,
+            channels,
+            channel_messages,
+            current_user,
+            emojis,
+            guilds,
+            guild_channels,
+            guild_emojis,
+            guild_integrations,
+            guild_members,
+            guild_presences,
+            guild_roles,
+            guild_scheduled_events,
+            guild_stage_instances,
+            guild_stickers,
+            integrations,
+            members,
+            messages,
+            presences,
+            roles,
+            scheduled_events,
+            stage_instances,
+            stickers,
+            unavailable_guilds,
+            users,
+            user_guilds,
+            voice_state_channels,
+            voice_state_guilds,
+            voice_states,
+        } = self;
+
+        channels.clear();
+        channel_messages.clear();
+        current_user
             .lock()
             .expect("current user poisoned")
             .take();
-        self.emojis.clear();
-        self.guilds.clear();
-        self.guild_channels.clear();
-        self.guild_emojis.clear();
-        self.guild_integrations.clear();
-        self.guild_members.clear();
-        self.guild_presences.clear();
-        self.guild_roles.clear();
-        self.guild_stage_instances.clear();
-        self.guild_stickers.clear();
-        self.integrations.clear();
-        self.members.clear();
-        self.messages.clear();
-        self.presences.clear();
-        self.roles.clear();
-        self.stickers.clear();
-        self.unavailable_guilds.clear();
-        self.users.clear();
-        self.voice_state_channels.clear();
-        self.voice_state_guilds.clear();
-        self.voice_states.clear();
+        emojis.clear();
+        guilds.clear();
+        guild_channels.clear();
+        guild_emojis.clear();
+        guild_integrations.clear();
+        guild_members.clear();
+        guild_presences.clear();
+        guild_roles.clear();
+        guild_scheduled_events.clear();
+        guild_stage_instances.clear();
+        guild_stickers.clear();
+        integrations.clear();
+        members.clear();
+        messages.clear();
+        presences.clear();
+        roles.clear();
+        scheduled_events.clear();
+        stage_instances.clear();
+        stickers.clear();
+        unavailable_guilds.clear();
+        users.clear();
+        user_guilds.clear();
+        voice_state_channels.clear();
+        voice_state_guilds.clear();
+        voice_states.clear();
     }
 
     /// Returns a copy of the config cache.
