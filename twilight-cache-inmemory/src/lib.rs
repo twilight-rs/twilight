@@ -758,7 +758,7 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
         Some(VoiceChannelStates {
             index: 0,
-            user_ids,
+            user_ids: user_ids.iter().map(|&(guild, user)| (guild, user)).collect(),
             voice_states: &self.voice_states,
         })
     }
@@ -943,8 +943,7 @@ pub trait UpdateCache<CacheModels: CacheableModels>: private::Sealed {
 /// Iterator over a voice channel's list of voice states.
 pub struct VoiceChannelStates<'a, CachedVoiceState> {
     index: usize,
-    #[allow(clippy::type_complexity)]
-    user_ids: Ref<'a, Id<ChannelMarker>, HashSet<(Id<GuildMarker>, Id<UserMarker>)>>,
+    user_ids: Vec<(Id<GuildMarker>, Id<UserMarker>)>,
     voice_states: &'a DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>,
 }
 
@@ -952,15 +951,14 @@ impl<'a, CachedVoiceState> Iterator for VoiceChannelStates<'a, CachedVoiceState>
     type Item = Reference<'a, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some((guild_id, user_id)) = self.user_ids.iter().nth(self.index) {
-            if let Some(voice_state) = self.voice_states.get(&(*guild_id, *user_id)) {
-                self.index += 1;
+        loop {
+            let (guild_id, user_id) = self.user_ids.get(self.index)?;
+            self.index += 1;
 
+            if let Some(voice_state) = self.voice_states.get(&(*guild_id, *user_id)) {
                 return Some(Reference::new(voice_state));
             }
         }
-
-        None
     }
 }
 
