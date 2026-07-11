@@ -2,7 +2,10 @@
 use serde::{Deserialize, Serialize};
 use twilight_model::{
     gateway::payload::incoming::VoiceServerUpdate,
-    id::{Id, marker::GuildMarker},
+    id::{
+        Id,
+        marker::{ChannelMarker, GuildMarker},
+    },
 };
 
 /// The track on the player. The encoded and identifier are mutually exclusive.
@@ -385,6 +388,9 @@ impl From<Id<GuildMarker>> for Stop {
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub struct Voice {
+    /// The Discord voice channel id the bot is connecting to.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel_id: Option<Id<ChannelMarker>>,
     /// The Discord voice endpoint to connect to.
     pub endpoint: String,
     /// The Discord voice session id to authenticate with. This is separate from the session id of lavalink.
@@ -410,17 +416,33 @@ impl VoiceUpdate {
     pub fn new(
         guild_id: Id<GuildMarker>,
         session_id: impl Into<String>,
+        channel_id: Option<Id<ChannelMarker>>,
         event: VoiceServerUpdate,
     ) -> Self {
-        Self::from((guild_id, session_id, event))
+        Self::from((guild_id, session_id, channel_id, event))
     }
 }
 
-impl<T: Into<String>> From<(Id<GuildMarker>, T, VoiceServerUpdate)> for VoiceUpdate {
-    fn from((guild_id, session_id, event): (Id<GuildMarker>, T, VoiceServerUpdate)) -> Self {
+impl<T: Into<String>>
+    From<(
+        Id<GuildMarker>,
+        T,
+        Option<Id<ChannelMarker>>,
+        VoiceServerUpdate,
+    )> for VoiceUpdate
+{
+    fn from(
+        (guild_id, session_id, channel_id, event): (
+            Id<GuildMarker>,
+            T,
+            Option<Id<ChannelMarker>>,
+            VoiceServerUpdate,
+        ),
+    ) -> Self {
         Self {
             guild_id,
             voice: Voice {
+                channel_id,
                 token: event.token,
                 endpoint: event.endpoint.unwrap_or("NO_ENDPOINT_RETURNED".to_string()),
                 session_id: session_id.into(),

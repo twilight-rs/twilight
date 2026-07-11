@@ -118,8 +118,13 @@ Twilight provides a [template] to help you get started quickly.
 
 ## License
 
-All first-party crates are licensed under [ISC][LICENSE.md]
+All first-party crates are licensed under [ISC][LICENSE.md].
 
+The twilight logo was created by [Fezhoof] and is licensed under the terms of
+[CC BY-SA 4.0].
+
+[CC BY-SA 4.0]: https://creativecommons.org/licenses/by-sa/4.0/
+[Fezhoof]: https://linktr.ee/fezhoof
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [Lavalink]: https://github.com/freyacodes/Lavalink
 [`http`]: https://crates.io/crates/http

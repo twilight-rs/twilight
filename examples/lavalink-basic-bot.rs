@@ -92,7 +92,7 @@ async fn main() -> anyhow::Result<()> {
     let user = http.current_user().await?.model().await?;
     let hyper = HyperClient::builder(TokioExecutor::new()).build_http();
     let lavalink = Lavalink::new(user.id, 1);
-    lavalink.add(lavalink_host, lavalink_auth).await?;
+    lavalink.add(lavalink_host, lavalink_auth, None).await?;
     let standby = Standby::new();
     context::initialize(http, hyper, lavalink, standby);
 

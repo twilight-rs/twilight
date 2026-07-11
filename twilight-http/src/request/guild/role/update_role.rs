@@ -8,7 +8,7 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    guild::{Permissions, Role},
+    guild::{Permissions, Role, RoleColors},
     id::{
         Id,
         marker::{GuildMarker, RoleMarker},
@@ -20,6 +20,8 @@ use twilight_validate::request::{ValidationError, audit_reason as validate_audit
 struct UpdateRoleFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     color: Option<Nullable<u32>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    colors: Option<Nullable<RoleColors>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -53,6 +55,7 @@ impl<'a> UpdateRole<'a> {
         Self {
             fields: UpdateRoleFields {
                 color: None,
+                colors: None,
                 hoist: None,
                 icon: None,
                 mentionable: None,
@@ -76,6 +79,13 @@ impl<'a> UpdateRole<'a> {
     /// [`COLOR_MAXIMUM`]: twilight_validate::embed::COLOR_MAXIMUM
     pub const fn color(mut self, color: Option<u32>) -> Self {
         self.fields.color = Some(Nullable(color));
+
+        self
+    }
+
+    /// Set the role colours.
+    pub const fn colors(mut self, colors: Option<RoleColors>) -> Self {
+        self.fields.colors = Some(Nullable(colors));
 
         self
     }
