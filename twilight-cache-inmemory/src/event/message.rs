@@ -22,7 +22,10 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MessageCreate {
             return;
         }
 
-        let mut channel_messages = cache.channel_messages.entry(self.0.channel_id).or_default();
+        let mut channel_messages = cache
+            .channel_messages
+            .entry(self.message.channel_id)
+            .or_default();
 
         // If the channel has more messages than the cache size the user has
         // requested then we pop a message ID out. Once we have the popped ID we
@@ -34,10 +37,11 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for MessageCreate {
             cache.messages.remove(&popped_id);
         }
 
-        channel_messages.push_front(self.0.id);
-        cache
-            .messages
-            .insert(self.0.id, CacheModels::Message::from(self.0.clone()));
+        channel_messages.push_front(self.message.id);
+        cache.messages.insert(
+            self.message.id,
+            CacheModels::Message::from(self.message.clone()),
+        );
     }
 }
 
@@ -135,6 +139,7 @@ mod tests {
     };
 
     #[allow(deprecated)]
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn message_create() -> Result<(), ImageHashParseError> {
         let joined_at = Some(Timestamp::from_secs(1_632_072_645).expect("non zero"));
@@ -216,9 +221,15 @@ mod tests {
             webhook_id: None,
         };
 
-        cache.update(&MessageCreate(msg.clone()));
+        cache.update(&MessageCreate {
+            channel_type: None,
+            message: msg.clone(),
+        });
         msg.id = Id::new(5);
-        cache.update(&MessageCreate(msg));
+        cache.update(&MessageCreate {
+            channel_type: None,
+            message: msg,
+        });
 
         {
             let entry = cache.user_guilds(Id::new(3)).unwrap();
