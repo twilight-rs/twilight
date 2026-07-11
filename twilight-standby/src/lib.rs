@@ -184,7 +184,7 @@ impl Standby {
             Event::MessageCreate(e) => {
                 completions.add_with(&Self::process_specific_event(
                     &self.messages,
-                    e.0.channel_id,
+                    e.message.channel_id,
                     e,
                 ));
             }
@@ -1448,7 +1448,10 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_message() {
         let message = message();
-        let event = Event::MessageCreate(Box::new(MessageCreate(message)));
+        let event = Event::MessageCreate(Box::new(MessageCreate {
+            message,
+            channel_type: None,
+        }));
 
         let standby = Standby::new();
         let wait = standby.wait_for_message(Id::new(1), |message: &MessageCreate| {
@@ -1466,14 +1469,23 @@ mod tests {
     async fn test_wait_for_message_stream() {
         let standby = Standby::new();
         let mut stream = standby.wait_for_message_stream(Id::new(1), |_: &MessageCreate| true);
-        standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
-        standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
+        standby.process(&Event::MessageCreate(Box::new(MessageCreate {
+            message: message(),
+            channel_type: None,
+        })));
+        standby.process(&Event::MessageCreate(Box::new(MessageCreate {
+            message: message(),
+            channel_type: None,
+        })));
 
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
         assert_eq!(1, standby.messages.len());
-        standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
+        standby.process(&Event::MessageCreate(Box::new(MessageCreate {
+            message: message(),
+            channel_type: None,
+        })));
         assert!(standby.messages.is_empty());
     }
 
@@ -1576,7 +1588,10 @@ mod tests {
 
         // generic event handler gets message creates
         let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::MessageCreate);
-        standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
+        standby.process(&Event::MessageCreate(Box::new(MessageCreate {
+            message: message(),
+            channel_type: None,
+        })));
         assert!(matches!(wait.await, Ok(Event::MessageCreate(_))));
 
         // generic event handler gets reaction adds
