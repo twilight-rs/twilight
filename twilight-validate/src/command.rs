@@ -1118,7 +1118,7 @@ mod tests {
         assert!(option(&minlen).is_ok());
     }
 
-    /// Test that option_name validates length with the correct error variant.
+    /// Test that `option_name` validates length with the correct error variant.
     #[test]
     fn option_name_length() {
         // Valid lengths.
