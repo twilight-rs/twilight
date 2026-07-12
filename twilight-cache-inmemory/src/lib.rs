@@ -758,7 +758,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
         Some(VoiceChannelStates {
             index: 0,
-            user_ids: user_ids.iter().map(|&(guild, user)| (guild, user)).collect(),
+            user_ids: user_ids
+                .iter()
+                .map(|&(guild, user)| (guild, user))
+                .collect(),
             voice_states: &self.voice_states,
         })
     }
