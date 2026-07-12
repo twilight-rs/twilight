@@ -50,7 +50,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
         self.users.insert(user_id, CacheModels::User::from(user));
 
         if let Some(guild_id) = guild_id {
-            self.user_guilds.entry(user_id).or_default().insert(guild_id);
+            self.user_guilds
+                .entry(user_id)
+                .or_default()
+                .insert(guild_id);
         }
     }
 
