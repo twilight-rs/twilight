@@ -80,7 +80,9 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for VoiceStateUpdate
 
         cache.cache_voice_state(self.0.clone());
 
-        if cache.wants(ResourceType::MEMBER) && let (Some(guild_id), Some(member)) = (self.0.guild_id, &self.0.member) {
+        if cache.wants(ResourceType::MEMBER)
+            && let (Some(guild_id), Some(member)) = (self.0.guild_id, &self.0.member)
+        {
             cache.cache_member(guild_id, member.clone());
         }
     }
@@ -277,8 +279,8 @@ mod tests {
         }));
     }
 
-    /// Test that a VoiceStateUpdate containing a member does not cache the
-    /// member when the VOICE_STATE resource type is enabled but the MEMBER
+    /// Test that a `VoiceStateUpdate` containing a member does not cache the
+    /// member when the `VOICE_STATE` resource type is enabled but the `MEMBER`
     /// resource type is not.
     #[test]
     fn voice_state_update_with_member_no_member_resource() {
