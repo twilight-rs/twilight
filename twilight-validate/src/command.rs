@@ -1138,7 +1138,8 @@ mod tests {
         ));
     }
 
-    /// Test that option_name validates characters with the correct error variant.
+    /// Test that `option_name` validates characters with the correct error
+    /// variant.
     #[test]
     fn option_name_allowed_characters() {
         // Valid characters.
