@@ -222,7 +222,7 @@ mod tests {
             serde_test::assert_tokens(kind, &[Token::U16(*num)]);
             assert_eq!(*kind, CloseCode::try_from(*num).unwrap());
             assert_eq!(*num, *kind as u16);
-            assert!(kind.can_reconnect() == *can_reconnect)
+            assert_eq!(kind.can_reconnect(), *can_reconnect)
         }
     }
 

@@ -221,7 +221,7 @@ impl Event {
             Event::MemberChunk(e) => Some(e.guild_id),
             Event::MemberRemove(e) => Some(e.guild_id),
             Event::MemberUpdate(e) => Some(e.guild_id),
-            Event::MessageCreate(e) => e.0.guild_id,
+            Event::MessageCreate(e) => e.message.guild_id,
             Event::MessageDelete(e) => e.guild_id,
             Event::MessageDeleteBulk(e) => e.guild_id,
             Event::MessageUpdate(e) => e.0.guild_id,

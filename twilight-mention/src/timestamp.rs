@@ -348,7 +348,7 @@ mod tests {
         // Assert that two timestamps with the same unix timestamp are equal.
         //
         // We make a new timestamp here to around Clippy's `eq_op` lint.
-        assert!(Timestamp::new(2, None).cmp(&TIMESTAMP_NEW) == Ordering::Equal);
+        assert_eq!(Timestamp::new(2, None).cmp(&TIMESTAMP_NEW), Ordering::Equal);
 
         // Assert that a lower timestamp is less than than a greater timestamp.
         assert!(TIMESTAMP_OLD < TIMESTAMP_NEW);
@@ -367,10 +367,10 @@ mod tests {
         // regardless of style combinations.
         //
         // We make new timestamps here to around Clippy's `eq_op` lint.
-        assert!(TIMESTAMP_NEW_STYLED.cmp(&TIMESTAMP_NEW) == Ordering::Equal);
-        assert!(
-            Timestamp::new(2, Some(TimestampStyle::RelativeTime)).cmp(&TIMESTAMP_NEW_STYLED)
-                == Ordering::Equal
+        assert_eq!(TIMESTAMP_NEW_STYLED.cmp(&TIMESTAMP_NEW), Ordering::Equal);
+        assert_eq!(
+            Timestamp::new(2, Some(TimestampStyle::RelativeTime)).cmp(&TIMESTAMP_NEW_STYLED),
+            Ordering::Equal
         );
 
         // Assert that a lower timestamp is less than than a greater timestamp

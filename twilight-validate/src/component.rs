@@ -1120,7 +1120,7 @@ const fn component_action_row_components(
 ) -> Result<(), ComponentValidationError> {
     let count = components.len();
 
-    if count > COMPONENT_COUNT {
+    if count > ACTION_ROW_COMPONENT_COUNT {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::ActionRowComponentCount { count },
         });
@@ -1408,7 +1408,7 @@ fn component_select_placeholder(
 /// [`TextInput::label`]: twilight_model::application::component::text_input::TextInput::label
 /// [`TextInputLabelLength`]: ComponentValidationErrorType::TextInputLabelLength
 fn component_text_input_label(label: impl AsRef<str>) -> Result<(), ComponentValidationError> {
-    let len = label.as_ref().len();
+    let len = label.as_ref().chars().count();
 
     if (TEXT_INPUT_LABEL_MIN..=TEXT_INPUT_LABEL_MAX).contains(&len) {
         Ok(())
@@ -1770,13 +1770,23 @@ mod tests {
         assert!(component_select_placeholder("a".repeat(151)).is_err());
     }
 
+    /// Test that text input labels are counted using codepoints and not by byte
+    /// count.
     #[test]
     fn component_text_input_label_length() {
-        assert!(component_text_input_label("a").is_ok());
-        assert!(component_text_input_label("a".repeat(45)).is_ok());
+        // 45 characters or 180 bytes
+        let label = "🪄".repeat(45);
+        assert_eq!(label.chars().count(), 45);
+        assert_eq!(label.len(), 180);
+        assert!(component_text_input_label(label).is_ok());
 
-        assert!(component_text_input_label("").is_err());
-        assert!(component_text_input_label("a".repeat(46)).is_err());
+        // 46 characters should fail.
+        let label = "🪄".repeat(46);
+        let err = component_text_input_label(label).unwrap_err();
+        assert!(matches!(
+            err.kind(),
+            ComponentValidationErrorType::TextInputLabelLength { len } if *len == 46
+        ));
     }
 
     #[test]
