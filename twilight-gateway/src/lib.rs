@@ -100,6 +100,7 @@ pub const API_VERSION: u8 = 10;
 ///
 /// Panics if the bucket id is greater than or equal to the total number of
 /// buckets.
+#[inline]
 #[track_caller]
 pub fn bucket(
     bucket_id: u16,
