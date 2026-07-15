@@ -243,20 +243,10 @@ impl<T> Debug for Id<T> {
 
 impl<'de, T> Deserialize<'de> for Id<T> {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        struct IdVisitor<T> {
-            phantom: PhantomData<T>,
-        }
+        struct IdVisitor;
 
-        impl<T> IdVisitor<T> {
-            const fn new() -> Self {
-                Self {
-                    phantom: PhantomData,
-                }
-            }
-        }
-
-        impl<'de, T> Visitor<'de> for IdVisitor<T> {
-            type Value = Id<T>;
+        impl<'de> Visitor<'de> for IdVisitor {
+            type Value = NonZero<u64>;
 
             fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
                 f.write_str("a discord snowflake")
@@ -267,7 +257,7 @@ impl<'de, T> Deserialize<'de> for Id<T> {
                     DeError::invalid_value(Unexpected::Unsigned(value), &"non zero u64")
                 })?;
 
-                Ok(Id::from(value))
+                Ok(value)
             }
 
             fn visit_i64<E: DeError>(self, value: i64) -> Result<Self::Value, E> {
@@ -282,7 +272,7 @@ impl<'de, T> Deserialize<'de> for Id<T> {
                 self,
                 deserializer: D,
             ) -> Result<Self::Value, D::Error> {
-                deserializer.deserialize_any(IdVisitor::new())
+                deserializer.deserialize_any(IdVisitor)
             }
 
             fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
@@ -296,7 +286,7 @@ impl<'de, T> Deserialize<'de> for Id<T> {
             }
         }
 
-        deserializer.deserialize_any(IdVisitor::new())
+        Ok(deserializer.deserialize_any(IdVisitor)?.into())
     }
 }
 
