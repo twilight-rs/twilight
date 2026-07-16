@@ -49,6 +49,7 @@ pub use twilight_gateway_queue as queue;
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
 
+#[allow(deprecated)]
 #[cfg(feature = "twilight-http")]
 use self::error::{StartRecommendedError, StartRecommendedErrorType};
 #[cfg(feature = "twilight-http")]
@@ -130,7 +131,10 @@ pub fn bucket(
 /// Panics if `bucket_id >= total`, `bucket_id >= concurrency`, or `concurrency >= total`.
 ///
 /// Panics if loading TLS certificates fails.
-#[deprecated = "creates non-consecutive shards; use `bucket` instead"]
+#[deprecated(
+    since = "0.17.2",
+    note = "creates non-consecutive shards; use `bucket` instead"
+)]
 #[track_caller]
 pub fn create_bucket<F, Q>(
     bucket_id: u16,
@@ -192,7 +196,7 @@ where
 /// Panics if `range` contains values larger than `total`.
 ///
 /// Panics if loading TLS certificates fails.
-#[deprecated = "use `bucket` instead"]
+#[deprecated(since = "0.17.2", note = "use `bucket` instead")]
 #[track_caller]
 pub fn create_iterator<F, Q>(
     numbers: impl ExactSizeIterator<Item = u32>,
@@ -232,7 +236,12 @@ where
 /// Panics if loading TLS certificates fails.
 ///
 /// [`GetGatewayAuthed`]: twilight_http::request::GetGatewayAuthed
+#[allow(deprecated)]
 #[cfg(feature = "twilight-http")]
+#[deprecated(
+    since = "0.17.2",
+    note = "fetch the recommended shard count via `client.gateway().authed()` instead (from `twilight_http::Client`)"
+)]
 pub async fn create_recommended<F, Q>(
     client: &Client,
     config: Config<Q>,
