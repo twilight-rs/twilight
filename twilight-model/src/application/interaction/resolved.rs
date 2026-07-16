@@ -61,6 +61,9 @@ pub struct InteractionChannel {
     pub parent_id: Option<Id<ChannelMarker>>,
     /// Computed permissions, including overwrites, for the invoking user in the channel.
     pub permissions: Permissions,
+    /// Computed permissions, including overwrites, for the bot in the channel.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app_permissions: Option<Permissions>,
     /// Metadata about a thread.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread_metadata: Option<ThreadMetadata>,
@@ -160,6 +163,7 @@ mod tests {
                     name: "channel name".into(),
                     parent_id: None,
                     permissions: Permissions::empty(),
+                    app_permissions: None,
                     thread_metadata: None,
                 },
             )])

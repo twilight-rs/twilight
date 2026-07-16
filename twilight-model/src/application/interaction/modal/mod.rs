@@ -824,6 +824,7 @@ mod tests {
                         name: "the-channel-name".to_owned(),
                         parent_id: None,
                         permissions: Permissions::empty(),
+                        app_permissions: None,
                         thread_metadata: None,
                     },
                 )]),
