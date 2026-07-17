@@ -164,6 +164,11 @@ impl CachedMessage {
         self.author
     }
 
+    /// Information about the call associated with this message
+    pub const fn call(&self) -> Option<&MessageCall> {
+        self.call.as_ref()
+    }
+
     /// ID of the channel the message was sent in.
     pub const fn channel_id(&self) -> Id<ChannelMarker> {
         self.channel_id
@@ -258,6 +263,11 @@ impl CachedMessage {
     #[allow(clippy::missing_const_for_fn)]
     pub fn mentions(&self) -> &[Id<UserMarker>] {
         &self.mentions
+    }
+
+    /// Snapshots associated with the [`Message::reference`]
+    pub fn message_snapshots(&self) -> &[MessageSnapshot] {
+        &self.message_snapshots
     }
 
     /// Whether or not the message is pinned.
