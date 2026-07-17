@@ -164,7 +164,7 @@ impl CachedMessage {
         self.author
     }
 
-    /// Information about the call associated with this message
+    /// Information about the call associated with this message.
     pub const fn call(&self) -> Option<&MessageCall> {
         self.call.as_ref()
     }
@@ -265,7 +265,9 @@ impl CachedMessage {
         &self.mentions
     }
 
-    /// Snapshots associated with the [`Message::reference`]
+    /// Snapshots associated with the [`Message::reference`].
+    ///
+    /// [`Message::reference`]: twilight_model::channel::Message::reference
     pub fn message_snapshots(&self) -> &[MessageSnapshot] {
         &self.message_snapshots
     }
