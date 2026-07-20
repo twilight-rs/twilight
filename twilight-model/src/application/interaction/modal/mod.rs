@@ -373,7 +373,7 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
         let mut values: Option<Vec<Value>> = None;
         let mut components: Option<Vec<ModalInteractionComponent>> = None;
         let mut component: Option<ModalInteractionComponent> = None;
-        let mut value: Option<String> = None;
+        let mut value: Option<Value> = None;
 
         loop {
             let key = match map.next_key() {
@@ -471,7 +471,10 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
             ),
             ComponentType::TextInput => {
                 let custom_id = custom_id.ok_or_else(|| DeError::missing_field("custom_id"))?;
-                let value = value.ok_or_else(|| DeError::missing_field("value"))?;
+                let value = value
+                    .ok_or_else(|| DeError::missing_field("value"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
 
                 Self::Value::TextInput(ModalInteractionTextInput {
                     custom_id,
@@ -522,9 +525,12 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
             }
             ComponentType::Checkbox => {
                 let custom_id = custom_id.ok_or_else(|| DeError::missing_field("custom_id"))?;
-                let value = value.ok_or_else(|| DeError::missing_field("value"))?;
+                let value = value
+                    .ok_or_else(|| DeError::missing_field("value"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
 
-                Self::Value::TextInput(ModalInteractionTextInput {
+                Self::Value::Checkbox(ModalInteractionCheckbox {
                     custom_id,
                     id,
                     value,
@@ -973,6 +979,50 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::SeqEnd,
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::String("custom_id"),
+                Token::String("test-modal"),
+                Token::StructEnd,
+            ],
+        )
+    }
+
+    #[test]
+    fn modal_checkbox() {
+        let value = ModalInteractionData {
+            custom_id: "test-modal".to_owned(),
+            components: vec![ModalInteractionComponent::Checkbox(
+                ModalInteractionCheckbox {
+                    id: 10,
+                    custom_id: "checkbox".to_owned(),
+                    value: true,
+                },
+            )],
+            resolved: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ModalInteractionData",
+                    len: 2,
+                },
+                Token::String("components"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "ModalInteractionComponent",
+                    len: 4,
+                },
+                Token::String("type"),
+                Token::U8(ComponentType::Checkbox.into()),
+                Token::String("custom_id"),
+                Token::String("checkbox"),
+                Token::String("id"),
+                Token::I32(10),
+                Token::String("value"),
+                Token::Bool(true),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::String("custom_id"),
