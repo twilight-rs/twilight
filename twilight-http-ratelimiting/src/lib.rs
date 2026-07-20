@@ -13,6 +13,7 @@ mod actor;
 use std::{
     future::Future,
     hash::{Hash as _, Hasher},
+    num::NonZero,
     pin::Pin,
     task::{Context, Poll},
     time::{Duration, Instant},
@@ -274,7 +275,15 @@ pub struct RateLimiter {
 
 impl RateLimiter {
     /// Create a new [`RateLimiter`] with a custom global limit.
+    ///
+    /// Note that the global limit may be practically disabled by passing `u16::MAX`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the global limit is 0.
+    #[track_caller]
     pub fn new(global_limit: u16) -> Self {
+        let global_limit = NonZero::new(global_limit).expect("global limit is non-zero");
         let (tx, rx) = mpsc::unbounded_channel();
         tokio::spawn(actor::runner(global_limit, rx));
 
