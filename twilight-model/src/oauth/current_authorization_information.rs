@@ -35,7 +35,7 @@ pub struct CurrentAuthorizationInformation {
 mod tests {
     use crate::{
         id::Id,
-        oauth::{Application, scope},
+        oauth::{Application, EventWebhookStatus, scope},
         test::image_hash,
         util::{Timestamp, datetime::TimestampParseError},
     };
@@ -79,6 +79,8 @@ mod tests {
                 cover_image: None,
                 custom_install_url: None,
                 description: DESCRIPTION.to_owned(),
+                event_webhooks_url: None,
+                event_webhooks_status: EventWebhookStatus::Disabled,
                 flags: None,
                 guild: None,
                 guild_id: None,
@@ -115,7 +117,7 @@ mod tests {
                 Token::Str("application"),
                 Token::Struct {
                     name: "Application",
-                    len: 12,
+                    len: 13,
                 },
                 Token::Str("approximate_guild_count"),
                 Token::Some,
@@ -129,6 +131,8 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("description"),
                 Token::Str(DESCRIPTION),
+                Token::Str("event_webhooks_status"),
+                Token::U8(1),
                 Token::Str("flags"),
                 Token::None,
                 Token::Str("icon"),
