@@ -18,4 +18,5 @@ pub mod component;
 pub mod embed;
 pub mod message;
 pub mod request;
+pub mod soundboard;
 pub mod sticker;
