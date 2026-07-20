@@ -276,6 +276,8 @@ pub struct RateLimiter {
 impl RateLimiter {
     /// Create a new [`RateLimiter`] with a custom global limit.
     ///
+    /// Note that the global limit may be practically disabled by passing `u16::MAX`.
+    ///
     /// # Panics
     ///
     /// Panics if the global limit is 0.
