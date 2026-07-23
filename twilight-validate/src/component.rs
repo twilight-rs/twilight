@@ -1120,7 +1120,7 @@ const fn component_action_row_components(
 ) -> Result<(), ComponentValidationError> {
     let count = components.len();
 
-    if count > ACTION_ROW_COMPONENT_COUNT {
+    if count > COMPONENT_COUNT {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::ActionRowComponentCount { count },
         });
