@@ -391,7 +391,7 @@ pub fn option_characters(option: &CommandOption) -> usize {
                         characters += longest_localization_characters(
                             &choice.name,
                             choice.name_localizations.as_ref(),
-                        ) + string_choice.chars().count();
+                        ) + string_choice.len();
                     }
                 }
             }
@@ -419,13 +419,12 @@ fn longest_localization_characters(
     default: &str,
     localizations: Option<&HashMap<String, String>>,
 ) -> usize {
-    let mut characters = default.chars().count();
+    let mut characters = default.len();
 
     if let Some(localizations) = localizations {
         for localization in localizations.values() {
-            let len = localization.chars().count();
-            if len > characters {
-                characters = len;
+            if localization.len() > characters {
+                characters = localization.len();
             }
         }
     }
