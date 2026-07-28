@@ -146,7 +146,8 @@ mod tests {
                     duration_secs: None,
                     height: Some(2674),
                     id: Id::new(400),
-                    placeholder: Some("DCE71125807877787F888787784877788870FA3DC0".to_owned()),
+                    // Thumbhash of the twilight project logo.
+                    placeholder: Some("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg".to_owned()),
                     placeholder_version: Some(1),
                     proxy_url: "https://proxy.example.com/rainbow_dash.png".to_owned(),
                     size: 13370,
@@ -352,7 +353,7 @@ mod tests {
                 Token::Str("400"),
                 Token::Str("placeholder"),
                 Token::Some,
-                Token::Str("DCE71125807877787F888787784877788870FA3DC0"),
+                Token::Str("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg"),
                 Token::Str("placeholder_version"),
                 Token::Some,
                 Token::U64(1),
