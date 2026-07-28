@@ -24,8 +24,11 @@ use serde::{Deserialize, Serialize};
 /// let mut attachment = Attachment::from_bytes(filename, file_content, id);
 /// attachment.description("Raw data about Twilight Sparkle".to_owned());
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Attachment {
+    /// Title of the file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
     /// Description of the attachment, useful for screen readers and users
     /// requiring alt text.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,6 +47,23 @@ pub struct Attachment {
     /// to be in any particular format; for example, IDs of 0, 100, the current
     /// timestamp, and so on are all valid.
     pub id: u64,
+    /// Duration of the audio or video file.
+    ///
+    /// Required for voice messages.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_secs: Option<f64>,
+    /// Base64 encoded bytearray representing a sampled waveform.
+    ///
+    /// Required for voice messages.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub waveform: Option<String>,
+    /// Whether the attachment should be marked as a spoiler and blurred until clicked.
+    ///
+    /// This sets the [`IS_SPOILER`] attachment flag.
+    ///
+    /// [`IS_SPOILER`]: twilight_model::channel::attachment_flags::AttachmentFlags::IS_SPOILER
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_spoiler: Option<bool>,
 }
 
 impl Attachment {
@@ -64,10 +84,14 @@ impl Attachment {
     /// ```
     pub const fn from_bytes(filename: String, file: Vec<u8>, id: u64) -> Self {
         Self {
+            title: None,
             description: None,
             file,
             filename,
             id,
+            duration_secs: None,
+            waveform: None,
+            is_spoiler: None,
         }
     }
 

@@ -200,10 +200,14 @@ mod tests {
             kind: InteractionResponseType::ChannelMessageWithSource,
             data: Some(InteractionResponseData {
                 attachments: Some(Vec::from([Attachment {
+                    title: None,
                     description: None,
                     file: "file data".into(),
                     filename: "filename.jpg".into(),
                     id: 1,
+                    duration_secs: None,
+                    waveform: None,
+                    is_spoiler: None,
                 }])),
                 ..InteractionResponseData::default()
             }),

@@ -17,8 +17,14 @@ use twilight_model::{
     id::{Id, marker::StickerMarker},
 };
 
+/// Maximum length of an attachment's title.
+pub const ATTACHMENT_TITLE_LENGTH_MAX: usize = 1024;
+
 /// Maximum length of an attachment's description.
 pub const ATTACHMENT_DESCIPTION_LENGTH_MAX: usize = 1024;
+
+/// Maximum length of an attachment's waveform.
+pub const ATTACHMENT_WAVEFORM_LENGTH_MAX: usize = 400;
 
 /// Maximum number of embeds that a message may have.
 pub const EMBED_COUNT_LIMIT: usize = 10;
@@ -87,12 +93,26 @@ impl MessageValidationError {
 impl Display for MessageValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            MessageValidationErrorType::AttachmentTitleTooLarge { chars } => {
+                f.write_str("the attachment title is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&ATTACHMENT_TITLE_LENGTH_MAX, f)
+            }
             MessageValidationErrorType::AttachmentDescriptionTooLarge { chars } => {
                 f.write_str("the attachment description is ")?;
                 Display::fmt(chars, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
                 Display::fmt(&ATTACHMENT_DESCIPTION_LENGTH_MAX, f)
+            }
+            MessageValidationErrorType::AttachmentWaveformTooLarge { chars } => {
+                f.write_str("the attachment waveform is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&ATTACHMENT_WAVEFORM_LENGTH_MAX, f)
             }
             MessageValidationErrorType::AttachmentFilename { filename } => {
                 f.write_str("attachment filename `")?;
@@ -150,8 +170,18 @@ pub enum MessageValidationErrorType {
         /// Invalid filename.
         filename: String,
     },
+    /// Attachment title is too large.
+    AttachmentTitleTooLarge {
+        /// Provided number of codepoints.
+        chars: usize,
+    },
     /// Attachment description is too large.
     AttachmentDescriptionTooLarge {
+        /// Provided number of codepoints.
+        chars: usize,
+    },
+    /// Attachment waveform is too large.
+    AttachmentWaveformTooLarge {
         /// Provided number of codepoints.
         chars: usize,
     },
@@ -195,22 +225,58 @@ pub enum MessageValidationErrorType {
 ///
 /// # Errors
 ///
+/// Returns an error of type [`AttachmentTitleTooLarge`] if
+/// the attachments's title is too large.
+///
 /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
 /// the attachments's description is too large.
+///
+/// Returns an error of type [`AttachmentWaveformTooLarge`] if
+/// the attachments's waveform is too large.
 ///
 /// Returns an error of type [`AttachmentFilename`] if the
 /// filename is invalid.
 ///
+/// [`AttachmentTitleTooLarge`]: MessageValidationErrorType::AttachmentTitleTooLarge
 /// [`AttachmentDescriptionTooLarge`]: MessageValidationErrorType::AttachmentDescriptionTooLarge
+/// [`AttachmentWaveformTooLarge`]: MessageValidationErrorType::AttachmentWaveformTooLarge
 /// [`AttachmentFilename`]: MessageValidationErrorType::AttachmentFilename
 pub fn attachment(attachment: &Attachment) -> Result<(), MessageValidationError> {
     attachment_filename(&attachment.filename)?;
+
+    if let Some(title) = &attachment.title {
+        attachment_title(title)?;
+    }
 
     if let Some(description) = &attachment.description {
         attachment_description(description)?;
     }
 
+    if let Some(waveform) = &attachment.waveform {
+        attachment_waveform(waveform)?;
+    }
+
     Ok(())
+}
+
+/// Ensure an attachment's title is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`AttachmentTitleTooLarge`] if
+/// the attachment's title is too large.
+///
+/// [`AttachmentTitleTooLarge`]: MessageValidationErrorType::AttachmentTitleTooLarge
+pub fn attachment_title(title: impl AsRef<str>) -> Result<(), MessageValidationError> {
+    let chars = title.as_ref().chars().count();
+    if chars <= ATTACHMENT_TITLE_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(MessageValidationError {
+            kind: MessageValidationErrorType::AttachmentTitleTooLarge { chars },
+            source: None,
+        })
+    }
 }
 
 /// Ensure an attachment's description is correct.
@@ -255,6 +321,26 @@ pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValid
             kind: MessageValidationErrorType::AttachmentFilename {
                 filename: filename.as_ref().to_string(),
             },
+            source: None,
+        })
+    }
+}
+
+/// Ensure an attachment's waveform is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`AttachmentWaveformTooLarge`] if
+/// the attachment's waveform is too large.
+///
+/// [`AttachmentWaveformTooLarge`]: MessageValidationErrorType::AttachmentWaveformTooLarge
+pub fn attachment_waveform(waveform: impl AsRef<str>) -> Result<(), MessageValidationError> {
+    let chars = waveform.as_ref().chars().count();
+    if chars <= ATTACHMENT_WAVEFORM_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(MessageValidationError {
+            kind: MessageValidationErrorType::AttachmentWaveformTooLarge { chars },
             source: None,
         })
     }

@@ -37,14 +37,22 @@ impl<'a> AttachmentManager<'a> {
         self.files
             .iter()
             .map(|attachment| PartialAttachment {
+                title: attachment.title.as_deref(),
                 description: attachment.description.as_deref(),
                 filename: Some(attachment.filename.as_ref()),
                 id: attachment.id,
+                duration_secs: attachment.duration_secs,
+                waveform: attachment.waveform.as_deref(),
+                is_spoiler: attachment.is_spoiler,
             })
             .chain(self.ids.iter().map(|id| PartialAttachment {
+                title: None,
                 description: None,
                 filename: None,
                 id: id.get(),
+                duration_secs: None,
+                waveform: None,
+                is_spoiler: None,
             }))
             .collect()
     }
@@ -74,13 +82,21 @@ impl Default for AttachmentManager<'_> {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct PartialAttachment<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filename: Option<&'a str>,
     pub id: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_secs: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub waveform: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_spoiler: Option<bool>,
 }
 
 /// Count the number of digits in a given number.
