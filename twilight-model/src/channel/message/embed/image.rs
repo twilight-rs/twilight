@@ -41,8 +41,8 @@ mod tests {
             url: "https://example.com/1.png".to_owned(),
             width: Some(2560),
             content_type: Some("image/png".to_owned()),
-            // The example value on the thumbhash website - picture of a green field.
-            placeholder: Some("DCE71125807877787F888787784877788870FA3DC0".to_owned()),
+            // Thumbhash of the twilight project logo.
+            placeholder: Some("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg".to_owned()),
             placeholder_version: Some(1),
             flags: Some(EmbedMediaFlags::IS_ANIMATED),
         };
@@ -70,7 +70,7 @@ mod tests {
                 Token::Str("image/png"),
                 Token::Str("placeholder"),
                 Token::Some,
-                Token::Str("DCE71125807877787F888787784877788870FA3DC0"),
+                Token::Str("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg"),
                 Token::Str("placeholder_version"),
                 Token::Some,
                 Token::U64(1),
