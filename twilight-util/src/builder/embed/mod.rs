@@ -242,6 +242,10 @@ impl EmbedBuilder {
             proxy_url: None,
             url: image_source.0,
             width: None,
+            content_type: None,
+            placeholder: None,
+            placeholder_version: None,
+            flags: None,
         });
 
         self
