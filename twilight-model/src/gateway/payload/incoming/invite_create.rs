@@ -56,6 +56,8 @@ pub struct InviteCreate {
 pub struct PartialUser {
     /// Hash of the user's avatar.
     pub avatar: Option<ImageHash>,
+    /// Hash of the user's banner.
+    pub banner: Option<ImageHash>,
     /// Discriminator used to differentiate people with the same [`username`].
     ///
     /// [`username`]: Self::username
@@ -180,6 +182,7 @@ mod tests {
     fn partial_user() {
         let value = PartialUser {
             avatar: Some(image_hash::AVATAR),
+            banner: Some(image_hash::BANNER),
             discriminator: 123,
             id: Id::new(1),
             username: "twilight".to_owned(),
@@ -190,11 +193,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialUser",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str(image_hash::AVATAR_INPUT),
+                Token::Str("banner"),
+                Token::Some,
+                Token::Str(image_hash::BANNER_INPUT),
                 Token::Str("discriminator"),
                 Token::Str("0123"),
                 Token::Str("id"),
