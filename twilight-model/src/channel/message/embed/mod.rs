@@ -165,8 +165,8 @@ mod tests {
                 url: Some("https://cdn.example.com/1-hash.mp4".to_owned()),
                 width: Some(2560),
                 content_type: Some("video/mp4".to_owned()),
-                // The example value on the thumbhash website - picture of a green field.
-                placeholder: Some("DCE71125807877787F888787784877788870FA3DC0".to_owned()),
+                // Thumbhash of the twilight project logo.
+                placeholder: Some("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg".to_owned()),
                 placeholder_version: Some(1),
                 flags: Some(EmbedMediaFlags::IS_ANIMATED),
             }),
