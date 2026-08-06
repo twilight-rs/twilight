@@ -183,7 +183,7 @@ pub const USERNAME_LIMIT_MIN: usize = 2;
 pub const WEBHOOK_USERNAME_LIMIT_MAX: usize = 80;
 
 /// Minimum length of a webhook username.
-pub const WEBHOOK_USERNAME_LIMIT_MIN: usize = 2;
+pub const WEBHOOK_USERNAME_LIMIT_MIN: usize = 1;
 
 /// Forbidden substrings in usernames.
 const USERNAME_INVALID_SUBSTRINGS: [&str; 5] = ["@", "#", ":", "```", "discord"];
