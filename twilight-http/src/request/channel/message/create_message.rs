@@ -40,6 +40,8 @@ pub(crate) struct CreateMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<&'a [Embed]>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    enforce_nonce: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     message_reference: Option<MessageReference>,
@@ -101,6 +103,7 @@ impl<'a> CreateMessage<'a> {
                 components: None,
                 content: None,
                 embeds: None,
+                enforce_nonce: None,
                 flags: None,
                 message_reference: None,
                 nonce: None,
@@ -280,6 +283,24 @@ impl<'a> CreateMessage<'a> {
     pub const fn nonce(mut self, nonce: u64) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.nonce = Some(nonce);
+        }
+
+        self
+    }
+
+    /// Whether to check the [`nonce`] for uniqueness before creating the message.
+    ///
+    /// If true and a nonce is present, the nonce is checked for uniqueness against
+    /// the author's messages from the past few minutes. If another message was
+    /// created with the same nonce, that message is returned and no new message is
+    /// created — which makes a retried request idempotent instead of a duplicate.
+    ///
+    /// Has no effect unless [`nonce`] is also set.
+    ///
+    /// [`nonce`]: Self::nonce
+    pub const fn enforce_nonce(mut self, enforce_nonce: bool) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.enforce_nonce = Some(enforce_nonce);
         }
 
         self
