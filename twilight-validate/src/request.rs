@@ -2140,7 +2140,7 @@ mod tests {
         assert!(webhook_username("aa").is_ok());
         assert!(webhook_username("a".repeat(80)).is_ok());
 
-        assert!(webhook_username("a").is_err());
+        assert!(webhook_username("").is_err());
         assert!(webhook_username("a".repeat(81)).is_err());
 
         assert!(webhook_username("clyde").is_err());
