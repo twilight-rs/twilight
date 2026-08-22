@@ -13,8 +13,7 @@ use twilight_model::{
 };
 use twilight_validate::message::{
     MessageValidationError, attachment_filename as validate_attachment_filename,
-    components as validate_components, content as validate_content, embeds as validate_embeds,
-    sticker_ids as validate_sticker_ids,
+    content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
 };
 
 /// Contents of the first message in the new forum thread.
@@ -93,25 +92,18 @@ impl<'a> CreateForumThreadMessage<'a> {
     ///
     /// Requires a webhook owned by the application.
     ///
+    /// Components are validated when the request is built so flags set after
+    /// this method are taken into account.
+    ///
     /// # Errors
     ///
     /// Refer to the errors section of
     /// [`twilight_validate::component::component`] for a list of errors that
     /// may be returned as a result of validating each provided component.
-    pub fn components(mut self, components: &'a [Component]) -> Self {
-        self.0 = self.0.and_then(|mut inner| {
-            validate_components(
-                components,
-                inner
-                    .fields
-                    .message
-                    .flags
-                    .is_some_and(|f| f.contains(MessageFlags::IS_COMPONENTS_V2)),
-            )?;
+    pub const fn components(mut self, components: &'a [Component]) -> Self {
+        if let Ok(inner) = self.0.as_mut() {
             inner.fields.message.components = Some(components);
-
-            Ok(inner)
-        });
+        }
 
         self
     }
@@ -170,11 +162,12 @@ impl<'a> CreateForumThreadMessage<'a> {
 
     /// Set the message's flags.
     ///
-    /// The only supported flags are [`SUPPRESS_EMBEDS`] and
-    /// [`SUPPRESS_NOTIFICATIONS`].
+    /// The only supported flags are [`SUPPRESS_EMBEDS`], [`SUPPRESS_NOTIFICATIONS`], and
+    /// [`IS_COMPONENTS_V2`].
     ///
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
     /// [`SUPPRESS_NOTIFICATIONS`]: MessageFlags::SUPPRESS_NOTIFICATIONS
+    /// [`IS_COMPONENTS_V2`]: MessageFlags::IS_COMPONENTS_V2
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
         if let Ok(inner) = self.0.as_mut() {
             inner.fields.message.flags = Some(flags);
@@ -240,5 +233,31 @@ impl TryIntoRequest for CreateForumThreadMessage<'_> {
         self.0
             .map_err(Error::validation)
             .and_then(CreateForumThread::try_into_request)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{client::Client, request::TryIntoRequest};
+    use twilight_model::channel::message::component::TextDisplay;
+
+    #[test]
+    fn components_v2_before_flags() {
+        let client = Client::new(String::new());
+        let components = [Component::TextDisplay(TextDisplay {
+            content: "test".to_owned(),
+            id: None,
+        })];
+
+        assert!(
+            client
+                .create_forum_thread(Id::new(1), "thread")
+                .message()
+                .components(&components)
+                .flags(MessageFlags::IS_COMPONENTS_V2)
+                .try_into_request()
+                .is_ok()
+        );
     }
 }
