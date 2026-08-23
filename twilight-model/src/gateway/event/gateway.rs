@@ -74,18 +74,137 @@ impl<'a> GatewayEventDeserializer<'a> {
         }
     }
 
-    /// Create a gateway event deserializer by scanning the JSON payload for its
-    /// opcode and dispatch event type.
+    /// Create a gateway event deserializer by scanning the top-level JSON fields
+    /// for its opcode, sequence, and dispatch event type.
     pub fn from_json(input: &'a str) -> Option<Self> {
-        let op = Self::find_opcode(input)?;
-        let event_type = Self::find_event_type(input).map(Into::into);
-        let sequence = Self::find_sequence(input);
+        let (op, sequence, event_type) = Self::find_metadata(input)?;
 
         Some(Self {
-            event_type,
+            event_type: event_type.map(Into::into),
             op,
             sequence,
         })
+    }
+
+    fn find_metadata(input: &'a str) -> Option<(u8, Option<u64>, Option<&'a str>)> {
+        let bytes = input.as_bytes();
+        let mut cursor = 0;
+        Self::skip_whitespace(bytes, &mut cursor);
+
+        if bytes.get(cursor) != Some(&b'{') {
+            return None;
+        }
+
+        let mut depth = 0usize;
+        let mut event_type = None;
+        let mut op = None;
+        let mut sequence = None;
+
+        while let Some(&byte) = bytes.get(cursor) {
+            match byte {
+                b'{' | b'[' => {
+                    depth += 1;
+                    cursor += 1;
+                }
+                b'}' | b']' => {
+                    depth = depth.checked_sub(1)?;
+                    cursor += 1;
+
+                    if depth == 0 {
+                        break;
+                    }
+                }
+                b'\"' => {
+                    let key_start = cursor + 1;
+                    let key_end = Self::find_string_end(bytes, key_start)?;
+
+                    if depth == 1 {
+                        let key = input.get(key_start..key_end)?;
+                        let mut value_start = key_end + 1;
+                        Self::skip_whitespace(bytes, &mut value_start);
+
+                        if bytes.get(value_start) == Some(&b':') {
+                            value_start += 1;
+                            Self::skip_whitespace(bytes, &mut value_start);
+
+                            match key {
+                                "op" if op.is_none() => {
+                                    op = Some(Self::find_integer(input, value_start)?);
+                                }
+                                "s" if sequence.is_none() => {
+                                    sequence = Some(Self::find_integer(input, value_start));
+                                }
+                                "t" if event_type.is_none() => {
+                                    event_type = Some(Self::find_string(input, value_start));
+                                }
+                                _ => {}
+                            }
+
+                            if let (Some(op), Some(sequence), Some(event_type)) =
+                                (op, sequence, event_type)
+                            {
+                                return Some((op, sequence, event_type));
+                            }
+                        }
+                    }
+
+                    cursor = key_end + 1;
+                }
+                _ => cursor += 1,
+            }
+        }
+
+        Some((op?, sequence.flatten(), event_type.flatten()))
+    }
+
+    fn find_integer<T: FromStr>(input: &'a str, from: usize) -> Option<T> {
+        let bytes = input.as_bytes();
+        let mut to = from;
+
+        while bytes.get(to).is_some_and(u8::is_ascii_digit) {
+            to += 1;
+        }
+
+        if to == from {
+            return None;
+        }
+
+        input.get(from..to)?.parse().ok()
+    }
+
+    fn find_string(input: &'a str, from: usize) -> Option<&'a str> {
+        if input.as_bytes().get(from) != Some(&b'\"') {
+            return None;
+        }
+
+        let start = from + 1;
+        let end = Self::find_string_end(input.as_bytes(), start)?;
+
+        input.get(start..end)
+    }
+
+    fn find_string_end(bytes: &[u8], mut cursor: usize) -> Option<usize> {
+        let mut escaped = false;
+
+        while let Some(&byte) = bytes.get(cursor) {
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'\"' {
+                return Some(cursor);
+            }
+
+            cursor += 1;
+        }
+
+        None
+    }
+
+    fn skip_whitespace(bytes: &[u8], cursor: &mut usize) {
+        while bytes.get(*cursor).is_some_and(u8::is_ascii_whitespace) {
+            *cursor += 1;
+        }
     }
 
     /// Create a deserializer with an owned event type.
@@ -124,57 +243,6 @@ impl<'a> GatewayEventDeserializer<'a> {
     /// [`from_json`][`Self::from_json`]
     pub const fn sequence(&self) -> Option<u64> {
         self.sequence
-    }
-
-    fn find_event_type(input: &'a str) -> Option<&'a str> {
-        // We're going to search for the event type key from the start. Discord
-        // always puts it at the front before the D key from some testing of
-        // several hundred payloads.
-        //
-        // If we find it, add 4, since that's the length of what we're searching
-        // for.
-        let from = input.find(r#""t":"#)? + 4;
-
-        // Now let's find where the value starts, which may be a string or null.
-        // Or maybe something else. If it's anything but a string, then there's
-        // no event type.
-        let start = input.get(from..)?.find(|c: char| !c.is_whitespace())? + from + 1;
-
-        // Check if the character just before the cursor is '"'.
-        if input.as_bytes().get(start - 1).copied()? != b'"' {
-            return None;
-        }
-
-        let to = input.get(start..)?.find('"')?;
-
-        input.get(start..start + to)
-    }
-
-    fn find_opcode(input: &'a str) -> Option<u8> {
-        Self::find_integer(input, r#""op":"#)
-    }
-
-    fn find_sequence(input: &'a str) -> Option<u64> {
-        Self::find_integer(input, r#""s":"#)
-    }
-
-    fn find_integer<T: FromStr>(input: &'a str, key: &str) -> Option<T> {
-        // Find the op key's position and then search for where the first
-        // character that's not base 10 is. This'll give us the bytes with the
-        // op which can be parsed.
-        //
-        // Add 5 at the end since that's the length of what we're finding.
-        let from = input.find(key)? + key.len();
-
-        // Look for the first thing that isn't a base 10 digit or whitespace,
-        // i.e. a comma (denoting another JSON field), curly brace (end of the
-        // object), etc. This'll give us the op number, maybe with a little
-        // whitespace.
-        let to = input.get(from..)?.find(&[',', '}'] as &[_])?;
-        // We might have some whitespace, so let's trim this.
-        let clean = input.get(from..from + to)?.trim();
-
-        T::from_str(clean).ok()
     }
 }
 
@@ -721,6 +789,37 @@ mod tests {
         let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
         assert_eq!(deserializer.event_type(), Some("DOESNT_MATTER"));
         assert_eq!(deserializer.op, 0);
+    }
+
+    #[test]
+    fn deserializer_from_json_ignores_nested_metadata() {
+        let input = r#"{
+            "d": {
+                "op": 10,
+                "s": 999,
+                "t": "GUILD_UPDATE",
+                "nested": [{"op": 7, "s": 1000, "t": "RESUMED"}]
+            },
+            "op": 0,
+            "s": 7,
+            "t": "GUILD_ROLE_DELETE"
+        }"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+
+        assert_eq!(
+            deserializer.into_parts(),
+            (0, Some(7), Some("GUILD_ROLE_DELETE".into()))
+        );
+    }
+
+    #[test]
+    fn deserializer_from_json_allows_whitespace_before_colon() {
+        let input = r#"{"d":null,"op" : 11,"s" : null,"t" : null}"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+
+        assert_eq!(deserializer.into_parts(), (11, None, None));
     }
 
     // Test that the GatewayEventDeserializer handles non-string (read: null)
