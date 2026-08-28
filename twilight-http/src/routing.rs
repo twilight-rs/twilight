@@ -4577,7 +4577,12 @@ mod tests {
 
     #[test]
     fn get_skus() {
-        let route = Route::GetSKUs { application_id: 1 };
-        assert_eq!(route.to_string(), format!("applications/1/skus"));
+        let route = Route::GetSKUs {
+            application_id: APPLICATION_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("applications/{APPLICATION_ID}/skus")
+        );
     }
 }
