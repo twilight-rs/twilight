@@ -37,6 +37,9 @@ mod private {
             integration::DeleteGuildIntegration,
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
             role::{CreateRole, DeleteRole, UpdateRole, UpdateRolePositions},
+            soundboard::{
+                CreateGuildSoundboardSound, DeleteGuildSoundboardSound, UpdateGuildSoundboardSound,
+            },
             sticker::{CreateGuildSticker, UpdateGuildSticker},
             update_guild_onboarding::UpdateGuildOnboarding,
         },
@@ -59,6 +62,7 @@ mod private {
     impl Sealed for CreateGuildExternalScheduledEvent<'_> {}
     impl Sealed for CreateGuildPrune<'_> {}
     impl Sealed for CreateGuildScheduledEvent<'_> {}
+    impl Sealed for CreateGuildSoundboardSound<'_> {}
     impl Sealed for CreateGuildStageInstanceScheduledEvent<'_> {}
     impl Sealed for CreateGuildSticker<'_> {}
     impl Sealed for CreateGuildVoiceScheduledEvent<'_> {}
@@ -72,6 +76,7 @@ mod private {
     impl Sealed for DeleteChannelPermissionConfigured<'_> {}
     impl Sealed for DeleteEmoji<'_> {}
     impl Sealed for DeleteGuildIntegration<'_> {}
+    impl Sealed for DeleteGuildSoundboardSound<'_> {}
     impl Sealed for DeleteInvite<'_> {}
     impl Sealed for DeleteMessage<'_> {}
     impl Sealed for DeleteMessages<'_> {}
@@ -92,6 +97,7 @@ mod private {
     impl Sealed for UpdateGuildMfa<'_> {}
     impl Sealed for UpdateGuildOnboarding<'_> {}
     impl Sealed for UpdateGuildScheduledEvent<'_> {}
+    impl Sealed for UpdateGuildSoundboardSound<'_> {}
     impl Sealed for UpdateGuildSticker<'_> {}
     impl Sealed for UpdateGuildWidgetSettings<'_> {}
     impl Sealed for UpdateRole<'_> {}
