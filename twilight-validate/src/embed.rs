@@ -329,24 +329,24 @@ pub fn chars(embed: &Embed) -> usize {
     let mut chars = 0;
 
     if let Some(author) = &embed.author {
-        chars += author.name.len();
+        chars += author.name.chars().count();
     }
 
     if let Some(description) = &embed.description {
-        chars += description.len();
+        chars += description.chars().count();
     }
 
     if let Some(footer) = &embed.footer {
-        chars += footer.text.len();
+        chars += footer.text.chars().count();
     }
 
     for field in &embed.fields {
-        chars += field.name.len();
-        chars += field.value.len();
+        chars += field.name.chars().count();
+        chars += field.value.chars().count();
     }
 
     if let Some(title) = &embed.title {
-        chars += title.len();
+        chars += title.chars().count();
     }
 
     chars
@@ -542,6 +542,15 @@ mod tests {
             super::embed(&embed).unwrap_err().kind(),
             EmbedValidationErrorType::TitleTooLarge { chars: 257 }
         ));
+    }
+
+    #[test]
+    fn embed_combined_limit_counts_codepoints() {
+        let mut embed = base_embed();
+        embed.description.replace("あ".repeat(2001));
+
+        assert_eq!(super::chars(&embed), 2001);
+        assert!(super::embed(&embed).is_ok());
     }
 
     #[test]
