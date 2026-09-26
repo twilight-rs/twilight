@@ -178,6 +178,7 @@ mod tests {
                 desktop: Some(Status::Online),
                 mobile: None,
                 web: None,
+                vr: None,
             },
             guild_id: Id::new(2),
             status: Status::Online,

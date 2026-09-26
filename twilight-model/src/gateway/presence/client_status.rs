@@ -9,6 +9,8 @@ pub struct ClientStatus {
     pub mobile: Option<Status>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub web: Option<Status>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vr: Option<Status>,
 }
 
 #[cfg(test)]
@@ -22,6 +24,7 @@ mod tests {
             desktop: Some(Status::Idle),
             mobile: Some(Status::Online),
             web: Some(Status::DoNotDisturb),
+            vr: Some(Status::Online),
         };
 
         serde_test::assert_tokens(
@@ -29,7 +32,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "ClientStatus",
-                    len: 3,
+                    len: 4,
                 },
                 Token::Str("desktop"),
                 Token::Some,
@@ -45,6 +48,11 @@ mod tests {
                 Token::Some,
                 Token::Enum { name: "Status" },
                 Token::Str("dnd"),
+                Token::Unit,
+                Token::Str("vr"),
+                Token::Some,
+                Token::Enum { name: "Status" },
+                Token::Str("online"),
                 Token::Unit,
                 Token::StructEnd,
             ],

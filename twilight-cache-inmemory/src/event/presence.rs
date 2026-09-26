@@ -63,6 +63,7 @@ mod tests {
                 desktop: Some(Status::Online),
                 mobile: None,
                 web: None,
+                vr: None,
             },
             guild_id,
             status: Status::Online,
