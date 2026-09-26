@@ -26,6 +26,9 @@ impl From<MinimalActivity> for Activity {
             state: None,
             timestamps: None,
             url: minimal_activity.url,
+            details_url: None,
+            state_url: None,
+            status_display_type: None,
         }
     }
 }

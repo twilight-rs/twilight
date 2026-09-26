@@ -2,6 +2,7 @@ use crate::{
     gateway::presence::{
         ActivityAssets, ActivityButton, ActivityEmoji, ActivityFlags, ActivityParty,
         ActivitySecrets, ActivityTimestamps, ActivityType,
+        activity_status_display_type::ActivityStatusDisplayType,
     },
     id::{Id, marker::ApplicationMarker},
 };
@@ -21,6 +22,8 @@ pub struct Activity {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub details_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub emoji: Option<ActivityEmoji>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<ActivityFlags>,
@@ -38,9 +41,13 @@ pub struct Activity {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub state_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub timestamps: Option<ActivityTimestamps>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_display_type: Option<ActivityStatusDisplayType>,
 }
 
 #[cfg(test)]

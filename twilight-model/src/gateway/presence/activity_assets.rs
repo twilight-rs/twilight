@@ -7,9 +7,15 @@ pub struct ActivityAssets {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub large_text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub large_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub small_image: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub small_text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub small_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invite_cover_image: Option<String>,
 }
 
 #[cfg(test)]
@@ -22,8 +28,11 @@ mod tests {
         let value = ActivityAssets {
             large_image: Some("large image hash".to_owned()),
             large_text: Some("large image text".to_owned()),
+            large_url: Some("large image url".to_owned()),
             small_image: Some("small image hash".to_owned()),
             small_text: Some("small text hash".to_owned()),
+            small_url: Some("small image url".to_owned()),
+            invite_cover_image: Some("invite cover hash".to_owned()),
         };
 
         serde_test::assert_tokens(
@@ -31,7 +40,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "ActivityAssets",
-                    len: 4,
+                    len: 7,
                 },
                 Token::Str("large_image"),
                 Token::Some,
@@ -39,12 +48,21 @@ mod tests {
                 Token::Str("large_text"),
                 Token::Some,
                 Token::Str("large image text"),
+                Token::Str("large_url"),
+                Token::Some,
+                Token::Str("large image url"),
                 Token::Str("small_image"),
                 Token::Some,
                 Token::Str("small image hash"),
                 Token::Str("small_text"),
                 Token::Some,
                 Token::Str("small text hash"),
+                Token::Str("small_url"),
+                Token::Some,
+                Token::Str("small image url"),
+                Token::Str("invite_cover_image"),
+                Token::Some,
+                Token::Str("invite cover hash"),
                 Token::StructEnd,
             ],
         );

@@ -168,6 +168,9 @@ mod tests {
             state: None,
             timestamps: None,
             url: None,
+            details_url: None,
+            state_url: None,
+            status_display_type: None,
         };
         let presence = Presence {
             activities: vec![activity],
