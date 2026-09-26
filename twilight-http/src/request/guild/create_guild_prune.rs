@@ -28,6 +28,19 @@ struct CreateGuildPruneFields<'a> {
 ///
 /// See [Discord Docs/Begin Guild Prune].
 ///
+/// # Permissions
+///
+/// If the target guild has the
+/// [`PruneRequiresAdmin`][`GuildFeature::PruneRequiresAdmin`] feature enabled
+/// then this requires the [`ADMINISTRATOR`][`Permissions::ADMINISTRATOR`] guild
+/// permission; otherwise, this requires both the
+/// [`MANAGE_GUILD`][`Permissions::MANAGE_GUILD`] and
+/// [`KICK_MEMBERS`][`Permissions::KICK_MEMBERS`] permissions.
+///
+/// [`GuildFeature::PruneRequiresAdmin`]: twilight_model::guild::GuildFeature::PruneRequiresAdmin
+/// [`Permissions::ADMINISTRATOR`]: twilight_model::guild::Permissions::ADMINISTRATOR
+/// [`Permissions::KICK_MEMBERS`]: twilight_model::guild::Permissions::KICK_MEMBERS
+/// [`Permissions::MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 /// [Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildPrune<'a> {

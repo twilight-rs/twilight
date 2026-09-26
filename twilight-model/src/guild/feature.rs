@@ -49,6 +49,18 @@ pub enum GuildFeature {
     PreviewEnabled,
     /// Has access to create private threads.
     PrivateThreads,
+    /// Guild has enabled requiring admin to prune members.
+    ///
+    /// If this feature is enabled then the
+    /// [`ADMINISTRATOR`][`Permissions::ADMINISTRATOR`] guild permission is
+    /// required for guild prune operations; otherwise, only the
+    /// [`MANAGE_GUILD`][`Permissions::MANAGE_GUILD`] and
+    /// [`KICK_MEMBERS`][`Permissions::KICK_MEMBERS`] permissions are required.
+    ///
+    /// [`Permissions::ADMINISTRATOR`]: super::Permissions::ADMINISTRATOR
+    /// [`Permissions::KICK_MEMBERS`]: super::Permissions::KICK_MEMBERS
+    /// [`Permissions::MANAGE_GUILD`]: super::Permissions::MANAGE_GUILD
+    PruneRequiresAdmin,
     /// Guild has disabled alerts for join raids in the configured safety alerts channel.
     RaidAlertsDisabled,
     /// Is able to set role icons.
@@ -94,6 +106,7 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::Partnered => "PARTNERED".into(),
             GuildFeature::PreviewEnabled => "PREVIEW_ENABLED".into(),
             GuildFeature::PrivateThreads => "PRIVATE_THREADS".into(),
+            GuildFeature::PruneRequiresAdmin => "PRUNE_REQUIRES_ADMIN".into(),
             GuildFeature::RaidAlertsDisabled => "RAID_ALERTS_DISABLED".into(),
             GuildFeature::RoleIcons => "ROLE_ICONS".into(),
             GuildFeature::RoleSubscriptionsAvailableForPurchase => {
@@ -131,6 +144,7 @@ impl From<String> for GuildFeature {
             "PARTNERED" => Self::Partnered,
             "PREVIEW_ENABLED" => Self::PreviewEnabled,
             "PRIVATE_THREADS" => Self::PrivateThreads,
+            "PRUNE_REQUIRES_ADMIN" => Self::PruneRequiresAdmin,
             "RAID_ALERTS_DISABLED" => Self::RaidAlertsDisabled,
             "ROLE_ICONS" => Self::RoleIcons,
             "ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE" => {
@@ -198,6 +212,10 @@ mod tests {
         serde_test::assert_tokens(
             &GuildFeature::PrivateThreads,
             &[Token::Str("PRIVATE_THREADS")],
+        );
+        serde_test::assert_tokens(
+            &GuildFeature::PruneRequiresAdmin,
+            &[Token::Str("PRUNE_REQUIRES_ADMIN")],
         );
         serde_test::assert_tokens(&GuildFeature::RoleIcons, &[Token::Str("ROLE_ICONS")]);
         serde_test::assert_tokens(
