@@ -15,6 +15,7 @@ pub struct MinimalCachedMember {
     pub user_id: Id<UserMarker>,
     pub roles: Vec<Id<RoleMarker>>,
     pub avatar: Option<ImageHash>,
+    pub banner: Option<ImageHash>,
 }
 
 impl From<Member> for MinimalCachedMember {
@@ -23,6 +24,7 @@ impl From<Member> for MinimalCachedMember {
             user_id: member.user.id,
             roles: member.roles,
             avatar: member.avatar,
+            banner: member.banner,
         }
     }
 }
@@ -33,6 +35,7 @@ impl From<(Id<UserMarker>, PartialMember)> for MinimalCachedMember {
             user_id,
             roles: member.roles,
             avatar: member.avatar,
+            banner: member.banner,
         }
     }
 }
@@ -43,13 +46,17 @@ impl From<ComputedInteractionMember> for MinimalCachedMember {
             user_id: member.user_id,
             roles: member.interaction_member.roles,
             avatar: member.avatar,
+            banner: member.banner,
         }
     }
 }
 
 impl PartialEq<Member> for MinimalCachedMember {
     fn eq(&self, other: &Member) -> bool {
-        self.user_id == other.user.id && self.roles == other.roles && self.avatar == other.avatar
+        self.user_id == other.user.id
+            && self.roles == other.roles
+            && self.avatar == other.avatar
+            && self.banner == other.banner
     }
 }
 
@@ -61,18 +68,23 @@ impl PartialEq<PartialMember> for MinimalCachedMember {
             .is_some_and(|user| user.id == self.user_id)
             && self.roles == other.roles
             && self.avatar == other.avatar
+            && self.banner == other.banner
     }
 }
 
 impl PartialEq<InteractionMember> for MinimalCachedMember {
     fn eq(&self, other: &InteractionMember) -> bool {
-        self.roles == other.roles && self.avatar == other.avatar
+        self.roles == other.roles && self.avatar == other.avatar && self.banner == other.banner
     }
 }
 
 impl CacheableMember for MinimalCachedMember {
     fn avatar(&self) -> Option<ImageHash> {
         self.avatar
+    }
+
+    fn banner(&self) -> Option<ImageHash> {
+        self.banner
     }
 
     fn communication_disabled_until(&self) -> Option<Timestamp> {
@@ -95,5 +107,6 @@ impl CacheableMember for MinimalCachedMember {
         self.user_id = member_update.user.id;
         self.roles.clone_from(&member_update.roles);
         self.avatar = member_update.avatar;
+        self.banner = member_update.banner;
     }
 }
