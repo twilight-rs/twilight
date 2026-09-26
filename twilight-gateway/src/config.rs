@@ -7,7 +7,7 @@ use std::{
 };
 use tokio_websockets::Connector;
 use twilight_model::gateway::{
-    Intents,
+    Capabilities, Intents,
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
 };
 
@@ -40,6 +40,8 @@ impl Debug for Token {
 /// [`From<Config>`] implementation and then rebuilding it into a rew config.
 #[derive(Clone, Debug)]
 pub struct Config<Q = InMemoryQueue> {
+    /// Capabilities that the shard opts into when identifying with the gateway.
+    capabilities: Capabilities,
     /// Identification properties the shard will use.
     identify_properties: Option<IdentifyProperties>,
     /// Intents that the shard requests when identifying with the gateway.
@@ -84,6 +86,11 @@ impl Config {
 }
 
 impl<Q> Config<Q> {
+    /// Capabilities that the shard opts into when identifying with the gateway.
+    pub const fn capabilities(&self) -> Capabilities {
+        self.capabilities
+    }
+
     /// Immutable reference to the identification properties the shard will use.
     pub const fn identify_properties(&self) -> Option<&IdentifyProperties> {
         self.identify_properties.as_ref()
@@ -166,6 +173,7 @@ impl ConfigBuilder {
 
         Self {
             inner: Config {
+                capabilities: Capabilities::empty(),
                 identify_properties: None,
                 intents,
                 large_threshold: 50,
@@ -324,6 +332,7 @@ impl<Q> ConfigBuilder<Q> {
     /// turns itself into a no-op.
     pub fn queue<NewQ>(self, queue: NewQ) -> ConfigBuilder<NewQ> {
         let Config {
+            capabilities,
             identify_properties,
             intents,
             large_threshold,
@@ -339,6 +348,7 @@ impl<Q> ConfigBuilder<Q> {
 
         ConfigBuilder {
             inner: Config {
+                capabilities,
                 identify_properties,
                 intents,
                 large_threshold,

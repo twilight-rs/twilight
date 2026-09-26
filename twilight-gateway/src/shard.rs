@@ -691,6 +691,7 @@ impl<Q: Queue> Shard<Q> {
 
                 self.pending = Pending::event(
                     Identify::new(IdentifyInfo {
+                        capabilities: self.config.capabilities(),
                         compress: false,
                         intents: self.config.intents(),
                         large_threshold: self.config.large_threshold(),

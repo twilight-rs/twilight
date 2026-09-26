@@ -12,6 +12,12 @@ use twilight_model::{
 };
 
 /// Get the channels in a guild.
+///
+/// # Channel Obfuscation
+///
+/// Channels the user does not have access to will not be returned via this
+/// endpoint once Discord finalizes the rollout of Channel Obfuscation on or
+/// around November 16th, 2026.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildChannels<'a> {
     guild_id: Id<GuildMarker>,

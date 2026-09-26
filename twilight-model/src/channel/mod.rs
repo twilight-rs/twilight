@@ -54,7 +54,32 @@ use serde::{Deserialize, Serialize};
 ///
 /// For Discord's documentation on channels, refer to [Discord Docs/Channel].
 ///
+/// # Obfuscated channels
+///
+/// Guild channels which a user can not access are referred to as "obfuscated
+/// channels". Obfuscated channels can be opted in to via the
+/// [`CHANNEL_OBFUSCATION`][crate::gateway::Capabilities::CHANNEL_OBFUSCATION]
+/// capability prior to its enforcement by Discord on November 16th, 2026; once
+/// released, obfuscated channels will be enforced for all users.
+///
+/// Via the HTTP API obfuscated channels aren't received.
+///
+/// Via the Gateway obfuscated channels are received with the
+/// [`ChannelFlags::CHANNEL_OBFUSCATED`] flag set in the [`flags`][Self::flags]
+/// field. Fields such as [`name`][Self::name] will be obfuscated with values
+/// such as `"___hidden___"`. The [`id`][Self::id], [`kind`][Self::kind],
+/// [`position`][Self::position], and [`parent_id`][Self::parent_id] fields
+/// won't be obfuscated and fields other than these should not be relied upon.
+/// Obfuscated channels will have a single
+/// [permission overwrite][permission_overwrite::PermissionOverwrite] denying
+/// the [`VIEW_CHANNEL`][`Permissions::VIEW_CHANNEL`] permission to the guild's
+/// `@everyone` role.
+///
+/// Refer to [Discord Docs/Channel Obfuscation].
+///
+/// [`Permissions::VIEW_CHANNEL`]: crate::guild::Permissions::VIEW_CHANNEL
 /// [Discord Docs/Channel]: https://discord.com/developers/docs/resources/channel
+/// [Discord Docs/Channel Obfuscation]: https://docs.discord.com/developers/resources/channel#channel-object-obfuscated-channels
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Channel {
     /// ID of the application that created the channel.
