@@ -5,6 +5,7 @@ mod application;
 mod application_flags;
 mod application_integration_type;
 mod current_authorization_information;
+mod event_webhook;
 mod install_params;
 mod partial_application;
 
@@ -15,6 +16,7 @@ pub use self::{
         ApplicationIntegrationMap, ApplicationIntegrationType, ApplicationIntegrationTypeConfig,
     },
     current_authorization_information::CurrentAuthorizationInformation,
+    event_webhook::EventWebhookStatus,
     install_params::InstallParams,
     partial_application::PartialApplication,
 };
