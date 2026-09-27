@@ -12,12 +12,13 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use twilight_model::{
-    channel::{Channel, Message, thread::AutoArchiveDuration},
+    channel::{Channel, Message, message::MessageFlags, thread::AutoArchiveDuration},
     id::{
         Id,
         marker::{ChannelMarker, TagMarker},
     },
 };
+use twilight_validate::message::components as validate_components;
 
 #[derive(Deserialize, Serialize)]
 pub struct ForumThread {
@@ -118,6 +119,17 @@ impl<'a> CreateForumThread<'a> {
     }
 
     fn try_into_request(mut self) -> Result<Request, Error> {
+        if let Some(components) = self.fields.message.components {
+            validate_components(
+                components,
+                self.fields
+                    .message
+                    .flags
+                    .is_some_and(|flags| flags.contains(MessageFlags::IS_COMPONENTS_V2)),
+            )
+            .map_err(Error::validation)?;
+        }
+
         let mut request = Request::builder(&Route::CreateForumThread {
             channel_id: self.channel_id.get(),
         });

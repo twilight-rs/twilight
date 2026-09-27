@@ -151,23 +151,18 @@ impl<'a> CreateFollowup<'a> {
     ///
     /// Calling this method multiple times will clear previous calls.
     ///
+    /// Components are validated when the request is built so flags set after
+    /// this method are taken into account.
+    ///
     /// # Errors
     ///
     /// Refer to the errors section of
     /// [`twilight_validate::component::component`] for a list of errors that
     /// may be returned as a result of validating each provided component.
-    pub fn components(mut self, components: &'a [Component]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
-            validate_components(
-                components,
-                fields
-                    .flags
-                    .is_some_and(|flags| flags.contains(MessageFlags::IS_COMPONENTS_V2)),
-            )?;
+    pub const fn components(mut self, components: &'a [Component]) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
             fields.components = Some(components);
-
-            Ok(fields)
-        });
+        }
 
         self
     }
@@ -296,6 +291,16 @@ impl IntoFuture for CreateFollowup<'_> {
 impl TryIntoRequest for CreateFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut fields = self.fields.map_err(Error::validation)?;
+
+        if let Some(components) = fields.components {
+            validate_components(
+                components,
+                fields
+                    .flags
+                    .is_some_and(|flags| flags.contains(MessageFlags::IS_COMPONENTS_V2)),
+            )
+            .map_err(Error::validation)?;
+        }
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
             token: self.token,
@@ -348,6 +353,29 @@ mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_model::id::Id;
+
+    #[test]
+    fn components_v2_before_flags() {
+        use twilight_model::channel::message::{Component, MessageFlags, component::TextDisplay};
+
+        let application_id = Id::new(1);
+        let client = Client::new(String::new());
+        let components = [Component::TextDisplay(TextDisplay {
+            content: "test".to_owned(),
+            id: None,
+        })];
+        let token = "foo".to_owned();
+
+        assert!(
+            client
+                .interaction(application_id)
+                .create_followup(&token)
+                .components(&components)
+                .flags(MessageFlags::IS_COMPONENTS_V2)
+                .try_into_request()
+                .is_ok()
+        );
+    }
 
     #[test]
     fn create_followup_message() -> Result<(), Box<dyn Error>> {
