@@ -1,7 +1,7 @@
 //! Optimization for skipping deserialization of unwanted events.
 
 use bitflags::bitflags;
-use twilight_model::gateway::{OpCode, event::EventType};
+use twilight_model::gateway::{Intents, OpCode, event::EventType};
 
 bitflags! {
     /// Important optimization for narrowing requested event types.
@@ -258,7 +258,6 @@ bitflags! {
         /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
         const GUILD_EMOJIS_AND_STICKERS = Self::GUILD_EMOJIS_UPDATE.bits()
             | Self::GUILD_STICKERS_UPDATE.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_INTEGRATIONS`].
         ///
         /// [`Intents::GUILD_INTEGRATIONS`]: crate::Intents::GUILD_INTEGRATIONS
@@ -266,12 +265,10 @@ bitflags! {
             | Self::INTEGRATION_CREATE.bits()
             | Self::INTEGRATION_UPDATE.bits()
             | Self::INTEGRATION_DELETE.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_INVITES`].
         ///
         /// [`Intents::GUILD_INVITES`]: crate::Intents::GUILD_INVITES
         const GUILD_INVITES = Self::INVITE_CREATE.bits() | Self::INVITE_DELETE.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MEMBERS`].
         ///
         /// [`Intents::GUILD_MEMBERS`]: crate::Intents::GUILD_MEMBERS
@@ -279,8 +276,6 @@ bitflags! {
             | Self::MEMBER_REMOVE.bits()
             | Self::MEMBER_UPDATE.bits()
             | Self::THREAD_MEMBERS_UPDATE.bits();
-
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGES`].
         ///
         /// [`Intents::GUILD_MESSAGES`]: crate::Intents::GUILD_MESSAGES
@@ -288,13 +283,11 @@ bitflags! {
             | Self::MESSAGE_DELETE.bits()
             | Self::MESSAGE_DELETE_BULK.bits()
             | Self::MESSAGE_UPDATE.bits();
-
          /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_POLLS`] and [`Intents::GUILD_MESSAGE_POLLS`].
         ///
         /// [`Intents::DIRECT_MESSAGE_POLLS`]: crate::Intents::DIRECT_MESSAGE_POLLS
         /// [`Intents::GUILD_MESSAGE_POLLS`]: crate::Intents::GUILD_MESSAGE_POLLS
         const MESSAGE_POLLS = Self::MESSAGE_POLL_VOTE_ADD.bits() | Self::MESSAGE_POLL_VOTE_REMOVE.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_REACTIONS`].
         ///
         /// [`Intents::GUILD_MESSAGE_REACTIONS`]: crate::Intents::GUILD_MESSAGE_REACTIONS
@@ -302,17 +295,14 @@ bitflags! {
             | Self::REACTION_REMOVE.bits()
             | Self::REACTION_REMOVE_ALL.bits()
             | Self::REACTION_REMOVE_EMOJI.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_TYPING`].
         ///
         /// [`Intents::GUILD_MESSAGE_TYPING`]: crate::Intents::GUILD_MESSAGE_TYPING
         const GUILD_MESSAGE_TYPING = Self::TYPING_START.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_PRESENCES`].
         ///
         /// [`Intents::GUILD_PRESENCES`]: crate::Intents::GUILD_PRESENCES
         const GUILD_PRESENCES = Self::PRESENCE_UPDATE.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_SCHEDULED_EVENTS`].
         ///
         /// [`Intents::GUILD_SCHEDULED_EVENTS`]: crate::Intents::GUILD_SCHEDULED_EVENTS
@@ -321,17 +311,87 @@ bitflags! {
             | Self::GUILD_SCHEDULED_EVENT_UPDATE.bits()
             | Self::GUILD_SCHEDULED_EVENT_USER_ADD.bits()
             | Self::GUILD_SCHEDULED_EVENT_USER_REMOVE.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
         ///
         /// [`Intents::GUILD_VOICE_STATES`]: crate::Intents::GUILD_VOICE_STATES
         const GUILD_VOICE_STATES = Self::VOICE_STATE_UPDATE.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::GUILD_WEBHOOKS`].
         ///
         /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
         const GUILD_WEBHOOKS = Self::WEBHOOKS_UPDATE.bits();
 
+        /// All [`EventTypeFlags`] which do not require you to enable [`Intents`].
+        const BASE = Self::COMMAND_PERMISSIONS_UPDATE.bits()
+        | Self::ENTITLEMENT_CREATE.bits()
+        | Self::ENTITLEMENT_DELETE.bits()
+        | Self::ENTITLEMENT_UPDATE.bits()
+        | Self::GATEWAY_HEARTBEAT.bits()
+        | Self::GATEWAY_HEARTBEAT_ACK.bits()
+        | Self::GATEWAY_HELLO.bits()
+        | Self::GATEWAY_INVALIDATE_SESSION.bits()
+        | Self::GATEWAY_RECONNECT.bits()
+        | Self::INTERACTION_CREATE.bits()
+        | Self::MEMBER_CHUNK.bits()
+        | Self::RATE_LIMITED.bits()
+        | Self::READY.bits()
+        | Self::RESUMED.bits()
+        | Self::USER_UPDATE.bits()
+        | Self::VOICE_SERVER_UPDATE.bits();
+    }
+}
+
+impl EventTypeFlags {
+    /// Extends a base [`EventTypeFlags`] with [`Intents`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_gateway::EventTypeFlags;
+    /// use twilight_model::gateway::Intents;
+    ///
+    /// let intents = Intents::all();
+    ///
+    /// let event_type_flags = EventTypeFlags::BASE;
+    ///
+    /// event_type_flags.extend_with_intents(intents);
+    /// ```
+    #[must_use]
+    pub fn extend_with_intents(self, intents: Intents) -> Self {
+        self | intents.into()
+    }
+}
+
+impl From<Intents> for EventTypeFlags {
+    fn from(intents: Intents) -> Self {
+        let mut event_type_flags = Self::empty();
+
+        for (_, intent) in intents.iter_names() {
+            event_type_flags |= match intent {
+                Intents::AUTO_MODERATION_CONFIGURATION => Self::AUTO_MODERATION_CONFIGURATION,
+                Intents::AUTO_MODERATION_EXECUTION => Self::AUTO_MODERATION_EXECUTION,
+                Intents::DIRECT_MESSAGES => Self::DIRECT_MESSAGES,
+                Intents::DIRECT_MESSAGE_REACTIONS => Self::DIRECT_MESSAGE_REACTIONS,
+                Intents::DIRECT_MESSAGE_TYPING => Self::DIRECT_MESSAGE_TYPING,
+                Intents::GUILDS => Self::GUILDS,
+                Intents::GUILD_MODERATION => Self::GUILD_MODERATION,
+                Intents::GUILD_EMOJIS_AND_STICKERS => Self::GUILD_EMOJIS_AND_STICKERS,
+                Intents::GUILD_INTEGRATIONS => Self::GUILD_INTEGRATIONS,
+                Intents::GUILD_INVITES => Self::GUILD_INVITES,
+                Intents::GUILD_MEMBERS => Self::GUILD_MEMBERS,
+                Intents::GUILD_MESSAGES => Self::GUILD_MESSAGES,
+                Intents::GUILD_MESSAGE_POLLS | Intents::DIRECT_MESSAGE_POLLS => Self::MESSAGE_POLLS,
+                Intents::GUILD_MESSAGE_REACTIONS => Self::GUILD_MESSAGE_REACTIONS,
+                Intents::GUILD_MESSAGE_TYPING => Self::GUILD_MESSAGE_TYPING,
+                Intents::GUILD_PRESENCES => Self::GUILD_PRESENCES,
+                Intents::GUILD_SCHEDULED_EVENTS => Self::GUILD_SCHEDULED_EVENTS,
+                Intents::GUILD_VOICE_STATES => Self::GUILD_VOICE_STATES,
+                Intents::GUILD_WEBHOOKS => Self::GUILD_WEBHOOKS,
+                Intents::MESSAGE_CONTENT => Self::empty(),
+                _ => unimplemented!("Unimplemented Intent to EventTypeFlags mapping"),
+            }
+        }
+
+        event_type_flags
     }
 }
 
