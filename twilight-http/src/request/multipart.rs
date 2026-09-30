@@ -209,9 +209,11 @@ mod tests {
     #[test]
     fn file_part_is_one_exact_allocation() {
         let file = vec![7u8; 9 * 1024 * 1024];
-        let form = Form::new()
-            .json_part(b"payload_json", b"{}")
-            .file_part(b"files[0]", b"chunk.bin", &file);
+        let form = Form::new().json_part(b"payload_json", b"{}").file_part(
+            b"files[0]",
+            b"chunk.bin",
+            &file,
+        );
 
         let buffer = form.build();
 
