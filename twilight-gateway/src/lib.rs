@@ -101,6 +101,7 @@ pub const API_VERSION: u8 = 10;
 ///
 /// Panics if the bucket id is greater than or equal to the total number of
 /// buckets.
+#[inline]
 #[track_caller]
 pub fn bucket(
     bucket_id: u16,
@@ -116,6 +117,10 @@ pub fn bucket(
     let len = q + u32::from(bucket_id < r);
     let start = bucket_id * q + r.min(bucket_id);
 
+    // Compiler hint deduced from mathematical proof.
+    if shards < start + len {
+        std::process::abort();
+    }
     (start..start + len).map(move |id| ShardId::new(id, shards))
 }
 
