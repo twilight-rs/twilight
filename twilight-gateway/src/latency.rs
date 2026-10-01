@@ -172,7 +172,7 @@ mod tests {
             recent: [Duration::MAX; Latency::RECENT_LEN],
             sent: None,
         };
-        assert!(no_recents.recent().is_empty());
+        assert_eq!(no_recents.recent(), [] as [std::time::Duration; _]);
 
         // Assert that when only some recent latencies aren't the sentinel value
         // then a partial slice is returned.
@@ -221,7 +221,7 @@ mod tests {
         assert_eq!(latency.periods(), 0);
         assert!(latency.received().is_none());
         assert!(latency.sent().is_none());
-        assert!(latency.recent().is_empty());
+        assert_eq!(latency.recent(), [] as [std::time::Duration; _]);
 
         latency.record_sent();
         assert_eq!(latency.periods(), 0);
