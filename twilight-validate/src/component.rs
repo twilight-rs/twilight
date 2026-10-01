@@ -1777,7 +1777,11 @@ mod tests {
         // 45 characters or 180 bytes
         let label = "🪄".repeat(45);
         assert_eq!(label.chars().count(), 45);
-        assert_eq!(label.len(), 180);
+        // Annoyingly you cannot put this attribute onto the assert_eq or label.len() directly.
+        #[allow(clippy::disallowed_methods)] // Here we specifically want the length in bytes.
+        {
+            assert_eq!(label.len(), 180);
+        }
         assert!(component_text_input_label(label).is_ok());
 
         // 46 characters should fail.
