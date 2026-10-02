@@ -38,6 +38,11 @@ impl Form {
     }
 
     pub fn part(mut self, name: &[u8], value: &[u8]) -> Self {
+        self.reserve_part(
+            Self::CONTENT_DISPOSITION_1.len() + name.len() + Self::CONTENT_DISPOSITION_3.len(),
+            value.len(),
+        );
+
         // Write the Content-Disposition header.
         self.buffer.extend(Self::NEWLINE);
         self.buffer.extend(Self::CONTENT_DISPOSITION_1);
@@ -57,6 +62,15 @@ impl Form {
     }
 
     pub fn file_part(mut self, name: &[u8], filename: &[u8], value: &[u8]) -> Self {
+        self.reserve_part(
+            Self::CONTENT_DISPOSITION_1.len()
+                + name.len()
+                + Self::CONTENT_DISPOSITION_2.len()
+                + filename.len()
+                + Self::CONTENT_DISPOSITION_3.len(),
+            value.len(),
+        );
+
         // Write the Content-Disposition header.
         self.buffer.extend(Self::NEWLINE);
         self.buffer.extend(Self::CONTENT_DISPOSITION_1);
@@ -84,6 +98,16 @@ impl Form {
     }
 
     pub fn json_part(mut self, name: &[u8], value: &[u8]) -> Self {
+        self.reserve_part(
+            Self::CONTENT_DISPOSITION_1.len()
+                + name.len()
+                + Self::CONTENT_DISPOSITION_3.len()
+                + Self::CONTENT_TYPE.len()
+                + Self::APPLICATION_JSON.len()
+                + Self::NEWLINE.len(),
+            value.len(),
+        );
+
         // Write the Content-Disposition header.
         self.buffer.extend(Self::NEWLINE);
         self.buffer.extend(Self::CONTENT_DISPOSITION_1);
@@ -105,6 +129,22 @@ impl Form {
         self.buffer.extend(self.boundary);
 
         self
+    }
+}
+
+impl Form {
+    /// Reserve exactly enough for one part plus the closing terminator
+    /// `build` appends, so a large file part is written into a single
+    /// allocation of its own size instead of doubling the buffer's capacity
+    /// (and copying it) on the way.
+    fn reserve_part(&mut self, header: usize, value: usize) {
+        self.buffer.reserve_exact(
+            Self::NEWLINE.len() * 4
+                + header
+                + value
+                + Self::BOUNDARY_TERMINATOR.len() * 2
+                + self.boundary.len(),
+        );
     }
 }
 
@@ -164,5 +204,19 @@ mod tests {
 
         assert_eq!(expected.as_bytes(), buffer);
         assert_eq!(buffer_len, buffer.len());
+    }
+
+    #[test]
+    fn file_part_is_one_exact_allocation() {
+        let file = vec![7u8; 9 * 1024 * 1024];
+        let form = Form::new().json_part(b"payload_json", b"{}").file_part(
+            b"files[0]",
+            b"chunk.bin",
+            &file,
+        );
+
+        let buffer = form.build();
+
+        assert_eq!(buffer.capacity(), buffer.len());
     }
 }
