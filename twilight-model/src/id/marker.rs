@@ -312,3 +312,12 @@ pub struct WebhookMarker;
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct AvatarDecorationDataSkuMarker;
+
+/// Marker for guild member join requests.
+///
+/// Types such as [`JoinRequest`] use this ID marker.
+///
+/// [`JoinRequest`]: crate::guild::screening::JoinRequest
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct JoinRequestMarker;
