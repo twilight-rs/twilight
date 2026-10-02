@@ -5,13 +5,15 @@ mod author;
 mod field;
 mod footer;
 mod image;
+mod media_flags;
 mod provider;
 mod thumbnail;
 mod video;
 
 pub use self::{
     author::EmbedAuthor, field::EmbedField, footer::EmbedFooter, image::EmbedImage,
-    provider::EmbedProvider, thumbnail::EmbedThumbnail, video::EmbedVideo,
+    media_flags::EmbedMediaFlags, provider::EmbedProvider, thumbnail::EmbedThumbnail,
+    video::EmbedVideo,
 };
 
 use crate::util::Timestamp;
@@ -50,8 +52,8 @@ pub struct Embed {
 #[cfg(test)]
 mod tests {
     use super::{
-        Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedProvider, EmbedThumbnail,
-        EmbedVideo,
+        Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedMediaFlags, EmbedProvider,
+        EmbedThumbnail, EmbedVideo,
     };
     use crate::util::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
@@ -137,6 +139,11 @@ mod tests {
                 proxy_url: Some("https://cdn.example.com/1-hash.png".to_owned()),
                 url: "https://example.com/1.png".to_owned(),
                 width: Some(2560),
+                content_type: Some("image/png".to_owned()),
+                // Thumbhash of the twilight project logo.
+                placeholder: Some("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg".to_owned()),
+                placeholder_version: Some(1),
+                flags: Some(EmbedMediaFlags::IS_ANIMATED),
             }),
             kind: "rich".to_owned(),
             provider: Some(EmbedProvider {
@@ -157,6 +164,11 @@ mod tests {
                 proxy_url: Some("https://proxy.cdn.example.com/1-hash.mp4".to_owned()),
                 url: Some("https://cdn.example.com/1-hash.mp4".to_owned()),
                 width: Some(2560),
+                content_type: Some("video/mp4".to_owned()),
+                // Thumbhash of the twilight project logo.
+                placeholder: Some("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg".to_owned()),
+                placeholder_version: Some(1),
+                flags: Some(EmbedMediaFlags::IS_ANIMATED),
             }),
         };
 
@@ -224,7 +236,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "EmbedImage",
-                    len: 4,
+                    len: 8,
                 },
                 Token::Str("height"),
                 Token::Some,
@@ -237,6 +249,18 @@ mod tests {
                 Token::Str("width"),
                 Token::Some,
                 Token::U64(2560),
+                Token::Str("content_type"),
+                Token::Some,
+                Token::Str("image/png"),
+                Token::Str("placeholder"),
+                Token::Some,
+                Token::Str("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg"),
+                Token::Str("placeholder_version"),
+                Token::Some,
+                Token::U64(1),
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(32),
                 Token::StructEnd,
                 Token::Str("type"),
                 Token::Str("rich"),
@@ -284,7 +308,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "EmbedVideo",
-                    len: 4,
+                    len: 8,
                 },
                 Token::Str("height"),
                 Token::Some,
@@ -298,6 +322,18 @@ mod tests {
                 Token::Str("width"),
                 Token::Some,
                 Token::U64(2560),
+                Token::Str("content_type"),
+                Token::Some,
+                Token::Str("video/mp4"),
+                Token::Str("placeholder"),
+                Token::Some,
+                Token::Str("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg"),
+                Token::Str("placeholder_version"),
+                Token::Some,
+                Token::U64(1),
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(32),
                 Token::StructEnd,
                 Token::StructEnd,
             ],
