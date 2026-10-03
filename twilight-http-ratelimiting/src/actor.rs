@@ -7,6 +7,7 @@ use std::{
     future::poll_fn,
     hash::{BuildHasher, Hash, Hasher as _, RandomState},
     mem,
+    num::NonZero,
     pin::pin,
 };
 use tokio::{
@@ -99,9 +100,10 @@ const GC_INTERVAL: Duration = Duration::from_secs(60 * 60 * 6);
 /// Rate limiter actor runner.
 #[allow(clippy::too_many_lines)]
 pub async fn runner(
-    global_limit: u16,
+    global_limit: NonZero<u16>,
     mut rx: mpsc::UnboundedReceiver<(Message, Option<crate::Predicate>)>,
 ) {
+    let global_limit = global_limit.get();
     let mut global_remaining = global_limit;
     let mut global_timer = pin!(sleep(Duration::ZERO));
 
