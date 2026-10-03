@@ -3,7 +3,6 @@ use crate::{
     error::Error,
     request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;

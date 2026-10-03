@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -17,9 +16,13 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateTemplateFields<'a> {
+struct CreateTemplateBody<'a> {
     name: &'a str,
     description: Option<&'a str>,
+}
+
+pub struct CreateTemplateFields {
+    guild_id: Id<GuildMarker>,
 }
 
 /// Create a template from the current state of the guild.
@@ -35,14 +38,14 @@ struct CreateTemplateFields<'a> {
 /// [`TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
-    fields: Result<CreateTemplateFields<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
+    body: Result<CreateTemplateBody<'a>, ValidationError>,
+    fields: CreateTemplateFields,
     http: &'a Client,
 }
 
 impl<'a> CreateTemplate<'a> {
     pub(crate) fn new(http: &'a Client, guild_id: Id<GuildMarker>, name: &'a str) -> Self {
-        let fields = Ok(CreateTemplateFields {
+        let body = Ok(CreateTemplateBody {
             name,
             description: None,
         })
@@ -53,8 +56,8 @@ impl<'a> CreateTemplate<'a> {
         });
 
         Self {
-            fields,
-            guild_id,
+            body,
+            fields: CreateTemplateFields { guild_id },
             http,
         }
     }
@@ -70,7 +73,7 @@ impl<'a> CreateTemplate<'a> {
     ///
     /// [`TemplateDescription`]: twilight_validate::request::ValidationErrorType::TemplateDescription
     pub fn description(mut self, description: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             validate_template_description(description)?;
 
             fields.description.replace(description);
@@ -97,14 +100,26 @@ impl IntoFuture for CreateTemplate<'_> {
     }
 }
 
+impl Route for CreateTemplate<'_> {
+    type Fields = CreateTemplateFields;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("templates")
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreateTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateTemplate {
-            guild_id: self.guild_id.get(),
-        })
-        .json(&fields)
-        .build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&body)
+            .build()
     }
 }

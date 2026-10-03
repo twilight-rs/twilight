@@ -3,7 +3,6 @@ use crate::{
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
@@ -112,7 +111,7 @@ mod tests {
     use super::DeleteWebhookMessage;
     use crate::{
         client::Client,
-        request::{Request, TryIntoRequest},
+        request::{Method, Path, Request, Route, TryIntoRequest},
         routing::Route,
     };
     use twilight_model::id::Id;

@@ -6,9 +6,8 @@ use twilight_model::id::{
 
 use crate::{
     Client, Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
 pub struct DeleteApplicationEmoji<'a> {

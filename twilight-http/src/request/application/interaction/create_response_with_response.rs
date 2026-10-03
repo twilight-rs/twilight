@@ -3,7 +3,6 @@ use crate::{
     error::Error,
     request::{Request, TryIntoRequest, attachment::AttachmentManager},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{

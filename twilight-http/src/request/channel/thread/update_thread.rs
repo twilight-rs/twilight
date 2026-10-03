@@ -3,7 +3,6 @@ use crate::{
     error::Error,
     request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -233,7 +232,7 @@ mod tests {
     use super::{UpdateThread, UpdateThreadFields};
     use crate::{
         Client,
-        request::{Request, TryIntoRequest},
+        request::{Method, Path, Request, Route, TryIntoRequest},
         routing::Route,
     };
     use std::error::Error;

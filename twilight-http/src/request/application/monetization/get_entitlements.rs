@@ -10,9 +10,8 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 
 use twilight_validate::request::{

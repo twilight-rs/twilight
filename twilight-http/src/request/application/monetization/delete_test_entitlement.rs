@@ -7,9 +7,8 @@ use twilight_model::id::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 
 pub struct DeleteTestEntitlement<'a> {

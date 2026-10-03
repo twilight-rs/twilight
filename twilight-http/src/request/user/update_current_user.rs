@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Nullable, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -13,7 +12,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct UpdateCurrentUserFields<'a> {
+struct UpdateCurrentUserBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -28,7 +27,7 @@ struct UpdateCurrentUserFields<'a> {
 /// randomized.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUser<'a> {
-    fields: Result<UpdateCurrentUserFields<'a>, ValidationError>,
+    body: Result<UpdateCurrentUserBody<'a>, ValidationError>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -36,7 +35,7 @@ pub struct UpdateCurrentUser<'a> {
 impl<'a> UpdateCurrentUser<'a> {
     pub(crate) const fn new(http: &'a Client) -> Self {
         Self {
-            fields: Ok(UpdateCurrentUserFields {
+            body: Ok(UpdateCurrentUserBody {
                 avatar: None,
                 banner: None,
                 username: None,
@@ -54,7 +53,7 @@ impl<'a> UpdateCurrentUser<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.avatar = Some(Nullable(avatar));
         }
 
@@ -69,7 +68,7 @@ impl<'a> UpdateCurrentUser<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn banner(mut self, banner: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.banner = Some(Nullable(banner));
         }
 
@@ -87,7 +86,7 @@ impl<'a> UpdateCurrentUser<'a> {
     ///
     /// [`Username`]: twilight_validate::request::ValidationErrorType::Username
     pub fn username(mut self, username: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             validate_username(username)?;
             fields.username.replace(username);
 
@@ -121,11 +120,21 @@ impl IntoFuture for UpdateCurrentUser<'_> {
     }
 }
 
+impl Route for UpdateCurrentUser<'_> {
+    type Fields = ();
+
+    const METHOD: Method = Method::Patch;
+
+    fn path(_: Self::Fields) -> Path {
+        Path::builder().resource("users").me().build()
+    }
+}
+
 impl TryIntoRequest for UpdateCurrentUser<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
-        let mut request = Request::builder(&Route::UpdateCurrentUser).json(&fields);
+        let mut request = Request::builder_new::<Self>(()).json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

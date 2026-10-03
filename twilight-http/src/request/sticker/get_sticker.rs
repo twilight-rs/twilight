@@ -1,15 +1,18 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
     channel::message::sticker::Sticker,
     id::{Id, marker::StickerMarker},
 };
+
+pub struct GetStickerFields {
+    sticker_id: Id<StickerMarker>,
+}
 
 /// Returns a single sticker by its ID.
 ///
@@ -29,13 +32,16 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetSticker<'a> {
+    fields: GetStickerFields,
     http: &'a Client,
-    sticker_id: Id<StickerMarker>,
 }
 
 impl<'a> GetSticker<'a> {
     pub(crate) const fn new(http: &'a Client, sticker_id: Id<StickerMarker>) -> Self {
-        Self { http, sticker_id }
+        Self {
+            fields: GetStickerFields { sticker_id },
+            http,
+        }
     }
 }
 
@@ -54,10 +60,21 @@ impl IntoFuture for GetSticker<'_> {
     }
 }
 
+impl Route for GetSticker<'_> {
+    type Fields = GetStickerFields;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("stickers")
+            .id(fields.sticker_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetSticker {
-            sticker_id: self.sticker_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

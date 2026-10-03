@@ -11,9 +11,8 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::ResponseFuture,
-    routing::Route,
 };
 
 /// Owner of a test entitlement.

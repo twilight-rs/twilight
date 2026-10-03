@@ -7,9 +7,8 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::ResponseFuture,
-    routing::Route,
 };
 
 /// Get the onboarding information for a guild.

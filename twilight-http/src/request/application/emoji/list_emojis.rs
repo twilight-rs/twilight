@@ -2,9 +2,8 @@ use std::future::IntoFuture;
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::ResponseFuture,
-    routing::Route,
 };
 use twilight_model::{
     application::EmojiList,

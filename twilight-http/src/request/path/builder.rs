@@ -37,12 +37,20 @@ pub struct QueryMarker;
 #[non_exhaustive]
 pub struct ResourceMarker;
 
+/// Marker indicating the most recent part is a subresource name.
+///
+/// The only part that may come immediately after a subresource is an ID.
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct SubresourceMarker;
+
 pub trait PathMarker {}
 
 impl PathMarker for ActionMarker {}
 impl PathMarker for IdMarker {}
 impl PathMarker for QueryMarker {}
 impl PathMarker for ResourceMarker {}
+impl PathMarker for SubresourceMarker {}
 
 #[derive(Debug)]
 pub struct PathBuilder<T> {
@@ -224,6 +232,56 @@ impl PathBuilder<ResourceMarker> {
 
     pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
         write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
+
+        PathBuilder {
+            buffer: self.buffer,
+            phantom: PhantomData,
+        }
+    }
+
+    pub fn subresource(mut self, subresource: &'static str) -> PathBuilder<SubresourceMarker> {
+        self.buffer.push('/');
+        self.buffer.push_str(subresource);
+
+        PathBuilder {
+            buffer: self.buffer,
+            phantom: PhantomData,
+        }
+    }
+
+    pub fn string_id(mut self, id: &str) -> PathBuilder<IdMarker> {
+        self.buffer.push('/');
+        self.buffer.push_str(id);
+
+        PathBuilder {
+            buffer: self.buffer,
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl PathBuilder<SubresourceMarker> {
+    pub fn id<T>(mut self, id: Id<T>) -> PathBuilder<IdMarker> {
+        write!(self.buffer, "/{id}").expect("formatting IDs never fails");
+
+        PathBuilder {
+            buffer: self.buffer,
+            phantom: PhantomData,
+        }
+    }
+
+    pub fn integer_id(mut self, id: u64) -> PathBuilder<IdMarker> {
+        self.buffer.push('/');
+        write!(self.buffer, "{id}").expect("formatting integers can't fail");
+
+        PathBuilder {
+            buffer: self.buffer,
+            phantom: PhantomData,
+        }
+    }
+
+    pub fn me(mut self) -> PathBuilder<IdMarker> {
+        self.buffer.push_str("/@me");
 
         PathBuilder {
             buffer: self.buffer,

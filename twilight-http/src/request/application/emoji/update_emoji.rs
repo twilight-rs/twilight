@@ -10,9 +10,8 @@ use twilight_model::{
 
 use crate::{
     Client, Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
 #[derive(Serialize)]

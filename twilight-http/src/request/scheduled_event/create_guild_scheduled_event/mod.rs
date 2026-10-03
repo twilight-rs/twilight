@@ -13,7 +13,6 @@ use crate::{
     error::Error,
     request::{AuditLogReason, Request},
     response::ResponseFuture,
-    routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{

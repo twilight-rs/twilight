@@ -4,7 +4,6 @@ use crate::{
     error::Error,
     request::{AuditLogReason, Nullable, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;

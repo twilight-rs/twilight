@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -11,10 +10,14 @@ use twilight_model::guild::Guild;
 use twilight_validate::request::{ValidationError, guild_name as validate_guild_name};
 
 #[derive(Serialize)]
-struct CreateGuildFromTemplateFields<'a> {
+struct CreateGuildFromTemplateBody<'a> {
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
     icon: Option<&'a str>,
+}
+
+pub struct CreateGuildFromTemplateFields<'a> {
+    template_code: &'a str,
 }
 
 /// Create a new guild based on a template.
@@ -29,23 +32,23 @@ struct CreateGuildFromTemplateFields<'a> {
 /// [`GuildName`]: twilight_validate::request::ValidationErrorType::GuildName
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildFromTemplate<'a> {
-    fields: Result<CreateGuildFromTemplateFields<'a>, ValidationError>,
+    body: Result<CreateGuildFromTemplateBody<'a>, ValidationError>,
+    fields: CreateGuildFromTemplateFields<'a>,
     http: &'a Client,
-    template_code: &'a str,
 }
 
 impl<'a> CreateGuildFromTemplate<'a> {
     pub(crate) fn new(http: &'a Client, template_code: &'a str, name: &'a str) -> Self {
-        let fields = Ok(CreateGuildFromTemplateFields { name, icon: None }).and_then(|fields| {
+        let body = Ok(CreateGuildFromTemplateBody { name, icon: None }).and_then(|fields| {
             validate_guild_name(name)?;
 
             Ok(fields)
         });
 
         Self {
-            fields,
+            body,
+            fields: CreateGuildFromTemplateFields { template_code },
             http,
-            template_code,
         }
     }
 
@@ -57,7 +60,7 @@ impl<'a> CreateGuildFromTemplate<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn icon(mut self, icon: &'a str) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.icon = Some(icon);
         }
 
@@ -80,15 +83,27 @@ impl IntoFuture for CreateGuildFromTemplate<'_> {
     }
 }
 
+impl<'a> Route for CreateGuildFromTemplate<'a> {
+    type Fields = CreateGuildFromTemplateFields<'a>;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("guilds")
+            .subresource("templates")
+            .string_id(fields.template_code)
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreateGuildFromTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateGuildFromTemplate {
-            template_code: self.template_code,
-        })
-        .json(&fields)
-        .build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&body)
+            .build()
     }
 }
 

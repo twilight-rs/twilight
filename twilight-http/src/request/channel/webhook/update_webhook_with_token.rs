@@ -3,7 +3,6 @@ use crate::{
     error::Error,
     request::{Nullable, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
