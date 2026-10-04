@@ -13,7 +13,7 @@ use twilight_model::channel::message::component::{
 
 pub use component_v2::{
     CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT, CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT,
-    CHECKBOXGROUP_MINIMUM_VALUES_LIMIT, CHECKBOXGROUP_OPTION_COUNT,
+    CHECKBOXGROUP_MINIMUM_VALUES_LIMIT, CHECKBOXGROUP_OPTION_COUNT, FILE_UPLOAD_FILE_TYPES_LIMIT,
     FILE_UPLOAD_MAXIMUM_VALUES_LIMIT, FILE_UPLOAD_MINIMUM_VALUES_LIMIT,
     LABEL_DESCRIPTION_LENGTH_MAX, LABEL_LABEL_LENGTH_MAX,
     MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN,
@@ -486,6 +486,13 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&FILE_UPLOAD_MINIMUM_VALUES_LIMIT, f)
             }
+            ComponentValidationErrorType::FileUploadFileTypesCount { count } => {
+                f.write_str("number of file type filters is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but must be less than or equal to ")?;
+
+                Display::fmt(&FILE_UPLOAD_FILE_TYPES_LIMIT, f)
+            }
         }
     }
 }
@@ -713,6 +720,12 @@ pub enum ComponentValidationErrorType {
         ///
         /// [`FileUpload::min_values`]: twilight_model::channel::message::component::FileUpload::min_values
         count: u8,
+    },
+    /// Number of file type filters is larger than
+    /// [the maximum][`FILE_UPLOAD_FILE_TYPES_LIMIT`].
+    FileUploadFileTypesCount {
+        /// Provided number of file types.
+        count: usize,
     },
 }
 
