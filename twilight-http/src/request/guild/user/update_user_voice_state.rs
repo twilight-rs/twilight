@@ -1,8 +1,9 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Method, Path, Request, Route, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
+    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;

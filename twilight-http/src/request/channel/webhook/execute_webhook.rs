@@ -7,6 +7,7 @@ use crate::{
         channel::webhook::ExecuteWebhookAndWait,
     },
     response::{Response, ResponseFuture, marker::EmptyBody},
+    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;

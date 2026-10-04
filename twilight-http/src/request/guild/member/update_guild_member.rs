@@ -1,8 +1,9 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Method, Nullable, Path, Request, Route, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
+    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -21,7 +22,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct UpdateGuildMemberBody<'a> {
+struct UpdateGuildMemberFields<'a> {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Nullable<Id<ChannelMarker>>>,
@@ -37,11 +38,6 @@ struct UpdateGuildMemberBody<'a> {
     roles: Option<&'a [Id<RoleMarker>]>,
 }
 
-pub struct UpdateGuildMemberFields {
-    guild_id: Id<GuildMarker>,
-    user_id: Id<UserMarker>,
-}
-
 /// Update a guild member.
 ///
 /// All fields are optional. See [Discord Docs/Modify Guild Member].
@@ -49,9 +45,10 @@ pub struct UpdateGuildMemberFields {
 /// [Discord Docs/Modify Guild Member]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMember<'a> {
-    body: Result<UpdateGuildMemberBody<'a>, ValidationError>,
-    fields: UpdateGuildMemberFields,
+    fields: Result<UpdateGuildMemberFields<'a>, ValidationError>,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    user_id: Id<UserMarker>,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -62,7 +59,7 @@ impl<'a> UpdateGuildMember<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            body: Ok(UpdateGuildMemberBody {
+            fields: Ok(UpdateGuildMemberFields {
                 channel_id: None,
                 communication_disabled_until: None,
                 deaf: None,
@@ -70,15 +67,16 @@ impl<'a> UpdateGuildMember<'a> {
                 nick: None,
                 roles: None,
             }),
-            fields: UpdateGuildMemberFields { guild_id, user_id },
+            guild_id,
             http,
+            user_id,
             reason: Ok(None),
         }
     }
 
     /// Move the member to a different voice channel.
     pub const fn channel_id(mut self, channel_id: Option<Id<ChannelMarker>>) -> Self {
-        if let Ok(fields) = self.body.as_mut() {
+        if let Ok(fields) = self.fields.as_mut() {
             fields.channel_id = Some(Nullable(channel_id));
         }
 
@@ -102,7 +100,7 @@ impl<'a> UpdateGuildMember<'a> {
     /// [`CommunicationDisabledUntil`]: twilight_validate::request::ValidationErrorType::CommunicationDisabledUntil
     /// [`MODERATE_MEMBERS`]: twilight_model::guild::Permissions::MODERATE_MEMBERS
     pub fn communication_disabled_until(mut self, timestamp: Option<Timestamp>) -> Self {
-        self.body = self.body.and_then(|mut fields| {
+        self.fields = self.fields.and_then(|mut fields| {
             if let Some(timestamp) = timestamp {
                 validate_communication_disabled_until(timestamp)?;
             }
@@ -117,7 +115,7 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// If true, restrict the member's ability to hear sound from a voice channel.
     pub const fn deaf(mut self, deaf: bool) -> Self {
-        if let Ok(fields) = self.body.as_mut() {
+        if let Ok(fields) = self.fields.as_mut() {
             fields.deaf = Some(deaf);
         }
 
@@ -126,7 +124,7 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// If true, restrict the member's ability to speak in a voice channel.
     pub const fn mute(mut self, mute: bool) -> Self {
-        if let Ok(fields) = self.body.as_mut() {
+        if let Ok(fields) = self.fields.as_mut() {
             fields.mute = Some(mute);
         }
 
@@ -144,7 +142,7 @@ impl<'a> UpdateGuildMember<'a> {
     ///
     /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
     pub fn nick(mut self, nick: Option<&'a str>) -> Self {
-        self.body = self.body.and_then(|mut fields| {
+        self.fields = self.fields.and_then(|mut fields| {
             if let Some(nick) = nick {
                 validate_nickname(nick)?;
             }
@@ -159,7 +157,7 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// Set the new list of roles for a member.
     pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        if let Ok(fields) = self.body.as_mut() {
+        if let Ok(fields) = self.fields.as_mut() {
             fields.roles = Some(roles);
         }
 
@@ -190,25 +188,14 @@ impl IntoFuture for UpdateGuildMember<'_> {
     }
 }
 
-impl Route for UpdateGuildMember<'_> {
-    type Fields = UpdateGuildMemberFields;
-
-    const METHOD: Method = Method::Patch;
-
-    fn path(fields: Self::Fields) -> Path {
-        Path::builder()
-            .resource("guilds")
-            .id(fields.guild_id)
-            .resource("members")
-            .id(fields.user_id)
-            .build()
-    }
-}
-
 impl TryIntoRequest for UpdateGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_new::<Self>(self.fields).json(&body);
+        let fields = self.fields.map_err(Error::validation)?;
+        let mut request = Request::builder(&Route::UpdateMember {
+            guild_id: self.guild_id.get(),
+            user_id: self.user_id.get(),
+        })
+        .json(&fields);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
@@ -220,13 +207,11 @@ impl TryIntoRequest for UpdateGuildMember<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::{UpdateGuildMember, UpdateGuildMemberBody};
+    use super::{UpdateGuildMember, UpdateGuildMemberFields};
     use crate::{
         Client,
-        request::{
-            Nullable, Request, TryIntoRequest,
-            guild::member::update_guild_member::UpdateGuildMemberFields, route::Route,
-        },
+        request::{Nullable, Request, TryIntoRequest},
+        routing::Route,
     };
     use std::error::Error;
     use twilight_model::id::{
@@ -245,7 +230,7 @@ mod tests {
             .mute(true);
         let actual = builder.try_into_request()?;
 
-        let body = UpdateGuildMemberBody {
+        let body = UpdateGuildMemberFields {
             channel_id: None,
             communication_disabled_until: None,
             deaf: Some(true),
@@ -253,13 +238,11 @@ mod tests {
             nick: None,
             roles: None,
         };
-        let fields = UpdateGuildMemberFields {
-            guild_id: GUILD_ID,
-            user_id: USER_ID,
+        let route = Route::UpdateMember {
+            guild_id: GUILD_ID.get(),
+            user_id: USER_ID.get(),
         };
-        let expected = Request::builder_new::<UpdateGuildMember>(fields)
-            .json(&body)
-            .build()?;
+        let expected = Request::builder(&route).json(&body).build()?;
 
         assert_eq!(actual.body, expected.body);
         assert_eq!(actual.path, expected.path);
@@ -273,7 +256,7 @@ mod tests {
         let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(None);
         let actual = builder.try_into_request()?;
 
-        let body = UpdateGuildMemberBody {
+        let body = UpdateGuildMemberFields {
             channel_id: None,
             communication_disabled_until: None,
             deaf: None,
@@ -281,13 +264,11 @@ mod tests {
             nick: Some(Nullable(None)),
             roles: None,
         };
-        let fields = UpdateGuildMemberFields {
-            guild_id: GUILD_ID,
-            user_id: USER_ID,
+        let route = Route::UpdateMember {
+            guild_id: GUILD_ID.get(),
+            user_id: USER_ID.get(),
         };
-        let expected = Request::builder_new::<UpdateGuildMember>(fields)
-            .json(&body)
-            .build()?;
+        let expected = Request::builder(&route).json(&body).build()?;
 
         assert_eq!(actual.body, expected.body);
 
@@ -300,7 +281,7 @@ mod tests {
         let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(Some("foo"));
         let actual = builder.try_into_request()?;
 
-        let body = UpdateGuildMemberBody {
+        let body = UpdateGuildMemberFields {
             channel_id: None,
             communication_disabled_until: None,
             deaf: None,
@@ -308,13 +289,11 @@ mod tests {
             nick: Some(Nullable(Some("foo"))),
             roles: None,
         };
-        let fields = UpdateGuildMemberFields {
-            guild_id: GUILD_ID,
-            user_id: USER_ID,
+        let route = Route::UpdateMember {
+            guild_id: GUILD_ID.get(),
+            user_id: USER_ID.get(),
         };
-        let expected = Request::builder_new::<UpdateGuildMember>(fields)
-            .json(&body)
-            .build()?;
+        let expected = Request::builder(&route).json(&body).build()?;
 
         assert_eq!(actual.body, expected.body);
 

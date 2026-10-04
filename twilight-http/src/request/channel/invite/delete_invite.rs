@@ -3,6 +3,7 @@ use crate::{
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
+    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};

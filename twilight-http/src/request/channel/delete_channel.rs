@@ -3,6 +3,7 @@ use crate::{
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
+    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{

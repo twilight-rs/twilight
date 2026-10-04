@@ -18,6 +18,7 @@ use crate::{
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
+    routing::Route,
 };
 
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};

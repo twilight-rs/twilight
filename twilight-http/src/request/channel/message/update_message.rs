@@ -6,6 +6,7 @@ use crate::{
         attachment::{AttachmentManager, PartialAttachment},
     },
     response::{Response, ResponseFuture},
+    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;

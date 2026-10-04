@@ -2,7 +2,7 @@ use super::ExecuteWebhook;
 use crate::{
     client::Client,
     error::Error,
-    request::{Method, Path, Request, Route, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
 };
 use std::future::IntoFuture;

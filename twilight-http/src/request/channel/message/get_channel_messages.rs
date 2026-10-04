@@ -2,8 +2,9 @@ use super::GetChannelMessagesConfigured;
 use crate::{
     client::Client,
     error::Error,
-    request::{Method, Path, Request, Route, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture, marker::ListBody},
+    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
