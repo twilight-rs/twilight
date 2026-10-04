@@ -10,9 +10,13 @@ use crate::{
     response::{Response, ResponseFuture},
 };
 
-pub struct DeleteApplicationEmoji<'a> {
+pub(crate) struct DeleteApplicationEmojiFields {
     application_id: Id<ApplicationMarker>,
     emoji_id: Id<EmojiMarker>,
+}
+
+pub struct DeleteApplicationEmoji<'a> {
+    fields: DeleteApplicationEmojiFields,
     http: &'a Client,
 }
 
@@ -23,8 +27,10 @@ impl<'a> DeleteApplicationEmoji<'a> {
         emoji_id: Id<EmojiMarker>,
     ) -> Self {
         Self {
-            application_id,
-            emoji_id,
+            fields: DeleteApplicationEmojiFields {
+                application_id,
+                emoji_id,
+            },
             http,
         }
     }
@@ -45,11 +51,23 @@ impl IntoFuture for DeleteApplicationEmoji<'_> {
     }
 }
 
+impl Route for DeleteApplicationEmoji<'_> {
+    type Fields = DeleteApplicationEmojiFields;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("emojis")
+            .id(fields.emoji_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for DeleteApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteApplicationEmoji {
-            application_id: self.application_id.get(),
-            emoji_id: self.emoji_id.get(),
-        }))
+        Request::builder_new::<Self>(self.fields).build()
     }
 }

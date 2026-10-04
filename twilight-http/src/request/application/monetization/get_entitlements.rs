@@ -20,6 +20,7 @@ use twilight_validate::request::{
 
 struct GetEntitlementsFields<'a> {
     after: Option<Id<EntitlementMarker>>,
+    application_id: Id<ApplicationMarker>,
     before: Option<Id<EntitlementMarker>>,
     exclude_ended: Option<bool>,
     guild_id: Option<Id<GuildMarker>>,
@@ -31,7 +32,6 @@ struct GetEntitlementsFields<'a> {
 /// Get all entitlements for a given app, active and expired.
 #[must_use = "requests must be configured and executed"]
 pub struct GetEntitlements<'a> {
-    application_id: Id<ApplicationMarker>,
     fields: GetEntitlementsFields<'a>,
     http: &'a Client,
 }
@@ -39,9 +39,9 @@ pub struct GetEntitlements<'a> {
 impl<'a> GetEntitlements<'a> {
     pub(crate) const fn new(http: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
         Self {
-            application_id,
             fields: GetEntitlementsFields {
                 after: None,
+                application_id,
                 before: None,
                 exclude_ended: None,
                 guild_id: None,
@@ -129,17 +129,29 @@ impl IntoFuture for GetEntitlements<'_> {
     }
 }
 
+impl<'a> Route for GetEntitlements<'a> {
+    type Fields = GetEntitlementsFields<'a>;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("entitlements")
+            .optional_parameter("after", fields.after)
+            .optional_parameter("before", fields.before)
+            .optional_parameter("exclude_ended", fields.exclude_ended)
+            .optional_parameter("guild_id", fields.guild_id)
+            .optional_parameter("limit", fields.limit)
+            .optional_parameter("user_id", fields.user_id)
+            .csv_parameter("sku_ids", fields.sku_ids.iter().copied())
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetEntitlements<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetEntitlements {
-            after: self.fields.after.map(Id::get),
-            application_id: self.application_id.get(),
-            before: self.fields.before.map(Id::get),
-            exclude_ended: self.fields.exclude_ended,
-            guild_id: self.fields.guild_id.map(Id::get),
-            limit: self.fields.limit,
-            sku_ids: self.fields.sku_ids,
-            user_id: self.fields.user_id.map(Id::get),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

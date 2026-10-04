@@ -10,20 +10,26 @@ use twilight_model::{
     id::{Id, marker::ApplicationMarker},
 };
 
+pub(crate) struct GetGlobalCommandsFields {
+    application_id: Id<ApplicationMarker>,
+    with_localizations: Option<bool>,
+}
+
 /// Retrieve all global commands for an application.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGlobalCommands<'a> {
-    application_id: Id<ApplicationMarker>,
+    fields: GetGlobalCommandsFields,
     http: &'a Client,
-    with_localizations: Option<bool>,
 }
 
 impl<'a> GetGlobalCommands<'a> {
     pub(crate) const fn new(http: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
         Self {
-            application_id,
+            fields: GetGlobalCommandsFields {
+                application_id,
+                with_localizations: None,
+            },
             http,
-            with_localizations: None,
         }
     }
 
@@ -31,7 +37,7 @@ impl<'a> GetGlobalCommands<'a> {
     ///
     /// Defaults to [`false`].
     pub const fn with_localizations(mut self, with_localizations: bool) -> Self {
-        self.with_localizations = Some(with_localizations);
+        self.fields.with_localizations = Some(with_localizations);
 
         self
     }
@@ -52,11 +58,23 @@ impl IntoFuture for GetGlobalCommands<'_> {
     }
 }
 
+impl Route for GetGlobalCommands<'_> {
+    type Fields = GetGlobalCommandsFields;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("commands")
+            .optional_parameter("with_localizations", fields.with_localizations)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetGlobalCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetGlobalCommands {
-            application_id: self.application_id.get(),
-            with_localizations: self.with_localizations,
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

@@ -11,9 +11,13 @@ use crate::{
     response::{ResponseFuture, marker::EmptyBody},
 };
 
-pub struct DeleteTestEntitlement<'a> {
+pub(crate) struct DeleteTestEntitlementFields {
     application_id: Id<ApplicationMarker>,
     entitlement_id: Id<EntitlementMarker>,
+}
+
+pub struct DeleteTestEntitlement<'a> {
+    fields: DeleteTestEntitlementFields,
     http: &'a Client,
 }
 
@@ -24,8 +28,10 @@ impl<'a> DeleteTestEntitlement<'a> {
         entitlement_id: Id<EntitlementMarker>,
     ) -> Self {
         Self {
-            application_id,
-            entitlement_id,
+            fields: DeleteTestEntitlementFields {
+                application_id,
+                entitlement_id,
+            },
             http,
         }
     }
@@ -46,12 +52,23 @@ impl IntoFuture for DeleteTestEntitlement<'_> {
     }
 }
 
+impl Route for DeleteTestEntitlement<'_> {
+    type Fields = DeleteTestEntitlementFields;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("entitlements")
+            .id(fields.entitlement_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for DeleteTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::DeleteTestEntitlement {
-            application_id: self.application_id.get(),
-            entitlement_id: self.entitlement_id.get(),
-        })
-        .build()
+        Request::builder_new::<Self>(self.fields).build()
     }
 }

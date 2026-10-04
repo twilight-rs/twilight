@@ -15,7 +15,7 @@ use twilight_model::{
 };
 
 #[derive(Serialize)]
-struct UpdateGuildCommandFields<'a> {
+struct UpdateGuildCommandBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -26,6 +26,12 @@ struct UpdateGuildCommandFields<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
+pub(crate) struct UpdateGuildCommandFields {
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Edit a command in a guild, by ID.
 ///
 /// You must specify a name and description. See
@@ -34,10 +40,8 @@ struct UpdateGuildCommandFields<'a> {
 /// [Discord Docs/Edit Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildCommand<'a> {
-    fields: UpdateGuildCommandFields<'a>,
-    application_id: Id<ApplicationMarker>,
-    command_id: Id<CommandMarker>,
-    guild_id: Id<GuildMarker>,
+    body: UpdateGuildCommandBody<'a>,
+    fields: UpdateGuildCommandFields,
     http: &'a Client,
 }
 
@@ -49,43 +53,45 @@ impl<'a> UpdateGuildCommand<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
-            fields: UpdateGuildCommandFields {
+            body: UpdateGuildCommandBody {
                 description: None,
                 name: None,
                 nsfw: None,
                 options: None,
             },
-            guild_id,
+            fields: UpdateGuildCommandFields {
+                application_id,
+                command_id,
+                guild_id,
+            },
             http,
         }
     }
 
     /// Edit the name of the command.
     pub const fn name(mut self, name: &'a str) -> Self {
-        self.fields.name = Some(name);
+        self.body.name = Some(name);
 
         self
     }
 
     /// Edit the description of the command.
     pub const fn description(mut self, description: &'a str) -> Self {
-        self.fields.description = Some(description);
+        self.body.description = Some(description);
 
         self
     }
 
     /// Edit the command options of the command.
     pub const fn command_options(mut self, options: &'a [CommandOption]) -> Self {
-        self.fields.options = Some(options);
+        self.body.options = Some(options);
 
         self
     }
 
     /// Edit whether the command is age-restricted.
     pub const fn nsfw(mut self, nsfw: bool) -> Self {
-        self.fields.nsfw = Some(nsfw);
+        self.body.nsfw = Some(nsfw);
 
         self
     }
@@ -106,14 +112,27 @@ impl IntoFuture for UpdateGuildCommand<'_> {
     }
 }
 
+impl Route for UpdateGuildCommand<'_> {
+    type Fields = UpdateGuildCommandFields;
+
+    const METHOD: Method = Method::Patch;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for UpdateGuildCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateGuildCommand {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
-            guild_id: self.guild_id.get(),
-        })
-        .json(&self.fields)
-        .build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&self.body)
+            .build()
     }
 }

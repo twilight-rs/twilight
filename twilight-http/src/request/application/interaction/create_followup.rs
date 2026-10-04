@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        Nullable, Request, TryIntoRequest,
+        Method, Nullable, Path, Request, Route, TryIntoRequest,
         attachment::{AttachmentManager, PartialAttachment},
     },
     response::{Response, ResponseFuture},
@@ -21,7 +21,7 @@ use twilight_validate::message::{
 };
 
 #[derive(Serialize)]
-struct CreateFollowupFields<'a> {
+struct CreateFollowupBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<Nullable<&'a AllowedMentions>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -40,6 +40,12 @@ struct CreateFollowupFields<'a> {
     flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     poll: Option<Poll>,
+}
+
+pub(crate) struct CreateFollowupFields<'a> {
+    application_id: Id<ApplicationMarker>,
+    token: &'a str,
+    with_components: bool,
 }
 
 /// Create a followup message to an interaction, by its token.
@@ -74,11 +80,10 @@ struct CreateFollowupFields<'a> {
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowup<'a> {
-    application_id: Id<ApplicationMarker>,
     attachment_manager: AttachmentManager<'a>,
-    fields: Result<CreateFollowupFields<'a>, MessageValidationError>,
+    body: Result<CreateFollowupBody<'a>, MessageValidationError>,
+    fields: CreateFollowupFields<'a>,
     http: &'a Client,
-    token: &'a str,
 }
 
 impl<'a> CreateFollowup<'a> {
@@ -88,9 +93,8 @@ impl<'a> CreateFollowup<'a> {
         token: &'a str,
     ) -> Self {
         Self {
-            application_id,
             attachment_manager: AttachmentManager::new(),
-            fields: Ok(CreateFollowupFields {
+            body: Ok(CreateFollowupBody {
                 allowed_mentions: None,
                 attachments: None,
                 components: None,
@@ -101,8 +105,12 @@ impl<'a> CreateFollowup<'a> {
                 flags: None,
                 poll: None,
             }),
+            fields: CreateFollowupFields {
+                application_id,
+                token,
+                with_components: false,
+            },
             http,
-            token,
         }
     }
 
@@ -111,7 +119,7 @@ impl<'a> CreateFollowup<'a> {
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
     pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.allowed_mentions = Some(Nullable(allowed_mentions));
         }
 
@@ -133,9 +141,9 @@ impl<'a> CreateFollowup<'a> {
     /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
-        if self.fields.is_ok() {
+        if self.body.is_ok() {
             if let Err(source) = attachments.iter().try_for_each(validate_attachment) {
-                self.fields = Err(source);
+                self.body = Err(source);
             } else {
                 self.attachment_manager = self
                     .attachment_manager
@@ -156,16 +164,16 @@ impl<'a> CreateFollowup<'a> {
     /// [`twilight_validate::component::component`] for a list of errors that
     /// may be returned as a result of validating each provided component.
     pub fn components(mut self, components: &'a [Component]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_components(
                 components,
-                fields
-                    .flags
+                body.flags
                     .is_some_and(|flags| flags.contains(MessageFlags::IS_COMPONENTS_V2)),
             )?;
-            fields.components = Some(components);
+            self.fields.with_components = !components.is_empty();
+            body.components = Some(components);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -182,7 +190,7 @@ impl<'a> CreateFollowup<'a> {
     ///
     /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
     pub fn content(mut self, content: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             validate_content(content)?;
             fields.content = Some(content);
 
@@ -213,7 +221,7 @@ impl<'a> CreateFollowup<'a> {
     /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             validate_embeds(embeds)?;
             fields.embeds = Some(embeds);
 
@@ -231,7 +239,7 @@ impl<'a> CreateFollowup<'a> {
     /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
     /// [`IS_COMPONENTS_V2`]: MessageFlags::IS_COMPONENTS_V2
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.flags = Some(flags);
         }
 
@@ -251,7 +259,7 @@ impl<'a> CreateFollowup<'a> {
     /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
     /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.payload_json = Some(payload_json);
         }
 
@@ -260,7 +268,7 @@ impl<'a> CreateFollowup<'a> {
 
     /// Specify true if the message is TTS.
     pub const fn tts(mut self, tts: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.tts = Some(tts);
         }
 
@@ -269,7 +277,7 @@ impl<'a> CreateFollowup<'a> {
 
     /// Specify the poll for this followup message.
     pub fn poll(mut self, poll: Poll) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.poll = Some(poll);
         }
 
@@ -292,50 +300,56 @@ impl IntoFuture for CreateFollowup<'_> {
     }
 }
 
+impl<'a> Route for CreateFollowup<'a> {
+    type Fields = CreateFollowupFields<'a>;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("webhooks")
+            .id(fields.application_id)
+            .no_resource()
+            .string_id(fields.token)
+            .parameter("with_components", fields.with_components)
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreateFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut fields = self.fields.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::ExecuteWebhook {
-            thread_id: None,
-            token: self.token,
-            wait: None,
-            with_components: Some(
-                fields
-                    .components
-                    .is_some_and(|components| !components.is_empty()),
-            ),
-            webhook_id: self.application_id.get(),
-        });
+        let mut body = self.body.map_err(Error::validation)?;
+        let mut request = Request::builder_new::<Self>(self.fields);
 
         // Interaction executions don't need the authorization token, only the
         // interaction token.
         request = request.use_authorization_token(false);
 
         // Set the default allowed mentions if required.
-        if fields.allowed_mentions.is_none()
+        if body.allowed_mentions.is_none()
             && let Some(allowed_mentions) = self.http.default_allowed_mentions()
         {
-            fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
+            body.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
         if !self.attachment_manager.is_empty() {
-            let form = if let Some(payload_json) = fields.payload_json {
+            let form = if let Some(payload_json) = body.payload_json {
                 self.attachment_manager.build_form(payload_json)
             } else {
-                fields.attachments = Some(self.attachment_manager.get_partial_attachments());
+                body.attachments = Some(self.attachment_manager.get_partial_attachments());
 
-                let fields = crate::json::to_vec(&fields).map_err(Error::json)?;
+                let fields = crate::json::to_vec(&body).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };
 
             request = request.form(form);
-        } else if let Some(payload_json) = fields.payload_json {
+        } else if let Some(payload_json) = body.payload_json {
             request = request.body(payload_json.to_vec());
         } else {
-            request = request.json(&fields);
+            request = request.json(&body);
         }
 
         request.build()

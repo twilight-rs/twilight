@@ -16,11 +16,16 @@ use twilight_model::{
 };
 use twilight_validate::command::{CommandValidationError, name as validate_name};
 
-struct CreateGuildUserCommandFields<'a> {
+struct CreateGuildUserCommandBody<'a> {
     default_member_permissions: Option<Permissions>,
     name: &'a str,
     name_localizations: Option<&'a HashMap<String, String>>,
     nsfw: Option<bool>,
+}
+
+pub(crate) struct CreateGuildUserCommandFields {
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
 }
 
 /// Create a user command in a guild.
@@ -32,9 +37,8 @@ struct CreateGuildUserCommandFields<'a> {
 /// [Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildUserCommand<'a> {
-    application_id: Id<ApplicationMarker>,
-    fields: Result<CreateGuildUserCommandFields<'a>, CommandValidationError>,
-    guild_id: Id<GuildMarker>,
+    body: Result<CreateGuildUserCommandBody<'a>, CommandValidationError>,
+    fields: CreateGuildUserCommandFields,
     http: &'a Client,
 }
 
@@ -45,7 +49,7 @@ impl<'a> CreateGuildUserCommand<'a> {
         guild_id: Id<GuildMarker>,
         name: &'a str,
     ) -> Self {
-        let fields = Ok(CreateGuildUserCommandFields {
+        let body = Ok(CreateGuildUserCommandBody {
             default_member_permissions: None,
             name,
             name_localizations: None,
@@ -58,9 +62,11 @@ impl<'a> CreateGuildUserCommand<'a> {
         });
 
         Self {
-            application_id,
-            fields,
-            guild_id,
+            body,
+            fields: CreateGuildUserCommandFields {
+                application_id,
+                guild_id,
+            },
             http,
         }
     }
@@ -69,7 +75,7 @@ impl<'a> CreateGuildUserCommand<'a> {
     ///
     /// Defaults to [`None`].
     pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.default_member_permissions = Some(default);
         }
 
@@ -86,7 +92,7 @@ impl<'a> CreateGuildUserCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     pub fn name_localizations(mut self, localizations: &'a HashMap<String, String>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             for name in localizations.values() {
                 validate_name(name)?;
             }
@@ -103,7 +109,7 @@ impl<'a> CreateGuildUserCommand<'a> {
     ///
     /// Defaults to not being specified, which uses Discord's default.
     pub const fn nsfw(mut self, nsfw: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.nsfw = Some(nsfw);
         }
 
@@ -126,26 +132,40 @@ impl IntoFuture for CreateGuildUserCommand<'_> {
     }
 }
 
+impl Route for CreateGuildUserCommand<'_> {
+    type Fields = CreateGuildUserCommandFields;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("commands")
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreateGuildUserCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
+        let application_id = self.fields.application_id;
 
-        Request::builder(&Route::CreateGuildCommand {
-            application_id: self.application_id.get(),
-            guild_id: self.guild_id.get(),
-        })
-        .json(&CommandBorrowed {
-            application_id: Some(self.application_id),
-            default_member_permissions: fields.default_member_permissions,
-            dm_permission: None,
-            description: None,
-            description_localizations: None,
-            kind: CommandType::User,
-            name: fields.name,
-            name_localizations: fields.name_localizations,
-            nsfw: fields.nsfw,
-            options: None,
-        })
-        .build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&CommandBorrowed {
+                application_id: Some(application_id),
+                default_member_permissions: body.default_member_permissions,
+                dm_permission: None,
+                description: None,
+                description_localizations: None,
+                kind: CommandType::User,
+                name: body.name,
+                name_localizations: body.name_localizations,
+                nsfw: body.nsfw,
+                options: None,
+            })
+            .build()
     }
 }

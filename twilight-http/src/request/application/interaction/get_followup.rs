@@ -1,8 +1,9 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Method, Path, Request, Route, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{Response, ResponseFuture},
+    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -92,7 +93,7 @@ mod tests {
     use super::GetFollowup;
     use crate::{
         client::Client,
-        request::{Method, Path, Request, Route, TryIntoRequest},
+        request::{Request, TryIntoRequest},
         routing::Route,
     };
     use static_assertions::assert_impl_all;

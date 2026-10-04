@@ -10,11 +10,15 @@ use twilight_model::id::{
     marker::{ApplicationMarker, CommandMarker},
 };
 
+pub(crate) struct DeleteGlobalCommandFields {
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+}
+
 /// Delete a global command, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGlobalCommand<'a> {
-    application_id: Id<ApplicationMarker>,
-    command_id: Id<CommandMarker>,
+    fields: DeleteGlobalCommandFields,
     http: &'a Client,
 }
 
@@ -25,8 +29,10 @@ impl<'a> DeleteGlobalCommand<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
+            fields: DeleteGlobalCommandFields {
+                application_id,
+                command_id,
+            },
             http,
         }
     }
@@ -47,11 +53,23 @@ impl IntoFuture for DeleteGlobalCommand<'_> {
     }
 }
 
+impl Route for DeleteGlobalCommand<'_> {
+    type Fields = DeleteGlobalCommandFields;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for DeleteGlobalCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteGlobalCommand {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }
