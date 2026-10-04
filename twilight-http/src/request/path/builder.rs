@@ -2,10 +2,7 @@
 //! for use with Discord's REST API.
 
 use super::{Path, QueryParameter};
-use std::{
-    fmt::{Display, Write as _},
-    marker::PhantomData,
-};
+use std::{fmt::Write as _, marker::PhantomData};
 use twilight_model::id::Id;
 
 /// Marker indicating the most recent part is an action.
@@ -36,6 +33,7 @@ pub struct SubresourceMarker;
 #[derive(Debug)]
 pub struct PathBuilder<T> {
     buffer: String,
+    has_query_parameter: bool,
     phantom: PhantomData<T>,
 }
 
@@ -44,6 +42,7 @@ impl PathBuilder<()> {
     pub fn new() -> Self {
         Self {
             buffer: String::new(),
+            has_query_parameter: false,
             phantom: PhantomData,
         }
     }
@@ -51,8 +50,15 @@ impl PathBuilder<()> {
     pub fn resource(mut self, resource: &'static str) -> PathBuilder<ResourceMarker> {
         self.buffer.push_str(resource);
 
+        self.cast()
+    }
+}
+
+impl<T> PathBuilder<T> {
+    fn cast<To>(self) -> PathBuilder<To> {
         PathBuilder {
             buffer: self.buffer,
+            has_query_parameter: self.has_query_parameter,
             phantom: PhantomData,
         }
     }
@@ -68,23 +74,23 @@ impl PathBuilder<ActionMarker> {
         key: &str,
         value: Option<T>,
     ) -> PathBuilder<QueryMarker> {
-        if let Some(value) = value {
+        debug_assert_eq!(false, self.has_query_parameter);
+
+        if let Some(value) = value.as_ref() {
             write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
         }
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.has_query_parameter = self.has_query_parameter || value.is_some();
+
+        self.cast()
     }
 
     pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
+        self.has_query_parameter = true;
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 }
 
@@ -95,13 +101,11 @@ impl PathBuilder<IdMarker> {
 
     /// Action on a resource by ID.
     pub fn action(mut self, action: &'static str) -> PathBuilder<ActionMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         self.buffer.push_str(action);
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn optional_parameter<T: QueryParameter>(
@@ -109,33 +113,31 @@ impl PathBuilder<IdMarker> {
         key: &str,
         value: Option<T>,
     ) -> PathBuilder<QueryMarker> {
-        if let Some(value) = value {
+        debug_assert_eq!(false, self.has_query_parameter);
+
+        if let Some(value) = value.as_ref() {
             write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
         }
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.has_query_parameter |= value.is_some();
+
+        self.cast()
     }
 
     pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
+        self.has_query_parameter = true;
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn resource(mut self, resource: &'static str) -> PathBuilder<ResourceMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         self.buffer.push_str(resource);
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 }
 
@@ -149,23 +151,21 @@ impl PathBuilder<QueryMarker> {
         key: &str,
         value: Option<T>,
     ) -> PathBuilder<QueryMarker> {
-        if let Some(value) = value {
-            write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
+        if let Some(value) = value.as_ref() {
+            write!(self.buffer, "&{key}={value}").expect("formatting parameters never fails");
         }
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.has_query_parameter |= value.is_some();
+
+        self.cast()
     }
 
     pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
+        debug_assert_eq!(true, self.has_query_parameter);
         write!(self.buffer, "&{key}={value}").expect("formatting parameters never fails");
+        self.has_query_parameter = true;
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 }
 
@@ -176,41 +176,34 @@ impl PathBuilder<ResourceMarker> {
 
     /// Action within a resource.
     pub fn action(mut self, action: &'static str) -> PathBuilder<ActionMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         self.buffer.push_str(action);
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn id<T>(mut self, id: Id<T>) -> PathBuilder<IdMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         write!(self.buffer, "/{id}").expect("formatting IDs never fails");
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn integer_id(mut self, id: u64) -> PathBuilder<IdMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         write!(self.buffer, "{id}").expect("formatting integers can't fail");
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn me(mut self) -> PathBuilder<IdMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push_str("/@me");
+        self.has_query_parameter = true;
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn optional_parameter<T: QueryParameter>(
@@ -218,43 +211,39 @@ impl PathBuilder<ResourceMarker> {
         key: &str,
         value: Option<T>,
     ) -> PathBuilder<QueryMarker> {
-        if let Some(value) = value {
+        debug_assert_eq!(false, self.has_query_parameter);
+
+        if let Some(value) = value.as_ref() {
             write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
         }
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.has_query_parameter |= value.is_some();
+
+        self.cast()
     }
 
     pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
+        self.has_query_parameter = true;
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn subresource(mut self, subresource: &'static str) -> PathBuilder<SubresourceMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         self.buffer.push_str(subresource);
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn string_id(mut self, id: &str) -> PathBuilder<IdMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         self.buffer.push_str(id);
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 }
 
@@ -264,41 +253,33 @@ impl PathBuilder<SubresourceMarker> {
     }
 
     pub fn id<T>(mut self, id: Id<T>) -> PathBuilder<IdMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         write!(self.buffer, "/{id}").expect("formatting IDs never fails");
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn integer_id(mut self, id: u64) -> PathBuilder<IdMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         write!(self.buffer, "{id}").expect("formatting integers can't fail");
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn me(mut self) -> PathBuilder<IdMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push_str("/@me");
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 
     pub fn string_id(mut self, id: &str) -> PathBuilder<IdMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         self.buffer.push_str(id);
 
-        PathBuilder {
-            buffer: self.buffer,
-            phantom: PhantomData,
-        }
+        self.cast()
     }
 }
 
@@ -307,7 +288,7 @@ mod tests {
     use super::PathBuilder;
     use twilight_model::id::{
         Id,
-        marker::{ChannelMarker, GuildMarker, MessageMarker},
+        marker::{ChannelMarker, GuildMarker, MessageMarker, ScheduledEventMarker, UserMarker},
     };
 
     /// Test a path operating on a resource.
@@ -418,5 +399,38 @@ mod tests {
                 .parameter("query", "abc")
                 .build()
         );
+    }
+
+    /// Test appending an optional query parameter to a path with an existing
+    /// query parameter.
+    #[test]
+    fn optional_query_parameter_after_query_parameter() {
+        let path = PathBuilder::new()
+            .resource("guilds")
+            .id(Id::<GuildMarker>::new(1))
+            .resource("scheduled-events")
+            .id(Id::<ScheduledEventMarker>::new(2))
+            .resource("users")
+            .parameter("after", Id::<UserMarker>::new(3))
+            .optional_parameter("limit", Some(10u64))
+            .build();
+
+        assert_eq!("guilds/1/scheduled-events/2/users?after=3&limit=10", path);
+    }
+
+    /// Test appending a Some optional parameter after a None optional
+    /// parameter.
+    ///
+    /// This ensures that the second query parameter isn't appended to a path as
+    /// `foo/1/bar&baz=qux`.
+    #[test]
+    fn multiple_optional_query_parameter() {
+        let path = PathBuilder::new()
+            .resource("foo")
+            .optional_parameter("after", None::<Id<UserMarker>>)
+            .optional_parameter("limit", Some(10u64))
+            .build();
+
+        assert_eq!("foo?limit=10", path);
     }
 }

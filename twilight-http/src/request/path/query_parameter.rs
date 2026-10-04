@@ -3,7 +3,7 @@ use twilight_model::id::Id;
 
 pub trait QueryParameter: Display {}
 
-impl QueryParameter for str {}
+impl QueryParameter for &str {}
 impl QueryParameter for i8 {}
 impl QueryParameter for i16 {}
 impl QueryParameter for i32 {}
