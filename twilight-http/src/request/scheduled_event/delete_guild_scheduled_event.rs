@@ -13,6 +13,11 @@ use twilight_model::{
     },
 };
 
+pub(crate) struct DeleteGuildScheduledEventFields {
+    guild_id: Id<GuildMarker>,
+    scheduled_event_id: Id<ScheduledEventMarker>,
+}
+
 /// Delete a scheduled event in a guild.
 ///
 /// # Examples
@@ -33,9 +38,8 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGuildScheduledEvent<'a> {
-    guild_id: Id<GuildMarker>,
+    fields: DeleteGuildScheduledEventFields,
     http: &'a Client,
-    scheduled_event_id: Id<ScheduledEventMarker>,
 }
 
 impl<'a> DeleteGuildScheduledEvent<'a> {
@@ -45,9 +49,11 @@ impl<'a> DeleteGuildScheduledEvent<'a> {
         scheduled_event_id: Id<ScheduledEventMarker>,
     ) -> Self {
         Self {
-            guild_id,
+            fields: DeleteGuildScheduledEventFields {
+                guild_id,
+                scheduled_event_id,
+            },
             http,
-            scheduled_event_id,
         }
     }
 }
@@ -67,11 +73,23 @@ impl IntoFuture for DeleteGuildScheduledEvent<'_> {
     }
 }
 
+impl Route for DeleteGuildScheduledEvent<'_> {
+    type Fields = DeleteGuildScheduledEventFields;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("scheduled-events")
+            .id(fields.scheduled_event_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for DeleteGuildScheduledEvent<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteGuildScheduledEvent {
-            guild_id: self.guild_id.get(),
-            scheduled_event_id: self.scheduled_event_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

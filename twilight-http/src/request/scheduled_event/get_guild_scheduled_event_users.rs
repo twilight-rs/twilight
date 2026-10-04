@@ -19,6 +19,7 @@ use twilight_validate::request::{
 struct GetGuildScheduledEventUsersFields {
     after: Option<Id<UserMarker>>,
     before: Option<Id<UserMarker>>,
+    guild_id: Id<GuildMarker>,
     limit: Option<u16>,
     scheduled_event_id: Id<ScheduledEventMarker>,
     with_member: Option<bool>,
@@ -38,7 +39,6 @@ struct GetGuildScheduledEventUsersFields {
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildScheduledEventUsers<'a> {
     fields: Result<GetGuildScheduledEventUsersFields, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
@@ -52,11 +52,11 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
             fields: Ok(GetGuildScheduledEventUsersFields {
                 after: None,
                 before: None,
+                guild_id,
                 limit: None,
                 scheduled_event_id,
                 with_member: None,
             }),
-            guild_id,
             http,
         }
     }
@@ -134,17 +134,34 @@ impl IntoFuture for GetGuildScheduledEventUsers<'_> {
     }
 }
 
+impl Route for GetGuildScheduledEventUsers<'_> {
+    type Fields = GetGuildScheduledEventUsersFields;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        let builder = Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("scheduled-events")
+            .id(fields.scheduled_event_id)
+            .resource("users")
+            .optional_parameter("after", fields.after)
+            .optional_parameter("before", fields.before)
+            .optional_parameter("limit", fields.limit);
+
+        if fields.with_member.unwrap_or_default() {
+            builder.parameter("with_member", true).build()
+        } else {
+            builder.build()
+        }
+    }
+}
+
 impl TryIntoRequest for GetGuildScheduledEventUsers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let fields = self.fields.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::GetGuildScheduledEventUsers {
-            after: fields.after.map(Id::get),
-            before: fields.before.map(Id::get),
-            guild_id: self.guild_id.get(),
-            limit: fields.limit,
-            scheduled_event_id: fields.scheduled_event_id.get(),
-            with_member: fields.with_member.unwrap_or_default(),
-        }))
+        Ok(Request::from_route_new::<Self>(fields))
     }
 }
