@@ -18,7 +18,7 @@ use twilight_validate::request::{
     ValidationError, get_entitlements_limit as validate_get_entitlements_limit,
 };
 
-struct GetEntitlementsFields<'a> {
+pub struct GetEntitlementsFields<'a> {
     after: Option<Id<EntitlementMarker>>,
     application_id: Id<ApplicationMarker>,
     before: Option<Id<EntitlementMarker>>,

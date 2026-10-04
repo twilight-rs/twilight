@@ -15,7 +15,7 @@ use twilight_model::{
 #[serde(transparent)]
 struct SetGlobalComandsBody<'a>(&'a [Command]);
 
-pub(crate) struct SetGlobalCommandsFields {
+pub struct SetGlobalCommandsFields {
     application_id: Id<ApplicationMarker>,
 }
 

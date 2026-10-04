@@ -27,7 +27,7 @@ struct CreateGlobalChatInputCommandBody<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
-pub(crate) struct CreateGlobalChatInputCommandFields {
+pub struct CreateGlobalChatInputCommandFields {
     application_id: Id<ApplicationMarker>,
 }
 

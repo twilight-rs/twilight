@@ -26,7 +26,7 @@ struct UpdateGuildCommandBody<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
-pub(crate) struct UpdateGuildCommandFields {
+pub struct UpdateGuildCommandFields {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,

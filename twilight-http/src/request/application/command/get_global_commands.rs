@@ -10,7 +10,7 @@ use twilight_model::{
     id::{Id, marker::ApplicationMarker},
 };
 
-pub(crate) struct GetGlobalCommandsFields {
+pub struct GetGlobalCommandsFields {
     application_id: Id<ApplicationMarker>,
     with_localizations: Option<bool>,
 }

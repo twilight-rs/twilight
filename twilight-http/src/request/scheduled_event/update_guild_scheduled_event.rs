@@ -45,7 +45,7 @@ struct UpdateGuildScheduledEventBody<'a> {
     status: Option<Status>,
 }
 
-pub(crate) struct UpdateGuildScheduledEventFields {
+pub struct UpdateGuildScheduledEventFields {
     guild_id: Id<GuildMarker>,
     scheduled_event_id: Id<ScheduledEventMarker>,
 }

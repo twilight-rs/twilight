@@ -11,7 +11,7 @@ use crate::{
     response::{ResponseFuture, marker::EmptyBody},
 };
 
-pub(crate) struct DeleteTestEntitlementFields {
+pub struct DeleteTestEntitlementFields {
     application_id: Id<ApplicationMarker>,
     entitlement_id: Id<EntitlementMarker>,
 }

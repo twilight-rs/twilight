@@ -10,7 +10,7 @@ use crate::{
     response::{Response, ResponseFuture},
 };
 
-pub(crate) struct DeleteApplicationEmojiFields {
+pub struct DeleteApplicationEmojiFields {
     application_id: Id<ApplicationMarker>,
     emoji_id: Id<EmojiMarker>,
 }

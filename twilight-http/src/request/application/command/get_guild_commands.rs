@@ -13,7 +13,7 @@ use twilight_model::{
     },
 };
 
-pub(crate) struct GetGuildCommandsFields {
+pub struct GetGuildCommandsFields {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
     with_localizations: Option<bool>,

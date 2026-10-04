@@ -19,7 +19,7 @@ struct UpdateApplicationEmojiBody<'a> {
     name: &'a str,
 }
 
-pub(crate) struct UpdateApplicationEmojiFields {
+pub struct UpdateApplicationEmojiFields {
     application_id: Id<ApplicationMarker>,
     emoji_id: Id<EmojiMarker>,
 }

@@ -10,7 +10,7 @@ use twilight_model::{
     id::{Id, marker::ApplicationMarker},
 };
 
-pub(crate) struct ListApplicationEmojisFields {
+pub struct ListApplicationEmojisFields {
     application_id: Id<ApplicationMarker>,
 }
 

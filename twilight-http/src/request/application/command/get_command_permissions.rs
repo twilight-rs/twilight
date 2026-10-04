@@ -13,7 +13,7 @@ use twilight_model::{
     },
 };
 
-pub(crate) struct GetCommandPermissionsFields {
+pub struct GetCommandPermissionsFields {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,

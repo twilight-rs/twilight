@@ -13,7 +13,7 @@ use twilight_model::{
     },
 };
 
-pub(crate) struct DeleteGuildScheduledEventFields {
+pub struct DeleteGuildScheduledEventFields {
     guild_id: Id<GuildMarker>,
     scheduled_event_id: Id<ScheduledEventMarker>,
 }

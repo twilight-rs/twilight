@@ -13,7 +13,7 @@ use twilight_model::{
     },
 };
 
-pub(crate) struct GetGuildScheduledEventFields {
+pub struct GetGuildScheduledEventFields {
     guild_id: Id<GuildMarker>,
     scheduled_event_id: Id<ScheduledEventMarker>,
     with_user_count: bool,

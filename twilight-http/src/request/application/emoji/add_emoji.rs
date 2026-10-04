@@ -18,7 +18,7 @@ struct AddApplicationEmojiBody<'a> {
     name: &'a str,
 }
 
-pub(crate) struct AddApplicationEmojiFields {
+pub struct AddApplicationEmojiFields {
     application_id: Id<ApplicationMarker>,
 }
 

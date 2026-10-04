@@ -21,7 +21,7 @@ struct CreateGlobalUserCommandBody<'a> {
     nsfw: Option<bool>,
 }
 
-pub(crate) struct CreateGlobalUserCommandFields {
+pub struct CreateGlobalUserCommandFields {
     application_id: Id<ApplicationMarker>,
 }
 

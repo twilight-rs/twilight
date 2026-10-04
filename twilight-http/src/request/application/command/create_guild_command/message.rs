@@ -23,7 +23,7 @@ struct CreateGuildMessageCommandBody<'a> {
     nsfw: Option<bool>,
 }
 
-pub(crate) struct CreateGuildMessageCommandFields {
+pub struct CreateGuildMessageCommandFields {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
 }

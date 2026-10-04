@@ -16,7 +16,7 @@ use twilight_validate::request::{
     ValidationError, scheduled_event_get_users as validate_scheduled_event_get_users,
 };
 
-struct GetGuildScheduledEventUsersFields {
+pub struct GetGuildScheduledEventUsersFields {
     after: Option<Id<UserMarker>>,
     before: Option<Id<UserMarker>>,
     guild_id: Id<GuildMarker>,

@@ -26,7 +26,7 @@ struct UpdateGlobalCommandBody<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
-pub(crate) struct UpdateGlobalCommandFields {
+pub struct UpdateGlobalCommandFields {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
 }

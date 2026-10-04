@@ -55,7 +55,7 @@ impl Serialize for CreateTestEntitlementBody {
     }
 }
 
-pub(crate) struct CreateTestEntitlementFields {
+pub struct CreateTestEntitlementFields {
     application_id: Id<ApplicationMarker>,
 }
 

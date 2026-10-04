@@ -13,7 +13,7 @@ use twilight_model::{
     },
 };
 
-pub(crate) struct GetGlobalCommandFields {
+pub struct GetGlobalCommandFields {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
 }

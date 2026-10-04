@@ -50,7 +50,7 @@ struct CreateGuildScheduledEventBody<'a> {
     scheduled_start_time: Option<&'a Timestamp>,
 }
 
-pub(crate) struct CreateGuildScheduledEventFields {
+pub struct CreateGuildScheduledEventFields {
     guild_id: Id<GuildMarker>,
 }
 

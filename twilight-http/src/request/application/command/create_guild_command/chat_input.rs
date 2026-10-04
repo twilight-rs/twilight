@@ -29,7 +29,7 @@ struct CreateGuildChatInputCommandBody<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
-pub(crate) struct CreateGuildChatInputCommandFields {
+pub struct CreateGuildChatInputCommandFields {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
 }

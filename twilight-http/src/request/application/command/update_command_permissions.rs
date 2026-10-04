@@ -22,7 +22,7 @@ struct UpdateCommandPermissionsBody<'a> {
     pub permissions: &'a [CommandPermission],
 }
 
-pub(crate) struct UpdateCommandPermissionsFields {
+pub struct UpdateCommandPermissionsFields {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,

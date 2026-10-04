@@ -22,7 +22,7 @@ struct UpdateTemplateBody<'a> {
 }
 
 #[derive(Serialize)]
-struct UpdateTemplateFields<'a> {
+pub struct UpdateTemplateFields<'a> {
     guild_id: Id<GuildMarker>,
     template_code: &'a str,
 }

@@ -11,7 +11,7 @@ use crate::{
     response::{ResponseFuture, marker::ListBody},
 };
 
-pub(crate) struct GetSKUsFields {
+pub struct GetSKUsFields {
     application_id: Id<ApplicationMarker>,
 }
 

@@ -10,7 +10,7 @@ use twilight_model::id::{
     marker::{ApplicationMarker, CommandMarker},
 };
 
-pub(crate) struct DeleteGlobalCommandFields {
+pub struct DeleteGlobalCommandFields {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
 }

@@ -18,7 +18,7 @@ use twilight_model::{
 #[serde(transparent)]
 struct SetGuildCommandsBody<'a>(&'a [Command]);
 
-pub(crate) struct SetGuildCommandsFields {
+pub struct SetGuildCommandsFields {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
 }

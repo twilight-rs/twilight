@@ -42,7 +42,7 @@ struct CreateFollowupBody<'a> {
     poll: Option<Poll>,
 }
 
-pub(crate) struct CreateFollowupFields<'a> {
+pub struct CreateFollowupFields<'a> {
     application_id: Id<ApplicationMarker>,
     token: &'a str,
     with_components: bool,
