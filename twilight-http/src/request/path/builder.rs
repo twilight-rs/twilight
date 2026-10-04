@@ -69,6 +69,29 @@ impl PathBuilder<ActionMarker> {
         Path { inner: self.buffer }
     }
 
+    pub fn csv_parameter<T: QueryParameter>(
+        mut self,
+        key: &str,
+        value: impl IntoIterator<Item = T>,
+    ) -> PathBuilder<QueryMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
+        self.buffer.push('?');
+        self.buffer.push_str(key);
+        self.buffer.push('=');
+
+        for (index, id) in value.into_iter().enumerate() {
+            if index > 0 {
+                self.buffer.push(',');
+            }
+
+            write!(self.buffer, "{id}").expect("formatting IDs never fails");
+        }
+
+        self.has_query_parameter = true;
+
+        self.cast()
+    }
+
     pub fn optional_parameter<T: QueryParameter>(
         mut self,
         key: &str,
@@ -104,6 +127,29 @@ impl PathBuilder<IdMarker> {
         debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         self.buffer.push_str(action);
+
+        self.cast()
+    }
+
+    pub fn csv_parameter<T: QueryParameter>(
+        mut self,
+        key: &str,
+        value: impl IntoIterator<Item = T>,
+    ) -> PathBuilder<QueryMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
+        self.buffer.push('?');
+        self.buffer.push_str(key);
+        self.buffer.push('=');
+
+        for (index, id) in value.into_iter().enumerate() {
+            if index > 0 {
+                self.buffer.push(',');
+            }
+
+            write!(self.buffer, "{id}").expect("formatting IDs never fails");
+        }
+
+        self.has_query_parameter = true;
 
         self.cast()
     }
@@ -146,6 +192,29 @@ impl PathBuilder<QueryMarker> {
         Path { inner: self.buffer }
     }
 
+    pub fn csv_parameter<T: QueryParameter>(
+        mut self,
+        key: &str,
+        value: impl IntoIterator<Item = T>,
+    ) -> PathBuilder<QueryMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
+        self.buffer.push('?');
+        self.buffer.push_str(key);
+        self.buffer.push('=');
+
+        for (index, id) in value.into_iter().enumerate() {
+            if index > 0 {
+                self.buffer.push(',');
+            }
+
+            write!(self.buffer, "{id}").expect("formatting IDs never fails");
+        }
+
+        self.has_query_parameter = true;
+
+        self.cast()
+    }
+
     pub fn optional_parameter<T: QueryParameter>(
         mut self,
         key: &str,
@@ -179,6 +248,29 @@ impl PathBuilder<ResourceMarker> {
         debug_assert_eq!(false, self.has_query_parameter);
         self.buffer.push('/');
         self.buffer.push_str(action);
+
+        self.cast()
+    }
+
+    pub fn csv_parameter<T: QueryParameter>(
+        mut self,
+        key: &str,
+        value: impl IntoIterator<Item = T>,
+    ) -> PathBuilder<QueryMarker> {
+        debug_assert_eq!(false, self.has_query_parameter);
+        self.buffer.push('?');
+        self.buffer.push_str(key);
+        self.buffer.push('=');
+
+        for (index, id) in value.into_iter().enumerate() {
+            if index > 0 {
+                self.buffer.push(',');
+            }
+
+            write!(self.buffer, "{id}").expect("formatting IDs never fails");
+        }
+
+        self.has_query_parameter = true;
 
         self.cast()
     }
