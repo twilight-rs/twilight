@@ -1,3 +1,6 @@
+//! Builder for paths using typestates to ensure structure of paths acceptable
+//! for use with Discord's REST API.
+
 use super::{Path, QueryParameter};
 use std::{
     fmt::{Display, Write as _},
@@ -6,51 +9,29 @@ use std::{
 use twilight_model::id::Id;
 
 /// Marker indicating the most recent part is an action.
-///
-/// The only part that may come immediately after an action is a query
-/// parameter.
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ActionMarker;
 
 /// Marker indicating the most recent part is an entity ID.
-///
-/// The only parts that may come immediately after an ID are a query parameter
-/// and resource.
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct IdMarker;
 
 /// Marker indicating the most recent part is a query parameter.
-///
-/// The only part that may come immediately after a query parameter is another
-/// query parameter.
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct QueryMarker;
 
 /// Marker indicating the most recent part is a resource name.
-///
-/// The only part that may come immediately after a resource is an action, ID,
-/// or query parameter.
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ResourceMarker;
 
 /// Marker indicating the most recent part is a subresource name.
-///
-/// The only part that may come immediately after a subresource is an ID.
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct SubresourceMarker;
-
-pub trait PathMarker {}
-
-impl PathMarker for ActionMarker {}
-impl PathMarker for IdMarker {}
-impl PathMarker for QueryMarker {}
-impl PathMarker for ResourceMarker {}
-impl PathMarker for SubresourceMarker {}
 
 #[derive(Debug)]
 pub struct PathBuilder<T> {
@@ -59,6 +40,7 @@ pub struct PathBuilder<T> {
 }
 
 impl PathBuilder<()> {
+    /// Create a builder for a path.
     pub fn new() -> Self {
         Self {
             buffer: String::new(),
@@ -66,7 +48,7 @@ impl PathBuilder<()> {
         }
     }
 
-    pub fn resource(mut self, resource: &str) -> PathBuilder<ResourceMarker> {
+    pub fn resource(mut self, resource: &'static str) -> PathBuilder<ResourceMarker> {
         self.buffer.push_str(resource);
 
         PathBuilder {
@@ -77,6 +59,10 @@ impl PathBuilder<()> {
 }
 
 impl PathBuilder<ActionMarker> {
+    pub fn build(self) -> Path {
+        Path { inner: self.buffer }
+    }
+
     pub fn optional_parameter<T: QueryParameter>(
         mut self,
         key: &str,
@@ -103,6 +89,10 @@ impl PathBuilder<ActionMarker> {
 }
 
 impl PathBuilder<IdMarker> {
+    pub fn build(self) -> Path {
+        Path { inner: self.buffer }
+    }
+
     /// Action on a resource by ID.
     pub fn action(mut self, action: &'static str) -> PathBuilder<ActionMarker> {
         self.buffer.push('/');
@@ -150,6 +140,10 @@ impl PathBuilder<IdMarker> {
 }
 
 impl PathBuilder<QueryMarker> {
+    pub fn build(self) -> Path {
+        Path { inner: self.buffer }
+    }
+
     pub fn optional_parameter<T: QueryParameter>(
         mut self,
         key: &str,
@@ -176,6 +170,10 @@ impl PathBuilder<QueryMarker> {
 }
 
 impl PathBuilder<ResourceMarker> {
+    pub fn build(self) -> Path {
+        Path { inner: self.buffer }
+    }
+
     /// Action within a resource.
     pub fn action(mut self, action: &'static str) -> PathBuilder<ActionMarker> {
         self.buffer.push('/');
@@ -261,6 +259,10 @@ impl PathBuilder<ResourceMarker> {
 }
 
 impl PathBuilder<SubresourceMarker> {
+    pub fn build(self) -> Path {
+        Path { inner: self.buffer }
+    }
+
     pub fn id<T>(mut self, id: Id<T>) -> PathBuilder<IdMarker> {
         write!(self.buffer, "/{id}").expect("formatting IDs never fails");
 
@@ -297,12 +299,6 @@ impl PathBuilder<SubresourceMarker> {
             buffer: self.buffer,
             phantom: PhantomData,
         }
-    }
-}
-
-impl<T: PathMarker> PathBuilder<T> {
-    pub fn build(self) -> Path {
-        Path { inner: self.buffer }
     }
 }
 
