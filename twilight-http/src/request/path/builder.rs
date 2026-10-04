@@ -154,6 +154,10 @@ impl PathBuilder<IdMarker> {
         self.cast()
     }
 
+    pub fn no_resource(self) -> PathBuilder<ResourceMarker> {
+        self.cast()
+    }
+
     pub fn optional_parameter<T: QueryParameter>(
         mut self,
         key: &str,
