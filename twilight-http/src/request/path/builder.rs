@@ -78,7 +78,7 @@ impl PathBuilder<ActionMarker> {
         }
     }
 
-    pub fn parameter(mut self, key: &str, value: impl Display) -> PathBuilder<QueryMarker> {
+    pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
         write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
 
         PathBuilder {
@@ -119,7 +119,7 @@ impl PathBuilder<IdMarker> {
         }
     }
 
-    pub fn parameter(mut self, key: &str, value: impl Display) -> PathBuilder<QueryMarker> {
+    pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
         write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
 
         PathBuilder {
@@ -159,7 +159,7 @@ impl PathBuilder<QueryMarker> {
         }
     }
 
-    pub fn parameter(mut self, key: &str, value: impl Display) -> PathBuilder<QueryMarker> {
+    pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
         write!(self.buffer, "&{key}={value}").expect("formatting parameters never fails");
 
         PathBuilder {
