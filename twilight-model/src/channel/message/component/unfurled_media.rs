@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct UnfurledMediaItem {
     /// The media type of the content. This field is ignored and provided by the
     /// API as part of the response.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content_type: Option<String>,
     /// The height of the media item. This field is ignored and provided by the
     /// API as part of the response.
