@@ -527,6 +527,8 @@ pub enum Route<'a> {
         application_id: u64,
         /// Retrieve entitlements before this time.
         before: Option<u64>,
+        /// Whether to exclude deleted entitlements.
+        exclude_deleted: Option<bool>,
         /// Whether to exclude ended entitlements.
         exclude_ended: Option<bool>,
         /// Guild ID to look up entitlements for.
@@ -1802,6 +1804,7 @@ impl Display for Route<'_> {
                 after,
                 application_id,
                 before,
+                exclude_deleted,
                 exclude_ended,
                 guild_id,
                 limit,
@@ -1822,6 +1825,11 @@ impl Display for Route<'_> {
                 if let Some(before) = before {
                     f.write_str("&before=")?;
                     Display::fmt(before, f)?;
+                }
+
+                if let Some(exclude_deleted) = exclude_deleted {
+                    f.write_str("&exclude_deleted=")?;
+                    Display::fmt(exclude_deleted, f)?;
                 }
 
                 if let Some(exclude_ended) = exclude_ended {
@@ -3811,6 +3819,7 @@ mod tests {
             after: Some(32),
             application_id: 1,
             before: Some(2),
+            exclude_deleted: Some(true),
             exclude_ended: Some(true),
             guild_id: Some(42),
             limit: Some(99),
@@ -3820,7 +3829,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            "applications/1/entitlements?after=32&before=2&exclude_ended=true&guild_id=42&limit=99&sku_ids=7&user_id=11"
+            "applications/1/entitlements?after=32&before=2&exclude_deleted=true&exclude_ended=true&guild_id=42&limit=99&sku_ids=7&user_id=11"
         );
     }
 

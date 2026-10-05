@@ -22,6 +22,7 @@ use twilight_validate::request::{
 struct GetEntitlementsFields<'a> {
     after: Option<Id<EntitlementMarker>>,
     before: Option<Id<EntitlementMarker>>,
+    exclude_deleted: Option<bool>,
     exclude_ended: Option<bool>,
     guild_id: Option<Id<GuildMarker>>,
     limit: Option<u8>,
@@ -44,6 +45,7 @@ impl<'a> GetEntitlements<'a> {
             fields: GetEntitlementsFields {
                 after: None,
                 before: None,
+                exclude_deleted: None,
                 exclude_ended: None,
                 guild_id: None,
                 limit: None,
@@ -64,6 +66,15 @@ impl<'a> GetEntitlements<'a> {
     /// Retrieve entitlements before this time.
     pub const fn before(mut self, before: Id<EntitlementMarker>) -> Self {
         self.fields.before = Some(before);
+
+        self
+    }
+
+    /// Whether to exclude deleted entitlements.
+    ///
+    /// Discord's API defaults to true.
+    pub const fn exclude_deleted(mut self, exclude_ended: bool) -> Self {
+        self.fields.exclude_ended = Some(exclude_ended);
 
         self
     }
@@ -136,6 +147,7 @@ impl TryIntoRequest for GetEntitlements<'_> {
             after: self.fields.after.map(Id::get),
             application_id: self.application_id.get(),
             before: self.fields.before.map(Id::get),
+            exclude_deleted: self.fields.exclude_deleted,
             exclude_ended: self.fields.exclude_ended,
             guild_id: self.fields.guild_id.map(Id::get),
             limit: self.fields.limit,
