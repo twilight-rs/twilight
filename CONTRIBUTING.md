@@ -3,7 +3,12 @@
 Thank you for considering adding your contribution to Twilight! This project
 would not be what it is without the support of the community. This document
 contains rules and guidelines that should be followed when making contributions
-to Twilight. 
+to Twilight.
+
+## AI contributions
+
+For guildelines regarding AI contributions see the sperate file
+`CONTRIBUTING_AI_POLICY.md`
 
 ## Project Management
 
@@ -77,7 +82,7 @@ Any kind of change can be made to the `main` branch, unless it is breaking.
 `fix` changes may target `main` if the current functionality is broken.
 Generally, `ci`, `docs`, `feat`, `fix`, `perf`, and `test` pull requests are
 made targeting the `main` branch, while larger `refactor` pull requests target
-`next`. 
+`next`.
 
 #### Merging
 
@@ -306,11 +311,11 @@ impl Structy {
     /// Short description of the method, limited to one sentence.
     ///
     /// More important information or clarification.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns an error of type [`SomethingWentWrong`] if something went wrong.
-    /// 
+    ///
     /// [`SomethingWentWrong`]: SomethingErrorType::SomethingWentWrong
     pub fn method(&self) -> Result<Something, SomethingError> {
 
