@@ -170,6 +170,12 @@ bitflags! {
         const STAGE_INSTANCE_DELETE = 1 << 58;
         /// Stage instance was updated in a stage channel.
         const STAGE_INSTANCE_UPDATE = 1 << 59;
+        /// Subscription for a Premium App has been created.
+        const SUBSCRIPTION_CREATE = 1 << 80;
+        /// Subscription for a Premium App has been deleted.
+        const SUBSCRIPTION_DELETE = 1 << 81;
+        /// Subscription for a Premium App has been updated.
+        const SUBSCRIPTION_UPDATE = 1 << 82;
         /// A thread has been created, relevant to the current user,
         /// or the current user has been added to a thread.
         const THREAD_CREATE = 1 << 50;
@@ -400,6 +406,9 @@ impl From<EventType> for EventTypeFlags {
             EventType::StageInstanceCreate => Self::STAGE_INSTANCE_CREATE,
             EventType::StageInstanceDelete => Self::STAGE_INSTANCE_DELETE,
             EventType::StageInstanceUpdate => Self::STAGE_INSTANCE_UPDATE,
+            EventType::SubscriptionCreate => Self::SUBSCRIPTION_CREATE,
+            EventType::SubscriptionDelete => Self::SUBSCRIPTION_DELETE,
+            EventType::SubscriptionUpdate => Self::SUBSCRIPTION_UPDATE,
             EventType::ThreadCreate => Self::THREAD_CREATE,
             EventType::ThreadDelete => Self::THREAD_DELETE,
             EventType::ThreadListSync => Self::THREAD_LIST_SYNC,

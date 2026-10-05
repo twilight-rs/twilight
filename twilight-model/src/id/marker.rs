@@ -267,6 +267,13 @@ pub struct StickerPackMarker;
 #[non_exhaustive]
 pub struct StickerPackSkuMarker;
 
+/// Marker for subscription IDs.
+///
+/// Types such as [`Subscription`] use this ID marker.
+///
+/// [`Subscription`]: crate::application::monetization::Subscription
+pub struct SubscriptionMarker;
+
 /// Marker for SKU IDs.
 ///
 /// Types such as [`RoleTags`] use this ID marker.

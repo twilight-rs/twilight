@@ -104,6 +104,12 @@ pub const GET_REACTIONS_LIMIT_MIN: u16 = 1;
 /// Minimum amount of users to return when getting reactions.
 pub const GET_REACTIONS_LIMIT_MAX: u16 = 100;
 
+/// Maximum amount of subscriptions to return when getting SKU subscriptions.
+pub const GET_SKU_SUBSCRIPTIONS_LIMIT_MIN: u8 = 1;
+
+/// Minimum amount of subscriptions to return when getting SKU subscriptions.
+pub const GET_SKU_SUBSCRIPTIONS_LIMIT_MAX: u8 = 100;
+
 /// Maximum length of a guild's name.
 pub const GUILD_NAME_LENGTH_MAX: usize = 100;
 
@@ -415,6 +421,15 @@ impl Display for ValidationError {
 
                 Display::fmt(&GET_REACTIONS_LIMIT_MAX, f)
             }
+            ValidationErrorType::GetSKUSubscriptions { limit } => {
+                f.write_str("provided get sku subscriptions limit is ")?;
+                Display::fmt(limit, f)?;
+                f.write_str(", but it must be at least ")?;
+                Display::fmt(&GET_SKU_SUBSCRIPTIONS_LIMIT_MIN, f)?;
+                f.write_str(" and at most ")?;
+
+                Display::fmt(&GET_SKU_SUBSCRIPTIONS_LIMIT_MAX, f)
+            }
             ValidationErrorType::GuildName { len } => {
                 f.write_str("provided guild name length is ")?;
                 Display::fmt(len, f)?;
@@ -685,6 +700,11 @@ pub enum ValidationErrorType {
     GetReactions {
         /// Invalid limit.
         limit: u16,
+    },
+    /// Provided get SKU Subscriptions limit was invalid.
+    GetSKUSubscriptions {
+        /// Invalid limit.
+        limit: u8,
     },
     /// Provided guild name was invalid.
     GuildName {
@@ -1390,6 +1410,28 @@ pub const fn get_reactions_limit(limit: u16) -> Result<(), ValidationError> {
     }
 }
 
+/// Ensure that the limit for the Get SKU Subscriptions endpoint is correct.
+///
+/// The limit must be at least [`GET_SKU_SUBSCRIPTIONS_LIMIT_MIN`] and at most
+/// [`GET_SKU_SUBSCRIPTIONS_LIMIT_MAX`]. This is based on
+/// [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`GetSKUSubscriptions`] if the limit is invalid.
+///
+/// [`GetSKUSubscriptions`]: ValidationErrorType::GetSKUSubscriptions
+/// [this documentation entry]: https://docs.discord.com/developers/resources/subscription#list-sku-subscriptions
+pub const fn get_sku_subscriptions_limit(limit: u8) -> Result<(), ValidationError> {
+    if limit >= GET_SKU_SUBSCRIPTIONS_LIMIT_MIN && limit <= GET_SKU_SUBSCRIPTIONS_LIMIT_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::GetSKUSubscriptions { limit },
+        })
+    }
+}
+
 /// Ensure that a guild name's length is correct.
 ///
 /// The length must be at least [`GUILD_NAME_LENGTH_MIN`] and at most
@@ -1999,6 +2041,15 @@ mod tests {
 
         assert!(get_reactions_limit(0).is_err());
         assert!(get_reactions_limit(101).is_err());
+    }
+
+    #[test]
+    fn get_sku_subscriptions_limit_count() {
+        assert!(get_sku_subscriptions_limit(1).is_ok());
+        assert!(get_sku_subscriptions_limit(100).is_ok());
+
+        assert!(get_sku_subscriptions_limit(0).is_err());
+        assert!(get_sku_subscriptions_limit(101).is_err());
     }
 
     #[test]
