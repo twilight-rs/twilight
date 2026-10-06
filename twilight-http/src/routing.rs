@@ -1890,6 +1890,10 @@ impl Display for Route<'_> {
             Route::GetEntitlement {
                 application_id,
                 entitlement_id,
+            }
+            | Route::DeleteTestEntitlement {
+                application_id,
+                entitlement_id,
             } => {
                 f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
@@ -2169,16 +2173,6 @@ impl Display for Route<'_> {
                 query_formatter.write_opt_param("thread_id", thread_id.as_ref())?;
                 query_formatter.write_opt_param("wait", wait.as_ref())?;
                 query_formatter.write_opt_param("with_components", with_components.as_ref())
-            }
-            Route::DeleteTestEntitlement {
-                application_id,
-                entitlement_id,
-            } => {
-                f.write_str("applications/")?;
-                Display::fmt(application_id, f)?;
-                f.write_str("/entitlements/")?;
-
-                Display::fmt(entitlement_id, f)
             }
             Route::FollowNewsChannel { channel_id } => {
                 f.write_str("channels/")?;
