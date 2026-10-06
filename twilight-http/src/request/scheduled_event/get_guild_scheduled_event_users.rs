@@ -146,9 +146,9 @@ impl Route for GetGuildScheduledEventUsers<'_> {
             .resource("scheduled-events")
             .id(fields.scheduled_event_id)
             .resource("users")
-            .optional_parameter("after", fields.after)
-            .optional_parameter("before", fields.before)
-            .optional_parameter("limit", fields.limit);
+            .parameter("after", fields.after)
+            .parameter("before", fields.before)
+            .parameter("limit", fields.limit);
 
         if fields.with_member.unwrap_or_default() {
             builder.parameter("with_member", true).build()

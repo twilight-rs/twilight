@@ -1,7 +1,7 @@
 //! Builder for paths using typestates to ensure structure of paths acceptable
 //! for use with Discord's REST API.
 
-use super::{Path, QueryParameter};
+use super::{Path, QueryParameter, QueryParameterDisplay};
 use std::{fmt::Write as _, marker::PhantomData};
 use twilight_model::id::Id;
 
@@ -69,51 +69,8 @@ impl PathBuilder<ActionMarker> {
         Path { inner: self.buffer }
     }
 
-    pub fn csv_parameter<T: QueryParameter>(
-        mut self,
-        key: &str,
-        value: impl IntoIterator<Item = T>,
-    ) -> PathBuilder<QueryMarker> {
-        debug_assert_eq!(false, self.has_query_parameter);
-        self.buffer.push('?');
-        self.buffer.push_str(key);
-        self.buffer.push('=');
-
-        for (index, id) in value.into_iter().enumerate() {
-            if index > 0 {
-                self.buffer.push(',');
-            }
-
-            write!(self.buffer, "{id}").expect("formatting IDs never fails");
-        }
-
-        self.has_query_parameter = true;
-
-        self.cast()
-    }
-
-    pub fn optional_parameter<T: QueryParameter>(
-        mut self,
-        key: &str,
-        value: Option<T>,
-    ) -> PathBuilder<QueryMarker> {
-        debug_assert_eq!(false, self.has_query_parameter);
-
-        if let Some(value) = value.as_ref() {
-            write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
-        }
-
-        self.has_query_parameter = self.has_query_parameter || value.is_some();
-
-        self.cast()
-    }
-
-    pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
-        debug_assert_eq!(false, self.has_query_parameter);
-        write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
-        self.has_query_parameter = true;
-
-        self.cast()
+    pub fn parameter(self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
+        PathBuilder::<QueryMarker>::parameter(self.cast(), key, value)
     }
 }
 
@@ -131,55 +88,16 @@ impl PathBuilder<IdMarker> {
         self.cast()
     }
 
-    pub fn csv_parameter<T: QueryParameter>(
-        mut self,
-        key: &str,
-        value: impl IntoIterator<Item = T>,
-    ) -> PathBuilder<QueryMarker> {
-        debug_assert_eq!(false, self.has_query_parameter);
-        self.buffer.push('?');
-        self.buffer.push_str(key);
-        self.buffer.push('=');
-
-        for (index, id) in value.into_iter().enumerate() {
-            if index > 0 {
-                self.buffer.push(',');
-            }
-
-            write!(self.buffer, "{id}").expect("formatting IDs never fails");
-        }
-
-        self.has_query_parameter = true;
-
-        self.cast()
-    }
-
     pub fn no_resource(self) -> PathBuilder<ResourceMarker> {
-        self.cast()
-    }
-
-    pub fn optional_parameter<T: QueryParameter>(
-        mut self,
-        key: &str,
-        value: Option<T>,
-    ) -> PathBuilder<QueryMarker> {
         debug_assert_eq!(false, self.has_query_parameter);
-
-        if let Some(value) = value.as_ref() {
-            write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
-        }
-
-        self.has_query_parameter |= value.is_some();
 
         self.cast()
     }
 
-    pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
+    pub fn parameter(self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
         debug_assert_eq!(false, self.has_query_parameter);
-        write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
-        self.has_query_parameter = true;
 
-        self.cast()
+        PathBuilder::<QueryMarker>::parameter(self.cast(), key, value)
     }
 
     pub fn resource(mut self, resource: &'static str) -> PathBuilder<ResourceMarker> {
@@ -196,47 +114,18 @@ impl PathBuilder<QueryMarker> {
         Path { inner: self.buffer }
     }
 
-    pub fn csv_parameter<T: QueryParameter>(
-        mut self,
-        key: &str,
-        value: impl IntoIterator<Item = T>,
-    ) -> PathBuilder<QueryMarker> {
-        debug_assert_eq!(false, self.has_query_parameter);
-        self.buffer.push('?');
-        self.buffer.push_str(key);
-        self.buffer.push('=');
-
-        for (index, id) in value.into_iter().enumerate() {
-            if index > 0 {
-                self.buffer.push(',');
-            }
-
-            write!(self.buffer, "{id}").expect("formatting IDs never fails");
-        }
-
-        self.has_query_parameter = true;
-
-        self.cast()
-    }
-
-    pub fn optional_parameter<T: QueryParameter>(
-        mut self,
-        key: &str,
-        value: Option<T>,
-    ) -> PathBuilder<QueryMarker> {
-        if let Some(value) = value.as_ref() {
-            write!(self.buffer, "&{key}={value}").expect("formatting parameters never fails");
-        }
-
-        self.has_query_parameter |= value.is_some();
-
-        self.cast()
-    }
-
     pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
-        debug_assert_eq!(true, self.has_query_parameter);
-        write!(self.buffer, "&{key}={value}").expect("formatting parameters never fails");
-        self.has_query_parameter = true;
+        if value.has_value() {
+            let prefix = if self.has_query_parameter { '&' } else { '?' };
+
+            write!(
+                self.buffer,
+                "{prefix}{key}={}",
+                QueryParameterDisplay::new(value)
+            )
+            .expect("formatting parameters never fails");
+            self.has_query_parameter = true;
+        }
 
         self.cast()
     }
@@ -256,29 +145,6 @@ impl PathBuilder<ResourceMarker> {
         self.cast()
     }
 
-    pub fn csv_parameter<T: QueryParameter>(
-        mut self,
-        key: &str,
-        value: impl IntoIterator<Item = T>,
-    ) -> PathBuilder<QueryMarker> {
-        debug_assert_eq!(false, self.has_query_parameter);
-        self.buffer.push('?');
-        self.buffer.push_str(key);
-        self.buffer.push('=');
-
-        for (index, id) in value.into_iter().enumerate() {
-            if index > 0 {
-                self.buffer.push(',');
-            }
-
-            write!(self.buffer, "{id}").expect("formatting IDs never fails");
-        }
-
-        self.has_query_parameter = true;
-
-        self.cast()
-    }
-
     pub fn id<T>(mut self, id: Id<T>) -> PathBuilder<IdMarker> {
         debug_assert_eq!(false, self.has_query_parameter);
         write!(self.buffer, "/{id}").expect("formatting IDs never fails");
@@ -294,36 +160,14 @@ impl PathBuilder<ResourceMarker> {
         self.cast()
     }
 
-    pub fn me(mut self) -> PathBuilder<IdMarker> {
-        debug_assert_eq!(false, self.has_query_parameter);
-        self.buffer.push_str("/@me");
-        self.has_query_parameter = true;
-
-        self.cast()
+    pub fn me(self) -> PathBuilder<IdMarker> {
+        self.string_id("@me")
     }
 
-    pub fn optional_parameter<T: QueryParameter>(
-        mut self,
-        key: &str,
-        value: Option<T>,
-    ) -> PathBuilder<QueryMarker> {
+    pub fn parameter(self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
         debug_assert_eq!(false, self.has_query_parameter);
 
-        if let Some(value) = value.as_ref() {
-            write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
-        }
-
-        self.has_query_parameter |= value.is_some();
-
-        self.cast()
-    }
-
-    pub fn parameter(mut self, key: &str, value: impl QueryParameter) -> PathBuilder<QueryMarker> {
-        debug_assert_eq!(false, self.has_query_parameter);
-        write!(self.buffer, "?{key}={value}").expect("formatting parameters never fails");
-        self.has_query_parameter = true;
-
-        self.cast()
+        PathBuilder::<QueryMarker>::parameter(self.cast(), key, value)
     }
 
     pub fn subresource(mut self, subresource: &'static str) -> PathBuilder<SubresourceMarker> {
@@ -363,11 +207,8 @@ impl PathBuilder<SubresourceMarker> {
         self.cast()
     }
 
-    pub fn me(mut self) -> PathBuilder<IdMarker> {
-        debug_assert_eq!(false, self.has_query_parameter);
-        self.buffer.push_str("/@me");
-
-        self.cast()
+    pub fn me(self) -> PathBuilder<IdMarker> {
+        self.string_id("@me")
     }
 
     pub fn string_id(mut self, id: &str) -> PathBuilder<IdMarker> {
@@ -508,7 +349,7 @@ mod tests {
             .id(Id::<ScheduledEventMarker>::new(2))
             .resource("users")
             .parameter("after", Id::<UserMarker>::new(3))
-            .optional_parameter("limit", Some(10u64))
+            .parameter("limit", Some(10u64))
             .build();
 
         assert_eq!("guilds/1/scheduled-events/2/users?after=3&limit=10", path);
@@ -523,8 +364,8 @@ mod tests {
     fn multiple_optional_query_parameter() {
         let path = PathBuilder::new()
             .resource("foo")
-            .optional_parameter("after", None::<Id<UserMarker>>)
-            .optional_parameter("limit", Some(10u64))
+            .parameter("after", None::<Id<UserMarker>>)
+            .parameter("limit", Some(10u64))
             .build();
 
         assert_eq!("foo?limit=10", path);

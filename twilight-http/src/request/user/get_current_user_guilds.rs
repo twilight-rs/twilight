@@ -129,9 +129,9 @@ impl Route for GetCurrentUserGuilds<'_> {
             .resource("users")
             .me()
             .resource("guilds")
-            .optional_parameter("after", fields.after)
-            .optional_parameter("before", fields.before)
-            .optional_parameter("limit", fields.limit)
+            .parameter("after", fields.after)
+            .parameter("before", fields.before)
+            .parameter("limit", fields.limit)
             .build()
     }
 }

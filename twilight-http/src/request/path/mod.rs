@@ -13,6 +13,8 @@ mod query_parameter;
 
 pub use self::query_parameter::QueryParameter;
 
+pub(crate) use self::query_parameter::QueryParameterDisplay;
+
 use self::builder::PathBuilder;
 use std::fmt::{Display, Error as FmtError, Formatter};
 

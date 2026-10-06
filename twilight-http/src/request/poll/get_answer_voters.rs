@@ -98,8 +98,8 @@ impl Route for GetAnswerVoters<'_> {
             .id(fields.message_id)
             .resource("answers")
             .integer_id(u64::from(fields.answer_id))
-            .optional_parameter("after", fields.after)
-            .optional_parameter("limit", fields.limit)
+            .parameter("after", fields.after)
+            .parameter("limit", fields.limit)
             .build()
     }
 }

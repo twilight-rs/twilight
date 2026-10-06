@@ -68,7 +68,7 @@ impl Route for GetGlobalCommands<'_> {
             .resource("applications")
             .id(fields.application_id)
             .resource("commands")
-            .optional_parameter("with_localizations", fields.with_localizations)
+            .parameter("with_localizations", fields.with_localizations)
             .build()
     }
 }

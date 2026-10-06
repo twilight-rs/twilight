@@ -79,7 +79,7 @@ impl Route for GetGuildCommands<'_> {
             .resource("guilds")
             .id(fields.guild_id)
             .resource("commands")
-            .optional_parameter("with_localizations", fields.with_localizations)
+            .parameter("with_localizations", fields.with_localizations)
             .build()
     }
 }
