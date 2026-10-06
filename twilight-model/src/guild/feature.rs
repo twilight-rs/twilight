@@ -16,6 +16,8 @@ pub enum GuildFeature {
     AnimatedBanner,
     /// Has access to set an animated guild icon.
     AnimatedIcon,
+    /// Guild is using the old permissions configuration behavior.
+    ApplicationCommandPermissionsV2,
     /// Has set up auto moderation rules.
     AutoModeration,
     /// Has access to set a guild banner image.
@@ -31,14 +33,22 @@ pub enum GuildFeature {
     DeveloperSupportServer,
     /// Is able to be discovered in the directory.
     Discoverable,
+    /// Guild is able to set gradient colors to roles.
+    EnhancedRoleColors,
     /// Is able to be featured in the directory.
     Featurable,
+    /// Guild has access to guest invites.
+    GuestsEnabled,
+    /// Guild has access to set guild tags.
+    GuildTags,
     /// Invites have been paused, this prevents new users from joining.
     InvitesDisabled,
     /// Has access to set an invite splash background.
     InviteSplash,
     /// Has enabled membership screening.
     MemberVerificationGateEnabled,
+    /// Guild has increased custom soundboard sound slots.
+    MoreSoundboard,
     /// Has increased custom sticker slots.
     MoreStickers,
     /// Has access to create news channels.
@@ -69,6 +79,8 @@ pub enum GuildFeature {
     RoleSubscriptionsAvailableForPurchase,
     /// Guild has enabled role subscriptions.
     RoleSubscriptionsEnabled,
+    /// Guild has created soundboard sounds.
+    Soundboard,
     /// Has enabled ticketed events.
     TicketedEventsEnabled,
     /// Has access to set a vanity URL.
@@ -88,6 +100,9 @@ impl From<GuildFeature> for Cow<'static, str> {
         match value {
             GuildFeature::AnimatedBanner => "ANIMATED_BANNER".into(),
             GuildFeature::AnimatedIcon => "ANIMATED_ICON".into(),
+            GuildFeature::ApplicationCommandPermissionsV2 => {
+                "APPLICATION_COMMAND_PERMISSIONS_V2".into()
+            }
             GuildFeature::AutoModeration => "AUTO_MODERATION".into(),
             GuildFeature::Banner => "BANNER".into(),
             GuildFeature::Community => "COMMUNITY".into(),
@@ -95,12 +110,16 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::CreatorStorePage => "CREATOR_STORE_PAGE".into(),
             GuildFeature::DeveloperSupportServer => "DEVELOPER_SUPPORT_SERVER".into(),
             GuildFeature::Discoverable => "DISCOVERABLE".into(),
+            GuildFeature::EnhancedRoleColors => "ENHANCED_ROLE_COLORS".into(),
             GuildFeature::Featurable => "FEATURABLE".into(),
+            GuildFeature::GuestsEnabled => "GUESTS_ENABLED".into(),
+            GuildFeature::GuildTags => "GUILD_TAGS".into(),
             GuildFeature::InvitesDisabled => "INVITES_DISABLED".into(),
             GuildFeature::InviteSplash => "INVITE_SPLASH".into(),
             GuildFeature::MemberVerificationGateEnabled => {
                 "MEMBER_VERIFICATION_GATE_ENABLED".into()
             }
+            GuildFeature::MoreSoundboard => "MORE_SOUNDBOARD".into(),
             GuildFeature::MoreStickers => "MORE_STICKERS".into(),
             GuildFeature::News => "NEWS".into(),
             GuildFeature::Partnered => "PARTNERED".into(),
@@ -113,6 +132,7 @@ impl From<GuildFeature> for Cow<'static, str> {
                 "ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE".into()
             }
             GuildFeature::RoleSubscriptionsEnabled => "ROLE_SUBSCRIPTIONS_ENABLED".into(),
+            GuildFeature::Soundboard => "SOUNDBOARD".into(),
             GuildFeature::TicketedEventsEnabled => "TICKETED_EVENTS_ENABLED".into(),
             GuildFeature::VanityUrl => "VANITY_URL".into(),
             GuildFeature::Verified => "VERIFIED".into(),
@@ -128,6 +148,7 @@ impl From<String> for GuildFeature {
         match value.as_str() {
             "ANIMATED_BANNER" => Self::AnimatedBanner,
             "ANIMATED_ICON" => Self::AnimatedIcon,
+            "APPLICATION_COMMAND_PERMISSIONS_V2" => Self::ApplicationCommandPermissionsV2,
             "AUTO_MODERATION" => Self::AutoModeration,
             "BANNER" => Self::Banner,
             "COMMUNITY" => Self::Community,
@@ -135,10 +156,14 @@ impl From<String> for GuildFeature {
             "CREATOR_STORE_PAGE" => GuildFeature::CreatorStorePage,
             "DEVELOPER_SUPPORT_SERVER" => Self::DeveloperSupportServer,
             "DISCOVERABLE" => Self::Discoverable,
+            "ENHANCED_ROLE_COLORS" => Self::EnhancedRoleColors,
             "FEATURABLE" => Self::Featurable,
+            "GUESTS_ENABLED" => Self::GuestsEnabled,
+            "GUILD_TAGS" => Self::GuildTags,
             "INVITES_DISABLED" => Self::InvitesDisabled,
             "INVITE_SPLASH" => Self::InviteSplash,
             "MEMBER_VERIFICATION_GATE_ENABLED" => Self::MemberVerificationGateEnabled,
+            "MORE_SOUNDBOARD" => Self::MoreSoundboard,
             "MORE_STICKERS" => Self::MoreStickers,
             "NEWS" => Self::News,
             "PARTNERED" => Self::Partnered,
@@ -151,6 +176,7 @@ impl From<String> for GuildFeature {
                 GuildFeature::RoleSubscriptionsAvailableForPurchase
             }
             "ROLE_SUBSCRIPTIONS_ENABLED" => GuildFeature::RoleSubscriptionsEnabled,
+            "SOUNDBOARD" => Self::Soundboard,
             "TICKETED_EVENTS_ENABLED" => Self::TicketedEventsEnabled,
             "VANITY_URL" => Self::VanityUrl,
             "VERIFIED" => Self::Verified,
@@ -174,6 +200,10 @@ mod tests {
         );
         serde_test::assert_tokens(&GuildFeature::AnimatedIcon, &[Token::Str("ANIMATED_ICON")]);
         serde_test::assert_tokens(
+            &GuildFeature::ApplicationCommandPermissionsV2,
+            &[Token::Str("APPLICATION_COMMAND_PERMISSIONS_V2")],
+        );
+        serde_test::assert_tokens(
             &GuildFeature::AutoModeration,
             &[Token::Str("AUTO_MODERATION")],
         );
@@ -192,7 +222,16 @@ mod tests {
             &[Token::Str("DEVELOPER_SUPPORT_SERVER")],
         );
         serde_test::assert_tokens(&GuildFeature::Discoverable, &[Token::Str("DISCOVERABLE")]);
+        serde_test::assert_tokens(
+            &GuildFeature::EnhancedRoleColors,
+            &[Token::Str("ENHANCED_ROLE_COLORS")],
+        );
         serde_test::assert_tokens(&GuildFeature::Featurable, &[Token::Str("FEATURABLE")]);
+        serde_test::assert_tokens(
+            &GuildFeature::GuestsEnabled,
+            &[Token::Str("GUESTS_ENABLED")],
+        );
+        serde_test::assert_tokens(&GuildFeature::GuildTags, &[Token::Str("GUILD_TAGS")]);
         serde_test::assert_tokens(
             &GuildFeature::InvitesDisabled,
             &[Token::Str("INVITES_DISABLED")],
@@ -201,6 +240,10 @@ mod tests {
         serde_test::assert_tokens(
             &GuildFeature::MemberVerificationGateEnabled,
             &[Token::Str("MEMBER_VERIFICATION_GATE_ENABLED")],
+        );
+        serde_test::assert_tokens(
+            &GuildFeature::MoreSoundboard,
+            &[Token::Str("MORE_SOUNDBOARD")],
         );
         serde_test::assert_tokens(&GuildFeature::MoreStickers, &[Token::Str("MORE_STICKERS")]);
         serde_test::assert_tokens(&GuildFeature::News, &[Token::Str("NEWS")]);
@@ -226,6 +269,7 @@ mod tests {
             &GuildFeature::RoleSubscriptionsEnabled,
             &[Token::Str("ROLE_SUBSCRIPTIONS_ENABLED")],
         );
+        serde_test::assert_tokens(&GuildFeature::Soundboard, &[Token::Str("SOUNDBOARD")]);
         serde_test::assert_tokens(
             &GuildFeature::TicketedEventsEnabled,
             &[Token::Str("TICKETED_EVENTS_ENABLED")],
