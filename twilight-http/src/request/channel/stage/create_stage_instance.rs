@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -14,7 +14,9 @@ use twilight_model::{
         marker::{ChannelMarker, ScheduledEventMarker},
     },
 };
-use twilight_validate::request::{ValidationError, stage_topic as validate_stage_topic};
+use twilight_validate::request::{
+    ValidationError, audit_reason as validate_audit_reason, stage_topic as validate_stage_topic,
+};
 
 #[derive(Serialize)]
 struct CreateStageInstanceFields<'a> {
@@ -35,6 +37,7 @@ struct CreateStageInstanceFields<'a> {
 pub struct CreateStageInstance<'a> {
     fields: Result<CreateStageInstanceFields<'a>, ValidationError>,
     http: &'a Client,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateStageInstance<'a> {
@@ -52,7 +55,11 @@ impl<'a> CreateStageInstance<'a> {
             Ok(fields)
         });
 
-        Self { fields, http }
+        Self {
+            fields,
+            http,
+            reason: Ok(None),
+        }
     }
 
     /// Set the guild scheduled event associated with this stage instance.
@@ -91,6 +98,14 @@ impl<'a> CreateStageInstance<'a> {
     }
 }
 
+impl<'a> AuditLogReason<'a> for CreateStageInstance<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+
+        self
+    }
+}
+
 impl IntoFuture for CreateStageInstance<'_> {
     type Output = Result<Response<StageInstance>, Error>;
 
@@ -110,8 +125,12 @@ impl TryIntoRequest for CreateStageInstance<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let fields = self.fields.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateStageInstance)
-            .json(&fields)
-            .build()
+        let mut request = Request::builder(&Route::CreateStageInstance).json(&fields);
+
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        request.build()
     }
 }

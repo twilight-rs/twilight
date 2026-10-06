@@ -19,16 +19,20 @@ pub trait AuditLogReason<'a>: private::Sealed {
 mod private {
     use crate::request::{
         channel::{
-            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
-            UpdateChannelPermission,
+            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin,
+            FollowNewsChannel, UpdateChannel, UpdateChannelPermission,
             invite::{CreateInvite, DeleteInvite},
             message::{DeleteMessage, DeleteMessages},
-            thread::UpdateThread,
+            stage::{CreateStageInstance, DeleteStageInstance, UpdateStageInstance},
+            thread::{
+                CreateForumThread, CreateThread, CreateThreadFromMessage, UpdateThread,
+                create_forum_thread::CreateForumThreadMessage,
+            },
             webhook::{CreateWebhook, DeleteWebhook, DeleteWebhookMessage, UpdateWebhook},
         },
         guild::{
             CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild, UpdateGuildMfa,
-            UpdateGuildWidgetSettings,
+            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
             auto_moderation::{
                 CreateAutoModerationRule, DeleteAutoModerationRule, UpdateAutoModerationRule,
             },
@@ -37,7 +41,7 @@ mod private {
             integration::DeleteGuildIntegration,
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
             role::{CreateRole, DeleteRole, UpdateRole, UpdateRolePositions},
-            sticker::{CreateGuildSticker, UpdateGuildSticker},
+            sticker::{CreateGuildSticker, DeleteGuildSticker, UpdateGuildSticker},
             update_guild_onboarding::UpdateGuildOnboarding,
         },
         scheduled_event::{
@@ -55,6 +59,8 @@ mod private {
     impl Sealed for CreateAutoModerationRule<'_> {}
     impl Sealed for CreateBan<'_> {}
     impl Sealed for CreateEmoji<'_> {}
+    impl Sealed for CreateForumThreadMessage<'_> {}
+    impl Sealed for CreateForumThread<'_> {}
     impl Sealed for CreateGuildChannel<'_> {}
     impl Sealed for CreateGuildExternalScheduledEvent<'_> {}
     impl Sealed for CreateGuildPrune<'_> {}
@@ -65,6 +71,9 @@ mod private {
     impl Sealed for CreateInvite<'_> {}
     impl Sealed for CreatePin<'_> {}
     impl Sealed for CreateRole<'_> {}
+    impl Sealed for CreateStageInstance<'_> {}
+    impl Sealed for CreateThread<'_> {}
+    impl Sealed for CreateThreadFromMessage<'_> {}
     impl Sealed for CreateWebhook<'_> {}
     impl Sealed for DeleteAutoModerationRule<'_> {}
     impl Sealed for DeleteBan<'_> {}
@@ -72,13 +81,16 @@ mod private {
     impl Sealed for DeleteChannelPermissionConfigured<'_> {}
     impl Sealed for DeleteEmoji<'_> {}
     impl Sealed for DeleteGuildIntegration<'_> {}
+    impl Sealed for DeleteGuildSticker<'_> {}
     impl Sealed for DeleteInvite<'_> {}
     impl Sealed for DeleteMessage<'_> {}
     impl Sealed for DeleteMessages<'_> {}
     impl Sealed for DeletePin<'_> {}
     impl Sealed for DeleteRole<'_> {}
+    impl Sealed for DeleteStageInstance<'_> {}
     impl Sealed for DeleteWebhook<'_> {}
     impl Sealed for DeleteWebhookMessage<'_> {}
+    impl Sealed for FollowNewsChannel<'_> {}
     impl Sealed for RemoveMember<'_> {}
     impl Sealed for RemoveRoleFromMember<'_> {}
     impl Sealed for UpdateAutoModerationRule<'_> {}
@@ -93,9 +105,11 @@ mod private {
     impl Sealed for UpdateGuildOnboarding<'_> {}
     impl Sealed for UpdateGuildScheduledEvent<'_> {}
     impl Sealed for UpdateGuildSticker<'_> {}
+    impl Sealed for UpdateGuildWelcomeScreen<'_> {}
     impl Sealed for UpdateGuildWidgetSettings<'_> {}
     impl Sealed for UpdateRole<'_> {}
     impl Sealed for UpdateRolePositions<'_> {}
+    impl Sealed for UpdateStageInstance<'_> {}
     impl Sealed for UpdateThread<'_> {}
     impl Sealed for UpdateWebhook<'_> {}
 }
@@ -105,20 +119,26 @@ mod tests {
     use super::AuditLogReason;
     use crate::request::{
         channel::{
-            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
-            UpdateChannelPermission,
+            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin,
+            FollowNewsChannel, UpdateChannel, UpdateChannelPermission,
             invite::{CreateInvite, DeleteInvite},
             message::{DeleteMessage, DeleteMessages},
+            stage::{CreateStageInstance, DeleteStageInstance, UpdateStageInstance},
+            thread::{
+                CreateForumThread, CreateThread, CreateThreadFromMessage,
+                create_forum_thread::CreateForumThreadMessage,
+            },
             webhook::{CreateWebhook, DeleteWebhook, UpdateWebhook},
         },
         guild::{
             CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild,
+            UpdateGuildWelcomeScreen,
             ban::{CreateBan, DeleteBan},
             emoji::{CreateEmoji, DeleteEmoji, UpdateEmoji},
             integration::DeleteGuildIntegration,
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
             role::{CreateRole, DeleteRole, UpdateRole, UpdateRolePositions},
-            sticker::{CreateGuildSticker, UpdateGuildSticker},
+            sticker::{CreateGuildSticker, DeleteGuildSticker, UpdateGuildSticker},
         },
         user::UpdateCurrentUser,
     };
@@ -129,24 +149,32 @@ mod tests {
     assert_impl_all!(AddRoleToMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateBan<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateEmoji<'_>: AuditLogReason<'static>);
+    assert_impl_all!(CreateForumThread<'_>: AuditLogReason<'static>);
+    assert_impl_all!(CreateForumThreadMessage<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateGuildChannel<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateGuildPrune<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateGuildSticker<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateInvite<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreatePin<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateRole<'_>: AuditLogReason<'static>);
+    assert_impl_all!(CreateStageInstance<'_>: AuditLogReason<'static>);
+    assert_impl_all!(CreateThread<'_>: AuditLogReason<'static>);
+    assert_impl_all!(CreateThreadFromMessage<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateWebhook<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteBan<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteChannel<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteChannelPermissionConfigured<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteEmoji<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteGuildIntegration<'_>: AuditLogReason<'static>);
+    assert_impl_all!(DeleteGuildSticker<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteInvite<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteMessage<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteMessages<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeletePin<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteRole<'_>: AuditLogReason<'static>);
+    assert_impl_all!(DeleteStageInstance<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteWebhook<'_>: AuditLogReason<'static>);
+    assert_impl_all!(FollowNewsChannel<'_>: AuditLogReason<'static>);
     assert_impl_all!(RemoveMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(RemoveRoleFromMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateChannel<'_>: AuditLogReason<'static>);
@@ -157,7 +185,9 @@ mod tests {
     assert_impl_all!(UpdateGuild<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateGuildMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateGuildSticker<'_>: AuditLogReason<'static>);
+    assert_impl_all!(UpdateGuildWelcomeScreen<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateRole<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateRolePositions<'_>: AuditLogReason<'static>);
+    assert_impl_all!(UpdateStageInstance<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateWebhook<'_>: AuditLogReason<'static>);
 }

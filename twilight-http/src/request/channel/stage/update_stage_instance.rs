@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -11,7 +11,9 @@ use twilight_model::{
     channel::{StageInstance, stage_instance::PrivacyLevel},
     id::{Id, marker::ChannelMarker},
 };
-use twilight_validate::request::{ValidationError, stage_topic as validate_stage_topic};
+use twilight_validate::request::{
+    ValidationError, audit_reason as validate_audit_reason, stage_topic as validate_stage_topic,
+};
 
 #[derive(Serialize)]
 struct UpdateStageInstanceFields<'a> {
@@ -29,6 +31,7 @@ pub struct UpdateStageInstance<'a> {
     channel_id: Id<ChannelMarker>,
     fields: Result<UpdateStageInstanceFields<'a>, ValidationError>,
     http: &'a Client,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateStageInstance<'a> {
@@ -40,6 +43,7 @@ impl<'a> UpdateStageInstance<'a> {
                 topic: None,
             }),
             http,
+            reason: Ok(None),
         }
     }
 
@@ -71,6 +75,14 @@ impl<'a> UpdateStageInstance<'a> {
     }
 }
 
+impl<'a> AuditLogReason<'a> for UpdateStageInstance<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+
+        self
+    }
+}
+
 impl IntoFuture for UpdateStageInstance<'_> {
     type Output = Result<Response<StageInstance>, Error>;
 
@@ -90,10 +102,15 @@ impl TryIntoRequest for UpdateStageInstance<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let fields = self.fields.map_err(Error::validation)?;
 
-        Request::builder(&Route::UpdateStageInstance {
+        let mut request = Request::builder(&Route::UpdateStageInstance {
             channel_id: self.channel_id.get(),
         })
-        .json(&fields)
-        .build()
+        .json(&fields);
+
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        request.build()
     }
 }
