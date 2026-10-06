@@ -22,7 +22,7 @@ pub struct EmbedImage {
     /// Version of the placeholder.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub placeholder_version: Option<u64>,
-    /// Media flags for this video.
+    /// Media flags for this image.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<EmbedMediaFlags>,
 }
