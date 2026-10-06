@@ -67,6 +67,8 @@ impl<'a> GetSKUSubscriptions<'a> {
     ///
     /// The minimum is 1 and the maximum is 100.
     ///
+    /// The Discord default is 50.
+    ///
     /// # Errors
     ///
     /// Returns a [`GetSKUSubscriptionsError`] error type if the amount
