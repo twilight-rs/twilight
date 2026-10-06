@@ -3,9 +3,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u8", into = "u8")]
 pub enum SkuType {
+    /// Durable one-time purchase.
     Durable,
+    /// Consumable one-time purchase.
     Consumable,
+    /// Represents a recurring subscription.
     Subscription,
+    /// System-generated group for each [`Subscription`] SKU created.
+    ///
+    /// [`Subscription`]: super::Subscription
     SubscriptionGroup,
     Unknown(u8),
 }
