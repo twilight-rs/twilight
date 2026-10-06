@@ -30,7 +30,8 @@ pub struct Attachment {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<u64>,
     pub id: Id<AttachmentMarker>,
-    /// A [thumbhash](https://evanw.github.io/thumbhash) placeholder of the video.
+    /// A [thumbhash](https://evanw.github.io/thumbhash) placeholder of the
+    /// image or video.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub placeholder: Option<String>,
     /// Version of the placeholder.
