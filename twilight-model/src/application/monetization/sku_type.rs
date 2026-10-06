@@ -43,7 +43,6 @@ mod tests {
         serde_test::assert_tokens(&SkuType::Durable, &[Token::U8(2)]);
         serde_test::assert_tokens(&SkuType::Consumable, &[Token::U8(3)]);
         serde_test::assert_tokens(&SkuType::Subscription, &[Token::U8(5)]);
-        serde_test::assert_tokens(&SkuType::Subscription, &[Token::U8(5)]);
         serde_test::assert_tokens(&SkuType::SubscriptionGroup, &[Token::U8(6)]);
         serde_test::assert_tokens(&SkuType::Unknown(u8::MAX), &[Token::U8(u8::MAX)]);
     }
