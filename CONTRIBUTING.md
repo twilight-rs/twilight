@@ -7,7 +7,7 @@ to Twilight.
 
 ## AI contributions
 
-For guildelines regarding AI contributions see the sperate file
+For guidelines regarding AI contributions see the separate file
 `CONTRIBUTING_AI_POLICY.md`
 
 ## Project Management
