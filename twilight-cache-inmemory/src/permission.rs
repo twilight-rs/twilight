@@ -823,6 +823,7 @@ mod tests {
             rtc_region: None,
             thread_metadata: None,
             topic: None,
+            total_message_sent: None,
             user_limit: None,
             video_quality_mode: None,
         }
@@ -868,6 +869,7 @@ mod tests {
             rtc_region: None,
             thread_metadata: None,
             topic: None,
+            total_message_sent: None,
             user_limit: None,
             video_quality_mode: None,
         }

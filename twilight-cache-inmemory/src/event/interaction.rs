@@ -137,6 +137,7 @@ mod tests {
                 message_count: None,
                 newly_created: None,
                 thread_metadata: None,
+                total_message_sent: None,
                 video_quality_mode: None,
             }),
             channel_id: Some(Id::new(2)),

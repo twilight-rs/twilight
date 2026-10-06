@@ -201,6 +201,12 @@ pub struct Channel {
     /// Topic of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub topic: Option<String>,
+    /// Number of messages ever sent in a thread.
+    ///
+    /// This is similar to [`message_count`][Self::message_count], but will not
+    /// decrement the number when a message is deleted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_message_sent: Option<u32>,
     /// Number of users that may be in the channel.
     ///
     /// Zero refers to no limit.
@@ -251,6 +257,7 @@ mod tests {
                     "hash": "ccccccccccc"
                 }
             },
+            "total_message_sent": 17,
             "unknown_field": "the deserializer should skip unknown field names",
         });
 
@@ -288,6 +295,7 @@ mod tests {
             rtc_region: None,
             thread_metadata: None,
             topic: Some("a".to_owned()),
+            total_message_sent: Some(17),
             user_limit: None,
             video_quality_mode: None,
         };
@@ -331,6 +339,7 @@ mod tests {
             rtc_region: None,
             thread_metadata: None,
             topic: None,
+            total_message_sent: Some(11),
             user_limit: None,
             video_quality_mode: None,
         };
@@ -344,6 +353,7 @@ mod tests {
                 "name": "foo",
                 "permission_overwrites": permission_overwrites,
                 "position": 3,
+                "total_message_sent": 11,
                 "type": 4,
             }))
             .unwrap()
@@ -386,6 +396,7 @@ mod tests {
             rtc_region: None,
             thread_metadata: None,
             topic: Some("a news channel".to_owned()),
+            total_message_sent: None,
             user_limit: None,
             video_quality_mode: None,
         };
@@ -462,6 +473,7 @@ mod tests {
                 locked: false,
             }),
             topic: None,
+            total_message_sent: None,
             user_limit: None,
             video_quality_mode: None,
         };
@@ -552,6 +564,7 @@ mod tests {
                 locked: false,
             }),
             topic: None,
+            total_message_sent: None,
             user_limit: None,
             video_quality_mode: None,
         };
@@ -650,6 +663,7 @@ mod tests {
                 locked: false,
             }),
             topic: None,
+            total_message_sent: None,
             user_limit: None,
             video_quality_mode: None,
         };
