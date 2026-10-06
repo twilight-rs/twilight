@@ -11,9 +11,8 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::ResponseFuture,
-    routing::Route,
 };
 
 /// Owner of a test entitlement.
@@ -38,12 +37,12 @@ impl CreateTestEntitlementOwner {
     }
 }
 
-struct CreateTestEntitlementFields {
+struct CreateTestEntitlementBody {
     sku_id: Id<SkuMarker>,
     owner: CreateTestEntitlementOwner,
 }
 
-impl Serialize for CreateTestEntitlementFields {
+impl Serialize for CreateTestEntitlementBody {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -56,8 +55,12 @@ impl Serialize for CreateTestEntitlementFields {
     }
 }
 
-pub struct CreateTestEntitlement<'a> {
+pub struct CreateTestEntitlementFields {
     application_id: Id<ApplicationMarker>,
+}
+
+pub struct CreateTestEntitlement<'a> {
+    body: CreateTestEntitlementBody,
     fields: CreateTestEntitlementFields,
     http: &'a Client,
 }
@@ -70,8 +73,8 @@ impl<'a> CreateTestEntitlement<'a> {
         owner: CreateTestEntitlementOwner,
     ) -> Self {
         Self {
-            application_id,
-            fields: CreateTestEntitlementFields { sku_id, owner },
+            body: CreateTestEntitlementBody { sku_id, owner },
+            fields: CreateTestEntitlementFields { application_id },
             http,
         }
     }
@@ -92,13 +95,25 @@ impl IntoFuture for CreateTestEntitlement<'_> {
     }
 }
 
+impl Route for CreateTestEntitlement<'_> {
+    type Fields = CreateTestEntitlementFields;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("entitlements")
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreateTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::CreateTestEntitlement {
-            application_id: self.application_id.get(),
-        })
-        .json(&self.fields)
-        .build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&self.body)
+            .build()
     }
 }
 
@@ -107,11 +122,11 @@ mod tests {
     use serde_test::Token;
     use twilight_model::id::Id;
 
-    use super::{CreateTestEntitlementFields, CreateTestEntitlementOwner};
+    use super::{CreateTestEntitlementBody, CreateTestEntitlementOwner};
 
     #[test]
     fn fields_serialization() {
-        let value = CreateTestEntitlementFields {
+        let value = CreateTestEntitlementBody {
             sku_id: Id::new(1),
             owner: CreateTestEntitlementOwner::Guild(Id::new(2)),
         };

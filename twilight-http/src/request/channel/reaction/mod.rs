@@ -10,6 +10,7 @@ pub use self::{
     delete_all_reactions::DeleteAllReactions, delete_reaction::DeleteReaction,
     get_reactions::GetReactions,
 };
+use crate::request::path::QueryParameter;
 use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{Id, marker::EmojiMarker};
@@ -68,6 +69,27 @@ pub enum RequestReactionType<'a> {
 /// ```
 impl Display for RequestReactionType<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            RequestReactionType::Custom { id, name } => {
+                if let Some(name) = name {
+                    f.write_str(name)?;
+                } else {
+                    f.write_str("e")?;
+                }
+
+                f.write_str(":")?;
+
+                Display::fmt(id, f)
+            }
+            RequestReactionType::Unicode { name } => {
+                Display::fmt(&utf8_percent_encode(name, NON_ALPHANUMERIC), f)
+            }
+        }
+    }
+}
+
+impl QueryParameter for RequestReactionType<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             RequestReactionType::Custom { id, name } => {
                 if let Some(name) = name {

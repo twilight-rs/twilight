@@ -10,20 +10,23 @@ use twilight_model::{
 
 use crate::{
     Client, Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
 #[derive(Serialize)]
-struct EditApplicationEmojiFields<'a> {
+struct UpdateApplicationEmojiBody<'a> {
     name: &'a str,
 }
 
-pub struct UpdateApplicationEmoji<'a> {
-    fields: EditApplicationEmojiFields<'a>,
+pub struct UpdateApplicationEmojiFields {
     application_id: Id<ApplicationMarker>,
     emoji_id: Id<EmojiMarker>,
+}
+
+pub struct UpdateApplicationEmoji<'a> {
+    body: UpdateApplicationEmojiBody<'a>,
+    fields: UpdateApplicationEmojiFields,
     http: &'a Client,
 }
 
@@ -35,9 +38,11 @@ impl<'a> UpdateApplicationEmoji<'a> {
         name: &'a str,
     ) -> Self {
         Self {
-            fields: EditApplicationEmojiFields { name },
-            application_id,
-            emoji_id,
+            body: UpdateApplicationEmojiBody { name },
+            fields: UpdateApplicationEmojiFields {
+                application_id,
+                emoji_id,
+            },
             http,
         }
     }
@@ -58,15 +63,25 @@ impl IntoFuture for UpdateApplicationEmoji<'_> {
     }
 }
 
+impl Route for UpdateApplicationEmoji<'_> {
+    type Fields = UpdateApplicationEmojiFields;
+
+    const METHOD: Method = Method::Patch;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("emojis")
+            .id(fields.emoji_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for UpdateApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateApplicationEmoji {
-            application_id: self.application_id.get(),
-            emoji_id: self.emoji_id.get(),
-        });
-
-        request = request.json(&self.fields);
-
-        request.build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&self.body)
+            .build()
     }
 }

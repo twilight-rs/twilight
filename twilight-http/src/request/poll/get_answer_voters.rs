@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::{Deserialize, Serialize};
 use std::future::IntoFuture;
@@ -16,7 +15,7 @@ use twilight_model::{
 };
 
 #[derive(Serialize)]
-struct GetAnswerVotersFields {
+pub struct GetAnswerVotersFields {
     after: Option<Id<UserMarker>>,
     answer_id: u8,
     channel_id: Id<ChannelMarker>,
@@ -86,14 +85,27 @@ impl IntoFuture for GetAnswerVoters<'_> {
     }
 }
 
+impl Route for GetAnswerVoters<'_> {
+    type Fields = GetAnswerVotersFields;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("channels")
+            .id(fields.channel_id)
+            .resource("polls")
+            .id(fields.message_id)
+            .resource("answers")
+            .integer_id(u64::from(fields.answer_id))
+            .parameter("after", fields.after)
+            .parameter("limit", fields.limit)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetAnswerVoters<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetAnswerVoters {
-            after: self.fields.after.map(Id::get),
-            answer_id: self.fields.answer_id,
-            channel_id: self.fields.channel_id.get(),
-            limit: self.fields.limit,
-            message_id: self.fields.message_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

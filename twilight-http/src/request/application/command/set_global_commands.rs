@@ -1,15 +1,23 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
+use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     application::command::Command,
     id::{Id, marker::ApplicationMarker},
 };
+
+#[derive(Serialize)]
+#[serde(transparent)]
+struct SetGlobalComandsBody<'a>(&'a [Command]);
+
+pub struct SetGlobalCommandsFields {
+    application_id: Id<ApplicationMarker>,
+}
 
 /// Set global commands.
 ///
@@ -23,8 +31,8 @@ use twilight_model::{
 /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 #[must_use = "requests must be configured and executed"]
 pub struct SetGlobalCommands<'a> {
-    commands: &'a [Command],
-    application_id: Id<ApplicationMarker>,
+    body: SetGlobalComandsBody<'a>,
+    fields: SetGlobalCommandsFields,
     http: &'a Client,
 }
 
@@ -35,8 +43,8 @@ impl<'a> SetGlobalCommands<'a> {
         commands: &'a [Command],
     ) -> Self {
         Self {
-            commands,
-            application_id,
+            body: SetGlobalComandsBody(commands),
+            fields: SetGlobalCommandsFields { application_id },
             http,
         }
     }
@@ -57,12 +65,24 @@ impl IntoFuture for SetGlobalCommands<'_> {
     }
 }
 
+impl Route for SetGlobalCommands<'_> {
+    type Fields = SetGlobalCommandsFields;
+
+    const METHOD: Method = Method::Put;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("commands")
+            .build()
+    }
+}
+
 impl TryIntoRequest for SetGlobalCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::SetGlobalCommands {
-            application_id: self.application_id.get(),
-        })
-        .json(&self.commands)
-        .build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&self.body)
+            .build()
     }
 }

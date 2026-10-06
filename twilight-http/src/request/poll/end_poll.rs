@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -16,7 +15,7 @@ use twilight_model::{
 };
 
 #[derive(Serialize)]
-struct EndPollFields {
+pub struct EndPollFields {
     channel_id: Id<ChannelMarker>,
     message_id: Id<MessageMarker>,
 }
@@ -58,11 +57,24 @@ impl IntoFuture for EndPoll<'_> {
     }
 }
 
+impl Route for EndPoll<'_> {
+    type Fields = EndPollFields;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("channels")
+            .id(fields.channel_id)
+            .resource("polls")
+            .id(fields.message_id)
+            .action("expire")
+            .build()
+    }
+}
+
 impl TryIntoRequest for EndPoll<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::EndPoll {
-            channel_id: self.fields.channel_id.get(),
-            message_id: self.fields.message_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

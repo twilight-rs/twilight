@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -17,18 +16,23 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct UpdateTemplateFields<'a> {
+struct UpdateTemplateBody<'a> {
     name: Option<&'a str>,
     description: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+pub struct UpdateTemplateFields<'a> {
+    guild_id: Id<GuildMarker>,
+    template_code: &'a str,
 }
 
 /// Update the template's metadata, by ID and code.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateTemplate<'a> {
-    fields: Result<UpdateTemplateFields<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
+    body: Result<UpdateTemplateBody<'a>, ValidationError>,
+    fields: UpdateTemplateFields<'a>,
     http: &'a Client,
-    template_code: &'a str,
 }
 
 impl<'a> UpdateTemplate<'a> {
@@ -38,13 +42,15 @@ impl<'a> UpdateTemplate<'a> {
         template_code: &'a str,
     ) -> Self {
         Self {
-            fields: Ok(UpdateTemplateFields {
+            body: Ok(UpdateTemplateBody {
                 name: None,
                 description: None,
             }),
-            guild_id,
+            fields: UpdateTemplateFields {
+                guild_id,
+                template_code,
+            },
             http,
-            template_code,
         }
     }
 
@@ -59,7 +65,7 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// [`TemplateDescription`]: twilight_validate::request::ValidationErrorType::TemplateDescription
     pub fn description(mut self, description: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             validate_template_description(description)?;
             fields.description.replace(description);
 
@@ -80,7 +86,7 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// [`TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
     pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             validate_template_name(name)?;
             fields.name.replace(name);
 
@@ -106,15 +112,27 @@ impl IntoFuture for UpdateTemplate<'_> {
     }
 }
 
+impl<'a> Route for UpdateTemplate<'a> {
+    type Fields = UpdateTemplateFields<'a>;
+
+    const METHOD: Method = Method::Patch;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("templates")
+            .string_id(fields.template_code)
+            .build()
+    }
+}
+
 impl TryIntoRequest for UpdateTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::UpdateTemplate {
-            guild_id: self.guild_id.get(),
-            template_code: self.template_code,
-        })
-        .json(&fields)
-        .build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&body)
+            .build()
     }
 }

@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -11,26 +10,32 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+pub struct GetGuildScheduledEventsFields {
+    guild_id: Id<GuildMarker>,
+    with_user_count: bool,
+}
+
 /// Get a list of scheduled events in a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildScheduledEvents<'a> {
-    guild_id: Id<GuildMarker>,
+    fields: GetGuildScheduledEventsFields,
     http: &'a Client,
-    with_user_count: bool,
 }
 
 impl<'a> GetGuildScheduledEvents<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            guild_id,
+            fields: GetGuildScheduledEventsFields {
+                guild_id,
+                with_user_count: false,
+            },
             http,
-            with_user_count: false,
         }
     }
 
     /// Set whether to include the number of subscribed users.
     pub const fn with_user_count(mut self, with_user_count: bool) -> Self {
-        self.with_user_count = with_user_count;
+        self.fields.with_user_count = with_user_count;
 
         self
     }
@@ -51,11 +56,27 @@ impl IntoFuture for GetGuildScheduledEvents<'_> {
     }
 }
 
+impl Route for GetGuildScheduledEvents<'_> {
+    type Fields = GetGuildScheduledEventsFields;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        let builder = Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("scheduled-events");
+
+        if fields.with_user_count {
+            builder.parameter("with_user_count", true).build()
+        } else {
+            builder.build()
+        }
+    }
+}
+
 impl TryIntoRequest for GetGuildScheduledEvents<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetGuildScheduledEvents {
-            guild_id: self.guild_id.get(),
-            with_user_count: self.with_user_count,
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

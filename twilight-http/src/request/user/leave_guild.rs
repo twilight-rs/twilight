@@ -1,23 +1,29 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::GuildMarker};
 
+pub struct LeaveGuildFields {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Leave a guild by id.
 #[must_use = "requests must be configured and executed"]
 pub struct LeaveGuild<'a> {
-    guild_id: Id<GuildMarker>,
+    fields: LeaveGuildFields,
     http: &'a Client,
 }
 
 impl<'a> LeaveGuild<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            fields: LeaveGuildFields { guild_id },
+            http,
+        }
     }
 }
 
@@ -36,10 +42,23 @@ impl IntoFuture for LeaveGuild<'_> {
     }
 }
 
+impl Route for LeaveGuild<'_> {
+    type Fields = LeaveGuildFields;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("users")
+            .me()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for LeaveGuild<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::LeaveGuild {
-            guild_id: self.guild_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

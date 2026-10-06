@@ -1,9 +1,8 @@
 use crate::{
     Error,
     client::Client,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -11,16 +10,23 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+pub struct GetCurrentUserGuildMemberFields {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get information about the current user in a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetCurrentUserGuildMember<'a> {
-    guild_id: Id<GuildMarker>,
+    fields: GetCurrentUserGuildMemberFields,
     http: &'a Client,
 }
 
 impl<'a> GetCurrentUserGuildMember<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            fields: GetCurrentUserGuildMemberFields { guild_id },
+            http,
+        }
     }
 }
 
@@ -39,10 +45,23 @@ impl IntoFuture for GetCurrentUserGuildMember<'_> {
     }
 }
 
+impl Route for GetCurrentUserGuildMember<'_> {
+    type Fields = GetCurrentUserGuildMemberFields;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("users")
+            .me()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetCurrentUserGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetCurrentUserGuildMember {
-            guild_id: self.guild_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

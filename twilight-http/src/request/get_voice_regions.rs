@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::voice::VoiceRegion;
@@ -35,8 +34,18 @@ impl IntoFuture for GetVoiceRegions<'_> {
     }
 }
 
+impl Route for GetVoiceRegions<'_> {
+    type Fields = ();
+
+    const METHOD: Method = Method::Get;
+
+    fn path(_: Self::Fields) -> Path {
+        Path::builder().resource("voice").action("regions").build()
+    }
+}
+
 impl TryIntoRequest for GetVoiceRegions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetVoiceRegions))
+        Ok(Request::from_route_new::<Self>(()))
     }
 }

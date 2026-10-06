@@ -11,9 +11,8 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request},
+    request::{AuditLogReason, Path, Request, route::Route},
     response::ResponseFuture,
-    routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
@@ -30,7 +29,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateGuildScheduledEventFields<'a> {
+struct CreateGuildScheduledEventBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,6 +48,10 @@ struct CreateGuildScheduledEventFields<'a> {
     scheduled_end_time: Option<&'a Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     scheduled_start_time: Option<&'a Timestamp>,
+}
+
+pub struct CreateGuildScheduledEventFields {
+    guild_id: Id<GuildMarker>,
 }
 
 /// Create a scheduled event in a guild.
@@ -116,9 +119,9 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// [Discord Docs/Create Guild Scheduled Event]: https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
 pub struct CreateGuildScheduledEvent<'a> {
-    guild_id: Id<GuildMarker>,
+    body: Result<CreateGuildScheduledEventBody<'a>, ValidationError>,
+    fields: CreateGuildScheduledEventFields,
     http: &'a Client,
-    fields: Result<CreateGuildScheduledEventFields<'a>, ValidationError>,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -129,9 +132,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         privacy_level: PrivacyLevel,
     ) -> Self {
         Self {
-            guild_id,
-            http,
-            fields: Ok(CreateGuildScheduledEventFields {
+            body: Ok(CreateGuildScheduledEventBody {
                 channel_id: None,
                 description: None,
                 entity_metadata: None,
@@ -142,6 +143,8 @@ impl<'a> CreateGuildScheduledEvent<'a> {
                 scheduled_end_time: None,
                 scheduled_start_time: None,
             }),
+            fields: CreateGuildScheduledEventFields { guild_id },
+            http,
             reason: Ok(None),
         }
     }
@@ -162,7 +165,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         scheduled_start_time: &'a Timestamp,
         scheduled_end_time: &'a Timestamp,
     ) -> CreateGuildExternalScheduledEvent<'a> {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             validate_scheduled_event_name(name)?;
 
             fields.name.replace(name);
@@ -194,7 +197,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
     ) -> CreateGuildStageInstanceScheduledEvent<'a> {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             validate_scheduled_event_name(name)?;
             fields.name.replace(name);
 
@@ -219,7 +222,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
     ) -> CreateGuildVoiceScheduledEvent<'a> {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             validate_scheduled_event_name(name)?;
             fields.name.replace(name);
 
@@ -229,23 +232,31 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         CreateGuildVoiceScheduledEvent::new(self, channel_id, name, scheduled_start_time)
     }
 
-    fn exec(self) -> ResponseFuture<GuildScheduledEvent> {
+    fn exec<T: Route<Fields = CreateGuildScheduledEventFields>>(
+        self,
+    ) -> ResponseFuture<GuildScheduledEvent> {
         let http = self.http;
 
-        match self.try_into_request() {
+        match self.try_into_request::<T>() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 
-    fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+    fn try_into_request<T: Route<Fields = CreateGuildScheduledEventFields>>(
+        self,
+    ) -> Result<Request, Error> {
+        let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateGuildScheduledEvent {
-            guild_id: self.guild_id.get(),
-        })
-        .json(&fields)
-        .build()
+        Request::builder_new::<T>(self.fields).json(&body).build()
+    }
+
+    fn path(fields: CreateGuildScheduledEventFields) -> Path {
+        Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("scheduled-events")
+            .build()
     }
 }
 

@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -14,7 +13,7 @@ use twilight_validate::request::{
     ValidationError, get_current_user_guilds_limit as validate_get_current_user_guilds_limit,
 };
 
-struct GetCurrentUserGuildsFields {
+pub struct GetCurrentUserGuildsFields {
     after: Option<Id<GuildMarker>>,
     before: Option<Id<GuildMarker>>,
     limit: Option<u16>,
@@ -120,14 +119,27 @@ impl IntoFuture for GetCurrentUserGuilds<'_> {
     }
 }
 
+impl Route for GetCurrentUserGuilds<'_> {
+    type Fields = GetCurrentUserGuildsFields;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("users")
+            .me()
+            .resource("guilds")
+            .parameter("after", fields.after)
+            .parameter("before", fields.before)
+            .parameter("limit", fields.limit)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetCurrentUserGuilds<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let fields = self.fields.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::GetGuilds {
-            after: fields.after.map(Id::get),
-            before: fields.before.map(Id::get),
-            limit: fields.limit,
-        }))
+        Ok(Request::from_route_new::<Self>(fields))
     }
 }

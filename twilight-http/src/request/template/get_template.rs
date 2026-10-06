@@ -1,25 +1,28 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::guild::template::Template;
 
+pub struct GetTemplateFields<'a> {
+    template_code: &'a str,
+}
+
 /// Get a template by its code.
 #[must_use = "requests must be configured and executed"]
 pub struct GetTemplate<'a> {
+    fields: GetTemplateFields<'a>,
     http: &'a Client,
-    template_code: &'a str,
 }
 
 impl<'a> GetTemplate<'a> {
     pub(crate) const fn new(http: &'a Client, template_code: &'a str) -> Self {
         Self {
+            fields: GetTemplateFields { template_code },
             http,
-            template_code,
         }
     }
 }
@@ -39,10 +42,22 @@ impl IntoFuture for GetTemplate<'_> {
     }
 }
 
+impl<'a> Route for GetTemplate<'a> {
+    type Fields = GetTemplateFields<'a>;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("guilds")
+            .subresource("templates")
+            .string_id(fields.template_code)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetTemplate {
-            template_code: self.template_code,
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

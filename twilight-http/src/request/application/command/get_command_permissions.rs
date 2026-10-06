@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -14,12 +13,16 @@ use twilight_model::{
     },
 };
 
-/// Fetch command permissions for a command from the current application in a guild.
-#[must_use = "requests must be configured and executed"]
-pub struct GetCommandPermissions<'a> {
+pub struct GetCommandPermissionsFields {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,
+}
+
+/// Fetch command permissions for a command from the current application in a guild.
+#[must_use = "requests must be configured and executed"]
+pub struct GetCommandPermissions<'a> {
+    fields: GetCommandPermissionsFields,
     http: &'a Client,
 }
 
@@ -31,9 +34,11 @@ impl<'a> GetCommandPermissions<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
-            guild_id,
+            fields: GetCommandPermissionsFields {
+                application_id,
+                command_id,
+                guild_id,
+            },
             http,
         }
     }
@@ -54,12 +59,26 @@ impl IntoFuture for GetCommandPermissions<'_> {
     }
 }
 
+impl Route for GetCommandPermissions<'_> {
+    type Fields = GetCommandPermissionsFields;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .resource("permissions")
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetCommandPermissions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetCommandPermissions {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
-            guild_id: self.guild_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }

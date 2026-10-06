@@ -2,9 +2,8 @@ use std::future::IntoFuture;
 
 use crate::{
     Client, Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
 use serde::Serialize;
@@ -14,14 +13,18 @@ use twilight_model::{
 };
 
 #[derive(Serialize)]
-struct AddApplicationEmojiFields<'a> {
+struct AddApplicationEmojiBody<'a> {
     image: &'a str,
     name: &'a str,
 }
 
-pub struct AddApplicationEmoji<'a> {
-    fields: AddApplicationEmojiFields<'a>,
+pub struct AddApplicationEmojiFields {
     application_id: Id<ApplicationMarker>,
+}
+
+pub struct AddApplicationEmoji<'a> {
+    body: AddApplicationEmojiBody<'a>,
+    fields: AddApplicationEmojiFields,
     http: &'a Client,
 }
 
@@ -33,8 +36,8 @@ impl<'a> AddApplicationEmoji<'a> {
         image: &'a str,
     ) -> Self {
         Self {
-            fields: AddApplicationEmojiFields { image, name },
-            application_id,
+            body: AddApplicationEmojiBody { image, name },
+            fields: AddApplicationEmojiFields { application_id },
             http,
         }
     }
@@ -55,14 +58,24 @@ impl IntoFuture for AddApplicationEmoji<'_> {
     }
 }
 
+impl Route for AddApplicationEmoji<'_> {
+    type Fields = AddApplicationEmojiFields;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("emojis")
+            .build()
+    }
+}
+
 impl TryIntoRequest for AddApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::AddApplicationEmoji {
-            application_id: self.application_id.get(),
-        });
-
-        request = request.json(&self.fields);
-
-        request.build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&self.body)
+            .build()
     }
 }

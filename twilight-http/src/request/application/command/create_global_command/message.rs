@@ -2,9 +2,8 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::{collections::HashMap, future::IntoFuture};
 use twilight_model::{
@@ -14,12 +13,16 @@ use twilight_model::{
 };
 use twilight_validate::command::{CommandValidationError, name as validate_name};
 
-struct CreateGlobalMessageCommandFields<'a> {
+struct CreateGlobalMessageCommandBody<'a> {
     default_member_permissions: Option<Permissions>,
     dm_permission: Option<bool>,
     name: &'a str,
     name_localizations: Option<&'a HashMap<String, String>>,
     nsfw: Option<bool>,
+}
+
+pub struct CreateGlobalMessageCommandFields {
+    application_id: Id<ApplicationMarker>,
 }
 
 /// Create a new message global command.
@@ -31,8 +34,8 @@ struct CreateGlobalMessageCommandFields<'a> {
 /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalMessageCommand<'a> {
-    application_id: Id<ApplicationMarker>,
-    fields: Result<CreateGlobalMessageCommandFields<'a>, CommandValidationError>,
+    body: Result<CreateGlobalMessageCommandBody<'a>, CommandValidationError>,
+    fields: CreateGlobalMessageCommandFields,
     http: &'a Client,
 }
 
@@ -42,7 +45,7 @@ impl<'a> CreateGlobalMessageCommand<'a> {
         application_id: Id<ApplicationMarker>,
         name: &'a str,
     ) -> Self {
-        let fields = Ok(CreateGlobalMessageCommandFields {
+        let body = Ok(CreateGlobalMessageCommandBody {
             default_member_permissions: None,
             dm_permission: None,
             name,
@@ -56,8 +59,8 @@ impl<'a> CreateGlobalMessageCommand<'a> {
         });
 
         Self {
-            application_id,
-            fields,
+            body,
+            fields: CreateGlobalMessageCommandFields { application_id },
             http,
         }
     }
@@ -66,7 +69,7 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     ///
     /// Defaults to [`None`].
     pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.default_member_permissions = Some(default);
         }
 
@@ -77,7 +80,7 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     ///
     /// Defaults to [`None`].
     pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.dm_permission = Some(dm_permission);
         }
 
@@ -94,7 +97,7 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     pub fn name_localizations(mut self, localizations: &'a HashMap<String, String>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut fields| {
             for name in localizations.values() {
                 validate_name(name)?;
             }
@@ -111,7 +114,7 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     ///
     /// Defaults to not being specified, which uses Discord's default.
     pub const fn nsfw(mut self, nsfw: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(fields) = self.body.as_mut() {
             fields.nsfw = Some(nsfw);
         }
 
@@ -134,25 +137,38 @@ impl IntoFuture for CreateGlobalMessageCommand<'_> {
     }
 }
 
+impl Route for CreateGlobalMessageCommand<'_> {
+    type Fields = CreateGlobalMessageCommandFields;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("commands")
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreateGlobalMessageCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let fields = self.body.map_err(Error::validation)?;
+        let application_id = self.fields.application_id;
 
-        Request::builder(&Route::CreateGlobalCommand {
-            application_id: self.application_id.get(),
-        })
-        .json(&CommandBorrowed {
-            application_id: Some(self.application_id),
-            default_member_permissions: fields.default_member_permissions,
-            dm_permission: fields.dm_permission,
-            description: None,
-            description_localizations: None,
-            kind: CommandType::Message,
-            name: fields.name,
-            name_localizations: fields.name_localizations,
-            nsfw: fields.nsfw,
-            options: None,
-        })
-        .build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&CommandBorrowed {
+                application_id: Some(application_id),
+                default_member_permissions: fields.default_member_permissions,
+                dm_permission: fields.dm_permission,
+                description: None,
+                description_localizations: None,
+                kind: CommandType::Message,
+                name: fields.name,
+                name_localizations: fields.name_localizations,
+                nsfw: fields.nsfw,
+                options: None,
+            })
+            .build()
     }
 }

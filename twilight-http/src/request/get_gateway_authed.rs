@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::gateway::connection_info::BotConnectionInfo;
@@ -38,8 +37,18 @@ impl IntoFuture for GetGatewayAuthed<'_> {
     }
 }
 
+impl Route for GetGatewayAuthed<'_> {
+    type Fields = ();
+
+    const METHOD: Method = Method::Get;
+
+    fn path(_: Self::Fields) -> Path {
+        Path::builder().resource("gateway").action("bot").build()
+    }
+}
+
 impl TryIntoRequest for GetGatewayAuthed<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetGatewayBot))
+        Ok(Request::from_route_new::<Self>(()))
     }
 }

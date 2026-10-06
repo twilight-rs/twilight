@@ -1,9 +1,10 @@
 use super::{
-    super::EntityMetadataFields, CreateGuildScheduledEvent, CreateGuildScheduledEventFields,
+    super::EntityMetadataFields, CreateGuildScheduledEvent, CreateGuildScheduledEventBody,
+    CreateGuildScheduledEventFields,
 };
 use crate::{
     error::Error,
-    request::{AuditLogReason, Request, TryIntoRequest},
+    request::{AuditLogReason, Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
 };
 use std::future::IntoFuture;
@@ -29,7 +30,7 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
         scheduled_start_time: &'a Timestamp,
         scheduled_end_time: &'a Timestamp,
     ) -> Self {
-        inner.fields = inner.fields.map(|fields| CreateGuildScheduledEventFields {
+        inner.body = inner.body.map(|fields| CreateGuildScheduledEventBody {
             entity_type: Some(EntityType::External),
             entity_metadata: Some(EntityMetadataFields {
                 location: Some(location),
@@ -54,7 +55,7 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     ///
     /// [`ScheduledEventDescription`]: twilight_validate::request::ValidationErrorType::ScheduledEventDescription
     pub fn description(mut self, description: &'a str) -> Self {
-        self.0.fields = self.0.fields.and_then(|mut fields| {
+        self.0.body = self.0.body.and_then(|mut fields| {
             validate_scheduled_event_description(description)?;
             fields.description.replace(description);
 
@@ -72,7 +73,7 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub fn image(mut self, image: &'a str) -> Self {
-        self.0.fields = self.0.fields.map(|mut fields| {
+        self.0.body = self.0.body.map(|mut fields| {
             fields.image = Some(image);
 
             fields
@@ -96,12 +97,22 @@ impl IntoFuture for CreateGuildExternalScheduledEvent<'_> {
     type IntoFuture = ResponseFuture<GuildScheduledEvent>;
 
     fn into_future(self) -> Self::IntoFuture {
-        self.0.exec()
+        self.0.exec::<Self>()
+    }
+}
+
+impl Route for CreateGuildExternalScheduledEvent<'_> {
+    type Fields = CreateGuildScheduledEventFields;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        CreateGuildScheduledEvent::path(fields)
     }
 }
 
 impl TryIntoRequest for CreateGuildExternalScheduledEvent<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        self.0.try_into_request()
+        self.0.try_into_request::<Self>()
     }
 }

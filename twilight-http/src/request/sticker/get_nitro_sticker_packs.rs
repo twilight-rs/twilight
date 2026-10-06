@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Deserialize;
 use std::future::IntoFuture;
@@ -56,8 +55,18 @@ impl IntoFuture for GetNitroStickerPacks<'_> {
     }
 }
 
+impl Route for GetNitroStickerPacks<'_> {
+    type Fields = ();
+
+    const METHOD: Method = Method::Get;
+
+    fn path(_: Self::Fields) -> Path {
+        Path::builder().resource("sticker-packs").build()
+    }
+}
+
 impl TryIntoRequest for GetNitroStickerPacks<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetNitroStickerPacks))
+        Ok(Request::from_route_new::<Self>(()))
     }
 }

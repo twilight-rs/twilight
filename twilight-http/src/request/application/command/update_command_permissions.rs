@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -19,8 +18,14 @@ use twilight_validate::command::{
 };
 
 #[derive(Serialize)]
-struct UpdateCommandPermissionsFields<'a> {
+struct UpdateCommandPermissionsBody<'a> {
     pub permissions: &'a [CommandPermission],
+}
+
+pub struct UpdateCommandPermissionsFields {
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+    guild_id: Id<GuildMarker>,
 }
 
 /// Update command permissions for a single command in a guild.
@@ -32,10 +37,8 @@ struct UpdateCommandPermissionsFields<'a> {
 /// token.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCommandPermissions<'a> {
-    application_id: Id<ApplicationMarker>,
-    command_id: Id<CommandMarker>,
-    guild_id: Id<GuildMarker>,
-    fields: Result<UpdateCommandPermissionsFields<'a>, CommandValidationError>,
+    body: Result<UpdateCommandPermissionsBody<'a>, CommandValidationError>,
+    fields: UpdateCommandPermissionsFields,
     http: &'a Client,
 }
 
@@ -47,17 +50,19 @@ impl<'a> UpdateCommandPermissions<'a> {
         command_id: Id<CommandMarker>,
         permissions: &'a [CommandPermission],
     ) -> Self {
-        let fields = Ok(UpdateCommandPermissionsFields { permissions }).and_then(|fields| {
+        let body = Ok(UpdateCommandPermissionsBody { permissions }).and_then(|fields| {
             validate_guild_permissions(permissions.len())?;
 
             Ok(fields)
         });
 
         Self {
-            application_id,
-            command_id,
-            guild_id,
-            fields,
+            body,
+            fields: UpdateCommandPermissionsFields {
+                application_id,
+                command_id,
+                guild_id,
+            },
             http,
         }
     }
@@ -77,17 +82,30 @@ impl IntoFuture for UpdateCommandPermissions<'_> {
         }
     }
 }
+impl Route for UpdateCommandPermissions<'_> {
+    type Fields = UpdateCommandPermissionsFields;
+
+    const METHOD: Method = Method::Put;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .resource("permissions")
+            .build()
+    }
+}
 
 impl TryIntoRequest for UpdateCommandPermissions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::UpdateCommandPermissions {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
-            guild_id: self.guild_id.get(),
-        })
-        .json(&fields)
-        .build()
+        Request::builder_new::<Self>(self.fields)
+            .json(&body)
+            .build()
     }
 }

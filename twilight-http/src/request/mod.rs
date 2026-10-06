@@ -58,6 +58,8 @@ mod get_gateway_authed;
 mod get_user_application;
 mod get_voice_regions;
 mod multipart;
+mod path;
+mod route;
 mod try_into_request;
 mod update_user_application;
 
@@ -75,6 +77,7 @@ pub use self::{
 };
 pub use twilight_http_ratelimiting::Method;
 
+use self::{path::Path, route::Route};
 use crate::error::{Error, ErrorType};
 use http::header::{HeaderName, HeaderValue};
 use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};

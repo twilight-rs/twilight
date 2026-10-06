@@ -9,13 +9,12 @@ use twilight_model::oauth::{
 use crate::{
     client::Client,
     error::Error,
-    request::{Nullable, Request, TryIntoRequest},
+    request::{Method, Nullable, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
 #[derive(Serialize)]
-struct UpdateCurrentUserApplicationFields<'a> {
+struct UpdateCurrentUserApplicationBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     cover_image: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -68,14 +67,14 @@ struct UpdateCurrentUserApplicationFields<'a> {
 /// [1]: https://discord.com/developers/docs/resources/application#edit-current-application
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUserApplication<'a> {
-    fields: UpdateCurrentUserApplicationFields<'a>,
+    body: UpdateCurrentUserApplicationBody<'a>,
     http: &'a Client,
 }
 
 impl<'a> UpdateCurrentUserApplication<'a> {
     pub(crate) const fn new(http: &'a Client) -> Self {
         Self {
-            fields: UpdateCurrentUserApplicationFields {
+            body: UpdateCurrentUserApplicationBody {
                 cover_image: None,
                 custom_install_url: None,
                 description: None,
@@ -93,21 +92,21 @@ impl<'a> UpdateCurrentUserApplication<'a> {
 
     /// Sets the cover image of the application.
     pub const fn cover_image(mut self, cover_image: Option<&'a str>) -> Self {
-        self.fields.cover_image = Some(Nullable(cover_image));
+        self.body.cover_image = Some(Nullable(cover_image));
 
         self
     }
 
     /// Sets the custom install URL of the application.
     pub const fn custom_install_url(mut self, custom_install_url: &'a str) -> Self {
-        self.fields.custom_install_url = Some(custom_install_url);
+        self.body.custom_install_url = Some(custom_install_url);
 
         self
     }
 
     /// Sets the description of the application.
     pub const fn description(mut self, description: &'a str) -> Self {
-        self.fields.description = Some(description);
+        self.body.description = Some(description);
 
         self
     }
@@ -116,21 +115,21 @@ impl<'a> UpdateCurrentUserApplication<'a> {
     /// Only limited intent flags (`GATEWAY_PRESENCE_LIMITED`, `GATEWAY_GUILD_MEMBERS_LIMITED`,
     /// and `GATEWAY_MESSAGE_CONTENT_LIMITED`) can be updated via the API.
     pub const fn flags(mut self, flags: ApplicationFlags) -> Self {
-        self.fields.flags = Some(flags);
+        self.body.flags = Some(flags);
 
         self
     }
 
     /// Sets the icon of the application.
     pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
-        self.fields.icon = Some(Nullable(icon));
+        self.body.icon = Some(Nullable(icon));
 
         self
     }
 
     /// Sets the install params of the application.
     pub fn install_params(mut self, install_params: InstallParams) -> Self {
-        self.fields.install_params = Some(install_params);
+        self.body.install_params = Some(install_params);
 
         self
     }
@@ -148,14 +147,14 @@ impl<'a> UpdateCurrentUserApplication<'a> {
             oauth2_install_params: Some(u),
         });
 
-        self.fields.integration_types_config = Some(ApplicationIntegrationMap { guild, user });
+        self.body.integration_types_config = Some(ApplicationIntegrationMap { guild, user });
 
         self
     }
 
     /// Sets the interactions endpoint URL of the application.
     pub const fn interactions_endpoint_url(mut self, interactions_endpoint_url: &'a str) -> Self {
-        self.fields.interactions_endpoint_url = Some(interactions_endpoint_url);
+        self.body.interactions_endpoint_url = Some(interactions_endpoint_url);
 
         self
     }
@@ -165,14 +164,14 @@ impl<'a> UpdateCurrentUserApplication<'a> {
         mut self,
         role_connections_verification_url: &'a str,
     ) -> Self {
-        self.fields.role_connections_verification_url = Some(role_connections_verification_url);
+        self.body.role_connections_verification_url = Some(role_connections_verification_url);
 
         self
     }
 
     /// Sets the tags of the application.
     pub fn tags(mut self, tags: Vec<&'a str>) -> Self {
-        self.fields.tags = Some(tags);
+        self.body.tags = Some(tags);
 
         self
     }
@@ -193,11 +192,21 @@ impl IntoFuture for UpdateCurrentUserApplication<'_> {
     }
 }
 
+impl<'a> Route for UpdateCurrentUserApplication<'a> {
+    type Fields = ();
+
+    const METHOD: Method = Method::Patch;
+
+    fn path(_: Self::Fields) -> Path {
+        Path::builder().resource("applications").me().build()
+    }
+}
+
 impl TryIntoRequest for UpdateCurrentUserApplication<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateCurrentUserApplication);
+        let mut request = Request::builder_new::<Self>(());
 
-        request = request.json(&self.fields);
+        request = request.json(&self.body);
 
         request.build()
     }

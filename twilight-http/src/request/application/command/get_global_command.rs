@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -14,11 +13,15 @@ use twilight_model::{
     },
 };
 
+pub struct GetGlobalCommandFields {
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+}
+
 /// Retrieve a global command for an application.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGlobalCommand<'a> {
-    application_id: Id<ApplicationMarker>,
-    command_id: Id<CommandMarker>,
+    fields: GetGlobalCommandFields,
     http: &'a Client,
 }
 
@@ -29,8 +32,10 @@ impl<'a> GetGlobalCommand<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
+            fields: GetGlobalCommandFields {
+                application_id,
+                command_id,
+            },
             http,
         }
     }
@@ -51,11 +56,23 @@ impl IntoFuture for GetGlobalCommand<'_> {
     }
 }
 
+impl Route for GetGlobalCommand<'_> {
+    type Fields = GetGlobalCommandFields;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetGlobalCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetGlobalCommand {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.fields))
     }
 }
