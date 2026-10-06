@@ -19,7 +19,8 @@ pub struct Webhook {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
     pub avatar: Option<ImageHash>,
-    pub channel_id: Id<ChannelMarker>,
+    /// Channel ID this webhook is for, if any.
+    pub channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
     pub id: Id<WebhookMarker>,
@@ -83,7 +84,7 @@ mod tests {
         let value = Webhook {
             application_id: Some(Id::new(4)),
             avatar: Some(image_hash::AVATAR),
-            channel_id: Id::new(1),
+            channel_id: Some(Id::new(1)),
             guild_id: Some(Id::new(2)),
             id: Id::new(3),
             kind: WebhookType::Incoming,
@@ -110,6 +111,7 @@ mod tests {
                 Token::Some,
                 Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("channel_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("guild_id"),
@@ -138,7 +140,7 @@ mod tests {
         let value = Webhook {
             application_id: Some(Id::new(4)),
             avatar: Some(image_hash::AVATAR),
-            channel_id: Id::new(1),
+            channel_id: Some(Id::new(1)),
             guild_id: Some(Id::new(2)),
             id: Id::new(3),
             kind: WebhookType::Incoming,
@@ -192,6 +194,7 @@ mod tests {
                 Token::Some,
                 Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("channel_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("guild_id"),
