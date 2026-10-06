@@ -251,7 +251,7 @@ impl From<u16> for AuditLogEventType {
             24 => AuditLogEventType::MemberUpdate,
             25 => AuditLogEventType::MemberRoleUpdate,
             26 => AuditLogEventType::MemberMove,
-            17 => AuditLogEventType::MemberDisconnect,
+            27 => AuditLogEventType::MemberDisconnect,
             28 => AuditLogEventType::BotAdd,
             30 => AuditLogEventType::RoleCreate,
             31 => AuditLogEventType::RoleUpdate,
