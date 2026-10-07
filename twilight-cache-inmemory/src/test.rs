@@ -296,6 +296,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         rtc_region: None,
         thread_metadata: None,
         topic: None,
+        total_message_sent: None,
         user_limit: None,
         video_quality_mode: None,
     };
