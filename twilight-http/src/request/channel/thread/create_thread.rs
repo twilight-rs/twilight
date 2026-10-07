@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
