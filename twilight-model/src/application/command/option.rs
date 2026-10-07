@@ -142,6 +142,17 @@ pub struct CommandOption {
     /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<Vec<CommandOption>>,
+    /// File types to filter for.
+    ///
+    /// Applicable for options of type [`Attachment`].
+    ///
+    /// Can be `image`, `video`, `audio`, or any dot-prefixed extension such as `.pdf`.
+    ///
+    /// Defaults to no restriction.
+    ///
+    /// [`Attachment`]: CommandOptionType::Attachment
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_types: Option<Vec<String>>,
     /// Whether the option is required.
     ///
     /// Applicable for all options except those of type [`SubCommand`] and

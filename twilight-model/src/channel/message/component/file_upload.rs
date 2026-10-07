@@ -19,4 +19,11 @@ pub struct FileUpload {
     /// Whether files have to be uploaded.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<bool>,
+    /// File types to filter for.
+    ///
+    /// Can be `image`, `video`, `audio`, or any dot-prefixed extension such as `.pdf`.
+    ///
+    /// Defaults to no restriction.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_types: Option<Vec<String>>,
 }

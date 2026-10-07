@@ -529,6 +529,7 @@ enum Field {
     Divider,
     Emoji,
     File,
+    FileTypes,
     Id,
     Items,
     Label,
@@ -598,6 +599,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut description: Option<Option<String>> = None;
         let mut accent_color: Option<Option<u32>> = None;
         let mut component: Option<Component> = None;
+        let mut file_types: Option<Option<Vec<String>>> = None;
 
         loop {
             let key = match map.next_key() {
@@ -659,6 +661,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     }
 
                     emoji = Some(map.next_value()?);
+                }
+                Field::FileTypes => {
+                    if file_types.is_some() {
+                        return Err(DeError::duplicate_field("file_types"));
+                    }
+
+                    file_types = Some(map.next_value()?);
                 }
                 Field::Label => {
                     if label.is_some() {
@@ -1046,6 +1055,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     max_values: max_values.unwrap_or_default(),
                     min_values: min_values.unwrap_or_default(),
                     required: required.unwrap_or_default(),
+                    file_types: file_types.unwrap_or_default(),
                 })
             }
             ComponentType::CheckboxGroup => {
@@ -1247,12 +1257,14 @@ impl Serialize for Component {
             // - id
             // - min_values
             // - max_values
+            // - file_types
             // - required
             Component::FileUpload(file_upload) => {
                 2 + usize::from(file_upload.min_values.is_some())
                     + usize::from(file_upload.max_values.is_some())
                     + usize::from(file_upload.required.is_some())
                     + usize::from(file_upload.id.is_some())
+                    + usize::from(file_upload.file_types.is_some())
             }
             Component::CheckboxGroup(checkbox_group) => {
                 3 + usize::from(checkbox_group.id.is_some())
@@ -1525,6 +1537,9 @@ impl Serialize for Component {
                 }
                 if file_upload.required.is_some() {
                     state.serialize_field("required", &file_upload.required)?;
+                }
+                if file_upload.file_types.is_some() {
+                    state.serialize_field("file_types", &file_upload.file_types)?;
                 }
             }
             Component::CheckboxGroup(checkbox_group) => {
@@ -2020,6 +2035,7 @@ mod tests {
             max_values: None,
             min_values: None,
             required: Some(true),
+            file_types: None,
         });
 
         serde_test::assert_tokens(
