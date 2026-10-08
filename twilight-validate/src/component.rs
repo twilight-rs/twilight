@@ -17,9 +17,10 @@ pub use component_v2::{
     FILE_UPLOAD_MAXIMUM_VALUES_LIMIT, FILE_UPLOAD_MINIMUM_VALUES_LIMIT,
     LABEL_DESCRIPTION_LENGTH_MAX, LABEL_LABEL_LENGTH_MAX,
     MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX, MEDIA_GALLERY_ITEMS_MAX, MEDIA_GALLERY_ITEMS_MIN,
-    SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN, TEXT_DISPLAY_CONTENT_LENGTH_MAX,
-    THUMBNAIL_DESCRIPTION_LENGTH_MAX, component_v2, container, file_upload, label, media_gallery,
-    media_gallery_item, section, text_display, thumbnail,
+    RADIOGROUP_OPTION_COUNT, SECTION_COMPONENTS_MAX, SECTION_COMPONENTS_MIN,
+    TEXT_DISPLAY_CONTENT_LENGTH_MAX, THUMBNAIL_DESCRIPTION_LENGTH_MAX, component_v2, container,
+    file_upload, label, media_gallery, media_gallery_item, radio_group, section, text_display,
+    thumbnail,
 };
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -261,6 +262,16 @@ impl Display for ComponentValidationError {
             ComponentValidationErrorType::CheckboxGroupRequiredWithNoMin => f.write_str(
                 "a checkbox group is marked required but has a min of 0 selected options",
             ),
+            ComponentValidationErrorType::RadioGroupOptionCount { count } => {
+                f.write_str("a radio group has ")?;
+                Display::fmt(&count, f)?;
+                f.write_str(" options, but the max is ")?;
+
+                Display::fmt(&RADIOGROUP_OPTION_COUNT, f)
+            }
+            ComponentValidationErrorType::RadioGroupOptionsMissing => {
+                f.write_str("a radio group is missing it's options field")
+            }
             ComponentValidationErrorType::ComponentCount { count } => {
                 Display::fmt(count, f)?;
                 f.write_str(" components were provided, but the max is ")?;
@@ -541,6 +552,14 @@ pub enum ComponentValidationErrorType {
     CheckboxGroupOptionsMissing,
     /// Checkbox group minimum is set to 0 but marked as required
     CheckboxGroupRequiredWithNoMin,
+    /// Number of radio group options provided is larger than
+    /// [the maximum][`RADIOGROUP_OPTION_COUNT`]
+    RadioGroupOptionCount {
+        /// Number of options that were provided
+        count: usize,
+    },
+    /// Radio group is missing options
+    RadioGroupOptionsMissing,
     /// Number of components provided is larger than
     /// [the maximum][`COMPONENT_COUNT`].
     ComponentCount {
@@ -846,6 +865,7 @@ pub fn action_row(action_row: &ActionRow, is_v2: bool) -> Result<(), ComponentVa
             | Component::Thumbnail(_)
             | Component::Checkbox(_)
             | Component::CheckboxGroup(_)
+            | Component::RadioGroup(_)
             | Component::FileUpload(_) => {
                 return Err(ComponentValidationError {
                     kind: if is_v2 {
