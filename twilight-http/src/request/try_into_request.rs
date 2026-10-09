@@ -79,6 +79,7 @@ mod private {
                 CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRoles, GetRole,
                 UpdateRole, UpdateRolePositions,
             },
+            screening::{GetGuildJoinRequests, UpdateGuildJoinRequest},
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
@@ -218,6 +219,7 @@ mod private {
     impl Sealed for GetGuildCommands<'_> {}
     impl Sealed for GetGuildIntegrations<'_> {}
     impl Sealed for GetGuildInvites<'_> {}
+    impl Sealed for GetGuildJoinRequests<'_> {}
     impl Sealed for GetGuildMembers<'_> {}
     impl Sealed for GetGuildOnboarding<'_> {}
     impl Sealed for GetGuildPreview<'_> {}
@@ -282,6 +284,7 @@ mod private {
     impl Sealed for UpdateGuild<'_> {}
     impl Sealed for UpdateGuildChannelPositions<'_> {}
     impl Sealed for UpdateGuildCommand<'_> {}
+    impl Sealed for UpdateGuildJoinRequest<'_> {}
     impl Sealed for UpdateGuildMember<'_> {}
     impl Sealed for UpdateGuildMfa<'_> {}
     impl Sealed for UpdateGuildOnboarding<'_> {}

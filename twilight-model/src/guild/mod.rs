@@ -10,6 +10,7 @@ pub mod auto_moderation;
 pub mod invite;
 pub mod onboarding;
 pub mod scheduled_event;
+pub mod screening;
 pub mod template;
 pub mod widget;
 

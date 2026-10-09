@@ -15,7 +15,10 @@ use crate::request::{
             GetEntitlements, GetSKUs,
         },
     },
-    guild::user::{GetCurrentUserVoiceState, GetUserVoiceState},
+    guild::{
+        screening::{GetGuildJoinRequests, UpdateGuildJoinRequest},
+        user::{GetCurrentUserVoiceState, GetUserVoiceState},
+    },
 };
 #[allow(deprecated)]
 use crate::{
@@ -119,15 +122,15 @@ use twilight_model::{
     channel::{ChannelType, message::AllowedMentions},
     guild::{
         MfaLevel, RolePosition, auto_moderation::AutoModerationEventType,
-        scheduled_event::PrivacyLevel,
+        scheduled_event::PrivacyLevel, screening::JoinRequestStatus,
     },
     http::{channel_position::Position, permission_overwrite::PermissionOverwrite},
     id::{
         Id,
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
-            EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            ScheduledEventMarker, SkuMarker, StickerMarker, UserMarker, WebhookMarker,
+            EntitlementMarker, GuildMarker, IntegrationMarker, JoinRequestMarker, MessageMarker,
+            RoleMarker, ScheduledEventMarker, SkuMarker, StickerMarker, UserMarker, WebhookMarker,
         },
     },
 };
@@ -1060,6 +1063,59 @@ impl Client {
     /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn guild_invites(&self, guild_id: Id<GuildMarker>) -> GetGuildInvites<'_> {
         GetGuildInvites::new(self, guild_id)
+    }
+
+    /// List join requests for guild, optionally filtered by application status.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn get_guild_join_requests(
+        &self,
+        guild_id: Id<GuildMarker>,
+        status: Option<JoinRequestStatus>,
+        limit: Option<u8>,
+        before: Option<Id<JoinRequestMarker>>,
+        after: Option<Id<JoinRequestMarker>>,
+    ) -> GetGuildJoinRequests<'_> {
+        GetGuildJoinRequests::new(self, guild_id, status, limit, before, after)
+    }
+
+    /// Approve or reject guild join request.
+    ///
+    /// Requires the [`KICK_MEMBERS`] permission.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("token".to_owned());
+    ///
+    /// let guild_id = Id::new(101);
+    /// let request_id = Id::new(102);
+    /// let new_status = JoinRequestStatus::Approved;
+    /// let application = client.update_guild_join_request(guild_id, request_id, new_status).await?.model().await?;
+    ///
+    /// if new_status == application.application_status {
+    ///     println!("User approved");
+    /// } else {
+    ///     println!("Failed to approve user");
+    /// }
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`KICK_MEMBERS`]: twilight_model::guild::Permissions::KICK_MEMBERS
+    pub const fn update_guild_join_request(
+        &self,
+        guild_id: Id<GuildMarker>,
+        request_id: Id<JoinRequestMarker>,
+        new_status: JoinRequestStatus,
+    ) -> UpdateGuildJoinRequest<'_> {
+        UpdateGuildJoinRequest::new(self, guild_id, request_id, new_status)
     }
 
     /// Update a guild's MFA level.

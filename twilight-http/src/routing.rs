@@ -5,9 +5,12 @@ use crate::{
     request::{Method, channel::reaction::RequestReactionType},
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::{
-    Id,
-    marker::{RoleMarker, SkuMarker},
+use twilight_model::{
+    guild::screening::JoinRequestStatus,
+    id::{
+        Id,
+        marker::{RoleMarker, SkuMarker},
+    },
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -615,6 +618,19 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's join requests.
+    GetGuildJoinRequests {
+        /// Only return requests newer than the request specified.
+        after: Option<u64>,
+        /// Only return requests older than the request specified.
+        before: Option<u64>,
+        /// ID of the guild.
+        guild_id: u64,
+        /// Maximum number of requests to return.
+        limit: Option<u8>,
+        /// Only return requests with this status.
+        status: Option<JoinRequestStatus>,
+    },
     /// Route information to get a guild's members.
     GetGuildMembers {
         /// The minimum ID of members to get.
@@ -1141,6 +1157,13 @@ pub enum Route<'a> {
         /// The token for the interaction.
         interaction_token: &'a str,
     },
+    /// Route information to update a guild's join requests.
+    UpdateGuildJoinRequest {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the join request.
+        request_id: u64,
+    },
     /// Route information to update a member.
     UpdateMember {
         /// The ID of the guild.
@@ -1303,6 +1326,7 @@ impl Route<'_> {
             | Self::GetGuildCommands { .. }
             | Self::GetGuildIntegrations { .. }
             | Self::GetGuildInvites { .. }
+            | Self::GetGuildJoinRequests { .. }
             | Self::GetGuildMembers { .. }
             | Self::GetGuildOnboarding { .. }
             | Self::GetGuildPreview { .. }
@@ -1362,6 +1386,7 @@ impl Route<'_> {
             | Self::UpdateGuildMfa { .. }
             | Self::UpdateGuildWidgetSettings { .. }
             | Self::UpdateGuildIntegration { .. }
+            | Self::UpdateGuildJoinRequest { .. }
             | Self::UpdateGuildScheduledEvent { .. }
             | Self::UpdateGuildSticker { .. }
             | Self::UpdateGuildWelcomeScreen { .. }
@@ -2282,6 +2307,25 @@ impl Display for Route<'_> {
 
                 f.write_str("/invites")
             }
+            Route::GetGuildJoinRequests {
+                after,
+                before,
+                guild_id,
+                limit,
+                status,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/requests")?;
+
+                let mut query_formatter = QueryStringFormatter::new(f);
+
+                query_formatter.write_opt_param("after", after.as_ref())?;
+                query_formatter.write_opt_param("before", before.as_ref())?;
+                query_formatter.write_opt_param("limit", limit.as_ref())?;
+                query_formatter.write_opt_param("status", status.as_ref())
+            }
             Route::GetGuildMembers {
                 after,
                 guild_id,
@@ -2725,6 +2769,16 @@ impl Display for Route<'_> {
                 f.write_str("/voice-states/")?;
 
                 Display::fmt(user_id, f)
+            }
+            Route::UpdateGuildJoinRequest {
+                guild_id,
+                request_id,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/requests/")?;
+                Display::fmt(request_id, f)
             }
             Route::UpdateGuildMfa { guild_id, .. } => {
                 f.write_str("guilds/")?;
@@ -3922,6 +3976,21 @@ mod tests {
     fn get_guild_invites() {
         let route = Route::GetGuildInvites { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/invites"));
+    }
+
+    #[test]
+    fn get_guild_join_requests() {
+        let route = Route::GetGuildJoinRequests {
+            guild_id: GUILD_ID,
+            after: Some(123),
+            before: Some(456),
+            limit: Some(21),
+            status: Some(twilight_model::guild::screening::JoinRequestStatus::Submitted),
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/requests?after=123&before=456&limit=21&status=SUBMITTED")
+        );
     }
 
     #[test]
