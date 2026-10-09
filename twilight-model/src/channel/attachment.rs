@@ -30,6 +30,13 @@ pub struct Attachment {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<u64>,
     pub id: Id<AttachmentMarker>,
+    /// A [thumbhash](https://evanw.github.io/thumbhash) placeholder of the
+    /// image or video.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub placeholder: Option<String>,
+    /// Version of the placeholder.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub placeholder_version: Option<u64>,
     pub proxy_url: String,
     pub size: u64,
     /// The title of the file.
@@ -83,6 +90,9 @@ mod tests {
             duration_secs: Some(3.2),
             height: Some(184),
             id: Id::new(700_000_000_000_000_000),
+            // Thumbhash of the twilight project logo.
+            placeholder: Some("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg".to_owned()),
+            placeholder_version: Some(1),
             proxy_url: "https://cdn.example.com/1.png".to_owned(),
             size: 13_593,
             title: Some("a title".to_owned()),
@@ -96,7 +106,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Attachment",
-                    len: 13,
+                    len: 15,
                 },
                 Token::Str("content_type"),
                 Token::Some,
@@ -118,6 +128,12 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("700000000000000000"),
+                Token::Str("placeholder"),
+                Token::Some,
+                Token::Str("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg"),
+                Token::Str("placeholder_version"),
+                Token::Some,
+                Token::U64(1),
                 Token::Str("proxy_url"),
                 Token::Str("https://cdn.example.com/1.png"),
                 Token::Str("size"),
