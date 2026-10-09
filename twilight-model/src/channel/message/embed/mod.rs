@@ -3,6 +3,7 @@
 #![allow(missing_docs)]
 mod author;
 mod field;
+mod flags;
 mod footer;
 mod image;
 mod provider;
@@ -10,8 +11,8 @@ mod thumbnail;
 mod video;
 
 pub use self::{
-    author::EmbedAuthor, field::EmbedField, footer::EmbedFooter, image::EmbedImage,
-    provider::EmbedProvider, thumbnail::EmbedThumbnail, video::EmbedVideo,
+    author::EmbedAuthor, field::EmbedField, flags::EmbedFlags, footer::EmbedFooter,
+    image::EmbedImage, provider::EmbedProvider, thumbnail::EmbedThumbnail, video::EmbedVideo,
 };
 
 use crate::util::Timestamp;
@@ -27,6 +28,9 @@ pub struct Embed {
     pub description: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fields: Vec<EmbedField>,
+    /// Flags of the embed, if available.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flags: Option<EmbedFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub footer: Option<EmbedFooter>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -66,6 +70,7 @@ mod tests {
             color: Some(123),
             description: Some("a description".to_owned()),
             fields: Vec::new(),
+            flags: None,
             footer: None,
             image: None,
             kind: "rich".to_owned(),
@@ -127,6 +132,7 @@ mod tests {
                 name: "name".to_owned(),
                 value: "value".to_owned(),
             }],
+            flags: None,
             footer: Some(EmbedFooter {
                 icon_url: Some("https://example.com/1.png".to_owned()),
                 proxy_icon_url: Some("https://cdn.example.com/1-hash.png".to_owned()),

@@ -66,6 +66,7 @@ impl EmbedBuilder {
             color: None,
             description: None,
             fields: Vec::new(),
+            flags: None,
             footer: None,
             image: None,
             kind: "rich".to_owned(),
@@ -402,6 +403,7 @@ mod tests {
                 value: "title".to_string(),
             }]
             .to_vec(),
+            flags: None,
             footer: Some(EmbedFooter {
                 icon_url: Some(
                     "https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png"
