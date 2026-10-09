@@ -1,7 +1,11 @@
+use super::EmbedMediaFlags;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct EmbedVideo {
+    /// Flags for this piece of embed media.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flags: Option<EmbedMediaFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -20,6 +24,7 @@ mod tests {
     #[test]
     fn embed_video() {
         let value = EmbedVideo {
+            flags: None,
             height: Some(1440),
             proxy_url: Some("https://proxy.cdn.example.com/1-hash.mp4".to_owned()),
             url: Some("https://cdn.example.com/1-hash.mp4".to_owned()),

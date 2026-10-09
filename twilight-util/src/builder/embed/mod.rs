@@ -238,6 +238,7 @@ impl EmbedBuilder {
     /// ```
     pub fn image(mut self, image_source: ImageSource) -> Self {
         self.0.image = Some(EmbedImage {
+            flags: None,
             height: None,
             proxy_url: None,
             url: image_source.0,
@@ -267,6 +268,7 @@ impl EmbedBuilder {
     /// ```
     pub fn thumbnail(mut self, image_source: ImageSource) -> Self {
         self.0.thumbnail = Some(EmbedThumbnail {
+            flags: None,
             height: None,
             proxy_url: None,
             url: image_source.0,

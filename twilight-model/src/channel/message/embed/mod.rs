@@ -5,13 +5,15 @@ mod author;
 mod field;
 mod footer;
 mod image;
+mod media_flags;
 mod provider;
 mod thumbnail;
 mod video;
 
 pub use self::{
     author::EmbedAuthor, field::EmbedField, footer::EmbedFooter, image::EmbedImage,
-    provider::EmbedProvider, thumbnail::EmbedThumbnail, video::EmbedVideo,
+    media_flags::EmbedMediaFlags, provider::EmbedProvider, thumbnail::EmbedThumbnail,
+    video::EmbedVideo,
 };
 
 use crate::util::Timestamp;
@@ -133,6 +135,7 @@ mod tests {
                 text: "a footer".to_owned(),
             }),
             image: Some(EmbedImage {
+                flags: None,
                 height: Some(1440),
                 proxy_url: Some("https://cdn.example.com/1-hash.png".to_owned()),
                 url: "https://example.com/1.png".to_owned(),
@@ -144,6 +147,7 @@ mod tests {
                 url: Some("https://example.com".to_owned()),
             }),
             thumbnail: Some(EmbedThumbnail {
+                flags: None,
                 height: Some(1440),
                 proxy_url: Some("https://cdn.example.com/1-hash.png".to_owned()),
                 url: "https://example.com/1.png".to_owned(),
@@ -153,6 +157,7 @@ mod tests {
             title: Some("a title".to_owned()),
             url: Some("https://example.com".to_owned()),
             video: Some(EmbedVideo {
+                flags: None,
                 height: Some(1440),
                 proxy_url: Some("https://proxy.cdn.example.com/1-hash.mp4".to_owned()),
                 url: Some("https://cdn.example.com/1-hash.mp4".to_owned()),
