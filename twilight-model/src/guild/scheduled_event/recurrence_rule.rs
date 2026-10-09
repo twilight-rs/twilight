@@ -52,13 +52,20 @@ pub struct RecurrenceRule {
     /// This field is currently not able to be set externally.
     pub end: Option<Timestamp>,
     /// How often the event occurs.
-    pub frequence: RecurrenceRuleFrequency,
+    pub frequency: RecurrenceRuleFrequency,
+    /// Spacing between the events, defined by frequency. For example,
+    /// [`frequency`][Self::frequency] of
+    /// [weekly][RecurrenceRuleFrequency::Weekly] and an interval of 2 would be
+    /// "every-other week".
+    pub interval: u64,
     /// Starting time of the recurrence interval.
     pub start: Timestamp,
 }
 
 /// How often the event recurs.
-// n.b.: This enum is 0-indexed.
+///
+/// The numerical representation of this is 0-indexed, with value 0 being
+/// [`Yearly`][Self::Yearly].
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
@@ -79,8 +86,8 @@ impl From<u8> for RecurrenceRuleFrequency {
     fn from(value: u8) -> Self {
         match value {
             0 => Self::Yearly,
-            1 => Self::Weekly,
-            2 => Self::Monthly,
+            1 => Self::Monthly,
+            2 => Self::Weekly,
             3 => Self::Daily,
             unknown => Self::Unknown(unknown),
         }
@@ -100,26 +107,45 @@ impl From<RecurrenceRuleFrequency> for u8 {
 }
 
 /// Month to recur on.
-// n.b.: This enum is 1-indexed.
+///
+/// The numerical representation of this is 1-indexed, with value 1 being
+/// [`January`][Self::January].
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
 pub enum RecurrenceRuleMonth {
+    /// First month of the year.
     January,
+    /// Second month of the year.
     February,
+    /// Third month of the year.
     March,
+    /// Fourth month of the year.
     April,
+    /// Fifth month of the year.
     May,
+    /// Sixth month of the year.
     June,
+    /// Seventh month of the year.
     July,
+    /// Eighth month of the year.
     August,
+    /// Ninth month of the year.
     September,
+    /// Tenth month of the year.
     October,
+    /// Eleventh month of the year.
     November,
+    /// Twelfth month of the year.
     December,
 }
 
 impl From<u8> for RecurrenceRuleMonth {
+    /// Convert from a numerical representation to a defined month.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is invalid; that is, 0 or greater than 12.
     fn from(value: u8) -> Self {
         match value {
             1 => Self::January,
@@ -163,7 +189,9 @@ impl From<RecurrenceRuleMonth> for u8 {
     }
 }
 /// Weekday to recur on.
-// n.b.: This enum is 0-indexed. The 0th day of the week is Monday.
+///
+/// The numerical representation of this is 0-indexed, with value 0 being
+/// [`Monday`][Self::Monday].
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
@@ -188,6 +216,7 @@ impl From<u8> for RecurrenceRuleWeekday {
             5 => Self::Saturday,
             6 => Self::Sunday,
             other => {
+                // We're unlikely to move away from the Gregorian calendar soon.
                 panic!("unknown recurrence rule weekday: {other}");
             }
         }
@@ -216,4 +245,31 @@ pub struct RecurrenceRuleNWeekday {
     ///
     /// Must be a value between 1 through 5, inclusively.
     pub n: u8,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{RecurrenceRuleMonth, RecurrenceRuleWeekday};
+
+    /// Test that `RecurrenceRuleMonth` is 1-indexed and converting from 0
+    /// panics.
+    #[should_panic]
+    #[test]
+    fn month_one_indexed() {
+        let _ = RecurrenceRuleMonth::from(0u8);
+    }
+
+    /// Test that `RecurrenceRuleMonth` does not have 13 months.
+    #[should_panic]
+    #[test]
+    fn month_thirteen_invalid() {
+        let _ = RecurrenceRuleMonth::from(13u8);
+    }
+
+    /// Test that `RecurrenceRuleWeekday` does not have 8 days.
+    #[should_panic]
+    #[test]
+    fn weekday_eight_invalid() {
+        let _ = RecurrenceRuleWeekday::from(7u8);
+    }
 }

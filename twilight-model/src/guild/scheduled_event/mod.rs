@@ -70,6 +70,7 @@ pub struct GuildScheduledEvent {
     /// Privacy level of the event.
     pub privacy_level: PrivacyLevel,
     /// Definition for how often this event should recur.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub recurrence_rule: Option<RecurrenceRule>,
     /// Scheduled end time of the event.
     ///
