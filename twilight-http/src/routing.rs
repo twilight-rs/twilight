@@ -1215,6 +1215,28 @@ pub enum Route<'a> {
         webhook_id: u64,
     },
     UpdateCurrentUserApplication,
+    SendSoundboardSound {
+        channel_id: u64,
+    },
+    ListDefaultSoundboardSounds,
+    ListGuildSoundboardSounds {
+        guild_id: u64,
+    },
+    GetGuildSoundboardSound {
+        guild_id: u64,
+        sound_id: u64,
+    },
+    CreateGuildSoundboardSound {
+        guild_id: u64,
+    },
+    UpdateGuildSoundboardSound {
+        guild_id: u64,
+        sound_id: u64,
+    },
+    DeleteGuildSoundboardSound {
+        guild_id: u64,
+        sound_id: u64,
+    },
 }
 
 impl Route<'_> {
@@ -1269,7 +1291,8 @@ impl Route<'_> {
             | Self::RemoveMember { .. }
             | Self::RemoveMemberRole { .. }
             | Self::RemoveThreadMember { .. }
-            | Self::UnpinMessage { .. } => Method::Delete,
+            | Self::UnpinMessage { .. }
+            | Self::DeleteGuildSoundboardSound { .. } => Method::Delete,
             Self::GetActiveThreads { .. }
             | Self::GetApplicationEmojis { .. }
             | Self::GetAnswerVoters { .. }
@@ -1348,7 +1371,10 @@ impl Route<'_> {
             | Self::GetVoiceRegions
             | Self::GetWebhook { .. }
             | Self::GetWebhookMessage { .. }
-            | Self::SearchGuildMembers { .. } => Method::Get,
+            | Self::SearchGuildMembers { .. }
+            | Self::ListDefaultSoundboardSounds
+            | Self::ListGuildSoundboardSounds { .. }
+            | Self::GetGuildSoundboardSound { .. } => Method::Get,
             Self::UpdateAutoModerationRule { .. }
             | Self::UpdateChannel { .. }
             | Self::UpdateCurrentMember { .. }
@@ -1377,7 +1403,8 @@ impl Route<'_> {
             | Self::UpdateWebhookMessage { .. }
             | Self::UpdateCurrentUserApplication
             | Self::UpdateApplicationEmoji { .. }
-            | Self::UpdateWebhook { .. } => Method::Patch,
+            | Self::UpdateWebhook { .. }
+            | Self::UpdateGuildSoundboardSound { .. } => Method::Patch,
             Self::CreateChannel { .. }
             | Self::AddApplicationEmoji { .. }
             | Self::CreateGlobalCommand { .. }
@@ -1408,7 +1435,9 @@ impl Route<'_> {
             | Self::ExecuteWebhook { .. }
             | Self::FollowNewsChannel { .. }
             | Self::InteractionCallback { .. }
-            | Self::SyncGuildIntegration { .. } => Method::Post,
+            | Self::SyncGuildIntegration { .. }
+            | Self::SendSoundboardSound { .. }
+            | Self::CreateGuildSoundboardSound { .. } => Method::Post,
             Self::AddGuildMember { .. }
             | Self::AddMemberRole { .. }
             | Self::AddThreadMember { .. }
@@ -2737,6 +2766,29 @@ impl Display for Route<'_> {
                 Display::fmt(application_id, f)?;
 
                 f.write_str("/skus")
+            }
+            Route::SendSoundboardSound { channel_id } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+
+                f.write_str("/send-soundboard-sound")
+            }
+            Route::ListDefaultSoundboardSounds => f.write_str("soundboard-default-sounds"),
+            Route::ListGuildSoundboardSounds { guild_id }
+            | Route::CreateGuildSoundboardSound { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/soundboard-sounds")
+            }
+            Route::GetGuildSoundboardSound { guild_id, sound_id }
+            | Route::UpdateGuildSoundboardSound { guild_id, sound_id }
+            | Route::DeleteGuildSoundboardSound { guild_id, sound_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/soundboard-sounds/")?;
+
+                Display::fmt(sound_id, f)
             }
         }
     }

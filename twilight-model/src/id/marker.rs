@@ -312,3 +312,12 @@ pub struct WebhookMarker;
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct AvatarDecorationDataSkuMarker;
+
+/// Marker for Soundboard sounds.
+///
+/// Types such as [`SoundboardSound`] use this ID marker.
+///
+/// [`SoundboardSound`]: crate::guild::soundboard::SoundBoard
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct SoundboardMarker;
