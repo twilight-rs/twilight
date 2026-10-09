@@ -9,7 +9,9 @@ use crate::{
 use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
-    guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
+    guild::scheduled_event::{
+        EntityType, GuildScheduledEvent, PrivacyLevel, Status, recurrence_rule::RecurrenceRule,
+    },
     id::{
         Id,
         marker::{ChannelMarker, GuildMarker, ScheduledEventMarker},
@@ -38,6 +40,8 @@ struct UpdateGuildScheduledEventFields<'a> {
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    recurrence_rule: Option<Nullable<&'a RecurrenceRule>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     scheduled_end_time: Option<Nullable<&'a Timestamp>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -86,6 +90,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
                 image: None,
                 name: None,
                 privacy_level: None,
+                recurrence_rule: None,
                 scheduled_end_time: None,
                 scheduled_start_time: None,
                 status: None,
@@ -201,6 +206,19 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
             fields.name = Some(name);
 
             Ok(fields)
+        });
+
+        self
+    }
+
+    /// Set the recurrence rule of the event.
+    ///
+    /// Pass `None` to clear the recurrence rule.
+    pub fn recurrence_rule(mut self, recurrence_rule: Option<&'a RecurrenceRule>) -> Self {
+        self.fields = self.fields.map(|mut fields| {
+            fields.recurrence_rule = Some(Nullable(recurrence_rule));
+
+            fields
         });
 
         self
