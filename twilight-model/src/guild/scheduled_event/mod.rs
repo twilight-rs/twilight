@@ -1,10 +1,13 @@
 //! Types for interacting with scheduled events.
 
+pub mod recurrence_rule;
+
 mod user;
 
 pub use self::user::GuildScheduledEventUser;
 
 use crate::{
+    guild::scheduled_event::recurrence_rule::RecurrenceRule,
     id::{
         Id,
         marker::{
@@ -66,6 +69,8 @@ pub struct GuildScheduledEvent {
     pub name: String,
     /// Privacy level of the event.
     pub privacy_level: PrivacyLevel,
+    /// Definition for how often this event should recur.
+    pub recurrence_rule: Option<RecurrenceRule>,
     /// Scheduled end time of the event.
     ///
     /// Required on events of type [`EntityType::External`]. It also may be
@@ -223,6 +228,7 @@ mod tests {
             image: Some(COVER),
             name: "garfield dance party".into(),
             privacy_level: PrivacyLevel::GuildOnly,
+            recurrence_rule: None,
             scheduled_end_time: None,
             scheduled_start_time,
             status: Status::Completed,
@@ -234,7 +240,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GuildScheduledEvent",
-                    len: 12,
+                    len: 13,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -262,6 +268,8 @@ mod tests {
                 Token::Str("garfield dance party"),
                 Token::Str("privacy_level"),
                 Token::U8(2),
+                Token::Str("recurrence_rule"),
+                Token::None,
                 Token::Str("scheduled_start_time"),
                 Token::Str("2022-01-01T00:00:00.000000+00:00"),
                 Token::Str("status"),

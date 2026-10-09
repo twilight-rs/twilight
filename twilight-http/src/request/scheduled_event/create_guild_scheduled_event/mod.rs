@@ -17,7 +17,9 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
+    guild::scheduled_event::{
+        EntityType, GuildScheduledEvent, PrivacyLevel, recurrence_rule::RecurrenceRule,
+    },
     id::{
         Id,
         marker::{ChannelMarker, GuildMarker},
@@ -45,6 +47,8 @@ struct CreateGuildScheduledEventFields<'a> {
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    recurrence_rule: Option<&'a RecurrenceRule>,
     #[serde(skip_serializing_if = "Option::is_none")]
     scheduled_end_time: Option<&'a Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -139,6 +143,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
                 image: None,
                 name: None,
                 privacy_level: Some(privacy_level),
+                recurrence_rule: None,
                 scheduled_end_time: None,
                 scheduled_start_time: None,
             }),
