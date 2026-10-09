@@ -371,6 +371,7 @@ mod tests {
             color: None,
             description: None,
             fields: Vec::new(),
+            flags: None,
             footer: None,
             image: None,
             kind: "rich".to_owned(),

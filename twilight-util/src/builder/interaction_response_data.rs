@@ -225,6 +225,7 @@ mod tests {
             color: Some(123),
             description: Some("a description".to_owned()),
             fields: Vec::new(),
+            flags: None,
             footer: None,
             image: None,
             kind: "rich".to_owned(),
