@@ -1,0 +1,4 @@
+disallowed-methods = [
+    { path = "std::string::String::len", reason = "Discord strings should be counted as codepoints. Use `str.chars().count()` instead" },
+    { path = "str::len", reason = "Discord strings should be counted as codepoints. Use `str.chars().count()` instead" },
+]
