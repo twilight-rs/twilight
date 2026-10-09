@@ -253,21 +253,21 @@ mod tests {
 
     /// Test that `RecurrenceRuleMonth` is 1-indexed and converting from 0
     /// panics.
-    #[should_panic]
+    #[should_panic(expected = "unknown recurrence rule month: 0")]
     #[test]
     fn month_one_indexed() {
         let _ = RecurrenceRuleMonth::from(0u8);
     }
 
     /// Test that `RecurrenceRuleMonth` does not have 13 months.
-    #[should_panic]
+    #[should_panic(expected = "unknown recurrence rule month: 13")]
     #[test]
     fn month_thirteen_invalid() {
         let _ = RecurrenceRuleMonth::from(13u8);
     }
 
     /// Test that `RecurrenceRuleWeekday` does not have 8 days.
-    #[should_panic]
+    #[should_panic(expected = "unknown recurrence rule weekday: 7")]
     #[test]
     fn weekday_eight_invalid() {
         let _ = RecurrenceRuleWeekday::from(7u8);
