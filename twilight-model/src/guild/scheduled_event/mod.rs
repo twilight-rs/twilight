@@ -240,7 +240,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GuildScheduledEvent",
-                    len: 12,
+                    len: 13,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -268,6 +268,8 @@ mod tests {
                 Token::Str("garfield dance party"),
                 Token::Str("privacy_level"),
                 Token::U8(2),
+                Token::Str("recurrence_rule"),
+                Token::None,
                 Token::Str("scheduled_start_time"),
                 Token::Str("2022-01-01T00:00:00.000000+00:00"),
                 Token::Str("status"),
