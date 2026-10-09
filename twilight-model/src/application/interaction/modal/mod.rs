@@ -7,6 +7,7 @@ mod checkbox;
 mod checkbox_group;
 mod file_upload;
 mod label;
+mod radio_group;
 mod select_menu;
 mod text_display;
 mod text_input;
@@ -17,6 +18,7 @@ pub use self::{
     checkbox_group::ModalInteractionCheckboxGroup,
     file_upload::ModalInteractionFileUpload,
     label::ModalInteractionLabel,
+    radio_group::ModalInteractionRadioGroup,
     select_menu::{
         ModalInteractionChannelSelect, ModalInteractionMentionableSelect,
         ModalInteractionRoleSelect, ModalInteractionStringSelect, ModalInteractionUserSelect,
@@ -69,6 +71,8 @@ pub enum ModalInteractionComponent {
     Checkbox(ModalInteractionCheckbox),
     /// Checkbox Group Component.
     CheckboxGroup(ModalInteractionCheckboxGroup),
+    /// Radio Group Component.
+    RadioGroup(ModalInteractionRadioGroup),
     /// File upload component.
     FileUpload(ModalInteractionFileUpload),
     /// Top-level layout component including a string label and optional description.
@@ -97,6 +101,7 @@ impl ModalInteractionComponent {
             ModalInteractionComponent::ChannelSelect(_) => ComponentType::ChannelSelectMenu,
             ModalInteractionComponent::Checkbox(_) => ComponentType::Checkbox,
             ModalInteractionComponent::CheckboxGroup(_) => ComponentType::CheckboxGroup,
+            ModalInteractionComponent::RadioGroup(_) => ComponentType::RadioGroup,
             ModalInteractionComponent::FileUpload(_) => ComponentType::FileUpload,
             ModalInteractionComponent::Label(_) => ComponentType::Label,
             ModalInteractionComponent::MentionableSelect(_) => ComponentType::MentionableSelectMenu,
@@ -131,6 +136,12 @@ impl From<ModalInteractionCheckbox> for ModalInteractionComponent {
 impl From<ModalInteractionCheckboxGroup> for ModalInteractionComponent {
     fn from(checkbox_group: ModalInteractionCheckboxGroup) -> Self {
         Self::CheckboxGroup(checkbox_group)
+    }
+}
+
+impl From<ModalInteractionRadioGroup> for ModalInteractionComponent {
+    fn from(radio_group: ModalInteractionRadioGroup) -> Self {
+        Self::RadioGroup(radio_group)
     }
 }
 
@@ -221,6 +232,17 @@ impl TryFrom<ModalInteractionComponent> for ModalInteractionCheckboxGroup {
     fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
         match value {
             ModalInteractionComponent::CheckboxGroup(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<ModalInteractionComponent> for ModalInteractionRadioGroup {
+    type Error = ModalInteractionComponent;
+
+    fn try_from(value: ModalInteractionComponent) -> Result<Self, Self::Error> {
+        match value {
+            ModalInteractionComponent::RadioGroup(inner) => Ok(inner),
             _ => Err(value),
         }
     }
@@ -536,6 +558,19 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
                     value,
                 })
             }
+            ComponentType::RadioGroup => {
+                let custom_id = custom_id.ok_or_else(|| DeError::missing_field("custom_id"))?;
+                let value = value
+                    .ok_or_else(|| DeError::missing_field("value"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::RadioGroup(ModalInteractionRadioGroup {
+                    custom_id,
+                    id,
+                    value,
+                })
+            }
             ComponentType::Button
             | ComponentType::Section
             | ComponentType::Thumbnail
@@ -593,6 +628,12 @@ impl Serialize for ModalInteractionComponent {
             // - type
             // - id
             // - custom_id
+            // - value
+            ModalInteractionComponent::RadioGroup(_) => 4,
+            // Required fields:
+            // - type
+            // - id
+            // - custom_id
             // - values
             ModalInteractionComponent::FileUpload(_) => 4,
             // Required fields:
@@ -635,6 +676,11 @@ impl Serialize for ModalInteractionComponent {
                 state.serialize_field("custom_id", &checkbox_group.custom_id)?;
                 state.serialize_field("id", &checkbox_group.id)?;
                 state.serialize_field("values", &checkbox_group.values)?;
+            }
+            ModalInteractionComponent::RadioGroup(radio_group) => {
+                state.serialize_field("custom_id", &radio_group.custom_id)?;
+                state.serialize_field("id", &radio_group.id)?;
+                state.serialize_field("value", &radio_group.value)?;
             }
             ModalInteractionComponent::FileUpload(file_upload) => {
                 state.serialize_field("custom_id", &file_upload.custom_id)?;
