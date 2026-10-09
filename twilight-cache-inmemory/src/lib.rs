@@ -1040,6 +1040,9 @@ impl<CacheModels: CacheableModels> UpdateCache<CacheModels> for Event {
             | Event::MessagePollVoteRemove(_)
             | Event::RateLimited(_)
             | Event::Resumed
+            | Event::SubscriptionCreate(_)
+            | Event::SubscriptionDelete(_)
+            | Event::SubscriptionUpdate(_)
             | Event::ThreadMembersUpdate(_)
             | Event::ThreadMemberUpdate(_)
             | Event::TypingStart(_)

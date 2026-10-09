@@ -157,6 +157,12 @@ pub enum Event {
     StageInstanceDelete(StageInstanceDelete),
     /// A stage instance was updated in a stage channel.
     StageInstanceUpdate(StageInstanceUpdate),
+    /// A Subscription for a Premium App has been created.
+    SubscriptionCreate(SubscriptionCreate),
+    /// A Subscription for a Premium App has been deleted.
+    SubscriptionDelete(SubscriptionDelete),
+    /// A Subscription for a Premium App has been updated.
+    SubscriptionUpdate(SubscriptionUpdate),
     /// A thread has been created, relevant to the current user,
     /// or the current user has been added to a thread.
     ThreadCreate(Box<ThreadCreate>),
@@ -264,6 +270,9 @@ impl Event {
             | Event::GatewayReconnect
             | Event::Ready(_)
             | Event::Resumed
+            | Event::SubscriptionCreate(_)
+            | Event::SubscriptionDelete(_)
+            | Event::SubscriptionUpdate(_)
             | Event::UserUpdate(_) => None,
         }
     }
@@ -332,6 +341,9 @@ impl Event {
             Self::StageInstanceCreate(_) => EventType::StageInstanceCreate,
             Self::StageInstanceDelete(_) => EventType::StageInstanceDelete,
             Self::StageInstanceUpdate(_) => EventType::StageInstanceUpdate,
+            Self::SubscriptionCreate(_) => EventType::SubscriptionCreate,
+            Self::SubscriptionDelete(_) => EventType::SubscriptionDelete,
+            Self::SubscriptionUpdate(_) => EventType::SubscriptionUpdate,
             Self::ThreadCreate(_) => EventType::ThreadCreate,
             Self::ThreadDelete(_) => EventType::ThreadDelete,
             Self::ThreadListSync(_) => EventType::ThreadListSync,
@@ -411,6 +423,9 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::StageInstanceCreate(v) => Self::StageInstanceCreate(v),
             DispatchEvent::StageInstanceDelete(v) => Self::StageInstanceDelete(v),
             DispatchEvent::StageInstanceUpdate(v) => Self::StageInstanceUpdate(v),
+            DispatchEvent::SubscriptionCreate(v) => Self::SubscriptionCreate(v),
+            DispatchEvent::SubscriptionDelete(v) => Self::SubscriptionDelete(v),
+            DispatchEvent::SubscriptionUpdate(v) => Self::SubscriptionUpdate(v),
             DispatchEvent::ThreadCreate(v) => Self::ThreadCreate(v),
             DispatchEvent::ThreadDelete(v) => Self::ThreadDelete(v),
             DispatchEvent::ThreadListSync(v) => Self::ThreadListSync(v),

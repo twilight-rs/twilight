@@ -70,6 +70,9 @@ pub enum DispatchEvent {
     StageInstanceCreate(StageInstanceCreate),
     StageInstanceDelete(StageInstanceDelete),
     StageInstanceUpdate(StageInstanceUpdate),
+    SubscriptionCreate(SubscriptionCreate),
+    SubscriptionDelete(SubscriptionDelete),
+    SubscriptionUpdate(SubscriptionUpdate),
     ThreadCreate(Box<ThreadCreate>),
     ThreadDelete(ThreadDelete),
     ThreadListSync(ThreadListSync),
@@ -144,6 +147,9 @@ impl DispatchEvent {
             Self::StageInstanceCreate(_) => EventType::StageInstanceCreate,
             Self::StageInstanceDelete(_) => EventType::StageInstanceDelete,
             Self::StageInstanceUpdate(_) => EventType::StageInstanceUpdate,
+            Self::SubscriptionCreate(_) => EventType::SubscriptionCreate,
+            Self::SubscriptionDelete(_) => EventType::SubscriptionDelete,
+            Self::SubscriptionUpdate(_) => EventType::SubscriptionUpdate,
             Self::ThreadCreate(_) => EventType::ThreadCreate,
             Self::ThreadDelete(_) => EventType::ThreadDelete,
             Self::ThreadListSync(_) => EventType::ThreadListSync,
@@ -216,6 +222,9 @@ impl TryFrom<Event> for DispatchEvent {
             Event::StageInstanceCreate(v) => Self::StageInstanceCreate(v),
             Event::StageInstanceDelete(v) => Self::StageInstanceDelete(v),
             Event::StageInstanceUpdate(v) => Self::StageInstanceUpdate(v),
+            Event::SubscriptionCreate(v) => Self::SubscriptionCreate(v),
+            Event::SubscriptionDelete(v) => Self::SubscriptionDelete(v),
+            Event::SubscriptionUpdate(v) => Self::SubscriptionUpdate(v),
             Event::ThreadCreate(v) => Self::ThreadCreate(v),
             Event::ThreadDelete(v) => Self::ThreadDelete(v),
             Event::ThreadListSync(v) => Self::ThreadListSync(v),
@@ -406,6 +415,15 @@ impl<'de> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'_> {
             }
             "STAGE_INSTANCE_UPDATE" => {
                 DispatchEvent::StageInstanceUpdate(StageInstanceUpdate::deserialize(deserializer)?)
+            }
+            "SUBSCRIPTION_CREATE" => {
+                DispatchEvent::SubscriptionCreate(SubscriptionCreate::deserialize(deserializer)?)
+            }
+            "SUBSCRIPTION_DELETE" => {
+                DispatchEvent::SubscriptionDelete(SubscriptionDelete::deserialize(deserializer)?)
+            }
+            "SUBSCRIPTION_UPDATE" => {
+                DispatchEvent::SubscriptionUpdate(SubscriptionUpdate::deserialize(deserializer)?)
             }
             "THREAD_CREATE" => {
                 DispatchEvent::ThreadCreate(Box::new(ThreadCreate::deserialize(deserializer)?))
