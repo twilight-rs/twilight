@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -11,8 +11,9 @@ use twilight_model::{
     channel::{Channel, ChannelType, thread::AutoArchiveDuration},
     id::{Id, marker::ChannelMarker},
 };
-use twilight_validate::channel::{
-    ChannelValidationError, is_thread as validate_is_thread, name as validate_name,
+use twilight_validate::{
+    channel::{ChannelValidationError, is_thread as validate_is_thread, name as validate_name},
+    request::{ValidationError, audit_reason as validate_audit_reason},
 };
 
 #[derive(Serialize)]
@@ -37,6 +38,7 @@ pub struct CreateThread<'a> {
     channel_id: Id<ChannelMarker>,
     fields: Result<CreateThreadFields<'a>, ChannelValidationError>,
     http: &'a Client,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateThread<'a> {
@@ -63,6 +65,7 @@ impl<'a> CreateThread<'a> {
             channel_id,
             fields,
             http,
+            reason: Ok(None),
         }
     }
 
@@ -91,6 +94,14 @@ impl<'a> CreateThread<'a> {
     }
 }
 
+impl<'a> AuditLogReason<'a> for CreateThread<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+
+        self
+    }
+}
+
 impl IntoFuture for CreateThread<'_> {
     type Output = Result<Response<Channel>, Error>;
 
@@ -110,10 +121,15 @@ impl TryIntoRequest for CreateThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let fields = self.fields.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateThread {
+        let mut request = Request::builder(&Route::CreateThread {
             channel_id: self.channel_id.get(),
         })
-        .json(&fields)
-        .build()
+        .json(&fields);
+
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        request.build()
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
@@ -10,6 +10,7 @@ use twilight_model::id::{
     Id,
     marker::{GuildMarker, StickerMarker},
 };
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 /// Deletes a guild sticker by the ID of the guild and its ID.
 ///
@@ -32,6 +33,7 @@ use twilight_model::id::{
 pub struct DeleteGuildSticker<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
+    reason: Result<Option<&'a str>, ValidationError>,
     sticker_id: Id<StickerMarker>,
 }
 
@@ -44,8 +46,17 @@ impl<'a> DeleteGuildSticker<'a> {
         Self {
             guild_id,
             http,
+            reason: Ok(None),
             sticker_id,
         }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for DeleteGuildSticker<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+
+        self
     }
 }
 
@@ -66,9 +77,15 @@ impl IntoFuture for DeleteGuildSticker<'_> {
 
 impl TryIntoRequest for DeleteGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteGuildSticker {
+        let mut request = Request::builder(&Route::DeleteGuildSticker {
             guild_id: self.guild_id.get(),
             sticker_id: self.sticker_id.get(),
-        }))
+        });
+
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        request.build()
     }
 }

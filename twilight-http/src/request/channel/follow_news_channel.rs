@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -11,6 +11,7 @@ use twilight_model::{
     channel::FollowedChannel,
     id::{Id, marker::ChannelMarker},
 };
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
 struct FollowNewsChannelFields {
@@ -23,6 +24,7 @@ pub struct FollowNewsChannel<'a> {
     channel_id: Id<ChannelMarker>,
     fields: FollowNewsChannelFields,
     http: &'a Client,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> FollowNewsChannel<'a> {
@@ -35,7 +37,16 @@ impl<'a> FollowNewsChannel<'a> {
             channel_id,
             http,
             fields: FollowNewsChannelFields { webhook_channel_id },
+            reason: Ok(None),
         }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for FollowNewsChannel<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+
+        self
     }
 }
 
@@ -56,10 +67,15 @@ impl IntoFuture for FollowNewsChannel<'_> {
 
 impl TryIntoRequest for FollowNewsChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::FollowNewsChannel {
+        let mut request = Request::builder(&Route::FollowNewsChannel {
             channel_id: self.channel_id.get(),
         })
-        .json(&self.fields)
-        .build()
+        .json(&self.fields);
+
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        request.build()
     }
 }
