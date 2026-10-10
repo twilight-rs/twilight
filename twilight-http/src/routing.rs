@@ -39,6 +39,10 @@ pub enum Route<'a> {
         /// ID of the member.
         user_id: u64,
     },
+    /// Route information to ban users from a guild in bulk.
+    BulkGuildBan {
+        guild_id: u64,
+    },
     /// Mark a given One-Time Purchase consumable SKU for a given entitlement
     /// for the user as consumed.
     ConsumeEntitlement {
@@ -1426,6 +1430,7 @@ impl Route<'_> {
             | Self::UpdateWebhook { .. } => Method::Patch,
             Self::CreateChannel { .. }
             | Self::AddApplicationEmoji { .. }
+            | Self::BulkGuildBan { .. }
             | Self::ConsumeEntitlement { .. }
             | Self::CreateGlobalCommand { .. }
             | Self::CreateGuildCommand { .. }
@@ -1561,6 +1566,12 @@ impl Display for Route<'_> {
                 f.write_str("/thread-members/")?;
 
                 Display::fmt(user_id, f)
+            }
+            Route::BulkGuildBan { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/bulk-ban")
             }
             Route::ConsumeEntitlement {
                 application_id,

@@ -7,8 +7,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
-use twilight_model::id::Id;
 use twilight_model::id::marker::{ChannelMarker, RoleMarker};
+use twilight_model::id::{Id, marker::UserMarker};
 use twilight_model::util::Timestamp;
 
 /// The maximum audit log reason length in UTF-16 codepoints.
@@ -58,6 +58,12 @@ pub const BIO_LIMIT_MAX: usize = 400;
 
 /// Minimum length of a bio.
 pub const BIO_LIMIT_MIN: usize = 1;
+
+/// Maximum amount of seconds (7 days) for messages to be deleted upon bulk guild ban.
+pub const BULK_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
+
+/// Maximum amount of user IDs to bulk ban.
+pub const BULK_GUILD_BAN_USER_LIMIT_MAX: usize = 200;
 
 /// Maximum amount of seconds (`604_800` this is equivalent to `7` days) for messages to be deleted upon ban.
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
@@ -347,6 +353,22 @@ impl Display for ValidationError {
 
                 f.write_str(" and at most ")?;
                 Display::fmt(&BIO_LIMIT_MAX, f)
+            }
+            ValidationErrorType::BulkGuildBanDeleteMessageSeconds {
+                seconds: delete_message_seconds,
+            } => {
+                f.write_str("provided bulk guild ban delete_message_seconds is ")?;
+                Display::fmt(delete_message_seconds, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&BULK_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX, f)
+            }
+            ValidationErrorType::BulkGuildBanUsers { len } => {
+                f.write_str("provided bulk guild ban users has ")?;
+                Display::fmt(len, f)?;
+                f.write_str("entries, but it must be at most ")?;
+
+                Display::fmt(&BULK_GUILD_BAN_USER_LIMIT_MAX, f)
             }
             ValidationErrorType::CreateGuildBanDeleteMessageSeconds {
                 seconds: delete_message_seconds,
@@ -653,6 +675,16 @@ pub enum ValidationErrorType {
     },
     /// Provided bio length was invalid.
     Bio {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Provided bulk guild ban delete message seconds was invalid.
+    BulkGuildBanDeleteMessageSeconds {
+        /// Invalid seconds.
+        seconds: u32,
+    },
+    /// Provided bulk guild ban list of users is too long.
+    BulkGuildBanUsers {
         /// Invalid length.
         len: usize,
     },
@@ -1209,6 +1241,52 @@ pub fn bio(bio: impl AsRef<str>) -> Result<(), ValidationError> {
             kind: ValidationErrorType::Bio { len },
         })
     }
+}
+
+/// Ensure that the delete message seconds amount for the Bulk Guild Ban request
+/// is correct.
+///
+/// The seconds must be at most [`BULK_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX`]. This
+/// is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`BulkGuildBanDeleteMessageSeconds`] if the seconds is
+/// invalid.
+///
+/// [`BulkGuildBanDeleteMessageSeconds`]: ValidationErrorType::BulkGuildBanDeleteMessageSeconds
+/// [this documentation entry]: https://docs.discord.com/developers/resources/guild#bulk-guild-ban
+pub const fn bulk_guild_ban_delete_message_seconds(seconds: u32) -> Result<(), ValidationError> {
+    if seconds <= BULK_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::BulkGuildBanDeleteMessageSeconds { seconds },
+        })
+    }
+}
+
+/// Ensure that the user IDs for the Bulk Guild Ban request is correct.
+///
+/// The user IDs must have at most [`BULK_GUILD_BAN_USER_LIMIT_MAX`] elements.
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`BulkGuildBanUsers`] if the user IDs are invalid.
+///
+/// [`BulkGuildBanUsers`]: ValidationErrorType::BulkGuildBanUsers
+/// [this documentation entry]: https://docs.discord.com/developers/resources/guild#bulk-guild-ban
+pub const fn bulk_guild_ban_users(user_ids: &[Id<UserMarker>]) -> Result<(), ValidationError> {
+    if user_ids.len() > BULK_GUILD_BAN_USER_LIMIT_MAX {
+        return Err(ValidationError {
+            kind: ValidationErrorType::BulkGuildBanUsers {
+                len: user_ids.len(),
+            },
+        });
+    }
+
+    Ok(())
 }
 
 /// Ensure that the delete message seconds amount for the Create Guild Ban request
@@ -1962,6 +2040,29 @@ mod tests {
 
         assert!(bio("").is_err());
         assert!(bio("b".repeat(401)).is_err());
+    }
+
+    #[test]
+    fn bulk_guild_ban_delete_message_seconds_max() {
+        assert!(bulk_guild_ban_delete_message_seconds(0).is_ok());
+        assert!(bulk_guild_ban_delete_message_seconds(1).is_ok());
+        assert!(bulk_guild_ban_delete_message_seconds(604_800).is_ok());
+
+        assert!(bulk_guild_ban_delete_message_seconds(604_801).is_err());
+    }
+
+    #[test]
+    fn bulk_guild_ban_users_limit() {
+        fn user_id_iter() -> impl Iterator<Item = Id<UserMarker>> {
+            std::iter::successors(Some(Id::<UserMarker>::new(1)), |previous| {
+                Some(Id::new(previous.get() + 1))
+            })
+        }
+
+        let just_enough = user_id_iter().take(200).collect::<Vec<_>>();
+        assert!(bulk_guild_ban_users(&just_enough).is_ok());
+        let too_many = user_id_iter().take(201).collect::<Vec<_>>();
+        assert!(bulk_guild_ban_users(&too_many).is_err());
     }
 
     #[test]
