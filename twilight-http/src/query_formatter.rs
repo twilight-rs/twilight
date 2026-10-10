@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter, Write};
 
-/// A helper struct to write query paramseters to a formatter.
+/// A helper struct to write query parameters to a formatter.
 pub struct QueryStringFormatter<'w1, 'w2> {
     formatter: &'w1 mut Formatter<'w2>,
     is_first: bool,
@@ -32,6 +32,26 @@ impl<'w1, 'w2> QueryStringFormatter<'w1, 'w2> {
         Display::fmt(value, self.formatter)
     }
 
+    /// Writes a repeating query parameter to the formatter.
+    ///
+    /// The formatted query parameter will be in the format of "?foo=1&foo=2".
+    /// For CSV parameter values ("?foo=1,2") use [`QueryCsvArray`].
+    ///
+    /// # Errors
+    ///
+    /// This returns a [`std::fmt::Error`] if the formatter returns an error.
+    pub fn write_repeating_param<T: Display>(
+        &mut self,
+        key: &str,
+        values: impl IntoIterator<Item = T>,
+    ) -> std::fmt::Result {
+        for value in values {
+            self.write_param(key, &value)?;
+        }
+
+        Ok(())
+    }
+
     /// Writes a query parameter to the formatter.
     ///
     /// # Errors
@@ -46,12 +66,15 @@ impl<'w1, 'w2> QueryStringFormatter<'w1, 'w2> {
     }
 }
 
-/// Provides a display implementation for serializing iterable objects into
-/// query params.
+/// Provides a display implementation for serializing iterable objects into a
+/// query parameter with a comma-separated value.
+///
+/// For repeating values query parameters (`?foo=1&foo=2`) use
+/// [`QueryFormatter::write_repeating_param`].
 #[derive(Debug)]
-pub struct QueryArray<T>(pub T);
+pub struct QueryCsvArray<T>(pub T);
 
-impl<T, U> Display for QueryArray<T>
+impl<T, U> Display for QueryCsvArray<T>
 where
     T: IntoIterator<Item = U> + Clone,
     U: Display,
@@ -115,12 +138,29 @@ mod tests {
     }
 
     #[test]
-    fn test_query_array() {
-        let query_array = QueryArray([1, 2, 3]);
+    fn test_query_csv_array() {
+        let query_array = QueryCsvArray([1, 2, 3]);
         assert_eq!(query_array.to_string(), "1,2,3");
 
         let params = vec!["a", "b", "c"];
-        let query_array = QueryArray(&params);
+        let query_array = QueryCsvArray(&params);
         assert_eq!(query_array.to_string(), "a,b,c");
+    }
+
+    #[test]
+    fn test_query_string_formatter_repeating() {
+        struct Repeating;
+
+        impl Display for Repeating {
+            fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+                let mut writer = QueryStringFormatter::new(f);
+                writer.write_repeating_param("foo", [1, 2, 3])?;
+                writer.write_repeating_param("bar", ["baz", "qux"])?;
+
+                Ok(())
+            }
+        }
+
+        assert_eq!("?foo=1&foo=2&foo=3&bar=baz&bar=qux", Repeating.to_string());
     }
 }

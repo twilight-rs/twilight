@@ -15,7 +15,10 @@ use crate::request::{
             GetEntitlements, GetSKUs,
         },
     },
-    guild::user::{GetCurrentUserVoiceState, GetUserVoiceState},
+    guild::{
+        message::search_guild_messages::SearchGuildMessages,
+        user::{GetCurrentUserVoiceState, GetUserVoiceState},
+    },
 };
 #[allow(deprecated)]
 use crate::{
@@ -631,6 +634,23 @@ impl Client {
     /// [`limit`]: GetChannelMessages::limit
     pub const fn channel_messages(&self, channel_id: Id<ChannelMarker>) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
+    }
+
+    /// Search a guild's messages.
+    ///
+    /// Returned messages do not have the `reactions` field.
+    ///
+    /// Requires the [`READ_MESSAGE_HISTORY`] permission. This endpoint is
+    /// restricted according to whether the [`MESSAGE_CONTENT` Privileged Intent]
+    /// is enabled for your application.
+    ///
+    /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
+    /// [`MESSAGE_CONTENT` Privileged Intent]: twilight_model::gateway::Intents::MESSAGE_CONTENT
+    pub const fn search_guild_messages(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> SearchGuildMessages<'_> {
+        SearchGuildMessages::new(self, guild_id)
     }
 
     pub const fn delete_channel_permission(

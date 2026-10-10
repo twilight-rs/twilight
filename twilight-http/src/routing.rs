@@ -1,13 +1,18 @@
 use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 
 use crate::{
-    query_formatter::{QueryArray, QueryStringFormatter},
+    query_formatter::{QueryCsvArray, QueryStringFormatter},
     request::{Method, channel::reaction::RequestReactionType},
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::{
-    Id,
-    marker::{RoleMarker, SkuMarker},
+use twilight_model::{
+    http::message_search::{
+        AuthorType, Filter, SearchEmbedTypes, SearchHasTypes, SearchSortModes, SearchSortOrder,
+    },
+    id::{
+        Id,
+        marker::{ChannelMarker, MessageMarker, RoleMarker, SkuMarker, UserMarker},
+    },
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -995,6 +1000,60 @@ pub enum Route<'a> {
         /// Query to search by.
         query: &'a str,
     },
+    /// Route information to search for messages in a guild.
+    SearchGuildMessages {
+        /// Filter messages by attachment extension (e.g. `txt`).
+        attachment_extension: Option<&'a [&'a str]>,
+        /// Filter messages by attachment filename.
+        attachment_filename: Option<&'a [&'a str]>,
+        /// Filter messages by these authors.
+        author_id: Option<&'a [Id<UserMarker>]>,
+        /// Filter messages by author type.
+        author_type: Option<&'a [Filter<AuthorType>]>,
+        /// Filter messages by these channels.
+        channel_id: Option<&'a [Id<ChannelMarker>]>,
+        /// Filter messages by content.
+        content: Option<&'a str>,
+        /// Filter messages by embed provider (case-sensitive, e.g. `Tenor`).
+        embed_provider: Option<&'a [&'a str]>,
+        /// Filter messages by embed type.
+        embed_type: Option<&'a [SearchEmbedTypes]>,
+        /// ID of the guild.
+        guild_id: u64,
+        /// Filter messages by whether or not they have specific things.
+        has: Option<&'a [Filter<SearchHasTypes>]>,
+        /// Whether to include results from age-restricted channels.
+        include_nsfw: Option<bool>,
+        /// Max number of messages to return.
+        limit: Option<u16>,
+        /// Filter messages by link hostname (e.g. `discordapp.com`).
+        link_hostname: Option<&'a [&'a str]>,
+        /// Get messages before this message ID.
+        max_id: Option<u64>,
+        /// Filter messages that do or do not mention `@everyone`.
+        mention_everyone: Option<bool>,
+        /// Filter messages that mention these users.
+        mentions: Option<&'a [Id<UserMarker>]>,
+        /// Filter messages that mention these roles.
+        mentions_role_id: Option<&'a [Id<RoleMarker>]>,
+        /// Get messages after this message ID.
+        min_id: Option<u64>,
+        /// Number to offset the returned messages by.
+        offset: Option<u16>,
+        /// Filter messages by whether they are or are not pinned.
+        pinned: Option<bool>,
+        /// Filter messages that reply to these messages.
+        replied_to_message_id: Option<&'a [Id<MessageMarker>]>,
+        /// Filter messages that reply to these users.
+        replied_to_user_id: Option<&'a [Id<UserMarker>]>,
+        /// Max number of words to skip between matching tokens in the search
+        /// content.
+        slop: Option<u16>,
+        /// The sorting algorithm to use.
+        sort_by: Option<SearchSortModes>,
+        /// The direction to sort.
+        sort_order: Option<SearchSortOrder>,
+    },
     /// Route information to set global commands.
     SetGlobalCommands {
         /// The ID of the owner application.
@@ -1348,7 +1407,8 @@ impl Route<'_> {
             | Self::GetVoiceRegions
             | Self::GetWebhook { .. }
             | Self::GetWebhookMessage { .. }
-            | Self::SearchGuildMembers { .. } => Method::Get,
+            | Self::SearchGuildMembers { .. }
+            | Self::SearchGuildMessages { .. } => Method::Get,
             Self::UpdateAutoModerationRule { .. }
             | Self::UpdateChannel { .. }
             | Self::UpdateCurrentMember { .. }
@@ -1660,7 +1720,7 @@ impl Display for Route<'_> {
                 writer.write_opt_param("days", days.as_ref())?;
 
                 if !include_roles.is_empty() {
-                    writer.write_param("include_roles", &QueryArray(*include_roles))?;
+                    writer.write_param("include_roles", &QueryCsvArray(*include_roles))?;
                 }
 
                 Ok(())
@@ -2322,7 +2382,7 @@ impl Display for Route<'_> {
                 query_formatter.write_opt_param("days", days.as_ref())?;
 
                 if !include_roles.is_empty() {
-                    query_formatter.write_param("include_roles", &QueryArray(*include_roles))?;
+                    query_formatter.write_param("include_roles", &QueryCsvArray(*include_roles))?;
                 }
 
                 Ok(())
@@ -2674,6 +2734,136 @@ impl Display for Route<'_> {
                     .write_param("query", &utf8_percent_encode(query, NON_ALPHANUMERIC))?;
                 query_formatter.write_opt_param("limit", limit.as_ref())
             }
+            Route::SearchGuildMessages {
+                attachment_extension,
+                attachment_filename,
+                author_id,
+                author_type,
+                channel_id,
+                content,
+                embed_provider,
+                embed_type,
+                guild_id,
+                has,
+                include_nsfw,
+                limit,
+                link_hostname,
+                max_id,
+                mention_everyone,
+                mentions,
+                mentions_role_id,
+                min_id,
+                offset,
+                pinned,
+                replied_to_message_id,
+                replied_to_user_id,
+                slop,
+                sort_by,
+                sort_order,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/messages/search")?;
+
+                let mut formatter = QueryStringFormatter::new(f);
+
+                if let Some(attachment_extension) = attachment_extension {
+                    formatter.write_repeating_param(
+                        "attachment_extension",
+                        attachment_extension.iter().map(|attachment_extension| {
+                            utf8_percent_encode(attachment_extension, NON_ALPHANUMERIC)
+                        }),
+                    )?;
+                }
+
+                if let Some(attachment_filename) = attachment_filename {
+                    formatter.write_repeating_param(
+                        "attachment_filename",
+                        attachment_filename.iter().map(|attachment_filename| {
+                            utf8_percent_encode(attachment_filename, NON_ALPHANUMERIC)
+                        }),
+                    )?;
+                }
+
+                if let Some(author_id) = author_id {
+                    formatter.write_repeating_param("author_id", author_id.iter())?;
+                }
+
+                if let Some(author_type) = author_type {
+                    formatter.write_repeating_param("author_type", author_type.iter())?;
+                }
+
+                if let Some(channel_id) = channel_id {
+                    formatter.write_repeating_param("channel_id", channel_id.iter())?;
+                }
+
+                if let Some(content) = content {
+                    formatter
+                        .write_param("content", &utf8_percent_encode(content, NON_ALPHANUMERIC))?;
+                }
+
+                if let Some(embed_provider) = embed_provider {
+                    formatter.write_repeating_param(
+                        "embed_provider",
+                        embed_provider.iter().map(|embed_provider| {
+                            utf8_percent_encode(embed_provider, NON_ALPHANUMERIC)
+                        }),
+                    )?;
+                }
+
+                if let Some(embed_type) = embed_type {
+                    formatter.write_repeating_param("embed_type", embed_type.iter())?;
+                }
+
+                if let Some(has) = has {
+                    formatter.write_repeating_param("has", has.iter())?;
+                }
+
+                formatter.write_opt_param("include_nsfw", include_nsfw.as_ref())?;
+                formatter.write_opt_param("limit", limit.as_ref())?;
+
+                if let Some(link_hostname) = link_hostname {
+                    formatter.write_repeating_param(
+                        "link_hostname",
+                        link_hostname.iter().map(|link_hostname| {
+                            utf8_percent_encode(link_hostname, NON_ALPHANUMERIC)
+                        }),
+                    )?;
+                }
+
+                formatter.write_opt_param("max_id", max_id.as_ref())?;
+                formatter.write_opt_param("mention_everyone", mention_everyone.as_ref())?;
+
+                if let Some(mentions) = mentions {
+                    formatter.write_repeating_param("mentions", mentions.iter())?;
+                }
+
+                if let Some(mentions_role_id) = mentions_role_id {
+                    formatter.write_repeating_param("mentions_role_id", mentions_role_id.iter())?;
+                }
+
+                formatter.write_opt_param("min_id", min_id.as_ref())?;
+                formatter.write_opt_param("offset", offset.as_ref())?;
+                formatter.write_opt_param("pinned", pinned.as_ref())?;
+
+                if let Some(replied_to_message_id) = replied_to_message_id {
+                    formatter.write_repeating_param(
+                        "replied_to_message_id",
+                        replied_to_message_id.iter(),
+                    )?;
+                }
+
+                if let Some(replied_to_user_id) = replied_to_user_id {
+                    formatter
+                        .write_repeating_param("replied_to_user_id", replied_to_user_id.iter())?;
+                }
+
+                formatter.write_opt_param("slop", slop.as_ref())?;
+                formatter.write_opt_param("sort_by", sort_by.as_ref())?;
+                formatter.write_opt_param("sort_order", sort_order.as_ref())?;
+
+                Ok(())
+            }
             Route::SyncGuildIntegration {
                 guild_id,
                 integration_id,
@@ -2746,7 +2936,12 @@ impl Display for Route<'_> {
 mod tests {
     use super::Route;
     use crate::request::{Method, channel::reaction::RequestReactionType};
-    use twilight_model::id::Id;
+    use twilight_model::{
+        http::message_search::{
+            AuthorType, Filter, SearchEmbedTypes, SearchHasTypes, SearchSortModes, SearchSortOrder,
+        },
+        id::Id,
+    };
 
     /// Test a route for each method.
     #[test]
@@ -4506,6 +4701,99 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("guilds/{GUILD_ID}/members/search?query=foo%2Fbar&limit=99")
+        );
+    }
+
+    #[test]
+    fn search_guild_messages_no_parameters() {
+        let route = Route::SearchGuildMessages {
+            attachment_extension: None,
+            attachment_filename: None,
+            author_id: None,
+            author_type: None,
+            channel_id: None,
+            content: None,
+            embed_provider: None,
+            embed_type: None,
+            guild_id: GUILD_ID,
+            has: None,
+            include_nsfw: None,
+            limit: None,
+            link_hostname: None,
+            max_id: None,
+            mention_everyone: None,
+            mentions: None,
+            mentions_role_id: None,
+            min_id: None,
+            offset: None,
+            pinned: None,
+            replied_to_message_id: None,
+            replied_to_user_id: None,
+            slop: None,
+            sort_by: None,
+            sort_order: None,
+        };
+        assert_eq!(Method::Get, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/messages/search")
+        );
+    }
+
+    #[test]
+    fn search_guild_messages_all_parameters() {
+        // This would be an atrocious message.
+        let route = Route::SearchGuildMessages {
+            attachment_extension: Some(&["pdf", "txt"]),
+            attachment_filename: Some(&["foo.pdf", "foo.txt"]),
+            author_id: Some(&[Id::new(1), Id::new(2)]),
+            author_type: Some(&[
+                Filter::Exclude(AuthorType::Bot),
+                Filter::Include(AuthorType::User),
+            ]),
+            channel_id: Some(&[Id::new(3), Id::new(4)]),
+            content: Some("test message"),
+            embed_provider: Some(&["one", "two"]),
+            embed_type: Some(&[SearchEmbedTypes::Gif, SearchEmbedTypes::Image]),
+            guild_id: GUILD_ID,
+            has: Some(&[
+                Filter::Include(SearchHasTypes::File),
+                Filter::Exclude(SearchHasTypes::Image),
+            ]),
+            include_nsfw: Some(true),
+            limit: Some(20),
+            link_hostname: Some(&["discord.com", "github.com"]),
+            max_id: Some(100),
+            mention_everyone: Some(false),
+            mentions: Some(&[Id::new(5), Id::new(6)]),
+            mentions_role_id: Some(&[Id::new(7), Id::new(8)]),
+            min_id: Some(1),
+            offset: Some(1000),
+            pinned: Some(true),
+            replied_to_message_id: Some(&[Id::new(9), Id::new(10)]),
+            replied_to_user_id: Some(&[Id::new(11), Id::new(12)]),
+            slop: Some(13),
+            sort_by: Some(SearchSortModes::Relevance),
+            sort_order: Some(SearchSortOrder::Descending),
+        };
+        assert_eq!(Method::Get, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/messages/search")
+                + "?attachment_extension=pdf&attachment_extension=txt"
+                + "&attachment_filename=foo%2Epdf&attachment_filename=foo%2Etxt"
+                + "&author_id=1&author_id=2&author_type=-bot&author_type=user"
+                + "&channel_id=3&channel_id=4&content=test%20message"
+                + "&embed_provider=one&embed_provider=two&embed_type=gif"
+                + "&embed_type=image&has=file&has=-image&include_nsfw=true"
+                + "&limit=20&link_hostname=discord%2Ecom"
+                + "&link_hostname=github%2Ecom&max_id=100"
+                + "&mention_everyone=false&mentions=5&mentions=6"
+                + "&mentions_role_id=7&mentions_role_id=8&min_id=1&offset=1000"
+                + "&pinned=true&replied_to_message_id=9"
+                + "&replied_to_message_id=10&replied_to_user_id=11"
+                + "&replied_to_user_id=12&slop=13&sort_by=relevance"
+                + "&sort_order=desc"
         );
     }
 
