@@ -75,6 +75,7 @@ mod private {
                 AddGuildMember, AddRoleToMember, GetGuildMembers, GetMember, RemoveMember,
                 RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
             },
+            message::search_guild_messages::SearchGuildMessages,
             role::{
                 CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRoles, GetRole,
                 UpdateRole, UpdateRolePositions,
@@ -266,6 +267,7 @@ mod private {
     impl Sealed for RemoveRoleFromMember<'_> {}
     impl Sealed for RemoveThreadMember<'_> {}
     impl Sealed for SearchGuildMembers<'_> {}
+    impl Sealed for SearchGuildMessages<'_> {}
     impl Sealed for SetGlobalCommands<'_> {}
     impl Sealed for SetGuildCommands<'_> {}
     impl Sealed for SyncTemplate<'_> {}
