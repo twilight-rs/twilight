@@ -907,6 +907,11 @@ pub enum Route<'a> {
         /// ID of the stage channel.
         channel_id: u64,
     },
+    /// Route information to get a sticker pack.
+    GetStickerPack {
+        /// ID of the sticker pack.
+        sticker_pack_id: u64,
+    },
     /// Route information to get a sticker.
     GetSticker {
         /// ID of the sticker.
@@ -1386,6 +1391,7 @@ impl Route<'_> {
             | Self::GetSKUSubscriptions { .. }
             | Self::GetSKUSubscription { .. }
             | Self::GetStageInstance { .. }
+            | Self::GetStickerPack { .. }
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
             | Self::GetTemplates { .. }
@@ -2669,6 +2675,11 @@ impl Display for Route<'_> {
                 query_formatter.write_opt_param("limit", limit.as_ref())?;
                 query_formatter.write_opt_param("type", kind.as_ref())
             }
+            Route::GetStickerPack { sticker_pack_id } => {
+                f.write_str("sticker-packs/")?;
+
+                Display::fmt(sticker_pack_id, f)
+            }
             Route::GetSticker { sticker_id } => {
                 f.write_str("stickers/")?;
 
@@ -2912,6 +2923,7 @@ mod tests {
     const USER_ID: u64 = 11;
     const SCHEDULED_EVENT_ID: u64 = 12;
     const AUTO_MODERATION_RULE_ID: u64 = 13;
+    const STICKER_PACK_ID: u64 = 14;
     const SKU_ID: u64 = 15;
     const SUBSCRIPTION_ID: u64 = 16;
     const ENTITLEMENT_ID: u64 = 17;
@@ -4163,6 +4175,18 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("channels/{CHANNEL_ID}/messages/pins")
+        );
+    }
+
+    #[test]
+    fn get_sticker_pack() {
+        let route = Route::GetStickerPack {
+            sticker_pack_id: STICKER_PACK_ID,
+        };
+        assert_eq!(Method::Get, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("sticker-packs/{STICKER_PACK_ID}")
         );
     }
 
