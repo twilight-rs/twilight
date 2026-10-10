@@ -33,7 +33,7 @@ mod private {
             CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission,
             DeleteChannelPermissionConfigured, DeletePin, FollowNewsChannel, GetChannel, GetPins,
             UpdateChannel, UpdateChannelPermission,
-            invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
+            invite::{CreateChannelInvite, GetChannelInvites},
             message::{
                 CreateMessage, CrosspostMessage, DeleteMessage, DeleteMessages, GetChannelMessages,
                 GetChannelMessagesConfigured, GetMessage, UpdateMessage,
@@ -89,6 +89,7 @@ mod private {
                 UpdateUserVoiceState,
             },
         },
+        invite::{DeleteInvite, GetInvite},
         poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildStageInstanceScheduledEvent,
@@ -116,6 +117,7 @@ mod private {
     impl Sealed for AddThreadMember<'_> {}
     impl Sealed for CreateAutoModerationRule<'_> {}
     impl Sealed for CreateBan<'_> {}
+    impl Sealed for CreateChannelInvite<'_> {}
     impl Sealed for CreateEmoji<'_> {}
     impl Sealed for CreateFollowup<'_> {}
     impl Sealed for CreateForumThreadMessage<'_> {}
@@ -134,7 +136,6 @@ mod private {
     impl Sealed for CreateGuildSticker<'_> {}
     impl Sealed for CreateGuildUserCommand<'_> {}
     impl Sealed for CreateGuildVoiceScheduledEvent<'_> {}
-    impl Sealed for CreateInvite<'_> {}
     impl Sealed for CreateMessage<'_> {}
     impl Sealed for CreatePin<'_> {}
     impl Sealed for CreatePrivateChannel<'_> {}
