@@ -34,14 +34,11 @@
 //! ```rust,no_run
 //! use std::env;
 //! use twilight_http::{
+//!     Client,
 //!     request::guild::message::search_guild_messages::{
-//!         AuthorType,
-//!         Filter,
-//!         SearchGuildMessagesResponseBody,
-//!         SearchGuildMessages,
+//!         AuthorType, Filter, SearchGuildMessages, SearchGuildMessagesResponseBody,
 //!         SearchHasTypes,
 //!     },
-//!     Client,
 //! };
 //! use twilight_model::id::Id;
 //!
@@ -55,7 +52,8 @@
 //! let client = Client::new(env::var("DISCORD_TOKEN")?);
 //! let channel_ids = find_channels();
 //!
-//! let response = client.search_guild_messages(guild_id)
+//! let response = client
+//!     .search_guild_messages(guild_id)
 //!     .channel_id(&channel_ids)
 //!     // Include only messages with images
 //!     .has(&[Filter::Include(SearchHasTypes::Image)])
