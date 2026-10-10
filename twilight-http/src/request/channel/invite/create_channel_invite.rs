@@ -20,7 +20,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateInviteFields {
+struct CreateChannelInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     max_age: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -52,24 +52,27 @@ struct CreateInviteFields {
 /// let client = Client::new("my token".to_owned());
 ///
 /// let channel_id = Id::new(123);
-/// let invite = client.create_invite(channel_id).max_uses(3).await?;
+/// let invite = client
+///     .create_channel_invite(channel_id)
+///     .max_uses(3)
+///     .await?;
 /// # Ok(()) }
 /// ```
 ///
 /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
 #[must_use = "requests must be configured and executed"]
-pub struct CreateInvite<'a> {
+pub struct CreateChannelInvite<'a> {
     channel_id: Id<ChannelMarker>,
-    fields: Result<CreateInviteFields, ValidationError>,
+    fields: Result<CreateChannelInviteFields, ValidationError>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
-impl<'a> CreateInvite<'a> {
+impl<'a> CreateChannelInvite<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
-            fields: Ok(CreateInviteFields {
+            fields: Ok(CreateChannelInviteFields {
                 max_age: None,
                 max_uses: None,
                 temporary: None,
@@ -102,7 +105,7 @@ impl<'a> CreateInvite<'a> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
     /// let invite = client
-    ///     .create_invite(Id::new(1))
+    ///     .create_channel_invite(Id::new(1))
     ///     .max_age(60 * 60)
     ///     .await?
     ///     .model()
@@ -145,7 +148,7 @@ impl<'a> CreateInvite<'a> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
     /// let invite = client
-    ///     .create_invite(Id::new(1))
+    ///     .create_channel_invite(Id::new(1))
     ///     .max_uses(5)
     ///     .await?
     ///     .model()
@@ -231,7 +234,7 @@ impl<'a> CreateInvite<'a> {
     }
 }
 
-impl<'a> AuditLogReason<'a> for CreateInvite<'a> {
+impl<'a> AuditLogReason<'a> for CreateChannelInvite<'a> {
     fn reason(mut self, reason: &'a str) -> Self {
         self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
@@ -239,7 +242,7 @@ impl<'a> AuditLogReason<'a> for CreateInvite<'a> {
     }
 }
 
-impl IntoFuture for CreateInvite<'_> {
+impl IntoFuture for CreateChannelInvite<'_> {
     type Output = Result<Response<Invite>, Error>;
 
     type IntoFuture = ResponseFuture<Invite>;
@@ -254,7 +257,7 @@ impl IntoFuture for CreateInvite<'_> {
     }
 }
 
-impl TryIntoRequest for CreateInvite<'_> {
+impl TryIntoRequest for CreateChannelInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateInvite {
@@ -272,7 +275,7 @@ impl TryIntoRequest for CreateInvite<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::CreateInvite;
+    use super::CreateChannelInvite;
     use crate::Client;
     use std::error::Error;
     use twilight_model::id::Id;
@@ -280,7 +283,7 @@ mod tests {
     #[test]
     fn max_age() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder = CreateInvite::new(&client, Id::new(1)).max_age(0);
+        let mut builder = CreateChannelInvite::new(&client, Id::new(1)).max_age(0);
         assert_eq!(Some(0), builder.fields.as_ref().unwrap().max_age);
         builder = builder.max_age(604_800);
         assert_eq!(Some(604_800), builder.fields.as_ref().unwrap().max_age);
@@ -293,7 +296,7 @@ mod tests {
     #[test]
     fn max_uses() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder = CreateInvite::new(&client, Id::new(1)).max_uses(0);
+        let mut builder = CreateChannelInvite::new(&client, Id::new(1)).max_uses(0);
         assert_eq!(Some(0), builder.fields.as_ref().unwrap().max_uses);
         builder = builder.max_uses(100);
         assert_eq!(Some(100), builder.fields.as_ref().unwrap().max_uses);
