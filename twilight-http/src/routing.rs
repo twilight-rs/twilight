@@ -32,12 +32,29 @@ pub enum Route<'a> {
         /// The ID of the user.
         user_id: u64,
     },
+    /// Route information to add a target user to an invite.
+    AddTargetUser {
+        /// Code of the invite.
+        code: &'a str,
+        /// ID of the user.
+        user_id: u64,
+    },
     /// Route information to add a member to a thread.
     AddThreadMember {
         /// ID of the thread.
         channel_id: u64,
         /// ID of the member.
         user_id: u64,
+    },
+    /// Route information to bulk add target users to an invite.
+    BulkAddTargetUsers {
+        /// Code of the invite.
+        code: &'a str,
+    },
+    /// Route information to bulk remove target users from an invite.
+    BulkDeleteTargetUsers {
+        /// Code of the invite.
+        code: &'a str,
     },
     /// Route information to create an auto moderation rule.
     CreateAutoModerationRule {
@@ -865,6 +882,17 @@ pub enum Route<'a> {
         /// ID of the sticker.
         sticker_id: u64,
     },
+    /// Route information to get the job status of processing modifications to
+    /// an invite's target users.
+    GetTargetUsersJobStatus {
+        /// Code of the invite.
+        code: &'a str,
+    },
+    /// Route information to get an invite's target users.
+    GetTargetUsers {
+        /// Code of the invite.
+        code: &'a str,
+    },
     /// Route information to get a template.
     GetTemplate {
         /// The template code.
@@ -977,6 +1005,13 @@ pub enum Route<'a> {
         /// The ID of the role.
         role_id: u64,
         /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to remove a target user from an invite.
+    RemoveTargetUser {
+        /// Code of the invite.
+        code: &'a str,
+        /// ID of the user.
         user_id: u64,
     },
     /// Route information to remove a member from a thread.
@@ -1185,6 +1220,11 @@ pub enum Route<'a> {
         /// ID of the stage channel.
         channel_id: u64,
     },
+    /// Route information to update an invite's target users.
+    UpdateTargetUsers {
+        /// Code of the invite.
+        code: &'a str,
+    },
     /// Route information to update a template.
     UpdateTemplate {
         /// The ID of the guild.
@@ -1268,6 +1308,7 @@ impl Route<'_> {
             | Self::LeaveThread { .. }
             | Self::RemoveMember { .. }
             | Self::RemoveMemberRole { .. }
+            | Self::RemoveTargetUser { .. }
             | Self::RemoveThreadMember { .. }
             | Self::UnpinMessage { .. } => Method::Delete,
             Self::GetActiveThreads { .. }
@@ -1337,6 +1378,8 @@ impl Route<'_> {
             | Self::GetSKUs { .. }
             | Self::GetStageInstance { .. }
             | Self::GetSticker { .. }
+            | Self::GetTargetUsersJobStatus { .. }
+            | Self::GetTargetUsers { .. }
             | Self::GetTemplate { .. }
             | Self::GetTemplates { .. }
             | Self::GetThreadMember { .. }
@@ -1380,6 +1423,8 @@ impl Route<'_> {
             | Self::UpdateWebhook { .. } => Method::Patch,
             Self::CreateChannel { .. }
             | Self::AddApplicationEmoji { .. }
+            | Self::BulkAddTargetUsers { .. }
+            | Self::BulkDeleteTargetUsers { .. }
             | Self::CreateGlobalCommand { .. }
             | Self::CreateGuildCommand { .. }
             | Self::CreateEmoji { .. }
@@ -1411,6 +1456,7 @@ impl Route<'_> {
             | Self::SyncGuildIntegration { .. } => Method::Post,
             Self::AddGuildMember { .. }
             | Self::AddMemberRole { .. }
+            | Self::AddTargetUser { .. }
             | Self::AddThreadMember { .. }
             | Self::CreateBan { .. }
             | Self::CreateReaction { .. }
@@ -1421,7 +1467,8 @@ impl Route<'_> {
             | Self::SyncTemplate { .. }
             | Self::UpdateCommandPermissions { .. }
             | Self::UpdateGuildOnboarding { .. }
-            | Self::UpdatePermissionOverwrite { .. } => Method::Put,
+            | Self::UpdatePermissionOverwrite { .. }
+            | Self::UpdateTargetUsers { .. } => Method::Put,
         }
     }
 }
@@ -1497,6 +1544,13 @@ impl Display for Route<'_> {
 
                 Display::fmt(role_id, f)
             }
+            Route::AddTargetUser { code, user_id } | Route::RemoveTargetUser { code, user_id } => {
+                f.write_str("invites/")?;
+                f.write_str(code)?;
+                f.write_str("/target-users/")?;
+
+                Display::fmt(user_id, f)
+            }
             Route::AddThreadMember {
                 channel_id,
                 user_id,
@@ -1514,6 +1568,18 @@ impl Display for Route<'_> {
                 f.write_str("/thread-members/")?;
 
                 Display::fmt(user_id, f)
+            }
+            Route::BulkAddTargetUsers { code } => {
+                f.write_str("invites/")?;
+                f.write_str(code)?;
+
+                f.write_str("/target-users/bulk-add")
+            }
+            Route::BulkDeleteTargetUsers { code } => {
+                f.write_str("invites/")?;
+                f.write_str(code)?;
+
+                f.write_str("/target-users/bulk-delete")
             }
             Route::CreateAutoModerationRule { guild_id, .. }
             | Route::GetGuildAutoModerationRules { guild_id, .. } => {
@@ -2592,6 +2658,18 @@ impl Display for Route<'_> {
                 f.write_str("stickers/")?;
 
                 Display::fmt(sticker_id, f)
+            }
+            Route::GetTargetUsersJobStatus { code } => {
+                f.write_str("invites/")?;
+                f.write_str(code)?;
+
+                f.write_str("/target-users/job-status")
+            }
+            Route::GetTargetUsers { code } | Route::UpdateTargetUsers { code } => {
+                f.write_str("invites/")?;
+                f.write_str(code)?;
+
+                f.write_str("/target-users")
             }
             Route::GetThreadMembers {
                 after,
@@ -4584,5 +4662,75 @@ mod tests {
             route.to_string(),
             format!("applications/{APPLICATION_ID}/skus")
         );
+    }
+
+    #[test]
+    fn add_target_user() {
+        let route = Route::AddTargetUser {
+            code: CODE,
+            user_id: USER_ID,
+        };
+        assert_eq!(Method::Put, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("invites/{CODE}/target-users/{USER_ID}")
+        );
+    }
+
+    #[test]
+    fn bulk_add_target_users() {
+        let route = Route::BulkAddTargetUsers { code: CODE };
+        assert_eq!(Method::Post, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("invites/{CODE}/target-users/bulk-add")
+        );
+    }
+
+    #[test]
+    fn bulk_delete_target_users() {
+        let route = Route::BulkDeleteTargetUsers { code: CODE };
+        assert_eq!(Method::Post, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("invites/{CODE}/target-users/bulk-delete")
+        );
+    }
+
+    #[test]
+    fn get_target_users_job_status() {
+        let route = Route::GetTargetUsersJobStatus { code: CODE };
+        assert_eq!(Method::Get, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("invites/{CODE}/target-users/job-status")
+        );
+    }
+
+    #[test]
+    fn get_target_users() {
+        let route = Route::GetTargetUsers { code: CODE };
+        assert_eq!(Method::Get, route.method());
+        assert_eq!(route.to_string(), format!("invites/{CODE}/target-users"));
+    }
+
+    #[test]
+    fn remove_target_user() {
+        let route = Route::RemoveTargetUser {
+            code: CODE,
+            user_id: USER_ID,
+        };
+        assert_eq!(Method::Delete, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("invites/{CODE}/target-users/{USER_ID}")
+        );
+    }
+
+    #[test]
+    fn update_target_users() {
+        let route = Route::UpdateTargetUsers { code: CODE };
+        assert_eq!(Method::Put, route.method());
+        assert_eq!(route.to_string(), format!("invites/{CODE}/target-users"));
     }
 }

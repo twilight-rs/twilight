@@ -16,6 +16,10 @@ use crate::request::{
         },
     },
     guild::user::{GetCurrentUserVoiceState, GetUserVoiceState},
+    invite::target_user::{
+        AddTargetUser, BulkAddTargetUsers, BulkDeleteTargetUsers, GetTargetUsers,
+        GetTargetUsersJobStatus, RemoveTargetUser, UpdateTargetUsers,
+    },
 };
 #[allow(deprecated)]
 use crate::{
@@ -1438,6 +1442,107 @@ impl Client {
     /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn delete_invite<'a>(&'a self, code: &'a str) -> DeleteInvite<'a> {
         DeleteInvite::new(self, code)
+    }
+
+    /// Get the users allowed to see and accept this invite.
+    ///
+    /// Requires the caller to be the inviter, or have either the [`MANAGE_GUILD`]
+    /// or [`VIEW_AUDIT_LOG`] permissions.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    /// [`VIEW_AUDIT_LOG`]: twilight_model::guild::Permissions::VIEW_AUDIT_LOG
+    pub const fn target_users<'a>(&'a self, code: &'a str) -> GetTargetUsers<'a> {
+        GetTargetUsers::new(self, code)
+    }
+
+    /// Check the status of modifying an invite's target users.
+    ///
+    /// Processing target users when creating or updating an invite is done
+    /// asynchronously. This endpoint allows you to check the status of that job.
+    ///
+    /// Requires the caller to be the inviter, or have either the [`MANAGE_GUILD`]
+    /// or [`VIEW_AUDIT_LOG`] permissions.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    /// [`VIEW_AUDIT_LOG`]: twilight_model::guild::Permissions::VIEW_AUDIT_LOG
+    pub const fn target_users_job_status<'a>(
+        &'a self,
+        code: &'a str,
+    ) -> GetTargetUsersJobStatus<'a> {
+        GetTargetUsersJobStatus::new(self, code)
+    }
+
+    /// Add a user to an invite's list of target users.
+    ///
+    /// Requires the caller to be the inviter or have the [`MANAGE_GUILD`]
+    /// permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn add_target_user<'a>(
+        &'a self,
+        code: &'a str,
+        user_id: Id<UserMarker>,
+    ) -> AddTargetUser<'a> {
+        AddTargetUser::new(self, code, user_id)
+    }
+
+    /// Remove a user from an invite's list of target users.
+    ///
+    /// Requires the caller to be the inviter or have the [`MANAGE_GUILD`]
+    /// permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn remove_target_user<'a>(
+        &'a self,
+        code: &'a str,
+        user_id: Id<UserMarker>,
+    ) -> RemoveTargetUser<'a> {
+        RemoveTargetUser::new(self, code, user_id)
+    }
+
+    /// Add multiple target users to an existing invite.
+    ///
+    /// Requires the caller to be the inviter or have the [`MANAGE_GUILD`]
+    /// permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub fn bulk_add_target_users<'a>(
+        &'a self,
+        code: &'a str,
+        user_ids: &'a [Id<UserMarker>],
+    ) -> BulkAddTargetUsers<'a> {
+        BulkAddTargetUsers::new(self, code, user_ids)
+    }
+
+    /// Remove multiple target users from an existing invite.
+    ///
+    /// Requires the caller to be the inviter or have the [`MANAGE_GUILD`]
+    /// permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub fn bulk_delete_target_users<'a>(
+        &'a self,
+        code: &'a str,
+        user_ids: &'a [Id<UserMarker>],
+    ) -> BulkDeleteTargetUsers<'a> {
+        BulkDeleteTargetUsers::new(self, code, user_ids)
+    }
+
+    /// Update the users allowed to see and accept this invite.
+    ///
+    /// Uploading a user list with invalid user IDs will result in a 400 Bad Request
+    /// with the invalid IDs described.
+    ///
+    /// Requires the caller to be the inviter or have the [`MANAGE_GUILD`]
+    /// permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn update_target_users<'a>(
+        &'a self,
+        code: &'a str,
+        target_users: &'a [Id<UserMarker>],
+    ) -> UpdateTargetUsers<'a> {
+        UpdateTargetUsers::new(self, code, target_users)
     }
 
     /// Get a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].

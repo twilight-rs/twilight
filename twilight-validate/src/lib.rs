@@ -16,6 +16,7 @@ pub mod channel;
 pub mod command;
 pub mod component;
 pub mod embed;
+pub mod invite_target_users;
 pub mod message;
 pub mod request;
 pub mod sticker;

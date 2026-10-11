@@ -89,7 +89,13 @@ mod private {
                 UpdateUserVoiceState,
             },
         },
-        invite::{DeleteInvite, GetInvite},
+        invite::{
+            DeleteInvite, GetInvite,
+            target_user::{
+                AddTargetUser, BulkAddTargetUsers, BulkDeleteTargetUsers, GetTargetUsers,
+                GetTargetUsersJobStatus, RemoveTargetUser, UpdateTargetUsers,
+            },
+        },
         poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildStageInstanceScheduledEvent,
@@ -114,6 +120,9 @@ mod private {
     impl Sealed for AddApplicationEmoji<'_> {}
     impl Sealed for AddGuildMember<'_> {}
     impl Sealed for AddRoleToMember<'_> {}
+    impl Sealed for AddTargetUser<'_> {}
+    impl Sealed for BulkAddTargetUsers<'_> {}
+    impl Sealed for BulkDeleteTargetUsers<'_> {}
     impl Sealed for AddThreadMember<'_> {}
     impl Sealed for CreateAutoModerationRule<'_> {}
     impl Sealed for CreateBan<'_> {}
@@ -250,6 +259,8 @@ mod private {
     impl Sealed for GetSKUs<'_> {}
     impl Sealed for GetStageInstance<'_> {}
     impl Sealed for GetSticker<'_> {}
+    impl Sealed for GetTargetUsersJobStatus<'_> {}
+    impl Sealed for GetTargetUsers<'_> {}
     impl Sealed for GetTemplate<'_> {}
     impl Sealed for GetTemplates<'_> {}
     impl Sealed for GetThreadMember<'_> {}
@@ -265,6 +276,7 @@ mod private {
     impl Sealed for LeaveThread<'_> {}
     impl Sealed for RemoveMember<'_> {}
     impl Sealed for RemoveRoleFromMember<'_> {}
+    impl Sealed for RemoveTargetUser<'_> {}
     impl Sealed for RemoveThreadMember<'_> {}
     impl Sealed for SearchGuildMembers<'_> {}
     impl Sealed for SetGlobalCommands<'_> {}
@@ -295,6 +307,7 @@ mod private {
     impl Sealed for UpdateRole<'_> {}
     impl Sealed for UpdateRolePositions<'_> {}
     impl Sealed for UpdateStageInstance<'_> {}
+    impl Sealed for UpdateTargetUsers<'_> {}
     impl Sealed for UpdateTemplate<'_> {}
     impl Sealed for UpdateThread<'_> {}
     impl Sealed for UpdateUserVoiceState<'_> {}

@@ -50,9 +50,12 @@ pub(crate) mod future;
 
 mod status_code;
 
+use crate::response::marker::CsvBody;
+
 pub use self::{future::ResponseFuture, status_code::StatusCode};
 
 use self::marker::ListBody;
+use csv::Reader;
 use http::{
     Response as HyperResponse,
     header::{HeaderValue, Iter as HeaderMapIter},
@@ -316,6 +319,22 @@ impl<T: DeserializeOwned> Response<T> {
     }
 }
 
+impl<T: DeserializeOwned> Response<CsvBody<T>> {
+    /// Consume the response, chunking the body and then deserializing it into
+    /// a list of rows.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
+    /// response body could not be entirely read.
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
+    /// response body could not be deserialized into a list of something.
+    pub fn rows(self) -> CsvFuture<T> {
+        CsvFuture::new(self.bytes())
+    }
+}
+
 impl<T: DeserializeOwned> Response<ListBody<T>> {
     /// Consume the response, chunking the body and then deserializing it into
     /// a list of something.
@@ -449,6 +468,84 @@ impl Future for BytesFuture {
             Poll::Ready(result.map(|b| b.to_vec()))
         } else {
             Poll::Pending
+        }
+    }
+}
+
+/// Future resolving to a list of deserialized models from a CSV file.
+///
+/// Obtained via [`Response::rows`].
+///
+/// # Examples
+///
+/// Get the target users of an invite, printing the returned CSV file records:
+///
+/// ```no_run
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # let invite_code = "code";
+/// use std::env;
+/// use twilight_http::Client;
+///
+/// let client = Client::new(env::var("DISCORD_TOKEN")?);
+/// let response = client.target_users(invite_code).await?;
+/// let rows = response.rows().await?;
+///
+/// for row in rows {
+///     println!("- User ID: {}", row.user_id);
+/// }
+/// # Ok(()) }
+/// ```
+///
+/// # Errors
+///
+/// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
+/// response body could not be entirely read.
+///
+/// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if one of
+/// the rows could not be deserialized.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct CsvFuture<T> {
+    future: BytesFuture,
+    phantom: PhantomData<T>,
+}
+
+impl<T> CsvFuture<T> {
+    const fn new(bytes: BytesFuture) -> Self {
+        Self {
+            future: bytes,
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<T: DeserializeOwned + Unpin> Future for CsvFuture<T> {
+    type Output = Result<Vec<T>, DeserializeBodyError>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        match Pin::new(&mut self.future).poll(cx) {
+            Poll::Ready(Ok(bytes)) => {
+                let reader = Reader::from_reader(bytes.as_slice()).into_deserialize();
+                let mut buffer = Vec::<T>::new();
+
+                for entry in reader {
+                    let entry = match entry {
+                        Ok(entry) => entry,
+                        Err(source) => {
+                            return Poll::Ready(Err(DeserializeBodyError {
+                                kind: DeserializeBodyErrorType::Deserializing,
+                                source: Some(Box::new(source)),
+                            }));
+                        }
+                    };
+
+                    buffer.push(entry);
+                }
+
+                Poll::Ready(Ok(buffer))
+            }
+            Poll::Ready(Err(source)) => Poll::Ready(Err(source)),
+            Poll::Pending => Poll::Pending,
         }
     }
 }
@@ -609,6 +706,11 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::{
+        request::invite::target_user::get_target_users::GetTargetUsersResponseBodyRow,
+        response::CsvFuture,
+    };
+
     use super::{
         BytesFuture, DeserializeBodyError, DeserializeBodyErrorType, HeaderIter, ModelFuture,
         Response, TextFuture,
@@ -622,6 +724,7 @@ mod tests {
     use std::error::Error;
 
     assert_impl_all!(BytesFuture: Future);
+    assert_impl_all!(CsvFuture<GetTargetUsersResponseBodyRow>: Future);
     assert_impl_all!(DeserializeBodyErrorType: Debug, Send, Sync);
     assert_impl_all!(DeserializeBodyError: Debug, Send, Sync);
     assert_impl_all!(HeaderIter<'_>: Debug, FusedIterator, Iterator, Send, Sync);

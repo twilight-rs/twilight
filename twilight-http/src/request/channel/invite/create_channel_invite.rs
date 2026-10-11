@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
-    error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    error::{Error, ErrorType},
+    request::{self, AuditLogReason, Form, Request, TryIntoRequest, invite::target_user},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -19,6 +19,11 @@ use twilight_validate::request::{
     invite_max_age as validate_invite_max_age, invite_max_uses as validate_invite_max_uses,
 };
 
+/// Maximum number of target user IDs allowed in a JSON request body.
+///
+/// If this number is exceeded then the request must use a multipart body.
+pub const TARGET_USER_IDS_JSON_MAX: usize = 1000;
+
 #[derive(Serialize)]
 struct CreateChannelInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -33,6 +38,9 @@ struct CreateChannelInviteFields {
     target_user_id: Option<Id<UserMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     target_type: Option<TargetType>,
+    /// An array of IDs of all users able to see and accept this invite.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    target_user_ids: Option<Vec<Id<UserMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     unique: Option<bool>,
 }
@@ -77,6 +85,7 @@ impl<'a> CreateChannelInvite<'a> {
                 target_application_id: None,
                 target_user_id: None,
                 target_type: None,
+                target_user_ids: None,
                 unique: None,
             }),
             http,
@@ -188,7 +197,13 @@ impl<'a> CreateChannelInvite<'a> {
         self
     }
 
-    /// Set the target user id for this invite.
+    /// Set the target user ID for this invite.
+    ///
+    /// This sets the ID of the user whose stream to display for the invite.
+    /// This is unrelated to [`target_user_ids`] which sets the users to add
+    /// the invite's target users.
+    ///
+    /// [`target_user_ids`]: Self::target_user_ids
     pub const fn target_user_id(mut self, target_user_id: Id<UserMarker>) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.target_user_id = Some(target_user_id);
@@ -201,6 +216,33 @@ impl<'a> CreateChannelInvite<'a> {
     pub const fn target_type(mut self, target_type: TargetType) -> Self {
         if let Ok(fields) = self.fields.as_mut() {
             fields.target_type = Some(target_type);
+        }
+
+        self
+    }
+
+    /// Set the IDs of the target users for this invite.
+    ///
+    /// This operates with the bulk user invite API, similar to calling the
+    /// [`BulkAddTargetUsers`] request on an existing invite. This is unrelated
+    /// to [`target_user_id`] which sets the ID of the user whose stream to
+    /// display for the invite.
+    ///
+    /// # Implementation details
+    ///
+    /// The Create Channel Invite endpoint supports two mutually exclusive
+    /// fields: `target_user_ids` and `target_users_file`. `target_user_ids`
+    /// supports up to 1,000 users when sent as a request with a JSON body while
+    /// `target_users_file` supports more users when sent as a multipart
+    /// request. If the provided number of target users is above the threshold
+    /// allowed by the JSON body then the request body will automatically use a
+    /// multipart request body.
+    ///
+    /// [`BulkAddTargetUsers`]: crate::request::invite::target_user::BulkAddTargetUsers
+    /// [`target_user_id`]: Self::target_user_id
+    pub fn target_user_ids(mut self, target_user_ids: Vec<Id<UserMarker>>) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.target_user_ids = Some(target_user_ids);
         }
 
         self
@@ -257,11 +299,39 @@ impl IntoFuture for CreateChannelInvite<'_> {
 
 impl TryIntoRequest for CreateChannelInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let mut fields = self.fields.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateInvite {
             channel_id: self.channel_id.get(),
-        })
-        .json(&fields);
+        });
+
+        if fields
+            .target_user_ids
+            .as_ref()
+            .is_some_and(|target_user_ids| target_user_ids.len() > TARGET_USER_IDS_JSON_MAX)
+        {
+            // Take the user IDs out because they need to be in a separate field
+            // from the payload JSON.
+            let target_user_ids = fields.target_user_ids.take().expect("must be present");
+            let payload_json = crate::json::to_vec(&fields).map_err(Error::json)?;
+
+            let target_users_file =
+                target_user::file(&target_user_ids).map_err(|source| Error {
+                    kind: ErrorType::WritingCsv,
+                    source: Some(Box::new(source)),
+                })?;
+
+            let form = Form::new()
+                .json_part(b"payload_json", &payload_json)
+                .file_part(
+                    b"target_users_file",
+                    b"file.csv",
+                    target_users_file.as_slice(),
+                );
+
+            request = request.form(form);
+        } else {
+            request = request.json(&fields);
+        }
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

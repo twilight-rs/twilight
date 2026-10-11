@@ -1,5 +1,7 @@
 //! Requests for working with invites.
 
+pub mod target_user;
+
 mod delete_invite;
 mod get_invite;
 
