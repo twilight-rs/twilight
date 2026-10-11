@@ -81,6 +81,7 @@ impl Display for Error {
                 f.write_str("token in use is invalid, expired, or is revoked")
             }
             ErrorType::Validation => f.write_str("request fields have invalid values"),
+            ErrorType::WritingCsv => f.write_str("writing to an in-memory CSV file failed"),
         }
     }
 }
@@ -174,6 +175,13 @@ pub enum ErrorType {
     /// [`IntoFuture`]: std::future::IntoFuture
     /// [`TryIntoRequest`]: crate::request::TryIntoRequest
     Validation,
+    /// Writing to an in-memory CSV file failed.
+    ///
+    /// This can occur for requests that send requests with CSV file bodies such
+    /// as [`UpdateTargetUsers`].
+    ///
+    /// [`UpdateTargetUsers`]: crate::request::invite::target_user::UpdateTargetUsers
+    WritingCsv,
 }
 
 impl Debug for ErrorType {
@@ -216,6 +224,7 @@ impl Debug for ErrorType {
             }
             Self::Unauthorized => f.write_str("Unauthorized"),
             Self::Validation => f.write_str("Validation"),
+            Self::WritingCsv => f.write_str("WritingCsv"),
         }
     }
 }
