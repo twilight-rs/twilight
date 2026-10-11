@@ -41,7 +41,9 @@ struct BulkDeleteTargetUsersBody<'a> {
 /// # let invite_code = "code";
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// let user_ids = get_users_to_invite();
-/// let response = client.bulk_delete_target_users(invite_code, &user_ids).await?;
+/// let response = client
+///     .bulk_delete_target_users(invite_code, &user_ids)
+///     .await?;
 ///
 /// assert!(response.status().is_success());
 /// # Ok(()) }

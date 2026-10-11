@@ -87,7 +87,7 @@ pub struct GetTargetUsersJobStatusResponseBody {
 ///
 /// ```rust,no_run
 /// use std::env;
-/// use twilight_http::{response::StatusCode, Client};
+/// use twilight_http::{Client, response::StatusCode};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -99,8 +99,7 @@ pub struct GetTargetUsersJobStatusResponseBody {
 ///
 /// println!(
 ///     "job has processed {} out of {} users",
-///     job_status.processed_users,
-///     job_status.total_users,
+///     job_status.processed_users, job_status.total_users,
 /// );
 /// # Ok(()) }
 /// ```
