@@ -312,7 +312,7 @@ impl TryIntoRequest for CreateChannelInvite<'_> {
             // Take the user IDs out because they need to be in a separate field
             // from the payload JSON.
             let target_user_ids = fields.target_user_ids.take().expect("must be present");
-            let payload_json = serde_json::to_vec(&fields).map_err(Error::json)?;
+            let payload_json = crate::json::to_vec(&fields).map_err(Error::json)?;
 
             let target_users_file =
                 target_user::file(&target_user_ids).map_err(|source| Error {
