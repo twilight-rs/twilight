@@ -561,8 +561,8 @@ impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
             ComponentType::RadioGroup => {
                 let custom_id = custom_id.ok_or_else(|| DeError::missing_field("custom_id"))?;
                 let value = value
-                    .ok_or_else(|| DeError::missing_field("value"))?
-                    .deserialize_into()
+                    .map(Value::deserialize_into)
+                    .transpose()
                     .map_err(DeserializerError::into_error)?;
 
                 Self::Value::RadioGroup(ModalInteractionRadioGroup {
