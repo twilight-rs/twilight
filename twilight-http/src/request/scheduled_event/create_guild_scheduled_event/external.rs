@@ -1,6 +1,4 @@
-use super::{
-    super::EntityMetadataFields, CreateGuildScheduledEvent, CreateGuildScheduledEventFields,
-};
+use super::{super::EntityMetadataBody, CreateGuildScheduledEvent, CreateGuildScheduledEventBody};
 use crate::{
     error::Error,
     request::{AuditLogReason, Request, TryIntoRequest},
@@ -29,15 +27,15 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
         scheduled_start_time: &'a Timestamp,
         scheduled_end_time: &'a Timestamp,
     ) -> Self {
-        inner.fields = inner.fields.map(|fields| CreateGuildScheduledEventFields {
+        inner.body = inner.body.map(|body| CreateGuildScheduledEventBody {
             entity_type: Some(EntityType::External),
-            entity_metadata: Some(EntityMetadataFields {
+            entity_metadata: Some(EntityMetadataBody {
                 location: Some(location),
             }),
             name: Some(name),
             scheduled_end_time: Some(scheduled_end_time),
             scheduled_start_time: Some(scheduled_start_time),
-            ..fields
+            ..body
         });
 
         Self(inner)
@@ -54,11 +52,11 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     ///
     /// [`ScheduledEventDescription`]: twilight_validate::request::ValidationErrorType::ScheduledEventDescription
     pub fn description(mut self, description: &'a str) -> Self {
-        self.0.fields = self.0.fields.and_then(|mut fields| {
+        self.0.body = self.0.body.and_then(|mut body| {
             validate_scheduled_event_description(description)?;
-            fields.description.replace(description);
+            body.description.replace(description);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -72,10 +70,10 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub fn image(mut self, image: &'a str) -> Self {
-        self.0.fields = self.0.fields.map(|mut fields| {
-            fields.image = Some(image);
+        self.0.body = self.0.body.map(|mut body| {
+            body.image = Some(image);
 
-            fields
+            body
         });
 
         self

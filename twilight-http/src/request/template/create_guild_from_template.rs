@@ -11,7 +11,7 @@ use twilight_model::guild::Guild;
 use twilight_validate::request::{ValidationError, guild_name as validate_guild_name};
 
 #[derive(Serialize)]
-struct CreateGuildFromTemplateFields<'a> {
+struct CreateGuildFromTemplateBody<'a> {
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
     icon: Option<&'a str>,
@@ -29,21 +29,21 @@ struct CreateGuildFromTemplateFields<'a> {
 /// [`GuildName`]: twilight_validate::request::ValidationErrorType::GuildName
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildFromTemplate<'a> {
-    fields: Result<CreateGuildFromTemplateFields<'a>, ValidationError>,
+    body: Result<CreateGuildFromTemplateBody<'a>, ValidationError>,
     http: &'a Client,
     template_code: &'a str,
 }
 
 impl<'a> CreateGuildFromTemplate<'a> {
     pub(crate) fn new(http: &'a Client, template_code: &'a str, name: &'a str) -> Self {
-        let fields = Ok(CreateGuildFromTemplateFields { name, icon: None }).and_then(|fields| {
+        let body = Ok(CreateGuildFromTemplateBody { name, icon: None }).and_then(|body| {
             validate_guild_name(name)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
-            fields,
+            body,
             http,
             template_code,
         }
@@ -57,8 +57,8 @@ impl<'a> CreateGuildFromTemplate<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn icon(mut self, icon: &'a str) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.icon = Some(icon);
+        if let Ok(body) = self.body.as_mut() {
+            body.icon = Some(icon);
         }
 
         self
@@ -82,12 +82,12 @@ impl IntoFuture for CreateGuildFromTemplate<'_> {
 
 impl TryIntoRequest for CreateGuildFromTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGuildFromTemplate {
             template_code: self.template_code,
         })
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }

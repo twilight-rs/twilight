@@ -17,7 +17,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, nickname as validate_nickname};
 
 #[derive(Serialize)]
-struct AddGuildMemberFields<'a> {
+struct AddGuildMemberBody<'a> {
     pub access_token: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub deaf: Option<bool>,
@@ -31,7 +31,7 @@ struct AddGuildMemberFields<'a> {
 
 #[must_use = "requests must be configured and executed"]
 pub struct AddGuildMember<'a> {
-    fields: Result<AddGuildMemberFields<'a>, ValidationError>,
+    body: Result<AddGuildMemberBody<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     user_id: Id<UserMarker>,
@@ -51,7 +51,7 @@ impl<'a> AddGuildMember<'a> {
         access_token: &'a str,
     ) -> Self {
         Self {
-            fields: Ok(AddGuildMemberFields {
+            body: Ok(AddGuildMemberBody {
                 access_token,
                 deaf: None,
                 mute: None,
@@ -67,8 +67,8 @@ impl<'a> AddGuildMember<'a> {
     /// Whether the new member will be unable to hear audio when connected to a
     /// voice channel.
     pub const fn deaf(mut self, deaf: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.deaf = Some(deaf);
+        if let Ok(body) = self.body.as_mut() {
+            body.deaf = Some(deaf);
         }
 
         self
@@ -76,8 +76,8 @@ impl<'a> AddGuildMember<'a> {
 
     /// Whether the new member will be unable to speak in voice channels.
     pub const fn mute(mut self, mute: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.mute = Some(mute);
+        if let Ok(body) = self.body.as_mut() {
+            body.mute = Some(mute);
         }
 
         self
@@ -95,12 +95,12 @@ impl<'a> AddGuildMember<'a> {
     ///
     /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
     pub fn nick(mut self, nick: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_nickname(nick)?;
 
-            fields.nick.replace(nick);
+            body.nick.replace(nick);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -108,8 +108,8 @@ impl<'a> AddGuildMember<'a> {
 
     /// List of roles to assign the new member.
     pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.roles = Some(roles);
+        if let Ok(body) = self.body.as_mut() {
+            body.roles = Some(roles);
         }
 
         self
@@ -133,13 +133,13 @@ impl IntoFuture for AddGuildMember<'_> {
 
 impl TryIntoRequest for AddGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::AddGuildMember {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
         })
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }

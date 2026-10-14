@@ -17,7 +17,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateBanFields {
+struct CreateBanBody {
     /// Number of seconds to delete messages for, between `0` and `604800`.
     delete_message_seconds: Option<u32>,
 }
@@ -49,7 +49,7 @@ struct CreateBanFields {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateBan<'a> {
-    fields: Result<CreateBanFields, ValidationError>,
+    body: Result<CreateBanBody, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -63,7 +63,7 @@ impl<'a> CreateBan<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            fields: Ok(CreateBanFields {
+            body: Ok(CreateBanBody {
                 delete_message_seconds: None,
             }),
             guild_id,
@@ -84,11 +84,11 @@ impl<'a> CreateBan<'a> {
     ///
     /// [`CreateGuildBanDeleteMessageSeconds`]: twilight_validate::request::ValidationErrorType::CreateGuildBanDeleteMessageSeconds
     pub fn delete_message_seconds(mut self, seconds: u32) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_create_guild_ban_delete_message_seconds(seconds)?;
-            fields.delete_message_seconds = Some(seconds);
+            body.delete_message_seconds = Some(seconds);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -120,12 +120,12 @@ impl IntoFuture for CreateBan<'_> {
 
 impl TryIntoRequest for CreateBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateBan {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

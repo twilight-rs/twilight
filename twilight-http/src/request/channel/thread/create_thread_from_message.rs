@@ -17,7 +17,7 @@ use twilight_model::{
 use twilight_validate::channel::{ChannelValidationError, name as validate_name};
 
 #[derive(Serialize)]
-struct CreateThreadFromMessageFields<'a> {
+struct CreateThreadFromMessageBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     auto_archive_duration: Option<AutoArchiveDuration>,
     name: &'a str,
@@ -44,8 +44,8 @@ struct CreateThreadFromMessageFields<'a> {
 /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
+    body: Result<CreateThreadFromMessageBody<'a>, ChannelValidationError>,
     channel_id: Id<ChannelMarker>,
-    fields: Result<CreateThreadFromMessageFields<'a>, ChannelValidationError>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
 }
@@ -57,19 +57,19 @@ impl<'a> CreateThreadFromMessage<'a> {
         message_id: Id<MessageMarker>,
         name: &'a str,
     ) -> Self {
-        let fields = Ok(CreateThreadFromMessageFields {
+        let body = Ok(CreateThreadFromMessageBody {
             auto_archive_duration: None,
             name,
         })
-        .and_then(|fields| {
+        .and_then(|body| {
             validate_name(name)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
+            body,
             channel_id,
-            fields,
             http,
             message_id,
         }
@@ -83,8 +83,8 @@ impl<'a> CreateThreadFromMessage<'a> {
         mut self,
         auto_archive_duration: AutoArchiveDuration,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.auto_archive_duration = Some(auto_archive_duration);
+        if let Ok(body) = self.body.as_mut() {
+            body.auto_archive_duration = Some(auto_archive_duration);
         }
 
         self
@@ -108,13 +108,13 @@ impl IntoFuture for CreateThreadFromMessage<'_> {
 
 impl TryIntoRequest for CreateThreadFromMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateThreadFromMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),
         })
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }

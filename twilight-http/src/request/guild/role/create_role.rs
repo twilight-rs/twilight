@@ -14,7 +14,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct CreateRoleFields<'a> {
+struct CreateRoleBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -55,7 +55,7 @@ struct CreateRoleFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateRole<'a> {
-    fields: CreateRoleFields<'a>,
+    body: CreateRoleBody<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -64,7 +64,7 @@ pub struct CreateRole<'a> {
 impl<'a> CreateRole<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: CreateRoleFields {
+            body: CreateRoleBody {
                 color: None,
                 colors: None,
                 hoist: None,
@@ -88,21 +88,21 @@ impl<'a> CreateRole<'a> {
     ///
     /// [`COLOR_MAXIMUM`]: twilight_validate::embed::COLOR_MAXIMUM
     pub const fn color(mut self, color: u32) -> Self {
-        self.fields.color = Some(color);
+        self.body.color = Some(color);
 
         self
     }
 
     /// Set the role colours.
     pub const fn colors(mut self, colors: RoleColors) -> Self {
-        self.fields.colors = Some(colors);
+        self.body.colors = Some(colors);
 
         self
     }
 
     /// If true, display the role in the members list.
     pub const fn hoist(mut self, hoist: bool) -> Self {
-        self.fields.hoist = Some(hoist);
+        self.body.hoist = Some(hoist);
 
         self
     }
@@ -115,14 +115,14 @@ impl<'a> CreateRole<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn icon(mut self, icon: &'a str) -> Self {
-        self.fields.icon = Some(icon);
+        self.body.icon = Some(icon);
 
         self
     }
 
     /// If true, the role can be @mentioned (pinged) in chat.
     pub const fn mentionable(mut self, mentionable: bool) -> Self {
-        self.fields.mentionable = Some(mentionable);
+        self.body.mentionable = Some(mentionable);
 
         self
     }
@@ -131,21 +131,21 @@ impl<'a> CreateRole<'a> {
     ///
     /// If none is specified, Discord sets this to `New Role`.
     pub const fn name(mut self, name: &'a str) -> Self {
-        self.fields.name = Some(name);
+        self.body.name = Some(name);
 
         self
     }
 
     /// Set the allowed permissions of this role.
     pub const fn permissions(mut self, permissions: Permissions) -> Self {
-        self.fields.permissions = Some(permissions);
+        self.body.permissions = Some(permissions);
 
         self
     }
 
     /// Set the unicode emoji of a role.
     pub const fn unicode_emoji(mut self, unicode_emoji: &'a str) -> Self {
-        self.fields.unicode_emoji = Some(unicode_emoji);
+        self.body.unicode_emoji = Some(unicode_emoji);
 
         self
     }
@@ -180,7 +180,7 @@ impl TryIntoRequest for CreateRole<'_> {
             guild_id: self.guild_id.get(),
         });
 
-        request = request.json(&self.fields);
+        request = request.json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

@@ -14,7 +14,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, stage_topic as validate_stage_topic};
 
 #[derive(Serialize)]
-struct UpdateStageInstanceFields<'a> {
+struct UpdateStageInstanceBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -26,8 +26,8 @@ struct UpdateStageInstanceFields<'a> {
 /// Requires the user to be a moderator of the stage channel.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateStageInstance<'a> {
+    body: Result<UpdateStageInstanceBody<'a>, ValidationError>,
     channel_id: Id<ChannelMarker>,
-    fields: Result<UpdateStageInstanceFields<'a>, ValidationError>,
     http: &'a Client,
 }
 
@@ -35,7 +35,7 @@ impl<'a> UpdateStageInstance<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
-            fields: Ok(UpdateStageInstanceFields {
+            body: Ok(UpdateStageInstanceBody {
                 privacy_level: None,
                 topic: None,
             }),
@@ -45,8 +45,8 @@ impl<'a> UpdateStageInstance<'a> {
 
     /// Set the [`PrivacyLevel`] of the instance.
     pub const fn privacy_level(mut self, privacy_level: PrivacyLevel) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.privacy_level = Some(privacy_level);
+        if let Ok(body) = self.body.as_mut() {
+            body.privacy_level = Some(privacy_level);
         }
 
         self
@@ -60,11 +60,11 @@ impl<'a> UpdateStageInstance<'a> {
     ///
     /// [`StageTopic`]: twilight_validate::request::ValidationErrorType::StageTopic
     pub fn topic(mut self, topic: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_stage_topic(topic)?;
-            fields.topic.replace(topic);
+            body.topic.replace(topic);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -88,12 +88,12 @@ impl IntoFuture for UpdateStageInstance<'_> {
 
 impl TryIntoRequest for UpdateStageInstance<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::UpdateStageInstance {
             channel_id: self.channel_id.get(),
         })
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }

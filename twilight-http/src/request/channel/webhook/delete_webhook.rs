@@ -16,7 +16,7 @@ struct DeleteWebhookParams<'a> {
 /// Delete a webhook by its ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteWebhook<'a> {
-    fields: DeleteWebhookParams<'a>,
+    body: DeleteWebhookParams<'a>,
     http: &'a Client,
     id: Id<WebhookMarker>,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -25,7 +25,7 @@ pub struct DeleteWebhook<'a> {
 impl<'a> DeleteWebhook<'a> {
     pub(crate) const fn new(http: &'a Client, id: Id<WebhookMarker>) -> Self {
         Self {
-            fields: DeleteWebhookParams { token: None },
+            body: DeleteWebhookParams { token: None },
             http,
             id,
             reason: Ok(None),
@@ -34,7 +34,7 @@ impl<'a> DeleteWebhook<'a> {
 
     /// Specify the token for auth, if not already authenticated with a Bot token.
     pub const fn token(mut self, token: &'a str) -> Self {
-        self.fields.token = Some(token);
+        self.body.token = Some(token);
 
         self
     }
@@ -67,7 +67,7 @@ impl TryIntoRequest for DeleteWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteWebhook {
             webhook_id: self.id.get(),
-            token: self.fields.token,
+            token: self.body.token,
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

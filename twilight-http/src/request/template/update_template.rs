@@ -17,7 +17,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct UpdateTemplateFields<'a> {
+struct UpdateTemplateBody<'a> {
     name: Option<&'a str>,
     description: Option<&'a str>,
 }
@@ -25,7 +25,7 @@ struct UpdateTemplateFields<'a> {
 /// Update the template's metadata, by ID and code.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateTemplate<'a> {
-    fields: Result<UpdateTemplateFields<'a>, ValidationError>,
+    body: Result<UpdateTemplateBody<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     template_code: &'a str,
@@ -38,7 +38,7 @@ impl<'a> UpdateTemplate<'a> {
         template_code: &'a str,
     ) -> Self {
         Self {
-            fields: Ok(UpdateTemplateFields {
+            body: Ok(UpdateTemplateBody {
                 name: None,
                 description: None,
             }),
@@ -59,11 +59,11 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// [`TemplateDescription`]: twilight_validate::request::ValidationErrorType::TemplateDescription
     pub fn description(mut self, description: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_template_description(description)?;
-            fields.description.replace(description);
+            body.description.replace(description);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -80,11 +80,11 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// [`TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
     pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_template_name(name)?;
-            fields.name.replace(name);
+            body.name.replace(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -108,13 +108,13 @@ impl IntoFuture for UpdateTemplate<'_> {
 
 impl TryIntoRequest for UpdateTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::UpdateTemplate {
             guild_id: self.guild_id.get(),
             template_code: self.template_code,
         })
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }

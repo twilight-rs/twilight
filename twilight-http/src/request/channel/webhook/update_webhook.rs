@@ -20,7 +20,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct UpdateWebhookFields<'a> {
+struct UpdateWebhookBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,7 +32,7 @@ struct UpdateWebhookFields<'a> {
 /// Update a webhook by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhook<'a> {
-    fields: Result<UpdateWebhookFields<'a>, ValidationError>,
+    body: Result<UpdateWebhookBody<'a>, ValidationError>,
     http: &'a Client,
     webhook_id: Id<WebhookMarker>,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -42,7 +42,7 @@ pub struct UpdateWebhook<'a> {
 impl<'a> UpdateWebhook<'a> {
     pub(crate) const fn new(http: &'a Client, webhook_id: Id<WebhookMarker>) -> Self {
         Self {
-            fields: Ok(UpdateWebhookFields {
+            body: Ok(UpdateWebhookBody {
                 avatar: None,
                 channel_id: None,
                 name: None,
@@ -61,8 +61,8 @@ impl<'a> UpdateWebhook<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.avatar = Some(Nullable(avatar));
+        if let Ok(body) = self.body.as_mut() {
+            body.avatar = Some(Nullable(avatar));
         }
 
         self
@@ -70,8 +70,8 @@ impl<'a> UpdateWebhook<'a> {
 
     /// Move this webhook to a new channel.
     pub const fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.channel_id = Some(channel_id);
+        if let Ok(body) = self.body.as_mut() {
+            body.channel_id = Some(channel_id);
         }
 
         self
@@ -86,11 +86,11 @@ impl<'a> UpdateWebhook<'a> {
     ///
     /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
     pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_webhook_username(name)?;
-            fields.name = Some(name);
+            body.name = Some(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -122,12 +122,12 @@ impl IntoFuture for UpdateWebhook<'_> {
 
 impl TryIntoRequest for UpdateWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateWebhook {
             token: None,
             webhook_id: self.webhook_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
