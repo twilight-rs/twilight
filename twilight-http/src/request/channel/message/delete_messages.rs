@@ -21,6 +21,10 @@ struct DeleteMessagesBody<'a> {
     messages: &'a [Id<MessageMarker>],
 }
 
+struct DeleteMessagesPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Delete messages by [`Id<ChannelMarker>`] and a list of [`Id<MessageMarker>`]s.
 ///
 /// The number of message IDs must be between 2 and 100. If the supplied message
@@ -32,8 +36,8 @@ struct DeleteMessagesBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteMessages<'a> {
     body: Result<DeleteMessagesBody<'a>, ChannelValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: DeleteMessagesPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -50,9 +54,9 @@ impl<'a> DeleteMessages<'a> {
         });
 
         Self {
-            channel_id,
             body,
             http,
+            path: DeleteMessagesPath { channel_id },
             reason: Ok(None),
         }
     }
@@ -85,7 +89,7 @@ impl TryIntoRequest for DeleteMessages<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::DeleteMessages {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         })
         .json(&body);
 

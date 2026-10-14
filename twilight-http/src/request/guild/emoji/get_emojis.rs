@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetEmojisPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get the emojis for a guild, by the guild's id.
 ///
 /// # Examples
@@ -32,13 +36,16 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetEmojis<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: GetEmojisPath,
 }
 
 impl<'a> GetEmojis<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            http,
+            path: GetEmojisPath { guild_id },
+        }
     }
 }
 
@@ -60,7 +67,7 @@ impl IntoFuture for GetEmojis<'_> {
 impl TryIntoRequest for GetEmojis<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetEmojis {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

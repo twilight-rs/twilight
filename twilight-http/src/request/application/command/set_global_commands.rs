@@ -16,6 +16,10 @@ use twilight_model::{
 #[serde(transparent)]
 struct SetGlobalCommandsBody<'a>(&'a [Command]);
 
+struct SetGlobalCommandsPath {
+    application_id: Id<ApplicationMarker>,
+}
+
 /// Set global commands.
 ///
 /// This method is idempotent: it can be used on every start, without being
@@ -28,9 +32,9 @@ struct SetGlobalCommandsBody<'a>(&'a [Command]);
 /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 #[must_use = "requests must be configured and executed"]
 pub struct SetGlobalCommands<'a> {
-    application_id: Id<ApplicationMarker>,
     body: SetGlobalCommandsBody<'a>,
     http: &'a Client,
+    path: SetGlobalCommandsPath,
 }
 
 impl<'a> SetGlobalCommands<'a> {
@@ -40,9 +44,9 @@ impl<'a> SetGlobalCommands<'a> {
         commands: &'a [Command],
     ) -> Self {
         Self {
-            application_id,
             body: SetGlobalCommandsBody(commands),
             http,
+            path: SetGlobalCommandsPath { application_id },
         }
     }
 }
@@ -65,7 +69,7 @@ impl IntoFuture for SetGlobalCommands<'_> {
 impl TryIntoRequest for SetGlobalCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::SetGlobalCommands {
-            application_id: self.application_id.get(),
+            application_id: self.path.application_id.get(),
         })
         .json(&self.body)
         .build()

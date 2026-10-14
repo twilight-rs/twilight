@@ -14,6 +14,11 @@ use twilight_model::{
     },
 };
 
+struct GetEmojiPath {
+    emoji_id: Id<EmojiMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get an emoji for a guild by the the guild's ID and emoji's ID.
 ///
 /// # Examples
@@ -36,9 +41,8 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetEmoji<'a> {
-    emoji_id: Id<EmojiMarker>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: GetEmojiPath,
 }
 
 impl<'a> GetEmoji<'a> {
@@ -48,9 +52,8 @@ impl<'a> GetEmoji<'a> {
         emoji_id: Id<EmojiMarker>,
     ) -> Self {
         Self {
-            emoji_id,
-            guild_id,
             http,
+            path: GetEmojiPath { emoji_id, guild_id },
         }
     }
 }
@@ -73,8 +76,8 @@ impl IntoFuture for GetEmoji<'_> {
 impl TryIntoRequest for GetEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetEmoji {
-            emoji_id: self.emoji_id.get(),
-            guild_id: self.guild_id.get(),
+            emoji_id: self.path.emoji_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildWelcomeScreenPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get the guild's welcome screen.
 ///
 /// If the welcome screen is not enabled, this requires the [`MANAGE_GUILD`]
@@ -19,13 +23,16 @@ use twilight_model::{
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWelcomeScreen<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetGuildWelcomeScreenPath,
     http: &'a Client,
 }
 
 impl<'a> GetGuildWelcomeScreen<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetGuildWelcomeScreenPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -47,7 +54,7 @@ impl IntoFuture for GetGuildWelcomeScreen<'_> {
 impl TryIntoRequest for GetGuildWelcomeScreen<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildWelcomeScreen {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

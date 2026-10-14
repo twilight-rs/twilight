@@ -17,15 +17,19 @@ use twilight_model::{
 #[serde(transparent)]
 struct CreateResponseWithResponseBody<'a>(&'a InteractionResponse);
 
+struct CreateResponseWithResponsePath<'a> {
+    interaction_id: Id<InteractionMarker>,
+    interaction_token: &'a str,
+}
+
 /// Respond to an interaction, by its ID and token.
 ///
 /// This endpoint is not bound to the application's global rate limit.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateResponseWithResponse<'a> {
     body: CreateResponseWithResponseBody<'a>,
-    interaction_id: Id<InteractionMarker>,
-    interaction_token: &'a str,
     http: &'a Client,
+    path: CreateResponseWithResponsePath<'a>,
 }
 
 impl<'a> CreateResponseWithResponse<'a> {
@@ -37,9 +41,11 @@ impl<'a> CreateResponseWithResponse<'a> {
     ) -> Self {
         Self {
             body: CreateResponseWithResponseBody(response),
-            interaction_id,
-            interaction_token,
             http,
+            path: CreateResponseWithResponsePath {
+                interaction_id,
+                interaction_token,
+            },
         }
     }
 }
@@ -62,8 +68,8 @@ impl IntoFuture for CreateResponseWithResponse<'_> {
 impl TryIntoRequest for CreateResponseWithResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::InteractionCallback {
-            interaction_id: self.interaction_id.get(),
-            interaction_token: self.interaction_token,
+            interaction_id: self.path.interaction_id.get(),
+            interaction_token: self.path.interaction_token,
             with_response: true,
         });
 

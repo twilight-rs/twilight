@@ -11,18 +11,25 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildPreviewPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// For public guilds, get the guild preview.
 ///
 /// This works even if the user is not in the guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildPreview<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetGuildPreviewPath,
     http: &'a Client,
 }
 
 impl<'a> GetGuildPreview<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetGuildPreviewPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -44,7 +51,7 @@ impl IntoFuture for GetGuildPreview<'_> {
 impl TryIntoRequest for GetGuildPreview<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildPreview {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

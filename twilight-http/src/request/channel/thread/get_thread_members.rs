@@ -15,8 +15,9 @@ use twilight_model::{
 };
 use twilight_validate::channel::{ChannelValidationError, thread_member_limit};
 
-struct GetThreadMembersFields {
+struct GetThreadMembersPath {
     after: Option<Id<UserMarker>>,
+    channel_id: Id<ChannelMarker>,
     limit: Option<u32>,
     with_member: Option<bool>,
 }
@@ -26,28 +27,27 @@ struct GetThreadMembersFields {
 /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
 #[must_use = "requests must be configured and executed"]
 pub struct GetThreadMembers<'a> {
-    channel_id: Id<ChannelMarker>,
-    fields: Result<GetThreadMembersFields, ChannelValidationError>,
     http: &'a Client,
+    path: Result<GetThreadMembersPath, ChannelValidationError>,
 }
 
 impl<'a> GetThreadMembers<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
-            channel_id,
-            fields: Ok(GetThreadMembersFields {
+            http,
+            path: Ok(GetThreadMembersPath {
                 after: None,
+                channel_id,
                 limit: None,
                 with_member: None,
             }),
-            http,
         }
     }
 
     /// Fetch the thread members after the user ID.
     pub const fn after(mut self, after: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(after);
+        if let Ok(path) = self.path.as_mut() {
+            path.after = Some(after);
         }
 
         self
@@ -64,11 +64,11 @@ impl<'a> GetThreadMembers<'a> {
     ///
     /// [`ChannelValidationErrorType::ThreadMemberLimitInvalid`]: twilight_validate::channel::ChannelValidationErrorType::ThreadMemberLimitInvalid
     pub fn limit(mut self, limit: u32) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             thread_member_limit(limit)?;
-            fields.limit = Some(limit);
+            path.limit = Some(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -76,8 +76,8 @@ impl<'a> GetThreadMembers<'a> {
 
     /// Include the associated guild members for each thread member.
     pub const fn with_member(mut self, with_member: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.with_member = Some(with_member);
+        if let Ok(path) = self.path.as_mut() {
+            path.with_member = Some(with_member);
         }
 
         self
@@ -101,13 +101,13 @@ impl IntoFuture for GetThreadMembers<'_> {
 
 impl TryIntoRequest for GetThreadMembers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetThreadMembers {
-            after: fields.after.map(Id::get),
-            channel_id: self.channel_id.get(),
-            limit: fields.limit,
-            with_member: fields.with_member,
+            after: path.after.map(Id::get),
+            channel_id: path.channel_id.get(),
+            limit: path.limit,
+            with_member: path.with_member,
         }))
     }
 }

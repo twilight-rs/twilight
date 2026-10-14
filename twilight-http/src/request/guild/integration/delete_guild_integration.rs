@@ -12,12 +12,16 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteGuildIntegrationPath {
+    guild_id: Id<GuildMarker>,
+    integration_id: Id<IntegrationMarker>,
+}
+
 /// Delete an integration for a guild, by the integration's id.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGuildIntegration<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    integration_id: Id<IntegrationMarker>,
+    path: DeleteGuildIntegrationPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -28,9 +32,11 @@ impl<'a> DeleteGuildIntegration<'a> {
         integration_id: Id<IntegrationMarker>,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            integration_id,
+            path: DeleteGuildIntegrationPath {
+                guild_id,
+                integration_id,
+            },
             reason: Ok(None),
         }
     }
@@ -62,8 +68,8 @@ impl IntoFuture for DeleteGuildIntegration<'_> {
 impl TryIntoRequest for DeleteGuildIntegration<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteGuildIntegration {
-            guild_id: self.guild_id.get(),
-            integration_id: self.integration_id.get(),
+            guild_id: self.path.guild_id.get(),
+            integration_id: self.path.integration_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

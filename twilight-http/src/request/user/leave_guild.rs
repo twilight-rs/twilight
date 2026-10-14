@@ -8,16 +8,23 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::GuildMarker};
 
+struct LeaveGuildPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Leave a guild by id.
 #[must_use = "requests must be configured and executed"]
 pub struct LeaveGuild<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: LeaveGuildPath,
 }
 
 impl<'a> LeaveGuild<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            http,
+            path: LeaveGuildPath { guild_id },
+        }
     }
 }
 
@@ -39,7 +46,7 @@ impl IntoFuture for LeaveGuild<'_> {
 impl TryIntoRequest for LeaveGuild<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::LeaveGuild {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

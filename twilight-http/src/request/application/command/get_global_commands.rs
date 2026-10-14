@@ -11,20 +11,26 @@ use twilight_model::{
     id::{Id, marker::ApplicationMarker},
 };
 
+struct GetGlobalCommandsPath {
+    application_id: Id<ApplicationMarker>,
+    with_localizations: Option<bool>,
+}
+
 /// Retrieve all global commands for an application.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGlobalCommands<'a> {
-    application_id: Id<ApplicationMarker>,
     http: &'a Client,
-    with_localizations: Option<bool>,
+    path: GetGlobalCommandsPath,
 }
 
 impl<'a> GetGlobalCommands<'a> {
     pub(crate) const fn new(http: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
         Self {
-            application_id,
             http,
-            with_localizations: None,
+            path: GetGlobalCommandsPath {
+                application_id,
+                with_localizations: None,
+            },
         }
     }
 
@@ -32,7 +38,7 @@ impl<'a> GetGlobalCommands<'a> {
     ///
     /// Defaults to [`false`].
     pub const fn with_localizations(mut self, with_localizations: bool) -> Self {
-        self.with_localizations = Some(with_localizations);
+        self.path.with_localizations = Some(with_localizations);
 
         self
     }
@@ -56,8 +62,8 @@ impl IntoFuture for GetGlobalCommands<'_> {
 impl TryIntoRequest for GetGlobalCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGlobalCommands {
-            application_id: self.application_id.get(),
-            with_localizations: self.with_localizations,
+            application_id: self.path.application_id.get(),
+            with_localizations: self.path.with_localizations,
         }))
     }
 }

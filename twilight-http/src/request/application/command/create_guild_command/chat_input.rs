@@ -30,6 +30,11 @@ struct CreateGuildChatInputCommandBody<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
+struct CreateGuildChatInputCommandPath {
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Create a chat input command in a guild.
 ///
 /// The description must be between 1 and 100 characters in length. Creating a
@@ -40,10 +45,9 @@ struct CreateGuildChatInputCommandBody<'a> {
 /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChatInputCommand<'a> {
-    application_id: Id<ApplicationMarker>,
     body: Result<CreateGuildChatInputCommandBody<'a>, CommandValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: CreateGuildChatInputCommandPath,
 }
 
 impl<'a> CreateGuildChatInputCommand<'a> {
@@ -72,10 +76,12 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         });
 
         Self {
-            application_id,
             body,
-            guild_id,
             http,
+            path: CreateGuildChatInputCommandPath {
+                application_id,
+                guild_id,
+            },
         }
     }
 
@@ -197,11 +203,11 @@ impl TryIntoRequest for CreateGuildChatInputCommand<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGuildCommand {
-            application_id: self.application_id.get(),
-            guild_id: self.guild_id.get(),
+            application_id: self.path.application_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&CommandBorrowed {
-            application_id: Some(self.application_id),
+            application_id: Some(self.path.application_id),
             default_member_permissions: body.default_member_permissions,
             dm_permission: None,
             description: Some(body.description),

@@ -9,15 +9,19 @@ use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::ChannelMarker};
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteChannelPermissionConfiguredPath {
+    channel_id: Id<ChannelMarker>,
+    target_id: u64,
+}
+
 /// Clear the permissions for a target ID in a channel.
 ///
 /// The `target_id` is a `u64`, but it should point to a `Id<RoleMarker>` or a `Id<UserMarker>`.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteChannelPermissionConfigured<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: DeleteChannelPermissionConfiguredPath,
     reason: Result<Option<&'a str>, ValidationError>,
-    target_id: u64,
 }
 
 impl<'a> DeleteChannelPermissionConfigured<'a> {
@@ -27,10 +31,12 @@ impl<'a> DeleteChannelPermissionConfigured<'a> {
         target_id: u64,
     ) -> Self {
         Self {
-            channel_id,
             http,
+            path: DeleteChannelPermissionConfiguredPath {
+                channel_id,
+                target_id,
+            },
             reason: Ok(None),
-            target_id,
         }
     }
 }
@@ -61,8 +67,8 @@ impl IntoFuture for DeleteChannelPermissionConfigured<'_> {
 impl TryIntoRequest for DeleteChannelPermissionConfigured<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeletePermissionOverwrite {
-            channel_id: self.channel_id.get(),
-            target_id: self.target_id,
+            channel_id: self.path.channel_id.get(),
+            target_id: self.path.target_id,
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

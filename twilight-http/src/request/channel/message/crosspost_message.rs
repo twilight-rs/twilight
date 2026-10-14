@@ -14,12 +14,16 @@ use twilight_model::{
     },
 };
 
+struct CrosspostMessagePath {
+    channel_id: Id<ChannelMarker>,
+    message_id: Id<MessageMarker>,
+}
+
 /// Crosspost a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
 #[must_use = "requests must be configured and executed"]
 pub struct CrosspostMessage<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    path: CrosspostMessagePath,
 }
 
 impl<'a> CrosspostMessage<'a> {
@@ -29,9 +33,11 @@ impl<'a> CrosspostMessage<'a> {
         message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
-            channel_id,
             http,
-            message_id,
+            path: CrosspostMessagePath {
+                channel_id,
+                message_id,
+            },
         }
     }
 }
@@ -54,8 +60,8 @@ impl IntoFuture for CrosspostMessage<'_> {
 impl TryIntoRequest for CrosspostMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::CrosspostMessage {
-            channel_id: self.channel_id.get(),
-            message_id: self.message_id.get(),
+            channel_id: self.path.channel_id.get(),
+            message_id: self.path.message_id.get(),
         }))
     }
 }

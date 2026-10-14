@@ -24,13 +24,17 @@ struct UpdateEmojiBody<'a> {
     roles: Option<&'a [Id<RoleMarker>]>,
 }
 
+struct UpdateEmojiPath {
+    emoji_id: Id<EmojiMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Update an emoji in a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateEmoji<'a> {
     body: UpdateEmojiBody<'a>,
-    emoji_id: Id<EmojiMarker>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: UpdateEmojiPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -45,9 +49,8 @@ impl<'a> UpdateEmoji<'a> {
                 name: None,
                 roles: None,
             },
-            emoji_id,
-            guild_id,
             http,
+            path: UpdateEmojiPath { emoji_id, guild_id },
             reason: Ok(None),
         }
     }
@@ -93,8 +96,8 @@ impl IntoFuture for UpdateEmoji<'_> {
 impl TryIntoRequest for UpdateEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateEmoji {
-            emoji_id: self.emoji_id.get(),
-            guild_id: self.guild_id.get(),
+            emoji_id: self.path.emoji_id.get(),
+            guild_id: self.path.guild_id.get(),
         });
 
         request = request.json(&self.body);

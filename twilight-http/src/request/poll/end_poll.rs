@@ -16,7 +16,7 @@ use twilight_model::{
 };
 
 #[derive(Serialize)]
-struct EndPollFields {
+struct EndPollPath {
     channel_id: Id<ChannelMarker>,
     message_id: Id<MessageMarker>,
 }
@@ -24,8 +24,8 @@ struct EndPollFields {
 // Ends a poll in a channel.
 #[must_use = "requests must be configured and executed"]
 pub struct EndPoll<'a> {
-    fields: EndPollFields,
     http: &'a Client,
+    path: EndPollPath,
 }
 
 impl<'a> EndPoll<'a> {
@@ -35,11 +35,11 @@ impl<'a> EndPoll<'a> {
         message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
-            fields: EndPollFields {
+            http,
+            path: EndPollPath {
                 channel_id,
                 message_id,
             },
-            http,
         }
     }
 }
@@ -61,8 +61,8 @@ impl IntoFuture for EndPoll<'_> {
 impl TryIntoRequest for EndPoll<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::EndPoll {
-            channel_id: self.fields.channel_id.get(),
-            message_id: self.fields.message_id.get(),
+            channel_id: self.path.channel_id.get(),
+            message_id: self.path.message_id.get(),
         }))
     }
 }

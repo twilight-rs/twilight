@@ -11,15 +11,22 @@ use twilight_model::id::{
     marker::{GuildMarker, RoleMarker},
 };
 
+struct GetGuildRoleMemberCountsPath {
+    guild_id: Id<GuildMarker>,
+}
+
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildRoleMemberCounts<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: GetGuildRoleMemberCountsPath,
 }
 
 impl<'a> GetGuildRoleMemberCounts<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            http,
+            path: GetGuildRoleMemberCountsPath { guild_id },
+        }
     }
 }
 
@@ -41,7 +48,7 @@ impl IntoFuture for GetGuildRoleMemberCounts<'_> {
 impl TryIntoRequest for GetGuildRoleMemberCounts<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildRoleMemberCounts {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

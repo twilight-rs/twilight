@@ -38,6 +38,10 @@ struct CreateForumThreadBody<'a> {
     rate_limit_per_user: Option<u16>,
 }
 
+struct CreateForumThreadPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Creates a new thread in a forum channel.
 ///
 /// Requires the [`SEND_MESSAGES`] permission.
@@ -47,8 +51,8 @@ struct CreateForumThreadBody<'a> {
 pub struct CreateForumThread<'a> {
     attachment_manager: AttachmentManager<'a>,
     body: CreateForumThreadBody<'a>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: CreateForumThreadPath,
 }
 
 impl<'a> CreateForumThread<'a> {
@@ -59,7 +63,6 @@ impl<'a> CreateForumThread<'a> {
     ) -> Self {
         Self {
             attachment_manager: AttachmentManager::new(),
-            channel_id,
             body: CreateForumThreadBody {
                 applied_tags: None,
                 auto_archive_duration: None,
@@ -77,6 +80,7 @@ impl<'a> CreateForumThread<'a> {
                 rate_limit_per_user: None,
             },
             http,
+            path: CreateForumThreadPath { channel_id },
         }
     }
 
@@ -119,7 +123,7 @@ impl<'a> CreateForumThread<'a> {
 
     fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateForumThread {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         });
 
         // Set the default allowed mentions if required.

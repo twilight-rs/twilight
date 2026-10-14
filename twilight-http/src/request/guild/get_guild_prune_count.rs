@@ -15,8 +15,9 @@ use twilight_model::{
 };
 use twilight_validate::request::{ValidationError, guild_prune_days as validate_guild_prune_days};
 
-struct GetGuildPruneCountFields<'a> {
+struct GetGuildPruneCountPath<'a> {
     days: Option<u16>,
+    guild_id: Id<GuildMarker>,
     include_roles: &'a [Id<RoleMarker>],
 }
 
@@ -37,20 +38,19 @@ struct GetGuildPruneCountFields<'a> {
 /// [`Permissions::MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildPruneCount<'a> {
-    fields: Result<GetGuildPruneCountFields<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: Result<GetGuildPruneCountPath<'a>, ValidationError>,
 }
 
 impl<'a> GetGuildPruneCount<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(GetGuildPruneCountFields {
+            http,
+            path: Ok(GetGuildPruneCountPath {
                 days: None,
+                guild_id,
                 include_roles: &[],
             }),
-            guild_id,
-            http,
         }
     }
 
@@ -66,11 +66,11 @@ impl<'a> GetGuildPruneCount<'a> {
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
     pub fn days(mut self, days: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_guild_prune_days(days)?;
-            fields.days = Some(days);
+            path.days = Some(days);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -78,8 +78,8 @@ impl<'a> GetGuildPruneCount<'a> {
 
     /// List of roles to include when calculating prune count
     pub const fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.include_roles = roles;
+        if let Ok(path) = self.path.as_mut() {
+            path.include_roles = roles;
         }
 
         self
@@ -103,12 +103,12 @@ impl IntoFuture for GetGuildPruneCount<'_> {
 
 impl TryIntoRequest for GetGuildPruneCount<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetGuildPruneCount {
-            days: fields.days,
-            guild_id: self.guild_id.get(),
-            include_roles: fields.include_roles,
+            days: path.days,
+            guild_id: path.guild_id.get(),
+            include_roles: path.include_roles,
         }))
     }
 }

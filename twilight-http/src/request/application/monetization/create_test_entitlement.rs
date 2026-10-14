@@ -56,10 +56,14 @@ impl Serialize for CreateTestEntitlementBody {
     }
 }
 
-pub struct CreateTestEntitlement<'a> {
+struct CreateTestEntitlementPath {
     application_id: Id<ApplicationMarker>,
+}
+
+pub struct CreateTestEntitlement<'a> {
     body: CreateTestEntitlementBody,
     http: &'a Client,
+    path: CreateTestEntitlementPath,
 }
 
 impl<'a> CreateTestEntitlement<'a> {
@@ -70,9 +74,9 @@ impl<'a> CreateTestEntitlement<'a> {
         owner: CreateTestEntitlementOwner,
     ) -> Self {
         Self {
-            application_id,
             body: CreateTestEntitlementBody { sku_id, owner },
             http,
+            path: CreateTestEntitlementPath { application_id },
         }
     }
 }
@@ -95,7 +99,7 @@ impl IntoFuture for CreateTestEntitlement<'_> {
 impl TryIntoRequest for CreateTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::CreateTestEntitlement {
-            application_id: self.application_id.get(),
+            application_id: self.path.application_id.get(),
         })
         .json(&self.body)
         .build()

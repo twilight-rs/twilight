@@ -28,6 +28,10 @@ struct CreateGlobalChatInputCommandBody<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
+struct CreateGlobalChatInputCommandPath {
+    application_id: Id<ApplicationMarker>,
+}
+
 /// Create a new chat input global command.
 ///
 /// The description must be between 1 and 100 characters in length. Creating a
@@ -38,9 +42,9 @@ struct CreateGlobalChatInputCommandBody<'a> {
 /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalChatInputCommand<'a> {
-    application_id: Id<ApplicationMarker>,
     body: Result<CreateGlobalChatInputCommandBody<'a>, CommandValidationError>,
     http: &'a Client,
+    path: CreateGlobalChatInputCommandPath,
 }
 
 impl<'a> CreateGlobalChatInputCommand<'a> {
@@ -69,9 +73,9 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
         });
 
         Self {
-            application_id,
             body,
             http,
+            path: CreateGlobalChatInputCommandPath { application_id },
         }
     }
 
@@ -204,10 +208,10 @@ impl TryIntoRequest for CreateGlobalChatInputCommand<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGlobalCommand {
-            application_id: self.application_id.get(),
+            application_id: self.path.application_id.get(),
         })
         .json(&CommandBorrowed {
-            application_id: Some(self.application_id),
+            application_id: Some(self.path.application_id),
             default_member_permissions: body.default_member_permissions,
             dm_permission: body.dm_permission,
             description: Some(body.description),

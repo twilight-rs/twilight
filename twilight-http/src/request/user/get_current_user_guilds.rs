@@ -14,7 +14,7 @@ use twilight_validate::request::{
     ValidationError, get_current_user_guilds_limit as validate_get_current_user_guilds_limit,
 };
 
-struct GetCurrentUserGuildsFields {
+struct GetCurrentUserGuildsPath {
     after: Option<Id<GuildMarker>>,
     before: Option<Id<GuildMarker>>,
     limit: Option<u16>,
@@ -47,26 +47,26 @@ struct GetCurrentUserGuildsFields {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetCurrentUserGuilds<'a> {
-    fields: Result<GetCurrentUserGuildsFields, ValidationError>,
     http: &'a Client,
+    path: Result<GetCurrentUserGuildsPath, ValidationError>,
 }
 
 impl<'a> GetCurrentUserGuilds<'a> {
     pub(crate) const fn new(http: &'a Client) -> Self {
         Self {
-            fields: Ok(GetCurrentUserGuildsFields {
+            http,
+            path: Ok(GetCurrentUserGuildsPath {
                 after: None,
                 before: None,
                 limit: None,
             }),
-            http,
         }
     }
 
     /// Get guilds after this guild id.
     pub const fn after(mut self, guild_id: Id<GuildMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(guild_id);
+        if let Ok(path) = self.path.as_mut() {
+            path.after = Some(guild_id);
         }
 
         self
@@ -74,8 +74,8 @@ impl<'a> GetCurrentUserGuilds<'a> {
 
     /// Get guilds before this guild id.
     pub const fn before(mut self, guild_id: Id<GuildMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.before = Some(guild_id);
+        if let Ok(path) = self.path.as_mut() {
+            path.before = Some(guild_id);
         }
 
         self
@@ -94,11 +94,11 @@ impl<'a> GetCurrentUserGuilds<'a> {
     /// [`GetCurrentUserGuilds`]: twilight_validate::request::ValidationErrorType::GetCurrentUserGuilds
     /// [Discord Docs/Get Current User Guilds]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
     pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_get_current_user_guilds_limit(limit)?;
-            fields.limit = Some(limit);
+            path.limit = Some(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -122,12 +122,12 @@ impl IntoFuture for GetCurrentUserGuilds<'_> {
 
 impl TryIntoRequest for GetCurrentUserGuilds<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetGuilds {
-            after: fields.after.map(Id::get),
-            before: fields.before.map(Id::get),
-            limit: fields.limit,
+            after: path.after.map(Id::get),
+            before: path.before.map(Id::get),
+            limit: path.limit,
         }))
     }
 }

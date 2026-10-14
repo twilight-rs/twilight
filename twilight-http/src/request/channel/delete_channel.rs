@@ -12,19 +12,23 @@ use twilight_model::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteChannelPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Delete a channel by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteChannel<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: DeleteChannelPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> DeleteChannel<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
-            channel_id,
             http,
+            path: DeleteChannelPath { channel_id },
             reason: Ok(None),
         }
     }
@@ -56,7 +60,7 @@ impl IntoFuture for DeleteChannel<'_> {
 impl TryIntoRequest for DeleteChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteChannel {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
