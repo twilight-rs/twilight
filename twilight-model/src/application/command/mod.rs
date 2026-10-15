@@ -173,6 +173,7 @@ mod tests {
                             name: "attachment name".to_owned(),
                             name_localizations: None,
                             options: None,
+                            file_types: None,
                             required: None,
                         },
                         CommandOption {
@@ -189,6 +190,7 @@ mod tests {
                             name: "boolean name".to_owned(),
                             name_localizations: None,
                             options: None,
+                            file_types: None,
                             required: Some(true),
                         },
                         CommandOption {
@@ -205,6 +207,7 @@ mod tests {
                             name: "channel name".to_owned(),
                             name_localizations: None,
                             options: None,
+                            file_types: None,
                             required: None,
                         },
                         CommandOption {
@@ -221,6 +224,7 @@ mod tests {
                             name: "channel name".to_owned(),
                             name_localizations: None,
                             options: None,
+                            file_types: None,
                             required: None,
                         },
                         CommandOption {
@@ -237,6 +241,7 @@ mod tests {
                             name: "integer name".to_owned(),
                             name_localizations: None,
                             options: None,
+                            file_types: None,
                             required: None,
                         },
                         CommandOption {
@@ -256,6 +261,7 @@ mod tests {
                             name: "mentionable name".to_owned(),
                             name_localizations: None,
                             options: None,
+                            file_types: None,
                             required: None,
                         },
                         CommandOption {
@@ -279,6 +285,7 @@ mod tests {
                             name: "number name".to_owned(),
                             name_localizations: None,
                             options: None,
+                            file_types: None,
                             required: None,
                         },
                         CommandOption {
@@ -298,6 +305,7 @@ mod tests {
                                 "role name (but german)".to_owned(),
                             )])),
                             options: None,
+                            file_types: None,
                             required: None,
                         },
                         CommandOption {
@@ -314,11 +322,14 @@ mod tests {
                             name: "string name".to_owned(),
                             name_localizations: None,
                             options: None,
+                            file_types: None,
                             required: None,
                         },
                     ])),
+                    file_types: None,
                     required: None,
                 }])),
+                file_types: None,
                 required: None,
             }]),
             version: Id::new(1),

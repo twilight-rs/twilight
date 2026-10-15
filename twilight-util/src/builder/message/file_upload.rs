@@ -14,6 +14,7 @@ impl FileUploadBuilder {
             max_values: None,
             min_values: None,
             required: None,
+            file_types: None,
         })
     }
 
@@ -34,6 +35,15 @@ impl FileUploadBuilder {
     /// Set the minimum amount of files to upload.
     pub const fn min_values(mut self, min_values: u8) -> Self {
         self.0.min_values.replace(min_values);
+
+        self
+    }
+
+    /// Set the file types to filter for.
+    ///
+    /// Can be `image`, `video`, `audio`, or any dot-prefixed extension such as `.pdf`.
+    pub fn file_types(mut self, file_types: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        self.0.file_types = Some(file_types.into_iter().map(Into::into).collect());
 
         self
     }
@@ -68,6 +78,7 @@ mod tests {
             custom_id: "custom_id".to_string(),
             max_values: Some(5),
             min_values: Some(1),
+            file_types: None,
             required: Some(true),
         };
 

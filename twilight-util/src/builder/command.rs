@@ -239,6 +239,7 @@ impl AttachmentBuilder {
             name: name.into(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         })
     }
@@ -283,6 +284,17 @@ impl AttachmentBuilder {
         self
     }
 
+    /// Set the file types to filter for.
+    ///
+    /// Can be `image`, `video`, `audio`, or any dot-prefixed extension such as `.pdf`.
+    ///
+    /// Defaults to [`None`].
+    pub fn file_types(mut self, file_types: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        self.0.file_types = Some(file_types.into_iter().map(Into::into).collect());
+
+        self
+    }
+
     /// Set whether this option is required.
     ///
     /// Defaults to `false`.
@@ -322,6 +334,7 @@ impl BooleanBuilder {
             name: name.into(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         })
     }
@@ -405,6 +418,7 @@ impl ChannelBuilder {
             name: name.into(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         })
     }
@@ -496,6 +510,7 @@ impl IntegerBuilder {
             name: name.into(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         })
     }
@@ -664,6 +679,7 @@ impl MentionableBuilder {
             name: name.into(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         })
     }
@@ -747,6 +763,7 @@ impl NumberBuilder {
             name: name.into(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         })
     }
@@ -915,6 +932,7 @@ impl RoleBuilder {
             name: name.into(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         })
     }
@@ -998,6 +1016,7 @@ impl StringBuilder {
             name: name.into(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         })
     }
@@ -1169,6 +1188,7 @@ impl SubCommandBuilder {
             name: name.into(),
             name_localizations: None,
             options: Some(Vec::new()),
+            file_types: None,
             required: None,
         })
     }
@@ -1260,6 +1280,7 @@ impl SubCommandGroupBuilder {
             name: name.into(),
             name_localizations: None,
             options: Some(Vec::new()),
+            file_types: None,
             required: None,
         })
     }
@@ -1343,6 +1364,7 @@ impl UserBuilder {
             name: name.into(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         })
     }
@@ -1528,6 +1550,7 @@ mod tests {
                                     name: "user".to_owned(),
                                     name_localizations: None,
                                     options: None,
+                                    file_types: None,
                                     required: Some(true),
                                 },
                                 CommandOption {
@@ -1547,9 +1570,11 @@ mod tests {
                                     name: "channel".to_owned(),
                                     name_localizations: None,
                                     options: None,
+                                    file_types: None,
                                     required: None,
                                 },
                             ])),
+                            file_types: None,
                             required: None,
                         },
                         CommandOption {
@@ -1580,6 +1605,7 @@ mod tests {
                                     name: "user".to_owned(),
                                     name_localizations: None,
                                     options: None,
+                                    file_types: None,
                                     required: Some(true),
                                 },
                                 CommandOption {
@@ -1599,12 +1625,15 @@ mod tests {
                                     name: "channel".to_owned(),
                                     name_localizations: None,
                                     options: None,
+                                    file_types: None,
                                     required: None,
                                 },
                             ])),
+                            file_types: None,
                             required: None,
                         },
                     ])),
+                    file_types: None,
                     required: None,
                 },
                 CommandOption {
@@ -1649,6 +1678,7 @@ mod tests {
                                     name: "role".to_owned(),
                                     name_localizations: None,
                                     options: None,
+                                    file_types: None,
                                     required: Some(true),
                                 },
                                 CommandOption {
@@ -1668,9 +1698,11 @@ mod tests {
                                     name: "channel".to_owned(),
                                     name_localizations: None,
                                     options: None,
+                                    file_types: None,
                                     required: None,
                                 },
                             ])),
+                            file_types: None,
                             required: None,
                         },
                         CommandOption {
@@ -1701,6 +1733,7 @@ mod tests {
                                     name: "role".to_owned(),
                                     name_localizations: None,
                                     options: None,
+                                    file_types: None,
                                     required: Some(true),
                                 },
                                 CommandOption {
@@ -1720,12 +1753,15 @@ mod tests {
                                     name: "channel".to_owned(),
                                     name_localizations: None,
                                     options: None,
+                                    file_types: None,
                                     required: None,
                                 },
                             ])),
+                            file_types: None,
                             required: None,
                         },
                     ])),
+                    file_types: None,
                     required: None,
                 },
             ]),
