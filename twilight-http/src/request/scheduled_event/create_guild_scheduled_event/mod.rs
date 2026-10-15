@@ -11,9 +11,8 @@ use super::EntityMetadataBody;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request},
+    request::{AuditLogReason, Path, Request, route::Route},
     response::ResponseFuture,
-    routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
@@ -51,7 +50,7 @@ struct CreateGuildScheduledEventBody<'a> {
     scheduled_start_time: Option<&'a Timestamp>,
 }
 
-struct CreateGuildScheduledEventPath {
+pub(in crate::request) struct CreateGuildScheduledEventPath {
     guild_id: Id<GuildMarker>,
 }
 
@@ -233,23 +232,31 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         CreateGuildVoiceScheduledEvent::new(self, channel_id, name, scheduled_start_time)
     }
 
-    fn exec(self) -> ResponseFuture<GuildScheduledEvent> {
+    fn exec<T: Route<Fields = CreateGuildScheduledEventPath>>(
+        self,
+    ) -> ResponseFuture<GuildScheduledEvent> {
         let http = self.http;
 
-        match self.try_into_request() {
+        match self.try_into_request::<T>() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 
-    fn try_into_request(self) -> Result<Request, Error> {
+    fn try_into_request<T: Route<Fields = CreateGuildScheduledEventPath>>(
+        self,
+    ) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateGuildScheduledEvent {
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&body)
-        .build()
+        Request::builder_new::<T>(self.path).json(&body).build()
+    }
+
+    fn path(fields: CreateGuildScheduledEventPath) -> Path {
+        Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("scheduled-events")
+            .build()
     }
 }
 

@@ -1,9 +1,8 @@
 use crate::{
     Error,
     client::Client,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -11,7 +10,7 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
-struct GetCurrentUserGuildMemberPath {
+pub(in crate::request) struct GetCurrentUserGuildMemberPath {
     guild_id: Id<GuildMarker>,
 }
 
@@ -46,10 +45,23 @@ impl IntoFuture for GetCurrentUserGuildMember<'_> {
     }
 }
 
+impl Route for GetCurrentUserGuildMember<'_> {
+    type Fields = GetCurrentUserGuildMemberPath;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("users")
+            .me()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetCurrentUserGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetCurrentUserGuildMember {
-            guild_id: self.path.guild_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

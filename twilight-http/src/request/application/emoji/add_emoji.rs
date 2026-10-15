@@ -2,9 +2,8 @@ use std::future::IntoFuture;
 
 use crate::{
     Client, Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
 use serde::Serialize;
@@ -19,7 +18,7 @@ struct AddApplicationEmojiBody<'a> {
     name: &'a str,
 }
 
-struct AddApplicationEmojiPath {
+pub(in crate::request) struct AddApplicationEmojiPath {
     application_id: Id<ApplicationMarker>,
 }
 
@@ -59,14 +58,24 @@ impl IntoFuture for AddApplicationEmoji<'_> {
     }
 }
 
+impl Route for AddApplicationEmoji<'_> {
+    type Fields = AddApplicationEmojiPath;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("emojis")
+            .build()
+    }
+}
+
 impl TryIntoRequest for AddApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::AddApplicationEmoji {
-            application_id: self.path.application_id.get(),
-        });
-
-        request = request.json(&self.body);
-
-        request.build()
+        Request::builder_new::<Self>(self.path)
+            .json(&self.body)
+            .build()
     }
 }

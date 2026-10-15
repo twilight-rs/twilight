@@ -2,16 +2,15 @@ use std::future::IntoFuture;
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::ResponseFuture,
-    routing::Route,
 };
 use twilight_model::{
     application::EmojiList,
     id::{Id, marker::ApplicationMarker},
 };
 
-struct ListApplicationEmojisPath {
+pub(in crate::request) struct ListApplicationEmojisPath {
     application_id: Id<ApplicationMarker>,
 }
 
@@ -45,10 +44,22 @@ impl IntoFuture for ListApplicationEmojis<'_> {
     }
 }
 
+impl Route for ListApplicationEmojis<'_> {
+    type Fields = ListApplicationEmojisPath;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("emojis")
+            .build()
+    }
+}
+
 impl TryIntoRequest for ListApplicationEmojis<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetApplicationEmojis {
-            application_id: self.path.application_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

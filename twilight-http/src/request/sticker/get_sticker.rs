@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -11,7 +10,7 @@ use twilight_model::{
     id::{Id, marker::StickerMarker},
 };
 
-struct GetStickerPath {
+pub(in crate::request) struct GetStickerPath {
     sticker_id: Id<StickerMarker>,
 }
 
@@ -61,10 +60,21 @@ impl IntoFuture for GetSticker<'_> {
     }
 }
 
+impl Route for GetSticker<'_> {
+    type Fields = GetStickerPath;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("stickers")
+            .id(fields.sticker_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetSticker {
-            sticker_id: self.path.sticker_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

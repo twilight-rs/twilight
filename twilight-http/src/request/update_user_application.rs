@@ -9,9 +9,8 @@ use twilight_model::oauth::{
 use crate::{
     client::Client,
     error::Error,
-    request::{Nullable, Request, TryIntoRequest},
+    request::{Method, Nullable, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
 #[derive(Serialize)]
@@ -193,9 +192,19 @@ impl IntoFuture for UpdateCurrentUserApplication<'_> {
     }
 }
 
+impl<'a> Route for UpdateCurrentUserApplication<'a> {
+    type Fields = ();
+
+    const METHOD: Method = Method::Patch;
+
+    fn path(_: Self::Fields) -> Path {
+        Path::builder().resource("applications").me().build()
+    }
+}
+
 impl TryIntoRequest for UpdateCurrentUserApplication<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateCurrentUserApplication);
+        let mut request = Request::builder_new::<Self>(());
 
         request = request.json(&self.body);
 

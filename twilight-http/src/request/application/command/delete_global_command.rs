@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
@@ -11,7 +10,7 @@ use twilight_model::id::{
     marker::{ApplicationMarker, CommandMarker},
 };
 
-struct DeleteGlobalCommandPath {
+pub(in crate::request) struct DeleteGlobalCommandPath {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
 }
@@ -54,11 +53,23 @@ impl IntoFuture for DeleteGlobalCommand<'_> {
     }
 }
 
+impl Route for DeleteGlobalCommand<'_> {
+    type Fields = DeleteGlobalCommandPath;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for DeleteGlobalCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteGlobalCommand {
-            application_id: self.path.application_id.get(),
-            command_id: self.path.command_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

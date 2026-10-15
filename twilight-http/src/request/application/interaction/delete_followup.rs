@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
@@ -11,7 +10,7 @@ use twilight_model::id::{
     marker::{ApplicationMarker, MessageMarker},
 };
 
-struct DeleteFollowupPath<'a> {
+pub(in crate::request) struct DeleteFollowupPath<'a> {
     application_id: Id<ApplicationMarker>,
     message_id: Id<MessageMarker>,
     token: &'a str,
@@ -77,26 +76,37 @@ impl IntoFuture for DeleteFollowup<'_> {
     }
 }
 
+impl<'a> Route for DeleteFollowup<'a> {
+    type Fields = DeleteFollowupPath<'a>;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("webhooks")
+            .id(fields.application_id)
+            .no_resource()
+            .string_id(fields.token)
+            .resource("messages")
+            .id(fields.message_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for DeleteFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::DeleteWebhookMessage {
-            message_id: self.path.message_id.get(),
-            thread_id: None,
-            token: self.path.token,
-            webhook_id: self.path.application_id.get(),
-        })
-        .use_authorization_token(false)
-        .build()
+        Request::builder_new::<Self>(self.path)
+            .use_authorization_token(false)
+            .build()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::DeleteFollowup;
+    use super::{DeleteFollowup, DeleteFollowupPath};
     use crate::{
         client::Client,
         request::{Request, TryIntoRequest},
-        routing::Route,
     };
     use std::error::Error;
     use twilight_model::id::Id;
@@ -108,11 +118,10 @@ mod tests {
         let builder = DeleteFollowup::new(&client, Id::new(1), "token", Id::new(2));
         let actual = builder.try_into_request()?;
 
-        let expected = Request::from_route(&Route::DeleteWebhookMessage {
-            message_id: 2,
-            thread_id: None,
+        let expected = Request::from_route_new::<DeleteFollowup>(DeleteFollowupPath {
+            application_id: Id::new(1),
+            message_id: Id::new(2),
             token: "token",
-            webhook_id: 1,
         });
 
         assert_eq!(expected.path, actual.path);

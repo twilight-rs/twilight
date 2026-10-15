@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -22,7 +21,7 @@ struct CreateTemplateBody<'a> {
     description: Option<&'a str>,
 }
 
-struct CreateTemplatePath {
+pub(in crate::request) struct CreateTemplatePath {
     guild_id: Id<GuildMarker>,
 }
 
@@ -101,14 +100,24 @@ impl IntoFuture for CreateTemplate<'_> {
     }
 }
 
+impl Route for CreateTemplate<'_> {
+    type Fields = CreateTemplatePath;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("templates")
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreateTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateTemplate {
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&body)
-        .build()
+        Request::builder_new::<Self>(self.path).json(&body).build()
     }
 }
