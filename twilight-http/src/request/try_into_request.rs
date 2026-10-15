@@ -25,8 +25,8 @@ mod private {
                 DeleteResponse, GetFollowup, GetResponse, UpdateFollowup, UpdateResponse,
             },
             monetization::{
-                DeleteTestEntitlement, GetSKUs, create_test_entitlement::CreateTestEntitlement,
-                get_entitlements::GetEntitlements,
+                ConsumeEntitlement, DeleteTestEntitlement, GetEntitlement, GetSKUs,
+                create_test_entitlement::CreateTestEntitlement, get_entitlements::GetEntitlements,
             },
         },
         channel::{
@@ -114,6 +114,7 @@ mod private {
     impl Sealed for AddGuildMember<'_> {}
     impl Sealed for AddRoleToMember<'_> {}
     impl Sealed for AddThreadMember<'_> {}
+    impl Sealed for ConsumeEntitlement<'_> {}
     impl Sealed for CreateAutoModerationRule<'_> {}
     impl Sealed for CreateBan<'_> {}
     impl Sealed for CreateEmoji<'_> {}
@@ -205,6 +206,7 @@ mod private {
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
     impl Sealed for GetEntitlements<'_> {}
+    impl Sealed for GetEntitlement<'_> {}
     impl Sealed for GetFollowup<'_> {}
     impl Sealed for GetGateway<'_> {}
     impl Sealed for GetGatewayAuthed<'_> {}
