@@ -19,7 +19,7 @@ use twilight_validate::message::{
 
 /// Contents of the first message in the new forum thread.
 #[derive(Serialize)]
-pub(super) struct CreateForumThreadMessageFields<'a> {
+pub(super) struct CreateForumThreadMessageBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(super) allowed_mentions: Option<Nullable<&'a AllowedMentions>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -52,7 +52,7 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// allowed mentions. Set to `None` to ignore this default.
     pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
         if let Ok(inner) = self.0.as_mut() {
-            inner.fields.message.allowed_mentions = Some(Nullable(allowed_mentions));
+            inner.body.message.allowed_mentions = Some(Nullable(allowed_mentions));
         }
 
         self
@@ -103,12 +103,12 @@ impl<'a> CreateForumThreadMessage<'a> {
             validate_components(
                 components,
                 inner
-                    .fields
+                    .body
                     .message
                     .flags
                     .is_some_and(|f| f.contains(MessageFlags::IS_COMPONENTS_V2)),
             )?;
-            inner.fields.message.components = Some(components);
+            inner.body.message.components = Some(components);
 
             Ok(inner)
         });
@@ -129,7 +129,7 @@ impl<'a> CreateForumThreadMessage<'a> {
     pub fn content(mut self, content: &'a str) -> Self {
         self.0 = self.0.and_then(|mut inner| {
             validate_content(content)?;
-            inner.fields.message.content = Some(content);
+            inner.body.message.content = Some(content);
 
             Ok(inner)
         });
@@ -160,7 +160,7 @@ impl<'a> CreateForumThreadMessage<'a> {
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Self {
         self.0 = self.0.and_then(|mut inner| {
             validate_embeds(embeds)?;
-            inner.fields.message.embeds = Some(embeds);
+            inner.body.message.embeds = Some(embeds);
 
             Ok(inner)
         });
@@ -177,7 +177,7 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// [`SUPPRESS_NOTIFICATIONS`]: MessageFlags::SUPPRESS_NOTIFICATIONS
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
         if let Ok(inner) = self.0.as_mut() {
-            inner.fields.message.flags = Some(flags);
+            inner.body.message.flags = Some(flags);
         }
 
         self
@@ -197,7 +197,7 @@ impl<'a> CreateForumThreadMessage<'a> {
     /// [`attachments`]: Self::attachments
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         if let Ok(inner) = self.0.as_mut() {
-            inner.fields.message.payload_json = Some(payload_json);
+            inner.body.message.payload_json = Some(payload_json);
         }
 
         self
@@ -213,7 +213,7 @@ impl<'a> CreateForumThreadMessage<'a> {
     pub fn sticker_ids(mut self, sticker_ids: &'a [Id<StickerMarker>]) -> Self {
         self.0 = self.0.and_then(|mut inner| {
             validate_sticker_ids(sticker_ids)?;
-            inner.fields.message.sticker_ids = Some(sticker_ids);
+            inner.body.message.sticker_ids = Some(sticker_ids);
 
             Ok(inner)
         });

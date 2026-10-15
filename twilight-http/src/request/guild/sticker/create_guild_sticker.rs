@@ -18,7 +18,7 @@ use twilight_validate::{
     },
 };
 
-struct CreateGuildStickerFields<'a> {
+struct CreateGuildStickerBody<'a> {
     description: &'a str,
     file: &'a [u8],
     name: &'a str,
@@ -54,7 +54,7 @@ struct CreateGuildStickerFields<'a> {
 /// # Ok(()) }
 /// ```
 pub struct CreateGuildSticker<'a> {
-    fields: Result<CreateGuildStickerFields<'a>, StickerValidationError>,
+    body: Result<CreateGuildStickerBody<'a>, StickerValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -69,22 +69,22 @@ impl<'a> CreateGuildSticker<'a> {
         tags: &'a str,
         file: &'a [u8],
     ) -> Self {
-        let fields = Ok(CreateGuildStickerFields {
+        let body = Ok(CreateGuildStickerBody {
             description,
             file,
             name,
             tags,
         })
-        .and_then(|fields| {
+        .and_then(|body| {
             validate_description(description)?;
             validate_name(name)?;
             validate_tags(tags)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
-            fields,
+            body,
             guild_id,
             http,
             reason: Ok(None),
@@ -117,16 +117,16 @@ impl IntoFuture for CreateGuildSticker<'_> {
 
 impl TryIntoRequest for CreateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateGuildSticker {
             guild_id: self.guild_id.get(),
         });
 
         let form = Form::new()
-            .part(b"description", fields.description.as_bytes())
-            .part(b"file", fields.file)
-            .part(b"name", fields.name.as_bytes())
-            .part(b"tags", fields.tags.as_bytes());
+            .part(b"description", body.description.as_bytes())
+            .part(b"file", body.file)
+            .part(b"name", body.name.as_bytes())
+            .part(b"tags", body.tags.as_bytes());
 
         request = request.form(form);
 

@@ -28,7 +28,7 @@ use twilight_validate::{
 };
 
 #[derive(Serialize)]
-struct CreateGuildChannelFields<'a> {
+struct CreateGuildChannelBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     available_tags: Option<&'a [ForumTag]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -76,7 +76,7 @@ struct CreateGuildChannelFields<'a> {
 /// UTF-16 characters and the maximum is 100 UTF-16 characters.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChannel<'a> {
-    fields: Result<CreateGuildChannelFields<'a>, ChannelValidationError>,
+    body: Result<CreateGuildChannelBody<'a>, ChannelValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -84,7 +84,7 @@ pub struct CreateGuildChannel<'a> {
 
 impl<'a> CreateGuildChannel<'a> {
     pub(crate) fn new(http: &'a Client, guild_id: Id<GuildMarker>, name: &'a str) -> Self {
-        let fields = Ok(CreateGuildChannelFields {
+        let body = Ok(CreateGuildChannelBody {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
@@ -104,14 +104,14 @@ impl<'a> CreateGuildChannel<'a> {
             user_limit: None,
             video_quality_mode: None,
         })
-        .and_then(|fields| {
+        .and_then(|body| {
             validate_name(name)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
-            fields,
+            body,
             guild_id,
             http,
             reason: Ok(None),
@@ -120,8 +120,8 @@ impl<'a> CreateGuildChannel<'a> {
 
     /// Set the available tags for the forum.
     pub const fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.available_tags = Some(available_tags);
+        if let Ok(body) = self.body.as_mut() {
+            body.available_tags = Some(available_tags);
         }
 
         self
@@ -137,12 +137,12 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
     pub fn bitrate(mut self, bitrate: u32) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_bitrate(bitrate)?;
 
-            fields.bitrate = Some(bitrate);
+            body.bitrate = Some(bitrate);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -157,8 +157,8 @@ impl<'a> CreateGuildChannel<'a> {
         mut self,
         auto_archive_duration: AutoArchiveDuration,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.default_auto_archive_duration = Some(auto_archive_duration);
+        if let Ok(body) = self.body.as_mut() {
+            body.default_auto_archive_duration = Some(auto_archive_duration);
         }
 
         self
@@ -166,8 +166,8 @@ impl<'a> CreateGuildChannel<'a> {
 
     /// Set the default forum layout for new forum channels.
     pub const fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.default_forum_layout = Some(default_forum_layout);
+        if let Ok(body) = self.body.as_mut() {
+            body.default_forum_layout = Some(default_forum_layout);
         }
 
         self
@@ -178,8 +178,8 @@ impl<'a> CreateGuildChannel<'a> {
         mut self,
         default_reaction_emoji: &'a DefaultReaction,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.default_reaction_emoji = Some(default_reaction_emoji);
+        if let Ok(body) = self.body.as_mut() {
+            body.default_reaction_emoji = Some(default_reaction_emoji);
         }
 
         self
@@ -187,8 +187,8 @@ impl<'a> CreateGuildChannel<'a> {
 
     /// Set the default sort order for newly created forum channels.
     pub const fn default_sort_order(mut self, default_sort_order: ForumSortOrder) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.default_sort_order = Some(default_sort_order);
+        if let Ok(body) = self.body.as_mut() {
+            body.default_sort_order = Some(default_sort_order);
         }
 
         self
@@ -206,12 +206,12 @@ impl<'a> CreateGuildChannel<'a> {
         mut self,
         default_thread_rate_limit_per_user: u16,
     ) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_rate_limit_per_user(default_thread_rate_limit_per_user)?;
 
-            fields.default_thread_rate_limit_per_user = Some(default_thread_rate_limit_per_user);
+            body.default_thread_rate_limit_per_user = Some(default_thread_rate_limit_per_user);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -219,8 +219,8 @@ impl<'a> CreateGuildChannel<'a> {
 
     /// Set the kind of channel.
     pub const fn kind(mut self, kind: ChannelType) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.kind = Some(kind);
+        if let Ok(body) = self.body.as_mut() {
+            body.kind = Some(kind);
         }
 
         self
@@ -228,8 +228,8 @@ impl<'a> CreateGuildChannel<'a> {
 
     /// Set whether the channel is marked as NSFW.
     pub const fn nsfw(mut self, nsfw: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.nsfw = Some(nsfw);
+        if let Ok(body) = self.body.as_mut() {
+            body.nsfw = Some(nsfw);
         }
 
         self
@@ -238,8 +238,8 @@ impl<'a> CreateGuildChannel<'a> {
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, create this
     /// channel as a child of the category channel.
     pub const fn parent_id(mut self, parent_id: Id<ChannelMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.parent_id = Some(parent_id);
+        if let Ok(body) = self.body.as_mut() {
+            body.parent_id = Some(parent_id);
         }
 
         self
@@ -250,8 +250,8 @@ impl<'a> CreateGuildChannel<'a> {
         mut self,
         permission_overwrites: &'a [PermissionOverwrite],
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.permission_overwrites = Some(permission_overwrites);
+        if let Ok(body) = self.body.as_mut() {
+            body.permission_overwrites = Some(permission_overwrites);
         }
 
         self
@@ -262,8 +262,8 @@ impl<'a> CreateGuildChannel<'a> {
     /// Positions are numerical and zero-indexed. If you place a channel at position 2, channels
     /// 2-n will shift down one position and the initial channel will take its place.
     pub const fn position(mut self, position: u64) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.position = Some(position);
+        if let Ok(body) = self.body.as_mut() {
+            body.position = Some(position);
         }
 
         self
@@ -283,12 +283,12 @@ impl<'a> CreateGuildChannel<'a> {
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub fn rate_limit_per_user(mut self, rate_limit_per_user: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_rate_limit_per_user(rate_limit_per_user)?;
 
-            fields.rate_limit_per_user = Some(rate_limit_per_user);
+            body.rate_limit_per_user = Some(rate_limit_per_user);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -296,8 +296,8 @@ impl<'a> CreateGuildChannel<'a> {
 
     /// For voice and stage channels, set the channel's RTC region.
     pub const fn rtc_region(mut self, rtc_region: &'a str) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.rtc_region = Some(rtc_region);
+        if let Ok(body) = self.body.as_mut() {
+            body.rtc_region = Some(rtc_region);
         }
 
         self
@@ -316,12 +316,12 @@ impl<'a> CreateGuildChannel<'a> {
     /// [`TopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TopicInvalid
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub fn topic(mut self, topic: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_topic(topic)?;
 
-            fields.topic.replace(topic);
+            body.topic.replace(topic);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -334,8 +334,8 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
     pub const fn user_limit(mut self, user_limit: u16) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.user_limit = Some(user_limit);
+        if let Ok(body) = self.body.as_mut() {
+            body.user_limit = Some(user_limit);
         }
 
         self
@@ -343,8 +343,8 @@ impl<'a> CreateGuildChannel<'a> {
 
     /// For voice channels, set the channel's video quality mode.
     pub const fn video_quality_mode(mut self, video_quality_mode: VideoQualityMode) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.video_quality_mode = Some(video_quality_mode);
+        if let Ok(body) = self.body.as_mut() {
+            body.video_quality_mode = Some(video_quality_mode);
         }
 
         self
@@ -376,11 +376,11 @@ impl IntoFuture for CreateGuildChannel<'_> {
 
 impl TryIntoRequest for CreateGuildChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateChannel {
             guild_id: self.guild_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

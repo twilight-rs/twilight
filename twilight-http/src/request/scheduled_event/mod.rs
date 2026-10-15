@@ -22,6 +22,6 @@ pub use self::{
 use serde::Serialize;
 
 #[derive(Serialize)]
-struct EntityMetadataFields<'a> {
+struct EntityMetadataBody<'a> {
     location: Option<&'a str>,
 }

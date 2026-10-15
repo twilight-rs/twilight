@@ -1,4 +1,4 @@
-use super::EntityMetadataFields;
+use super::EntityMetadataBody;
 use crate::{
     client::Client,
     error::Error,
@@ -23,13 +23,13 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct UpdateGuildScheduledEventFields<'a> {
+struct UpdateGuildScheduledEventBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    entity_metadata: Option<EntityMetadataFields<'a>>,
+    entity_metadata: Option<EntityMetadataBody<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -62,9 +62,9 @@ struct UpdateGuildScheduledEventFields<'a> {
 /// [`location`]: UpdateGuildScheduledEvent::location
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildScheduledEvent<'a> {
+    body: Result<UpdateGuildScheduledEventBody<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    fields: Result<UpdateGuildScheduledEventFields<'a>, ValidationError>,
     reason: Result<Option<&'a str>, ValidationError>,
     scheduled_event_id: Id<ScheduledEventMarker>,
 }
@@ -76,9 +76,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
         scheduled_event_id: Id<ScheduledEventMarker>,
     ) -> Self {
         Self {
-            guild_id,
-            http,
-            fields: Ok(UpdateGuildScheduledEventFields {
+            body: Ok(UpdateGuildScheduledEventBody {
                 channel_id: None,
                 description: None,
                 entity_metadata: None,
@@ -90,6 +88,8 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
                 scheduled_start_time: None,
                 status: None,
             }),
+            guild_id,
+            http,
             reason: Ok(None),
             scheduled_event_id,
         }
@@ -100,10 +100,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     /// If `entity_type` is already [`EntityType::External`], this has no
     /// effect.
     pub fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut()
-            && fields.entity_type != Some(EntityType::External)
+        if let Ok(body) = self.body.as_mut()
+            && body.entity_type != Some(EntityType::External)
         {
-            fields.channel_id = Some(Nullable(Some(channel_id)));
+            body.channel_id = Some(Nullable(Some(channel_id)));
         }
 
         self
@@ -120,14 +120,14 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     ///
     /// [`ScheduledEventDescription`]: twilight_validate::request::ValidationErrorType::ScheduledEventDescription
     pub fn description(mut self, description: Option<&'a str>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             if let Some(description) = description {
                 validate_scheduled_event_description(description)?;
             }
 
-            fields.description = Some(Nullable(description));
+            body.description = Some(Nullable(description));
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -138,14 +138,14 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     /// See the struct-level documentation for information about required fields
     /// for each type.
     pub fn entity_type(mut self, entity_type: EntityType) -> Self {
-        self.fields = self.fields.map(|mut fields| {
+        self.body = self.body.map(|mut body| {
             if entity_type == EntityType::External {
-                fields.channel_id = None;
+                body.channel_id = None;
             }
 
-            fields.entity_type = Some(entity_type);
+            body.entity_type = Some(entity_type);
 
-            fields
+            body
         });
 
         self
@@ -161,10 +161,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub fn image(mut self, image: Option<&'a str>) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.image = Some(Nullable(image));
+        self.body = self.body.map(|mut body| {
+            body.image = Some(Nullable(image));
 
-            fields
+            body
         });
 
         self
@@ -176,10 +176,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     ///
     /// [`External`]: EntityType::External
     pub fn location(mut self, location: Option<&'a str>) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.entity_metadata = Some(EntityMetadataFields { location });
+        self.body = self.body.map(|mut body| {
+            body.entity_metadata = Some(EntityMetadataBody { location });
 
-            fields
+            body
         });
 
         self
@@ -195,12 +195,12 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     ///
     /// [`ScheduledEventName`]: twilight_validate::request::ValidationErrorType::ScheduledEventName
     pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_scheduled_event_name(name)?;
 
-            fields.name = Some(name);
+            body.name = Some(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -210,10 +210,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     ///
     /// Required for external events.
     pub fn scheduled_end_time(mut self, scheduled_end_time: Option<&'a Timestamp>) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.scheduled_end_time = Some(Nullable(scheduled_end_time));
+        self.body = self.body.map(|mut body| {
+            body.scheduled_end_time = Some(Nullable(scheduled_end_time));
 
-            fields
+            body
         });
 
         self
@@ -221,10 +221,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
 
     /// Set the scheduled start time of the event.
     pub fn scheduled_start_time(mut self, scheduled_start_time: &'a Timestamp) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.scheduled_start_time = Some(scheduled_start_time);
+        self.body = self.body.map(|mut body| {
+            body.scheduled_start_time = Some(scheduled_start_time);
 
-            fields
+            body
         });
 
         self
@@ -241,10 +241,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     /// [`Completed`]: Status::Completed
     /// [`Scheduled`]: Status::Scheduled
     pub fn status(mut self, status: Status) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.status = Some(status);
+        self.body = self.body.map(|mut body| {
+            body.status = Some(status);
 
-            fields
+            body
         });
 
         self
@@ -276,13 +276,13 @@ impl IntoFuture for UpdateGuildScheduledEvent<'_> {
 
 impl TryIntoRequest for UpdateGuildScheduledEvent<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::UpdateGuildScheduledEvent {
             guild_id: self.guild_id.get(),
             scheduled_event_id: self.scheduled_event_id.get(),
         })
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }

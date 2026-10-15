@@ -78,7 +78,7 @@ use crate::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
             },
-            update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingFields},
+            update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingBody},
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
         },
         poll::{EndPoll, GetAnswerVoters},
@@ -990,9 +990,9 @@ impl Client {
     pub const fn update_guild_onboarding(
         &self,
         guild_id: Id<GuildMarker>,
-        fields: UpdateGuildOnboardingFields,
+        body: UpdateGuildOnboardingBody,
     ) -> UpdateGuildOnboarding<'_> {
-        UpdateGuildOnboarding::new(self, guild_id, fields)
+        UpdateGuildOnboarding::new(self, guild_id, body)
     }
 
     /// Modify the positions of the channels.

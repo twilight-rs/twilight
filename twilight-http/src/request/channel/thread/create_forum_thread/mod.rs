@@ -2,7 +2,7 @@ mod message;
 
 pub use self::message::CreateForumThreadMessage;
 
-use self::message::CreateForumThreadMessageFields;
+use self::message::CreateForumThreadMessageBody;
 use crate::{
     client::Client,
     error::Error,
@@ -27,12 +27,12 @@ pub struct ForumThread {
 }
 
 #[derive(Serialize)]
-struct CreateForumThreadFields<'a> {
+struct CreateForumThreadBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     applied_tags: Option<&'a [Id<TagMarker>]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     auto_archive_duration: Option<AutoArchiveDuration>,
-    message: CreateForumThreadMessageFields<'a>,
+    message: CreateForumThreadMessageBody<'a>,
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
     rate_limit_per_user: Option<u16>,
@@ -46,8 +46,8 @@ struct CreateForumThreadFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateForumThread<'a> {
     attachment_manager: AttachmentManager<'a>,
+    body: CreateForumThreadBody<'a>,
     channel_id: Id<ChannelMarker>,
-    fields: CreateForumThreadFields<'a>,
     http: &'a Client,
 }
 
@@ -60,10 +60,10 @@ impl<'a> CreateForumThread<'a> {
         Self {
             attachment_manager: AttachmentManager::new(),
             channel_id,
-            fields: CreateForumThreadFields {
+            body: CreateForumThreadBody {
                 applied_tags: None,
                 auto_archive_duration: None,
-                message: CreateForumThreadMessageFields {
+                message: CreateForumThreadMessageBody {
                     allowed_mentions: None,
                     attachments: None,
                     components: None,
@@ -82,7 +82,7 @@ impl<'a> CreateForumThread<'a> {
 
     /// Set the forum thread's applied tags.
     pub const fn applied_tags(mut self, applied_tags: &'a [Id<TagMarker>]) -> Self {
-        self.fields.applied_tags = Some(applied_tags);
+        self.body.applied_tags = Some(applied_tags);
 
         self
     }
@@ -96,7 +96,7 @@ impl<'a> CreateForumThread<'a> {
         mut self,
         auto_archive_duration: AutoArchiveDuration,
     ) -> Self {
-        self.fields.auto_archive_duration = Some(auto_archive_duration);
+        self.body.auto_archive_duration = Some(auto_archive_duration);
 
         self
     }
@@ -123,31 +123,31 @@ impl<'a> CreateForumThread<'a> {
         });
 
         // Set the default allowed mentions if required.
-        if self.fields.message.allowed_mentions.is_none()
+        if self.body.message.allowed_mentions.is_none()
             && let Some(allowed_mentions) = self.http.default_allowed_mentions()
         {
-            self.fields.message.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
+            self.body.message.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
         if !self.attachment_manager.is_empty() {
-            let form = if let Some(payload_json) = self.fields.message.payload_json {
+            let form = if let Some(payload_json) = self.body.message.payload_json {
                 self.attachment_manager.build_form(payload_json)
             } else {
-                self.fields.message.attachments =
+                self.body.message.attachments =
                     Some(self.attachment_manager.get_partial_attachments());
 
-                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
+                let body = crate::json::to_vec(&self.body).map_err(Error::json)?;
 
-                self.attachment_manager.build_form(fields.as_ref())
+                self.attachment_manager.build_form(body.as_ref())
             };
 
             request = request.form(form);
-        } else if let Some(payload_json) = self.fields.message.payload_json {
+        } else if let Some(payload_json) = self.body.message.payload_json {
             request = request.body(payload_json.to_vec());
         } else {
-            request = request.json(&self.fields);
+            request = request.json(&self.body);
         }
 
         request.build()

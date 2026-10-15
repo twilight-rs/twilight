@@ -16,7 +16,7 @@ use twilight_validate::channel::{
 };
 
 #[derive(Serialize)]
-struct CreateThreadFields<'a> {
+struct CreateThreadBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     auto_archive_duration: Option<AutoArchiveDuration>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -34,8 +34,8 @@ struct CreateThreadFields<'a> {
 /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThread<'a> {
+    body: Result<CreateThreadBody<'a>, ChannelValidationError>,
     channel_id: Id<ChannelMarker>,
-    fields: Result<CreateThreadFields<'a>, ChannelValidationError>,
     http: &'a Client,
 }
 
@@ -46,22 +46,22 @@ impl<'a> CreateThread<'a> {
         name: &'a str,
         kind: ChannelType,
     ) -> Self {
-        let fields = Ok(CreateThreadFields {
+        let body = Ok(CreateThreadBody {
             auto_archive_duration: None,
             invitable: None,
             kind,
             name,
         })
-        .and_then(|fields| {
+        .and_then(|body| {
             validate_name(name)?;
             validate_is_thread(kind)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
+            body,
             channel_id,
-            fields,
             http,
         }
     }
@@ -74,8 +74,8 @@ impl<'a> CreateThread<'a> {
         mut self,
         auto_archive_duration: AutoArchiveDuration,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.auto_archive_duration = Some(auto_archive_duration);
+        if let Ok(body) = self.body.as_mut() {
+            body.auto_archive_duration = Some(auto_archive_duration);
         }
 
         self
@@ -83,8 +83,8 @@ impl<'a> CreateThread<'a> {
 
     /// Whether non-moderators can add other non-moderators to a thread.
     pub const fn invitable(mut self, invitable: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.invitable = Some(invitable);
+        if let Ok(body) = self.body.as_mut() {
+            body.invitable = Some(invitable);
         }
 
         self
@@ -108,12 +108,12 @@ impl IntoFuture for CreateThread<'_> {
 
 impl TryIntoRequest for CreateThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateThread {
             channel_id: self.channel_id.get(),
         })
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }

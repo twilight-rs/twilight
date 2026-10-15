@@ -5,6 +5,7 @@ use crate::{
     response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
+use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     application::command::Command,
@@ -13,6 +14,10 @@ use twilight_model::{
         marker::{ApplicationMarker, GuildMarker},
     },
 };
+
+#[derive(Serialize)]
+#[serde(transparent)]
+struct SetGuildCommandsBody<'a>(&'a [Command]);
 
 /// Set a guild's commands.
 ///
@@ -26,8 +31,8 @@ use twilight_model::{
 /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 #[must_use = "requests must be configured and executed"]
 pub struct SetGuildCommands<'a> {
-    commands: &'a [Command],
     application_id: Id<ApplicationMarker>,
+    body: SetGuildCommandsBody<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
@@ -40,8 +45,8 @@ impl<'a> SetGuildCommands<'a> {
         commands: &'a [Command],
     ) -> Self {
         Self {
-            commands,
             application_id,
+            body: SetGuildCommandsBody(commands),
             guild_id,
             http,
         }
@@ -69,7 +74,7 @@ impl TryIntoRequest for SetGuildCommands<'_> {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
         })
-        .json(&self.commands)
+        .json(&self.body)
         .build()
     }
 }

@@ -16,7 +16,7 @@ use twilight_model::{
 };
 
 #[derive(Serialize)]
-struct UpdateGuildCommandFields<'a> {
+struct UpdateGuildCommandBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,7 +35,7 @@ struct UpdateGuildCommandFields<'a> {
 /// [Discord Docs/Edit Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildCommand<'a> {
-    fields: UpdateGuildCommandFields<'a>,
+    body: UpdateGuildCommandBody<'a>,
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,
@@ -52,7 +52,7 @@ impl<'a> UpdateGuildCommand<'a> {
         Self {
             application_id,
             command_id,
-            fields: UpdateGuildCommandFields {
+            body: UpdateGuildCommandBody {
                 description: None,
                 name: None,
                 nsfw: None,
@@ -65,28 +65,28 @@ impl<'a> UpdateGuildCommand<'a> {
 
     /// Edit the name of the command.
     pub const fn name(mut self, name: &'a str) -> Self {
-        self.fields.name = Some(name);
+        self.body.name = Some(name);
 
         self
     }
 
     /// Edit the description of the command.
     pub const fn description(mut self, description: &'a str) -> Self {
-        self.fields.description = Some(description);
+        self.body.description = Some(description);
 
         self
     }
 
     /// Edit the command options of the command.
     pub const fn command_options(mut self, options: &'a [CommandOption]) -> Self {
-        self.fields.options = Some(options);
+        self.body.options = Some(options);
 
         self
     }
 
     /// Edit whether the command is age-restricted.
     pub const fn nsfw(mut self, nsfw: bool) -> Self {
-        self.fields.nsfw = Some(nsfw);
+        self.body.nsfw = Some(nsfw);
 
         self
     }
@@ -114,7 +114,7 @@ impl TryIntoRequest for UpdateGuildCommand<'_> {
             command_id: self.command_id.get(),
             guild_id: self.guild_id.get(),
         })
-        .json(&self.fields)
+        .json(&self.body)
         .build()
     }
 }
