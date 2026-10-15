@@ -993,10 +993,13 @@ mod tests {
                             "b".repeat(10),
                         )])),
                         options: None,
+                        file_types: None,
                         required: Some(false),
                     }])),
+                    file_types: None,
                     required: None,
                 }])),
+                file_types: None,
                 required: None,
             }]),
             version: Id::new(4),
@@ -1033,6 +1036,7 @@ mod tests {
             name: "name".to_owned(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         };
         let mut options = Vec::from([option.clone()]);
@@ -1059,6 +1063,7 @@ mod tests {
             name: "testcommand".to_string(),
             name_localizations: None,
             options: None,
+            file_types: None,
             required: None,
         };
         let toolong = CommandOption {

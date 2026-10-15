@@ -1,7 +1,7 @@
 use super::{CreateForumThread, ForumThread};
 use crate::{
     Error,
-    request::{Nullable, TryIntoRequest, attachment::PartialAttachment},
+    request::{AuditLogReason, Nullable, TryIntoRequest, attachment::PartialAttachment},
     response::{Response, ResponseFuture},
 };
 use serde::Serialize;
@@ -11,10 +11,13 @@ use twilight_model::{
     http::attachment::Attachment,
     id::{Id, marker::StickerMarker},
 };
-use twilight_validate::message::{
-    MessageValidationError, attachment_filename as validate_attachment_filename,
-    components as validate_components, content as validate_content, embeds as validate_embeds,
-    sticker_ids as validate_sticker_ids,
+use twilight_validate::{
+    message::{
+        MessageValidationError, attachment_filename as validate_attachment_filename,
+        components as validate_components, content as validate_content, embeds as validate_embeds,
+        sticker_ids as validate_sticker_ids,
+    },
+    request::audit_reason as validate_audit_reason,
 };
 
 /// Contents of the first message in the new forum thread.
@@ -217,6 +220,16 @@ impl<'a> CreateForumThreadMessage<'a> {
 
             Ok(inner)
         });
+
+        self
+    }
+}
+
+impl<'a> AuditLogReason<'a> for CreateForumThreadMessage<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        if let Ok(inner) = self.0.as_mut() {
+            inner.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+        }
 
         self
     }

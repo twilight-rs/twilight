@@ -8,7 +8,7 @@ use crate::{
 };
 use std::future::IntoFuture;
 use twilight_model::{
-    guild::scheduled_event::{EntityType, GuildScheduledEvent},
+    guild::scheduled_event::{EntityType, GuildScheduledEvent, recurrence_rule::RecurrenceRule},
     util::Timestamp,
 };
 use twilight_validate::request::{
@@ -74,6 +74,19 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     pub fn image(mut self, image: &'a str) -> Self {
         self.0.fields = self.0.fields.map(|mut fields| {
             fields.image = Some(image);
+
+            fields
+        });
+
+        self
+    }
+
+    /// Set the definition for how often this event should recur.
+    ///
+    /// This is not a required field.
+    pub fn recurrence_rule(mut self, recurrence_rule: &'a RecurrenceRule) -> Self {
+        self.0.fields = self.0.fields.map(|mut fields| {
+            fields.recurrence_rule = Some(recurrence_rule);
 
             fields
         });

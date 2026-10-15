@@ -7,7 +7,9 @@ pub struct VanityUrl {
     ///
     /// For example, in an invite of `discord.gg/applejack`, the code is
     /// `applejack`.
-    pub code: String,
+    ///
+    /// The code will be null if not currently set.
+    pub code: Option<String>,
     /// Number of times the vanity URL has been used.
     pub uses: u64,
 }
@@ -20,7 +22,7 @@ mod tests {
     #[test]
     fn vanity_url() {
         let url = VanityUrl {
-            code: "a".to_owned(),
+            code: Some("a".to_owned()),
             uses: 12,
         };
         serde_test::assert_tokens(
@@ -31,6 +33,7 @@ mod tests {
                     len: 2,
                 },
                 Token::String("code"),
+                Token::Some,
                 Token::String("a"),
                 Token::String("uses"),
                 Token::U64(12),
