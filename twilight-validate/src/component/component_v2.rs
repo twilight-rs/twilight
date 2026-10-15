@@ -82,6 +82,14 @@ pub const FILE_UPLOAD_MAXIMUM_VALUES_LIMIT: u8 = 10;
 /// [`FileUpload::min_values`]: FileUpload::min_values
 pub const FILE_UPLOAD_MINIMUM_VALUES_LIMIT: u8 = 10;
 
+/// Maximum number of file types that can be provided.
+///
+/// This is defined in Discord's documentation, per
+/// [Discord Docs/File Type Filtering][1].
+///
+/// [1]: https://discord.com/developers/docs/reference#file-type-filtering
+pub const FILE_UPLOAD_FILE_TYPES_LIMIT: usize = 10;
+
 /// Ensure that a top-level request component is correct in V2.
 ///
 /// Intended to ensure that a fully formed top-level component for requests
@@ -356,9 +364,13 @@ pub const fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationE
 /// Returns an error of type [`FileUploadMinimumValuesCount`] if the provided number
 /// of files that must be uploaded is larger than the maximum.
 ///
+/// Returns an error of type [`FileUploadFileTypesCount`] if the provided number
+/// of file type filters is larger than the maximum.
+///
 /// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
 /// [`FileUploadMaximumValuesCount`]: ComponentValidationErrorType::FileUploadMaximumValuesCount
 /// [`FileUploadMinimumValuesCount`]: ComponentValidationErrorType::FileUploadMaximumValuesCount
+/// [`FileUploadFileTypesCount`]: ComponentValidationErrorType::FileUploadFileTypesCount
 pub fn file_upload(file_upload: &FileUpload) -> Result<(), ComponentValidationError> {
     component_custom_id(&file_upload.custom_id)?;
 
@@ -368,6 +380,10 @@ pub fn file_upload(file_upload: &FileUpload) -> Result<(), ComponentValidationEr
 
     if let Some(max_value) = file_upload.max_values {
         component_file_upload_max_values(max_value)?;
+    }
+
+    if let Some(file_types) = &file_upload.file_types {
+        component_file_upload_file_types(file_types.len())?;
     }
 
     Ok(())
@@ -531,6 +547,25 @@ const fn component_file_upload_min_values(count: u8) -> Result<(), ComponentVali
     if count > FILE_UPLOAD_MINIMUM_VALUES_LIMIT {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::FileUploadMinimumValuesCount { count },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`FileUpload::file_types`] amount.
+///
+/// # Errors
+///
+/// Returns an error of type [`FileUploadFileTypesCount`] if the provided number
+/// of file types is larger than [the maximum][`FILE_UPLOAD_FILE_TYPES_LIMIT`].
+///
+/// [`FileUpload::file_types`]: twilight_model::channel::message::component::FileUpload::file_types
+/// [`FileUploadFileTypesCount`]: ComponentValidationErrorType::FileUploadFileTypesCount
+const fn component_file_upload_file_types(count: usize) -> Result<(), ComponentValidationError> {
+    if count > FILE_UPLOAD_FILE_TYPES_LIMIT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::FileUploadFileTypesCount { count },
         });
     }
 
@@ -740,6 +775,7 @@ mod tests {
             custom_id: "custom_id".to_owned(),
             max_values: Some(10),
             min_values: Some(10),
+            file_types: None,
             required: None,
         };
 
@@ -764,7 +800,7 @@ mod tests {
 
         let invalid_max_values_too_high = FileUpload {
             max_values: Some(11),
-            ..valid
+            ..valid.clone()
         };
 
         assert!(file_upload(&invalid_max_values_too_high).is_err());
@@ -774,5 +810,13 @@ mod tests {
             )))
             .is_err()
         );
+
+        let invalid_file_types = FileUpload {
+            file_types: Some(iter::repeat_n("image/png".to_owned(), 11).collect()),
+            ..valid
+        };
+
+        assert!(file_upload(&invalid_file_types).is_err());
+        assert!(component_v2(&wrap_in_label(Component::FileUpload(invalid_file_types))).is_err());
     }
 }
