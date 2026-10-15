@@ -329,24 +329,24 @@ pub fn chars(embed: &Embed) -> usize {
     let mut chars = 0;
 
     if let Some(author) = &embed.author {
-        chars += author.name.len();
+        chars += author.name.chars().count();
     }
 
     if let Some(description) = &embed.description {
-        chars += description.len();
+        chars += description.chars().count();
     }
 
     if let Some(footer) = &embed.footer {
-        chars += footer.text.len();
+        chars += footer.text.chars().count();
     }
 
     for field in &embed.fields {
-        chars += field.name.len();
-        chars += field.value.len();
+        chars += field.name.chars().count();
+        chars += field.value.chars().count();
     }
 
     if let Some(title) = &embed.title {
-        chars += title.len();
+        chars += title.chars().count();
     }
 
     chars

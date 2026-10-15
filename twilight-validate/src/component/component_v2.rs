@@ -208,8 +208,8 @@ pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
 /// than [`TEXT_DISPLAY_CONTENT_LENGTH_MAX`].
 ///
 /// [`TextDisplayContentTooLong`]: ComponentValidationErrorType::TextDisplayContentTooLong
-pub const fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidationError> {
-    let content_len = text_display.content.len();
+pub fn text_display(text_display: &TextDisplay) -> Result<(), ComponentValidationError> {
+    let content_len = text_display.content.chars().count();
     if content_len > TEXT_DISPLAY_CONTENT_LENGTH_MAX {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::TextDisplayContentTooLong { len: content_len },
@@ -336,12 +336,12 @@ pub fn container(container: &Container) -> Result<(), ComponentValidationError> 
 /// than [`THUMBNAIL_DESCRIPTION_LENGTH_MAX`].
 ///
 /// [`ThumbnailDescriptionTooLong`]: ComponentValidationErrorType::ThumbnailDescriptionTooLong
-pub const fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> {
+pub fn thumbnail(thumbnail: &Thumbnail) -> Result<(), ComponentValidationError> {
     let Some(Some(desc)) = thumbnail.description.as_ref() else {
         return Ok(());
     };
 
-    let len = desc.len();
+    let len = desc.chars().count();
     if len > THUMBNAIL_DESCRIPTION_LENGTH_MAX {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::ThumbnailDescriptionTooLong { len },
@@ -458,12 +458,12 @@ pub fn checkbox(checkbox: &Checkbox) -> Result<(), ComponentValidationError> {
 /// than [`MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX`].
 ///
 /// [`MediaGalleryItemDescriptionTooLong`]: ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong
-pub const fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
+pub fn media_gallery_item(item: &MediaGalleryItem) -> Result<(), ComponentValidationError> {
     let Some(desc) = item.description.as_ref() else {
         return Ok(());
     };
 
-    let len = desc.len();
+    let len = desc.chars().count();
     if len > MEDIA_GALLERY_ITEM_DESCRIPTION_LENGTH_MAX {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::MediaGalleryItemDescriptionTooLong { len },
