@@ -12,10 +12,14 @@ use crate::{
     routing::Route,
 };
 
-pub struct DeleteTestEntitlement<'a> {
+struct DeleteTestEntitlementPath {
     application_id: Id<ApplicationMarker>,
     entitlement_id: Id<EntitlementMarker>,
+}
+
+pub struct DeleteTestEntitlement<'a> {
     http: &'a Client,
+    path: DeleteTestEntitlementPath,
 }
 
 impl<'a> DeleteTestEntitlement<'a> {
@@ -25,9 +29,11 @@ impl<'a> DeleteTestEntitlement<'a> {
         entitlement_id: Id<EntitlementMarker>,
     ) -> Self {
         Self {
-            application_id,
-            entitlement_id,
             http,
+            path: DeleteTestEntitlementPath {
+                application_id,
+                entitlement_id,
+            },
         }
     }
 }
@@ -50,8 +56,8 @@ impl IntoFuture for DeleteTestEntitlement<'_> {
 impl TryIntoRequest for DeleteTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::DeleteTestEntitlement {
-            application_id: self.application_id.get(),
-            entitlement_id: self.entitlement_id.get(),
+            application_id: self.path.application_id.get(),
+            entitlement_id: self.path.entitlement_id.get(),
         })
         .build()
     }

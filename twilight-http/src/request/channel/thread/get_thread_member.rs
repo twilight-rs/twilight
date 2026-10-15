@@ -14,14 +14,18 @@ use twilight_model::{
     },
 };
 
+struct GetThreadMemberPath {
+    channel_id: Id<ChannelMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Returns a [`ThreadMember`] in a thread.
 ///
 /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
 #[must_use = "requests must be configured and executed"]
 pub struct GetThreadMember<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: GetThreadMemberPath,
 }
 
 impl<'a> GetThreadMember<'a> {
@@ -31,9 +35,11 @@ impl<'a> GetThreadMember<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            channel_id,
             http,
-            user_id,
+            path: GetThreadMemberPath {
+                channel_id,
+                user_id,
+            },
         }
     }
 }
@@ -56,8 +62,8 @@ impl IntoFuture for GetThreadMember<'_> {
 impl TryIntoRequest for GetThreadMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetThreadMember {
-            channel_id: self.channel_id.get(),
-            user_id: self.user_id.get(),
+            channel_id: self.path.channel_id.get(),
+            user_id: self.path.user_id.get(),
         }))
     }
 }

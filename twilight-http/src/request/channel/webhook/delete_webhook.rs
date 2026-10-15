@@ -9,32 +9,31 @@ use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::WebhookMarker};
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
-struct DeleteWebhookParams<'a> {
+struct DeleteWebhookPath<'a> {
+    id: Id<WebhookMarker>,
     token: Option<&'a str>,
 }
 
 /// Delete a webhook by its ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteWebhook<'a> {
-    body: DeleteWebhookParams<'a>,
     http: &'a Client,
-    id: Id<WebhookMarker>,
+    path: DeleteWebhookPath<'a>,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> DeleteWebhook<'a> {
     pub(crate) const fn new(http: &'a Client, id: Id<WebhookMarker>) -> Self {
         Self {
-            body: DeleteWebhookParams { token: None },
             http,
-            id,
+            path: DeleteWebhookPath { id, token: None },
             reason: Ok(None),
         }
     }
 
     /// Specify the token for auth, if not already authenticated with a Bot token.
     pub const fn token(mut self, token: &'a str) -> Self {
-        self.body.token = Some(token);
+        self.path.token = Some(token);
 
         self
     }
@@ -66,8 +65,8 @@ impl IntoFuture for DeleteWebhook<'_> {
 impl TryIntoRequest for DeleteWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteWebhook {
-            webhook_id: self.id.get(),
-            token: self.body.token,
+            webhook_id: self.path.id.get(),
+            token: self.path.token,
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

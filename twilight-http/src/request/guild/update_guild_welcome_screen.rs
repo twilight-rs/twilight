@@ -22,6 +22,10 @@ struct UpdateGuildWelcomeScreenBody<'a> {
     welcome_channels: &'a [WelcomeScreenChannel],
 }
 
+struct UpdateGuildWelcomeScreenPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Update the guild's welcome screen.
 ///
 /// Requires the [`MANAGE_GUILD`] permission.
@@ -30,7 +34,7 @@ struct UpdateGuildWelcomeScreenBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildWelcomeScreen<'a> {
     body: UpdateGuildWelcomeScreenBody<'a>,
-    guild_id: Id<GuildMarker>,
+    path: UpdateGuildWelcomeScreenPath,
     http: &'a Client,
 }
 
@@ -42,7 +46,7 @@ impl<'a> UpdateGuildWelcomeScreen<'a> {
                 enabled: None,
                 welcome_channels: &[],
             },
-            guild_id,
+            path: UpdateGuildWelcomeScreenPath { guild_id },
             http,
         }
     }
@@ -87,7 +91,7 @@ impl IntoFuture for UpdateGuildWelcomeScreen<'_> {
 impl TryIntoRequest for UpdateGuildWelcomeScreen<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateGuildWelcomeScreen {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&self.body)
         .build()

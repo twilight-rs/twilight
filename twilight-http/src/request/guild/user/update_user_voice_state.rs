@@ -19,13 +19,17 @@ struct UpdateUserVoiceStateBody {
     suppress: Option<bool>,
 }
 
+struct UpdateUserVoiceStatePath {
+    guild_id: Id<GuildMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Update another user's voice state.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateUserVoiceState<'a> {
     body: UpdateUserVoiceStateBody,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: UpdateUserVoiceStatePath,
 }
 
 impl<'a> UpdateUserVoiceState<'a> {
@@ -40,9 +44,8 @@ impl<'a> UpdateUserVoiceState<'a> {
                 channel_id,
                 suppress: None,
             },
-            guild_id,
             http,
-            user_id,
+            path: UpdateUserVoiceStatePath { guild_id, user_id },
         }
     }
 
@@ -83,8 +86,8 @@ impl IntoFuture for UpdateUserVoiceState<'_> {
 impl TryIntoRequest for UpdateUserVoiceState<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateUserVoiceState {
-            guild_id: self.guild_id.get(),
-            user_id: self.user_id.get(),
+            guild_id: self.path.guild_id.get(),
+            user_id: self.path.user_id.get(),
         })
         .json(&self.body)
         .build()

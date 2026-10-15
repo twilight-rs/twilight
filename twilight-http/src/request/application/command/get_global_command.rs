@@ -14,12 +14,16 @@ use twilight_model::{
     },
 };
 
+struct GetGlobalCommandPath {
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+}
+
 /// Retrieve a global command for an application.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGlobalCommand<'a> {
-    application_id: Id<ApplicationMarker>,
-    command_id: Id<CommandMarker>,
     http: &'a Client,
+    path: GetGlobalCommandPath,
 }
 
 impl<'a> GetGlobalCommand<'a> {
@@ -29,9 +33,11 @@ impl<'a> GetGlobalCommand<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
             http,
+            path: GetGlobalCommandPath {
+                application_id,
+                command_id,
+            },
         }
     }
 }
@@ -54,8 +60,8 @@ impl IntoFuture for GetGlobalCommand<'_> {
 impl TryIntoRequest for GetGlobalCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGlobalCommand {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
+            application_id: self.path.application_id.get(),
+            command_id: self.path.command_id.get(),
         }))
     }
 }

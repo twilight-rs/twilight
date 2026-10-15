@@ -11,6 +11,11 @@ use twilight_model::id::{
     marker::{GuildMarker, StickerMarker},
 };
 
+struct DeleteGuildStickerPath {
+    guild_id: Id<GuildMarker>,
+    sticker_id: Id<StickerMarker>,
+}
+
 /// Deletes a guild sticker by the ID of the guild and its ID.
 ///
 /// # Examples
@@ -30,9 +35,8 @@ use twilight_model::id::{
 /// # Ok(()) }
 /// ```
 pub struct DeleteGuildSticker<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    sticker_id: Id<StickerMarker>,
+    path: DeleteGuildStickerPath,
 }
 
 impl<'a> DeleteGuildSticker<'a> {
@@ -42,9 +46,11 @@ impl<'a> DeleteGuildSticker<'a> {
         sticker_id: Id<StickerMarker>,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            sticker_id,
+            path: DeleteGuildStickerPath {
+                guild_id,
+                sticker_id,
+            },
         }
     }
 }
@@ -67,8 +73,8 @@ impl IntoFuture for DeleteGuildSticker<'_> {
 impl TryIntoRequest for DeleteGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteGuildSticker {
-            guild_id: self.guild_id.get(),
-            sticker_id: self.sticker_id.get(),
+            guild_id: self.path.guild_id.get(),
+            sticker_id: self.path.sticker_id.get(),
         }))
     }
 }

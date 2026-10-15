@@ -14,13 +14,18 @@ use twilight_model::{
     },
 };
 
-/// Fetch command permissions for a command from the current application in a guild.
-#[must_use = "requests must be configured and executed"]
-pub struct GetCommandPermissions<'a> {
+#[expect(clippy::struct_field_names)]
+struct GetCommandPermissionsPath {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,
+}
+
+/// Fetch command permissions for a command from the current application in a guild.
+#[must_use = "requests must be configured and executed"]
+pub struct GetCommandPermissions<'a> {
     http: &'a Client,
+    path: GetCommandPermissionsPath,
 }
 
 impl<'a> GetCommandPermissions<'a> {
@@ -31,10 +36,12 @@ impl<'a> GetCommandPermissions<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
-            guild_id,
             http,
+            path: GetCommandPermissionsPath {
+                application_id,
+                command_id,
+                guild_id,
+            },
         }
     }
 }
@@ -57,9 +64,9 @@ impl IntoFuture for GetCommandPermissions<'_> {
 impl TryIntoRequest for GetCommandPermissions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetCommandPermissions {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
-            guild_id: self.guild_id.get(),
+            application_id: self.path.application_id.get(),
+            command_id: self.path.command_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

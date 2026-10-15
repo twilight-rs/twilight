@@ -45,6 +45,13 @@ struct UpdateWebhookMessageBody<'a> {
     payload_json: Option<&'a [u8]>,
 }
 
+struct UpdateWebhookMessagePath<'a> {
+    message_id: Id<MessageMarker>,
+    thread_id: Option<Id<ChannelMarker>>,
+    token: &'a str,
+    webhook_id: Id<WebhookMarker>,
+}
+
 /// Update a message created by a webhook.
 ///
 /// You can pass [`None`] to any of the methods to remove the associated field.
@@ -83,10 +90,7 @@ pub struct UpdateWebhookMessage<'a> {
     attachment_manager: AttachmentManager<'a>,
     body: Result<UpdateWebhookMessageBody<'a>, MessageValidationError>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
-    thread_id: Option<Id<ChannelMarker>>,
-    token: &'a str,
-    webhook_id: Id<WebhookMarker>,
+    path: UpdateWebhookMessagePath<'a>,
 }
 
 impl<'a> UpdateWebhookMessage<'a> {
@@ -107,10 +111,12 @@ impl<'a> UpdateWebhookMessage<'a> {
                 payload_json: None,
             }),
             http,
-            message_id,
-            thread_id: None,
-            token,
-            webhook_id,
+            path: UpdateWebhookMessagePath {
+                message_id,
+                thread_id: None,
+                token,
+                webhook_id,
+            },
         }
     }
 
@@ -324,7 +330,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// Update in a thread belonging to the channel instead of the channel
     /// itself.
     pub const fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
-        self.thread_id.replace(thread_id);
+        self.path.thread_id.replace(thread_id);
 
         self
     }
@@ -349,10 +355,10 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
-            message_id: self.message_id.get(),
-            thread_id: self.thread_id.map(Id::get),
-            token: self.token,
-            webhook_id: self.webhook_id.get(),
+            message_id: self.path.message_id.get(),
+            thread_id: self.path.thread_id.map(Id::get),
+            token: self.path.token,
+            webhook_id: self.path.webhook_id.get(),
         });
 
         // Webhook executions don't need the authorization token, only the

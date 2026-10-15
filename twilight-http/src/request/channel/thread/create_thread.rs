@@ -26,6 +26,10 @@ struct CreateThreadBody<'a> {
     name: &'a str,
 }
 
+struct CreateThreadPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Start a thread that is not connected to a message.
 ///
 /// To make a [`PrivateThread`], the guild must also have the
@@ -35,8 +39,8 @@ struct CreateThreadBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThread<'a> {
     body: Result<CreateThreadBody<'a>, ChannelValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: CreateThreadPath,
 }
 
 impl<'a> CreateThread<'a> {
@@ -61,8 +65,8 @@ impl<'a> CreateThread<'a> {
 
         Self {
             body,
-            channel_id,
             http,
+            path: CreateThreadPath { channel_id },
         }
     }
 
@@ -111,7 +115,7 @@ impl TryIntoRequest for CreateThread<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateThread {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         })
         .json(&body)
         .build()

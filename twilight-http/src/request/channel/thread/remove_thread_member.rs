@@ -19,12 +19,16 @@ use twilight_model::id::{
 /// [`PrivateThread`], and the current user is the creator of the thread.
 ///
 /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
+struct RemoveThreadMemberPath {
+    channel_id: Id<ChannelMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
 #[must_use = "requests must be configured and executed"]
 pub struct RemoveThreadMember<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: RemoveThreadMemberPath,
 }
 
 impl<'a> RemoveThreadMember<'a> {
@@ -34,9 +38,11 @@ impl<'a> RemoveThreadMember<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            channel_id,
             http,
-            user_id,
+            path: RemoveThreadMemberPath {
+                channel_id,
+                user_id,
+            },
         }
     }
 }
@@ -59,8 +65,8 @@ impl IntoFuture for RemoveThreadMember<'_> {
 impl TryIntoRequest for RemoveThreadMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::RemoveThreadMember {
-            channel_id: self.channel_id.get(),
-            user_id: self.user_id.get(),
+            channel_id: self.path.channel_id.get(),
+            user_id: self.path.user_id.get(),
         }))
     }
 }

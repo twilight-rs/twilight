@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildStickersPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Returns a list of stickers in a guild.
 ///
 /// # Examples
@@ -30,13 +34,16 @@ use twilight_model::{
 /// # Ok(()) }
 /// ```
 pub struct GetGuildStickers<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: GetGuildStickersPath,
 }
 
 impl<'a> GetGuildStickers<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            http,
+            path: GetGuildStickersPath { guild_id },
+        }
     }
 }
 
@@ -58,7 +65,7 @@ impl IntoFuture for GetGuildStickers<'_> {
 impl TryIntoRequest for GetGuildStickers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildStickers {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

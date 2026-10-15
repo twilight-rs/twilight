@@ -27,6 +27,11 @@ struct UpdateGlobalCommandBody<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
+struct UpdateGlobalCommandPath {
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+}
+
 /// Edit a global command, by ID.
 ///
 /// You must specify a name and description. See
@@ -35,10 +40,9 @@ struct UpdateGlobalCommandBody<'a> {
 /// [Discord Docs/Edit Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGlobalCommand<'a> {
-    command_id: Id<CommandMarker>,
-    application_id: Id<ApplicationMarker>,
     body: UpdateGlobalCommandBody<'a>,
     http: &'a Client,
+    path: UpdateGlobalCommandPath,
 }
 
 impl<'a> UpdateGlobalCommand<'a> {
@@ -48,8 +52,6 @@ impl<'a> UpdateGlobalCommand<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
             body: UpdateGlobalCommandBody {
                 description: None,
                 name: None,
@@ -57,6 +59,10 @@ impl<'a> UpdateGlobalCommand<'a> {
                 options: None,
             },
             http,
+            path: UpdateGlobalCommandPath {
+                application_id,
+                command_id,
+            },
         }
     }
 
@@ -107,8 +113,8 @@ impl IntoFuture for UpdateGlobalCommand<'_> {
 impl TryIntoRequest for UpdateGlobalCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateGlobalCommand {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
+            application_id: self.path.application_id.get(),
+            command_id: self.path.command_id.get(),
         })
         .json(&self.body)
         .build()

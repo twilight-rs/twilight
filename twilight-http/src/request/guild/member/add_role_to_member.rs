@@ -12,6 +12,13 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+#[expect(clippy::struct_field_names)]
+struct AddRoleToMemberPath {
+    guild_id: Id<GuildMarker>,
+    role_id: Id<RoleMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Add a role to a member in a guild.
 ///
 /// # Examples
@@ -38,10 +45,8 @@ use twilight_validate::request::{ValidationError, audit_reason as validate_audit
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct AddRoleToMember<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    role_id: Id<RoleMarker>,
-    user_id: Id<UserMarker>,
+    path: AddRoleToMemberPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -53,10 +58,12 @@ impl<'a> AddRoleToMember<'a> {
         role_id: Id<RoleMarker>,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            role_id,
-            user_id,
+            path: AddRoleToMemberPath {
+                guild_id,
+                role_id,
+                user_id,
+            },
             reason: Ok(None),
         }
     }
@@ -88,9 +95,9 @@ impl IntoFuture for AddRoleToMember<'_> {
 impl TryIntoRequest for AddRoleToMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::AddMemberRole {
-            guild_id: self.guild_id.get(),
-            role_id: self.role_id.get(),
-            user_id: self.user_id.get(),
+            guild_id: self.path.guild_id.get(),
+            role_id: self.path.role_id.get(),
+            user_id: self.path.user_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

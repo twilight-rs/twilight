@@ -22,6 +22,10 @@ struct CreateGlobalUserCommandBody<'a> {
     nsfw: Option<bool>,
 }
 
+struct CreateGlobalUserCommandPath {
+    application_id: Id<ApplicationMarker>,
+}
+
 /// Create a new user global command.
 ///
 /// Creating a command with the same name as an already-existing global command
@@ -31,9 +35,9 @@ struct CreateGlobalUserCommandBody<'a> {
 /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalUserCommand<'a> {
-    application_id: Id<ApplicationMarker>,
     body: Result<CreateGlobalUserCommandBody<'a>, CommandValidationError>,
     http: &'a Client,
+    path: CreateGlobalUserCommandPath,
 }
 
 impl<'a> CreateGlobalUserCommand<'a> {
@@ -56,9 +60,9 @@ impl<'a> CreateGlobalUserCommand<'a> {
         });
 
         Self {
-            application_id,
             body,
             http,
+            path: CreateGlobalUserCommandPath { application_id },
         }
     }
 
@@ -139,10 +143,10 @@ impl TryIntoRequest for CreateGlobalUserCommand<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGlobalCommand {
-            application_id: self.application_id.get(),
+            application_id: self.path.application_id.get(),
         })
         .json(&CommandBorrowed {
-            application_id: Some(self.application_id),
+            application_id: Some(self.path.application_id),
             default_member_permissions: body.default_member_permissions,
             dm_permission: body.dm_permission,
             description: None,

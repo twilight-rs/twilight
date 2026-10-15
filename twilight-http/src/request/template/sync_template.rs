@@ -11,12 +11,16 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct SyncTemplatePath<'a> {
+    guild_id: Id<GuildMarker>,
+    template_code: &'a str,
+}
+
 /// Sync a template to the current state of the guild, by ID and code.
 #[must_use = "requests must be configured and executed"]
 pub struct SyncTemplate<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    template_code: &'a str,
+    path: SyncTemplatePath<'a>,
 }
 
 impl<'a> SyncTemplate<'a> {
@@ -26,9 +30,11 @@ impl<'a> SyncTemplate<'a> {
         template_code: &'a str,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            template_code,
+            path: SyncTemplatePath {
+                guild_id,
+                template_code,
+            },
         }
     }
 }
@@ -51,8 +57,8 @@ impl IntoFuture for SyncTemplate<'_> {
 impl TryIntoRequest for SyncTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::SyncTemplate {
-            guild_id: self.guild_id.get(),
-            template_code: self.template_code,
+            guild_id: self.path.guild_id.get(),
+            template_code: self.path.template_code,
         }))
     }
 }

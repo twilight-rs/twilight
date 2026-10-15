@@ -25,11 +25,15 @@ struct UpdateCurrentMemberBody<'a> {
     bio: Option<Nullable<&'a str>>,
 }
 
+struct UpdateCurrentMemberPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Update the user's member in a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentMember<'a> {
     body: Result<UpdateCurrentMemberBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
+    path: UpdateCurrentMemberPath,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -43,7 +47,7 @@ impl<'a> UpdateCurrentMember<'a> {
                 avatar: None,
                 bio: None,
             }),
-            guild_id,
+            path: UpdateCurrentMemberPath { guild_id },
             http,
             reason: Ok(None),
         }
@@ -154,7 +158,7 @@ impl TryIntoRequest for UpdateCurrentMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateCurrentMember {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&body);
 

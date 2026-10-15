@@ -78,6 +78,10 @@ struct CreateAutoModerationRuleBody<'a> {
     trigger_type: Option<AutoModerationTriggerType>,
 }
 
+struct CreateAutoModerationRulePath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Create an auto moderation rule within a guild.
 ///
 /// Requires the [`MANAGE_GUILD`] permission.
@@ -107,8 +111,8 @@ struct CreateAutoModerationRuleBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateAutoModerationRule<'a> {
     body: Result<CreateAutoModerationRuleBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: CreateAutoModerationRulePath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -130,8 +134,8 @@ impl<'a> CreateAutoModerationRule<'a> {
                 trigger_metadata: None,
                 trigger_type: None,
             }),
-            guild_id,
             http,
+            path: CreateAutoModerationRulePath { guild_id },
             reason: Ok(None),
         }
     }
@@ -460,7 +464,7 @@ impl TryIntoRequest for CreateAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
         let body = self.body.map_err(HttpError::validation)?;
         let mut request = Request::builder(&Route::CreateAutoModerationRule {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&body);
 

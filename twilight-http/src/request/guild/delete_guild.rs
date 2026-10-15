@@ -8,16 +8,23 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::GuildMarker};
 
+struct DeleteGuildPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Delete a guild permanently. The user must be the owner.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGuild<'a> {
-    guild_id: Id<GuildMarker>,
+    path: DeleteGuildPath,
     http: &'a Client,
 }
 
 impl<'a> DeleteGuild<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: DeleteGuildPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -39,7 +46,7 @@ impl IntoFuture for DeleteGuild<'_> {
 impl TryIntoRequest for DeleteGuild<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteGuild {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

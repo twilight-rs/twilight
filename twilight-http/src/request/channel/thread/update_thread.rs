@@ -42,6 +42,10 @@ struct UpdateThreadBody<'a> {
     rate_limit_per_user: Option<u16>,
 }
 
+struct UpdateThreadPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Update a thread.
 ///
 /// All fields are optional. The minimum length of the name is 1 UTF-16
@@ -49,15 +53,14 @@ struct UpdateThreadBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateThread<'a> {
     body: Result<UpdateThreadBody<'a>, ChannelValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: UpdateThreadPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateThread<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
-            channel_id,
             body: Ok(UpdateThreadBody {
                 applied_tags: None,
                 archived: None,
@@ -69,6 +72,7 @@ impl<'a> UpdateThread<'a> {
                 rate_limit_per_user: None,
             }),
             http,
+            path: UpdateThreadPath { channel_id },
             reason: Ok(None),
         }
     }
@@ -216,7 +220,7 @@ impl TryIntoRequest for UpdateThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateChannel {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         })
         .json(&body);
 

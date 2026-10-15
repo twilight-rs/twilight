@@ -8,18 +8,25 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::ChannelMarker};
 
+struct DeleteStageInstancePath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Delete the stage instance of a stage channel.
 ///
 /// Requires the user to be a moderator of the stage channel.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteStageInstance<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: DeleteStageInstancePath,
 }
 
 impl<'a> DeleteStageInstance<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
-        Self { channel_id, http }
+        Self {
+            http,
+            path: DeleteStageInstancePath { channel_id },
+        }
     }
 }
 
@@ -41,7 +48,7 @@ impl IntoFuture for DeleteStageInstance<'_> {
 impl TryIntoRequest for DeleteStageInstance<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteStageInstance {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         }))
     }
 }

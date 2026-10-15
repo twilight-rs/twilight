@@ -11,16 +11,23 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildWebhooksPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get the webhooks of a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWebhooks<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetGuildWebhooksPath,
     http: &'a Client,
 }
 
 impl<'a> GetGuildWebhooks<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetGuildWebhooksPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -42,7 +49,7 @@ impl IntoFuture for GetGuildWebhooks<'_> {
 impl TryIntoRequest for GetGuildWebhooks<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildWebhooks {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

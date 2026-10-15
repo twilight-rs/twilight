@@ -29,12 +29,16 @@ struct AddGuildMemberBody<'a> {
     pub roles: Option<&'a [Id<RoleMarker>]>,
 }
 
+struct AddGuildMemberPath {
+    guild_id: Id<GuildMarker>,
+    user_id: Id<UserMarker>,
+}
+
 #[must_use = "requests must be configured and executed"]
 pub struct AddGuildMember<'a> {
     body: Result<AddGuildMemberBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: AddGuildMemberPath,
 }
 
 /// Add a user to a guild.
@@ -58,9 +62,8 @@ impl<'a> AddGuildMember<'a> {
                 nick: None,
                 roles: None,
             }),
-            guild_id,
             http,
-            user_id,
+            path: AddGuildMemberPath { guild_id, user_id },
         }
     }
 
@@ -136,8 +139,8 @@ impl TryIntoRequest for AddGuildMember<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::AddGuildMember {
-            guild_id: self.guild_id.get(),
-            user_id: self.user_id.get(),
+            guild_id: self.path.guild_id.get(),
+            user_id: self.path.user_id.get(),
         })
         .json(&body)
         .build()

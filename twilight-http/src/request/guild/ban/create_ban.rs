@@ -22,6 +22,11 @@ struct CreateBanBody {
     delete_message_seconds: Option<u32>,
 }
 
+struct CreateBanPath {
+    guild_id: Id<GuildMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Bans a user from a guild, optionally with the number of days' worth of
 /// messages to delete and the reason.
 ///
@@ -50,10 +55,9 @@ struct CreateBanBody {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateBan<'a> {
     body: Result<CreateBanBody, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: CreateBanPath,
     reason: Result<Option<&'a str>, ValidationError>,
-    user_id: Id<UserMarker>,
 }
 
 impl<'a> CreateBan<'a> {
@@ -66,10 +70,9 @@ impl<'a> CreateBan<'a> {
             body: Ok(CreateBanBody {
                 delete_message_seconds: None,
             }),
-            guild_id,
             http,
+            path: CreateBanPath { guild_id, user_id },
             reason: Ok(None),
-            user_id,
         }
     }
 
@@ -122,8 +125,8 @@ impl TryIntoRequest for CreateBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateBan {
-            guild_id: self.guild_id.get(),
-            user_id: self.user_id.get(),
+            guild_id: self.path.guild_id.get(),
+            user_id: self.path.user_id.get(),
         })
         .json(&body);
 

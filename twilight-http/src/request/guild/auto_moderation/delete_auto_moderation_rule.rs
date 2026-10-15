@@ -12,6 +12,11 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteAutoModerationRulePath {
+    auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Delete an auto moderation rule in a guild.
 ///
 /// Requires the [`MANAGE_GUILD`] permission.
@@ -19,9 +24,8 @@ use twilight_validate::request::{ValidationError, audit_reason as validate_audit
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteAutoModerationRule<'a> {
-    auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: DeleteAutoModerationRulePath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -32,9 +36,11 @@ impl<'a> DeleteAutoModerationRule<'a> {
         auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
     ) -> Self {
         Self {
-            auto_moderation_rule_id,
-            guild_id,
             http,
+            path: DeleteAutoModerationRulePath {
+                auto_moderation_rule_id,
+                guild_id,
+            },
             reason: Ok(None),
         }
     }
@@ -66,8 +72,8 @@ impl IntoFuture for DeleteAutoModerationRule<'_> {
 impl TryIntoRequest for DeleteAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteAutoModerationRule {
-            auto_moderation_rule_id: self.auto_moderation_rule_id.get(),
-            guild_id: self.guild_id.get(),
+            auto_moderation_rule_id: self.path.auto_moderation_rule_id.get(),
+            guild_id: self.path.guild_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
