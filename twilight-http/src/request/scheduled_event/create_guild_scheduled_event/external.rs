@@ -1,7 +1,10 @@
-use super::{super::EntityMetadataBody, CreateGuildScheduledEvent, CreateGuildScheduledEventBody};
+use super::{
+    super::EntityMetadataBody, CreateGuildScheduledEvent, CreateGuildScheduledEventBody,
+    CreateGuildScheduledEventPath,
+};
 use crate::{
     error::Error,
-    request::{AuditLogReason, Request, TryIntoRequest},
+    request::{AuditLogReason, Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
 };
 use std::future::IntoFuture;
@@ -94,12 +97,22 @@ impl IntoFuture for CreateGuildExternalScheduledEvent<'_> {
     type IntoFuture = ResponseFuture<GuildScheduledEvent>;
 
     fn into_future(self) -> Self::IntoFuture {
-        self.0.exec()
+        self.0.exec::<Self>()
+    }
+}
+
+impl Route for CreateGuildExternalScheduledEvent<'_> {
+    type Fields = CreateGuildScheduledEventPath;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        CreateGuildScheduledEvent::path(fields)
     }
 }
 
 impl TryIntoRequest for CreateGuildExternalScheduledEvent<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        self.0.try_into_request()
+        self.0.try_into_request::<Self>()
     }
 }

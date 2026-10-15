@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -48,10 +47,22 @@ impl IntoFuture for CreatePrivateChannel<'_> {
     }
 }
 
+impl Route for CreatePrivateChannel<'_> {
+    type Fields = ();
+
+    const METHOD: Method = Method::Post;
+
+    fn path(_: Self::Fields) -> Path {
+        Path::builder()
+            .resource("users")
+            .me()
+            .resource("channels")
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreatePrivateChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::CreatePrivateChannel)
-            .json(&self.body)
-            .build()
+        Request::builder_new::<Self>(()).json(&self.body).build()
     }
 }

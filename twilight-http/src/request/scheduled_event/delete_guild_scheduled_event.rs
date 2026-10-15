@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -14,7 +13,7 @@ use twilight_model::{
     },
 };
 
-struct DeleteGuildScheduledEventPath {
+pub(in crate::request) struct DeleteGuildScheduledEventPath {
     guild_id: Id<GuildMarker>,
     scheduled_event_id: Id<ScheduledEventMarker>,
 }
@@ -74,11 +73,23 @@ impl IntoFuture for DeleteGuildScheduledEvent<'_> {
     }
 }
 
+impl Route for DeleteGuildScheduledEvent<'_> {
+    type Fields = DeleteGuildScheduledEventPath;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("scheduled-events")
+            .id(fields.scheduled_event_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for DeleteGuildScheduledEvent<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteGuildScheduledEvent {
-            guild_id: self.path.guild_id.get(),
-            scheduled_event_id: self.path.scheduled_event_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

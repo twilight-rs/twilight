@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -14,7 +13,7 @@ use twilight_model::{
     },
 };
 
-struct GetGlobalCommandPath {
+pub(in crate::request) struct GetGlobalCommandPath {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
 }
@@ -57,11 +56,23 @@ impl IntoFuture for GetGlobalCommand<'_> {
     }
 }
 
+impl Route for GetGlobalCommand<'_> {
+    type Fields = GetGlobalCommandPath;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetGlobalCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetGlobalCommand {
-            application_id: self.path.application_id.get(),
-            command_id: self.path.command_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

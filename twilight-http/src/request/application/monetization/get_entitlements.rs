@@ -10,16 +10,15 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 
 use twilight_validate::request::{
     ValidationError, get_entitlements_limit as validate_get_entitlements_limit,
 };
 
-struct GetEntitlementsPath<'a> {
+pub(in crate::request) struct GetEntitlementsPath<'a> {
     after: Option<Id<EntitlementMarker>>,
     application_id: Id<ApplicationMarker>,
     before: Option<Id<EntitlementMarker>>,
@@ -130,17 +129,29 @@ impl IntoFuture for GetEntitlements<'_> {
     }
 }
 
+impl<'a> Route for GetEntitlements<'a> {
+    type Fields = GetEntitlementsPath<'a>;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("entitlements")
+            .parameter("after", fields.after)
+            .parameter("before", fields.before)
+            .parameter("exclude_ended", fields.exclude_ended)
+            .parameter("guild_id", fields.guild_id)
+            .parameter("limit", fields.limit)
+            .parameter("user_id", fields.user_id)
+            .parameter("sku_ids", fields.sku_ids)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetEntitlements<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetEntitlements {
-            after: self.path.after.map(Id::get),
-            application_id: self.path.application_id.get(),
-            before: self.path.before.map(Id::get),
-            exclude_ended: self.path.exclude_ended,
-            guild_id: self.path.guild_id.map(Id::get),
-            limit: self.path.limit,
-            sku_ids: self.path.sku_ids,
-            user_id: self.path.user_id.map(Id::get),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

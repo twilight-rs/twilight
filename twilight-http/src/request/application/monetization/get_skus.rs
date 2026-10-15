@@ -7,12 +7,11 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 
-struct GetSKUsPath {
+pub(in crate::request) struct GetSKUsPath {
     application_id: Id<ApplicationMarker>,
 }
 
@@ -44,10 +43,22 @@ impl IntoFuture for GetSKUs<'_> {
     }
 }
 
+impl Route for GetSKUs<'_> {
+    type Fields = GetSKUsPath;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("skus")
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetSKUs<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetSKUs {
-            application_id: self.path.application_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

@@ -28,8 +28,15 @@ pub struct RequestBuilder(Result<Request, Error>);
 
 impl RequestBuilder {
     /// Create a new request builder.
+    #[deprecated] // todo so warnings show up, remove, rename new_new to new
     pub fn new(route: &Route<'_>) -> Self {
+        #[expect(deprecated)]
         Self(Ok(Request::from_route(route)))
+    }
+
+    /// Create a new request builder.
+    pub fn new_new<T: crate::request::Route>(fields: T::Fields) -> Self {
+        Self(Ok(Request::from_route_new::<T>(fields)))
     }
 
     /// Create a request with raw information about the method, ratelimiting
@@ -164,8 +171,33 @@ impl Request {
     ///     .body(body)
     ///     .build();
     /// ```
+    #[deprecated] // todo so warnings show up, remove, then rename builder_new to builder
     pub fn builder(route: &Route<'_>) -> RequestBuilder {
+        #[expect(deprecated)]
         RequestBuilder::new(route)
+    }
+
+    /// Create a new request builder.
+    ///
+    /// # Examples
+    ///
+    /// Create a request to create a message with a content of "test" in a
+    /// channel with an ID of 1:
+    ///
+    /// ```
+    /// use twilight_http::{request::Request, routing::Route};
+    ///
+    /// let body = br#"{
+    ///     "content": "test"
+    /// }"#
+    /// .to_vec();
+    ///
+    /// let request = Request::builder(&Route::CreateMessage { channel_id: 1 })
+    ///     .body(body)
+    ///     .build();
+    /// ```
+    pub fn builder_new<T: crate::request::Route>(fields: T::Fields) -> RequestBuilder {
+        RequestBuilder::new_new::<T>(fields)
     }
 
     /// Create a request from only its route information.
@@ -188,6 +220,7 @@ impl Request {
     /// ```
     ///
     /// [`builder`]: Self::builder
+    #[deprecated] // To trigger warnings on all remaining uses
     pub fn from_route(route: &Route<'_>) -> Self {
         Self {
             body: None,
@@ -195,6 +228,20 @@ impl Request {
             headers: None,
             method: route.method(),
             path: route.to_string(),
+            use_authorization_token: true,
+        }
+    }
+
+    // TODO
+    //
+    // Rename to `from_route`, remove the old from_route when all are migrated
+    pub fn from_route_new<T: crate::request::route::Route>(fields: T::Fields) -> Self {
+        Self {
+            body: None,
+            form: None,
+            headers: None,
+            method: T::METHOD,
+            path: T::path(fields).to_string(),
             use_authorization_token: true,
         }
     }

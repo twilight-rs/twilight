@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -15,7 +14,7 @@ use twilight_model::{
 };
 
 #[expect(clippy::struct_field_names)]
-struct GetCommandPermissionsPath {
+pub(in crate::request) struct GetCommandPermissionsPath {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,
@@ -61,12 +60,26 @@ impl IntoFuture for GetCommandPermissions<'_> {
     }
 }
 
+impl Route for GetCommandPermissions<'_> {
+    type Fields = GetCommandPermissionsPath;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .resource("permissions")
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetCommandPermissions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetCommandPermissions {
-            application_id: self.path.application_id.get(),
-            command_id: self.path.command_id.get(),
-            guild_id: self.path.guild_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }
