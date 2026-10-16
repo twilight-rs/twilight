@@ -77,6 +77,10 @@ pub enum ComponentType {
     ///
     /// [`FileUpload`]: super::FileUpload
     FileUpload,
+    /// Component is a [`RadioGroup`] that allows for a single-selectable group of radio options in modals
+    ///
+    /// [`RadioGroup`]: super::RadioGroup
+    RadioGroup,
     /// Component is a [`CheckboxGroup`] that allows for a group of selectable checkboxes in modals
     ///
     /// [`CheckboxGroup`]: super::CheckboxGroup
@@ -109,6 +113,7 @@ impl From<u8> for ComponentType {
             17 => ComponentType::Container,
             18 => ComponentType::Label,
             19 => ComponentType::FileUpload,
+            21 => ComponentType::RadioGroup,
             22 => ComponentType::CheckboxGroup,
             23 => ComponentType::Checkbox,
             unknown => ComponentType::Unknown(unknown),
@@ -136,6 +141,7 @@ impl From<ComponentType> for u8 {
             ComponentType::Container => 17,
             ComponentType::Label => 18,
             ComponentType::FileUpload => 19,
+            ComponentType::RadioGroup => 21,
             ComponentType::CheckboxGroup => 22,
             ComponentType::Checkbox => 23,
             ComponentType::Unknown(unknown) => unknown,
@@ -178,6 +184,7 @@ impl ComponentType {
             ComponentType::Container => "Container",
             ComponentType::Label => "Label",
             ComponentType::FileUpload => "FileUpload",
+            ComponentType::RadioGroup => "RadioGroup",
             ComponentType::CheckboxGroup => "CheckboxGroup",
             ComponentType::Checkbox => "Checkbox",
             ComponentType::Unknown(_) => "Unknown",

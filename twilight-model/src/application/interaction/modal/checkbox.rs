@@ -1,9 +1,9 @@
 /// User filled in [`Checkbox`].
 ///
-/// See [Discord Docs/File Upload Interaction Response Structure]
+/// See [Discord Docs/Checkbox Interaction Response Structure]
 ///
 /// [`Checkbox`]: crate::channel::message::component::Checkbox
-/// [Discord Docs/File Upload Interaction Response Structure]: https://discord.com/developers/docs/components/reference#checkbox-checkbox-interaction-response-structure
+/// [Discord Docs/Checkbox Interaction Response Structure]: https://discord.com/developers/docs/components/reference#checkbox-checkbox-interaction-response-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ModalInteractionCheckbox {
     /// [Discord Docs/Custom ID]: https://discord.com/developers/docs/components/reference#anatomy-of-a-component-custom-id
