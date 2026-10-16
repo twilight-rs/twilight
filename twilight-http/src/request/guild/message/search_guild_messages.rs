@@ -143,11 +143,11 @@ mod search_guild_messages_response_body_messages {
     pub fn deserialize<'de, D: Deserializer<'de>>(
         deserializer: D,
     ) -> Result<Vec<Message>, D::Error> {
-        let nested_array = Vec::<Vec<Message>>::deserialize(deserializer)?;
+        let mut nested_array = Vec::<Vec<Message>>::deserialize(deserializer)?;
 
         nested_array
-            .into_iter()
-            .map(|mut wrapped_message| match wrapped_message.len() {
+            .iter_mut()
+            .map(|wrapped_message| match wrapped_message.len() {
                 0 | 2.. => Err(D::Error::invalid_length(
                     wrapped_message.len(),
                     &"nested array with 0 or 1 element, an array of messages",
@@ -157,11 +157,8 @@ mod search_guild_messages_response_body_messages {
             .collect()
     }
 
-    pub fn serialize<S: Serializer>(
-        value: &Vec<Message>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
-        serializer.collect_seq(value.into_iter().map(|message| [message]))
+    pub fn serialize<S: Serializer>(value: &[Message], serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.collect_seq(value.iter().map(|message| [message]))
     }
 }
 
