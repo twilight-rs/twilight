@@ -127,6 +127,7 @@ impl ShardId {
     ///
     /// Panics if the shard number is greater than or equal to the total number
     /// of shards.
+    #[inline]
     pub const fn new(number: u32, total: u32) -> Self {
         assert!(number < total, "number must be less than total");
         Self {
@@ -137,6 +138,7 @@ impl ShardId {
 
     /// Create a new shard identifier if the shard indexes are valid.
     #[allow(clippy::missing_panics_doc)]
+    #[inline]
     pub const fn new_checked(number: u32, total: u32) -> Option<Self> {
         if number < total {
             Some(Self {
