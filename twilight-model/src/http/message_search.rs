@@ -3,13 +3,22 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Error as FmtError, Formatter};
 
+mod sealed {
+    use super::{AuthorType, SearchHasTypes};
+
+    pub trait Sealed {}
+
+    impl Sealed for AuthorType {}
+    impl Sealed for SearchHasTypes {}
+}
+
 /// Denotes whether a field can be negated, excluding results with the field
 /// instead of including results.
 // # Development implementation note
 //
 // When implementing this trait for a new type be sure to make a note on the
 // relevant HTTP request builder method that the value can be negated.
-pub trait Negate: Display {}
+pub trait Negate: Display + sealed::Sealed {}
 
 impl Negate for AuthorType {}
 
