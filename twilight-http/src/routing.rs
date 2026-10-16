@@ -1045,7 +1045,7 @@ pub enum Route<'a> {
         /// Whether to include results from age-restricted channels.
         include_nsfw: Option<bool>,
         /// Max number of messages to return.
-        limit: Option<u16>,
+        limit: Option<u8>,
         /// Filter messages by link hostname (e.g. `discordapp.com`).
         link_hostname: Option<&'a [&'a str]>,
         /// Get messages before this message ID.

@@ -246,7 +246,7 @@ struct SearchGuildMessagesFields<'a> {
     /// Max number of messages to return.
     ///
     /// Discord defaults this to 25.
-    limit: Option<u16>,
+    limit: Option<u8>,
     /// Filter messages by link hostname (e.g. `discordapp.com`).
     link_hostname: Option<&'a [&'a str]>,
     /// Get messages before this message ID.
@@ -518,7 +518,7 @@ impl<'a> SearchGuildMessages<'a> {
     /// Returns an error of type [`Limit`] if the limit is invalid.
     ///
     /// [`Limit`]: twilight_validate::search_guild_messages::SearchGuildMessagesErrorType::Limit
-    pub fn limit(mut self, limit: u16) -> Self {
+    pub fn limit(mut self, limit: u8) -> Self {
         self.fields = self.fields.and_then(|mut fields| {
             validate_limit(usize::from(limit))?;
             fields.limit = Some(limit);
