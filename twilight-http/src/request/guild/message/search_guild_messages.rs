@@ -124,7 +124,9 @@ mod search_guild_messages_response_body_messages {
     //!   [
     //!     {
     //!       # message 1...
-    //!     },
+    //!     }
+    //!   ],
+    //!   [
     //!     {
     //!       # message 2...
     //!     }
@@ -136,31 +138,30 @@ mod search_guild_messages_response_body_messages {
         de::{Deserialize, Deserializer, Error as _},
         ser::Serializer,
     };
-    use std::iter;
     use twilight_model::channel::Message;
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         deserializer: D,
     ) -> Result<Vec<Message>, D::Error> {
-        let mut nested_array = Vec::<Vec<Message>>::deserialize(deserializer)?;
+        let nested_array = Vec::<Vec<Message>>::deserialize(deserializer)?;
 
-        if nested_array.len() > 1 {
-            return Err(D::Error::invalid_length(
-                nested_array.len(),
-                &"nested array with 0 or 1 element, an array of messages",
-            ));
-        }
-
-        // There can be 1 element containing a list of messages, or 0 elements
-        // if there are no messages, so we need to default the list.
-        Ok(nested_array.pop().unwrap_or_default())
+        nested_array
+            .into_iter()
+            .map(|mut wrapped_message| match wrapped_message.len() {
+                0 | 2.. => Err(D::Error::invalid_length(
+                    wrapped_message.len(),
+                    &"nested array with 0 or 1 element, an array of messages",
+                )),
+                1 => Ok(wrapped_message.remove(0)),
+            })
+            .collect()
     }
 
     pub fn serialize<S: Serializer>(
         value: &Vec<Message>,
         serializer: S,
     ) -> Result<S::Ok, S::Error> {
-        serializer.collect_seq(iter::once(value))
+        serializer.collect_seq(value.into_iter().map(|message| [message]))
     }
 }
 
