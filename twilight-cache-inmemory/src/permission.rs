@@ -933,6 +933,7 @@ mod tests {
         });
         cache.update(&MemberUpdate {
             avatar: None,
+            banner: None,
             communication_disabled_until: None,
             guild_id: GUILD_ID,
             deaf: None,
@@ -1122,6 +1123,7 @@ mod tests {
         ));
         cache.update(&MemberUpdate {
             avatar: None,
+            banner: None,
             communication_disabled_until: Some(in_past),
             guild_id: GUILD_ID,
             deaf: None,

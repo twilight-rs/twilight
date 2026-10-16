@@ -66,7 +66,7 @@ mod tests {
         let value = Member {
             avatar: Some(image_hash::AVATAR),
             avatar_decoration_data: None,
-            banner: None,
+            banner: Some(image_hash::BANNER),
             communication_disabled_until: None,
             deaf: false,
             flags,
@@ -104,11 +104,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str(image_hash::AVATAR_INPUT),
+                Token::Str("banner"),
+                Token::Some,
+                Token::Str(image_hash::BANNER_INPUT),
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
@@ -177,7 +180,7 @@ mod tests {
         let value = Member {
             avatar: Some(image_hash::AVATAR),
             avatar_decoration_data: None,
-            banner: None,
+            banner: Some(image_hash::BANNER),
             communication_disabled_until: Some(communication_disabled_until),
             deaf: false,
             flags,
@@ -215,11 +218,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str(image_hash::AVATAR_INPUT),
+                Token::Str("banner"),
+                Token::Some,
+                Token::Str(image_hash::BANNER_INPUT),
                 Token::Str("communication_disabled_until"),
                 Token::Some,
                 Token::Str("2021-12-23T14:29:19.046000+00:00"),
