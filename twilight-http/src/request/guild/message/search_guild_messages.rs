@@ -189,16 +189,19 @@ pub struct SearchGuildMessagesOkResponseBody {
     pub doing_deep_historical_index: bool,
     /// The number of documents that have been indexed during the current index
     /// operation, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub documents_indexed: Option<u64>,
     /// A thread member object for each thread returned in [`threads`] the
     /// current user has joined.
     ///
     /// [`threads`]: Self::threads
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub members: Option<Vec<ThreadMember>>,
     /// A nested array of messages that match the query.
     #[serde(with = "search_guild_messages_response_body_messages")]
     pub messages: Vec<Message>,
     /// The threads that contain the returned messages.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub threads: Option<Vec<Channel>>,
     /// The total number of results that match the query.
     pub total_results: u64,
