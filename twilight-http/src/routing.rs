@@ -4703,6 +4703,7 @@ mod tests {
         assert_eq!(Method::Post, route.method());
     }
 
+    #[test]
     fn get_sku_subscriptions() {
         let route = Route::GetSKUSubscriptions {
             after: Some(18),
