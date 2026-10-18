@@ -12,7 +12,8 @@ use crate::request::{
         },
         monetization::{
             ConsumeEntitlement, CreateTestEntitlement, CreateTestEntitlementOwner,
-            DeleteTestEntitlement, GetEntitlement, GetEntitlements, GetSKUs,
+            DeleteTestEntitlement, GetEntitlement, GetEntitlements, GetSKUSubscription,
+            GetSKUSubscriptions, GetSKUs,
         },
     },
     guild::user::{GetCurrentUserVoiceState, GetUserVoiceState},
@@ -127,7 +128,8 @@ use twilight_model::{
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
             EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            ScheduledEventMarker, SkuMarker, StickerMarker, UserMarker, WebhookMarker,
+            ScheduledEventMarker, SkuMarker, StickerMarker, SubscriptionMarker, UserMarker,
+            WebhookMarker,
         },
     },
 };
@@ -2780,6 +2782,20 @@ impl Client {
     /// # Ok(()) }
     pub const fn get_skus(&self, application_id: Id<ApplicationMarker>) -> GetSKUs<'_> {
         GetSKUs::new(self, application_id)
+    }
+
+    /// Returns all subscriptions containing the SKU, filtered by user.
+    pub const fn get_sku_subscriptions(&self, sku_id: Id<SkuMarker>) -> GetSKUSubscriptions<'_> {
+        GetSKUSubscriptions::new(self, sku_id)
+    }
+
+    /// Get a subscription by SKU ID and Subscription ID.
+    pub const fn get_sku_subscription(
+        &self,
+        sku_id: Id<SkuMarker>,
+        subscription_id: Id<SubscriptionMarker>,
+    ) -> GetSKUSubscription<'_> {
+        GetSKUSubscription::new(self, sku_id, subscription_id)
     }
 
     /// Gets all emojis associated with an application

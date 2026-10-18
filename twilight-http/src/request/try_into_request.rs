@@ -25,8 +25,9 @@ mod private {
                 DeleteResponse, GetFollowup, GetResponse, UpdateFollowup, UpdateResponse,
             },
             monetization::{
-                ConsumeEntitlement, DeleteTestEntitlement, GetEntitlement, GetSKUs,
-                create_test_entitlement::CreateTestEntitlement, get_entitlements::GetEntitlements,
+                ConsumeEntitlement, DeleteTestEntitlement, GetEntitlement, GetSKUSubscription,
+                GetSKUSubscriptions, GetSKUs, create_test_entitlement::CreateTestEntitlement,
+                get_entitlements::GetEntitlements,
             },
         },
         channel::{
@@ -249,6 +250,8 @@ mod private {
     impl Sealed for GetResponse<'_> {}
     impl Sealed for GetRole<'_> {}
     impl Sealed for GetSKUs<'_> {}
+    impl Sealed for GetSKUSubscriptions<'_> {}
+    impl Sealed for GetSKUSubscription<'_> {}
     impl Sealed for GetStageInstance<'_> {}
     impl Sealed for GetSticker<'_> {}
     impl Sealed for GetTemplate<'_> {}

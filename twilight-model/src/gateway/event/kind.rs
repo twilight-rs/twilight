@@ -80,6 +80,9 @@ pub enum EventType {
     StageInstanceCreate,
     StageInstanceDelete,
     StageInstanceUpdate,
+    SubscriptionCreate,
+    SubscriptionDelete,
+    SubscriptionUpdate,
     ThreadCreate,
     ThreadDelete,
     ThreadListSync,
@@ -153,6 +156,9 @@ impl EventType {
             Self::StageInstanceCreate => Some("STAGE_INSTANCE_CREATE"),
             Self::StageInstanceDelete => Some("STAGE_INSTANCE_DELETE"),
             Self::StageInstanceUpdate => Some("STAGE_INSTANCE_UPDATE"),
+            Self::SubscriptionCreate => Some("SUBSCRIPTION_CREATE"),
+            Self::SubscriptionDelete => Some("SUBSCRIPTION_DELETE"),
+            Self::SubscriptionUpdate => Some("SUBSCRIPTION_UPDATE"),
             Self::ThreadCreate => Some("THREAD_CREATE"),
             Self::ThreadDelete => Some("THREAD_DELETE"),
             Self::ThreadListSync => Some("THREAD_LIST_SYNC"),
@@ -233,6 +239,9 @@ impl<'a> TryFrom<&'a str> for EventType {
             "STAGE_INSTANCE_CREATE" => Ok(Self::StageInstanceCreate),
             "STAGE_INSTANCE_DELETE" => Ok(Self::StageInstanceDelete),
             "STAGE_INSTANCE_UPDATE" => Ok(Self::StageInstanceUpdate),
+            "SUBSCRIPTION_CREATE" => Ok(Self::SubscriptionCreate),
+            "SUBSCRIPTION_DELETE" => Ok(Self::SubscriptionDelete),
+            "SUBSCRIPTION_UPDATE" => Ok(Self::SubscriptionUpdate),
             "THREAD_CREATE" => Ok(Self::ThreadCreate),
             "THREAD_DELETE" => Ok(Self::ThreadDelete),
             "THREAD_LIST_SYNC" => Ok(Self::ThreadListSync),
@@ -368,6 +377,9 @@ mod tests {
         assert_variant(EventType::StageInstanceCreate, "STAGE_INSTANCE_CREATE");
         assert_variant(EventType::StageInstanceDelete, "STAGE_INSTANCE_DELETE");
         assert_variant(EventType::StageInstanceUpdate, "STAGE_INSTANCE_UPDATE");
+        assert_variant(EventType::SubscriptionCreate, "SUBSCRIPTION_CREATE");
+        assert_variant(EventType::SubscriptionDelete, "SUBSCRIPTION_DELETE");
+        assert_variant(EventType::SubscriptionUpdate, "SUBSCRIPTION_UPDATE");
         assert_variant(EventType::ThreadCreate, "THREAD_CREATE");
         assert_variant(EventType::ThreadDelete, "THREAD_DELETE");
         assert_variant(EventType::ThreadListSync, "THREAD_LIST_SYNC");
