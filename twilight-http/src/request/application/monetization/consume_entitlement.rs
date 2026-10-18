@@ -10,6 +10,11 @@ use twilight_model::id::{
     marker::{ApplicationMarker, EntitlementMarker},
 };
 
+/// For One-Time Purchase consumable SKUs, marks a given entitlement for the
+/// user as consumed.
+///
+/// The entitlement will have `consumed` as true when listing entitlements.
+#[must_use = "requests must be configured and executed"]
 pub struct ConsumeEntitlement<'a> {
     application_id: Id<ApplicationMarker>,
     entitlement_id: Id<EntitlementMarker>,

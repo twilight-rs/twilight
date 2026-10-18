@@ -2668,8 +2668,9 @@ impl Client {
     }
 
     /// For One-Time Purchase consumable SKUs, marks a given entitlement for the
-    /// user as consumed. The entitlement will have `consumed` as true when
-    /// listing entitlements.
+    /// user as consumed.
+    ///
+    /// The entitlement will have `consumed` as true when listing entitlements.
     pub const fn consume_entitlement(
         &self,
         application_id: Id<ApplicationMarker>,
