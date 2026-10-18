@@ -22,7 +22,7 @@ use twilight_model::{
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let client = Client::new(env::var("DISCORD_TOKEN"));
+/// let client = Client::new(env::var("DISCORD_TOKEN")?);
 ///
 /// let id = Id::new(123);
 /// let sticker_pack = client.sticker_pack(id).await?.model().await?;
