@@ -51,7 +51,7 @@ struct BulkGuildBanFields<'a> {
 ///
 /// ```no_run
 /// use twilight_http::{Client, request::AuditLogReason};
-/// use twilight_model::id::{marker::UserMarker, Id};
+/// use twilight_model::id::{Id, marker::UserMarker};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
