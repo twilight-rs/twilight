@@ -39,6 +39,14 @@ pub enum Route<'a> {
         /// ID of the member.
         user_id: u64,
     },
+    /// Mark a given One-Time Purchase consumable SKU for a given entitlement
+    /// for the user as consumed.
+    ConsumeEntitlement {
+        /// ID of the application.
+        application_id: u64,
+        /// ID of the entitlement.
+        entitlement_id: u64,
+    },
     /// Route information to create an auto moderation rule.
     CreateAutoModerationRule {
         /// ID of the guild.
@@ -539,6 +547,12 @@ pub enum Route<'a> {
         sku_ids: &'a [Id<SkuMarker>],
         /// User ID to look up entitlements for.
         user_id: Option<u64>,
+    },
+    GetEntitlement {
+        /// ID of the application.
+        application_id: u64,
+        /// ID of the entitlement.
+        entitlement_id: u64,
     },
     /// Route to get a followup message for an interaction.
     GetFollowupMessage {
@@ -1312,6 +1326,7 @@ impl Route<'_> {
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetEntitlements { .. }
+            | Self::GetEntitlement { .. }
             | Self::GetGateway
             | Self::GetFollowupMessage { .. }
             | Self::GetGlobalCommand { .. }
@@ -1402,6 +1417,7 @@ impl Route<'_> {
             | Self::UpdateWebhook { .. } => Method::Patch,
             Self::CreateChannel { .. }
             | Self::AddApplicationEmoji { .. }
+            | Self::ConsumeEntitlement { .. }
             | Self::CreateGlobalCommand { .. }
             | Self::CreateGuildCommand { .. }
             | Self::CreateEmoji { .. }
@@ -1536,6 +1552,17 @@ impl Display for Route<'_> {
                 f.write_str("/thread-members/")?;
 
                 Display::fmt(user_id, f)
+            }
+            Route::ConsumeEntitlement {
+                application_id,
+                entitlement_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements/")?;
+                Display::fmt(entitlement_id, f)?;
+
+                f.write_str("/consume")
             }
             Route::CreateAutoModerationRule { guild_id, .. }
             | Route::GetGuildAutoModerationRules { guild_id, .. } => {
@@ -1888,6 +1915,20 @@ impl Display for Route<'_> {
 
                 Ok(())
             }
+            Route::GetEntitlement {
+                application_id,
+                entitlement_id,
+            }
+            | Route::DeleteTestEntitlement {
+                application_id,
+                entitlement_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements/")?;
+
+                Display::fmt(entitlement_id, f)
+            }
             Route::DeleteGlobalCommand {
                 application_id,
                 command_id,
@@ -2160,16 +2201,6 @@ impl Display for Route<'_> {
                 query_formatter.write_opt_param("thread_id", thread_id.as_ref())?;
                 query_formatter.write_opt_param("wait", wait.as_ref())?;
                 query_formatter.write_opt_param("with_components", with_components.as_ref())
-            }
-            Route::DeleteTestEntitlement {
-                application_id,
-                entitlement_id,
-            } => {
-                f.write_str("applications/")?;
-                Display::fmt(application_id, f)?;
-                f.write_str("/entitlements/")?;
-
-                Display::fmt(entitlement_id, f)
             }
             Route::FollowNewsChannel { channel_id } => {
                 f.write_str("channels/")?;
@@ -2861,6 +2892,7 @@ mod tests {
     const AUTO_MODERATION_RULE_ID: u64 = 13;
     const SKU_ID: u64 = 15;
     const SUBSCRIPTION_ID: u64 = 16;
+    const ENTITLEMENT_ID: u64 = 17;
 
     const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
@@ -3884,6 +3916,19 @@ mod tests {
     }
 
     #[test]
+    fn get_entitlement() {
+        let route = Route::GetEntitlement {
+            application_id: APPLICATION_ID,
+            entitlement_id: ENTITLEMENT_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("applications/{APPLICATION_ID}/entitlements/{ENTITLEMENT_ID}")
+        );
+        assert_eq!(Method::Get, route.method());
+    }
+
+    #[test]
     fn create_test_entitlement() {
         let route = Route::CreateTestEntitlement { application_id: 1 };
 
@@ -4643,6 +4688,19 @@ mod tests {
             route.to_string(),
             format!("applications/{APPLICATION_ID}/skus")
         );
+    }
+
+    #[test]
+    fn consume_entitlement() {
+        let route = Route::ConsumeEntitlement {
+            application_id: APPLICATION_ID,
+            entitlement_id: ENTITLEMENT_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("applications/{APPLICATION_ID}/entitlements/{ENTITLEMENT_ID}/consume")
+        );
+        assert_eq!(Method::Post, route.method());
     }
 
     #[test]
