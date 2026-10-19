@@ -16,6 +16,7 @@ use crate::request::{
             GetSKUSubscriptions, GetSKUs,
         },
     },
+    channel::recipient::{AddGroupDMRecipient, RemoveGroupDMRecipient},
     guild::user::{GetCurrentUserVoiceState, GetUserVoiceState},
 };
 #[allow(deprecated)]
@@ -1676,6 +1677,30 @@ impl Client {
         recipient_id: Id<UserMarker>,
     ) -> CreatePrivateChannel<'_> {
         CreatePrivateChannel::new(self, recipient_id)
+    }
+
+    /// Add a recipient to a Group DM using their access token.
+    ///
+    /// The user must have granted the application an access token with the
+    /// [`GDM_JOIN`] scope.
+    ///
+    /// [`GDM_JOIN`]: twilight_model::oauth::scope::GDM_JOIN
+    pub const fn add_group_dm_recipient<'a>(
+        &'a self,
+        channel_id: Id<ChannelMarker>,
+        user_id: Id<UserMarker>,
+        access_token: &'a str,
+    ) -> AddGroupDMRecipient<'a> {
+        AddGroupDMRecipient::new(self, channel_id, user_id, access_token)
+    }
+
+    /// Remove a recipient from a Group DM.
+    pub const fn remove_group_dm_recipient(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        user_id: Id<UserMarker>,
+    ) -> RemoveGroupDMRecipient<'_> {
+        RemoveGroupDMRecipient::new(self, channel_id, user_id)
     }
 
     /// Get the roles of a guild.

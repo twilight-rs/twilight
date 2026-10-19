@@ -42,6 +42,7 @@ mod private {
             reaction::{
                 CreateReaction, DeleteAllReaction, DeleteAllReactions, DeleteReaction, GetReactions,
             },
+            recipient::{AddGroupDMRecipient, RemoveGroupDMRecipient},
             stage::{
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
             },
@@ -264,6 +265,8 @@ mod private {
     impl Sealed for GetVoiceRegions<'_> {}
     impl Sealed for GetWebhook<'_> {}
     impl Sealed for GetWebhookMessage<'_> {}
+    impl Sealed for AddGroupDMRecipient<'_> {}
+    impl Sealed for RemoveGroupDMRecipient<'_> {}
     impl Sealed for JoinThread<'_> {}
     impl Sealed for LeaveGuild<'_> {}
     impl Sealed for LeaveThread<'_> {}
