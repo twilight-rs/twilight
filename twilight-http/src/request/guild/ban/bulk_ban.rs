@@ -106,6 +106,8 @@ impl<'a> BulkGuildBan<'a> {
     ///
     /// The number of seconds must be less than or equal to `604_800` (this is equivalent to `7` days).
     ///
+    /// Discord's defaults this to 0 seconds.
+    ///
     /// # Errors
     ///
     /// Returns an error of type [`BulkGuildBanDeleteMessageSeconds`] if the
