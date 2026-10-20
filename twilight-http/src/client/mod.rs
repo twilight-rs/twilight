@@ -16,7 +16,10 @@ use crate::request::{
             GetSKUSubscriptions, GetSKUs,
         },
     },
-    guild::user::{GetCurrentUserVoiceState, GetUserVoiceState},
+    guild::{
+        ban::BulkGuildBan,
+        user::{GetCurrentUserVoiceState, GetUserVoiceState},
+    },
 };
 #[allow(deprecated)]
 use crate::{
@@ -533,6 +536,45 @@ impl Client {
         user_id: Id<UserMarker>,
     ) -> DeleteBan<'_> {
         DeleteBan::new(self, guild_id, user_id)
+    }
+
+    /// Perform a bulk ban of users from a guild.
+    ///
+    /// Requires both the [`BAN_MEMBERS`] and [`MANAGE_GUILD`] permissions.
+    ///
+    /// # Examples
+    ///
+    /// Ban a list of users from a guild along with the last day's messages:
+    ///
+    /// ```no_run
+    /// use twilight_http::{Client, request::AuditLogReason};
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use twilight_model::id::marker::UserMarker;
+    /// # fn determine_users_to_ban() -> Vec<Id<UserMarker>> { Vec::new() }
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = Id::new(1);
+    /// let user_ids = determine_users_to_ban();
+    ///
+    /// client
+    ///     .bulk_guild_ban(guild_id, &user_ids)
+    ///     .delete_message_seconds(86_400)
+    ///     .reason("insulting my little pony")
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`BAN_MEMBERS`]: twilight_model::guild::Permissions::BAN_MEMBERS
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub fn bulk_guild_ban<'a>(
+        &'a self,
+        guild_id: Id<GuildMarker>,
+        user_ids: &'a [Id<UserMarker>],
+    ) -> BulkGuildBan<'a> {
+        BulkGuildBan::new(self, guild_id, user_ids)
     }
 
     /// Get a channel by its ID.
