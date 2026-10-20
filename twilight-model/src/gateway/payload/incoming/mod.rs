@@ -68,6 +68,9 @@ mod role_update;
 mod stage_instance_create;
 mod stage_instance_delete;
 mod stage_instance_update;
+mod subscription_create;
+mod subscription_delete;
+mod subscription_update;
 mod thread_create;
 mod thread_delete;
 mod thread_list_sync;
@@ -111,7 +114,9 @@ pub use self::{
     reaction_remove_emoji::ReactionRemoveEmoji, ready::Ready, role_create::RoleCreate,
     role_delete::RoleDelete, role_update::RoleUpdate, stage_instance_create::StageInstanceCreate,
     stage_instance_delete::StageInstanceDelete, stage_instance_update::StageInstanceUpdate,
-    thread_create::ThreadCreate, thread_delete::ThreadDelete, thread_list_sync::ThreadListSync,
+    subscription_create::SubscriptionCreate, subscription_delete::SubscriptionDelete,
+    subscription_update::SubscriptionUpdate, thread_create::ThreadCreate,
+    thread_delete::ThreadDelete, thread_list_sync::ThreadListSync,
     thread_member_update::ThreadMemberUpdate, thread_members_update::ThreadMembersUpdate,
     thread_update::ThreadUpdate, typing_start::TypingStart, unavailable_guild::UnavailableGuild,
     user_update::UserUpdate, voice_server_update::VoiceServerUpdate,

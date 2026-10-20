@@ -296,6 +296,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         rtc_region: None,
         thread_metadata: None,
         topic: None,
+        total_message_sent: None,
         user_limit: None,
         video_quality_mode: None,
     };
@@ -486,6 +487,7 @@ pub fn guild_scheduled_event(
         image: None,
         name: "test".to_owned(),
         privacy_level: PrivacyLevel::GuildOnly,
+        recurrence_rule: None,
         scheduled_end_time: None,
         scheduled_start_time: Timestamp::from_secs(789).unwrap(),
         status: Status::Completed,

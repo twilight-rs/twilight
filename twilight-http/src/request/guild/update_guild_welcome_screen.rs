@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -11,6 +11,7 @@ use twilight_model::{
     guild::invite::{WelcomeScreen, WelcomeScreenChannel},
     id::{Id, marker::GuildMarker},
 };
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
 struct UpdateGuildWelcomeScreenFields<'a> {
@@ -32,6 +33,7 @@ pub struct UpdateGuildWelcomeScreen<'a> {
     fields: UpdateGuildWelcomeScreenFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateGuildWelcomeScreen<'a> {
@@ -44,6 +46,7 @@ impl<'a> UpdateGuildWelcomeScreen<'a> {
             },
             guild_id,
             http,
+            reason: Ok(None),
         }
     }
 
@@ -69,6 +72,14 @@ impl<'a> UpdateGuildWelcomeScreen<'a> {
     }
 }
 
+impl<'a> AuditLogReason<'a> for UpdateGuildWelcomeScreen<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+
+        self
+    }
+}
+
 impl IntoFuture for UpdateGuildWelcomeScreen<'_> {
     type Output = Result<Response<WelcomeScreen>, Error>;
 
@@ -86,10 +97,15 @@ impl IntoFuture for UpdateGuildWelcomeScreen<'_> {
 
 impl TryIntoRequest for UpdateGuildWelcomeScreen<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateGuildWelcomeScreen {
+        let mut request = Request::builder(&Route::UpdateGuildWelcomeScreen {
             guild_id: self.guild_id.get(),
         })
-        .json(&self.fields)
-        .build()
+        .json(&self.fields);
+
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        request.build()
     }
 }

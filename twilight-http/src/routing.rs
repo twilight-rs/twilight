@@ -39,6 +39,14 @@ pub enum Route<'a> {
         /// ID of the member.
         user_id: u64,
     },
+    /// Mark a given One-Time Purchase consumable SKU for a given entitlement
+    /// for the user as consumed.
+    ConsumeEntitlement {
+        /// ID of the application.
+        application_id: u64,
+        /// ID of the entitlement.
+        entitlement_id: u64,
+    },
     /// Route information to create an auto moderation rule.
     CreateAutoModerationRule {
         /// ID of the guild.
@@ -527,6 +535,8 @@ pub enum Route<'a> {
         application_id: u64,
         /// Retrieve entitlements before this time.
         before: Option<u64>,
+        /// Whether to exclude deleted entitlements.
+        exclude_deleted: Option<bool>,
         /// Whether to exclude ended entitlements.
         exclude_ended: Option<bool>,
         /// Guild ID to look up entitlements for.
@@ -537,6 +547,12 @@ pub enum Route<'a> {
         sku_ids: &'a [Id<SkuMarker>],
         /// User ID to look up entitlements for.
         user_id: Option<u64>,
+    },
+    GetEntitlement {
+        /// ID of the application.
+        application_id: u64,
+        /// ID of the entitlement.
+        entitlement_id: u64,
     },
     /// Route to get a followup message for an interaction.
     GetFollowupMessage {
@@ -863,6 +879,24 @@ pub enum Route<'a> {
     GetSKUs {
         /// The ID of the application.
         application_id: u64,
+    },
+    GetSKUSubscriptions {
+        /// List subscriptions after this ID.
+        after: Option<u64>,
+        /// List subscriptions before this ID.
+        before: Option<u64>,
+        /// Number of results to return.
+        limit: Option<u64>,
+        /// ID of the SKU.
+        sku_id: u64,
+        /// User ID for which to return subscriptions. Required except for OAuth queries.
+        user_id: Option<u64>,
+    },
+    GetSKUSubscription {
+        /// ID of the SKU.
+        sku_id: u64,
+        /// ID of the subscription.
+        subscription_id: u64,
     },
     /// Route information to get a stage instance.
     GetStageInstance {
@@ -1301,6 +1335,7 @@ impl Route<'_> {
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetEntitlements { .. }
+            | Self::GetEntitlement { .. }
             | Self::GetGateway
             | Self::GetFollowupMessage { .. }
             | Self::GetGlobalCommand { .. }
@@ -1344,6 +1379,8 @@ impl Route<'_> {
             | Self::GetReactionUsers { .. }
             | Self::GetRole { .. }
             | Self::GetSKUs { .. }
+            | Self::GetSKUSubscriptions { .. }
+            | Self::GetSKUSubscription { .. }
             | Self::GetStageInstance { .. }
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
@@ -1389,6 +1426,7 @@ impl Route<'_> {
             | Self::UpdateWebhook { .. } => Method::Patch,
             Self::CreateChannel { .. }
             | Self::AddApplicationEmoji { .. }
+            | Self::ConsumeEntitlement { .. }
             | Self::CreateGlobalCommand { .. }
             | Self::CreateGuildCommand { .. }
             | Self::CreateEmoji { .. }
@@ -1523,6 +1561,17 @@ impl Display for Route<'_> {
                 f.write_str("/thread-members/")?;
 
                 Display::fmt(user_id, f)
+            }
+            Route::ConsumeEntitlement {
+                application_id,
+                entitlement_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements/")?;
+                Display::fmt(entitlement_id, f)?;
+
+                f.write_str("/consume")
             }
             Route::CreateAutoModerationRule { guild_id, .. }
             | Route::GetGuildAutoModerationRules { guild_id, .. } => {
@@ -1811,6 +1860,7 @@ impl Display for Route<'_> {
                 after,
                 application_id,
                 before,
+                exclude_deleted,
                 exclude_ended,
                 guild_id,
                 limit,
@@ -1831,6 +1881,11 @@ impl Display for Route<'_> {
                 if let Some(before) = before {
                     f.write_str("&before=")?;
                     Display::fmt(before, f)?;
+                }
+
+                if let Some(exclude_deleted) = exclude_deleted {
+                    f.write_str("&exclude_deleted=")?;
+                    Display::fmt(exclude_deleted, f)?;
                 }
 
                 if let Some(exclude_ended) = exclude_ended {
@@ -1868,6 +1923,20 @@ impl Display for Route<'_> {
                 }
 
                 Ok(())
+            }
+            Route::GetEntitlement {
+                application_id,
+                entitlement_id,
+            }
+            | Route::DeleteTestEntitlement {
+                application_id,
+                entitlement_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements/")?;
+
+                Display::fmt(entitlement_id, f)
             }
             Route::DeleteGlobalCommand {
                 application_id,
@@ -2141,16 +2210,6 @@ impl Display for Route<'_> {
                 query_formatter.write_opt_param("thread_id", thread_id.as_ref())?;
                 query_formatter.write_opt_param("wait", wait.as_ref())?;
                 query_formatter.write_opt_param("with_components", with_components.as_ref())
-            }
-            Route::DeleteTestEntitlement {
-                application_id,
-                entitlement_id,
-            } => {
-                f.write_str("applications/")?;
-                Display::fmt(application_id, f)?;
-                f.write_str("/entitlements/")?;
-
-                Display::fmt(entitlement_id, f)
             }
             Route::FollowNewsChannel { channel_id } => {
                 f.write_str("channels/")?;
@@ -2749,6 +2808,34 @@ impl Display for Route<'_> {
 
                 f.write_str("/skus")
             }
+            Route::GetSKUSubscriptions {
+                after,
+                before,
+                limit,
+                sku_id,
+                user_id,
+            } => {
+                f.write_str("skus/")?;
+                Display::fmt(sku_id, f)?;
+                f.write_str("/subscriptions")?;
+
+                let mut writer = QueryStringFormatter::new(f);
+                writer.write_opt_param("after", after.as_ref())?;
+                writer.write_opt_param("before", before.as_ref())?;
+                writer.write_opt_param("limit", limit.as_ref())?;
+
+                writer.write_opt_param("user_id", user_id.as_ref())
+            }
+            Route::GetSKUSubscription {
+                sku_id,
+                subscription_id,
+            } => {
+                f.write_str("skus/")?;
+                Display::fmt(sku_id, f)?;
+                f.write_str("/subscriptions/")?;
+
+                Display::fmt(subscription_id, f)
+            }
         }
     }
 }
@@ -2814,6 +2901,9 @@ mod tests {
     const USER_ID: u64 = 11;
     const SCHEDULED_EVENT_ID: u64 = 12;
     const AUTO_MODERATION_RULE_ID: u64 = 13;
+    const SKU_ID: u64 = 15;
+    const SUBSCRIPTION_ID: u64 = 16;
+    const ENTITLEMENT_ID: u64 = 17;
 
     const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
@@ -3822,6 +3912,7 @@ mod tests {
             after: Some(32),
             application_id: 1,
             before: Some(2),
+            exclude_deleted: Some(true),
             exclude_ended: Some(true),
             guild_id: Some(42),
             limit: Some(99),
@@ -3831,8 +3922,21 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            "applications/1/entitlements?after=32&before=2&exclude_ended=true&guild_id=42&limit=99&sku_ids=7&user_id=11"
+            "applications/1/entitlements?after=32&before=2&exclude_deleted=true&exclude_ended=true&guild_id=42&limit=99&sku_ids=7&user_id=11"
         );
+    }
+
+    #[test]
+    fn get_entitlement() {
+        let route = Route::GetEntitlement {
+            application_id: APPLICATION_ID,
+            entitlement_id: ENTITLEMENT_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("applications/{APPLICATION_ID}/entitlements/{ENTITLEMENT_ID}")
+        );
+        assert_eq!(Method::Get, route.method());
     }
 
     #[test]
@@ -4594,6 +4698,46 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("applications/{APPLICATION_ID}/skus")
+        );
+    }
+
+    #[test]
+    fn consume_entitlement() {
+        let route = Route::ConsumeEntitlement {
+            application_id: APPLICATION_ID,
+            entitlement_id: ENTITLEMENT_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("applications/{APPLICATION_ID}/entitlements/{ENTITLEMENT_ID}/consume")
+        );
+        assert_eq!(Method::Post, route.method());
+    }
+
+    #[test]
+    fn get_sku_subscriptions() {
+        let route = Route::GetSKUSubscriptions {
+            after: Some(18),
+            before: Some(20),
+            limit: Some(100),
+            sku_id: SKU_ID,
+            user_id: Some(USER_ID),
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("skus/{SKU_ID}/subscriptions?after=18&before=20&limit=100&user_id={USER_ID}")
+        );
+    }
+
+    #[test]
+    fn get_sku_subscription() {
+        let route = Route::GetSKUSubscription {
+            sku_id: SKU_ID,
+            subscription_id: SUBSCRIPTION_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("skus/{SKU_ID}/subscriptions/{SUBSCRIPTION_ID}")
         );
     }
 }

@@ -11,8 +11,9 @@ use crate::request::{
             UpdateApplicationEmoji,
         },
         monetization::{
-            CreateTestEntitlement, CreateTestEntitlementOwner, DeleteTestEntitlement,
-            GetEntitlements, GetSKUs,
+            ConsumeEntitlement, CreateTestEntitlement, CreateTestEntitlementOwner,
+            DeleteTestEntitlement, GetEntitlement, GetEntitlements, GetSKUSubscription,
+            GetSKUSubscriptions, GetSKUs,
         },
     },
     guild::user::{GetCurrentUserVoiceState, GetUserVoiceState},
@@ -127,7 +128,8 @@ use twilight_model::{
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
             EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            ScheduledEventMarker, SkuMarker, StickerMarker, UserMarker, WebhookMarker,
+            ScheduledEventMarker, SkuMarker, StickerMarker, SubscriptionMarker, UserMarker,
+            WebhookMarker,
         },
     },
 };
@@ -828,6 +830,15 @@ impl Client {
     /// ```
     pub const fn entitlements(&self, application_id: Id<ApplicationMarker>) -> GetEntitlements<'_> {
         GetEntitlements::new(self, application_id)
+    }
+
+    /// Get an entitlement.
+    pub const fn entitlement(
+        &self,
+        application_id: Id<ApplicationMarker>,
+        entitlement_id: Id<EntitlementMarker>,
+    ) -> GetEntitlement<'_> {
+        GetEntitlement::new(self, application_id, entitlement_id)
     }
 
     /// Get an emoji for a guild by the the guild's ID and emoji's ID.
@@ -2656,6 +2667,18 @@ impl Client {
         CreateTestEntitlement::new(self, application_id, sku_id, owner)
     }
 
+    /// For One-Time Purchase consumable SKUs, marks a given entitlement for the
+    /// user as consumed.
+    ///
+    /// The entitlement will have `consumed` as true when listing entitlements.
+    pub const fn consume_entitlement(
+        &self,
+        application_id: Id<ApplicationMarker>,
+        entitlement_id: Id<EntitlementMarker>,
+    ) -> ConsumeEntitlement<'_> {
+        ConsumeEntitlement::new(self, application_id, entitlement_id)
+    }
+
     /// Ends a poll in a channel.
     ///
     /// # Examples
@@ -2760,6 +2783,20 @@ impl Client {
     /// # Ok(()) }
     pub const fn get_skus(&self, application_id: Id<ApplicationMarker>) -> GetSKUs<'_> {
         GetSKUs::new(self, application_id)
+    }
+
+    /// Returns all subscriptions containing the SKU, filtered by user.
+    pub const fn get_sku_subscriptions(&self, sku_id: Id<SkuMarker>) -> GetSKUSubscriptions<'_> {
+        GetSKUSubscriptions::new(self, sku_id)
+    }
+
+    /// Get a subscription by SKU ID and Subscription ID.
+    pub const fn get_sku_subscription(
+        &self,
+        sku_id: Id<SkuMarker>,
+        subscription_id: Id<SubscriptionMarker>,
+    ) -> GetSKUSubscription<'_> {
+        GetSKUSubscription::new(self, sku_id, subscription_id)
     }
 
     /// Gets all emojis associated with an application

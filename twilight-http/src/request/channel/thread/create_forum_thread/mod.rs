@@ -6,7 +6,7 @@ use self::message::CreateForumThreadMessageFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{Nullable, Request, attachment::AttachmentManager},
+    request::{self, AuditLogReason, Nullable, Request, attachment::AttachmentManager},
     response::ResponseFuture,
     routing::Route,
 };
@@ -18,6 +18,7 @@ use twilight_model::{
         marker::{ChannelMarker, TagMarker},
     },
 };
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Deserialize, Serialize)]
 pub struct ForumThread {
@@ -49,6 +50,7 @@ pub struct CreateForumThread<'a> {
     channel_id: Id<ChannelMarker>,
     fields: CreateForumThreadFields<'a>,
     http: &'a Client,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateForumThread<'a> {
@@ -77,6 +79,7 @@ impl<'a> CreateForumThread<'a> {
                 rate_limit_per_user: None,
             },
             http,
+            reason: Ok(None),
         }
     }
 
@@ -122,6 +125,10 @@ impl<'a> CreateForumThread<'a> {
             channel_id: self.channel_id.get(),
         });
 
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
         // Set the default allowed mentions if required.
         if self.fields.message.allowed_mentions.is_none()
             && let Some(allowed_mentions) = self.http.default_allowed_mentions()
@@ -151,5 +158,13 @@ impl<'a> CreateForumThread<'a> {
         }
 
         request.build()
+    }
+}
+
+impl<'a> AuditLogReason<'a> for CreateForumThread<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+
+        self
     }
 }

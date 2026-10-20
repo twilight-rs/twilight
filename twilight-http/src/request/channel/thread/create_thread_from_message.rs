@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture},
     routing::Route,
 };
@@ -14,7 +14,10 @@ use twilight_model::{
         marker::{ChannelMarker, MessageMarker},
     },
 };
-use twilight_validate::channel::{ChannelValidationError, name as validate_name};
+use twilight_validate::{
+    channel::{ChannelValidationError, name as validate_name},
+    request::{ValidationError, audit_reason as validate_audit_reason},
+};
 
 #[derive(Serialize)]
 struct CreateThreadFromMessageFields<'a> {
@@ -48,6 +51,7 @@ pub struct CreateThreadFromMessage<'a> {
     fields: Result<CreateThreadFromMessageFields<'a>, ChannelValidationError>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateThreadFromMessage<'a> {
@@ -72,6 +76,7 @@ impl<'a> CreateThreadFromMessage<'a> {
             fields,
             http,
             message_id,
+            reason: Ok(None),
         }
     }
 
@@ -86,6 +91,14 @@ impl<'a> CreateThreadFromMessage<'a> {
         if let Ok(fields) = self.fields.as_mut() {
             fields.auto_archive_duration = Some(auto_archive_duration);
         }
+
+        self
+    }
+}
+
+impl<'a> AuditLogReason<'a> for CreateThreadFromMessage<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
 
         self
     }
@@ -110,11 +123,16 @@ impl TryIntoRequest for CreateThreadFromMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let fields = self.fields.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateThreadFromMessage {
+        let mut request = Request::builder(&Route::CreateThreadFromMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),
         })
-        .json(&fields)
-        .build()
+        .json(&fields);
+
+        if let Some(reason) = self.reason.map_err(Error::validation)? {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        request.build()
     }
 }

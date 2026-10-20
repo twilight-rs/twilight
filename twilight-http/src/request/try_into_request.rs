@@ -25,7 +25,8 @@ mod private {
                 DeleteResponse, GetFollowup, GetResponse, UpdateFollowup, UpdateResponse,
             },
             monetization::{
-                DeleteTestEntitlement, GetSKUs, create_test_entitlement::CreateTestEntitlement,
+                ConsumeEntitlement, DeleteTestEntitlement, GetEntitlement, GetSKUSubscription,
+                GetSKUSubscriptions, GetSKUs, create_test_entitlement::CreateTestEntitlement,
                 get_entitlements::GetEntitlements,
             },
         },
@@ -114,6 +115,7 @@ mod private {
     impl Sealed for AddGuildMember<'_> {}
     impl Sealed for AddRoleToMember<'_> {}
     impl Sealed for AddThreadMember<'_> {}
+    impl Sealed for ConsumeEntitlement<'_> {}
     impl Sealed for CreateAutoModerationRule<'_> {}
     impl Sealed for CreateBan<'_> {}
     impl Sealed for CreateEmoji<'_> {}
@@ -205,6 +207,7 @@ mod private {
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
     impl Sealed for GetEntitlements<'_> {}
+    impl Sealed for GetEntitlement<'_> {}
     impl Sealed for GetFollowup<'_> {}
     impl Sealed for GetGateway<'_> {}
     impl Sealed for GetGatewayAuthed<'_> {}
@@ -247,6 +250,8 @@ mod private {
     impl Sealed for GetResponse<'_> {}
     impl Sealed for GetRole<'_> {}
     impl Sealed for GetSKUs<'_> {}
+    impl Sealed for GetSKUSubscriptions<'_> {}
+    impl Sealed for GetSKUSubscription<'_> {}
     impl Sealed for GetStageInstance<'_> {}
     impl Sealed for GetSticker<'_> {}
     impl Sealed for GetTemplate<'_> {}
