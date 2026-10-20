@@ -96,7 +96,7 @@ mod private {
             CreateGuildVoiceScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
             GetGuildScheduledEventUsers, GetGuildScheduledEvents, UpdateGuildScheduledEvent,
         },
-        sticker::{GetNitroStickerPacks, GetSticker},
+        sticker::{GetNitroStickerPacks, GetSticker, GetStickerPack},
         template::{
             CreateGuildFromTemplate, CreateTemplate, DeleteTemplate, GetTemplate, GetTemplates,
             SyncTemplate, UpdateTemplate,
@@ -254,6 +254,7 @@ mod private {
     impl Sealed for GetSKUSubscriptions<'_> {}
     impl Sealed for GetSKUSubscription<'_> {}
     impl Sealed for GetStageInstance<'_> {}
+    impl Sealed for GetStickerPack<'_> {}
     impl Sealed for GetSticker<'_> {}
     impl Sealed for GetTemplate<'_> {}
     impl Sealed for GetTemplates<'_> {}

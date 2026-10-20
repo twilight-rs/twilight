@@ -20,6 +20,7 @@ use crate::request::{
         ban::BulkGuildBan,
         user::{GetCurrentUserVoiceState, GetUserVoiceState},
     },
+    sticker::GetStickerPack,
 };
 #[allow(deprecated)]
 use crate::{
@@ -131,8 +132,8 @@ use twilight_model::{
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
             EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            ScheduledEventMarker, SkuMarker, StickerMarker, SubscriptionMarker, UserMarker,
-            WebhookMarker,
+            ScheduledEventMarker, SkuMarker, StickerMarker, StickerPackMarker, SubscriptionMarker,
+            UserMarker, WebhookMarker,
         },
     },
 };
@@ -2512,6 +2513,11 @@ impl Client {
     /// ```
     pub const fn nitro_sticker_packs(&self) -> GetNitroStickerPacks<'_> {
         GetNitroStickerPacks::new(self)
+    }
+
+    /// Get information about a sticker pack and its stickers.
+    pub const fn sticker_pack(&self, sticker_pack_id: Id<StickerPackMarker>) -> GetStickerPack<'_> {
+        GetStickerPack::new(self, sticker_pack_id)
     }
 
     /// Returns a list of stickers in a guild.
