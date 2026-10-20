@@ -36,6 +36,8 @@ bitflags! {
         const SUPPRESS_NOTIFICATIONS = 1 << 12;
         /// This message is a voice message.
         const IS_VOICE_MESSAGE = 1 << 13;
+        /// This message has a snapshot (via Message Forwarding).
+        const HAS_SNAPSHOT = 1 << 14;
         /// This flag is required to use the components v2 components.
         const IS_COMPONENTS_V2 = 1 << 15;
     }
@@ -110,6 +112,9 @@ mod tests {
         1 << 8
     );
     const_assert_eq!(MessageFlags::SUPPRESS_NOTIFICATIONS.bits(), 1 << 12);
+    const_assert_eq!(MessageFlags::IS_VOICE_MESSAGE.bits(), 1 << 13);
+    const_assert_eq!(MessageFlags::HAS_SNAPSHOT.bits(), 1 << 14);
+    const_assert_eq!(MessageFlags::IS_COMPONENTS_V2.bits(), 1 << 15);
 
     #[test]
     fn serde() {
