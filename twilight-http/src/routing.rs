@@ -747,6 +747,9 @@ pub enum Route<'a> {
         guild_id: u64,
     },
     /// Route information to get a paginated list of guilds.
+    ///
+    /// If the application uses Large Bot Sharding then the `shard` field is
+    /// required.
     GetGuilds {
         /// The minimum ID of guilds to get.
         after: Option<u64>,
@@ -754,6 +757,12 @@ pub enum Route<'a> {
         before: Option<u64>,
         /// The maximum number of guilds to get.
         limit: Option<u16>,
+        /// Set the shard to return guilds for. Mandatory for applications using
+        /// Large Bot Sharding.
+        ///
+        /// This is a value of 0 to `max_concurrency` - 1. By default this
+        /// parameter is absent.
+        shard: Option<u64>,
     },
     /// Route information to get an original interaction response message.
     GetInteractionOriginal {
@@ -2509,6 +2518,7 @@ impl Display for Route<'_> {
                 after,
                 before,
                 limit,
+                shard,
             } => {
                 f.write_str("users/@me/guilds")?;
 
@@ -2516,7 +2526,8 @@ impl Display for Route<'_> {
 
                 query_formatter.write_opt_param("after", after.as_ref())?;
                 query_formatter.write_opt_param("before", before.as_ref())?;
-                query_formatter.write_opt_param("limit", limit.as_ref())
+                query_formatter.write_opt_param("limit", limit.as_ref())?;
+                query_formatter.write_opt_param("shard", shard.as_ref())
             }
             Route::GetInvite { code, with_counts } => {
                 f.write_str("invites/")?;
