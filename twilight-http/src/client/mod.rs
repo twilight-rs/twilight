@@ -33,7 +33,7 @@ use crate::{
         channel::{
             CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission, DeletePin,
             FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
-            invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
+            invite::{CreateChannelInvite, GetChannelInvites},
             message::{
                 CreateMessage, CrosspostMessage, DeleteMessage, DeleteMessages, GetChannelMessages,
                 GetMessage, UpdateMessage,
@@ -86,6 +86,7 @@ use crate::{
             update_guild_onboarding::{UpdateGuildOnboarding, UpdateGuildOnboardingFields},
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
         },
+        invite::{DeleteInvite, GetInvite},
         poll::{EndPoll, GetAnswerVoters},
         scheduled_event::{
             CreateGuildScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
@@ -1429,7 +1430,7 @@ impl Client {
         GetInvite::new(self, code)
     }
 
-    /// Create an invite, with options.
+    /// Create a channel invite, with options.
     ///
     /// Requires the [`CREATE_INVITE`] permission.
     ///
@@ -1449,8 +1450,37 @@ impl Client {
     /// ```
     ///
     /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
-    pub const fn create_invite(&self, channel_id: Id<ChannelMarker>) -> CreateInvite<'_> {
-        CreateInvite::new(self, channel_id)
+    #[deprecated(since = "0.17.2", note = "use `Client::create_channel_invite`")]
+    #[doc(hidden)]
+    pub const fn create_invite(&self, channel_id: Id<ChannelMarker>) -> CreateChannelInvite<'_> {
+        CreateChannelInvite::new(self, channel_id)
+    }
+
+    /// Create a channel invite, with options.
+    ///
+    /// Requires the [`CREATE_INVITE`] permission.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::Id;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token".to_owned());
+    /// #
+    /// let channel_id = Id::new(123);
+    /// let invite = client.create_channel_invite(channel_id).max_uses(3).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
+    pub const fn create_channel_invite(
+        &self,
+        channel_id: Id<ChannelMarker>,
+    ) -> CreateChannelInvite<'_> {
+        CreateChannelInvite::new(self, channel_id)
     }
 
     /// Delete an invite by its code.
