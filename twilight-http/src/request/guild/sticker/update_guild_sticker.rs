@@ -24,8 +24,11 @@ use twilight_validate::{
 
 #[derive(Serialize)]
 struct UpdateGuildStickerFields<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     tags: Option<&'a str>,
 }
 
