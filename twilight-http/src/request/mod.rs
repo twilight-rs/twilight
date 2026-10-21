@@ -44,6 +44,7 @@ pub mod application;
 pub mod attachment;
 pub mod channel;
 pub mod guild;
+pub mod path;
 pub mod poll;
 pub mod scheduled_event;
 pub mod sticker;
@@ -58,6 +59,7 @@ mod get_gateway_authed;
 mod get_user_application;
 mod get_voice_regions;
 mod multipart;
+mod route;
 mod try_into_request;
 mod update_user_application;
 
