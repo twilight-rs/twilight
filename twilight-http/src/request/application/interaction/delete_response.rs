@@ -1,14 +1,13 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::ApplicationMarker};
 
-struct DeleteResponsePath<'a> {
+pub(in crate::request) struct DeleteResponsePath<'a> {
     application_id: Id<ApplicationMarker>,
     token: &'a str,
 }
@@ -72,14 +71,28 @@ impl IntoFuture for DeleteResponse<'_> {
     }
 }
 
+impl<'a> Route for DeleteResponse<'a> {
+    type Fields = DeleteResponsePath<'a>;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("webhooks")
+            .id(fields.application_id)
+            .no_resource()
+            .string_id(fields.token)
+            .resource("messages")
+            .string_id("@original")
+            .build()
+    }
+}
+
 impl TryIntoRequest for DeleteResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::DeleteInteractionOriginal {
-            application_id: self.path.application_id.get(),
-            interaction_token: self.path.token,
-        })
-        .use_authorization_token(false)
-        .build()
+        Request::builder_new::<Self>(self.path)
+            .use_authorization_token(false)
+            .build()
     }
 }
 

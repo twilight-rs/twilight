@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -27,7 +26,7 @@ struct UpdateGlobalCommandBody<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
-struct UpdateGlobalCommandPath {
+pub(in crate::request) struct UpdateGlobalCommandPath {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
 }
@@ -110,13 +109,25 @@ impl IntoFuture for UpdateGlobalCommand<'_> {
     }
 }
 
+impl Route for UpdateGlobalCommand<'_> {
+    type Fields = UpdateGlobalCommandPath;
+
+    const METHOD: Method = Method::Patch;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for UpdateGlobalCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateGlobalCommand {
-            application_id: self.path.application_id.get(),
-            command_id: self.path.command_id.get(),
-        })
-        .json(&self.body)
-        .build()
+        Request::builder_new::<Self>(self.path)
+            .json(&self.body)
+            .build()
     }
 }

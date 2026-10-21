@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -14,7 +13,7 @@ use twilight_model::{
     },
 };
 
-struct GetFollowupPath<'a> {
+pub(in crate::request) struct GetFollowupPath<'a> {
     application_id: Id<ApplicationMarker>,
     interaction_token: &'a str,
     message_id: Id<MessageMarker>,
@@ -81,26 +80,37 @@ impl IntoFuture for GetFollowup<'_> {
     }
 }
 
+impl<'a> Route for GetFollowup<'a> {
+    type Fields = GetFollowupPath<'a>;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("webhooks")
+            .id(fields.application_id)
+            .no_resource()
+            .string_id(fields.interaction_token)
+            .resource("messages")
+            .id(fields.message_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::GetFollowupMessage {
-            application_id: self.path.application_id.get(),
-            interaction_token: self.path.interaction_token,
-            thread_id: None,
-            message_id: self.path.message_id.get(),
-        })
-        .use_authorization_token(false)
-        .build()
+        Request::builder_new::<Self>(self.path)
+            .use_authorization_token(false)
+            .build()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::GetFollowup;
+    use super::{GetFollowup, GetFollowupPath};
     use crate::{
         client::Client,
         request::{Request, TryIntoRequest},
-        routing::Route,
     };
     use static_assertions::assert_impl_all;
     use std::error::Error;
@@ -123,11 +133,10 @@ mod tests {
             .interaction(APPLICATION_ID)
             .followup(TOKEN, MESSAGE_ID)
             .try_into_request()?;
-        let expected = Request::builder(&Route::GetFollowupMessage {
-            application_id: APPLICATION_ID.get(),
+        let expected = Request::builder_new::<GetFollowup>(GetFollowupPath {
+            application_id: APPLICATION_ID,
             interaction_token: TOKEN,
-            thread_id: None,
-            message_id: MESSAGE_ID.get(),
+            message_id: MESSAGE_ID,
         })
         .use_authorization_token(false)
         .build()?;

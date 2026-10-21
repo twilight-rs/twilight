@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -11,7 +10,7 @@ use twilight_model::{
     id::{Id, marker::ApplicationMarker},
 };
 
-struct GetResponsePath<'a> {
+pub(in crate::request) struct GetResponsePath<'a> {
     application_id: Id<ApplicationMarker>,
     token: &'a str,
 }
@@ -75,14 +74,28 @@ impl IntoFuture for GetResponse<'_> {
     }
 }
 
+impl<'a> Route for GetResponse<'a> {
+    type Fields = GetResponsePath<'a>;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("webhooks")
+            .id(fields.application_id)
+            .no_resource()
+            .string_id(fields.token)
+            .resource("messages")
+            .string_id("@original")
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::GetInteractionOriginal {
-            application_id: self.path.application_id.get(),
-            interaction_token: self.path.token,
-        })
-        .use_authorization_token(false)
-        .build()
+        Request::builder_new::<Self>(self.path)
+            .use_authorization_token(false)
+            .build()
     }
 }
 

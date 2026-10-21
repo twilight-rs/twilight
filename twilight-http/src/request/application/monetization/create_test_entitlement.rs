@@ -11,9 +11,8 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::ResponseFuture,
-    routing::Route,
 };
 
 /// Owner of a test entitlement.
@@ -56,7 +55,7 @@ impl Serialize for CreateTestEntitlementBody {
     }
 }
 
-struct CreateTestEntitlementPath {
+pub(in crate::request) struct CreateTestEntitlementPath {
     application_id: Id<ApplicationMarker>,
 }
 
@@ -96,13 +95,25 @@ impl IntoFuture for CreateTestEntitlement<'_> {
     }
 }
 
+impl Route for CreateTestEntitlement<'_> {
+    type Fields = CreateTestEntitlementPath;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("entitlements")
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreateTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::CreateTestEntitlement {
-            application_id: self.path.application_id.get(),
-        })
-        .json(&self.body)
-        .build()
+        Request::builder_new::<Self>(self.path)
+            .json(&self.body)
+            .build()
     }
 }
 

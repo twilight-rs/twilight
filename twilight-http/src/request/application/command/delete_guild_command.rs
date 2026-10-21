@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
@@ -12,7 +11,7 @@ use twilight_model::id::{
 };
 
 #[expect(clippy::struct_field_names)]
-struct DeleteGuildCommandPath {
+pub(in crate::request) struct DeleteGuildCommandPath {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,
@@ -58,12 +57,25 @@ impl IntoFuture for DeleteGuildCommand<'_> {
     }
 }
 
+impl Route for DeleteGuildCommand<'_> {
+    type Fields = DeleteGuildCommandPath;
+
+    const METHOD: Method = Method::Delete;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("commands")
+            .id(fields.command_id)
+            .build()
+    }
+}
+
 impl TryIntoRequest for DeleteGuildCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteGuildCommand {
-            application_id: self.path.application_id.get(),
-            command_id: self.path.command_id.get(),
-            guild_id: self.path.guild_id.get(),
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

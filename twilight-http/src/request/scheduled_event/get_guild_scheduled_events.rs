@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -11,7 +10,7 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
-struct GetGuildScheduledEventsPath {
+pub(in crate::request) struct GetGuildScheduledEventsPath {
     guild_id: Id<GuildMarker>,
     with_user_count: bool,
 }
@@ -57,11 +56,27 @@ impl IntoFuture for GetGuildScheduledEvents<'_> {
     }
 }
 
+impl Route for GetGuildScheduledEvents<'_> {
+    type Fields = GetGuildScheduledEventsPath;
+
+    const METHOD: Method = Method::Get;
+
+    fn path(fields: Self::Fields) -> Path {
+        let builder = Path::builder()
+            .resource("guilds")
+            .id(fields.guild_id)
+            .resource("scheduled-events");
+
+        if fields.with_user_count {
+            builder.parameter(("with_user_count", true)).build()
+        } else {
+            builder.build()
+        }
+    }
+}
+
 impl TryIntoRequest for GetGuildScheduledEvents<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetGuildScheduledEvents {
-            guild_id: self.path.guild_id.get(),
-            with_user_count: self.path.with_user_count,
-        }))
+        Ok(Request::from_route_new::<Self>(self.path))
     }
 }

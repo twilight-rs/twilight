@@ -2,9 +2,8 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::{collections::HashMap, future::IntoFuture};
 use twilight_model::{
@@ -22,7 +21,7 @@ struct CreateGlobalUserCommandBody<'a> {
     nsfw: Option<bool>,
 }
 
-struct CreateGlobalUserCommandPath {
+pub(in crate::request) struct CreateGlobalUserCommandPath {
     application_id: Id<ApplicationMarker>,
 }
 
@@ -138,25 +137,38 @@ impl IntoFuture for CreateGlobalUserCommand<'_> {
     }
 }
 
+impl Route for CreateGlobalUserCommand<'_> {
+    type Fields = CreateGlobalUserCommandPath;
+
+    const METHOD: Method = Method::Post;
+
+    fn path(fields: Self::Fields) -> Path {
+        Path::builder()
+            .resource("applications")
+            .id(fields.application_id)
+            .resource("commands")
+            .build()
+    }
+}
+
 impl TryIntoRequest for CreateGlobalUserCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
+        let application_id = self.path.application_id;
 
-        Request::builder(&Route::CreateGlobalCommand {
-            application_id: self.path.application_id.get(),
-        })
-        .json(&CommandBorrowed {
-            application_id: Some(self.path.application_id),
-            default_member_permissions: body.default_member_permissions,
-            dm_permission: body.dm_permission,
-            description: None,
-            description_localizations: None,
-            kind: CommandType::User,
-            name: body.name,
-            name_localizations: body.name_localizations,
-            nsfw: body.nsfw,
-            options: None,
-        })
-        .build()
+        Request::builder_new::<Self>(self.path)
+            .json(&CommandBorrowed {
+                application_id: Some(application_id),
+                default_member_permissions: body.default_member_permissions,
+                dm_permission: body.dm_permission,
+                description: None,
+                description_localizations: None,
+                kind: CommandType::User,
+                name: body.name,
+                name_localizations: body.name_localizations,
+                nsfw: body.nsfw,
+                options: None,
+            })
+            .build()
     }
 }

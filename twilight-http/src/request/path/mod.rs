@@ -26,12 +26,12 @@ use std::fmt::{Display, Error as FmtError, Formatter};
 /// # Examples
 ///
 /// ```rust
-/// use twilight_http::request::Path;
-/// use twilight_model::id::Id;
+/// use twilight_http::request::path::Path;
+/// use twilight_model::id::{Id, marker::ChannelMarker};
 ///
 /// let path = Path::builder()
 ///     .resource("channels")
-///     .id(Id::new(1))
+///     .id(Id::<ChannelMarker>::new(1))
 ///     .build();
 ///
 /// // The Path can be retrieved as a string slice

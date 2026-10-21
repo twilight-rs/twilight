@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Path, Request, Route, TryIntoRequest},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::user::Connection;
@@ -37,8 +36,22 @@ impl IntoFuture for GetCurrentUserConnections<'_> {
     }
 }
 
+impl Route for GetCurrentUserConnections<'_> {
+    type Fields = ();
+
+    const METHOD: Method = Method::Get;
+
+    fn path(_: Self::Fields) -> Path {
+        Path::builder()
+            .resource("users")
+            .me()
+            .resource("connections")
+            .build()
+    }
+}
+
 impl TryIntoRequest for GetCurrentUserConnections<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetUserConnections))
+        Ok(Request::from_route_new::<Self>(()))
     }
 }

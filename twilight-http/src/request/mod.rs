@@ -77,6 +77,7 @@ pub use self::{
 };
 pub use twilight_http_ratelimiting::Method;
 
+use self::{path::Path, route::Route};
 use crate::error::{Error, ErrorType};
 use http::header::{HeaderName, HeaderValue};
 use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};

@@ -4,7 +4,6 @@ use super::{Method, path::Path};
 ///
 /// All request builders must implement route information in order to be used
 /// with Twilight's HTTP client.
-#[expect(dead_code)]
 pub(super) trait Route {
     /// HTTP path and query parameter fields to be passed to [`path`].
     ///
