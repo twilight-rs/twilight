@@ -77,10 +77,10 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
     ) {
         let id = (guild_id, user_id);
 
-        let (avatar, deaf, mute) = match self.members.get(&id) {
+        let (avatar, banner, deaf, mute) = match self.members.get(&id) {
             Some(m) if &*m == member => return,
-            Some(m) => (m.avatar(), m.deaf(), m.mute()),
-            None => (None, None, None),
+            Some(m) => (m.avatar(), m.banner(), m.deaf(), m.mute()),
+            None => (None, None, None, None),
         };
 
         self.guild_members
@@ -90,6 +90,7 @@ impl<CacheModels: CacheableModels> InMemoryCache<CacheModels> {
 
         let cached = CacheModels::Member::from(ComputedInteractionMember {
             avatar,
+            banner,
             deaf,
             interaction_member: member.clone(),
             mute,
@@ -324,6 +325,7 @@ mod tests {
         // Test that a member update also updates the user.
         cache.update(&MemberUpdate {
             avatar: None,
+            banner: None,
             communication_disabled_until: None,
             guild_id,
             flags: None,
