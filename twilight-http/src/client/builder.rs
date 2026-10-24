@@ -15,12 +15,25 @@ use twilight_model::channel::message::AllowedMentions;
 pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Box<str>>,
-    ratelimiter: Option<RateLimiter>,
+    ratelimiter: Option<RatelimiterConfiguration>,
     remember_invalid_token: bool,
     pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
     pub(super) token: Option<Token>,
     pub(crate) use_http: bool,
+}
+
+/// Ratelimiter configured on a [`ClientBuilder`].
+///
+/// Creating a [`RateLimiter`] requires a Tokio runtime. By delaying
+/// instantiating one until the user calls [`ClientBuilder::build`], a user can
+/// disable it by passing `None` to [`ClientBuilder::ratelimiter`], which
+/// removes the need for a Tokio runtime. This is useful when the client is
+/// only used for building requests but not sending them.
+#[derive(Debug)]
+enum RatelimiterConfiguration {
+    Defined(RateLimiter),
+    Undefined,
 }
 
 impl ClientBuilder {
@@ -42,11 +55,16 @@ impl ClientBuilder {
             None
         };
 
+        let ratelimiter = self.ratelimiter.map(|rc| match rc {
+            RatelimiterConfiguration::Defined(r) => r,
+            RatelimiterConfiguration::Undefined => RateLimiter::default(),
+        });
+
         Client {
             http,
             default_headers: self.default_headers,
             proxy: self.proxy,
-            ratelimiter: self.ratelimiter,
+            ratelimiter,
             timeout: self.timeout,
             token_invalidated,
             token: self.token,
@@ -99,7 +117,7 @@ impl ClientBuilder {
     /// [`ClientBuilder::build`].
     #[allow(clippy::missing_const_for_fn)]
     pub fn ratelimiter(mut self, ratelimiter: Option<RateLimiter>) -> Self {
-        self.ratelimiter = ratelimiter;
+        self.ratelimiter = ratelimiter.map(RatelimiterConfiguration::Defined);
 
         self
     }
@@ -156,7 +174,7 @@ impl Default for ClientBuilder {
             default_allowed_mentions: None,
             default_headers: None,
             proxy: None,
-            ratelimiter: (!cfg!(test)).then(RateLimiter::default),
+            ratelimiter: (!cfg!(test)).then_some(RatelimiterConfiguration::Undefined),
             remember_invalid_token: true,
             timeout: Duration::from_secs(10),
             token: None,
