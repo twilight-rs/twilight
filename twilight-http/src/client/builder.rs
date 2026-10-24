@@ -156,7 +156,7 @@ impl Default for ClientBuilder {
             default_allowed_mentions: None,
             default_headers: None,
             proxy: None,
-            ratelimiter: (!cfg!(test)).then(RateLimiter::default),
+            ratelimiter: (!cfg!(test) && !cfg!(target_os = "wasi")).then(RateLimiter::default),
             remember_invalid_token: true,
             timeout: Duration::from_secs(10),
             token: None,
