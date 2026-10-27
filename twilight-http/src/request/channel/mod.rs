@@ -1,6 +1,7 @@
 pub mod invite;
 pub mod message;
 pub mod reaction;
+pub mod recipient;
 pub mod stage;
 pub mod thread;
 pub mod webhook;

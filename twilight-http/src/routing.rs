@@ -18,6 +18,11 @@ pub enum Route<'a> {
         /// The ID of the application.
         application_id: u64,
     },
+    /// Route information to add a recipient to a group DM channel.
+    AddGroupDMRecipient {
+        channel_id: u64,
+        user_id: u64,
+    },
     /// Route information to add a user to a guild.
     AddGuildMember {
         guild_id: u64,
@@ -1015,6 +1020,11 @@ pub enum Route<'a> {
         /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to remove a recipient from a group DM channel.
+    RemoveGroupDMRecipient {
+        channel_id: u64,
+        user_id: u64,
+    },
     /// Route information to remove a member from a guild.
     RemoveMember {
         /// The ID of the guild.
@@ -1318,6 +1328,7 @@ impl Route<'_> {
             | Self::DeleteWebhook { .. }
             | Self::LeaveGuild { .. }
             | Self::LeaveThread { .. }
+            | Self::RemoveGroupDMRecipient { .. }
             | Self::RemoveMember { .. }
             | Self::RemoveMemberRole { .. }
             | Self::RemoveThreadMember { .. }
@@ -1467,7 +1478,8 @@ impl Route<'_> {
             | Self::FollowNewsChannel { .. }
             | Self::InteractionCallback { .. }
             | Self::SyncGuildIntegration { .. } => Method::Post,
-            Self::AddGuildMember { .. }
+            Self::AddGroupDMRecipient { .. }
+            | Self::AddGuildMember { .. }
             | Self::AddMemberRole { .. }
             | Self::AddThreadMember { .. }
             | Self::CreateBan { .. }
@@ -1527,6 +1539,20 @@ impl Display for Route<'_> {
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
+            Route::AddGroupDMRecipient {
+                channel_id,
+                user_id,
+            }
+            | Route::RemoveGroupDMRecipient {
+                channel_id,
+                user_id,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/recipients/")?;
+
+                Display::fmt(user_id, f)
+            }
             Route::AddGuildMember { guild_id, user_id }
             | Route::GetMember { guild_id, user_id }
             | Route::RemoveMember { guild_id, user_id }
@@ -4773,6 +4799,32 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("skus/{SKU_ID}/subscriptions/{SUBSCRIPTION_ID}")
+        );
+    }
+
+    #[test]
+    fn add_channel_recipient() {
+        let route = Route::AddGroupDMRecipient {
+            channel_id: CHANNEL_ID,
+            user_id: USER_ID,
+        };
+        assert_eq!(Method::Put, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("channels/{CHANNEL_ID}/recipients/{USER_ID}")
+        );
+    }
+
+    #[test]
+    fn remove_channel_recipient() {
+        let route = Route::RemoveGroupDMRecipient {
+            channel_id: CHANNEL_ID,
+            user_id: USER_ID,
+        };
+        assert_eq!(Method::Delete, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("channels/{CHANNEL_ID}/recipients/{USER_ID}")
         );
     }
 }
