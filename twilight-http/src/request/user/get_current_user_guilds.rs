@@ -18,6 +18,7 @@ struct GetCurrentUserGuildsFields {
     after: Option<Id<GuildMarker>>,
     before: Option<Id<GuildMarker>>,
     limit: Option<u16>,
+    shard: Option<u64>,
 }
 
 /// Returns a list of guilds for the current user.
@@ -58,6 +59,7 @@ impl<'a> GetCurrentUserGuilds<'a> {
                 after: None,
                 before: None,
                 limit: None,
+                shard: None,
             }),
             http,
         }
@@ -103,6 +105,19 @@ impl<'a> GetCurrentUserGuilds<'a> {
 
         self
     }
+
+    /// Set the shard to return guilds for. Mandatory for applications using
+    /// Large Bot Sharding.
+    ///
+    /// This is a value of 0 to `max_concurrency` - 1. By default this parameter
+    /// is absent.
+    pub const fn shard(mut self, shard: u64) -> Self {
+        if let Ok(fields) = self.fields.as_mut() {
+            fields.shard = Some(shard);
+        }
+
+        self
+    }
 }
 
 impl IntoFuture for GetCurrentUserGuilds<'_> {
@@ -128,6 +143,7 @@ impl TryIntoRequest for GetCurrentUserGuilds<'_> {
             after: fields.after.map(Id::get),
             before: fields.before.map(Id::get),
             limit: fields.limit,
+            shard: fields.shard,
         }))
     }
 }
