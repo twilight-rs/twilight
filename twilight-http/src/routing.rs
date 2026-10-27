@@ -44,6 +44,18 @@ pub enum Route<'a> {
         /// ID of the member.
         user_id: u64,
     },
+    /// Route information to ban users from a guild in bulk.
+    BulkGuildBan {
+        guild_id: u64,
+    },
+    /// Mark a given One-Time Purchase consumable SKU for a given entitlement
+    /// for the user as consumed.
+    ConsumeEntitlement {
+        /// ID of the application.
+        application_id: u64,
+        /// ID of the entitlement.
+        entitlement_id: u64,
+    },
     /// Route information to create an auto moderation rule.
     CreateAutoModerationRule {
         /// ID of the guild.
@@ -545,6 +557,12 @@ pub enum Route<'a> {
         /// User ID to look up entitlements for.
         user_id: Option<u64>,
     },
+    GetEntitlement {
+        /// ID of the application.
+        application_id: u64,
+        /// ID of the entitlement.
+        entitlement_id: u64,
+    },
     /// Route to get a followup message for an interaction.
     GetFollowupMessage {
         /// ID of the application.
@@ -738,6 +756,9 @@ pub enum Route<'a> {
         guild_id: u64,
     },
     /// Route information to get a paginated list of guilds.
+    ///
+    /// If the application uses Large Bot Sharding then the `shard` field is
+    /// required.
     GetGuilds {
         /// The minimum ID of guilds to get.
         after: Option<u64>,
@@ -745,6 +766,12 @@ pub enum Route<'a> {
         before: Option<u64>,
         /// The maximum number of guilds to get.
         limit: Option<u16>,
+        /// Set the shard to return guilds for. Mandatory for applications using
+        /// Large Bot Sharding.
+        ///
+        /// This is a value of 0 to `max_concurrency` - 1. By default this
+        /// parameter is absent.
+        shard: Option<u64>,
     },
     /// Route information to get an original interaction response message.
     GetInteractionOriginal {
@@ -884,6 +911,11 @@ pub enum Route<'a> {
     GetStageInstance {
         /// ID of the stage channel.
         channel_id: u64,
+    },
+    /// Route information to get a sticker pack.
+    GetStickerPack {
+        /// ID of the sticker pack.
+        sticker_pack_id: u64,
     },
     /// Route information to get a sticker.
     GetSticker {
@@ -1371,6 +1403,7 @@ impl Route<'_> {
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetEntitlements { .. }
+            | Self::GetEntitlement { .. }
             | Self::GetGateway
             | Self::GetFollowupMessage { .. }
             | Self::GetGlobalCommand { .. }
@@ -1417,6 +1450,7 @@ impl Route<'_> {
             | Self::GetSKUSubscriptions { .. }
             | Self::GetSKUSubscription { .. }
             | Self::GetStageInstance { .. }
+            | Self::GetStickerPack { .. }
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
             | Self::GetTemplates { .. }
@@ -1462,6 +1496,8 @@ impl Route<'_> {
             | Self::UpdateWebhook { .. } => Method::Patch,
             Self::CreateChannel { .. }
             | Self::AddApplicationEmoji { .. }
+            | Self::BulkGuildBan { .. }
+            | Self::ConsumeEntitlement { .. }
             | Self::CreateGlobalCommand { .. }
             | Self::CreateGuildCommand { .. }
             | Self::CreateEmoji { .. }
@@ -1596,6 +1632,23 @@ impl Display for Route<'_> {
                 f.write_str("/thread-members/")?;
 
                 Display::fmt(user_id, f)
+            }
+            Route::BulkGuildBan { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/bulk-ban")
+            }
+            Route::ConsumeEntitlement {
+                application_id,
+                entitlement_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements/")?;
+                Display::fmt(entitlement_id, f)?;
+
+                f.write_str("/consume")
             }
             Route::CreateAutoModerationRule { guild_id, .. }
             | Route::GetGuildAutoModerationRules { guild_id, .. } => {
@@ -1948,6 +2001,20 @@ impl Display for Route<'_> {
 
                 Ok(())
             }
+            Route::GetEntitlement {
+                application_id,
+                entitlement_id,
+            }
+            | Route::DeleteTestEntitlement {
+                application_id,
+                entitlement_id,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/entitlements/")?;
+
+                Display::fmt(entitlement_id, f)
+            }
             Route::DeleteGlobalCommand {
                 application_id,
                 command_id,
@@ -2220,16 +2287,6 @@ impl Display for Route<'_> {
                 query_formatter.write_opt_param("thread_id", thread_id.as_ref())?;
                 query_formatter.write_opt_param("wait", wait.as_ref())?;
                 query_formatter.write_opt_param("with_components", with_components.as_ref())
-            }
-            Route::DeleteTestEntitlement {
-                application_id,
-                entitlement_id,
-            } => {
-                f.write_str("applications/")?;
-                Display::fmt(application_id, f)?;
-                f.write_str("/entitlements/")?;
-
-                Display::fmt(entitlement_id, f)
             }
             Route::FollowNewsChannel { channel_id } => {
                 f.write_str("channels/")?;
@@ -2538,6 +2595,7 @@ impl Display for Route<'_> {
                 after,
                 before,
                 limit,
+                shard,
             } => {
                 f.write_str("users/@me/guilds")?;
 
@@ -2545,7 +2603,8 @@ impl Display for Route<'_> {
 
                 query_formatter.write_opt_param("after", after.as_ref())?;
                 query_formatter.write_opt_param("before", before.as_ref())?;
-                query_formatter.write_opt_param("limit", limit.as_ref())
+                query_formatter.write_opt_param("limit", limit.as_ref())?;
+                query_formatter.write_opt_param("shard", shard.as_ref())
             }
             Route::GetInvite { code, with_counts } => {
                 f.write_str("invites/")?;
@@ -2675,6 +2734,11 @@ impl Display for Route<'_> {
                 query_formatter.write_opt_param("after", after.as_ref())?;
                 query_formatter.write_opt_param("limit", limit.as_ref())?;
                 query_formatter.write_opt_param("type", kind.as_ref())
+            }
+            Route::GetStickerPack { sticker_pack_id } => {
+                f.write_str("sticker-packs/")?;
+
+                Display::fmt(sticker_pack_id, f)
             }
             Route::GetSticker { sticker_id } => {
                 f.write_str("stickers/")?;
@@ -3054,8 +3118,10 @@ mod tests {
     const USER_ID: u64 = 11;
     const SCHEDULED_EVENT_ID: u64 = 12;
     const AUTO_MODERATION_RULE_ID: u64 = 13;
+    const STICKER_PACK_ID: u64 = 14;
     const SKU_ID: u64 = 15;
     const SUBSCRIPTION_ID: u64 = 16;
+    const ENTITLEMENT_ID: u64 = 17;
 
     const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
@@ -4079,6 +4145,19 @@ mod tests {
     }
 
     #[test]
+    fn get_entitlement() {
+        let route = Route::GetEntitlement {
+            application_id: APPLICATION_ID,
+            entitlement_id: ENTITLEMENT_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("applications/{APPLICATION_ID}/entitlements/{ENTITLEMENT_ID}")
+        );
+        assert_eq!(Method::Get, route.method());
+    }
+
+    #[test]
     fn create_test_entitlement() {
         let route = Route::CreateTestEntitlement { application_id: 1 };
 
@@ -4291,6 +4370,18 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("channels/{CHANNEL_ID}/messages/pins")
+        );
+    }
+
+    #[test]
+    fn get_sticker_pack() {
+        let route = Route::GetStickerPack {
+            sticker_pack_id: STICKER_PACK_ID,
+        };
+        assert_eq!(Method::Get, route.method());
+        assert_eq!(
+            route.to_string(),
+            format!("sticker-packs/{STICKER_PACK_ID}")
         );
     }
 
@@ -4931,6 +5022,19 @@ mod tests {
             route.to_string(),
             format!("applications/{APPLICATION_ID}/skus")
         );
+    }
+
+    #[test]
+    fn consume_entitlement() {
+        let route = Route::ConsumeEntitlement {
+            application_id: APPLICATION_ID,
+            entitlement_id: ENTITLEMENT_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("applications/{APPLICATION_ID}/entitlements/{ENTITLEMENT_ID}/consume")
+        );
+        assert_eq!(Method::Post, route.method());
     }
 
     #[test]

@@ -7,6 +7,8 @@ use serde::{
 bitflags! {
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct ApplicationFlags: u64 {
+        /// Indicates if an app uses the Auto Moderation API.
+        const APPLICATION_AUTO_MODERATION_RULE_CREATE_BADGE = 1 << 6;
         /// Intent required for bots in 100 guilds or more to receive
         /// [`PresenceUpdate`] events.
         ///
@@ -104,6 +106,10 @@ mod tests {
         SubAssign,
         Sync,
         UpperHex
+    );
+    const_assert_eq!(
+        ApplicationFlags::APPLICATION_AUTO_MODERATION_RULE_CREATE_BADGE.bits(),
+        1 << 6
     );
     const_assert_eq!(ApplicationFlags::GATEWAY_PRESENCE.bits(), 1 << 12);
     const_assert_eq!(ApplicationFlags::GATEWAY_PRESENCE_LIMITED.bits(), 1 << 13);

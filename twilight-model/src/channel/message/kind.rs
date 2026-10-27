@@ -78,6 +78,10 @@ pub enum MessageType {
     GuildIncidentReportRaid,
     /// System message denoting a false positive guild raid incident report.
     GuildIncidentReportRaidFalseAlarm,
+    /// Message is a purchase notification.
+    PurchaseNotification,
+    /// Message is a poll result.
+    PollResult,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -124,6 +128,8 @@ impl MessageType {
                 | Self::GuildIncidentAlertModeDisabled
                 | Self::GuildIncidentReportRaid
                 | Self::GuildIncidentReportRaidFalseAlarm
+                | Self::PurchaseNotification
+                | Self::PollResult
         )
     }
 
@@ -190,6 +196,8 @@ impl From<u8> for MessageType {
             37 => Self::GuildIncidentAlertModeDisabled,
             38 => Self::GuildIncidentReportRaid,
             39 => Self::GuildIncidentReportRaidFalseAlarm,
+            44 => Self::PurchaseNotification,
+            46 => Self::PollResult,
             unknown => Self::Unknown(unknown),
         }
     }
@@ -233,6 +241,8 @@ impl From<MessageType> for u8 {
             MessageType::GuildIncidentAlertModeDisabled => 37,
             MessageType::GuildIncidentReportRaid => 38,
             MessageType::GuildIncidentReportRaidFalseAlarm => 39,
+            MessageType::PurchaseNotification => 44,
+            MessageType::PollResult => 46,
             MessageType::Unknown(unknown) => unknown,
         }
     }
@@ -306,6 +316,8 @@ mod tests {
             (MessageType::GuildIncidentAlertModeDisabled, 37, true),
             (MessageType::GuildIncidentReportRaid, 38, true),
             (MessageType::GuildIncidentReportRaidFalseAlarm, 39, true),
+            (MessageType::PurchaseNotification, 44, true),
+            (MessageType::PollResult, 46, true),
         ];
 
         for (message_type, number, deletable) in MAP {

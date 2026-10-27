@@ -11,14 +11,17 @@ use crate::request::{
             UpdateApplicationEmoji,
         },
         monetization::{
-            CreateTestEntitlement, CreateTestEntitlementOwner, DeleteTestEntitlement,
-            GetEntitlements, GetSKUSubscription, GetSKUSubscriptions, GetSKUs,
+            ConsumeEntitlement, CreateTestEntitlement, CreateTestEntitlementOwner,
+            DeleteTestEntitlement, GetEntitlement, GetEntitlements, GetSKUSubscription,
+            GetSKUSubscriptions, GetSKUs,
         },
     },
     guild::{
+        ban::BulkGuildBan,
         message::search_guild_messages::SearchGuildMessages,
         user::{GetCurrentUserVoiceState, GetUserVoiceState},
     },
+    sticker::GetStickerPack,
 };
 #[allow(deprecated)]
 use crate::{
@@ -130,8 +133,8 @@ use twilight_model::{
         marker::{
             ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker,
             EntitlementMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            ScheduledEventMarker, SkuMarker, StickerMarker, SubscriptionMarker, UserMarker,
-            WebhookMarker,
+            ScheduledEventMarker, SkuMarker, StickerMarker, StickerPackMarker, SubscriptionMarker,
+            UserMarker, WebhookMarker,
         },
     },
 };
@@ -537,6 +540,45 @@ impl Client {
         DeleteBan::new(self, guild_id, user_id)
     }
 
+    /// Perform a bulk ban of users from a guild.
+    ///
+    /// Requires both the [`BAN_MEMBERS`] and [`MANAGE_GUILD`] permissions.
+    ///
+    /// # Examples
+    ///
+    /// Ban a list of users from a guild along with the last day's messages:
+    ///
+    /// ```no_run
+    /// use twilight_http::{Client, request::AuditLogReason};
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use twilight_model::id::marker::UserMarker;
+    /// # fn determine_users_to_ban() -> Vec<Id<UserMarker>> { Vec::new() }
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = Id::new(1);
+    /// let user_ids = determine_users_to_ban();
+    ///
+    /// client
+    ///     .bulk_guild_ban(guild_id, &user_ids)
+    ///     .delete_message_seconds(86_400)
+    ///     .reason("insulting my little pony")
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`BAN_MEMBERS`]: twilight_model::guild::Permissions::BAN_MEMBERS
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub fn bulk_guild_ban<'a>(
+        &'a self,
+        guild_id: Id<GuildMarker>,
+        user_ids: &'a [Id<UserMarker>],
+    ) -> BulkGuildBan<'a> {
+        BulkGuildBan::new(self, guild_id, user_ids)
+    }
+
     /// Get a channel by its ID.
     ///
     /// # Examples
@@ -849,6 +891,15 @@ impl Client {
     /// ```
     pub const fn entitlements(&self, application_id: Id<ApplicationMarker>) -> GetEntitlements<'_> {
         GetEntitlements::new(self, application_id)
+    }
+
+    /// Get an entitlement.
+    pub const fn entitlement(
+        &self,
+        application_id: Id<ApplicationMarker>,
+        entitlement_id: Id<EntitlementMarker>,
+    ) -> GetEntitlement<'_> {
+        GetEntitlement::new(self, application_id, entitlement_id)
     }
 
     /// Get an emoji for a guild by the the guild's ID and emoji's ID.
@@ -2482,6 +2533,11 @@ impl Client {
         GetNitroStickerPacks::new(self)
     }
 
+    /// Get information about a sticker pack and its stickers.
+    pub const fn sticker_pack(&self, sticker_pack_id: Id<StickerPackMarker>) -> GetStickerPack<'_> {
+        GetStickerPack::new(self, sticker_pack_id)
+    }
+
     /// Returns a list of stickers in a guild.
     ///
     /// # Examples
@@ -2675,6 +2731,18 @@ impl Client {
         owner: CreateTestEntitlementOwner,
     ) -> CreateTestEntitlement<'_> {
         CreateTestEntitlement::new(self, application_id, sku_id, owner)
+    }
+
+    /// For One-Time Purchase consumable SKUs, marks a given entitlement for the
+    /// user as consumed.
+    ///
+    /// The entitlement will have `consumed` as true when listing entitlements.
+    pub const fn consume_entitlement(
+        &self,
+        application_id: Id<ApplicationMarker>,
+        entitlement_id: Id<EntitlementMarker>,
+    ) -> ConsumeEntitlement<'_> {
+        ConsumeEntitlement::new(self, application_id, entitlement_id)
     }
 
     /// Ends a poll in a channel.
