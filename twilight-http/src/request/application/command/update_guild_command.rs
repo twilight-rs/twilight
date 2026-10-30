@@ -27,6 +27,13 @@ struct UpdateGuildCommandBody<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
+#[expect(clippy::struct_field_names)]
+struct UpdateGuildCommandPath {
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Edit a command in a guild, by ID.
 ///
 /// You must specify a name and description. See
@@ -36,10 +43,8 @@ struct UpdateGuildCommandBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildCommand<'a> {
     body: UpdateGuildCommandBody<'a>,
-    application_id: Id<ApplicationMarker>,
-    command_id: Id<CommandMarker>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: UpdateGuildCommandPath,
 }
 
 impl<'a> UpdateGuildCommand<'a> {
@@ -50,16 +55,18 @@ impl<'a> UpdateGuildCommand<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
             body: UpdateGuildCommandBody {
                 description: None,
                 name: None,
                 nsfw: None,
                 options: None,
             },
-            guild_id,
             http,
+            path: UpdateGuildCommandPath {
+                application_id,
+                command_id,
+                guild_id,
+            },
         }
     }
 
@@ -110,9 +117,9 @@ impl IntoFuture for UpdateGuildCommand<'_> {
 impl TryIntoRequest for UpdateGuildCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateGuildCommand {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
-            guild_id: self.guild_id.get(),
+            application_id: self.path.application_id.get(),
+            command_id: self.path.command_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&self.body)
         .build()

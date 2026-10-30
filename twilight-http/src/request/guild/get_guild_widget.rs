@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildWidgetPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get a guild's widget
 ///
 /// See [Discord Docs/Get Guild Widget].
@@ -18,13 +22,16 @@ use twilight_model::{
 /// [Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWidget<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetGuildWidgetPath,
     http: &'a Client,
 }
 
 impl<'a> GetGuildWidget<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetGuildWidgetPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -46,7 +53,7 @@ impl IntoFuture for GetGuildWidget<'_> {
 impl TryIntoRequest for GetGuildWidget<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildWidget {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

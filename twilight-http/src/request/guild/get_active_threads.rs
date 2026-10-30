@@ -11,19 +11,26 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetActiveThreadsPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Returns all active threads in the guild.
 ///
 /// Includes public and private threads. Threads are ordered by their ID in
 /// descending order.
 #[must_use = "requests must be configured and executed"]
 pub struct GetActiveThreads<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetActiveThreadsPath,
     http: &'a Client,
 }
 
 impl<'a> GetActiveThreads<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetActiveThreadsPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -45,7 +52,7 @@ impl IntoFuture for GetActiveThreads<'_> {
 impl TryIntoRequest for GetActiveThreads<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetActiveThreads {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

@@ -8,7 +8,8 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::guild::invite::Invite;
 
-struct GetInviteFields {
+struct GetInvitePath<'a> {
+    code: &'a str,
     with_counts: bool,
     with_expiration: bool,
 }
@@ -36,33 +37,32 @@ struct GetInviteFields {
 /// [`with_expiration`]: Self::with_expiration
 #[must_use = "requests must be configured and executed"]
 pub struct GetInvite<'a> {
-    code: &'a str,
-    fields: GetInviteFields,
     http: &'a Client,
+    path: GetInvitePath<'a>,
 }
 
 impl<'a> GetInvite<'a> {
     pub(crate) const fn new(http: &'a Client, code: &'a str) -> Self {
         Self {
-            code,
-            fields: GetInviteFields {
+            http,
+            path: GetInvitePath {
+                code,
                 with_counts: false,
                 with_expiration: false,
             },
-            http,
         }
     }
 
     /// Whether the invite returned should contain approximate member counts.
     pub const fn with_counts(mut self) -> Self {
-        self.fields.with_counts = true;
+        self.path.with_counts = true;
 
         self
     }
 
     /// Whether the invite returned should contain its expiration date.
     pub const fn with_expiration(mut self) -> Self {
-        self.fields.with_expiration = true;
+        self.path.with_expiration = true;
 
         self
     }
@@ -86,9 +86,9 @@ impl IntoFuture for GetInvite<'_> {
 impl TryIntoRequest for GetInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetInviteWithExpiration {
-            code: self.code,
-            with_counts: self.fields.with_counts,
-            with_expiration: self.fields.with_expiration,
+            code: self.path.code,
+            with_counts: self.path.with_counts,
+            with_expiration: self.path.with_expiration,
         }))
     }
 }

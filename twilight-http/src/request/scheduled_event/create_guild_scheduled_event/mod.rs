@@ -55,6 +55,10 @@ struct CreateGuildScheduledEventBody<'a> {
     scheduled_start_time: Option<&'a Timestamp>,
 }
 
+struct CreateGuildScheduledEventPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Create a scheduled event in a guild.
 ///
 /// Once a guild is selected, you must choose one of three event types to
@@ -120,9 +124,9 @@ struct CreateGuildScheduledEventBody<'a> {
 ///
 /// [Discord Docs/Create Guild Scheduled Event]: https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
 pub struct CreateGuildScheduledEvent<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
     body: Result<CreateGuildScheduledEventBody<'a>, ValidationError>,
+    path: CreateGuildScheduledEventPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -133,7 +137,6 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         privacy_level: PrivacyLevel,
     ) -> Self {
         Self {
-            guild_id,
             http,
             body: Ok(CreateGuildScheduledEventBody {
                 channel_id: None,
@@ -147,6 +150,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
                 scheduled_end_time: None,
                 scheduled_start_time: None,
             }),
+            path: CreateGuildScheduledEventPath { guild_id },
             reason: Ok(None),
         }
     }
@@ -247,7 +251,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGuildScheduledEvent {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&body)
         .build()

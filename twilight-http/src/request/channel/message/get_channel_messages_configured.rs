@@ -1,3 +1,4 @@
+use super::get_channel_messages::GetChannelMessagesPath;
 use crate::{
     client::Client,
     error::Error,
@@ -17,7 +18,11 @@ use twilight_validate::request::{
     ValidationError, get_channel_messages_limit as validate_get_channel_messages_limit,
 };
 
-struct GetChannelMessagesConfiguredFields {
+struct GetChannelMessagesConfiguredPath {
+    after: Option<Id<MessageMarker>>,
+    around: Option<Id<MessageMarker>>,
+    before: Option<Id<MessageMarker>>,
+    channel_id: Id<ChannelMarker>,
     limit: Option<u16>,
 }
 
@@ -30,30 +35,27 @@ struct GetChannelMessagesConfiguredFields {
 // set in combination.
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessagesConfigured<'a> {
-    after: Option<Id<MessageMarker>>,
-    around: Option<Id<MessageMarker>>,
-    before: Option<Id<MessageMarker>>,
-    channel_id: Id<ChannelMarker>,
-    fields: Result<GetChannelMessagesConfiguredFields, ValidationError>,
     http: &'a Client,
+    path: Result<GetChannelMessagesConfiguredPath, ValidationError>,
 }
 
 impl<'a> GetChannelMessagesConfigured<'a> {
-    pub(crate) fn new(
+    pub(super) fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
+        base_path: Result<GetChannelMessagesPath, ValidationError>,
         after: Option<Id<MessageMarker>>,
         around: Option<Id<MessageMarker>>,
         before: Option<Id<MessageMarker>>,
-        limit: Result<Option<u16>, ValidationError>,
     ) -> Self {
         Self {
-            after,
-            around,
-            before,
-            channel_id,
-            fields: limit.map(|limit| GetChannelMessagesConfiguredFields { limit }),
             http,
+            path: base_path.map(|base_path| GetChannelMessagesConfiguredPath {
+                after,
+                around,
+                before,
+                channel_id: base_path.channel_id,
+                limit: base_path.limit,
+            }),
         }
     }
 
@@ -68,11 +70,11 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     ///
     /// [`GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
     pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_get_channel_messages_limit(limit)?;
-            fields.limit = Some(limit);
+            path.limit = Some(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -96,14 +98,14 @@ impl IntoFuture for GetChannelMessagesConfigured<'_> {
 
 impl TryIntoRequest for GetChannelMessagesConfigured<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetMessages {
-            after: self.after.map(Id::get),
-            around: self.around.map(Id::get),
-            before: self.before.map(Id::get),
-            channel_id: self.channel_id.get(),
-            limit: fields.limit,
+            after: path.after.map(Id::get),
+            around: path.around.map(Id::get),
+            before: path.before.map(Id::get),
+            channel_id: path.channel_id.get(),
+            limit: path.limit,
         }))
     }
 }

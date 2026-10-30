@@ -20,14 +20,18 @@ pub(crate) enum TargetUser {
     Id(Id<UserMarker>),
 }
 
+struct DeleteReactionPath<'a> {
+    channel_id: Id<ChannelMarker>,
+    emoji: &'a RequestReactionType<'a>,
+    message_id: Id<MessageMarker>,
+    target_user: TargetUser,
+}
+
 /// Delete one reaction by a user on a message.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteReaction<'a> {
-    channel_id: Id<ChannelMarker>,
-    emoji: &'a RequestReactionType<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
-    target_user: TargetUser,
+    path: DeleteReactionPath<'a>,
 }
 
 impl<'a> DeleteReaction<'a> {
@@ -39,11 +43,13 @@ impl<'a> DeleteReaction<'a> {
         target_user: TargetUser,
     ) -> Self {
         Self {
-            channel_id,
-            emoji,
             http,
-            message_id,
-            target_user,
+            path: DeleteReactionPath {
+                channel_id,
+                emoji,
+                message_id,
+                target_user,
+            },
         }
     }
 }
@@ -65,16 +71,16 @@ impl IntoFuture for DeleteReaction<'_> {
 
 impl TryIntoRequest for DeleteReaction<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let route = match self.target_user {
+        let route = match self.path.target_user {
             TargetUser::Current => Route::DeleteReactionCurrentUser {
-                channel_id: self.channel_id.get(),
-                emoji: self.emoji,
-                message_id: self.message_id.get(),
+                channel_id: self.path.channel_id.get(),
+                emoji: self.path.emoji,
+                message_id: self.path.message_id.get(),
             },
             TargetUser::Id(user_id) => Route::DeleteReaction {
-                channel_id: self.channel_id.get(),
-                emoji: self.emoji,
-                message_id: self.message_id.get(),
+                channel_id: self.path.channel_id.get(),
+                emoji: self.path.emoji,
+                message_id: self.path.message_id.get(),
                 user_id: user_id.get(),
             },
         };

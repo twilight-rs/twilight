@@ -29,12 +29,16 @@ struct UpdateWebhookBody<'a> {
     name: Option<&'a str>,
 }
 
+struct UpdateWebhookPath {
+    webhook_id: Id<WebhookMarker>,
+}
+
 /// Update a webhook by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhook<'a> {
     body: Result<UpdateWebhookBody<'a>, ValidationError>,
     http: &'a Client,
-    webhook_id: Id<WebhookMarker>,
+    path: UpdateWebhookPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -48,7 +52,7 @@ impl<'a> UpdateWebhook<'a> {
                 name: None,
             }),
             http,
-            webhook_id,
+            path: UpdateWebhookPath { webhook_id },
             reason: Ok(None),
         }
     }
@@ -125,7 +129,7 @@ impl TryIntoRequest for UpdateWebhook<'_> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateWebhook {
             token: None,
-            webhook_id: self.webhook_id.get(),
+            webhook_id: self.path.webhook_id.get(),
         })
         .json(&body);
 

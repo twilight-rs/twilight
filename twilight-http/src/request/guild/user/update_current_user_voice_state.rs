@@ -22,12 +22,16 @@ struct UpdateCurrentUserVoiceStateBody<'a> {
     request_to_speak_timestamp: Option<Nullable<&'a str>>,
 }
 
+struct UpdateCurrentUserVoiceStatePath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Update the current user's voice state.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUserVoiceState<'a> {
     body: UpdateCurrentUserVoiceStateBody<'a>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: UpdateCurrentUserVoiceStatePath,
 }
 
 impl<'a> UpdateCurrentUserVoiceState<'a> {
@@ -38,8 +42,8 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
                 suppress: None,
                 request_to_speak_timestamp: None,
             },
-            guild_id,
             http,
+            path: UpdateCurrentUserVoiceStatePath { guild_id },
         }
     }
 
@@ -104,7 +108,7 @@ impl IntoFuture for UpdateCurrentUserVoiceState<'_> {
 impl TryIntoRequest for UpdateCurrentUserVoiceState<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateCurrentUserVoiceState {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&self.body)
         .build()

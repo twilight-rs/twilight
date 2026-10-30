@@ -66,6 +66,10 @@ struct UpdateChannelBody<'a> {
     video_quality_mode: Option<VideoQualityMode>,
 }
 
+struct UpdateChannelPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Update a channel.
 ///
 /// All fields are optional. The minimum length of the name is 1 UTF-16 character
@@ -73,15 +77,14 @@ struct UpdateChannelBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateChannel<'a> {
     body: Result<UpdateChannelBody<'a>, ChannelValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: UpdateChannelPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateChannel<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
-            channel_id,
             body: Ok(UpdateChannelBody {
                 available_tags: None,
                 bitrate: None,
@@ -103,6 +106,7 @@ impl<'a> UpdateChannel<'a> {
                 video_quality_mode: None,
             }),
             http,
+            path: UpdateChannelPath { channel_id },
             reason: Ok(None),
         }
     }
@@ -431,7 +435,7 @@ impl TryIntoRequest for UpdateChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateChannel {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         })
         .json(&body);
 

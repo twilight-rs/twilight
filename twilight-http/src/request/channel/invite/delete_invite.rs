@@ -8,6 +8,10 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteInvitePath<'a> {
+    code: &'a str,
+}
+
 /// Delete an invite by its code.
 ///
 /// Requires the [`MANAGE_CHANNELS`] permission on the channel this invite
@@ -17,16 +21,16 @@ use twilight_validate::request::{ValidationError, audit_reason as validate_audit
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteInvite<'a> {
-    code: &'a str,
     http: &'a Client,
+    path: DeleteInvitePath<'a>,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> DeleteInvite<'a> {
     pub(crate) const fn new(http: &'a Client, code: &'a str) -> Self {
         Self {
-            code,
             http,
+            path: DeleteInvitePath { code },
             reason: Ok(None),
         }
     }
@@ -57,7 +61,9 @@ impl IntoFuture for DeleteInvite<'_> {
 
 impl TryIntoRequest for DeleteInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::DeleteInvite { code: self.code });
+        let mut request = Request::builder(&Route::DeleteInvite {
+            code: self.path.code,
+        });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

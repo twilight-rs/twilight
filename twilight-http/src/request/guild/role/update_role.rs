@@ -36,13 +36,17 @@ struct UpdateRoleBody<'a> {
     unicode_emoji: Option<Nullable<&'a str>>,
 }
 
+struct UpdateRolePath {
+    guild_id: Id<GuildMarker>,
+    role_id: Id<RoleMarker>,
+}
+
 /// Update a role by guild id and its id.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateRole<'a> {
     body: UpdateRoleBody<'a>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    role_id: Id<RoleMarker>,
+    path: UpdateRolePath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -63,9 +67,8 @@ impl<'a> UpdateRole<'a> {
                 permissions: None,
                 unicode_emoji: None,
             },
-            guild_id,
             http,
-            role_id,
+            path: UpdateRolePath { guild_id, role_id },
             reason: Ok(None),
         }
     }
@@ -226,8 +229,8 @@ impl IntoFuture for UpdateRole<'_> {
 impl TryIntoRequest for UpdateRole<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateRole {
-            guild_id: self.guild_id.get(),
-            role_id: self.role_id.get(),
+            guild_id: self.path.guild_id.get(),
+            role_id: self.path.role_id.get(),
         });
 
         request = request.json(&self.body);

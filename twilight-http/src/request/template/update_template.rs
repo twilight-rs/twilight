@@ -22,13 +22,17 @@ struct UpdateTemplateBody<'a> {
     description: Option<&'a str>,
 }
 
+struct UpdateTemplatePath<'a> {
+    guild_id: Id<GuildMarker>,
+    template_code: &'a str,
+}
+
 /// Update the template's metadata, by ID and code.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateTemplate<'a> {
     body: Result<UpdateTemplateBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    template_code: &'a str,
+    path: UpdateTemplatePath<'a>,
 }
 
 impl<'a> UpdateTemplate<'a> {
@@ -42,9 +46,11 @@ impl<'a> UpdateTemplate<'a> {
                 name: None,
                 description: None,
             }),
-            guild_id,
             http,
-            template_code,
+            path: UpdateTemplatePath {
+                guild_id,
+                template_code,
+            },
         }
     }
 
@@ -111,8 +117,8 @@ impl TryIntoRequest for UpdateTemplate<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::UpdateTemplate {
-            guild_id: self.guild_id.get(),
-            template_code: self.template_code,
+            guild_id: self.path.guild_id.get(),
+            template_code: self.path.template_code,
         })
         .json(&body)
         .build()

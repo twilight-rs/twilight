@@ -8,6 +8,11 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::ApplicationMarker};
 
+struct DeleteResponsePath<'a> {
+    application_id: Id<ApplicationMarker>,
+    token: &'a str,
+}
+
 /// Delete a followup message to an interaction, by its token and message ID.
 ///
 /// This endpoint is not bound to the application's global rate limit.
@@ -32,9 +37,8 @@ use twilight_model::id::{Id, marker::ApplicationMarker};
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteResponse<'a> {
-    application_id: Id<ApplicationMarker>,
     http: &'a Client,
-    token: &'a str,
+    path: DeleteResponsePath<'a>,
 }
 
 impl<'a> DeleteResponse<'a> {
@@ -44,9 +48,11 @@ impl<'a> DeleteResponse<'a> {
         token: &'a str,
     ) -> Self {
         Self {
-            application_id,
             http,
-            token,
+            path: DeleteResponsePath {
+                application_id,
+                token,
+            },
         }
     }
 }
@@ -69,8 +75,8 @@ impl IntoFuture for DeleteResponse<'_> {
 impl TryIntoRequest for DeleteResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::DeleteInteractionOriginal {
-            application_id: self.application_id.get(),
-            interaction_token: self.token,
+            application_id: self.path.application_id.get(),
+            interaction_token: self.path.token,
         })
         .use_authorization_token(false)
         .build()

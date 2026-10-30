@@ -10,18 +10,22 @@ pub use self::{
 use crate::Client;
 use twilight_model::id::{Id, marker::ApplicationMarker};
 
+struct CreateGlobalCommandPath {
+    application_id: Id<ApplicationMarker>,
+}
+
 /// Create a new global command.
 #[must_use = "the command must have a type"]
 pub struct CreateGlobalCommand<'a> {
-    application_id: Id<ApplicationMarker>,
     http: &'a Client,
+    path: CreateGlobalCommandPath,
 }
 
 impl<'a> CreateGlobalCommand<'a> {
     pub(crate) const fn new(http: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
         Self {
-            application_id,
             http,
+            path: CreateGlobalCommandPath { application_id },
         }
     }
 
@@ -52,7 +56,7 @@ impl<'a> CreateGlobalCommand<'a> {
         name: &'a str,
         description: &'a str,
     ) -> CreateGlobalChatInputCommand<'a> {
-        CreateGlobalChatInputCommand::new(self.http, self.application_id, name, description)
+        CreateGlobalChatInputCommand::new(self.http, self.path.application_id, name, description)
     }
 
     /// Create a new message global command.
@@ -69,7 +73,7 @@ impl<'a> CreateGlobalCommand<'a> {
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn message(self, name: &'a str) -> CreateGlobalMessageCommand<'a> {
-        CreateGlobalMessageCommand::new(self.http, self.application_id, name)
+        CreateGlobalMessageCommand::new(self.http, self.path.application_id, name)
     }
 
     /// Create a new user global command.
@@ -86,6 +90,6 @@ impl<'a> CreateGlobalCommand<'a> {
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn user(self, name: &'a str) -> CreateGlobalUserCommand<'a> {
-        CreateGlobalUserCommand::new(self.http, self.application_id, name)
+        CreateGlobalUserCommand::new(self.http, self.path.application_id, name)
     }
 }

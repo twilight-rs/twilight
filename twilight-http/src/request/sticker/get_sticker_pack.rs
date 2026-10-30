@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::StickerPackMarker},
 };
 
+struct GetStickerPackPath {
+    sticker_pack_id: Id<StickerPackMarker>,
+}
+
 /// Get a sticker pack by its ID.
 ///
 /// # Examples
@@ -38,14 +42,14 @@ use twilight_model::{
 #[must_use = "requests must be configured and executed"]
 pub struct GetStickerPack<'a> {
     http: &'a Client,
-    sticker_pack_id: Id<StickerPackMarker>,
+    path: GetStickerPackPath,
 }
 
 impl<'a> GetStickerPack<'a> {
     pub(crate) const fn new(http: &'a Client, sticker_pack_id: Id<StickerPackMarker>) -> Self {
         Self {
             http,
-            sticker_pack_id,
+            path: GetStickerPackPath { sticker_pack_id },
         }
     }
 }
@@ -68,7 +72,7 @@ impl IntoFuture for GetStickerPack<'_> {
 impl TryIntoRequest for GetStickerPack<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetStickerPack {
-            sticker_pack_id: self.sticker_pack_id.get(),
+            sticker_pack_id: self.path.sticker_pack_id.get(),
         }))
     }
 }

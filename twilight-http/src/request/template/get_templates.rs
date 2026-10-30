@@ -11,16 +11,23 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetTemplatesPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get a list of templates in a guild, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct GetTemplates<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: GetTemplatesPath,
 }
 
 impl<'a> GetTemplates<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            http,
+            path: GetTemplatesPath { guild_id },
+        }
     }
 }
 
@@ -42,7 +49,7 @@ impl IntoFuture for GetTemplates<'_> {
 impl TryIntoRequest for GetTemplates<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetTemplates {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

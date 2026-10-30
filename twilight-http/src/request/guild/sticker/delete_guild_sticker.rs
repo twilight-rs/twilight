@@ -12,6 +12,11 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteGuildStickerPath {
+    guild_id: Id<GuildMarker>,
+    sticker_id: Id<StickerMarker>,
+}
+
 /// Deletes a guild sticker by the ID of the guild and its ID.
 ///
 /// # Examples
@@ -31,10 +36,9 @@ use twilight_validate::request::{ValidationError, audit_reason as validate_audit
 /// # Ok(()) }
 /// ```
 pub struct DeleteGuildSticker<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: DeleteGuildStickerPath,
     reason: Result<Option<&'a str>, ValidationError>,
-    sticker_id: Id<StickerMarker>,
 }
 
 impl<'a> DeleteGuildSticker<'a> {
@@ -44,10 +48,12 @@ impl<'a> DeleteGuildSticker<'a> {
         sticker_id: Id<StickerMarker>,
     ) -> Self {
         Self {
-            guild_id,
             http,
+            path: DeleteGuildStickerPath {
+                guild_id,
+                sticker_id,
+            },
             reason: Ok(None),
-            sticker_id,
         }
     }
 }
@@ -78,8 +84,8 @@ impl IntoFuture for DeleteGuildSticker<'_> {
 impl TryIntoRequest for DeleteGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteGuildSticker {
-            guild_id: self.guild_id.get(),
-            sticker_id: self.sticker_id.get(),
+            guild_id: self.path.guild_id.get(),
+            sticker_id: self.path.sticker_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

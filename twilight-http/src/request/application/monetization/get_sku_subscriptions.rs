@@ -16,39 +16,39 @@ use twilight_validate::request::{
     ValidationError, get_sku_subscriptions_limit as validate_get_sku_subscriptions_limit,
 };
 
-struct GetSKUSubscriptionsFields {
+struct GetSKUSubscriptionsPath {
     after: Option<Id<SubscriptionMarker>>,
     before: Option<Id<SubscriptionMarker>>,
     limit: Option<u8>,
+    sku_id: Id<SkuMarker>,
     user_id: Option<Id<UserMarker>>,
 }
 
 /// Returns all subscriptions containing the SKU, filtered by user.
 #[must_use = "requests must be configured and executed"]
 pub struct GetSKUSubscriptions<'a> {
-    fields: Result<GetSKUSubscriptionsFields, ValidationError>,
     http: &'a Client,
-    sku_id: Id<SkuMarker>,
+    path: Result<GetSKUSubscriptionsPath, ValidationError>,
 }
 
 impl<'a> GetSKUSubscriptions<'a> {
     pub(crate) const fn new(http: &'a Client, sku_id: Id<SkuMarker>) -> Self {
         Self {
-            fields: Ok(GetSKUSubscriptionsFields {
+            http,
+            path: Ok(GetSKUSubscriptionsPath {
                 after: None,
                 before: None,
                 limit: None,
+                sku_id,
                 user_id: None,
             }),
-            http,
-            sku_id,
         }
     }
 
     /// List subscriptions after this ID.
     pub const fn after(mut self, after: Id<SubscriptionMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(after);
+        if let Ok(path) = self.path.as_mut() {
+            path.after = Some(after);
         }
 
         self
@@ -56,8 +56,8 @@ impl<'a> GetSKUSubscriptions<'a> {
 
     /// List subscriptions before this ID.
     pub const fn before(mut self, before: Id<SubscriptionMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.before = Some(before);
+        if let Ok(path) = self.path.as_mut() {
+            path.before = Some(before);
         }
 
         self
@@ -76,12 +76,12 @@ impl<'a> GetSKUSubscriptions<'a> {
     ///
     /// [`GetSKUSubscriptionsError`]: twilight_validate::request::ValidationErrorType::GetSKUSubscriptions
     pub fn limit(mut self, limit: u8) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_get_sku_subscriptions_limit(limit)?;
 
-            fields.limit = Some(limit);
+            path.limit = Some(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -89,8 +89,8 @@ impl<'a> GetSKUSubscriptions<'a> {
 
     /// User ID for which to return subscriptions. Required except for OAuth queries.
     pub const fn user_id(mut self, user_id: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.user_id = Some(user_id);
+        if let Ok(path) = self.path.as_mut() {
+            path.user_id = Some(user_id);
         }
 
         self
@@ -114,14 +114,14 @@ impl IntoFuture for GetSKUSubscriptions<'_> {
 
 impl TryIntoRequest for GetSKUSubscriptions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetSKUSubscriptions {
-            after: fields.after.map(Id::get),
-            before: fields.before.map(Id::get),
-            limit: fields.limit.map(u64::from),
-            sku_id: self.sku_id.get(),
-            user_id: fields.user_id.map(Id::get),
+            after: path.after.map(Id::get),
+            before: path.before.map(Id::get),
+            limit: path.limit.map(u64::from),
+            sku_id: path.sku_id.get(),
+            user_id: path.user_id.map(Id::get),
         }))
     }
 }

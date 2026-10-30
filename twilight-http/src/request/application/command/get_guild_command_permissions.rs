@@ -14,12 +14,16 @@ use twilight_model::{
     },
 };
 
+struct GetGuildCommandPermissionsPath {
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get command permissions for all commands from the current application in a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildCommandPermissions<'a> {
-    application_id: Id<ApplicationMarker>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: GetGuildCommandPermissionsPath,
 }
 
 impl<'a> GetGuildCommandPermissions<'a> {
@@ -29,9 +33,11 @@ impl<'a> GetGuildCommandPermissions<'a> {
         guild_id: Id<GuildMarker>,
     ) -> Self {
         Self {
-            application_id,
-            guild_id,
             http,
+            path: GetGuildCommandPermissionsPath {
+                application_id,
+                guild_id,
+            },
         }
     }
 }
@@ -54,8 +60,8 @@ impl IntoFuture for GetGuildCommandPermissions<'_> {
 impl TryIntoRequest for GetGuildCommandPermissions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildCommandPermissions {
-            application_id: self.application_id.get(),
-            guild_id: self.guild_id.get(),
+            application_id: self.path.application_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

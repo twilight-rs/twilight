@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::StickerMarker},
 };
 
+struct GetStickerPath {
+    sticker_id: Id<StickerMarker>,
+}
+
 /// Returns a single sticker by its ID.
 ///
 /// # Examples
@@ -30,12 +34,15 @@ use twilight_model::{
 #[must_use = "requests must be configured and executed"]
 pub struct GetSticker<'a> {
     http: &'a Client,
-    sticker_id: Id<StickerMarker>,
+    path: GetStickerPath,
 }
 
 impl<'a> GetSticker<'a> {
     pub(crate) const fn new(http: &'a Client, sticker_id: Id<StickerMarker>) -> Self {
-        Self { http, sticker_id }
+        Self {
+            http,
+            path: GetStickerPath { sticker_id },
+        }
     }
 }
 
@@ -57,7 +64,7 @@ impl IntoFuture for GetSticker<'_> {
 impl TryIntoRequest for GetSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetSticker {
-            sticker_id: self.sticker_id.get(),
+            sticker_id: self.path.sticker_id.get(),
         }))
     }
 }
