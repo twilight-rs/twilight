@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -107,12 +106,22 @@ impl IntoFuture for SearchGuildMembers<'_> {
 
 impl TryIntoRequest for SearchGuildMembers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let path = self.path.map_err(Error::validation)?;
+        let SearchGuildMembersPath {
+            guild_id,
+            query,
+            limit,
+        } = self.path.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::SearchGuildMembers {
-            guild_id: path.guild_id.get(),
-            limit: path.limit,
-            query: path.query,
-        }))
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("members")
+            .action("search")
+            .parameter(("query", query))
+            .parameter(("limit", limit))
+            .build()
+            .map_err(Error::validation)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

@@ -12,7 +12,8 @@ pub mod query_parameter;
 mod path_builder;
 
 pub use self::path_builder::{
-    ActionMarker, IdMarker, PathBuilder, PathId, QueryMarker, ResourceMarker, SubresourceMarker,
+    ActionMarker, IdMarker, PathBuilder, PathBuilderError, PathId, QueryMarker, ResourceMarker,
+    SubresourceMarker,
 };
 
 use std::{

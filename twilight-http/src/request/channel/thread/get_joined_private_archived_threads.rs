@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -71,12 +70,25 @@ impl IntoFuture for GetJoinedPrivateArchivedThreads<'_> {
 
 impl TryIntoRequest for GetJoinedPrivateArchivedThreads<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(
-            &Route::GetJoinedPrivateArchivedThreads {
-                before: self.path.before.map(Id::get),
-                channel_id: self.path.channel_id.get(),
-                limit: self.path.limit,
-            },
-        ))
+        let GetJoinedPrivateArchivedThreadsPath {
+            before,
+            channel_id,
+            limit,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("users")
+            .me()
+            .resource("threads")
+            .subresource("archived")
+            .action("private")
+            .parameter(("before", before))
+            .parameter(("limit", limit))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

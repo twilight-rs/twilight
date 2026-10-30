@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -17,7 +16,7 @@ use twilight_validate::request::{
     ValidationError, scheduled_event_get_users as validate_scheduled_event_get_users,
 };
 
-struct GetGuildScheduledEventUsersPath {
+pub struct GetGuildScheduledEventUsersPath {
     after: Option<Id<UserMarker>>,
     before: Option<Id<UserMarker>>,
     guild_id: Id<GuildMarker>,
@@ -139,13 +138,76 @@ impl TryIntoRequest for GetGuildScheduledEventUsers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let path = self.path.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::GetGuildScheduledEventUsers {
-            after: path.after.map(Id::get),
-            before: path.before.map(Id::get),
-            guild_id: path.guild_id.get(),
-            limit: path.limit,
-            scheduled_event_id: path.scheduled_event_id.get(),
-            with_member: path.with_member.unwrap_or_default(),
-        }))
+        let builder = Path::builder()
+            .resource("guilds")
+            .id(path.guild_id)
+            .resource("scheduled-events")
+            .id(path.scheduled_event_id)
+            .resource("users")
+            .parameter(("after", path.after))
+            .parameter(("before", path.before))
+            .parameter(("limit", path.limit));
+
+        let path = if path.with_member.unwrap_or_default() {
+            builder.parameter(("with_member", true)).build()
+        } else {
+            builder.build()
+        };
+        let path = path.map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::GetGuildScheduledEventUsers;
+    use crate::{
+        client::Client,
+        error::ErrorType,
+        request::{Method, TryIntoRequest},
+    };
+    use std::error::Error;
+    use twilight_model::id::Id;
+
+    #[test]
+    fn validation_error_kind() {
+        let client = Client::new(String::new());
+
+        let error = GetGuildScheduledEventUsers::new(&client, Id::new(1), Id::new(2))
+            .limit(0)
+            .try_into_request()
+            .unwrap_err();
+
+        assert!(matches!(error.kind(), ErrorType::Validation));
+    }
+
+    #[test]
+    fn path_and_method() -> Result<(), Box<dyn Error>> {
+        let client = Client::new(String::new());
+
+        let request =
+            GetGuildScheduledEventUsers::new(&client, Id::new(1), Id::new(2)).try_into_request()?;
+
+        assert_eq!(Method::Get, request.method());
+        assert_eq!("guilds/1/scheduled-events/2/users", request.path().as_ref());
+
+        Ok(())
+    }
+
+    #[test]
+    fn path_with_member() -> Result<(), Box<dyn Error>> {
+        let client = Client::new(String::new());
+
+        let request = GetGuildScheduledEventUsers::new(&client, Id::new(1), Id::new(2))
+            .with_member(true)
+            .try_into_request()?;
+
+        assert_eq!(
+            "guilds/1/scheduled-events/2/users?with_member=true",
+            request.path().as_ref()
+        );
+
+        Ok(())
     }
 }

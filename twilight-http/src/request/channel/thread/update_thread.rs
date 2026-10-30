@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Nullable, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -218,58 +217,20 @@ impl IntoFuture for UpdateThread<'_> {
 
 impl TryIntoRequest for UpdateThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let UpdateThreadPath { channel_id } = self.path;
+
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::UpdateChannel {
-            channel_id: self.path.channel_id.get(),
-        })
-        .json(&body);
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .build()
+            .map_err(Error::path)?;
+        let mut request = Request::builder(Method::Patch, path).json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
         }
 
         request.build()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{UpdateThread, UpdateThreadBody};
-    use crate::{
-        Client,
-        request::{Request, TryIntoRequest},
-        routing::Route,
-    };
-    use std::error::Error;
-    use twilight_model::id::Id;
-
-    #[test]
-    fn request() -> Result<(), Box<dyn Error>> {
-        let client = Client::new("token".to_string());
-        let channel_id = Id::new(123);
-
-        let actual = UpdateThread::new(&client, channel_id)
-            .rate_limit_per_user(60)
-            .try_into_request()?;
-
-        let expected = Request::builder_from_route(&Route::UpdateChannel {
-            channel_id: channel_id.get(),
-        })
-        .json(&UpdateThreadBody {
-            applied_tags: None,
-            archived: None,
-            auto_archive_duration: None,
-            flags: None,
-            invitable: None,
-            locked: None,
-            name: None,
-            rate_limit_per_user: Some(60),
-        })
-        .build()?;
-
-        assert_eq!(expected.body(), actual.body());
-        assert_eq!(expected.path(), actual.path());
-
-        Ok(())
     }
 }

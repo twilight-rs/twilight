@@ -11,9 +11,8 @@ use super::EntityMetadataBody;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request},
+    request::{AuditLogReason, Method, Request, path::Path},
     response::ResponseFuture,
-    routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
@@ -55,7 +54,7 @@ struct CreateGuildScheduledEventBody<'a> {
     scheduled_start_time: Option<&'a Timestamp>,
 }
 
-struct CreateGuildScheduledEventPath {
+pub struct CreateGuildScheduledEventPath {
     guild_id: Id<GuildMarker>,
 }
 
@@ -248,13 +247,15 @@ impl<'a> CreateGuildScheduledEvent<'a> {
     }
 
     fn try_into_request(self) -> Result<Request, Error> {
+        let path = Path::builder()
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .resource("scheduled-events")
+            .build()
+            .map_err(Error::path)?;
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder_from_route(&Route::CreateGuildScheduledEvent {
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&body)
-        .build()
+        Request::builder(Method::Post, path).json(&body).build()
     }
 }
 

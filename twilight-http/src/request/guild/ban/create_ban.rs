@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -123,12 +122,18 @@ impl IntoFuture for CreateBan<'_> {
 
 impl TryIntoRequest for CreateBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let CreateBanPath { guild_id, user_id } = self.path;
+
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::CreateBan {
-            guild_id: self.path.guild_id.get(),
-            user_id: self.path.user_id.get(),
-        })
-        .json(&body);
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("bans")
+            .id(user_id)
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Put, path).json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

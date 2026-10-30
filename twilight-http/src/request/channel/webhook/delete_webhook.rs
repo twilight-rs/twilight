@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::WebhookMarker};
@@ -67,10 +66,20 @@ impl IntoFuture for DeleteWebhook<'_> {
 
 impl TryIntoRequest for DeleteWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::DeleteWebhook {
-            token: self.path.token,
-            webhook_id: self.path.webhook_id.get(),
-        });
+        let DeleteWebhookPath { webhook_id, token } = self.path;
+
+        let path_builder = Path::builder().resource("webhooks").id(webhook_id);
+
+        let path = if let Some(token) = token {
+            path_builder
+                .no_resource()
+                .id(token)
+                .build()
+                .map_err(Error::path)?
+        } else {
+            path_builder.build().map_err(Error::path)?
+        };
+        let mut request = Request::builder(Method::Delete, path);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

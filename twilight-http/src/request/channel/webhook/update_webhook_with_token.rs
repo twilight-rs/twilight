@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Nullable, Request, TryIntoRequest},
+    request::{Method, Nullable, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -102,15 +101,22 @@ impl IntoFuture for UpdateWebhookWithToken<'_> {
 
 impl TryIntoRequest for UpdateWebhookWithToken<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let UpdateWebhookWithTokenPath { token, webhook_id } = self.path;
+
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder_from_route(&Route::UpdateWebhook {
-            token: Some(self.path.token),
-            webhook_id: self.path.webhook_id.get(),
-        })
-        .use_authorization_token(false)
-        .json(&body)
-        .build()
+        let path = Path::builder()
+            .resource("webhooks")
+            .id(webhook_id)
+            .no_resource()
+            .id(token)
+            .build()
+            .map_err(Error::path)?;
+
+        Request::builder(Method::Patch, path)
+            .use_authorization_token(false)
+            .json(&body)
+            .build()
     }
 }
 

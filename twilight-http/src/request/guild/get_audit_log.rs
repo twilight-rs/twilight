@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -150,15 +149,27 @@ impl IntoFuture for GetAuditLog<'_> {
 
 impl TryIntoRequest for GetAuditLog<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let path = self.path.map_err(Error::validation)?;
+        let GetAuditLogPath {
+            action_type,
+            after,
+            before,
+            guild_id,
+            limit,
+            user_id,
+        } = self.path.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::GetAuditLogs {
-            action_type: path.action_type.map(|x| u64::from(u16::from(x))),
-            after: path.after,
-            before: path.before,
-            guild_id: path.guild_id.get(),
-            limit: path.limit,
-            user_id: path.user_id.map(Id::get),
-        }))
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("audit-logs")
+            .parameter(("action_type", action_type.map(u16::from)))
+            .parameter(("after", after))
+            .parameter(("before", before))
+            .parameter(("limit", limit))
+            .parameter(("user_id", user_id))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

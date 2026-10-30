@@ -6,12 +6,11 @@ use twilight_model::id::{
 
 use crate::{
     Client, Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
-struct DeleteApplicationEmojiPath {
+pub struct DeleteApplicationEmojiPath {
     application_id: Id<ApplicationMarker>,
     emoji_id: Id<EmojiMarker>,
 }
@@ -54,9 +53,14 @@ impl IntoFuture for DeleteApplicationEmoji<'_> {
 
 impl TryIntoRequest for DeleteApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteApplicationEmoji {
-            application_id: self.path.application_id.get(),
-            emoji_id: self.path.emoji_id.get(),
-        }))
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("emojis")
+            .id(self.path.emoji_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Request::builder(Method::Delete, path).build()
     }
 }

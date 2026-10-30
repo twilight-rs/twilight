@@ -2,9 +2,8 @@ use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -118,15 +117,28 @@ impl IntoFuture for GetReactions<'_> {
 
 impl TryIntoRequest for GetReactions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let path = self.path.map_err(Error::validation)?;
+        let GetReactionsPath {
+            after,
+            channel_id,
+            emoji,
+            kind,
+            limit,
+            message_id,
+        } = self.path.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::GetReactionUsers {
-            after: path.after.map(Id::get),
-            channel_id: path.channel_id.get(),
-            emoji: path.emoji,
-            limit: path.limit,
-            message_id: path.message_id.get(),
-            kind: path.kind.map(Into::into),
-        }))
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("messages")
+            .id(message_id)
+            .resource("reactions")
+            .id(emoji)
+            .parameter(("after", after))
+            .parameter(("limit", limit))
+            .parameter(("type", kind))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

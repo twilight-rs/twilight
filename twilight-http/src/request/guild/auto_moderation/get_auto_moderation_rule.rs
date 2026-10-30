@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -63,10 +62,20 @@ impl IntoFuture for GetAutoModerationRule<'_> {
 
 impl TryIntoRequest for GetAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder_from_route(&Route::GetAutoModerationRule {
-            auto_moderation_rule_id: self.path.auto_moderation_rule_id.get(),
-            guild_id: self.path.guild_id.get(),
-        })
-        .build()
+        let GetAutoModerationRulePath {
+            auto_moderation_rule_id,
+            guild_id,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("auto-moderation")
+            .subresource("rules")
+            .id(auto_moderation_rule_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

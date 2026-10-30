@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{GetGatewayAuthed, Request, TryIntoRequest},
+    request::{GetGatewayAuthed, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::gateway::connection_info::ConnectionInfo;
@@ -78,6 +77,11 @@ impl IntoFuture for GetGateway<'_> {
 
 impl TryIntoRequest for GetGateway<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetGateway))
+        let path = Path::builder()
+            .resource("gateway")
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

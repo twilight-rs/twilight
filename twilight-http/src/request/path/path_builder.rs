@@ -10,29 +10,29 @@ use std::{
 use twilight_model::id::Id;
 
 #[derive(Debug)]
-pub struct PathParseError {
-    pub(super) kind: PathErrorType,
+pub struct PathBuilderError {
+    pub(super) kind: PathBuilderErrorType,
     pub(super) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
-impl PathParseError {
+impl PathBuilderError {
     fn formatting(source: impl Into<Box<dyn Error + Send + Sync>>) -> Self {
         Self {
-            kind: PathErrorType::Formatting,
+            kind: PathBuilderErrorType::Formatting,
             source: Some(source.into()),
         }
     }
 
     pub fn validation(source: Option<Box<dyn Error + Send + Sync>>) -> Self {
         Self {
-            kind: PathErrorType::Validation,
+            kind: PathBuilderErrorType::Validation,
             source,
         }
     }
 
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &PathErrorType {
+    pub const fn kind(&self) -> &PathBuilderErrorType {
         &self.kind
     }
 
@@ -44,23 +44,25 @@ impl PathParseError {
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(self) -> (PathErrorType, Option<Box<dyn Error + Send + Sync>>) {
+    pub fn into_parts(self) -> (PathBuilderErrorType, Option<Box<dyn Error + Send + Sync>>) {
         (self.kind, self.source)
     }
 }
 
-impl Display for PathParseError {
+impl Display for PathBuilderError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
         match self.kind {
-            PathErrorType::Formatting => f.write_str("unable to format a segment of the path"),
-            PathErrorType::Validation => {
+            PathBuilderErrorType::Formatting => {
+                f.write_str("unable to format a segment of the path")
+            }
+            PathBuilderErrorType::Validation => {
                 f.write_str("segment of the path failed validation or is unable to be validated")
             }
         }
     }
 }
 
-impl Error for PathParseError {
+impl Error for PathBuilderError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         self.source.as_ref().map(|source| &**source as _)
     }
@@ -69,7 +71,7 @@ impl Error for PathParseError {
 /// Type of [`Error`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum PathErrorType {
+pub enum PathBuilderErrorType {
     /// Path is unable to be formatted.
     Formatting,
     /// Portion of the path failed validation.
@@ -167,14 +169,14 @@ impl PathBuilder<ActionMarker> {
     ///
     /// # Errors
     ///
-    /// Returns a [`PathParseError`] with a type of
-    /// [`PathParseErrorType::Formatting`] if a value provided to a method or
+    /// Returns a [`PathBuilderError`] with a type of
+    /// [`PathBuilderErrorType::Formatting`] if a value provided to a method or
     /// query parameter was unable to be formatted. This should only happen with
     /// user-defined types.
-    pub fn build(self) -> Result<Path, PathParseError> {
+    pub fn build(self) -> Result<Path, PathBuilderError> {
         self.buffer
             .map(Path::new)
-            .map_err(PathParseError::formatting)
+            .map_err(PathBuilderError::formatting)
     }
 
     pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
@@ -187,14 +189,14 @@ impl PathBuilder<IdMarker> {
     ///
     /// # Errors
     ///
-    /// Returns a [`PathParseError`] with a type of
-    /// [`PathParseErrorType::Formatting`] if a value provided to a method or
+    /// Returns a [`PathBuilderError`] with a type of
+    /// [`PathBuilderErrorType::Formatting`] if a value provided to a method or
     /// query parameter was unable to be formatted. This should only happen with
     /// user-defined types.
-    pub fn build(self) -> Result<Path, PathParseError> {
+    pub fn build(self) -> Result<Path, PathBuilderError> {
         self.buffer
             .map(Path::new)
-            .map_err(PathParseError::formatting)
+            .map_err(PathBuilderError::formatting)
     }
 
     /// Action on a resource by ID.
@@ -238,14 +240,14 @@ impl PathBuilder<QueryMarker> {
     ///
     /// # Errors
     ///
-    /// Returns a [`PathParseError`] with a type of
-    /// [`PathParseErrorType::Formatting`] if a value provided to a method or
+    /// Returns a [`PathBuilderError`] with a type of
+    /// [`PathBuilderErrorType::Formatting`] if a value provided to a method or
     /// query parameter was unable to be formatted. This should only happen with
     /// user-defined types.
-    pub fn build(self) -> Result<Path, PathParseError> {
+    pub fn build(self) -> Result<Path, PathBuilderError> {
         self.buffer
             .map(Path::new)
-            .map_err(PathParseError::formatting)
+            .map_err(PathBuilderError::formatting)
     }
 
     #[must_use = "builder must be finalized to retrieve the path"]
@@ -291,14 +293,14 @@ impl PathBuilder<ResourceMarker> {
     ///
     /// # Errors
     ///
-    /// Returns a [`PathParseError`] with a type of
-    /// [`PathParseErrorType::Formatting`] if a value provided to a method or
+    /// Returns a [`PathBuilderError`] with a type of
+    /// [`PathBuilderErrorType::Formatting`] if a value provided to a method or
     /// query parameter was unable to be formatted. This should only happen with
     /// user-defined types.
-    pub fn build(self) -> Result<Path, PathParseError> {
+    pub fn build(self) -> Result<Path, PathBuilderError> {
         self.buffer
             .map(Path::new)
-            .map_err(PathParseError::formatting)
+            .map_err(PathBuilderError::formatting)
     }
 
     /// Action within a resource.
@@ -352,14 +354,26 @@ impl PathBuilder<SubresourceMarker> {
     ///
     /// # Errors
     ///
-    /// Returns a [`PathParseError`] with a type of
-    /// [`PathParseErrorType::Formatting`] if a value provided to a method or
+    /// Returns a [`PathBuilderError`] with a type of
+    /// [`PathBuilderErrorType::Formatting`] if a value provided to a method or
     /// query parameter was unable to be formatted. This should only happen with
     /// user-defined types.
-    pub fn build(self) -> Result<Path, PathParseError> {
+    pub fn build(self) -> Result<Path, PathBuilderError> {
         self.buffer
             .map(Path::new)
-            .map_err(PathParseError::formatting)
+            .map_err(PathBuilderError::formatting)
+    }
+
+    /// Action within a resource.
+    pub fn action(mut self, action: &'static str) -> PathBuilder<ActionMarker> {
+        debug_assert!(!self.has_query_parameter);
+
+        if let Ok(buffer) = self.buffer.as_mut() {
+            buffer.push('/');
+            buffer.push_str(action);
+        }
+
+        self.cast()
     }
 
     pub fn id(mut self, id: impl PathId) -> PathBuilder<IdMarker> {
@@ -376,6 +390,12 @@ impl PathBuilder<SubresourceMarker> {
 
     pub fn me(self) -> PathBuilder<IdMarker> {
         self.id("@me")
+    }
+
+    pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
+        debug_assert!(!self.has_query_parameter);
+
+        PathBuilder::<QueryMarker>::parameter(self.cast(), query_parameter)
     }
 }
 

@@ -1,14 +1,13 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::GuildMarker};
 
-struct DeleteTemplatePath<'a> {
+pub struct DeleteTemplatePath<'a> {
     guild_id: Id<GuildMarker>,
     template_code: &'a str,
 }
@@ -53,9 +52,14 @@ impl IntoFuture for DeleteTemplate<'_> {
 
 impl TryIntoRequest for DeleteTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteTemplate {
-            guild_id: self.path.guild_id.get(),
-            template_code: self.path.template_code,
-        }))
+        let path = Path::builder()
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .resource("templates")
+            .id(self.path.template_code)
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Delete, path))
     }
 }

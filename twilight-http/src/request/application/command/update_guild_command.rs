@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -28,7 +27,7 @@ struct UpdateGuildCommandBody<'a> {
 }
 
 #[expect(clippy::struct_field_names)]
-struct UpdateGuildCommandPath {
+pub struct UpdateGuildCommandPath {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,
@@ -116,12 +115,18 @@ impl IntoFuture for UpdateGuildCommand<'_> {
 
 impl TryIntoRequest for UpdateGuildCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder_from_route(&Route::UpdateGuildCommand {
-            application_id: self.path.application_id.get(),
-            command_id: self.path.command_id.get(),
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&self.body)
-        .build()
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .resource("commands")
+            .id(self.path.command_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Request::builder(Method::Patch, path)
+            .json(&self.body)
+            .build()
     }
 }

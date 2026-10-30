@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -75,9 +74,16 @@ impl IntoFuture for GetEmoji<'_> {
 
 impl TryIntoRequest for GetEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetEmoji {
-            emoji_id: self.path.emoji_id.get(),
-            guild_id: self.path.guild_id.get(),
-        }))
+        let GetEmojiPath { emoji_id, guild_id } = self.path;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("emojis")
+            .id(emoji_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

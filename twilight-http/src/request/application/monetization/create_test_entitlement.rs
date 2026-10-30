@@ -11,9 +11,8 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::ResponseFuture,
-    routing::Route,
 };
 
 /// Owner of a test entitlement.
@@ -56,7 +55,7 @@ impl Serialize for CreateTestEntitlementBody {
     }
 }
 
-struct CreateTestEntitlementPath {
+pub struct CreateTestEntitlementPath {
     application_id: Id<ApplicationMarker>,
 }
 
@@ -98,20 +97,30 @@ impl IntoFuture for CreateTestEntitlement<'_> {
 
 impl TryIntoRequest for CreateTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder_from_route(&Route::CreateTestEntitlement {
-            application_id: self.path.application_id.get(),
-        })
-        .json(&self.body)
-        .build()
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("entitlements")
+            .build()
+            .map_err(Error::path)?;
+
+        Request::builder(Method::Post, path)
+            .json(&self.body)
+            .build()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use serde_test::Token;
+    use std::error::Error;
     use twilight_model::id::Id;
 
-    use super::{CreateTestEntitlementBody, CreateTestEntitlementOwner};
+    use super::{CreateTestEntitlement, CreateTestEntitlementBody, CreateTestEntitlementOwner};
+    use crate::{
+        client::Client,
+        request::{Method, TryIntoRequest},
+    };
 
     #[test]
     fn body_serialization() {
@@ -136,5 +145,22 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn path_and_method() -> Result<(), Box<dyn Error>> {
+        let client = Client::new(String::new());
+        let request = CreateTestEntitlement::new(
+            &client,
+            Id::new(1),
+            Id::new(2),
+            CreateTestEntitlementOwner::Guild(Id::new(3)),
+        )
+        .try_into_request()?;
+
+        assert_eq!(Method::Post, request.method());
+        assert_eq!("applications/1/entitlements", request.path().as_ref());
+
+        Ok(())
     }
 }

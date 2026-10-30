@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -57,10 +56,20 @@ impl IntoFuture for GetWebhook<'_> {
 
 impl TryIntoRequest for GetWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::GetWebhook {
-            token: self.path.token,
-            webhook_id: self.path.id.get(),
-        });
+        let GetWebhookPath { id, token } = self.path;
+
+        let path_builder = Path::builder().resource("webhooks").id(id);
+
+        let path = if let Some(token) = token {
+            path_builder
+                .no_resource()
+                .id(token)
+                .build()
+                .map_err(Error::path)?
+        } else {
+            path_builder.build().map_err(Error::path)?
+        };
+        let mut request = Request::builder(Method::Get, path);
 
         let use_webhook_token = self.path.token.is_some();
 

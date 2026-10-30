@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::channel::message::PinsListing;
@@ -84,12 +83,22 @@ impl IntoFuture for GetPins<'_> {
 
 impl TryIntoRequest for GetPins<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let path = self.path.map_err(Error::validation)?;
+        let GetPinsPath {
+            before,
+            channel_id,
+            limit,
+        } = self.path.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::GetPins {
-            channel_id: path.channel_id.get(),
-            limit: path.limit,
-            before: path.before.map(|t| t.iso_8601().to_string()),
-        }))
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("messages")
+            .subresource("pins")
+            .parameter(("before", before))
+            .parameter(("limit", limit))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

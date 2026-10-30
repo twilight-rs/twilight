@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::ResponseFuture,
-    routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
@@ -462,11 +461,17 @@ impl<'a> AuditLogReason<'a> for CreateAutoModerationRule<'a> {
 
 impl TryIntoRequest for CreateAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
+        let CreateAutoModerationRulePath { guild_id } = self.path;
+
         let body = self.body.map_err(HttpError::validation)?;
-        let mut request = Request::builder_from_route(&Route::CreateAutoModerationRule {
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&body);
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("auto-moderation")
+            .subresource("rules")
+            .build()
+            .map_err(HttpError::path)?;
+        let mut request = Request::builder(Method::Post, path).json(&body);
 
         if let Some(reason) = self.reason.map_err(HttpError::validation)? {
             request = request.headers(request::audit_header(reason)?);
