@@ -12,8 +12,8 @@ pub mod query_parameter;
 mod path_builder;
 
 pub use self::path_builder::{
-    ActionMarker, IdMarker, PathBuilder, PathBuilderError, PathId, QueryMarker, ResourceMarker,
-    SubresourceMarker,
+    ActionMarker, IdMarker, PathBuilder, PathBuilderError, PathBuilderErrorType, PathId,
+    QueryMarker, ResourceMarker, SubresourceMarker,
 };
 
 use std::{
@@ -407,7 +407,7 @@ mod tests {
         );
     }
 
-    #[ignore]
+    #[ignore = "not implemented yet"]
     #[test]
     fn path_segment_type_parse_secondary_id() {
         let mut state = PathParseState::from_iter([

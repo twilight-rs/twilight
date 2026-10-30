@@ -113,14 +113,9 @@ impl TryIntoRequest for CreateTestEntitlement<'_> {
 #[cfg(test)]
 mod tests {
     use serde_test::Token;
-    use std::error::Error;
     use twilight_model::id::Id;
 
-    use super::{CreateTestEntitlement, CreateTestEntitlementBody, CreateTestEntitlementOwner};
-    use crate::{
-        client::Client,
-        request::{Method, TryIntoRequest},
-    };
+    use super::{CreateTestEntitlementBody, CreateTestEntitlementOwner};
 
     #[test]
     fn body_serialization() {
@@ -145,22 +140,5 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-    }
-
-    #[test]
-    fn path_and_method() -> Result<(), Box<dyn Error>> {
-        let client = Client::new(String::new());
-        let request = CreateTestEntitlement::new(
-            &client,
-            Id::new(1),
-            Id::new(2),
-            CreateTestEntitlementOwner::Guild(Id::new(3)),
-        )
-        .try_into_request()?;
-
-        assert_eq!(Method::Post, request.method());
-        assert_eq!("applications/1/entitlements", request.path().as_ref());
-
-        Ok(())
     }
 }

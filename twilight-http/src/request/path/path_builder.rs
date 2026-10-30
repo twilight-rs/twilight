@@ -364,7 +364,7 @@ impl PathBuilder<SubresourceMarker> {
             .map_err(PathBuilderError::formatting)
     }
 
-    /// Action within a resource.
+    /// Action within a subresource.
     pub fn action(mut self, action: &'static str) -> PathBuilder<ActionMarker> {
         debug_assert!(!self.has_query_parameter);
 

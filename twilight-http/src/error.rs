@@ -39,6 +39,9 @@ impl Error {
         }
     }
 
+    /// Construct an error from a source [`PathBuilder`] error.
+    ///
+    /// [`PathBuilder`]: crate::request::path::PathBuilder
     pub(super) fn path(source: PathBuilderError) -> Self {
         Self {
             kind: ErrorType::Path,
