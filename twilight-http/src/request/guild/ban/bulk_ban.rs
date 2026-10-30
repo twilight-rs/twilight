@@ -156,7 +156,7 @@ impl IntoFuture for BulkGuildBan<'_> {
 impl TryIntoRequest for BulkGuildBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::BulkGuildBan {
+        let mut request = Request::builder_from_route(&Route::BulkGuildBan {
             guild_id: self.path.guild_id.get(),
         })
         .json(&body);

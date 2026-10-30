@@ -57,7 +57,7 @@ impl IntoFuture for GetWebhook<'_> {
 
 impl TryIntoRequest for GetWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::GetWebhook {
+        let mut request = Request::builder_from_route(&Route::GetWebhook {
             token: self.path.token,
             webhook_id: self.path.id.get(),
         });

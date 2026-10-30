@@ -77,7 +77,7 @@ impl IntoFuture for GetResponse<'_> {
 
 impl TryIntoRequest for GetResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::GetInteractionOriginal {
+        Request::builder_from_route(&Route::GetInteractionOriginal {
             application_id: self.path.application_id.get(),
             interaction_token: self.path.token,
         })

@@ -76,7 +76,7 @@ impl IntoFuture for SetGuildCommands<'_> {
 
 impl TryIntoRequest for SetGuildCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::SetGuildCommands {
+        Request::builder_from_route(&Route::SetGuildCommands {
             application_id: self.path.application_id.get(),
             guild_id: self.path.guild_id.get(),
         })

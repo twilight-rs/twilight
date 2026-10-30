@@ -160,7 +160,7 @@ impl IntoFuture for UpdateAutoModerationRule<'_> {
 
 impl TryIntoRequest for UpdateAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateAutoModerationRule {
+        let mut request = Request::builder_from_route(&Route::UpdateAutoModerationRule {
             auto_moderation_rule_id: self.path.auto_moderation_rule_id.get(),
             guild_id: self.path.guild_id.get(),
         })

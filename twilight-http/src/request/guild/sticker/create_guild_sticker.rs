@@ -122,7 +122,7 @@ impl IntoFuture for CreateGuildSticker<'_> {
 impl TryIntoRequest for CreateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::CreateGuildSticker {
+        let mut request = Request::builder_from_route(&Route::CreateGuildSticker {
             guild_id: self.path.guild_id.get(),
         });
 

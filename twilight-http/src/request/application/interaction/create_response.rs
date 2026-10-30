@@ -78,7 +78,7 @@ impl IntoFuture for CreateResponse<'_> {
 
 impl TryIntoRequest for CreateResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::InteractionCallback {
+        let mut request = Request::builder_from_route(&Route::InteractionCallback {
             interaction_id: self.path.interaction_id.get(),
             interaction_token: self.path.interaction_token,
             with_response: false,

@@ -83,7 +83,7 @@ impl IntoFuture for GetFollowup<'_> {
 
 impl TryIntoRequest for GetFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::GetFollowupMessage {
+        Request::builder_from_route(&Route::GetFollowupMessage {
             application_id: self.path.application_id.get(),
             interaction_token: self.path.interaction_token,
             thread_id: None,
@@ -123,7 +123,7 @@ mod tests {
             .interaction(APPLICATION_ID)
             .followup(TOKEN, MESSAGE_ID)
             .try_into_request()?;
-        let expected = Request::builder(&Route::GetFollowupMessage {
+        let expected = Request::builder_from_route(&Route::GetFollowupMessage {
             application_id: APPLICATION_ID.get(),
             interaction_token: TOKEN,
             thread_id: None,

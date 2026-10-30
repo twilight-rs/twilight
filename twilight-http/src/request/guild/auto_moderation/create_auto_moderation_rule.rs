@@ -463,7 +463,7 @@ impl<'a> AuditLogReason<'a> for CreateAutoModerationRule<'a> {
 impl TryIntoRequest for CreateAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
         let body = self.body.map_err(HttpError::validation)?;
-        let mut request = Request::builder(&Route::CreateAutoModerationRule {
+        let mut request = Request::builder_from_route(&Route::CreateAutoModerationRule {
             guild_id: self.path.guild_id.get(),
         })
         .json(&body);

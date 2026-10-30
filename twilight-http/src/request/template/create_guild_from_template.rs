@@ -88,7 +88,7 @@ impl TryIntoRequest for CreateGuildFromTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateGuildFromTemplate {
+        Request::builder_from_route(&Route::CreateGuildFromTemplate {
             template_code: self.path.template_code,
         })
         .json(&body)

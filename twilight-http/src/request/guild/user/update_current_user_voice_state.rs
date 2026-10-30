@@ -107,7 +107,7 @@ impl IntoFuture for UpdateCurrentUserVoiceState<'_> {
 
 impl TryIntoRequest for UpdateCurrentUserVoiceState<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateCurrentUserVoiceState {
+        Request::builder_from_route(&Route::UpdateCurrentUserVoiceState {
             guild_id: self.path.guild_id.get(),
         })
         .json(&self.body)
