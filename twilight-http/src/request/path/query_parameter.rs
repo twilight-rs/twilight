@@ -234,7 +234,7 @@ impl<T: QueryParameterValue> QueryParameter for RepeatingQueryParameter<'_, T> {
         !self.value.is_empty()
     }
 
-    /// Write the key and values to the query parameter writer, writing each key
+    /// Write the key and values to the query parameter writer, writing the key
     /// once per value.
     ///
     /// # Errors
