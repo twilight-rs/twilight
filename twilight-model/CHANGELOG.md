@@ -1,5 +1,59 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Breaking Changes
+These fixes are technically breaking changes, but the old implementation where fundamentally broken and resulted (de)serialization errors when used.
+- Return InteractionCallbackResponse instead of InteractionResponse from CreateResponseWithResponse ([#2493](https://github.com/twilight-rs/twilight/issues/2493))
+- make vanityurl::code nullable ([#2609](https://github.com/twilight-rs/twilight/issues/2609))
+- make webhook::channel_id nullable ([#2606](https://github.com/twilight-rs/twilight/issues/2606))
+
+
+
+### Features
+
+- add embed flags support ([#2620](https://github.com/twilight-rs/twilight/issues/2620))
+- add new variants to guildfeature ([#2614](https://github.com/twilight-rs/twilight/issues/2614))
+- add channel::total_message_sent ([#2613](https://github.com/twilight-rs/twilight/issues/2613))
+- guild scheduled event recurrence rule ([#2618](https://github.com/twilight-rs/twilight/issues/2618))
+- add channelflags::is_spoiler_channel ([#2608](https://github.com/twilight-rs/twilight/issues/2608))
+- support monetization subscriptions ([#2604](https://github.com/twilight-rs/twilight/issues/2604))
+- add new entitlement type variants ([#2602](https://github.com/twilight-rs/twilight/issues/2602))
+- add durable, consumable sku types ([#2601](https://github.com/twilight-rs/twilight/issues/2601))
+- add embed placeholder, content-type, flags ([#2566](https://github.com/twilight-rs/twilight/issues/2566))
+- add attachment upload file type ([#2590](https://github.com/twilight-rs/twilight/issues/2590))
+- add vr client status ([#2582](https://github.com/twilight-rs/twilight/issues/2582))
+- add missing properties to activity object ([#2583](https://github.com/twilight-rs/twilight/issues/2583))
+- add missing `Attachment` fields. ([#2565](https://github.com/twilight-rs/twilight/issues/2565))
+- add applicationflags::application_auto_moderation_rule_create_badge ([#2647](https://github.com/twilight-rs/twilight/issues/2647))
+- add `app_permissions` to resolved interaction channel ([#2545](https://github.com/twilight-rs/twilight/issues/2545))
+- add `channel_type` to message create event ([#2533](https://github.com/twilight-rs/twilight/issues/2533))
+- add messageflags::has_snapshot ([#2648](https://github.com/twilight-rs/twilight/issues/2648))
+- add missing AttachmentFlags values ([#2544](https://github.com/twilight-rs/twilight/issues/2544))
+- expose Interaction.attachment_size_limit ([#2523](https://github.com/twilight-rs/twilight/issues/2523))
+- add two new message type variants ([#2649](https://github.com/twilight-rs/twilight/issues/2649))
+- add checkbox components ([#2516](https://github.com/twilight-rs/twilight/issues/2516))
+- add enum variant from/tryfrom conversion ([#2502](https://github.com/twilight-rs/twilight/issues/2502))
+- improve bucket API ([#2511](https://github.com/twilight-rs/twilight/issues/2511))
+- add setting flags for forum threads ([#2495](https://github.com/twilight-rs/twilight/issues/2495))
+- Implement "Prune Requires Admin" guild feature ([#2578](https://github.com/twilight-rs/twilight/issues/2578))
+- Add Channel Obfuscation flag ([#2574](https://github.com/twilight-rs/twilight/issues/2574))
+
+### Bug Fixes
+
+- correct audit log member disconnect value ([#2610](https://github.com/twilight-rs/twilight/issues/2610))
+- rename user flag to certified moderator ([#2607](https://github.com/twilight-rs/twilight/issues/2607))
+- do not serialize content_type when not set ([#2592](https://github.com/twilight-rs/twilight/issues/2592))
+- Fix deserialization of modals with checkboxes ([#2530](https://github.com/twilight-rs/twilight/issues/2530))
+
+### Performance
+
+- monomorphize IdVisitor ([#2559](https://github.com/twilight-rs/twilight/issues/2559))
+- hoist bucket iterator branch ([#2537](https://github.com/twilight-rs/twilight/issues/2537))
+
+
+
+
 ## [0.17.1] - 2025-12-13
 
 ### Features

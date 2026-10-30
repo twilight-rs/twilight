@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Features
+
+- add channel::total_message_sent ([#2613](https://github.com/twilight-rs/twilight/issues/2613))
+- add `channel_type` to message create event ([#2533](https://github.com/twilight-rs/twilight/issues/2533))
+- expose Interaction.attachment_size_limit ([#2523](https://github.com/twilight-rs/twilight/issues/2523))
+
+
 ## [0.17.0] - 2025-11-08
 
 ### Bug Fixes
