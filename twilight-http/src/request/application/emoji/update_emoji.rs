@@ -16,13 +16,13 @@ use crate::{
 };
 
 #[derive(Serialize)]
-struct EditApplicationEmojiFields<'a> {
+struct UpdateApplicationEmojiBody<'a> {
     name: &'a str,
 }
 
 pub struct UpdateApplicationEmoji<'a> {
-    fields: EditApplicationEmojiFields<'a>,
     application_id: Id<ApplicationMarker>,
+    body: UpdateApplicationEmojiBody<'a>,
     emoji_id: Id<EmojiMarker>,
     http: &'a Client,
 }
@@ -35,8 +35,8 @@ impl<'a> UpdateApplicationEmoji<'a> {
         name: &'a str,
     ) -> Self {
         Self {
-            fields: EditApplicationEmojiFields { name },
             application_id,
+            body: UpdateApplicationEmojiBody { name },
             emoji_id,
             http,
         }
@@ -65,7 +65,7 @@ impl TryIntoRequest for UpdateApplicationEmoji<'_> {
             emoji_id: self.emoji_id.get(),
         });
 
-        request = request.json(&self.fields);
+        request = request.json(&self.body);
 
         request.build()
     }

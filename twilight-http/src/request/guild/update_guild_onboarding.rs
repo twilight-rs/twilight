@@ -46,8 +46,11 @@ pub struct UpdateGuildOnboardingPrompt {
     pub title: String,
 }
 
+#[deprecated(since = "0.17.2", note = "renamed to UpdateGuildOnboardingBody")]
+pub type UpdateGuildOnboardingFields = UpdateGuildOnboardingBody;
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct UpdateGuildOnboardingFields {
+pub struct UpdateGuildOnboardingBody {
     pub default_channel_ids: Vec<Id<ChannelMarker>>,
     pub prompts: Vec<UpdateGuildOnboardingPrompt>,
     pub enabled: bool,
@@ -57,7 +60,7 @@ pub struct UpdateGuildOnboardingFields {
 /// Update the guild's onboarding flow
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildOnboarding<'a> {
-    fields: UpdateGuildOnboardingFields,
+    body: UpdateGuildOnboardingBody,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -67,10 +70,10 @@ impl<'a> UpdateGuildOnboarding<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         guild_id: Id<GuildMarker>,
-        fields: UpdateGuildOnboardingFields,
+        body: UpdateGuildOnboardingBody,
     ) -> Self {
         Self {
-            fields,
+            body,
             guild_id,
             http,
             reason: Ok(None),
@@ -107,7 +110,7 @@ impl TryIntoRequest for UpdateGuildOnboarding<'_> {
             guild_id: self.guild_id.get(),
         });
 
-        request = request.json(&self.fields);
+        request = request.json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             let header = request::audit_header(reason)?;

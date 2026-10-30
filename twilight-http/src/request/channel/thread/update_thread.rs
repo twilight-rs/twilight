@@ -23,7 +23,7 @@ use twilight_validate::{
 };
 
 #[derive(Serialize)]
-struct UpdateThreadFields<'a> {
+struct UpdateThreadBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     applied_tags: Option<Nullable<&'a [Id<TagMarker>]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -48,8 +48,8 @@ struct UpdateThreadFields<'a> {
 /// characters and the maximum is 100 UTF-16 characters.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateThread<'a> {
+    body: Result<UpdateThreadBody<'a>, ChannelValidationError>,
     channel_id: Id<ChannelMarker>,
-    fields: Result<UpdateThreadFields<'a>, ChannelValidationError>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -58,7 +58,7 @@ impl<'a> UpdateThread<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
-            fields: Ok(UpdateThreadFields {
+            body: Ok(UpdateThreadBody {
                 applied_tags: None,
                 archived: None,
                 auto_archive_duration: None,
@@ -75,8 +75,8 @@ impl<'a> UpdateThread<'a> {
 
     /// Set the forum thread's applied tags.
     pub const fn applied_tags(mut self, applied_tags: Option<&'a [Id<TagMarker>]>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.applied_tags = Some(Nullable(applied_tags));
+        if let Ok(body) = self.body.as_mut() {
+            body.applied_tags = Some(Nullable(applied_tags));
         }
 
         self
@@ -90,8 +90,8 @@ impl<'a> UpdateThread<'a> {
     /// [`SEND_MESSAGES`]: twilight_model::guild::Permissions::SEND_MESSAGES
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
     pub const fn archived(mut self, archived: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.archived = Some(archived);
+        if let Ok(body) = self.body.as_mut() {
+            body.archived = Some(archived);
         }
 
         self
@@ -105,8 +105,8 @@ impl<'a> UpdateThread<'a> {
         mut self,
         auto_archive_duration: AutoArchiveDuration,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.auto_archive_duration = Some(auto_archive_duration);
+        if let Ok(body) = self.body.as_mut() {
+            body.auto_archive_duration = Some(auto_archive_duration);
         }
 
         self
@@ -114,8 +114,8 @@ impl<'a> UpdateThread<'a> {
 
     /// Sets the thread's flags.
     pub const fn flags(mut self, flags: Option<ChannelFlags>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.flags = Some(Nullable(flags));
+        if let Ok(body) = self.body.as_mut() {
+            body.flags = Some(Nullable(flags));
         }
 
         self
@@ -123,8 +123,8 @@ impl<'a> UpdateThread<'a> {
 
     /// Whether non-moderators can add other non-moderators to a thread.
     pub const fn invitable(mut self, invitable: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.invitable = Some(invitable);
+        if let Ok(body) = self.body.as_mut() {
+            body.invitable = Some(invitable);
         }
 
         self
@@ -137,8 +137,8 @@ impl<'a> UpdateThread<'a> {
     ///
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
     pub const fn locked(mut self, locked: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.locked = Some(locked);
+        if let Ok(body) = self.body.as_mut() {
+            body.locked = Some(locked);
         }
 
         self
@@ -154,11 +154,11 @@ impl<'a> UpdateThread<'a> {
     ///
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
     pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_name(name)?;
-            fields.name = Some(name);
+            body.name = Some(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -178,11 +178,11 @@ impl<'a> UpdateThread<'a> {
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub fn rate_limit_per_user(mut self, rate_limit_per_user: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_rate_limit_per_user(rate_limit_per_user)?;
-            fields.rate_limit_per_user = Some(rate_limit_per_user);
+            body.rate_limit_per_user = Some(rate_limit_per_user);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -214,11 +214,11 @@ impl IntoFuture for UpdateThread<'_> {
 
 impl TryIntoRequest for UpdateThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
@@ -230,7 +230,7 @@ impl TryIntoRequest for UpdateThread<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::{UpdateThread, UpdateThreadFields};
+    use super::{UpdateThread, UpdateThreadBody};
     use crate::{
         Client,
         request::{Request, TryIntoRequest},
@@ -251,7 +251,7 @@ mod tests {
         let expected = Request::builder(&Route::UpdateChannel {
             channel_id: channel_id.get(),
         })
-        .json(&UpdateThreadFields {
+        .json(&UpdateThreadBody {
             applied_tags: None,
             archived: None,
             auto_archive_duration: None,

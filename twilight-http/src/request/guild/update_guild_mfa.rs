@@ -14,14 +14,14 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct UpdateGuildMfaFields {
+struct UpdateGuildMfaBody {
     level: MfaLevel,
 }
 
 /// Update a guild's MFA level.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMfa<'a> {
-    fields: UpdateGuildMfaFields,
+    body: UpdateGuildMfaBody,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -30,7 +30,7 @@ pub struct UpdateGuildMfa<'a> {
 impl<'a> UpdateGuildMfa<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, level: MfaLevel) -> Self {
         Self {
-            fields: UpdateGuildMfaFields { level },
+            body: UpdateGuildMfaBody { level },
             guild_id,
             http,
             reason: Ok(None),
@@ -66,7 +66,7 @@ impl TryIntoRequest for UpdateGuildMfa<'_> {
         let mut request = Request::builder(&Route::UpdateGuildMfa {
             guild_id: self.guild_id.get(),
         })
-        .json(&self.fields);
+        .json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

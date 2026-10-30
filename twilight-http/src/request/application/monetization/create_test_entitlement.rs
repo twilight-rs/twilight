@@ -38,17 +38,17 @@ impl CreateTestEntitlementOwner {
     }
 }
 
-struct CreateTestEntitlementFields {
+struct CreateTestEntitlementBody {
     sku_id: Id<SkuMarker>,
     owner: CreateTestEntitlementOwner,
 }
 
-impl Serialize for CreateTestEntitlementFields {
+impl Serialize for CreateTestEntitlementBody {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let mut state = serializer.serialize_struct("CreateTestEntitlementFields", 2)?;
+        let mut state = serializer.serialize_struct("CreateTestEntitlementBody", 2)?;
         state.serialize_field("sku_id", &self.sku_id.get())?;
         state.serialize_field("owner_id", &self.owner.id())?;
         state.serialize_field("owner_type", &self.owner.kind())?;
@@ -58,7 +58,7 @@ impl Serialize for CreateTestEntitlementFields {
 
 pub struct CreateTestEntitlement<'a> {
     application_id: Id<ApplicationMarker>,
-    fields: CreateTestEntitlementFields,
+    body: CreateTestEntitlementBody,
     http: &'a Client,
 }
 
@@ -71,7 +71,7 @@ impl<'a> CreateTestEntitlement<'a> {
     ) -> Self {
         Self {
             application_id,
-            fields: CreateTestEntitlementFields { sku_id, owner },
+            body: CreateTestEntitlementBody { sku_id, owner },
             http,
         }
     }
@@ -97,7 +97,7 @@ impl TryIntoRequest for CreateTestEntitlement<'_> {
         Request::builder(&Route::CreateTestEntitlement {
             application_id: self.application_id.get(),
         })
-        .json(&self.fields)
+        .json(&self.body)
         .build()
     }
 }
@@ -107,11 +107,11 @@ mod tests {
     use serde_test::Token;
     use twilight_model::id::Id;
 
-    use super::{CreateTestEntitlementFields, CreateTestEntitlementOwner};
+    use super::{CreateTestEntitlementBody, CreateTestEntitlementOwner};
 
     #[test]
-    fn fields_serialization() {
-        let value = CreateTestEntitlementFields {
+    fn body_serialization() {
+        let value = CreateTestEntitlementBody {
             sku_id: Id::new(1),
             owner: CreateTestEntitlementOwner::Guild(Id::new(2)),
         };
@@ -120,7 +120,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "CreateTestEntitlementFields",
+                    name: "CreateTestEntitlementBody",
                     len: 2,
                 },
                 Token::Str("sku_id"),

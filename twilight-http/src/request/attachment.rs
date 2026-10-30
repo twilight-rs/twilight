@@ -18,8 +18,8 @@ impl<'a> AttachmentManager<'a> {
         }
     }
 
-    pub fn build_form(&self, fields: &'a [u8]) -> Form {
-        let mut form = Form::new().json_part(b"payload_json", fields);
+    pub fn build_form(&self, body: &'a [u8]) -> Form {
+        let mut form = Form::new().json_part(b"payload_json", body);
 
         for file in &self.files {
             let mut name = Vec::with_capacity(7 + num_digits(file.id));

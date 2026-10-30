@@ -14,15 +14,15 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct FollowNewsChannelFields {
+struct FollowNewsChannelBody {
     webhook_channel_id: Id<ChannelMarker>,
 }
 
 /// Follow a news channel by [`Id<ChannelMarker>`]s.
 #[must_use = "requests must be configured and executed"]
 pub struct FollowNewsChannel<'a> {
+    body: FollowNewsChannelBody,
     channel_id: Id<ChannelMarker>,
-    fields: FollowNewsChannelFields,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -34,9 +34,9 @@ impl<'a> FollowNewsChannel<'a> {
         webhook_channel_id: Id<ChannelMarker>,
     ) -> Self {
         Self {
+            body: FollowNewsChannelBody { webhook_channel_id },
             channel_id,
             http,
-            fields: FollowNewsChannelFields { webhook_channel_id },
             reason: Ok(None),
         }
     }
@@ -70,7 +70,7 @@ impl TryIntoRequest for FollowNewsChannel<'_> {
         let mut request = Request::builder(&Route::FollowNewsChannel {
             channel_id: self.channel_id.get(),
         })
-        .json(&self.fields);
+        .json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

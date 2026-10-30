@@ -13,7 +13,7 @@ use twilight_model::id::{
 };
 
 #[derive(Serialize)]
-struct UpdateCurrentUserVoiceStateFields<'a> {
+struct UpdateCurrentUserVoiceStateBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -25,7 +25,7 @@ struct UpdateCurrentUserVoiceStateFields<'a> {
 /// Update the current user's voice state.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUserVoiceState<'a> {
-    fields: UpdateCurrentUserVoiceStateFields<'a>,
+    body: UpdateCurrentUserVoiceStateBody<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
@@ -33,7 +33,7 @@ pub struct UpdateCurrentUserVoiceState<'a> {
 impl<'a> UpdateCurrentUserVoiceState<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: UpdateCurrentUserVoiceStateFields {
+            body: UpdateCurrentUserVoiceStateBody {
                 channel_id: None,
                 suppress: None,
                 request_to_speak_timestamp: None,
@@ -50,7 +50,7 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     /// - `channel_id` must currently point to a stage channel.
     /// - User must already be connected to this stage channel.
     pub const fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
-        self.fields.channel_id = Some(channel_id);
+        self.body.channel_id = Some(channel_id);
 
         self
     }
@@ -65,10 +65,9 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     ///   future time.
     pub const fn request_to_speak_timestamp(mut self, request_to_speak_timestamp: &'a str) -> Self {
         if request_to_speak_timestamp.is_empty() {
-            self.fields.request_to_speak_timestamp = Some(Nullable(None));
+            self.body.request_to_speak_timestamp = Some(Nullable(None));
         } else {
-            self.fields.request_to_speak_timestamp =
-                Some(Nullable(Some(request_to_speak_timestamp)));
+            self.body.request_to_speak_timestamp = Some(Nullable(Some(request_to_speak_timestamp)));
         }
 
         self
@@ -81,7 +80,7 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     /// - You must have the `MUTE_MEMBERS` permission to unsuppress yourself.
     /// - You can always suppress yourself.
     pub const fn suppress(mut self) -> Self {
-        self.fields.suppress = Some(true);
+        self.body.suppress = Some(true);
 
         self
     }
@@ -107,7 +106,7 @@ impl TryIntoRequest for UpdateCurrentUserVoiceState<'_> {
         Request::builder(&Route::UpdateCurrentUserVoiceState {
             guild_id: self.guild_id.get(),
         })
-        .json(&self.fields)
+        .json(&self.body)
         .build()
     }
 }

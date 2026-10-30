@@ -14,14 +14,14 @@ use twilight_model::{
 };
 
 #[derive(Serialize)]
-struct AddApplicationEmojiFields<'a> {
+struct AddApplicationEmojiBody<'a> {
     image: &'a str,
     name: &'a str,
 }
 
 pub struct AddApplicationEmoji<'a> {
-    fields: AddApplicationEmojiFields<'a>,
     application_id: Id<ApplicationMarker>,
+    body: AddApplicationEmojiBody<'a>,
     http: &'a Client,
 }
 
@@ -33,8 +33,8 @@ impl<'a> AddApplicationEmoji<'a> {
         image: &'a str,
     ) -> Self {
         Self {
-            fields: AddApplicationEmojiFields { image, name },
             application_id,
+            body: AddApplicationEmojiBody { image, name },
             http,
         }
     }
@@ -61,7 +61,7 @@ impl TryIntoRequest for AddApplicationEmoji<'_> {
             application_id: self.application_id.get(),
         });
 
-        request = request.json(&self.fields);
+        request = request.json(&self.body);
 
         request.build()
     }

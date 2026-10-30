@@ -17,7 +17,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct UpdateGuildWidgetSettingsFields {
+struct UpdateGuildWidgetSettingsBody {
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -31,7 +31,7 @@ struct UpdateGuildWidgetSettingsFields {
 /// [Discord Docs/Modify Guild Widget]: https://discord.com/developers/docs/resources/guild#modify-guild-widget
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildWidgetSettings<'a> {
-    fields: UpdateGuildWidgetSettingsFields,
+    body: UpdateGuildWidgetSettingsBody,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -40,7 +40,7 @@ pub struct UpdateGuildWidgetSettings<'a> {
 impl<'a> UpdateGuildWidgetSettings<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: UpdateGuildWidgetSettingsFields {
+            body: UpdateGuildWidgetSettingsBody {
                 channel_id: None,
                 enabled: None,
             },
@@ -52,14 +52,14 @@ impl<'a> UpdateGuildWidgetSettings<'a> {
 
     /// Set which channel to display on the widget.
     pub const fn channel_id(mut self, channel_id: Option<Id<ChannelMarker>>) -> Self {
-        self.fields.channel_id = Some(Nullable(channel_id));
+        self.body.channel_id = Some(Nullable(channel_id));
 
         self
     }
 
     /// Set to true to enable the guild widget.
     pub const fn enabled(mut self, enabled: bool) -> Self {
-        self.fields.enabled = Some(enabled);
+        self.body.enabled = Some(enabled);
 
         self
     }
@@ -94,7 +94,7 @@ impl TryIntoRequest for UpdateGuildWidgetSettings<'_> {
             guild_id: self.guild_id.get(),
         });
 
-        request = request.json(&self.fields);
+        request = request.json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
