@@ -17,7 +17,7 @@ use twilight_model::{
 };
 use twilight_validate::command::{CommandValidationError, name as validate_name};
 
-struct CreateGuildMessageCommandFields<'a> {
+struct CreateGuildMessageCommandBody<'a> {
     default_member_permissions: Option<Permissions>,
     name: &'a str,
     name_localizations: Option<&'a HashMap<String, String>>,
@@ -34,7 +34,7 @@ struct CreateGuildMessageCommandFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildMessageCommand<'a> {
     application_id: Id<ApplicationMarker>,
-    fields: Result<CreateGuildMessageCommandFields<'a>, CommandValidationError>,
+    body: Result<CreateGuildMessageCommandBody<'a>, CommandValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
@@ -46,21 +46,21 @@ impl<'a> CreateGuildMessageCommand<'a> {
         guild_id: Id<GuildMarker>,
         name: &'a str,
     ) -> Self {
-        let fields = Ok(CreateGuildMessageCommandFields {
+        let body = Ok(CreateGuildMessageCommandBody {
             default_member_permissions: None,
             name,
             name_localizations: None,
             nsfw: None,
         })
-        .and_then(|fields| {
+        .and_then(|body| {
             validate_name(name)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
             application_id,
-            fields,
+            body,
             guild_id,
             http,
         }
@@ -70,8 +70,8 @@ impl<'a> CreateGuildMessageCommand<'a> {
     ///
     /// Defaults to [`None`].
     pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.default_member_permissions = Some(default);
+        if let Ok(body) = self.body.as_mut() {
+            body.default_member_permissions = Some(default);
         }
 
         self
@@ -87,14 +87,14 @@ impl<'a> CreateGuildMessageCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     pub fn name_localizations(mut self, localizations: &'a HashMap<String, String>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             for name in localizations.values() {
                 validate_name(name)?;
             }
 
-            fields.name_localizations = Some(localizations);
+            body.name_localizations = Some(localizations);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -104,8 +104,8 @@ impl<'a> CreateGuildMessageCommand<'a> {
     ///
     /// Defaults to not being specified, which uses Discord's default.
     pub const fn nsfw(mut self, nsfw: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.nsfw = Some(nsfw);
+        if let Ok(body) = self.body.as_mut() {
+            body.nsfw = Some(nsfw);
         }
 
         self
@@ -129,7 +129,7 @@ impl IntoFuture for CreateGuildMessageCommand<'_> {
 
 impl TryIntoRequest for CreateGuildMessageCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.get(),
@@ -137,14 +137,14 @@ impl TryIntoRequest for CreateGuildMessageCommand<'_> {
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
-            default_member_permissions: fields.default_member_permissions,
+            default_member_permissions: body.default_member_permissions,
             dm_permission: None,
             description: None,
             description_localizations: None,
             kind: CommandType::Message,
-            name: fields.name,
-            name_localizations: fields.name_localizations,
-            nsfw: fields.nsfw,
+            name: body.name,
+            name_localizations: body.name_localizations,
+            nsfw: body.nsfw,
             options: None,
         })
         .build()

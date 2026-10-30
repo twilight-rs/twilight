@@ -32,7 +32,7 @@ pub struct BulkGuildBanResponseBody {
 }
 
 #[derive(Serialize)]
-struct BulkGuildBanFields<'a> {
+struct BulkGuildBanBody<'a> {
     /// Number of seconds to delete messages for, between `0` and `604800`.
     #[serde(skip_serializing_if = "Option::is_none")]
     delete_message_seconds: Option<u32>,
@@ -72,7 +72,7 @@ struct BulkGuildBanFields<'a> {
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct BulkGuildBan<'a> {
-    fields: Result<BulkGuildBanFields<'a>, ValidationError>,
+    body: Result<BulkGuildBanBody<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -84,7 +84,7 @@ impl<'a> BulkGuildBan<'a> {
         guild_id: Id<GuildMarker>,
         user_ids: &'a [Id<UserMarker>],
     ) -> Self {
-        let fields = Ok(BulkGuildBanFields {
+        let body = Ok(BulkGuildBanBody {
             delete_message_seconds: None,
             user_ids,
         })
@@ -95,7 +95,7 @@ impl<'a> BulkGuildBan<'a> {
         });
 
         Self {
-            fields,
+            body,
             guild_id,
             http,
             reason: Ok(None),
@@ -115,11 +115,11 @@ impl<'a> BulkGuildBan<'a> {
     ///
     /// [`BulkGuildBanDeleteMessageSeconds`]: twilight_validate::request::ValidationErrorType::BulkGuildBanDeleteMessageSeconds
     pub fn delete_message_seconds(mut self, seconds: u32) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_bulk_guild_ban_delete_message_seconds(seconds)?;
-            fields.delete_message_seconds = Some(seconds);
+            body.delete_message_seconds = Some(seconds);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -151,11 +151,11 @@ impl IntoFuture for BulkGuildBan<'_> {
 
 impl TryIntoRequest for BulkGuildBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::BulkGuildBan {
             guild_id: self.guild_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

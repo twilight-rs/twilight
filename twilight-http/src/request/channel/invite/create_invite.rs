@@ -20,7 +20,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateInviteFields {
+struct CreateInviteBody {
     #[serde(skip_serializing_if = "Option::is_none")]
     max_age: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -59,8 +59,8 @@ struct CreateInviteFields {
 /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
 #[must_use = "requests must be configured and executed"]
 pub struct CreateInvite<'a> {
+    body: Result<CreateInviteBody, ValidationError>,
     channel_id: Id<ChannelMarker>,
-    fields: Result<CreateInviteFields, ValidationError>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -69,7 +69,7 @@ impl<'a> CreateInvite<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
-            fields: Ok(CreateInviteFields {
+            body: Ok(CreateInviteBody {
                 max_age: None,
                 max_uses: None,
                 temporary: None,
@@ -118,11 +118,11 @@ impl<'a> CreateInvite<'a> {
     ///
     /// [`InviteMaxAge`]: twilight_validate::request::ValidationErrorType::InviteMaxAge
     pub fn max_age(mut self, max_age: u32) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_invite_max_age(max_age)?;
-            fields.max_age = Some(max_age);
+            body.max_age = Some(max_age);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -161,11 +161,11 @@ impl<'a> CreateInvite<'a> {
     ///
     /// [`InviteMaxUses`]: twilight_validate::request::ValidationErrorType::InviteMaxUses
     pub fn max_uses(mut self, max_uses: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_invite_max_uses(max_uses)?;
-            fields.max_uses = Some(max_uses);
+            body.max_uses = Some(max_uses);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -180,8 +180,8 @@ impl<'a> CreateInvite<'a> {
         mut self,
         target_application_id: Id<ApplicationMarker>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.target_application_id = Some(target_application_id);
+        if let Ok(body) = self.body.as_mut() {
+            body.target_application_id = Some(target_application_id);
         }
 
         self
@@ -189,8 +189,8 @@ impl<'a> CreateInvite<'a> {
 
     /// Set the target user id for this invite.
     pub const fn target_user_id(mut self, target_user_id: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.target_user_id = Some(target_user_id);
+        if let Ok(body) = self.body.as_mut() {
+            body.target_user_id = Some(target_user_id);
         }
 
         self
@@ -198,8 +198,8 @@ impl<'a> CreateInvite<'a> {
 
     /// Set the target type for this invite.
     pub const fn target_type(mut self, target_type: TargetType) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.target_type = Some(target_type);
+        if let Ok(body) = self.body.as_mut() {
+            body.target_type = Some(target_type);
         }
 
         self
@@ -209,8 +209,8 @@ impl<'a> CreateInvite<'a> {
     ///
     /// Defaults to false.
     pub const fn temporary(mut self, temporary: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.temporary = Some(temporary);
+        if let Ok(body) = self.body.as_mut() {
+            body.temporary = Some(temporary);
         }
 
         self
@@ -223,8 +223,8 @@ impl<'a> CreateInvite<'a> {
     ///
     /// [Discord Docs/Create Channel Invite]: https://discord.com/developers/docs/resources/channel#create-channel-invite
     pub const fn unique(mut self, unique: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.unique = Some(unique);
+        if let Ok(body) = self.body.as_mut() {
+            body.unique = Some(unique);
         }
 
         self
@@ -256,11 +256,11 @@ impl IntoFuture for CreateInvite<'_> {
 
 impl TryIntoRequest for CreateInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateInvite {
             channel_id: self.channel_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
@@ -281,11 +281,11 @@ mod tests {
     fn max_age() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let mut builder = CreateInvite::new(&client, Id::new(1)).max_age(0);
-        assert_eq!(Some(0), builder.fields.as_ref().unwrap().max_age);
+        assert_eq!(Some(0), builder.body.as_ref().unwrap().max_age);
         builder = builder.max_age(604_800);
-        assert_eq!(Some(604_800), builder.fields.as_ref().unwrap().max_age);
+        assert_eq!(Some(604_800), builder.body.as_ref().unwrap().max_age);
         builder = builder.max_age(604_801);
-        assert!(builder.fields.is_err());
+        assert!(builder.body.is_err());
 
         Ok(())
     }
@@ -294,11 +294,11 @@ mod tests {
     fn max_uses() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let mut builder = CreateInvite::new(&client, Id::new(1)).max_uses(0);
-        assert_eq!(Some(0), builder.fields.as_ref().unwrap().max_uses);
+        assert_eq!(Some(0), builder.body.as_ref().unwrap().max_uses);
         builder = builder.max_uses(100);
-        assert_eq!(Some(100), builder.fields.as_ref().unwrap().max_uses);
+        assert_eq!(Some(100), builder.body.as_ref().unwrap().max_uses);
         builder = builder.max_uses(101);
-        assert!(builder.fields.is_err());
+        assert!(builder.body.is_err());
 
         Ok(())
     }

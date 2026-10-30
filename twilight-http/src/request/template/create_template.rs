@@ -17,7 +17,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateTemplateFields<'a> {
+struct CreateTemplateBody<'a> {
     name: &'a str,
     description: Option<&'a str>,
 }
@@ -35,25 +35,25 @@ struct CreateTemplateFields<'a> {
 /// [`TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
-    fields: Result<CreateTemplateFields<'a>, ValidationError>,
+    body: Result<CreateTemplateBody<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> CreateTemplate<'a> {
     pub(crate) fn new(http: &'a Client, guild_id: Id<GuildMarker>, name: &'a str) -> Self {
-        let fields = Ok(CreateTemplateFields {
+        let body = Ok(CreateTemplateBody {
             name,
             description: None,
         })
-        .and_then(|fields| {
+        .and_then(|body| {
             validate_template_name(name)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
-            fields,
+            body,
             guild_id,
             http,
         }
@@ -70,12 +70,12 @@ impl<'a> CreateTemplate<'a> {
     ///
     /// [`TemplateDescription`]: twilight_validate::request::ValidationErrorType::TemplateDescription
     pub fn description(mut self, description: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_template_description(description)?;
 
-            fields.description.replace(description);
+            body.description.replace(description);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -99,12 +99,12 @@ impl IntoFuture for CreateTemplate<'_> {
 
 impl TryIntoRequest for CreateTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateTemplate {
             guild_id: self.guild_id.get(),
         })
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }
