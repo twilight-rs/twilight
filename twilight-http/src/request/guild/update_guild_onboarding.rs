@@ -16,9 +16,8 @@ use serde::{Deserialize, Serialize};
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
@@ -110,9 +109,16 @@ impl IntoFuture for UpdateGuildOnboarding<'_> {
 
 impl TryIntoRequest for UpdateGuildOnboarding<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::UpdateGuildOnboarding {
-            guild_id: self.path.guild_id.get(),
-        });
+        let UpdateGuildOnboardingPath { guild_id } = self.path;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("onboarding")
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Put, path);
 
         request = request.json(&self.body);
 

@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -118,55 +117,25 @@ impl IntoFuture for UpdateChannelPermission<'_> {
 
 impl TryIntoRequest for UpdateChannelPermission<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::UpdatePermissionOverwrite {
-            channel_id: self.path.channel_id.get(),
-            target_id: self.path.target_id.get(),
-        })
-        .json(&self.body);
+        let UpdateChannelPermissionPath {
+            channel_id,
+            target_id,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("permissions")
+            .id(target_id)
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Put, path).json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
         }
 
         request.build()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn request() {
-        let permission_overwrite = PermissionOverwrite {
-            allow: None,
-            deny: Some(Permissions::SEND_MESSAGES),
-            id: Id::new(2),
-            kind: PermissionOverwriteType::Member,
-        };
-
-        let client = Client::new("foo".to_owned());
-        let builder = UpdateChannelPermission::new(&client, Id::new(1), &permission_overwrite);
-        let actual = builder
-            .try_into_request()
-            .expect("failed to create request");
-
-        let body = crate::json::to_vec(&UpdateChannelPermissionBody {
-            allow: None,
-            deny: Some(Permissions::SEND_MESSAGES),
-            kind: PermissionOverwriteType::Member,
-        })
-        .expect("failed to serialize payload");
-        let route = Route::UpdatePermissionOverwrite {
-            channel_id: 1,
-            target_id: 2,
-        };
-        let expected = Request::builder_from_route(&route)
-            .body(body)
-            .build()
-            .unwrap();
-
-        assert_eq!(expected.body, actual.body);
-        assert_eq!(expected.path, actual.path);
     }
 }

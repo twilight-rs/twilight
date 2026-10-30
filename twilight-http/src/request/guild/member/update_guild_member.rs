@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Nullable, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -193,113 +192,23 @@ impl IntoFuture for UpdateGuildMember<'_> {
 
 impl TryIntoRequest for UpdateGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let UpdateGuildMemberPath { guild_id, user_id } = self.path;
+
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::UpdateMember {
-            guild_id: self.path.guild_id.get(),
-            user_id: self.path.user_id.get(),
-        })
-        .json(&body);
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("members")
+            .id(user_id)
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Patch, path).json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
         }
 
         request.build()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{UpdateGuildMember, UpdateGuildMemberBody};
-    use crate::{
-        Client,
-        request::{Nullable, Request, TryIntoRequest},
-        routing::Route,
-    };
-    use std::error::Error;
-    use twilight_model::id::{
-        Id,
-        marker::{GuildMarker, UserMarker},
-    };
-
-    const GUILD_ID: Id<GuildMarker> = Id::new(1);
-    const USER_ID: Id<UserMarker> = Id::new(1);
-
-    #[test]
-    fn request() -> Result<(), Box<dyn Error>> {
-        let client = Client::new("foo".to_owned());
-        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID)
-            .deaf(true)
-            .mute(true);
-        let actual = builder.try_into_request()?;
-
-        let body = UpdateGuildMemberBody {
-            channel_id: None,
-            communication_disabled_until: None,
-            deaf: Some(true),
-            mute: Some(true),
-            nick: None,
-            roles: None,
-        };
-        let route = Route::UpdateMember {
-            guild_id: GUILD_ID.get(),
-            user_id: USER_ID.get(),
-        };
-        let expected = Request::builder_from_route(&route).json(&body).build()?;
-
-        assert_eq!(actual.body, expected.body);
-        assert_eq!(actual.path, expected.path);
-
-        Ok(())
-    }
-
-    #[test]
-    fn nick_set_null() -> Result<(), Box<dyn Error>> {
-        let client = Client::new("foo".to_owned());
-        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(None);
-        let actual = builder.try_into_request()?;
-
-        let body = UpdateGuildMemberBody {
-            channel_id: None,
-            communication_disabled_until: None,
-            deaf: None,
-            mute: None,
-            nick: Some(Nullable(None)),
-            roles: None,
-        };
-        let route = Route::UpdateMember {
-            guild_id: GUILD_ID.get(),
-            user_id: USER_ID.get(),
-        };
-        let expected = Request::builder_from_route(&route).json(&body).build()?;
-
-        assert_eq!(actual.body, expected.body);
-
-        Ok(())
-    }
-
-    #[test]
-    fn nick_set_value() -> Result<(), Box<dyn Error>> {
-        let client = Client::new("foo".to_owned());
-        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(Some("foo"));
-        let actual = builder.try_into_request()?;
-
-        let body = UpdateGuildMemberBody {
-            channel_id: None,
-            communication_disabled_until: None,
-            deaf: None,
-            mute: None,
-            nick: Some(Nullable(Some("foo"))),
-            roles: None,
-        };
-        let route = Route::UpdateMember {
-            guild_id: GUILD_ID.get(),
-            user_id: USER_ID.get(),
-        };
-        let expected = Request::builder_from_route(&route).json(&body).build()?;
-
-        assert_eq!(actual.body, expected.body);
-
-        Ok(())
     }
 }

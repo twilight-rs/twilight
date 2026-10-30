@@ -1,14 +1,13 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::guild::template::Template;
 
-struct GetTemplatePath<'a> {
+pub struct GetTemplatePath<'a> {
     template_code: &'a str,
 }
 
@@ -45,8 +44,13 @@ impl IntoFuture for GetTemplate<'_> {
 
 impl TryIntoRequest for GetTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetTemplate {
-            template_code: self.path.template_code,
-        }))
+        let path = Path::builder()
+            .resource("guilds")
+            .subresource("templates")
+            .id(self.path.template_code)
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

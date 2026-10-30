@@ -2,9 +2,8 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::{collections::HashMap, future::IntoFuture};
 use twilight_model::{
@@ -24,7 +23,7 @@ struct CreateGuildMessageCommandBody<'a> {
     nsfw: Option<bool>,
 }
 
-struct CreateGuildMessageCommandPath {
+pub struct CreateGuildMessageCommandPath {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
 }
@@ -135,24 +134,29 @@ impl IntoFuture for CreateGuildMessageCommand<'_> {
 
 impl TryIntoRequest for CreateGuildMessageCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .resource("commands")
+            .build()
+            .map_err(Error::path)?;
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder_from_route(&Route::CreateGuildCommand {
-            application_id: self.path.application_id.get(),
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&CommandBorrowed {
-            application_id: Some(self.path.application_id),
-            default_member_permissions: body.default_member_permissions,
-            dm_permission: None,
-            description: None,
-            description_localizations: None,
-            kind: CommandType::Message,
-            name: body.name,
-            name_localizations: body.name_localizations,
-            nsfw: body.nsfw,
-            options: None,
-        })
-        .build()
+        Request::builder(Method::Post, path)
+            .json(&CommandBorrowed {
+                application_id: Some(self.path.application_id),
+                default_member_permissions: body.default_member_permissions,
+                dm_permission: None,
+                description: None,
+                description_localizations: None,
+                kind: CommandType::Message,
+                name: body.name,
+                name_localizations: body.name_localizations,
+                nsfw: body.nsfw,
+                options: None,
+            })
+            .build()
     }
 }

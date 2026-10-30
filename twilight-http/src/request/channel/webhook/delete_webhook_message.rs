@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
@@ -97,48 +96,30 @@ impl IntoFuture for DeleteWebhookMessage<'_> {
 
 impl TryIntoRequest for DeleteWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::DeleteWebhookMessage {
-            message_id: self.path.message_id.get(),
-            thread_id: self.path.thread_id.map(Id::get),
-            token: self.path.token,
-            webhook_id: self.path.webhook_id.get(),
-        })
-        .use_authorization_token(false);
+        let DeleteWebhookMessagePath {
+            message_id,
+            thread_id,
+            token,
+            webhook_id,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("webhooks")
+            .id(webhook_id)
+            .no_resource()
+            .id(token)
+            .resource("messages")
+            .id(message_id)
+            .parameter(("thread_id", thread_id))
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Delete, path).use_authorization_token(false);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
         }
 
         request.build()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::DeleteWebhookMessage;
-    use crate::{
-        client::Client,
-        request::{Request, TryIntoRequest},
-        routing::Route,
-    };
-    use twilight_model::id::Id;
-
-    #[test]
-    fn request() {
-        let client = Client::new("token".to_owned());
-        let builder = DeleteWebhookMessage::new(&client, Id::new(1), "token", Id::new(2));
-        let actual = builder
-            .try_into_request()
-            .expect("failed to create request");
-
-        let expected = Request::from_route(&Route::DeleteWebhookMessage {
-            message_id: 2,
-            thread_id: None,
-            token: "token",
-            webhook_id: 1,
-        });
-
-        assert_eq!(expected.body, actual.body);
-        assert_eq!(expected.path, actual.path);
     }
 }

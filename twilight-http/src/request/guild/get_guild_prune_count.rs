@@ -1,9 +1,11 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{
+        Method, Request, TryIntoRequest,
+        path::{Path, query_parameter::CsvQueryParameter},
+    },
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -103,13 +105,22 @@ impl IntoFuture for GetGuildPruneCount<'_> {
 
 impl TryIntoRequest for GetGuildPruneCount<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let path = self.path.map_err(Error::validation)?;
+        let GetGuildPruneCountPath {
+            days,
+            guild_id,
+            include_roles,
+        } = self.path.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::GetGuildPruneCount {
-            days: path.days,
-            guild_id: path.guild_id.get(),
-            include_roles: path.include_roles,
-        }))
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .action("prune")
+            .parameter(("days", days))
+            .parameter(CsvQueryParameter::new("include_roles", include_roles))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }
 

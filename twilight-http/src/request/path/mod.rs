@@ -407,7 +407,7 @@ mod tests {
         );
     }
 
-    #[ignore]
+    #[ignore = "not implemented yet"]
     #[test]
     fn path_segment_type_parse_secondary_id() {
         let mut state = PathParseState::from_iter([

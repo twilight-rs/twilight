@@ -604,7 +604,8 @@ mod tests {
         assert!(QueryParameterValue::will_write(&Id::<GuildMarker>::new(1)));
         assert_eq!(
             "1234567890123456789",
-            QueryParameterValueDisplay(Id::<GuildMarker>::new(1234567890123456789)).to_string()
+            QueryParameterValueDisplay(Id::<GuildMarker>::new(1_234_567_890_123_456_789))
+                .to_string()
         );
     }
 

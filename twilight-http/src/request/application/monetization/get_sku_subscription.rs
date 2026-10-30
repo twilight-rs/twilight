@@ -1,8 +1,7 @@
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::ResponseFuture,
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -58,9 +57,19 @@ impl IntoFuture for GetSKUSubscription<'_> {
 
 impl TryIntoRequest for GetSKUSubscription<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetSKUSubscription {
-            subscription_id: self.path.subscription_id.get(),
-            sku_id: self.path.sku_id.get(),
-        }))
+        let GetSKUSubscriptionPath {
+            sku_id,
+            subscription_id,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("skus")
+            .id(sku_id)
+            .resource("subscriptions")
+            .id(subscription_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

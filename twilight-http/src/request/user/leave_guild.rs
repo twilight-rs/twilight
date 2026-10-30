@@ -1,14 +1,13 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::GuildMarker};
 
-struct LeaveGuildPath {
+pub struct LeaveGuildPath {
     guild_id: Id<GuildMarker>,
 }
 
@@ -45,8 +44,14 @@ impl IntoFuture for LeaveGuild<'_> {
 
 impl TryIntoRequest for LeaveGuild<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::LeaveGuild {
-            guild_id: self.path.guild_id.get(),
-        }))
+        let path = Path::builder()
+            .resource("users")
+            .me()
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Delete, path))
     }
 }
