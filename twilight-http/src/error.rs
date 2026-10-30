@@ -1,4 +1,6 @@
-use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
+use crate::{
+    api_error::ApiError, json::JsonError, request::path::PathBuilderError, response::StatusCode,
+};
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -37,6 +39,18 @@ impl Error {
         }
     }
 
+    /// Construct an error from a source [`PathBuilder`] error.
+    ///
+    /// [`PathBuilder`]: crate::request::path::PathBuilder
+    // Clippy: Will be used in a later pull request in the stack.
+    #[expect(unused)]
+    pub(super) fn path(source: PathBuilderError) -> Self {
+        Self {
+            kind: ErrorType::Path,
+            source: Some(Box::new(source)),
+        }
+    }
+
     pub(super) fn validation(source: impl StdError + Send + Sync + 'static) -> Self {
         Self {
             kind: ErrorType::Validation,
@@ -65,6 +79,7 @@ impl Display for Error {
                     Debug::fmt(body, f)
                 }
             }
+            ErrorType::Path => f.write_str("path of http uri was unable to be formatted"),
             ErrorType::RequestCanceled => {
                 f.write_str("request was canceled either before or while being sent")
             }
@@ -104,6 +119,12 @@ pub enum ErrorType {
     Parsing {
         body: Vec<u8>,
     },
+    /// HTTP path of the URI was unable to be formatted.
+    ///
+    /// This occurs when a request's [`Path`] is unable to be built.
+    ///
+    /// [`Path`]: crate::request::path::Path
+    Path,
     RequestCanceled,
     RequestError,
     RequestTimedOut,
@@ -194,6 +215,7 @@ impl Debug for ErrorType {
 
                 debug.field("body", body).finish()
             }
+            Self::Path => f.write_str("Path"),
             Self::RequestCanceled => f.write_str("RequestCanceled"),
             Self::RequestError => f.write_str("RequestError"),
             Self::RequestTimedOut => f.write_str("RequestTimedOut"),
