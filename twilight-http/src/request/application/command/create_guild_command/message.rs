@@ -24,6 +24,11 @@ struct CreateGuildMessageCommandBody<'a> {
     nsfw: Option<bool>,
 }
 
+struct CreateGuildMessageCommandPath {
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Create a message command in a guild.
 ///
 /// Creating a guild command with the same name as an already-existing guild
@@ -33,10 +38,9 @@ struct CreateGuildMessageCommandBody<'a> {
 /// [Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildMessageCommand<'a> {
-    application_id: Id<ApplicationMarker>,
     body: Result<CreateGuildMessageCommandBody<'a>, CommandValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: CreateGuildMessageCommandPath,
 }
 
 impl<'a> CreateGuildMessageCommand<'a> {
@@ -59,10 +63,12 @@ impl<'a> CreateGuildMessageCommand<'a> {
         });
 
         Self {
-            application_id,
             body,
-            guild_id,
             http,
+            path: CreateGuildMessageCommandPath {
+                application_id,
+                guild_id,
+            },
         }
     }
 
@@ -132,11 +138,11 @@ impl TryIntoRequest for CreateGuildMessageCommand<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGuildCommand {
-            application_id: self.application_id.get(),
-            guild_id: self.guild_id.get(),
+            application_id: self.path.application_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&CommandBorrowed {
-            application_id: Some(self.application_id),
+            application_id: Some(self.path.application_id),
             default_member_permissions: body.default_member_permissions,
             dm_permission: None,
             description: None,

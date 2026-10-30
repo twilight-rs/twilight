@@ -12,6 +12,10 @@ use crate::{
     routing::Route,
 };
 
+struct GetGuildOnboardingPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get the onboarding information for a guild.
 ///
 /// # Examples
@@ -33,13 +37,16 @@ use crate::{
 /// # Ok(()) }
 /// ```
 pub struct GetGuildOnboarding<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetGuildOnboardingPath,
     http: &'a Client,
 }
 
 impl<'a> GetGuildOnboarding<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetGuildOnboardingPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -61,7 +68,7 @@ impl IntoFuture for GetGuildOnboarding<'_> {
 impl TryIntoRequest for GetGuildOnboarding<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let request = Request::from_route(&Route::GetGuildOnboarding {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         });
 
         Ok(request)

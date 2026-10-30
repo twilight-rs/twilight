@@ -17,14 +17,18 @@ use twilight_validate::request::{ValidationError, audit_reason as validate_audit
 #[serde(transparent)]
 struct UpdateRolePositionsBody<'a>(&'a [RolePosition]);
 
+struct UpdateRolePositionsPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Modify the position of the roles.
 ///
 /// The minimum amount of roles to modify, is a swap between two roles.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateRolePositions<'a> {
     body: UpdateRolePositionsBody<'a>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: UpdateRolePositionsPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -36,8 +40,8 @@ impl<'a> UpdateRolePositions<'a> {
     ) -> Self {
         Self {
             body: UpdateRolePositionsBody(roles),
-            guild_id,
             http,
+            path: UpdateRolePositionsPath { guild_id },
             reason: Ok(None),
         }
     }
@@ -69,7 +73,7 @@ impl IntoFuture for UpdateRolePositions<'_> {
 impl TryIntoRequest for UpdateRolePositions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateRolePositions {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&self.body);
 

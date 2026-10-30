@@ -44,6 +44,11 @@ struct UpdateResponseBody<'a> {
     payload_json: Option<&'a [u8]>,
 }
 
+struct UpdateResponsePath<'a> {
+    application_id: Id<ApplicationMarker>,
+    token: &'a str,
+}
+
 /// Edit the original message, by its token.
 ///
 /// You can pass [`None`] to any of the methods to remove the associated field.
@@ -85,11 +90,10 @@ struct UpdateResponseBody<'a> {
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateResponse<'a> {
-    application_id: Id<ApplicationMarker>,
     attachment_manager: AttachmentManager<'a>,
     body: Result<UpdateResponseBody<'a>, MessageValidationError>,
     http: &'a Client,
-    token: &'a str,
+    path: UpdateResponsePath<'a>,
 }
 
 impl<'a> UpdateResponse<'a> {
@@ -99,7 +103,6 @@ impl<'a> UpdateResponse<'a> {
         interaction_token: &'a str,
     ) -> Self {
         Self {
-            application_id,
             attachment_manager: AttachmentManager::new(),
             body: Ok(UpdateResponseBody {
                 allowed_mentions: None,
@@ -111,7 +114,10 @@ impl<'a> UpdateResponse<'a> {
                 payload_json: None,
             }),
             http,
-            token: interaction_token,
+            path: UpdateResponsePath {
+                application_id,
+                token: interaction_token,
+            },
         }
     }
 
@@ -356,8 +362,8 @@ impl TryIntoRequest for UpdateResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateInteractionOriginal {
-            application_id: self.application_id.get(),
-            interaction_token: self.token,
+            application_id: self.path.application_id.get(),
+            interaction_token: self.path.token,
         });
 
         // Interaction executions don't need the authorization token, only the

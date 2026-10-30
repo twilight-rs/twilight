@@ -19,10 +19,14 @@ struct AddApplicationEmojiBody<'a> {
     name: &'a str,
 }
 
-pub struct AddApplicationEmoji<'a> {
+struct AddApplicationEmojiPath {
     application_id: Id<ApplicationMarker>,
+}
+
+pub struct AddApplicationEmoji<'a> {
     body: AddApplicationEmojiBody<'a>,
     http: &'a Client,
+    path: AddApplicationEmojiPath,
 }
 
 impl<'a> AddApplicationEmoji<'a> {
@@ -33,9 +37,9 @@ impl<'a> AddApplicationEmoji<'a> {
         image: &'a str,
     ) -> Self {
         Self {
-            application_id,
             body: AddApplicationEmojiBody { image, name },
             http,
+            path: AddApplicationEmojiPath { application_id },
         }
     }
 }
@@ -58,7 +62,7 @@ impl IntoFuture for AddApplicationEmoji<'_> {
 impl TryIntoRequest for AddApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::AddApplicationEmoji {
-            application_id: self.application_id.get(),
+            application_id: self.path.application_id.get(),
         });
 
         request = request.json(&self.body);

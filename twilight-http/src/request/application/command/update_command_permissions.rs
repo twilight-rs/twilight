@@ -23,6 +23,13 @@ struct UpdateCommandPermissionsBody<'a> {
     pub permissions: &'a [CommandPermission],
 }
 
+#[expect(clippy::struct_field_names)]
+struct UpdateCommandPermissionsPath {
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Update command permissions for a single command in a guild.
 ///
 /// Note that this overwrites the command permissions, so the full set of
@@ -32,11 +39,9 @@ struct UpdateCommandPermissionsBody<'a> {
 /// token.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCommandPermissions<'a> {
-    application_id: Id<ApplicationMarker>,
     body: Result<UpdateCommandPermissionsBody<'a>, CommandValidationError>,
-    command_id: Id<CommandMarker>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: UpdateCommandPermissionsPath,
 }
 
 impl<'a> UpdateCommandPermissions<'a> {
@@ -54,11 +59,13 @@ impl<'a> UpdateCommandPermissions<'a> {
         });
 
         Self {
-            application_id,
             body,
-            command_id,
-            guild_id,
             http,
+            path: UpdateCommandPermissionsPath {
+                application_id,
+                command_id,
+                guild_id,
+            },
         }
     }
 }
@@ -83,9 +90,9 @@ impl TryIntoRequest for UpdateCommandPermissions<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::UpdateCommandPermissions {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
-            guild_id: self.guild_id.get(),
+            application_id: self.path.application_id.get(),
+            command_id: self.path.command_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&body)
         .build()

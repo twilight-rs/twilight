@@ -50,6 +50,11 @@ struct UpdateGuildScheduledEventBody<'a> {
     status: Option<Status>,
 }
 
+struct UpdateGuildScheduledEventPath {
+    guild_id: Id<GuildMarker>,
+    scheduled_event_id: Id<ScheduledEventMarker>,
+}
+
 /// Update a scheduled event in a guild.
 ///
 /// This endpoint supports changing the type of event. When changing the entity
@@ -67,10 +72,9 @@ struct UpdateGuildScheduledEventBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildScheduledEvent<'a> {
     body: Result<UpdateGuildScheduledEventBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: UpdateGuildScheduledEventPath,
     reason: Result<Option<&'a str>, ValidationError>,
-    scheduled_event_id: Id<ScheduledEventMarker>,
 }
 
 impl<'a> UpdateGuildScheduledEvent<'a> {
@@ -93,10 +97,12 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
                 scheduled_start_time: None,
                 status: None,
             }),
-            guild_id,
             http,
+            path: UpdateGuildScheduledEventPath {
+                guild_id,
+                scheduled_event_id,
+            },
             reason: Ok(None),
-            scheduled_event_id,
         }
     }
 
@@ -215,10 +221,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     ///
     /// Pass `None` to clear the recurrence rule.
     pub fn recurrence_rule(mut self, recurrence_rule: Option<&'a RecurrenceRule>) -> Self {
-        self.body = self.body.map(|mut fields| {
-            fields.recurrence_rule = Some(Nullable(recurrence_rule));
+        self.body = self.body.map(|mut body| {
+            body.recurrence_rule = Some(Nullable(recurrence_rule));
 
-            fields
+            body
         });
 
         self
@@ -297,8 +303,8 @@ impl TryIntoRequest for UpdateGuildScheduledEvent<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::UpdateGuildScheduledEvent {
-            guild_id: self.guild_id.get(),
-            scheduled_event_id: self.scheduled_event_id.get(),
+            guild_id: self.path.guild_id.get(),
+            scheduled_event_id: self.path.scheduled_event_id.get(),
         })
         .json(&body)
         .build()

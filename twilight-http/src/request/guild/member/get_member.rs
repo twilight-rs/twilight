@@ -14,12 +14,16 @@ use twilight_model::{
     },
 };
 
+struct GetMemberPath {
+    guild_id: Id<GuildMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Get a member of a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct GetMember<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: GetMemberPath,
 }
 
 impl<'a> GetMember<'a> {
@@ -29,9 +33,8 @@ impl<'a> GetMember<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            user_id,
+            path: GetMemberPath { guild_id, user_id },
         }
     }
 }
@@ -54,8 +57,8 @@ impl IntoFuture for GetMember<'_> {
 impl TryIntoRequest for GetMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetMember {
-            guild_id: self.guild_id.get(),
-            user_id: self.user_id.get(),
+            guild_id: self.path.guild_id.get(),
+            user_id: self.path.user_id.get(),
         }))
     }
 }

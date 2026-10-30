@@ -16,13 +16,17 @@ use twilight_model::{
 #[serde(transparent)]
 struct UpdateGuildChannelPositionsBody<'a>(&'a [Position]);
 
+struct UpdateGuildChannelPositionsPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Modify the positions of the channels.
 ///
 /// The minimum amount of channels to modify, is a swap between two channels.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildChannelPositions<'a> {
     body: UpdateGuildChannelPositionsBody<'a>,
-    guild_id: Id<GuildMarker>,
+    path: UpdateGuildChannelPositionsPath,
     http: &'a Client,
 }
 
@@ -34,7 +38,7 @@ impl<'a> UpdateGuildChannelPositions<'a> {
     ) -> Self {
         Self {
             body: UpdateGuildChannelPositionsBody(channel_positions),
-            guild_id,
+            path: UpdateGuildChannelPositionsPath { guild_id },
             http,
         }
     }
@@ -58,7 +62,7 @@ impl IntoFuture for UpdateGuildChannelPositions<'_> {
 impl TryIntoRequest for UpdateGuildChannelPositions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateGuildChannels {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&self.body)
         .build()

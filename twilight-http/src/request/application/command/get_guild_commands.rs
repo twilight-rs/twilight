@@ -14,13 +14,17 @@ use twilight_model::{
     },
 };
 
+struct GetGuildCommandsPath {
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
+    with_localizations: Option<bool>,
+}
+
 /// Fetch all commands for a guild, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildCommands<'a> {
-    application_id: Id<ApplicationMarker>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    with_localizations: Option<bool>,
+    path: GetGuildCommandsPath,
 }
 
 impl<'a> GetGuildCommands<'a> {
@@ -30,10 +34,12 @@ impl<'a> GetGuildCommands<'a> {
         guild_id: Id<GuildMarker>,
     ) -> Self {
         Self {
-            application_id,
-            guild_id,
             http,
-            with_localizations: None,
+            path: GetGuildCommandsPath {
+                application_id,
+                guild_id,
+                with_localizations: None,
+            },
         }
     }
 
@@ -41,7 +47,7 @@ impl<'a> GetGuildCommands<'a> {
     ///
     /// Defaults to [`false`].
     pub const fn with_localizations(mut self, with_localizations: bool) -> Self {
-        self.with_localizations = Some(with_localizations);
+        self.path.with_localizations = Some(with_localizations);
 
         self
     }
@@ -65,9 +71,9 @@ impl IntoFuture for GetGuildCommands<'_> {
 impl TryIntoRequest for GetGuildCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildCommands {
-            application_id: self.application_id.get(),
-            guild_id: self.guild_id.get(),
-            with_localizations: self.with_localizations,
+            application_id: self.path.application_id.get(),
+            guild_id: self.path.guild_id.get(),
+            with_localizations: self.path.with_localizations,
         }))
     }
 }

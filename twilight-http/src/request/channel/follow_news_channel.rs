@@ -18,12 +18,16 @@ struct FollowNewsChannelBody {
     webhook_channel_id: Id<ChannelMarker>,
 }
 
+struct FollowNewsChannelPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Follow a news channel by [`Id<ChannelMarker>`]s.
 #[must_use = "requests must be configured and executed"]
 pub struct FollowNewsChannel<'a> {
     body: FollowNewsChannelBody,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: FollowNewsChannelPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -35,8 +39,8 @@ impl<'a> FollowNewsChannel<'a> {
     ) -> Self {
         Self {
             body: FollowNewsChannelBody { webhook_channel_id },
-            channel_id,
             http,
+            path: FollowNewsChannelPath { channel_id },
             reason: Ok(None),
         }
     }
@@ -68,7 +72,7 @@ impl IntoFuture for FollowNewsChannel<'_> {
 impl TryIntoRequest for FollowNewsChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::FollowNewsChannel {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         })
         .json(&self.body);
 

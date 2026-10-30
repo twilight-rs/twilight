@@ -17,9 +17,10 @@ use twilight_validate::request::{
     ValidationError, get_guild_bans_limit as validate_get_guild_bans_limit,
 };
 
-struct GetBansFields {
+struct GetBansPath {
     after: Option<Id<UserMarker>>,
     before: Option<Id<UserMarker>>,
+    guild_id: Id<GuildMarker>,
     limit: Option<u16>,
 }
 
@@ -51,21 +52,20 @@ struct GetBansFields {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetBans<'a> {
-    fields: Result<GetBansFields, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: Result<GetBansPath, ValidationError>,
 }
 
 impl<'a> GetBans<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(GetBansFields {
+            http,
+            path: Ok(GetBansPath {
                 after: None,
                 before: None,
+                guild_id,
                 limit: None,
             }),
-            guild_id,
-            http,
         }
     }
 
@@ -76,8 +76,8 @@ impl<'a> GetBans<'a> {
     ///
     /// [`before`]: Self::before
     pub const fn after(mut self, user_id: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(user_id);
+        if let Ok(path) = self.path.as_mut() {
+            path.after = Some(user_id);
         }
 
         self
@@ -91,8 +91,8 @@ impl<'a> GetBans<'a> {
     /// [`after`]: Self::after
     /// [`before`]: Self::before
     pub const fn before(mut self, user_id: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.before = Some(user_id);
+        if let Ok(path) = self.path.as_mut() {
+            path.before = Some(user_id);
         }
 
         self
@@ -110,11 +110,11 @@ impl<'a> GetBans<'a> {
     ///
     /// [`GetGuildBans`]: twilight_validate::request::ValidationErrorType::GetGuildBans
     pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_get_guild_bans_limit(limit)?;
-            fields.limit.replace(limit);
+            path.limit.replace(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -138,13 +138,13 @@ impl IntoFuture for GetBans<'_> {
 
 impl TryIntoRequest for GetBans<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetBansWithParameters {
-            after: fields.after.map(Id::get),
-            before: fields.before.map(Id::get),
-            limit: fields.limit,
-            guild_id: self.guild_id.get(),
+            after: path.after.map(Id::get),
+            before: path.before.map(Id::get),
+            limit: path.limit,
+            guild_id: path.guild_id.get(),
         }))
     }
 }

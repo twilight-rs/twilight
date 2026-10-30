@@ -42,6 +42,11 @@ struct UpdateMessageBody<'a> {
     payload_json: Option<&'a [u8]>,
 }
 
+struct UpdateMessagePath {
+    channel_id: Id<ChannelMarker>,
+    message_id: Id<MessageMarker>,
+}
+
 /// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
 ///
 /// You can pass [`None`] to any of the methods to remove the associated field.
@@ -89,9 +94,8 @@ struct UpdateMessageBody<'a> {
 pub struct UpdateMessage<'a> {
     attachment_manager: AttachmentManager<'a>,
     body: Result<UpdateMessageBody<'a>, MessageValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    path: UpdateMessagePath,
 }
 
 impl<'a> UpdateMessage<'a> {
@@ -102,7 +106,6 @@ impl<'a> UpdateMessage<'a> {
     ) -> Self {
         Self {
             attachment_manager: AttachmentManager::new(),
-            channel_id,
             body: Ok(UpdateMessageBody {
                 allowed_mentions: None,
                 attachments: None,
@@ -113,7 +116,10 @@ impl<'a> UpdateMessage<'a> {
                 payload_json: None,
             }),
             http,
-            message_id,
+            path: UpdateMessagePath {
+                channel_id,
+                message_id,
+            },
         }
     }
 
@@ -324,8 +330,8 @@ impl TryIntoRequest for UpdateMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateMessage {
-            channel_id: self.channel_id.get(),
-            message_id: self.message_id.get(),
+            channel_id: self.path.channel_id.get(),
+            message_id: self.path.message_id.get(),
         });
 
         // Set the default allowed mentions if required.

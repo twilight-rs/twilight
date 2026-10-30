@@ -18,8 +18,9 @@ use twilight_validate::request::{
     ValidationError, get_channel_messages_limit as validate_get_channel_messages_limit,
 };
 
-struct GetChannelMessagesFields {
-    limit: Option<u16>,
+pub(super) struct GetChannelMessagesPath {
+    pub channel_id: Id<ChannelMarker>,
+    pub limit: Option<u16>,
 }
 
 /// Get channel messages, by [`Id<ChannelMarker>`].
@@ -57,51 +58,31 @@ struct GetChannelMessagesFields {
 /// [`limit`]: Self::limit
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessages<'a> {
-    fields: Result<GetChannelMessagesFields, ValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: Result<GetChannelMessagesPath, ValidationError>,
 }
 
 impl<'a> GetChannelMessages<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
-            channel_id,
-            fields: Ok(GetChannelMessagesFields { limit: None }),
             http,
+            path: Ok(GetChannelMessagesPath {
+                channel_id,
+                limit: None,
+            }),
         }
     }
 
     pub fn after(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
-        GetChannelMessagesConfigured::new(
-            self.http,
-            self.channel_id,
-            Some(message_id),
-            None,
-            None,
-            self.fields.map(|fields| fields.limit),
-        )
+        GetChannelMessagesConfigured::new(self.http, self.path, Some(message_id), None, None)
     }
 
     pub fn around(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
-        GetChannelMessagesConfigured::new(
-            self.http,
-            self.channel_id,
-            None,
-            Some(message_id),
-            None,
-            self.fields.map(|fields| fields.limit),
-        )
+        GetChannelMessagesConfigured::new(self.http, self.path, None, Some(message_id), None)
     }
 
     pub fn before(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
-        GetChannelMessagesConfigured::new(
-            self.http,
-            self.channel_id,
-            None,
-            None,
-            Some(message_id),
-            self.fields.map(|fields| fields.limit),
-        )
+        GetChannelMessagesConfigured::new(self.http, self.path, None, None, Some(message_id))
     }
 
     /// Set the maximum number of messages to retrieve.
@@ -115,11 +96,11 @@ impl<'a> GetChannelMessages<'a> {
     ///
     /// [`GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
     pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_get_channel_messages_limit(limit)?;
-            fields.limit = Some(limit);
+            path.limit = Some(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -143,14 +124,14 @@ impl IntoFuture for GetChannelMessages<'_> {
 
 impl TryIntoRequest for GetChannelMessages<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetMessages {
             after: None,
             around: None,
             before: None,
-            channel_id: self.channel_id.get(),
-            limit: fields.limit,
+            channel_id: path.channel_id.get(),
+            limit: path.limit,
         }))
     }
 }

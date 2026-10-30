@@ -13,12 +13,16 @@ use twilight_model::{
     },
 };
 
+struct GetSKUSubscriptionPath {
+    sku_id: Id<SkuMarker>,
+    subscription_id: Id<SubscriptionMarker>,
+}
+
 /// Returns all subscriptions containing the SKU, filtered by user.
 #[must_use = "requests must be configured and executed"]
 pub struct GetSKUSubscription<'a> {
     http: &'a Client,
-    sku_id: Id<SkuMarker>,
-    subscription_id: Id<SubscriptionMarker>,
+    path: GetSKUSubscriptionPath,
 }
 
 impl<'a> GetSKUSubscription<'a> {
@@ -29,8 +33,10 @@ impl<'a> GetSKUSubscription<'a> {
     ) -> Self {
         Self {
             http,
-            sku_id,
-            subscription_id,
+            path: GetSKUSubscriptionPath {
+                sku_id,
+                subscription_id,
+            },
         }
     }
 }
@@ -53,8 +59,8 @@ impl IntoFuture for GetSKUSubscription<'_> {
 impl TryIntoRequest for GetSKUSubscription<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetSKUSubscription {
-            subscription_id: self.subscription_id.get(),
-            sku_id: self.sku_id.get(),
+            subscription_id: self.path.subscription_id.get(),
+            sku_id: self.path.sku_id.get(),
         }))
     }
 }

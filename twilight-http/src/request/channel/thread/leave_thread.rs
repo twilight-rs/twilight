@@ -8,18 +8,25 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::ChannelMarker};
 
+struct LeaveThreadPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Remove the current user from a thread.
 ///
 /// Requires that the thread is not archived.
 #[must_use = "requests must be configured and executed"]
 pub struct LeaveThread<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: LeaveThreadPath,
 }
 
 impl<'a> LeaveThread<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
-        Self { channel_id, http }
+        Self {
+            http,
+            path: LeaveThreadPath { channel_id },
+        }
     }
 }
 
@@ -41,7 +48,7 @@ impl IntoFuture for LeaveThread<'_> {
 impl TryIntoRequest for LeaveThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::LeaveThread {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         }))
     }
 }

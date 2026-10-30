@@ -26,6 +26,11 @@ struct CreateThreadFromMessageBody<'a> {
     name: &'a str,
 }
 
+struct CreateThreadFromMessagePath {
+    channel_id: Id<ChannelMarker>,
+    message_id: Id<MessageMarker>,
+}
+
 /// Create a new thread from an existing message.
 ///
 /// When called on a [`GuildText`] channel, this creates a
@@ -48,9 +53,8 @@ struct CreateThreadFromMessageBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
     body: Result<CreateThreadFromMessageBody<'a>, ChannelValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    path: CreateThreadFromMessagePath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -73,9 +77,11 @@ impl<'a> CreateThreadFromMessage<'a> {
 
         Self {
             body,
-            channel_id,
             http,
-            message_id,
+            path: CreateThreadFromMessagePath {
+                channel_id,
+                message_id,
+            },
             reason: Ok(None),
         }
     }
@@ -124,8 +130,8 @@ impl TryIntoRequest for CreateThreadFromMessage<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         let mut request = Request::builder(&Route::CreateThreadFromMessage {
-            channel_id: self.channel_id.get(),
-            message_id: self.message_id.get(),
+            channel_id: self.path.channel_id.get(),
+            message_id: self.path.message_id.get(),
         })
         .json(&body);
 

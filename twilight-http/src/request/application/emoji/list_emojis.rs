@@ -11,17 +11,21 @@ use twilight_model::{
     id::{Id, marker::ApplicationMarker},
 };
 
+struct ListApplicationEmojisPath {
+    application_id: Id<ApplicationMarker>,
+}
+
 #[must_use = "requests must be configured and executed"]
 pub struct ListApplicationEmojis<'a> {
     http: &'a Client,
-    application_id: Id<ApplicationMarker>,
+    path: ListApplicationEmojisPath,
 }
 
 impl<'a> ListApplicationEmojis<'a> {
     pub(crate) const fn new(http: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
         Self {
             http,
-            application_id,
+            path: ListApplicationEmojisPath { application_id },
         }
     }
 }
@@ -44,7 +48,7 @@ impl IntoFuture for ListApplicationEmojis<'_> {
 impl TryIntoRequest for ListApplicationEmojis<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetApplicationEmojis {
-            application_id: self.application_id.get(),
+            application_id: self.path.application_id.get(),
         }))
     }
 }

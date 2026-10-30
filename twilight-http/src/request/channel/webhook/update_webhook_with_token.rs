@@ -21,13 +21,17 @@ struct UpdateWebhookWithTokenBody<'a> {
     name: Option<&'a str>,
 }
 
+struct UpdateWebhookWithTokenPath<'a> {
+    token: &'a str,
+    webhook_id: Id<WebhookMarker>,
+}
+
 /// Update a webhook, with a token, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhookWithToken<'a> {
     body: Result<UpdateWebhookWithTokenBody<'a>, ValidationError>,
     http: &'a Client,
-    token: &'a str,
-    webhook_id: Id<WebhookMarker>,
+    path: UpdateWebhookWithTokenPath<'a>,
 }
 
 impl<'a> UpdateWebhookWithToken<'a> {
@@ -42,8 +46,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
                 name: None,
             }),
             http,
-            token,
-            webhook_id,
+            path: UpdateWebhookWithTokenPath { token, webhook_id },
         }
     }
 
@@ -102,8 +105,8 @@ impl TryIntoRequest for UpdateWebhookWithToken<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::UpdateWebhook {
-            token: Some(self.token),
-            webhook_id: self.webhook_id.get(),
+            token: Some(self.path.token),
+            webhook_id: self.path.webhook_id.get(),
         })
         .use_authorization_token(false)
         .json(&body)

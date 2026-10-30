@@ -14,12 +14,16 @@ use twilight_model::{
     voice::VoiceState,
 };
 
+struct GetUserVoiceStatePath {
+    guild_id: Id<GuildMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Get voice state of a user by guild and user ids.
 #[must_use = "requests must be configured and executed"]
 pub struct GetUserVoiceState<'a> {
     http: &'a Client,
-    guild_id: Id<GuildMarker>,
-    user_id: Id<UserMarker>,
+    path: GetUserVoiceStatePath,
 }
 
 impl<'a> GetUserVoiceState<'a> {
@@ -30,8 +34,7 @@ impl<'a> GetUserVoiceState<'a> {
     ) -> Self {
         Self {
             http,
-            guild_id,
-            user_id,
+            path: GetUserVoiceStatePath { guild_id, user_id },
         }
     }
 }
@@ -54,8 +57,8 @@ impl IntoFuture for GetUserVoiceState<'_> {
 impl TryIntoRequest for GetUserVoiceState<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetUserVoiceState {
-            guild_id: self.guild_id.get(),
-            user_id: self.user_id.get(),
+            guild_id: self.path.guild_id.get(),
+            user_id: self.path.user_id.get(),
         }))
     }
 }

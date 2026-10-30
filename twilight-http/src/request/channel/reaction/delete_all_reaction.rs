@@ -12,13 +12,17 @@ use twilight_model::id::{
     marker::{ChannelMarker, MessageMarker},
 };
 
+struct DeleteAllReactionPath<'a> {
+    channel_id: Id<ChannelMarker>,
+    emoji: &'a RequestReactionType<'a>,
+    message_id: Id<MessageMarker>,
+}
+
 /// Remove all reactions of a specified emoji from a message.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteAllReaction<'a> {
-    channel_id: Id<ChannelMarker>,
-    emoji: &'a RequestReactionType<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    path: DeleteAllReactionPath<'a>,
 }
 
 impl<'a> DeleteAllReaction<'a> {
@@ -29,10 +33,12 @@ impl<'a> DeleteAllReaction<'a> {
         emoji: &'a RequestReactionType<'a>,
     ) -> Self {
         Self {
-            channel_id,
-            emoji,
             http,
-            message_id,
+            path: DeleteAllReactionPath {
+                channel_id,
+                emoji,
+                message_id,
+            },
         }
     }
 }
@@ -55,9 +61,9 @@ impl IntoFuture for DeleteAllReaction<'_> {
 impl TryIntoRequest for DeleteAllReaction<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteMessageSpecificReaction {
-            channel_id: self.channel_id.get(),
-            message_id: self.message_id.get(),
-            emoji: self.emoji,
+            channel_id: self.path.channel_id.get(),
+            message_id: self.path.message_id.get(),
+            emoji: self.path.emoji,
         }))
     }
 }

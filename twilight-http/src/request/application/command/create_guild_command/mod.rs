@@ -13,12 +13,16 @@ use twilight_model::id::{
     marker::{ApplicationMarker, GuildMarker},
 };
 
+struct CreateGuildCommandPath {
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Create a new command in a guild.
 #[must_use = "the command must have a type"]
 pub struct CreateGuildCommand<'a> {
-    application_id: Id<ApplicationMarker>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: CreateGuildCommandPath,
 }
 
 impl<'a> CreateGuildCommand<'a> {
@@ -28,9 +32,11 @@ impl<'a> CreateGuildCommand<'a> {
         guild_id: Id<GuildMarker>,
     ) -> Self {
         Self {
-            application_id,
-            guild_id,
             http,
+            path: CreateGuildCommandPath {
+                application_id,
+                guild_id,
+            },
         }
     }
 
@@ -63,8 +69,8 @@ impl<'a> CreateGuildCommand<'a> {
     ) -> CreateGuildChatInputCommand<'a> {
         CreateGuildChatInputCommand::new(
             self.http,
-            self.application_id,
-            self.guild_id,
+            self.path.application_id,
+            self.path.guild_id,
             name,
             description,
         )
@@ -84,7 +90,12 @@ impl<'a> CreateGuildCommand<'a> {
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub fn message(self, name: &'a str) -> CreateGuildMessageCommand<'a> {
-        CreateGuildMessageCommand::new(self.http, self.application_id, self.guild_id, name)
+        CreateGuildMessageCommand::new(
+            self.http,
+            self.path.application_id,
+            self.path.guild_id,
+            name,
+        )
     }
 
     /// Create a user command in a guild.
@@ -101,6 +112,11 @@ impl<'a> CreateGuildCommand<'a> {
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub fn user(self, name: &'a str) -> CreateGuildUserCommand<'a> {
-        CreateGuildUserCommand::new(self.http, self.application_id, self.guild_id, name)
+        CreateGuildUserCommand::new(
+            self.http,
+            self.path.application_id,
+            self.path.guild_id,
+            name,
+        )
     }
 }

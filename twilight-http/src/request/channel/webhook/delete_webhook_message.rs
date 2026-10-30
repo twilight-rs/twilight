@@ -12,6 +12,13 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteWebhookMessagePath<'a> {
+    message_id: Id<MessageMarker>,
+    thread_id: Option<Id<ChannelMarker>>,
+    token: &'a str,
+    webhook_id: Id<WebhookMarker>,
+}
+
 /// Delete a message created by a webhook.
 ///
 /// # Examples
@@ -33,11 +40,8 @@ use twilight_validate::request::{ValidationError, audit_reason as validate_audit
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteWebhookMessage<'a> {
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    path: DeleteWebhookMessagePath<'a>,
     reason: Result<Option<&'a str>, ValidationError>,
-    thread_id: Option<Id<ChannelMarker>>,
-    token: &'a str,
-    webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> DeleteWebhookMessage<'a> {
@@ -49,18 +53,20 @@ impl<'a> DeleteWebhookMessage<'a> {
     ) -> Self {
         Self {
             http,
-            message_id,
+            path: DeleteWebhookMessagePath {
+                message_id,
+                thread_id: None,
+                token,
+                webhook_id,
+            },
             reason: Ok(None),
-            thread_id: None,
-            token,
-            webhook_id,
         }
     }
 
     /// Delete in a thread belonging to the channel instead of the channel
     /// itself.
     pub const fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
-        self.thread_id.replace(thread_id);
+        self.path.thread_id.replace(thread_id);
 
         self
     }
@@ -92,10 +98,10 @@ impl IntoFuture for DeleteWebhookMessage<'_> {
 impl TryIntoRequest for DeleteWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteWebhookMessage {
-            message_id: self.message_id.get(),
-            thread_id: self.thread_id.map(Id::get),
-            token: self.token,
-            webhook_id: self.webhook_id.get(),
+            message_id: self.path.message_id.get(),
+            thread_id: self.path.thread_id.map(Id::get),
+            token: self.path.token,
+            webhook_id: self.path.webhook_id.get(),
         })
         .use_authorization_token(false);
 

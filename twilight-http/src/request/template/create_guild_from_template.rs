@@ -17,6 +17,10 @@ struct CreateGuildFromTemplateBody<'a> {
     icon: Option<&'a str>,
 }
 
+struct CreateGuildFromTemplatePath<'a> {
+    template_code: &'a str,
+}
+
 /// Create a new guild based on a template.
 ///
 /// This endpoint can only be used by bots in less than 10 guilds.
@@ -31,7 +35,7 @@ struct CreateGuildFromTemplateBody<'a> {
 pub struct CreateGuildFromTemplate<'a> {
     body: Result<CreateGuildFromTemplateBody<'a>, ValidationError>,
     http: &'a Client,
-    template_code: &'a str,
+    path: CreateGuildFromTemplatePath<'a>,
 }
 
 impl<'a> CreateGuildFromTemplate<'a> {
@@ -45,7 +49,7 @@ impl<'a> CreateGuildFromTemplate<'a> {
         Self {
             body,
             http,
-            template_code,
+            path: CreateGuildFromTemplatePath { template_code },
         }
     }
 
@@ -85,7 +89,7 @@ impl TryIntoRequest for CreateGuildFromTemplate<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGuildFromTemplate {
-            template_code: self.template_code,
+            template_code: self.path.template_code,
         })
         .json(&body)
         .build()

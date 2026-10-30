@@ -8,16 +8,23 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::ChannelMarker};
 
+struct CreateTypingTriggerPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Fire a Typing Start event in the channel.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTypingTrigger<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: CreateTypingTriggerPath,
 }
 
 impl<'a> CreateTypingTrigger<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
-        Self { channel_id, http }
+        Self {
+            http,
+            path: CreateTypingTriggerPath { channel_id },
+        }
     }
 }
 
@@ -39,7 +46,7 @@ impl IntoFuture for CreateTypingTrigger<'_> {
 impl TryIntoRequest for CreateTypingTrigger<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::CreateTypingTrigger {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         }))
     }
 }

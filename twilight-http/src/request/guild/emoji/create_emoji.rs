@@ -24,6 +24,10 @@ struct CreateEmojiBody<'a> {
     roles: Option<&'a [Id<RoleMarker>]>,
 }
 
+struct CreateEmojiPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Create an emoji in a guild.
 ///
 /// The emoji must be a Data URI, in the form of
@@ -34,8 +38,8 @@ struct CreateEmojiBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateEmoji<'a> {
     body: CreateEmojiBody<'a>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: CreateEmojiPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -52,8 +56,8 @@ impl<'a> CreateEmoji<'a> {
                 name,
                 roles: None,
             },
-            guild_id,
             http,
+            path: CreateEmojiPath { guild_id },
             reason: Ok(None),
         }
     }
@@ -96,7 +100,7 @@ impl IntoFuture for CreateEmoji<'_> {
 impl TryIntoRequest for CreateEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateEmoji {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         });
 
         request = request.json(&self.body);
