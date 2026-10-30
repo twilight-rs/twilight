@@ -65,19 +65,23 @@ pub struct AuditLogOptionalEntryInfo {
     /// [`AuditLogEventType::StageInstanceUpdate`]: super::AuditLogEventType::StageInstanceUpdate
     #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_id: Option<Id<ChannelMarker>>,
-    /// Number of entities that were targeted.
+    /// Number of entities that were targeted, or number of position updates.
     ///
     /// The following events have this option:
     ///
+    /// - [`AuditLogEventType::ChannelPositionUpdate`]
     /// - [`AuditLogEventType::MemberDisconnect`]
     /// - [`AuditLogEventType::MemberMove`]
     /// - [`AuditLogEventType::MessageBulkDelete`]
     /// - [`AuditLogEventType::MessageDelete`]
+    /// - [`AuditLogEventType::RolePositionUpdate`]
     ///
+    /// [`AuditLogEventType::ChannelPositionUpdate`]: super::AuditLogEventType::ChannelPositionUpdate
     /// [`AuditLogEventType::MemberDisconnect`]: super::AuditLogEventType::MemberDisconnect
     /// [`AuditLogEventType::MemberMove`]: super::AuditLogEventType::MemberMove
     /// [`AuditLogEventType::MessageBulkDelete`]: super::AuditLogEventType::MessageBulkDelete
     /// [`AuditLogEventType::MessageDelete`]: super::AuditLogEventType::MessageDelete
+    /// [`AuditLogEventType::RolePositionUpdate`]: super::AuditLogEventType::RolePositionUpdate
     #[serde(skip_serializing_if = "Option::is_none")]
     pub count: Option<String>,
     /// Specified number of days' worth of inactivity members must have in order

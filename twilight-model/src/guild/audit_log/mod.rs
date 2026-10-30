@@ -3,6 +3,22 @@
 //!
 //! For additional information refer to [Discord Docs/Audit Logs].
 //!
+//! # Merging
+//!
+//! Certain audit log actions support merging, so requests by the same user in
+//! quick succession update the data of the original entry, rather than always
+//! creating a new one. Only the reason of the first request in the batch is kept,
+//! and subsequent updates do not fire a Gateway event.
+//!
+//! The following event types get merged:
+//!
+//! - [`AuditLogEventType::ChannelPositionUpdate`]
+//! - [`AuditLogEventType::MemberDisconnect`]
+//! - [`AuditLogEventType::MemberMove`]
+//! - [`AuditLogEventType::MessageDelete`]
+//! - [`AuditLogEventType::MessageBulkDelete`]
+//! - [`AuditLogEventType::RolePositionUpdate`]
+//!
 //! [Discord Docs/Audit Logs]: https://discord.com/developers/docs/resources/audit-log
 
 mod change;
