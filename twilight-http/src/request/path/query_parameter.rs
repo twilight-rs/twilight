@@ -133,10 +133,10 @@ impl<T: QueryParameterValue> QueryParameter for KeyValueQueryParameter<'_, T> {
 ///
 /// ```rust
 /// use twilight_http::request::route::{
-///     query_parameter::{CsvQueryParameter, KeyValueQueryParameter},
 ///     Path,
+///     query_parameter::{CsvQueryParameter, KeyValueQueryParameter},
 /// };
-/// use twilight_model::id::{marker::ChannelMarker, Id};
+/// use twilight_model::id::{Id, marker::ChannelMarker};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let channel_ids: &[Id<ChannelMarker>] = &[Id::new(1), Id::new(2), Id::new(3)];
@@ -201,10 +201,10 @@ impl<T: QueryParameterValue> QueryParameter for CsvQueryParameter<'_, T> {
 ///
 /// ```rust
 /// use twilight_http::request::route::{
-///     query_parameter::{KeyValueQueryParameter, RepeatingQueryParameter},
 ///     Path,
+///     query_parameter::{KeyValueQueryParameter, RepeatingQueryParameter},
 /// };
-/// use twilight_model::id::{marker::ChannelMarker, Id};
+/// use twilight_model::id::{Id, marker::ChannelMarker};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let channel_ids: &[Id<ChannelMarker>] = &[Id::new(1), Id::new(2), Id::new(3)];
@@ -215,7 +215,10 @@ impl<T: QueryParameterValue> QueryParameter for CsvQueryParameter<'_, T> {
 ///     .parameter(RepeatingQueryParameter::new("channel_id", channel_ids))
 ///     .build()?;
 ///
-/// assert_eq!("example?key=value&channel_id=1&channel_id=2&channel_id=3", path);
+/// assert_eq!(
+///     "example?key=value&channel_id=1&channel_id=2&channel_id=3",
+///     path
+/// );
 /// # Ok(()) }
 /// ```
 pub struct RepeatingQueryParameter<'a, T> {
