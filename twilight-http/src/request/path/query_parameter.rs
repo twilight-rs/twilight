@@ -8,7 +8,7 @@
 
 use percent_encoding::NON_ALPHANUMERIC;
 use std::fmt::{self, Display, Formatter, Write as _};
-use twilight_model::id::Id;
+use twilight_model::{channel::message::ReactionType, id::Id, util::Timestamp};
 
 pub struct QueryParameterWriter<'a, 'b> {
     has_query_parameter: bool,
@@ -347,6 +347,18 @@ impl QueryParameterValue for bool {
 impl<T> QueryParameterValue for Id<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         Display::fmt(self, f)
+    }
+}
+
+impl QueryParameterValue for ReactionType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        Display::fmt(&u8::from(*self), f)
+    }
+}
+
+impl QueryParameterValue for Timestamp {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        Display::fmt(&self.iso_8601(), f)
     }
 }
 
