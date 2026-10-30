@@ -302,7 +302,7 @@ impl TryIntoRequest for UpdateGuildScheduledEvent<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::UpdateGuildScheduledEvent {
+        Request::builder_from_route(&Route::UpdateGuildScheduledEvent {
             guild_id: self.path.guild_id.get(),
             scheduled_event_id: self.path.scheduled_event_id.get(),
         })

@@ -71,7 +71,7 @@ impl IntoFuture for DeleteAutoModerationRule<'_> {
 
 impl TryIntoRequest for DeleteAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::DeleteAutoModerationRule {
+        let mut request = Request::builder_from_route(&Route::DeleteAutoModerationRule {
             auto_moderation_rule_id: self.path.auto_moderation_rule_id.get(),
             guild_id: self.path.guild_id.get(),
         });

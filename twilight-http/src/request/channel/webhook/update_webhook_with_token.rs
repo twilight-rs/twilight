@@ -104,7 +104,7 @@ impl TryIntoRequest for UpdateWebhookWithToken<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::UpdateWebhook {
+        Request::builder_from_route(&Route::UpdateWebhook {
             token: Some(self.path.token),
             webhook_id: self.path.webhook_id.get(),
         })

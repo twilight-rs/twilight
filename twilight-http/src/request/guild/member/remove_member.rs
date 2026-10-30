@@ -64,7 +64,7 @@ impl IntoFuture for RemoveMember<'_> {
 
 impl TryIntoRequest for RemoveMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::RemoveMember {
+        let mut request = Request::builder_from_route(&Route::RemoveMember {
             guild_id: self.path.guild_id.get(),
             user_id: self.path.user_id.get(),
         });

@@ -118,7 +118,7 @@ impl IntoFuture for UpdateChannelPermission<'_> {
 
 impl TryIntoRequest for UpdateChannelPermission<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdatePermissionOverwrite {
+        let mut request = Request::builder_from_route(&Route::UpdatePermissionOverwrite {
             channel_id: self.path.channel_id.get(),
             target_id: self.path.target_id.get(),
         })
@@ -161,7 +161,10 @@ mod tests {
             channel_id: 1,
             target_id: 2,
         };
-        let expected = Request::builder(&route).body(body).build().unwrap();
+        let expected = Request::builder_from_route(&route)
+            .body(body)
+            .build()
+            .unwrap();
 
         assert_eq!(expected.body, actual.body);
         assert_eq!(expected.path, actual.path);

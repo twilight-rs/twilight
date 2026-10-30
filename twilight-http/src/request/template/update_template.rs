@@ -116,7 +116,7 @@ impl TryIntoRequest for UpdateTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::UpdateTemplate {
+        Request::builder_from_route(&Route::UpdateTemplate {
             guild_id: self.path.guild_id.get(),
             template_code: self.path.template_code,
         })

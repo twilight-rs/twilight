@@ -228,7 +228,7 @@ impl IntoFuture for UpdateRole<'_> {
 
 impl TryIntoRequest for UpdateRole<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateRole {
+        let mut request = Request::builder_from_route(&Route::UpdateRole {
             guild_id: self.path.guild_id.get(),
             role_id: self.path.role_id.get(),
         });

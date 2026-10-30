@@ -195,7 +195,7 @@ impl IntoFuture for UpdateCurrentUserApplication<'_> {
 
 impl TryIntoRequest for UpdateCurrentUserApplication<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateCurrentUserApplication);
+        let mut request = Request::builder_from_route(&Route::UpdateCurrentUserApplication);
 
         request = request.json(&self.body);
 

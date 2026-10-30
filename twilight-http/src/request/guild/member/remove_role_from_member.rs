@@ -71,7 +71,7 @@ impl IntoFuture for RemoveRoleFromMember<'_> {
 
 impl TryIntoRequest for RemoveRoleFromMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::RemoveMemberRole {
+        let mut request = Request::builder_from_route(&Route::RemoveMemberRole {
             guild_id: self.path.guild_id.get(),
             role_id: self.path.role_id.get(),
             user_id: self.path.user_id.get(),

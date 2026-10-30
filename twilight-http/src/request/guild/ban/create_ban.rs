@@ -124,7 +124,7 @@ impl IntoFuture for CreateBan<'_> {
 impl TryIntoRequest for CreateBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::CreateBan {
+        let mut request = Request::builder_from_route(&Route::CreateBan {
             guild_id: self.path.guild_id.get(),
             user_id: self.path.user_id.get(),
         })

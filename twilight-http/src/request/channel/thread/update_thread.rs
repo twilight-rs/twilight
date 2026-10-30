@@ -219,7 +219,7 @@ impl IntoFuture for UpdateThread<'_> {
 impl TryIntoRequest for UpdateThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::UpdateChannel {
+        let mut request = Request::builder_from_route(&Route::UpdateChannel {
             channel_id: self.path.channel_id.get(),
         })
         .json(&body);
@@ -252,7 +252,7 @@ mod tests {
             .rate_limit_per_user(60)
             .try_into_request()?;
 
-        let expected = Request::builder(&Route::UpdateChannel {
+        let expected = Request::builder_from_route(&Route::UpdateChannel {
             channel_id: channel_id.get(),
         })
         .json(&UpdateThreadBody {

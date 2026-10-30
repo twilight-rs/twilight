@@ -180,7 +180,7 @@ impl IntoFuture for CreateRole<'_> {
 
 impl TryIntoRequest for CreateRole<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::CreateRole {
+        let mut request = Request::builder_from_route(&Route::CreateRole {
             guild_id: self.path.guild_id.get(),
         });
 

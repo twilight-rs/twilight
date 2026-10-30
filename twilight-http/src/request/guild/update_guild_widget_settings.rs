@@ -94,7 +94,7 @@ impl IntoFuture for UpdateGuildWidgetSettings<'_> {
 
 impl TryIntoRequest for UpdateGuildWidgetSettings<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateGuildWidgetSettings {
+        let mut request = Request::builder_from_route(&Route::UpdateGuildWidgetSettings {
             guild_id: self.path.guild_id.get(),
         });
 

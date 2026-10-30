@@ -301,7 +301,7 @@ impl IntoFuture for CreateFollowup<'_> {
 impl TryIntoRequest for CreateFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::ExecuteWebhook {
+        let mut request = Request::builder_from_route(&Route::ExecuteWebhook {
             thread_id: None,
             token: self.path.token,
             wait: None,

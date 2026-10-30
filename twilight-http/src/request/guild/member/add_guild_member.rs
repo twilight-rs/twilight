@@ -138,7 +138,7 @@ impl TryIntoRequest for AddGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::AddGuildMember {
+        Request::builder_from_route(&Route::AddGuildMember {
             guild_id: self.path.guild_id.get(),
             user_id: self.path.user_id.get(),
         })

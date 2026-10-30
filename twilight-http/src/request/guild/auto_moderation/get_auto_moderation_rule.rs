@@ -63,7 +63,7 @@ impl IntoFuture for GetAutoModerationRule<'_> {
 
 impl TryIntoRequest for GetAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::GetAutoModerationRule {
+        Request::builder_from_route(&Route::GetAutoModerationRule {
             auto_moderation_rule_id: self.path.auto_moderation_rule_id.get(),
             guild_id: self.path.guild_id.get(),
         })
