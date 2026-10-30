@@ -364,6 +364,18 @@ impl PathBuilder<SubresourceMarker> {
             .map_err(PathBuilderError::formatting)
     }
 
+    /// Action within a subresource.
+    pub fn action(mut self, action: &'static str) -> PathBuilder<ActionMarker> {
+        debug_assert!(!self.has_query_parameter);
+
+        if let Ok(buffer) = self.buffer.as_mut() {
+            buffer.push('/');
+            buffer.push_str(action);
+        }
+
+        self.cast()
+    }
+
     pub fn id(mut self, id: impl PathId) -> PathBuilder<IdMarker> {
         debug_assert!(!self.has_query_parameter);
 
@@ -378,6 +390,12 @@ impl PathBuilder<SubresourceMarker> {
 
     pub fn me(self) -> PathBuilder<IdMarker> {
         self.id("@me")
+    }
+
+    pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
+        debug_assert!(!self.has_query_parameter);
+
+        PathBuilder::<QueryMarker>::parameter(self.cast(), query_parameter)
     }
 }
 
