@@ -40,7 +40,7 @@ pub use self::{
     text_display::TextDisplay,
     text_input::{TextInput, TextInputStyle},
     thumbnail::Thumbnail,
-    unfurled_media::UnfurledMediaItem,
+    unfurled_media::{ContentScanMetadata, ContentScanMetadataFlags, UnfurledMediaItem},
 };
 
 use super::EmojiReactionType;
