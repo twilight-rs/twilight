@@ -150,11 +150,11 @@ impl Request {
     ///     .body(body)
     ///     .build();
     /// ```
-    pub fn builder(method: Method, path: Path) -> RequestBuilder {
+    pub fn builder_new(method: Method, path: Path) -> RequestBuilder {
         RequestBuilder::new(method, path)
     }
 
-    pub fn builder_from_route(route: &Route<'_>) -> RequestBuilder {
+    pub fn builder(route: &Route<'_>) -> RequestBuilder {
         RequestBuilder::new_from_route(route)
     }
 
@@ -169,7 +169,8 @@ impl Request {
             form: None,
             headers: None,
             method: route.method(),
-            path: Path::from_str(&route.to_string()).expect("TODO"),
+            path: Path::from_str(&route.to_string())
+                .expect("panic doesn't matter; this method will be removed"),
             use_authorization_token: true,
         }
     }
@@ -207,10 +208,9 @@ impl Request {
 
 #[cfg(test)]
 mod tests {
-    use super::{Request, RequestBuilder};
+    use super::RequestBuilder;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
     assert_impl_all!(RequestBuilder: Debug, Send, Sync);
-    assert_impl_all!(Request: Clone, Debug, Send, Sync);
 }

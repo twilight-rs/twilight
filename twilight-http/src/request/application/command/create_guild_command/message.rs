@@ -137,7 +137,7 @@ impl TryIntoRequest for CreateGuildMessageCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder_from_route(&Route::CreateGuildCommand {
+        Request::builder(&Route::CreateGuildCommand {
             application_id: self.path.application_id.get(),
             guild_id: self.path.guild_id.get(),
         })

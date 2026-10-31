@@ -112,7 +112,7 @@ impl IntoFuture for UpdateGlobalCommand<'_> {
 
 impl TryIntoRequest for UpdateGlobalCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder_from_route(&Route::UpdateGlobalCommand {
+        Request::builder(&Route::UpdateGlobalCommand {
             application_id: self.path.application_id.get(),
             command_id: self.path.command_id.get(),
         })
