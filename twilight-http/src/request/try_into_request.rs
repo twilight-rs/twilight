@@ -32,8 +32,9 @@ mod private {
         },
         channel::{
             CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission,
-            DeleteChannelPermissionConfigured, DeletePin, FollowNewsChannel, GetChannel, GetPins,
-            UpdateChannel, UpdateChannelPermission,
+            DeleteChannelPermissionConfigured, DeletePin, FollowNewsChannel, GetChannel,
+            GetChannelMemberPermissions, GetChannelRolePermissions, GetPins, UpdateChannel,
+            UpdateChannelPermission,
             invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
             message::{
                 CreateMessage, CrosspostMessage, DeleteMessage, DeleteMessages, GetChannelMessages,
@@ -73,12 +74,13 @@ mod private {
             emoji::{CreateEmoji, DeleteEmoji, GetEmoji, GetEmojis, UpdateEmoji},
             integration::{DeleteGuildIntegration, GetGuildIntegrations},
             member::{
-                AddGuildMember, AddRoleToMember, GetGuildMembers, GetMember, RemoveMember,
-                RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
+                AddGuildMember, AddRoleToMember, GetGuildMemberPermissions, GetGuildMembers,
+                GetMember, RemoveMember, RemoveRoleFromMember, SearchGuildMembers,
+                UpdateGuildMember,
             },
             role::{
-                CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRoles, GetRole,
-                UpdateRole, UpdateRolePositions,
+                CreateRole, DeleteRole, GetGuildRoleMemberCounts, GetGuildRolePermissions,
+                GetGuildRoles, GetRole, UpdateRole, UpdateRolePositions,
             },
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
@@ -195,8 +197,10 @@ mod private {
     impl Sealed for GetBans<'_> {}
     impl Sealed for GetChannel<'_> {}
     impl Sealed for GetChannelInvites<'_> {}
+    impl Sealed for GetChannelMemberPermissions<'_> {}
     impl Sealed for GetChannelMessages<'_> {}
     impl Sealed for GetChannelMessagesConfigured<'_> {}
+    impl Sealed for GetChannelRolePermissions<'_> {}
     impl Sealed for GetChannelWebhooks<'_> {}
     impl Sealed for GetCommandPermissions<'_> {}
     impl Sealed for GetCurrentUser<'_> {}
@@ -222,11 +226,13 @@ mod private {
     impl Sealed for GetGuildCommands<'_> {}
     impl Sealed for GetGuildIntegrations<'_> {}
     impl Sealed for GetGuildInvites<'_> {}
+    impl Sealed for GetGuildMemberPermissions<'_> {}
     impl Sealed for GetGuildMembers<'_> {}
     impl Sealed for GetGuildOnboarding<'_> {}
     impl Sealed for GetGuildPreview<'_> {}
     impl Sealed for GetGuildPruneCount<'_> {}
     impl Sealed for GetGuildRoleMemberCounts<'_> {}
+    impl Sealed for GetGuildRolePermissions<'_> {}
     impl Sealed for GetGuildRoles<'_> {}
     impl Sealed for GetGuildScheduledEvent<'_> {}
     impl Sealed for GetGuildScheduledEventUsers<'_> {}

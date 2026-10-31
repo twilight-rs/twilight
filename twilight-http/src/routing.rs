@@ -485,6 +485,24 @@ pub enum Route<'a> {
         /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to get a member's permissions within a channel.
+    GetChannelMemberPermissions {
+        /// ID of the channel.
+        channel_id: u64,
+        /// Whether to apply implicit permission masking.
+        implicit: Option<bool>,
+        /// ID of the user.
+        user_id: u64,
+    },
+    /// Route information to get a role's permissions within a channel.
+    GetChannelRolePermissions {
+        /// ID of the channel.
+        channel_id: u64,
+        /// Whether to apply implicit permission masking.
+        implicit: Option<bool>,
+        /// ID of the role.
+        role_id: u64,
+    },
     /// Route information to get a channel's webhooks.
     GetChannelWebhooks {
         /// The ID of the channel.
@@ -635,6 +653,13 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild member's permissions.
+    GetGuildMemberPermissions {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the user.
+        user_id: u64,
+    },
     /// Route information to get a guild's members.
     GetGuildMembers {
         /// The minimum ID of members to get.
@@ -671,6 +696,13 @@ pub enum Route<'a> {
     /// Route information to get guild's roles' member counts.
     GetGuildRoleMemberCounts {
         guild_id: u64,
+    },
+    /// Route information to get a guild role's permissions.
+    GetGuildRolePermissions {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the role.
+        role_id: u64,
     },
     /// Route information to get guild's roles.
     GetGuildRoles {
@@ -1333,6 +1365,8 @@ impl Route<'_> {
             | Self::GetGatewayBot
             | Self::GetChannel { .. }
             | Self::GetChannelInvites { .. }
+            | Self::GetChannelMemberPermissions { .. }
+            | Self::GetChannelRolePermissions { .. }
             | Self::GetChannelWebhooks { .. }
             | Self::GetChannels { .. }
             | Self::GetCommandPermissions { .. }
@@ -1356,10 +1390,12 @@ impl Route<'_> {
             | Self::GetGuildCommands { .. }
             | Self::GetGuildIntegrations { .. }
             | Self::GetGuildInvites { .. }
+            | Self::GetGuildMemberPermissions { .. }
             | Self::GetGuildMembers { .. }
             | Self::GetGuildOnboarding { .. }
             | Self::GetGuildPreview { .. }
             | Self::GetGuildPruneCount { .. }
+            | Self::GetGuildRolePermissions { .. }
             | Self::GetGuildRoles { .. }
             | Self::GetGuildRoleMemberCounts { .. }
             | Self::GetGuildScheduledEvent { .. }
@@ -1801,6 +1837,13 @@ impl Display for Route<'_> {
 
                 f.write_str("/roles/member-counts")
             }
+            Route::GetGuildRolePermissions { guild_id, role_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/permissions/role/")?;
+
+                Display::fmt(role_id, f)
+            }
             Route::CreateStageInstance { .. } => f.write_str("stage-instances"),
             Route::CreateTemplate { guild_id } | Route::GetTemplates { guild_id } => {
                 f.write_str("guilds/")?;
@@ -1863,6 +1906,34 @@ impl Display for Route<'_> {
                 f.write_str("channels/")?;
 
                 Display::fmt(channel_id, f)
+            }
+            Route::GetChannelMemberPermissions {
+                channel_id,
+                implicit,
+                user_id,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/permissions/member/")?;
+                Display::fmt(user_id, f)?;
+
+                let mut query_formatter = QueryStringFormatter::new(f);
+
+                query_formatter.write_opt_param("implicit", implicit.as_ref())
+            }
+            Route::GetChannelRolePermissions {
+                channel_id,
+                implicit,
+                role_id,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/permissions/role/")?;
+                Display::fmt(role_id, f)?;
+
+                let mut query_formatter = QueryStringFormatter::new(f);
+
+                query_formatter.write_opt_param("implicit", implicit.as_ref())
             }
             Route::DeleteEmoji { emoji_id, guild_id }
             | Route::GetEmoji { emoji_id, guild_id }
@@ -2366,6 +2437,13 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/invites")
+            }
+            Route::GetGuildMemberPermissions { guild_id, user_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/permissions/member/")?;
+
+                Display::fmt(user_id, f)
             }
             Route::GetGuildMembers {
                 after,
@@ -4773,6 +4851,56 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("skus/{SKU_ID}/subscriptions/{SUBSCRIPTION_ID}")
+        );
+    }
+
+    #[test]
+    fn get_channel_member_permissions() {
+        let route = Route::GetChannelMemberPermissions {
+            channel_id: CHANNEL_ID,
+            implicit: Some(true),
+            user_id: USER_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("channels/{CHANNEL_ID}/permissions/member/{USER_ID}?implicit=true")
+        );
+    }
+
+    #[test]
+    fn get_channel_role_permissions() {
+        let route = Route::GetChannelRolePermissions {
+            channel_id: CHANNEL_ID,
+            implicit: Some(false),
+            role_id: ROLE_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("channels/{CHANNEL_ID}/permissions/role/{ROLE_ID}?implicit=false")
+        );
+    }
+
+    #[test]
+    fn get_guild_member_permissions() {
+        let route = Route::GetGuildMemberPermissions {
+            guild_id: GUILD_ID,
+            user_id: USER_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/permissions/member/{USER_ID}")
+        );
+    }
+
+    #[test]
+    fn get_guild_role_permissions() {
+        let route = Route::GetGuildRolePermissions {
+            guild_id: GUILD_ID,
+            role_id: ROLE_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/permissions/role/{ROLE_ID}")
         );
     }
 }
