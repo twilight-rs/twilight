@@ -7,6 +7,8 @@
 //! paths out of segments and [`Path`], a wrapper ensuring its value has been
 //! built as expected.
 
+#![warn(missing_docs, clippy::missing_docs_in_private_items)]
+
 pub mod query_parameter;
 
 mod path_builder;
@@ -22,9 +24,12 @@ use std::{
     str::FromStr,
 };
 
+/// Error when parsing a [`Path`].
 #[derive(Debug)]
 pub struct PathParseError {
+    /// Type of error.
     pub(super) kind: PathParseErrorType,
+    /// Source error if available.
     pub(super) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
@@ -67,13 +72,25 @@ impl Error for PathParseError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum PathParseErrorType {
+    /// Segment of a path is an invalid length.
+    ///
+    /// This occurs when a segment is too short, i.e. an empty string.
     Length,
+    /// Segment of a path is invalid.
+    ///
+    /// This occurs when a type of segment is invalid, such as when two IDs are
+    /// consecutive in the path or there are too many consecutive nested
+    /// resources. An example is `"foo/123/bar/baz/qux/quz"`, which contains too
+    /// many consecutive resources.
     SegmentInvalid,
 }
 
 /// Validated path within the API.
 ///
-/// The Path is not prefixed with `/`.
+/// Paths are not prefixed with `/`, meaning a path might be in the shape of
+/// `"channels/123/messages/456"`.
+///
+/// Paths may be parsed via [`FromStr`].
 ///
 /// # Examples
 ///
@@ -99,14 +116,19 @@ pub enum PathParseErrorType {
 /// ```
 #[derive(Clone, Debug)]
 pub struct Path {
+    /// Inner built or validated path.
     inner: String,
 }
 
 impl Path {
-    pub(crate) const fn new(inner: String) -> Self {
+    /// Create a path from a validated string or from a [`PathBuilder`].
+    ///
+    /// The string must be validated beforehand.
+    const fn new(inner: String) -> Self {
         Self { inner }
     }
 
+    /// Create a builder to construct a valid path.
     pub const fn builder() -> PathBuilder<()> {
         PathBuilder::new()
     }
@@ -197,33 +219,48 @@ impl PartialEq<&str> for Path {
     }
 }
 
+/// State for parsing a [Path].
+///
+/// Segments are positional and can only occur after certain segments, so the
+/// history of previous segments is necessary when parsing the next segment.
 struct PathParseState {
-    inner: [Option<PathSegmentType>; Self::MAX_LEN],
+    /// History of segments within a path.
+    segments: [Option<PathSegmentType>; Self::MAX_LEN],
 }
 
 impl PathParseState {
+    /// Maximum number of path segment types allowed.
+    ///
+    /// The current value is likely more than enough. 12, for example, allows
+    /// a path such as:
+    /// "foo/123/bar/baz/qux/456/another/resource/789/again/action?query=string"
     const MAX_LEN: usize = 12;
 
+    /// Create a new state for parsing a [Path].
     const fn new() -> Self {
-        Self { inner: [None; _] }
+        Self {
+            segments: [None; _],
+        }
     }
 
+    /// Retrieve a mutable reference to the most recent path segment type.
     #[expect(dead_code)]
     fn last_mut(&mut self) -> Option<&mut PathSegmentType> {
         let len = self.len();
 
-        if let Some(x) = self.inner.get_mut(len) {
+        if let Some(x) = self.segments.get_mut(len) {
             x.as_mut()
         } else {
             None
         }
     }
 
+    /// Get the number of path segment types in the history.
     const fn len(&self) -> usize {
         let mut index = 0;
 
         while index < Self::MAX_LEN {
-            if self.inner[index].is_none() {
+            if self.segments[index].is_none() {
                 break;
             }
 
@@ -233,25 +270,31 @@ impl PathParseState {
         index
     }
 
+    /// Push a path segment type to the end of the segment history.
+    ///
+    /// Returns whether the path segment type was added.
+    #[must_use = "whether the path segment type was added must be handled"]
     const fn push(&mut self, segment_type: PathSegmentType) -> bool {
         let len = self.len();
 
         if len == Self::MAX_LEN {
             false
         } else {
-            self.inner[len] = Some(segment_type);
+            self.segments[len] = Some(segment_type);
 
             true
         }
     }
 
+    /// Retrieve the most recent path segment types necessary for determining
+    /// which type the next path segment might be.
     fn recent(&self) -> [Option<PathSegmentType>; 3] {
         let len = self.len();
 
         [
-            self.inner.get(len.wrapping_sub(1)).and_then(|x| *x),
-            self.inner.get(len.wrapping_sub(2)).and_then(|x| *x),
-            self.inner.get(len.wrapping_sub(3)).and_then(|x| *x),
+            self.segments.get(len.wrapping_sub(1)).and_then(|x| *x),
+            self.segments.get(len.wrapping_sub(2)).and_then(|x| *x),
+            self.segments.get(len.wrapping_sub(3)).and_then(|x| *x),
         ]
     }
 }
@@ -261,19 +304,30 @@ impl FromIterator<PathSegmentType> for PathParseState {
         let mut this = Self::new();
 
         for item in iter {
-            this.push(item);
+            assert!(
+                this.push(item),
+                "iterator must be at most {} elements long",
+                Self::MAX_LEN
+            );
         }
 
         this
     }
 }
 
+/// Type of a segment within a path.
+///
+/// Path segments aren't surfaced to the user, but are necessary for determining
+/// whether the shape of a path is valid.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PathSegmentType {
     /// Path segment is an action.
     ///
-    /// Valid segments after this:
-    /// - Query
+    /// This segment can occur after:
+    /// - Code
+    /// - Id
+    /// - Resource
+    /// - Subresource
     Action,
     /// Path segment is a code.
     ///
@@ -281,45 +335,57 @@ enum PathSegmentType {
     /// subresources; instead, they have to be differentiated from these based
     /// on surrounding context after-the-fact.
     ///
-    /// Valid segments after this:
-    /// - Action
-    /// - Query
-    /// - Resource
+    /// This segment can occur after:
+    /// - Id
     #[allow(dead_code)]
     Code,
     /// Path segment is an ID.
     ///
-    /// Valid segments after this:
-    /// - Action
-    /// - Query
+    /// This segment can occur after:
     /// - Resource
+    /// - Subresource
     Id,
     /// Path segment is a query.
     ///
     /// There are no valid segments after this.
+    ///
+    /// This segment can occur after:
+    /// - Action
+    /// - Code
+    /// - Id
+    /// - Resource
+    /// - Subresource
     Query,
     /// Path segment is a resource.
     ///
-    /// Valid segments after this:
-    /// - Action
-    /// - ID (integer, Id<T>, "@me")
-    /// - Query
-    /// - Subresource
+    /// This segment can occur after:
+    /// - Id
     Resource,
     /// Path segment is a subresource.
     ///
-    /// Valid segments after this:
-    /// - Action
-    /// - ID
-    /// - Query
+    /// This segment can occur after:
+    /// - Resource
     Subresource,
 }
 
 impl PathSegmentType {
+    /// Determine whether a value is an ID.
+    ///
+    /// An ID is one of:
+    ///
+    /// - An integer; or
+    /// - "@me", a sentinel ID referring to the current user
     fn is_id(value: &str) -> bool {
         u64::from_str(value).is_ok() || value == "@me"
     }
 
+    /// Parse a segment based on the previous segment and terminator.
+    ///
+    /// Segment types can only occur after certain other types of segments. For
+    /// example, a Subresource can only occur after a Resource. Similarly, a
+    /// segment which is an ID value should be an `Id` segment type, which can
+    /// only occur after certain segments. Knowing the recent history of
+    /// segments is necessary to determine what type of segment a value is.
     fn parse(
         state: &mut PathParseState,
         previous_terminator: Option<char>,

@@ -1,3 +1,5 @@
+//! Builder with a typestate for constructing valid [`Path`s].
+
 use super::{
     Path,
     query_parameter::{QueryParameter, QueryParameterWriter},
@@ -9,24 +11,21 @@ use std::{
 };
 use twilight_model::id::Id;
 
+/// Error occurred while building a [Path].
 #[derive(Debug)]
 pub struct PathBuilderError {
+    /// Type of error.
     pub(super) kind: PathBuilderErrorType,
+    /// Source error if available.
     pub(super) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl PathBuilderError {
-    fn formatting(source: impl Into<Box<dyn Error + Send + Sync>>) -> Self {
+    /// Construct a new error from a source formatting error.
+    fn formatting(source: FmtError) -> Self {
         Self {
             kind: PathBuilderErrorType::Formatting,
-            source: Some(source.into()),
-        }
-    }
-
-    pub fn validation(source: Option<Box<dyn Error + Send + Sync>>) -> Self {
-        Self {
-            kind: PathBuilderErrorType::Validation,
-            source,
+            source: Some(Box::new(source)),
         }
     }
 
@@ -55,9 +54,6 @@ impl Display for PathBuilderError {
             PathBuilderErrorType::Formatting => {
                 f.write_str("unable to format a segment of the path")
             }
-            PathBuilderErrorType::Validation => {
-                f.write_str("segment of the path failed validation or is unable to be validated")
-            }
         }
     }
 }
@@ -74,14 +70,14 @@ impl Error for PathBuilderError {
 pub enum PathBuilderErrorType {
     /// Path is unable to be formatted.
     Formatting,
-    /// Portion of the path failed validation.
-    ///
-    /// This is an error caused by user code. An example is a `limit` query
-    /// parameter for a list endpoint with a value exceeding the maximum limit
-    /// imposed by Discord.
-    Validation,
 }
 
+/// Format a representation of an identifier into the ID portion of a path.
+///
+/// The most notable type this is implemented for is [Id], which is the most
+/// common representation of IDs. Some IDs, such as invite codes, are strings,
+/// which this is also implemented for. Some IDs are integers, such as poll
+/// answer IDs.
 pub trait PathId: Display {}
 
 impl<T> PathId for Id<T> {}
@@ -122,15 +118,22 @@ pub struct ResourceMarker;
 #[non_exhaustive]
 pub struct SubresourceMarker;
 
+/// Builder to construct a valid [Path].
 #[derive(Debug)]
 pub struct PathBuilder<T> {
+    /// Internal string buffer segments are written into.
     buffer: Result<String, FmtError>,
+    /// Whether a query parameter has been written into the buffer.
+    ///
+    /// This is used to determine whether to write the beginning symbol (`?`) or
+    /// joiner symbol (`&`) to a URI.
     has_query_parameter: bool,
+    /// Constrain the typestate marker.
     phantom: PhantomData<T>,
 }
 
 impl PathBuilder<()> {
-    /// Create a builder for a path.
+    /// Create a builder to construct a valid path.
     pub const fn new() -> Self {
         Self {
             buffer: Ok(String::new()),
@@ -139,6 +142,10 @@ impl PathBuilder<()> {
         }
     }
 
+    /// Specify the root resource of a path.
+    ///
+    /// Common root resources are "channels" and "guilds", as in the paths
+    /// "channels/123/messages" and "guilds/123".
     pub fn resource(mut self, resource: &'static str) -> PathBuilder<ResourceMarker> {
         if let Ok(buffer) = self.buffer.as_mut() {
             buffer.push_str(resource);
@@ -149,6 +156,7 @@ impl PathBuilder<()> {
 }
 
 impl<T> PathBuilder<T> {
+    /// Reconstruct the builder with a new typestate.
     fn cast<To>(self) -> PathBuilder<To> {
         PathBuilder {
             buffer: self.buffer,
@@ -179,6 +187,13 @@ impl PathBuilder<ActionMarker> {
             .map_err(PathBuilderError::formatting)
     }
 
+    /// Append a query parameter to the path.
+    ///
+    /// Once a query parameter has been appended then only more query parameters
+    /// can be appended or the builder can be finalized.
+    ///
+    /// Refer to [`query_parameter`] for more information on how to use query
+    /// parameters.
     pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
         PathBuilder::<QueryMarker>::parameter(self.cast(), query_parameter)
     }
@@ -211,18 +226,30 @@ impl PathBuilder<IdMarker> {
         self.cast()
     }
 
+    /// Explicitly state that the next segment has no resource.
+    ///
+    /// This is mostly only useful for webhook routes, which contain the ID
+    /// followed by the authentication token in the path.
     pub fn no_resource(self) -> PathBuilder<ResourceMarker> {
         debug_assert!(!self.has_query_parameter);
 
         self.cast()
     }
 
+    /// Append a query parameter to the path.
+    ///
+    /// Once a query parameter has been appended then only more query parameters
+    /// can be appended or the builder can be finalized.
+    ///
+    /// Refer to [`query_parameter`] for more information on how to use query
+    /// parameters.
     pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
         debug_assert!(!self.has_query_parameter);
 
         PathBuilder::<QueryMarker>::parameter(self.cast(), query_parameter)
     }
 
+    /// Append a resource to the path.
     pub fn resource(mut self, resource: &'static str) -> PathBuilder<ResourceMarker> {
         debug_assert!(!self.has_query_parameter);
 
@@ -250,6 +277,13 @@ impl PathBuilder<QueryMarker> {
             .map_err(PathBuilderError::formatting)
     }
 
+    /// Append a query parameter to the path.
+    ///
+    /// Once a query parameter has been appended then only more query parameters
+    /// can be appended or the builder can be finalized.
+    ///
+    /// Refer to [`query_parameter`] for more information on how to use query
+    /// parameters.
     #[must_use = "builder must be finalized to retrieve the path"]
     pub fn parameter<T: QueryParameter>(mut self, query_parameter: T) -> PathBuilder<QueryMarker> {
         struct QueryParameterDisplay<T> {
@@ -315,6 +349,9 @@ impl PathBuilder<ResourceMarker> {
         self.cast()
     }
 
+    /// Append an entity ID to the path.
+    ///
+    /// This is usually an [`Id`].
     pub fn id(mut self, id: impl PathId) -> PathBuilder<IdMarker> {
         debug_assert!(!self.has_query_parameter);
 
@@ -327,16 +364,48 @@ impl PathBuilder<ResourceMarker> {
         self.cast()
     }
 
+    /// Append an ID to the path referring to the current application.
+    ///
+    /// This is shorthand for calling [`id`][Self::id] with "@me".
     pub fn me(self) -> PathBuilder<IdMarker> {
         self.id("@me")
     }
 
+    /// Append a query parameter to the path.
+    ///
+    /// Once a query parameter has been appended then only more query parameters
+    /// can be appended or the builder can be finalized.
+    ///
+    /// Refer to [`query_parameter`] for more information on how to use query
+    /// parameters.
     pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
         debug_assert!(!self.has_query_parameter);
 
         PathBuilder::<QueryMarker>::parameter(self.cast(), query_parameter)
     }
 
+    /// Append a subresource of the current resource to the path.
+    ///
+    /// # Examples
+    ///
+    /// Build a route for fetching the pins of a channel, where the pins are a
+    /// subresource of the channel's messages:
+    ///
+    /// ```rust
+    /// use twilight_http::request::path::Path;
+    /// use twilight_model::id::{Id, ChannelMarker};
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let path = Path::builder()
+    ///     .resource("channels")
+    ///     .id(Id::<ChannelMarker>::new(123))
+    ///     .resource("messages")
+    ///     .subresource("pins")
+    ///     .build()?;
+    ///
+    /// assert_eq!("channels/123/messages/pins", path);
+    /// # Ok(()) }
+    /// ```
     pub fn subresource(mut self, subresource: &'static str) -> PathBuilder<SubresourceMarker> {
         debug_assert!(!self.has_query_parameter);
 
@@ -376,6 +445,9 @@ impl PathBuilder<SubresourceMarker> {
         self.cast()
     }
 
+    /// Append an entity ID to the path.
+    ///
+    /// This is usually an [`Id`].
     pub fn id(mut self, id: impl PathId) -> PathBuilder<IdMarker> {
         debug_assert!(!self.has_query_parameter);
 
@@ -388,10 +460,20 @@ impl PathBuilder<SubresourceMarker> {
         self.cast()
     }
 
+    /// Append an ID to the path referring to the current application.
+    ///
+    /// This is shorthand for calling [`id`][Self::id] with "@me".
     pub fn me(self) -> PathBuilder<IdMarker> {
         self.id("@me")
     }
 
+    /// Append a query parameter to the path.
+    ///
+    /// Once a query parameter has been appended then only more query parameters
+    /// can be appended or the builder can be finalized.
+    ///
+    /// Refer to [`query_parameter`] for more information on how to use query
+    /// parameters.
     pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
         debug_assert!(!self.has_query_parameter);
 

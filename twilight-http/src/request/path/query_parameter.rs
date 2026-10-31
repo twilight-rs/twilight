@@ -2,20 +2,32 @@
 //!
 //! Query parameters are composed of two items within a pair: the key and value.
 //! The key must be a string, and so we represent this as a non-negotiable
-//! string slice. The value can more or less be anything.
-//!
-//! TODO
+//! string slice. The value can be any type which implements the
+//! [`QueryParameterValue`] formatter.
 
 use percent_encoding::NON_ALPHANUMERIC;
 use std::fmt::{self, Display, Formatter, Write as _};
 use twilight_model::{channel::message::ReactionType, id::Id, util::Timestamp};
 
+/// Writer [`QueryParameter`] implementations use to write one or more key-value
+/// pairs to a query string.
+///
+/// The writer is a necessary construct because it has knowledge about whether
+/// a query string has already been written, i.e. whether to begin appending
+/// query pairs to a query string or initialize a new query string.
+///
+/// It has only one method: [`write_pair`][Self::write_pair], which **must** be
+/// called **at least once** in a [`QueryParameter::write`] implementation up to
+/// an unlimited number of times.
 pub struct QueryParameterWriter<'a, 'b> {
+    /// Whether a query parameter has been written yet.
     has_query_parameter: bool,
+    /// Inner formatter.
     inner: &'a mut Formatter<'b>,
 }
 
 impl<'a, 'b> QueryParameterWriter<'a, 'b> {
+    /// Create a new writer to provide to [`QueryParameter`]s.
     pub(super) const fn new(formatter: &'a mut Formatter<'b>, has_query_parameter: bool) -> Self {
         Self {
             has_query_parameter,
@@ -23,7 +35,10 @@ impl<'a, 'b> QueryParameterWriter<'a, 'b> {
         }
     }
 
-    /// Write a single key-value pair to the query parameter list.
+    /// Write a key-value pair to the query parameter list.
+    ///
+    /// The same key can be written multiple times, but when doing so the value
+    /// **should** be distinct.
     ///
     /// # Errors
     ///
@@ -46,16 +61,15 @@ impl<'a, 'b> QueryParameterWriter<'a, 'b> {
         })?;
 
         // A partially-formed query parameter is both valid according to
-        // specification and accepted by Discord. "?&foo=bar", "?foo&qux=quz",
-        // "?foo=&qux=quz", and "?foo=bar&qux=quz" are all valid key-value pairs
-        // and keys with empty or undefined values (in this example, "foo") will
-        // be ignored.
+        // specification and accepted by Discord at time of writing.
+        // "?&foo=bar", "?foo&qux=quz", "?foo=&qux=quz", and
+        // "?foo=bar&qux=quz" are all valid key-value pairs and keys with empty
+        // or undefined values (in this example, "foo") will be ignored.
         //
         // And, even if it weren't accepted by Discord, there's not much we can
-        // *reasonably* do here to "walk back" writing one portion if a latter
-        // portion fails to write. Let's call this a compromise and leave
-        // everyone unsatisfied with the potential subpar query string
-        // formatting.
+        // do here to "walk back" writing one portion if a latter portion fails
+        // to write. Let's call this a compromise and leave everyone unsatisfied
+        // with the potential subpar query string formatting.
         self.has_query_parameter = true;
         self.inner.write_str(key)?;
         self.inner.write_char(EQUALS_SIGN)?;
@@ -65,6 +79,62 @@ impl<'a, 'b> QueryParameterWriter<'a, 'b> {
     }
 }
 
+/// Formatter for a key and its value.
+///
+/// Each query parameter key name should be described once as a single query
+/// parameter instance when building a [Path]. Each query parameter key can
+/// write multiple times, which is necessary for writing query parameters with
+/// multiple values.
+///
+/// # Provided Implementations
+///
+/// The primary implementation is [`KeyValueQueryParameter`], which accepts a
+/// single key and a single value. It writes once, producing a query parameter
+/// such as `foo=bar`. Refer to its documentation for more information and to
+/// learn its shorthand syntax.
+///
+/// Some query parameter values are accepted by Discord in the form of a
+/// Comma-Separated Value list. The [`CsvQueryParameter`] implementation serves
+/// this use case, accepting a key and a list of values. It produces a query
+/// parameter such as `foo=1,2,3`.
+///
+/// Other query parameters with list values accepted by Discord are in the form
+/// of repeating query parameters, served by [`RepeatingQueryParameter`]. It has
+/// one instance of a key for each of its values. It produces a query parameter
+/// such as `foo=1&foo=2&foo=3`.
+///
+/// # Implementing Your Own Query Parameter
+///
+/// Although the provided implementations should serve all your needs you may
+/// wish to use your own implementation if you're writing your own request
+/// builders.
+///
+/// ```rust
+/// use twilight_http::request::path::query_parameter::QueryParameter;
+///
+/// struct OnlyEvenIdsRepeatingQueryParameter<'a, T> {
+///     key: &'a str,
+///     values: &'a [Id<T>],
+/// }
+///
+/// impl<T> QueryParameter for OnlyEvenIdsRepeatingQueryParameter<'_, T> {
+///     fn will_write(&self) -> bool {
+///         self.values.iter().any(|id| id.get() % 2 == 0)
+///     }
+///
+///     fn write(&self, f: QueryParameterWriter<'_, '_>) -> fmt::Result {
+///         for value in self.values {
+///             if value.get() % 2 == 0 {
+///                 writer.write_pair(self.key, value)?;
+///             }
+///         }
+///
+///         Ok(())
+///     }
+/// }
+/// ```
+///
+/// [Path]: super::Path
 pub trait QueryParameter {
     /// Whether at least one key-value query parameter will be written.
     ///
@@ -81,6 +151,9 @@ pub trait QueryParameter {
     fn write(&self, f: QueryParameterWriter<'_, '_>) -> fmt::Result;
 }
 
+/// Key-value pair to be written in the query of a path.
+///
+/// Serializes as `key=value`.
 impl<T: QueryParameterValue> QueryParameter for (&str, T) {
     fn will_write(&self) -> bool {
         T::will_write(&self.1)
@@ -93,15 +166,45 @@ impl<T: QueryParameterValue> QueryParameter for (&str, T) {
 
 /// Key-value pair to be written in the query of a path.
 ///
-/// This is a structure identical to passing [`(&str, T)`] as a query parameter,
-/// but may be preferable to use under some circumstances such as when there is
-/// heavy use of other query parameters like [`CsvQueryParameter`] and
-/// [`RepeatingQueryParameter`].
+/// Serializes as `key=value`.
+///
+/// # Shortform
+///
+/// There is a shortform of this: a tuple composed of a string slice and a value
+/// (`(&str, T)`). The two implementations are identical.
+///
+/// # Examples
+///
+/// ```rust
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use twilight_http::request::path::{
+///     Path,
+///     query_parameter::KeyValueQueryParameter,
+/// };
+/// use twilight_model::id::{Id, marker::GuildMarker};
+///
+/// let path = Path::builder()
+///     .resource("guilds")
+///     .id(Id::<GuildMarker>::new(123))
+///     .resource("members")
+///     .action("search")
+///     // longform
+///     .parameter(KeyValueQueryParameter::new("query", "foo"))
+///     // shortform
+///     .parameter(("limit", 25u8))
+///     .build()?;
+///
+/// assert_eq!("channels/123/messages?query=foo&limit=25", path);
+/// # Ok(()) }
+/// ```
 pub struct KeyValueQueryParameter<'a, T> {
+    /// Representation of the key and value pair which contains the delegated
+    /// implementations.
     inner: (&'a str, T),
 }
 
 impl<'a, T: QueryParameterValue> KeyValueQueryParameter<'a, T> {
+    /// Create a new key-value query parameter.
     pub const fn new(key: &'a str, value: T) -> Self {
         Self {
             inner: (key, value),
@@ -151,11 +254,15 @@ impl<T: QueryParameterValue> QueryParameter for KeyValueQueryParameter<'_, T> {
 /// # Ok(()) }
 /// ```
 pub struct CsvQueryParameter<'a, T> {
+    /// Key to be written in the key-value pair.
     key: &'a str,
+    /// Values to be concatenated into a comma-separated value list and written
+    /// as a single value in a key-value pair.
     value: &'a [T],
 }
 
 impl<'a, T: QueryParameterValue> CsvQueryParameter<'a, T> {
+    /// Create a new query parameter with a list value written in CSV form.
     pub const fn new(key: &'a str, value: &'a [T]) -> Self {
         Self { key, value }
     }
@@ -222,11 +329,23 @@ impl<T: QueryParameterValue> QueryParameter for CsvQueryParameter<'_, T> {
 /// # Ok(()) }
 /// ```
 pub struct RepeatingQueryParameter<'a, T> {
+    /// Key to write once for every value.
     key: &'a str,
+    /// List of values to write in a key-value pair with [`key`][Self::key] for
+    /// every value in the list.
+    ///
+    /// Given a key of "foo" and a value of `&[1, 2, 3]`, the following
+    /// key-value pairs will be written:
+    ///
+    /// - "foo=1"
+    /// - "foo=2"
+    /// - "foo=3"
     value: &'a [T],
 }
 
 impl<'a, T: QueryParameterValue> RepeatingQueryParameter<'a, T> {
+    /// Create a new query parameter with a key-value pair written for every
+    /// value in a list.
     pub const fn new(key: &'a str, value: &'a [T]) -> Self {
         Self { key, value }
     }
@@ -252,6 +371,9 @@ impl<T: QueryParameterValue> QueryParameter for RepeatingQueryParameter<'_, T> {
     }
 }
 
+/// Value formatter within a key-value pair.
+///
+///
 pub trait QueryParameterValue {
     /// Write the Display representation of the value to the formatter.
     ///
@@ -260,6 +382,10 @@ pub trait QueryParameterValue {
     /// Returns a formatting error if the provided value could not be formatted.
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result;
 
+    /// Whether a value will be written.
+    ///
+    /// This *must* be accurate; otherwise, a key will be written with an empty
+    /// value, resulting in a potential query string such as `"?foo=&bar=1"`.
     fn will_write(&self) -> bool {
         true
     }
