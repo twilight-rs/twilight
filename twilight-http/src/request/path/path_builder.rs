@@ -72,6 +72,17 @@ pub enum PathBuilderErrorType {
     Formatting,
 }
 
+/// Sentinel for referring to the current application.
+///
+/// This writes "@me" to ID segments in the path.
+pub struct Me;
+
+impl Display for Me {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("@me")
+    }
+}
+
 /// Format a representation of an identifier into the ID portion of a path.
 ///
 /// The most notable type this is implemented for is [Id], which is the most
@@ -92,6 +103,7 @@ impl PathId for i16 {}
 impl PathId for i32 {}
 impl PathId for i64 {}
 impl<T: PathId> PathId for &T {}
+impl PathId for Me {}
 
 /// Marker indicating the most recent part is an action.
 #[derive(Debug)]
@@ -194,6 +206,8 @@ impl PathBuilder<ActionMarker> {
     ///
     /// Refer to [`query_parameter`] for more information on how to use query
     /// parameters.
+    ///
+    /// [`query_parameter`]: super::query_parameter
     pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
         PathBuilder::<QueryMarker>::parameter(self.cast(), query_parameter)
     }
@@ -243,6 +257,8 @@ impl PathBuilder<IdMarker> {
     ///
     /// Refer to [`query_parameter`] for more information on how to use query
     /// parameters.
+    ///
+    /// [`query_parameter`]: super::query_parameter
     pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
         debug_assert!(!self.has_query_parameter);
 
@@ -284,6 +300,8 @@ impl PathBuilder<QueryMarker> {
     ///
     /// Refer to [`query_parameter`] for more information on how to use query
     /// parameters.
+    ///
+    /// [`query_parameter`]: super::query_parameter
     #[must_use = "builder must be finalized to retrieve the path"]
     pub fn parameter<T: QueryParameter>(mut self, query_parameter: T) -> PathBuilder<QueryMarker> {
         struct QueryParameterDisplay<T> {
@@ -364,13 +382,6 @@ impl PathBuilder<ResourceMarker> {
         self.cast()
     }
 
-    /// Append an ID to the path referring to the current application.
-    ///
-    /// This is shorthand for calling [`id`][Self::id] with "@me".
-    pub fn me(self) -> PathBuilder<IdMarker> {
-        self.id("@me")
-    }
-
     /// Append a query parameter to the path.
     ///
     /// Once a query parameter has been appended then only more query parameters
@@ -378,6 +389,8 @@ impl PathBuilder<ResourceMarker> {
     ///
     /// Refer to [`query_parameter`] for more information on how to use query
     /// parameters.
+    ///
+    /// [`query_parameter`]: super::query_parameter
     pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
         debug_assert!(!self.has_query_parameter);
 
@@ -460,13 +473,6 @@ impl PathBuilder<SubresourceMarker> {
         self.cast()
     }
 
-    /// Append an ID to the path referring to the current application.
-    ///
-    /// This is shorthand for calling [`id`][Self::id] with "@me".
-    pub fn me(self) -> PathBuilder<IdMarker> {
-        self.id("@me")
-    }
-
     /// Append a query parameter to the path.
     ///
     /// Once a query parameter has been appended then only more query parameters
@@ -474,6 +480,8 @@ impl PathBuilder<SubresourceMarker> {
     ///
     /// Refer to [`query_parameter`] for more information on how to use query
     /// parameters.
+    ///
+    /// [`query_parameter`]: super::query_parameter
     pub fn parameter(self, query_parameter: impl QueryParameter) -> PathBuilder<QueryMarker> {
         debug_assert!(!self.has_query_parameter);
 
@@ -483,11 +491,16 @@ impl PathBuilder<SubresourceMarker> {
 
 #[cfg(test)]
 mod tests {
-    use super::PathBuilder;
+    use super::{Me, PathBuilder};
     use twilight_model::id::{
         Id,
         marker::{ChannelMarker, GuildMarker, MessageMarker, ScheduledEventMarker, UserMarker},
     };
+
+    #[test]
+    fn me_display() {
+        assert_eq!("@me", Me.to_string())
+    }
 
     /// Test a path operating on a resource.
     #[test]
@@ -516,7 +529,11 @@ mod tests {
     fn resource_me() {
         assert_eq!(
             "oauth2/@me",
-            PathBuilder::new().resource("oauth2").me().build().unwrap()
+            PathBuilder::new()
+                .resource("oauth2")
+                .id(Me)
+                .build()
+                .unwrap()
         );
     }
 

@@ -23,7 +23,7 @@ pub mod query_parameter;
 mod path_builder;
 
 pub use self::path_builder::{
-    ActionMarker, IdMarker, PathBuilder, PathBuilderError, PathBuilderErrorType, PathId,
+    ActionMarker, IdMarker, Me, PathBuilder, PathBuilderError, PathBuilderErrorType, PathId,
     QueryMarker, ResourceMarker, SubresourceMarker,
 };
 
