@@ -41,10 +41,6 @@ impl RequestBuilder {
         }))
     }
 
-    pub fn new_from_route(route: &Route<'_>) -> Self {
-        Self(Ok(Request::from_route(route)))
-    }
-
     /// Consume the builder, returning the built request.
     ///
     /// # Errors
@@ -154,22 +150,41 @@ impl Request {
         RequestBuilder::new(method, path)
     }
 
+    /// Create a request from only its route information.
+    ///
+    /// If you need to set additional configurations like the body then use
+    /// [`builder`].
+    ///
+    /// # Examples
+    ///
+    /// Create a request to get a message with an ID of 2 in a channel with an
+    /// ID of 1:
+    ///
+    /// ```
+    /// use twilight_http::{request::Request, routing::Route};
+    ///
+    /// let request = Request::from_route(&Route::GetMessage {
+    ///     channel_id: 1,
+    ///     message_id: 2,
+    /// });
+    /// ```
+    ///
+    /// [`builder`]: Self::builder
+    /// NOTE: This will be removed and `builder_new` will become the new `builder`
     pub fn builder(route: &Route<'_>) -> RequestBuilder {
-        RequestBuilder::new_from_route(route)
+        RequestBuilder(Ok(Request::from_route(route)))
     }
 
     /// # Panics
     ///
     /// Now panics. Doesn't matter, this will be removed
     pub fn from_route(route: &Route<'_>) -> Self {
-        use std::str::FromStr as _;
-
         Self {
             body: None,
             form: None,
             headers: None,
             method: route.method(),
-            path: Path::from_str(&route.to_string())
+            path: std::str::FromStr::from_str(&route.to_string())
                 .expect("panic doesn't matter; this method will be removed"),
             use_authorization_token: true,
         }
