@@ -163,7 +163,7 @@ impl<'a, T: QueryParameterValue> CsvQueryParameter<'a, T> {
 
 impl<T: QueryParameterValue> QueryParameter for CsvQueryParameter<'_, T> {
     fn will_write(&self) -> bool {
-        !self.value.is_empty()
+        self.value.iter().any(T::will_write)
     }
 
     fn write<'b>(&self, mut writer: QueryParameterWriter<'_, '_>) -> fmt::Result {
@@ -234,7 +234,7 @@ impl<'a, T: QueryParameterValue> RepeatingQueryParameter<'a, T> {
 
 impl<T: QueryParameterValue> QueryParameter for RepeatingQueryParameter<'_, T> {
     fn will_write(&self) -> bool {
-        !self.value.is_empty()
+        self.value.iter().any(T::will_write)
     }
 
     /// Write the key and values to the query parameter writer, writing the key
@@ -442,7 +442,7 @@ mod tests {
     }
 
     #[test]
-    fn query_parameter_csv_parameter() {
+    fn csv_query_parameter_write() {
         let user_ids = &[Id::<UserMarker>::new(1), Id::new(2), Id::new(3)];
 
         assert_eq!(
@@ -457,8 +457,34 @@ mod tests {
         );
     }
 
+    /// Assert that a `CsvQueryParameter`'s `will_write` is true if at
+    /// least one value asserts it will write.
     #[test]
-    fn query_parameter_repeating_parameter() {
+    fn csv_query_parameter_will_write_if_at_least_one_value_will() {
+        let repeating = CsvQueryParameter::new("key", &[Some(1u64), None]);
+
+        assert!(repeating.will_write())
+    }
+
+    /// Assert that a `CsvQueryParameter`'s `will_write` is false if it
+    /// has multiple values but none of the values will write.
+    #[test]
+    fn csv_query_parameter_will_not_write_if_no_values_will() {
+        let repeating = CsvQueryParameter::new("key", &[None::<u8>, None]);
+
+        assert!(!repeating.will_write())
+    }
+
+    /// Assert that a `CsvQueryParameter` will not write if it has no values.
+    #[test]
+    fn csv_query_parameter_will_not_write_if_empty() {
+        let repeating = CsvQueryParameter::new("key", &[] as &[u8]);
+
+        assert!(!repeating.will_write())
+    }
+
+    #[test]
+    fn repeating_query_parameter_write() {
         let channel_ids = &[Id::<ChannelMarker>::new(1), Id::new(2), Id::new(3)];
 
         assert_eq!(
@@ -477,6 +503,32 @@ mod tests {
             )
             .to_string()
         );
+    }
+
+    /// Assert that a `RepeatingQueryParameter`'s `will_write` is true if at
+    /// least one value asserts it will write.
+    #[test]
+    fn repeating_query_parameter_will_write_if_at_least_one_value_will() {
+        let repeating = RepeatingQueryParameter::new("key", &[Some(1u64), None]);
+
+        assert!(repeating.will_write())
+    }
+
+    /// Assert that a `RepeatingQueryParameter`'s `will_write` is false if it
+    /// has multiple values but none of the values will write.
+    #[test]
+    fn repeating_query_parameter_will_not_write_if_no_values_will() {
+        let repeating = RepeatingQueryParameter::new("key", &[None::<u8>, None]);
+
+        assert!(!repeating.will_write())
+    }
+
+    /// Assert that a `RepeatingQueryParameter` will not write if it has no values.
+    #[test]
+    fn repeating_query_parameter_will_not_write_if_empty() {
+        let repeating = RepeatingQueryParameter::new("key", &[] as &[u8]);
+
+        assert!(!repeating.will_write())
     }
 
     #[test]
