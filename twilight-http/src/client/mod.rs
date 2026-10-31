@@ -16,8 +16,11 @@ use crate::request::{
             GetSKUSubscriptions, GetSKUs,
         },
     },
+    channel::{GetChannelMemberPermissions, GetChannelRolePermissions},
     guild::{
         ban::BulkGuildBan,
+        member::GetGuildMemberPermissions,
+        role::GetGuildRolePermissions,
         user::{GetCurrentUserVoiceState, GetUserVoiceState},
     },
     sticker::GetStickerPack,
@@ -725,6 +728,25 @@ impl Client {
         UpdateChannelPermission::new(self, channel_id, permission_overwrite)
     }
 
+    /// Get a member's computed permissions in a channel.
+    pub const fn channel_member_permissions(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        user_id: Id<UserMarker>,
+    ) -> GetChannelMemberPermissions<'_> {
+        GetChannelMemberPermissions::new(self, channel_id, user_id)
+    }
+
+    /// Get the permissions granted by the specified role together with `@everyone`,
+    /// applying their channel overwrites.
+    pub const fn channel_role_permissions(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        role_id: Id<RoleMarker>,
+    ) -> GetChannelRolePermissions<'_> {
+        GetChannelRolePermissions::new(self, channel_id, role_id)
+    }
+
     /// Get all the webhooks of a channel.
     pub const fn channel_webhooks(&self, channel_id: Id<ChannelMarker>) -> GetChannelWebhooks<'_> {
         GetChannelWebhooks::new(self, channel_id)
@@ -1208,6 +1230,16 @@ impl Client {
         user_id: Id<UserMarker>,
     ) -> GetMember<'_> {
         GetMember::new(self, guild_id, user_id)
+    }
+
+    /// Get a member's computed guild permissions, combining their roles with
+    /// `@everyone`.
+    pub const fn guild_member_permissions(
+        &self,
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
+    ) -> GetGuildMemberPermissions<'_> {
+        GetGuildMemberPermissions::new(self, guild_id, user_id)
     }
 
     /// Add a user to a guild.
@@ -1737,6 +1769,19 @@ impl Client {
     /// Get a role of a guild.
     pub const fn role(&self, guild_id: Id<GuildMarker>, role_id: Id<RoleMarker>) -> GetRole<'_> {
         GetRole::new(self, guild_id, role_id)
+    }
+
+    /// Get the combined guild permissions of the specified role and
+    /// `@everyone`.
+    ///
+    /// This calculation does not include other roles or member-specific
+    /// restrictions.
+    pub const fn role_permissions(
+        &self,
+        guild_id: Id<GuildMarker>,
+        role_id: Id<RoleMarker>,
+    ) -> GetGuildRolePermissions<'_> {
+        GetGuildRolePermissions::new(self, guild_id, role_id)
     }
 
     /// Create a role in a guild.

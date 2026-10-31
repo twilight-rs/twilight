@@ -1,3 +1,5 @@
+pub mod get_channel_member_permissions;
+pub mod get_channel_role_permissions;
 pub mod invite;
 pub mod message;
 pub mod reaction;
@@ -21,6 +23,8 @@ pub use self::{
     create_pin::CreatePin, create_typing_trigger::CreateTypingTrigger,
     delete_channel::DeleteChannel, delete_channel_permission::DeleteChannelPermission,
     delete_channel_permission_configured::DeleteChannelPermissionConfigured, delete_pin::DeletePin,
-    follow_news_channel::FollowNewsChannel, get_channel::GetChannel, get_pins::GetPins,
+    follow_news_channel::FollowNewsChannel, get_channel::GetChannel,
+    get_channel_member_permissions::GetChannelMemberPermissions,
+    get_channel_role_permissions::GetChannelRolePermissions, get_pins::GetPins,
     update_channel::UpdateChannel, update_channel_permission::UpdateChannelPermission,
 };
