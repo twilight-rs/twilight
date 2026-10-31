@@ -89,7 +89,7 @@ impl TryIntoRequest for UpdateCommandPermissions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::UpdateCommandPermissions {
+        Request::builder_from_route(&Route::UpdateCommandPermissions {
             application_id: self.path.application_id.get(),
             command_id: self.path.command_id.get(),
             guild_id: self.path.guild_id.get(),

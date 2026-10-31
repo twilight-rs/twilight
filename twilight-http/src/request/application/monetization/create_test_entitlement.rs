@@ -98,7 +98,7 @@ impl IntoFuture for CreateTestEntitlement<'_> {
 
 impl TryIntoRequest for CreateTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::CreateTestEntitlement {
+        Request::builder_from_route(&Route::CreateTestEntitlement {
             application_id: self.path.application_id.get(),
         })
         .json(&self.body)

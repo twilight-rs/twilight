@@ -130,7 +130,7 @@ impl IntoFuture for CreateGuildPrune<'_> {
 impl TryIntoRequest for CreateGuildPrune<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let path = self.path.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::CreateGuildPrune {
+        let mut request = Request::builder_from_route(&Route::CreateGuildPrune {
             compute_prune_count: path.compute_prune_count,
             days: path.days,
             guild_id: path.guild_id.get(),

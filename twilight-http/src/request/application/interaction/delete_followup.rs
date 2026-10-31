@@ -79,7 +79,7 @@ impl IntoFuture for DeleteFollowup<'_> {
 
 impl TryIntoRequest for DeleteFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::DeleteWebhookMessage {
+        Request::builder_from_route(&Route::DeleteWebhookMessage {
             message_id: self.path.message_id.get(),
             thread_id: None,
             token: self.path.token,

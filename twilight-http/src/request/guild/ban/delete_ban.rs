@@ -83,7 +83,7 @@ impl IntoFuture for DeleteBan<'_> {
 
 impl TryIntoRequest for DeleteBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::DeleteBan {
+        let mut request = Request::builder_from_route(&Route::DeleteBan {
             guild_id: self.path.guild_id.get(),
             user_id: self.path.user_id.get(),
         });

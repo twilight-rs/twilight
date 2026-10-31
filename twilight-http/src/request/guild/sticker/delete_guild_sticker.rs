@@ -83,7 +83,7 @@ impl IntoFuture for DeleteGuildSticker<'_> {
 
 impl TryIntoRequest for DeleteGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::DeleteGuildSticker {
+        let mut request = Request::builder_from_route(&Route::DeleteGuildSticker {
             guild_id: self.path.guild_id.get(),
             sticker_id: self.path.sticker_id.get(),
         });

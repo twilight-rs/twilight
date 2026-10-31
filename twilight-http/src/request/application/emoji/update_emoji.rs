@@ -66,7 +66,7 @@ impl IntoFuture for UpdateApplicationEmoji<'_> {
 
 impl TryIntoRequest for UpdateApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateApplicationEmoji {
+        let mut request = Request::builder_from_route(&Route::UpdateApplicationEmoji {
             application_id: self.path.application_id.get(),
             emoji_id: self.path.emoji_id.get(),
         });

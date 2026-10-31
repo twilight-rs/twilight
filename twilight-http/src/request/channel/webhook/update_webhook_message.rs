@@ -354,7 +354,7 @@ impl IntoFuture for UpdateWebhookMessage<'_> {
 impl TryIntoRequest for UpdateWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::UpdateWebhookMessage {
+        let mut request = Request::builder_from_route(&Route::UpdateWebhookMessage {
             message_id: self.path.message_id.get(),
             thread_id: self.path.thread_id.map(Id::get),
             token: self.path.token,
@@ -433,7 +433,7 @@ mod tests {
             token: "token",
             webhook_id: 1,
         };
-        let expected = Request::builder(&route)
+        let expected = Request::builder_from_route(&route)
             .json(&body)
             .build()
             .expect("failed to serialize body");

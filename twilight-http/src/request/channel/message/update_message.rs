@@ -329,7 +329,7 @@ impl IntoFuture for UpdateMessage<'_> {
 impl TryIntoRequest for UpdateMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::UpdateMessage {
+        let mut request = Request::builder_from_route(&Route::UpdateMessage {
             channel_id: self.path.channel_id.get(),
             message_id: self.path.message_id.get(),
         });

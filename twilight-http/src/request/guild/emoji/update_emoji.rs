@@ -95,7 +95,7 @@ impl IntoFuture for UpdateEmoji<'_> {
 
 impl TryIntoRequest for UpdateEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateEmoji {
+        let mut request = Request::builder_from_route(&Route::UpdateEmoji {
             emoji_id: self.path.emoji_id.get(),
             guild_id: self.path.guild_id.get(),
         });

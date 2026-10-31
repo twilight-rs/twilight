@@ -361,7 +361,7 @@ impl IntoFuture for UpdateResponse<'_> {
 impl TryIntoRequest for UpdateResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::UpdateInteractionOriginal {
+        let mut request = Request::builder_from_route(&Route::UpdateInteractionOriginal {
             application_id: self.path.application_id.get(),
             interaction_token: self.path.token,
         });

@@ -61,7 +61,7 @@ impl IntoFuture for AddApplicationEmoji<'_> {
 
 impl TryIntoRequest for AddApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::AddApplicationEmoji {
+        let mut request = Request::builder_from_route(&Route::AddApplicationEmoji {
             application_id: self.path.application_id.get(),
         });
 

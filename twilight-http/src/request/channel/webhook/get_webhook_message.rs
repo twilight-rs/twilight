@@ -72,7 +72,7 @@ impl IntoFuture for GetWebhookMessage<'_> {
 
 impl TryIntoRequest for GetWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::GetWebhookMessage {
+        Request::builder_from_route(&Route::GetWebhookMessage {
             message_id: self.path.message_id.get(),
             thread_id: self.path.thread_id.map(Id::get),
             token: self.path.token,

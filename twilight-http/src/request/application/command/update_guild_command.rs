@@ -116,7 +116,7 @@ impl IntoFuture for UpdateGuildCommand<'_> {
 
 impl TryIntoRequest for UpdateGuildCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateGuildCommand {
+        Request::builder_from_route(&Route::UpdateGuildCommand {
             application_id: self.path.application_id.get(),
             command_id: self.path.command_id.get(),
             guild_id: self.path.guild_id.get(),

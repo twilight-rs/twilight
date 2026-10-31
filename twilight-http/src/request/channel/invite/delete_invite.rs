@@ -61,7 +61,7 @@ impl IntoFuture for DeleteInvite<'_> {
 
 impl TryIntoRequest for DeleteInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::DeleteInvite {
+        let mut request = Request::builder_from_route(&Route::DeleteInvite {
             code: self.path.code,
         });
 

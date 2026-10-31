@@ -94,7 +94,7 @@ impl IntoFuture for AddRoleToMember<'_> {
 
 impl TryIntoRequest for AddRoleToMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::AddMemberRole {
+        let mut request = Request::builder_from_route(&Route::AddMemberRole {
             guild_id: self.path.guild_id.get(),
             role_id: self.path.role_id.get(),
             user_id: self.path.user_id.get(),

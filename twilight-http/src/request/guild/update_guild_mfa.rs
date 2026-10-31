@@ -67,7 +67,7 @@ impl<'a> AuditLogReason<'a> for UpdateGuildMfa<'a> {
 
 impl TryIntoRequest for UpdateGuildMfa<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdateGuildMfa {
+        let mut request = Request::builder_from_route(&Route::UpdateGuildMfa {
             guild_id: self.path.guild_id.get(),
         })
         .json(&self.body);

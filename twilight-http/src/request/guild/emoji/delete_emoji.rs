@@ -64,7 +64,7 @@ impl IntoFuture for DeleteEmoji<'_> {
 
 impl TryIntoRequest for DeleteEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::DeleteEmoji {
+        let mut request = Request::builder_from_route(&Route::DeleteEmoji {
             emoji_id: self.path.emoji_id.get(),
             guild_id: self.path.guild_id.get(),
         });

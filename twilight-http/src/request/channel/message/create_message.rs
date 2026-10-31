@@ -410,7 +410,7 @@ impl IntoFuture for CreateMessage<'_> {
 impl TryIntoRequest for CreateMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::CreateMessage {
+        let mut request = Request::builder_from_route(&Route::CreateMessage {
             channel_id: self.path.channel_id.get(),
         });
 

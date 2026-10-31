@@ -2993,7 +2993,7 @@ impl Client {
             form,
             headers: req_headers,
             method,
-            mut path,
+            path,
             use_authorization_token,
         } = request;
 
@@ -3074,6 +3074,8 @@ impl Client {
         let invalid_token = use_authorization_token
             .then(|| self.token_invalidated.clone())
             .flatten();
+
+        let mut path = path.to_string();
 
         if let Some(i) = path.find('?') {
             path.truncate(i);

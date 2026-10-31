@@ -67,7 +67,7 @@ impl IntoFuture for DeleteGuildIntegration<'_> {
 
 impl TryIntoRequest for DeleteGuildIntegration<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::DeleteGuildIntegration {
+        let mut request = Request::builder_from_route(&Route::DeleteGuildIntegration {
             guild_id: self.path.guild_id.get(),
             integration_id: self.path.integration_id.get(),
         });

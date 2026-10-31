@@ -61,7 +61,7 @@ impl IntoFuture for UpdateGuildChannelPositions<'_> {
 
 impl TryIntoRequest for UpdateGuildChannelPositions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::UpdateGuildChannels {
+        Request::builder_from_route(&Route::UpdateGuildChannels {
             guild_id: self.path.guild_id.get(),
         })
         .json(&self.body)

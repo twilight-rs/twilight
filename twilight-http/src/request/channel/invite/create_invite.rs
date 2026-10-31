@@ -261,7 +261,7 @@ impl IntoFuture for CreateInvite<'_> {
 impl TryIntoRequest for CreateInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::CreateInvite {
+        let mut request = Request::builder_from_route(&Route::CreateInvite {
             channel_id: self.path.channel_id.get(),
         })
         .json(&body);

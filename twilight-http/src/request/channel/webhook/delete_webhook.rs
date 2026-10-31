@@ -67,7 +67,7 @@ impl IntoFuture for DeleteWebhook<'_> {
 
 impl TryIntoRequest for DeleteWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::DeleteWebhook {
+        let mut request = Request::builder_from_route(&Route::DeleteWebhook {
             token: self.path.token,
             webhook_id: self.path.webhook_id.get(),
         });

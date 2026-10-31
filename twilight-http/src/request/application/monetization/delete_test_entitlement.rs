@@ -55,7 +55,7 @@ impl IntoFuture for DeleteTestEntitlement<'_> {
 
 impl TryIntoRequest for DeleteTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::DeleteTestEntitlement {
+        Request::builder_from_route(&Route::DeleteTestEntitlement {
             application_id: self.path.application_id.get(),
             entitlement_id: self.path.entitlement_id.get(),
         })

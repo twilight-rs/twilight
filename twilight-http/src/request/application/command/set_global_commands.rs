@@ -68,7 +68,7 @@ impl IntoFuture for SetGlobalCommands<'_> {
 
 impl TryIntoRequest for SetGlobalCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::SetGlobalCommands {
+        Request::builder_from_route(&Route::SetGlobalCommands {
             application_id: self.path.application_id.get(),
         })
         .json(&self.body)

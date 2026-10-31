@@ -125,7 +125,7 @@ impl<'a> CreateForumThread<'a> {
     }
 
     fn try_into_request(mut self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::CreateForumThread {
+        let mut request = Request::builder_from_route(&Route::CreateForumThread {
             channel_id: self.path.channel_id.get(),
         });
 

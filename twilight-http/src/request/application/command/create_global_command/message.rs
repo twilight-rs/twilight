@@ -142,7 +142,7 @@ impl TryIntoRequest for CreateGlobalMessageCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder(&Route::CreateGlobalCommand {
+        Request::builder_from_route(&Route::CreateGlobalCommand {
             application_id: self.path.application_id.get(),
         })
         .json(&CommandBorrowed {

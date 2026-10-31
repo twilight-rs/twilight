@@ -194,7 +194,7 @@ impl IntoFuture for UpdateGuildMember<'_> {
 impl TryIntoRequest for UpdateGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder(&Route::UpdateMember {
+        let mut request = Request::builder_from_route(&Route::UpdateMember {
             guild_id: self.path.guild_id.get(),
             user_id: self.path.user_id.get(),
         })
@@ -245,7 +245,7 @@ mod tests {
             guild_id: GUILD_ID.get(),
             user_id: USER_ID.get(),
         };
-        let expected = Request::builder(&route).json(&body).build()?;
+        let expected = Request::builder_from_route(&route).json(&body).build()?;
 
         assert_eq!(actual.body, expected.body);
         assert_eq!(actual.path, expected.path);
@@ -271,7 +271,7 @@ mod tests {
             guild_id: GUILD_ID.get(),
             user_id: USER_ID.get(),
         };
-        let expected = Request::builder(&route).json(&body).build()?;
+        let expected = Request::builder_from_route(&route).json(&body).build()?;
 
         assert_eq!(actual.body, expected.body);
 
@@ -296,7 +296,7 @@ mod tests {
             guild_id: GUILD_ID.get(),
             user_id: USER_ID.get(),
         };
-        let expected = Request::builder(&route).json(&body).build()?;
+        let expected = Request::builder_from_route(&route).json(&body).build()?;
 
         assert_eq!(actual.body, expected.body);
 

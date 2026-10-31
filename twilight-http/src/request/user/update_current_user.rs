@@ -125,7 +125,7 @@ impl TryIntoRequest for UpdateCurrentUser<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
 
-        let mut request = Request::builder(&Route::UpdateCurrentUser).json(&body);
+        let mut request = Request::builder_from_route(&Route::UpdateCurrentUser).json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
