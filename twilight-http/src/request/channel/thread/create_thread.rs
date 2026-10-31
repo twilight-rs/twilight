@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -123,12 +122,18 @@ impl IntoFuture for CreateThread<'_> {
 
 impl TryIntoRequest for CreateThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let CreateThreadPath { channel_id } = self.path;
+
         let body = self.body.map_err(Error::validation)?;
 
-        let mut request = Request::builder_from_route(&Route::CreateThread {
-            channel_id: self.path.channel_id.get(),
-        })
-        .json(&body);
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("threads")
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Post, path).json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

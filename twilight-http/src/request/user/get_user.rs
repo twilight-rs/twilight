@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -11,7 +10,7 @@ use twilight_model::{
     user::User,
 };
 
-struct GetUserPath {
+pub struct GetUserPath {
     user_id: Id<UserMarker>,
 }
 
@@ -48,8 +47,12 @@ impl IntoFuture for GetUser<'_> {
 
 impl TryIntoRequest for GetUser<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetUser {
-            user_id: self.path.user_id.get(),
-        }))
+        let path = Path::builder()
+            .resource("users")
+            .id(self.path.user_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

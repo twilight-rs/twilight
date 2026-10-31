@@ -6,9 +6,10 @@ use self::message::CreateForumThreadMessageBody;
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Nullable, Request, attachment::AttachmentManager},
+    request::{
+        self, AuditLogReason, Method, Nullable, Request, attachment::AttachmentManager, path::Path,
+    },
     response::ResponseFuture,
-    routing::Route,
 };
 use serde::{Deserialize, Serialize};
 use twilight_model::{
@@ -125,9 +126,16 @@ impl<'a> CreateForumThread<'a> {
     }
 
     fn try_into_request(mut self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::CreateForumThread {
-            channel_id: self.path.channel_id.get(),
-        });
+        let CreateForumThreadPath { channel_id } = self.path;
+
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("threads")
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Post, path);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

@@ -7,9 +7,8 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::ResponseFuture,
-    routing::Route,
 };
 
 struct GetGuildOnboardingPath {
@@ -67,9 +66,16 @@ impl IntoFuture for GetGuildOnboarding<'_> {
 
 impl TryIntoRequest for GetGuildOnboarding<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let request = Request::from_route(&Route::GetGuildOnboarding {
-            guild_id: self.path.guild_id.get(),
-        });
+        let GetGuildOnboardingPath { guild_id } = self.path;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("onboarding")
+            .build()
+            .map_err(Error::path)?;
+
+        let request = Request::new(Method::Get, path);
 
         Ok(request)
     }

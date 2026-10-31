@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -136,13 +135,17 @@ impl IntoFuture for AddGuildMember<'_> {
 
 impl TryIntoRequest for AddGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let body = self.body.map_err(Error::validation)?;
+        let AddGuildMemberPath { guild_id, user_id } = self.path;
 
-        Request::builder_from_route(&Route::AddGuildMember {
-            guild_id: self.path.guild_id.get(),
-            user_id: self.path.user_id.get(),
-        })
-        .json(&body)
-        .build()
+        let body = self.body.map_err(Error::validation)?;
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("members")
+            .id(user_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Request::builder(Method::Put, path).json(&body).build()
     }
 }

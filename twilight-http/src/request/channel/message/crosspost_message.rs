@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -59,9 +58,20 @@ impl IntoFuture for CrosspostMessage<'_> {
 
 impl TryIntoRequest for CrosspostMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::CrosspostMessage {
-            channel_id: self.path.channel_id.get(),
-            message_id: self.path.message_id.get(),
-        }))
+        let CrosspostMessagePath {
+            channel_id,
+            message_id,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("messages")
+            .id(message_id)
+            .action("crosspost")
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Post, path))
     }
 }

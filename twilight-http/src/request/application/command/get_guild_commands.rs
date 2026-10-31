@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -14,7 +13,7 @@ use twilight_model::{
     },
 };
 
-struct GetGuildCommandsPath {
+pub struct GetGuildCommandsPath {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
     with_localizations: Option<bool>,
@@ -70,10 +69,16 @@ impl IntoFuture for GetGuildCommands<'_> {
 
 impl TryIntoRequest for GetGuildCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetGuildCommands {
-            application_id: self.path.application_id.get(),
-            guild_id: self.path.guild_id.get(),
-            with_localizations: self.path.with_localizations,
-        }))
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .resource("commands")
+            .parameter(("with_localizations", self.path.with_localizations))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

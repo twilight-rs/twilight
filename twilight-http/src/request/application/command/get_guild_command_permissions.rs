@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -14,7 +13,7 @@ use twilight_model::{
     },
 };
 
-struct GetGuildCommandPermissionsPath {
+pub struct GetGuildCommandPermissionsPath {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
 }
@@ -59,9 +58,16 @@ impl IntoFuture for GetGuildCommandPermissions<'_> {
 
 impl TryIntoRequest for GetGuildCommandPermissions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetGuildCommandPermissions {
-            application_id: self.path.application_id.get(),
-            guild_id: self.path.guild_id.get(),
-        }))
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .resource("commands")
+            .subresource("permissions")
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

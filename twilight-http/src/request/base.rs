@@ -1,5 +1,5 @@
 use super::{Form, Method, path::Path};
-use crate::{error::Error, routing::Route};
+use crate::error::Error;
 use http::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::Serialize;
 
@@ -11,16 +11,23 @@ use serde::Serialize;
 /// channel with an ID of 1:
 ///
 /// ```
-/// use twilight_http::{request::Request, routing::Route};
+/// use twilight_http::request::{path::Path, Method, Request};
+/// use twilight_model::id::{Id, marker::ChannelMarker};
 ///
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let body = br#"{
 ///     "content": "test"
 /// }"#
 /// .to_vec();
 ///
-/// let request = Request::builder(&Route::CreateMessage { channel_id: 1 })
-///     .body(body)
-///     .build();
+/// let path = Path::builder()
+///     .resource("channels")
+///     .id(Id::<ChannelMarker>::new(1))
+///     .resource("messages")
+///     .build()?;
+///
+/// let request = Request::builder(Method::Post, path).body(body).build()?;
+/// # Ok(()) }
 /// ```
 #[derive(Debug)]
 #[must_use = "request has not been fully built"]
@@ -39,10 +46,6 @@ impl RequestBuilder {
             path,
             use_authorization_token: true,
         }))
-    }
-
-    pub fn new_from_route(route: &Route<'_>) -> Self {
-        Self(Ok(Request::from_route(route)))
     }
 
     /// Consume the builder, returning the built request.
@@ -131,6 +134,19 @@ pub struct Request {
 }
 
 impl Request {
+    // Clippy: We may not want this to be const in the future.
+    #[expect(clippy::missing_const_for_fn)]
+    pub fn new(method: Method, path: Path) -> Self {
+        Self {
+            body: None,
+            form: None,
+            headers: None,
+            method,
+            path,
+            use_authorization_token: true,
+        }
+    }
+
     /// Create a new request builder.
     ///
     /// # Examples
@@ -139,39 +155,26 @@ impl Request {
     /// channel with an ID of 1:
     ///
     /// ```
-    /// use twilight_http::{request::Request, routing::Route};
+    /// use twilight_http::request::{path::Path, Method, Request};
+    /// use twilight_model::id::{Id, marker::ChannelMarker};
     ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let body = br#"{
     ///     "content": "test"
     /// }"#
     /// .to_vec();
     ///
-    /// let request = Request::builder(&Route::CreateMessage { channel_id: 1 })
-    ///     .body(body)
-    ///     .build();
+    /// let path = Path::builder()
+    ///     .resource("channels")
+    ///     .id(Id::<ChannelMarker>::new(1))
+    ///     .resource("messages")
+    ///     .build()?;
+    ///
+    /// let request = Request::builder(Method::Post, path).body(body).build()?;
+    /// # Ok(()) }
     /// ```
     pub fn builder(method: Method, path: Path) -> RequestBuilder {
         RequestBuilder::new(method, path)
-    }
-
-    pub fn builder_from_route(route: &Route<'_>) -> RequestBuilder {
-        RequestBuilder::new_from_route(route)
-    }
-
-    /// # Panics
-    ///
-    /// Now panics. Doesn't matter, this will be removed
-    pub fn from_route(route: &Route<'_>) -> Self {
-        use std::str::FromStr as _;
-
-        Self {
-            body: None,
-            form: None,
-            headers: None,
-            method: route.method(),
-            path: Path::from_str(&route.to_string()).expect("TODO"),
-            use_authorization_token: true,
-        }
     }
 
     /// Body of the request, if any.

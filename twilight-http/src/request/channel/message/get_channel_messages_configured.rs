@@ -2,9 +2,8 @@ use super::get_channel_messages::GetChannelMessagesPath;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -98,14 +97,25 @@ impl IntoFuture for GetChannelMessagesConfigured<'_> {
 
 impl TryIntoRequest for GetChannelMessagesConfigured<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let path = self.path.map_err(Error::validation)?;
+        let GetChannelMessagesConfiguredPath {
+            after,
+            around,
+            before,
+            channel_id,
+            limit,
+        } = self.path.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::GetMessages {
-            after: path.after.map(Id::get),
-            around: path.around.map(Id::get),
-            before: path.before.map(Id::get),
-            channel_id: path.channel_id.get(),
-            limit: path.limit,
-        }))
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("messages")
+            .parameter(("after", after))
+            .parameter(("around", around))
+            .parameter(("before", before))
+            .parameter(("limit", limit))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

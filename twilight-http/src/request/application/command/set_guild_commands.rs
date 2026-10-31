@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -19,7 +18,7 @@ use twilight_model::{
 #[serde(transparent)]
 struct SetGuildCommandsBody<'a>(&'a [Command]);
 
-struct SetGuildCommandsPath {
+pub struct SetGuildCommandsPath {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
 }
@@ -76,11 +75,15 @@ impl IntoFuture for SetGuildCommands<'_> {
 
 impl TryIntoRequest for SetGuildCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder_from_route(&Route::SetGuildCommands {
-            application_id: self.path.application_id.get(),
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&self.body)
-        .build()
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .resource("commands")
+            .build()
+            .map_err(Error::path)?;
+
+        Request::builder(Method::Put, path).json(&self.body).build()
     }
 }

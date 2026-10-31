@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Nullable, Request, TryIntoRequest},
+    request::{Method, Nullable, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -107,10 +106,18 @@ impl IntoFuture for UpdateCurrentUserVoiceState<'_> {
 
 impl TryIntoRequest for UpdateCurrentUserVoiceState<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder_from_route(&Route::UpdateCurrentUserVoiceState {
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&self.body)
-        .build()
+        let UpdateCurrentUserVoiceStatePath { guild_id } = self.path;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("voice-states")
+            .me()
+            .build()
+            .map_err(Error::path)?;
+
+        Request::builder(Method::Patch, path)
+            .json(&self.body)
+            .build()
     }
 }

@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -160,11 +159,21 @@ impl IntoFuture for UpdateAutoModerationRule<'_> {
 
 impl TryIntoRequest for UpdateAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::UpdateAutoModerationRule {
-            auto_moderation_rule_id: self.path.auto_moderation_rule_id.get(),
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&self.body);
+        let UpdateAutoModerationRulePath {
+            auto_moderation_rule_id,
+            guild_id,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("auto-moderation")
+            .subresource("rules")
+            .id(auto_moderation_rule_id)
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Patch, path).json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

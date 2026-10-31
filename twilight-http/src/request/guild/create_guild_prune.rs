@@ -1,9 +1,11 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{
+        self, AuditLogReason, Method, Request, TryIntoRequest,
+        path::{Path, query_parameter::CsvQueryParameter},
+    },
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -129,13 +131,24 @@ impl IntoFuture for CreateGuildPrune<'_> {
 
 impl TryIntoRequest for CreateGuildPrune<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let path = self.path.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::CreateGuildPrune {
-            compute_prune_count: path.compute_prune_count,
-            days: path.days,
-            guild_id: path.guild_id.get(),
-            include_roles: path.include_roles,
-        });
+        let CreateGuildPrunePath {
+            compute_prune_count,
+            days,
+            guild_id,
+            include_roles,
+        } = self.path.map_err(Error::validation)?;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .action("prune")
+            .parameter(("compute_prune_count", compute_prune_count))
+            .parameter(("days", days))
+            .parameter(CsvQueryParameter::new("include_roles", include_roles))
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Post, path);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

@@ -2,9 +2,8 @@ use super::EntityMetadataBody;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Nullable, Request, TryIntoRequest},
+    request::{AuditLogReason, Method, Nullable, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -50,7 +49,7 @@ struct UpdateGuildScheduledEventBody<'a> {
     status: Option<Status>,
 }
 
-struct UpdateGuildScheduledEventPath {
+pub struct UpdateGuildScheduledEventPath {
     guild_id: Id<GuildMarker>,
     scheduled_event_id: Id<ScheduledEventMarker>,
 }
@@ -300,13 +299,15 @@ impl IntoFuture for UpdateGuildScheduledEvent<'_> {
 
 impl TryIntoRequest for UpdateGuildScheduledEvent<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let path = Path::builder()
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .resource("scheduled-events")
+            .id(self.path.scheduled_event_id)
+            .build()
+            .map_err(Error::path)?;
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder_from_route(&Route::UpdateGuildScheduledEvent {
-            guild_id: self.path.guild_id.get(),
-            scheduled_event_id: self.path.scheduled_event_id.get(),
-        })
-        .json(&body)
-        .build()
+        Request::builder(Method::Patch, path).json(&body).build()
     }
 }

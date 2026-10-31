@@ -2,11 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        Nullable, Request, TryIntoRequest,
+        Method, Nullable, Request, TryIntoRequest,
         attachment::{AttachmentManager, PartialAttachment},
+        path::Path,
     },
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -43,9 +43,10 @@ struct CreateFollowupBody<'a> {
     poll: Option<Poll>,
 }
 
-struct CreateFollowupPath<'a> {
+pub struct CreateFollowupPath<'a> {
     application_id: Id<ApplicationMarker>,
     token: &'a str,
+    with_components: bool,
 }
 
 /// Create a followup message to an interaction, by its token.
@@ -109,6 +110,7 @@ impl<'a> CreateFollowup<'a> {
             path: CreateFollowupPath {
                 application_id,
                 token,
+                with_components: false,
             },
         }
     }
@@ -169,6 +171,7 @@ impl<'a> CreateFollowup<'a> {
                 body.flags
                     .is_some_and(|flags| flags.contains(MessageFlags::IS_COMPONENTS_V2)),
             )?;
+            self.path.with_components = !components.is_empty();
             body.components = Some(components);
 
             Ok(body)
@@ -300,17 +303,16 @@ impl IntoFuture for CreateFollowup<'_> {
 
 impl TryIntoRequest for CreateFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let path = Path::builder()
+            .resource("webhooks")
+            .id(self.path.application_id)
+            .no_resource()
+            .id(self.path.token)
+            .parameter(("with_components", self.path.with_components))
+            .build()
+            .map_err(Error::path)?;
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::ExecuteWebhook {
-            thread_id: None,
-            token: self.path.token,
-            wait: None,
-            with_components: Some(
-                body.components
-                    .is_some_and(|components| !components.is_empty()),
-            ),
-            webhook_id: self.path.application_id.get(),
-        });
+        let mut request = Request::builder(Method::Post, path);
 
         // Interaction executions don't need the authorization token, only the
         // interaction token.

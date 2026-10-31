@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -95,10 +94,17 @@ impl IntoFuture for UpdateEmoji<'_> {
 
 impl TryIntoRequest for UpdateEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::UpdateEmoji {
-            emoji_id: self.path.emoji_id.get(),
-            guild_id: self.path.guild_id.get(),
-        });
+        let UpdateEmojiPath { emoji_id, guild_id } = self.path;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("emojis")
+            .id(emoji_id)
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Patch, path);
 
         request = request.json(&self.body);
 

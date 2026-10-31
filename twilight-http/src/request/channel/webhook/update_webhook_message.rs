@@ -4,11 +4,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        Nullable, Request, TryIntoRequest,
+        Method, Nullable, Request, TryIntoRequest,
         attachment::{AttachmentManager, PartialAttachment},
+        path::Path,
     },
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -353,13 +353,25 @@ impl IntoFuture for UpdateWebhookMessage<'_> {
 
 impl TryIntoRequest for UpdateWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let UpdateWebhookMessagePath {
+            message_id,
+            thread_id,
+            token,
+            webhook_id,
+        } = self.path;
+
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::UpdateWebhookMessage {
-            message_id: self.path.message_id.get(),
-            thread_id: self.path.thread_id.map(Id::get),
-            token: self.path.token,
-            webhook_id: self.path.webhook_id.get(),
-        });
+        let path = Path::builder()
+            .resource("webhooks")
+            .id(webhook_id)
+            .no_resource()
+            .id(token)
+            .resource("messages")
+            .id(message_id)
+            .parameter(("thread_id", thread_id))
+            .build()
+            .map_err(Error::path)?;
+        let mut request = Request::builder(Method::Patch, path);
 
         // Webhook executions don't need the authorization token, only the
         // webhook token.
@@ -395,50 +407,5 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
         }
 
         request.build()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{UpdateWebhookMessage, UpdateWebhookMessageBody};
-    use crate::{
-        client::Client,
-        request::{Nullable, Request, TryIntoRequest},
-        routing::Route,
-    };
-    use twilight_model::id::Id;
-
-    #[test]
-    fn request() {
-        let client = Client::new("token".to_owned());
-        let builder = UpdateWebhookMessage::new(&client, Id::new(1), "token", Id::new(2))
-            .content(Some("test"))
-            .thread_id(Id::new(3));
-
-        let actual = builder
-            .try_into_request()
-            .expect("failed to create request");
-
-        let body = UpdateWebhookMessageBody {
-            allowed_mentions: None,
-            attachments: None,
-            components: None,
-            content: Some(Nullable(Some("test"))),
-            embeds: None,
-            payload_json: None,
-        };
-        let route = Route::UpdateWebhookMessage {
-            message_id: 2,
-            thread_id: Some(3),
-            token: "token",
-            webhook_id: 1,
-        };
-        let expected = Request::builder_from_route(&route)
-            .json(&body)
-            .build()
-            .expect("failed to serialize body");
-
-        assert_eq!(expected.body, actual.body);
-        assert_eq!(expected.path, actual.path);
     }
 }

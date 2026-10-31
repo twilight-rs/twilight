@@ -2,12 +2,12 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        Nullable, Request, TryIntoRequest,
+        Method, Nullable, Request, TryIntoRequest,
         attachment::{AttachmentManager, PartialAttachment},
         channel::webhook::ExecuteWebhookAndWait,
+        path::Path,
     },
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -411,17 +411,30 @@ impl IntoFuture for ExecuteWebhook<'_> {
 
 impl TryIntoRequest for ExecuteWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let ExecuteWebhookPath {
+            thread_id,
+            token,
+            wait,
+            webhook_id,
+        } = self.path;
+
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::ExecuteWebhook {
-            thread_id: self.path.thread_id.map(Id::get),
-            token: self.path.token,
-            wait: Some(self.path.wait),
-            with_components: Some(
+        let path = Path::builder()
+            .resource("webhooks")
+            .id(webhook_id)
+            .no_resource()
+            .id(token)
+            .parameter(("thread_id", thread_id))
+            .parameter(("wait", wait))
+            .parameter((
+                "with_components",
                 body.components
+                    .as_ref()
                     .is_some_and(|components| !components.is_empty()),
-            ),
-            webhook_id: self.path.webhook_id.get(),
-        });
+            ))
+            .build()
+            .map_err(Error::path)?;
+        let mut request = Request::builder(Method::Post, path);
 
         // Webhook executions don't need the authorization token, only the
         // webhook token.

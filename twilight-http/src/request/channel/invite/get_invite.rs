@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::guild::invite::Invite;
@@ -85,10 +84,20 @@ impl IntoFuture for GetInvite<'_> {
 
 impl TryIntoRequest for GetInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetInviteWithExpiration {
-            code: self.path.code,
-            with_counts: self.path.with_counts,
-            with_expiration: self.path.with_expiration,
-        }))
+        let GetInvitePath {
+            code,
+            with_counts,
+            with_expiration,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("invites")
+            .id(code)
+            .parameter(("with_counts", with_counts))
+            .parameter(("with_expiration", with_expiration))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

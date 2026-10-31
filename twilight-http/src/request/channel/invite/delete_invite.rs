@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
@@ -61,9 +60,14 @@ impl IntoFuture for DeleteInvite<'_> {
 
 impl TryIntoRequest for DeleteInvite<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::DeleteInvite {
-            code: self.path.code,
-        });
+        let DeleteInvitePath { code } = self.path;
+
+        let path = Path::builder()
+            .resource("invites")
+            .id(code)
+            .build()
+            .map_err(Error::path)?;
+        let mut request = Request::builder(Method::Delete, path);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

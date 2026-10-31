@@ -10,9 +10,8 @@ use twilight_model::{
 
 use crate::{
     Client, Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 
 #[derive(Serialize)]
@@ -20,7 +19,7 @@ struct UpdateApplicationEmojiBody<'a> {
     name: &'a str,
 }
 
-struct UpdateApplicationEmojiPath {
+pub struct UpdateApplicationEmojiPath {
     application_id: Id<ApplicationMarker>,
     emoji_id: Id<EmojiMarker>,
 }
@@ -66,13 +65,16 @@ impl IntoFuture for UpdateApplicationEmoji<'_> {
 
 impl TryIntoRequest for UpdateApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::UpdateApplicationEmoji {
-            application_id: self.path.application_id.get(),
-            emoji_id: self.path.emoji_id.get(),
-        });
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("emojis")
+            .id(self.path.emoji_id)
+            .build()
+            .map_err(Error::path)?;
 
-        request = request.json(&self.body);
-
-        request.build()
+        Request::builder(Method::Patch, path)
+            .json(&self.body)
+            .build()
     }
 }

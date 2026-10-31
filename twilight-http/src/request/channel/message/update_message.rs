@@ -2,11 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        Nullable, Request, TryIntoRequest,
+        Method, Nullable, Request, TryIntoRequest,
         attachment::{AttachmentManager, PartialAttachment},
+        path::Path,
     },
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -328,11 +328,20 @@ impl IntoFuture for UpdateMessage<'_> {
 
 impl TryIntoRequest for UpdateMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let UpdateMessagePath {
+            channel_id,
+            message_id,
+        } = self.path;
+
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::UpdateMessage {
-            channel_id: self.path.channel_id.get(),
-            message_id: self.path.message_id.get(),
-        });
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("messages")
+            .id(message_id)
+            .build()
+            .map_err(Error::path)?;
+        let mut request = Request::builder(Method::Patch, path);
 
         // Set the default allowed mentions if required.
         if body.allowed_mentions.is_none()

@@ -2,9 +2,8 @@ use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
@@ -81,44 +80,24 @@ impl IntoFuture for CreateReaction<'_> {
 
 impl TryIntoRequest for CreateReaction<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::CreateReaction {
-            channel_id: self.path.channel_id.get(),
-            emoji: self.path.emoji,
-            message_id: self.path.message_id.get(),
-        }))
-    }
-}
+        let CreateReactionPath {
+            channel_id,
+            emoji,
+            message_id,
+        } = self.path;
 
-#[cfg(test)]
-mod tests {
-    #![allow(clippy::non_ascii_literal)]
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("messages")
+            .id(message_id)
+            .resource("reactions")
+            .id(emoji)
+            .no_resource()
+            .me()
+            .build()
+            .map_err(Error::path)?;
 
-    use super::CreateReaction;
-    use crate::{
-        Client,
-        request::{Request, TryIntoRequest, channel::reaction::RequestReactionType},
-        routing::Route,
-    };
-    use std::error::Error;
-    use twilight_model::id::Id;
-
-    #[test]
-    fn request() -> Result<(), Box<dyn Error>> {
-        let client = Client::new("foo".to_owned());
-
-        let emoji = RequestReactionType::Unicode { name: "🌃" };
-
-        let builder = CreateReaction::new(&client, Id::new(123), Id::new(456), &emoji);
-        let actual = builder.try_into_request()?;
-
-        let expected = Request::from_route(&Route::CreateReaction {
-            channel_id: 123,
-            emoji: &RequestReactionType::Unicode { name: "🌃" },
-            message_id: 456,
-        });
-
-        assert_eq!(actual.path, expected.path);
-
-        Ok(())
+        Ok(Request::new(Method::Put, path))
     }
 }

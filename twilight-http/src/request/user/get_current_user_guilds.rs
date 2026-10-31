@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -14,7 +13,7 @@ use twilight_validate::request::{
     ValidationError, get_current_user_guilds_limit as validate_get_current_user_guilds_limit,
 };
 
-struct GetCurrentUserGuildsPath {
+pub struct GetCurrentUserGuildsPath {
     after: Option<Id<GuildMarker>>,
     before: Option<Id<GuildMarker>>,
     limit: Option<u16>,
@@ -137,13 +136,24 @@ impl IntoFuture for GetCurrentUserGuilds<'_> {
 
 impl TryIntoRequest for GetCurrentUserGuilds<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let path = self.path.map_err(Error::validation)?;
+        let GetCurrentUserGuildsPath {
+            after,
+            before,
+            limit,
+            shard,
+        } = self.path.map_err(Error::validation)?;
 
-        Ok(Request::from_route(&Route::GetGuilds {
-            after: path.after.map(Id::get),
-            before: path.before.map(Id::get),
-            limit: path.limit,
-            shard: path.shard,
-        }))
+        let path = Path::builder()
+            .resource("users")
+            .me()
+            .resource("guilds")
+            .parameter(("after", after))
+            .parameter(("before", before))
+            .parameter(("limit", limit))
+            .parameter(("shard", shard))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

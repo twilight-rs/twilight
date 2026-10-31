@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -167,13 +166,21 @@ impl IntoFuture for UpdateGuildSticker<'_> {
 
 impl TryIntoRequest for UpdateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let body = self.body.map_err(Error::validation)?;
+        let UpdateGuildStickerPath {
+            guild_id,
+            sticker_id,
+        } = self.path;
 
-        let mut request = Request::builder_from_route(&Route::UpdateGuildSticker {
-            guild_id: self.path.guild_id.get(),
-            sticker_id: self.path.sticker_id.get(),
-        })
-        .json(&body);
+        let body = self.body.map_err(Error::validation)?;
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("stickers")
+            .id(sticker_id)
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Patch, path).json(&body);
 
         if let Ok(Some(reason)) = self.reason {
             request = request.headers(request::audit_header(reason)?);

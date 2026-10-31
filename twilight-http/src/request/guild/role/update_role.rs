@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Nullable, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -228,10 +227,17 @@ impl IntoFuture for UpdateRole<'_> {
 
 impl TryIntoRequest for UpdateRole<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::UpdateRole {
-            guild_id: self.path.guild_id.get(),
-            role_id: self.path.role_id.get(),
-        });
+        let UpdateRolePath { guild_id, role_id } = self.path;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("roles")
+            .id(role_id)
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Patch, path);
 
         request = request.json(&self.body);
 

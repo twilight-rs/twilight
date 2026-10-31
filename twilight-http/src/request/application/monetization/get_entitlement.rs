@@ -1,8 +1,7 @@
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::ResponseFuture,
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -58,9 +57,19 @@ impl IntoFuture for GetEntitlement<'_> {
 
 impl TryIntoRequest for GetEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetEntitlement {
-            application_id: self.path.application_id.get(),
-            entitlement_id: self.path.entitlement_id.get(),
-        }))
+        let GetEntitlementPath {
+            application_id,
+            entitlement_id,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("applications")
+            .id(application_id)
+            .resource("entitlements")
+            .id(entitlement_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

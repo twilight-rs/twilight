@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request, TryIntoRequest, multipart::Form},
+    request::{AuditLogReason, Method, Request, TryIntoRequest, multipart::Form, path::Path},
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::{
@@ -121,10 +120,17 @@ impl IntoFuture for CreateGuildSticker<'_> {
 
 impl TryIntoRequest for CreateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let CreateGuildStickerPath { guild_id } = self.path;
+
         let body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::CreateGuildSticker {
-            guild_id: self.path.guild_id.get(),
-        });
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("stickers")
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Post, path);
 
         let form = Form::new()
             .part(b"description", body.description.as_bytes())

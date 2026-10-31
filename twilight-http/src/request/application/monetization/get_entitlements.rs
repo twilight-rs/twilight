@@ -10,16 +10,18 @@ use twilight_model::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{
+        Method, Request, TryIntoRequest,
+        path::{Path, query_parameter::CsvQueryParameter},
+    },
     response::{ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 
 use twilight_validate::request::{
     ValidationError, get_entitlements_limit as validate_get_entitlements_limit,
 };
 
-struct GetEntitlementsPath<'a> {
+pub struct GetEntitlementsPath<'a> {
     after: Option<Id<EntitlementMarker>>,
     application_id: Id<ApplicationMarker>,
     before: Option<Id<EntitlementMarker>>,
@@ -143,16 +145,33 @@ impl IntoFuture for GetEntitlements<'_> {
 
 impl TryIntoRequest for GetEntitlements<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetEntitlements {
-            after: self.path.after.map(Id::get),
-            application_id: self.path.application_id.get(),
-            before: self.path.before.map(Id::get),
-            exclude_deleted: self.path.exclude_deleted,
-            exclude_ended: self.path.exclude_ended,
-            guild_id: self.path.guild_id.map(Id::get),
-            limit: self.path.limit,
-            sku_ids: self.path.sku_ids,
-            user_id: self.path.user_id.map(Id::get),
-        }))
+        let GetEntitlementsPath {
+            after,
+            application_id,
+            before,
+            exclude_deleted,
+            exclude_ended,
+            guild_id,
+            limit,
+            sku_ids,
+            user_id,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("applications")
+            .id(application_id)
+            .resource("entitlements")
+            .parameter(("after", after))
+            .parameter(("before", before))
+            .parameter(("exclude_deleted", exclude_deleted))
+            .parameter(("exclude_ended", exclude_ended))
+            .parameter(("guild_id", guild_id))
+            .parameter(("limit", limit))
+            .parameter(("user_id", user_id))
+            .parameter(CsvQueryParameter::new("sku_ids", sku_ids))
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Get, path))
     }
 }

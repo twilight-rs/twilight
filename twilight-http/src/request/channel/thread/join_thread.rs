@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::ChannelMarker};
@@ -45,8 +44,16 @@ impl IntoFuture for JoinThread<'_> {
 
 impl TryIntoRequest for JoinThread<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::JoinThread {
-            channel_id: self.path.channel_id.get(),
-        }))
+        let JoinThreadPath { channel_id } = self.path;
+
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("thread-members")
+            .me()
+            .build()
+            .map_err(Error::path)?;
+
+        Ok(Request::new(Method::Put, path))
     }
 }

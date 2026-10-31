@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
@@ -83,10 +82,16 @@ impl IntoFuture for DeleteBan<'_> {
 
 impl TryIntoRequest for DeleteBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::DeleteBan {
-            guild_id: self.path.guild_id.get(),
-            user_id: self.path.user_id.get(),
-        });
+        let DeleteBanPath { guild_id, user_id } = self.path;
+
+        let path = Path::builder()
+            .resource("guilds")
+            .id(guild_id)
+            .resource("bans")
+            .id(user_id)
+            .build()
+            .map_err(Error::path)?;
+        let mut request = Request::builder(Method::Delete, path);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

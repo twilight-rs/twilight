@@ -4,11 +4,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        Nullable, Request, TryIntoRequest,
+        Method, Nullable, Request, TryIntoRequest,
         attachment::{AttachmentManager, PartialAttachment},
+        path::Path,
     },
     response::{Response, ResponseFuture},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -44,7 +44,7 @@ struct UpdateResponseBody<'a> {
     payload_json: Option<&'a [u8]>,
 }
 
-struct UpdateResponsePath<'a> {
+pub struct UpdateResponsePath<'a> {
     application_id: Id<ApplicationMarker>,
     token: &'a str,
 }
@@ -360,11 +360,17 @@ impl IntoFuture for UpdateResponse<'_> {
 
 impl TryIntoRequest for UpdateResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let path = Path::builder()
+            .resource("webhooks")
+            .id(self.path.application_id)
+            .no_resource()
+            .id(self.path.token)
+            .resource("messages")
+            .id("@original")
+            .build()
+            .map_err(Error::path)?;
         let mut body = self.body.map_err(Error::validation)?;
-        let mut request = Request::builder_from_route(&Route::UpdateInteractionOriginal {
-            application_id: self.path.application_id.get(),
-            interaction_token: self.path.token,
-        });
+        let mut request = Request::builder(Method::Patch, path);
 
         // Interaction executions don't need the authorization token, only the
         // interaction token.

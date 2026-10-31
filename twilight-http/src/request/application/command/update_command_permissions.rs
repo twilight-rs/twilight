@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -24,7 +23,7 @@ struct UpdateCommandPermissionsBody<'a> {
 }
 
 #[expect(clippy::struct_field_names)]
-struct UpdateCommandPermissionsPath {
+pub struct UpdateCommandPermissionsPath {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,
@@ -84,17 +83,20 @@ impl IntoFuture for UpdateCommandPermissions<'_> {
         }
     }
 }
-
 impl TryIntoRequest for UpdateCommandPermissions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("guilds")
+            .id(self.path.guild_id)
+            .resource("commands")
+            .id(self.path.command_id)
+            .resource("permissions")
+            .build()
+            .map_err(Error::path)?;
         let body = self.body.map_err(Error::validation)?;
 
-        Request::builder_from_route(&Route::UpdateCommandPermissions {
-            application_id: self.path.application_id.get(),
-            command_id: self.path.command_id.get(),
-            guild_id: self.path.guild_id.get(),
-        })
-        .json(&body)
-        .build()
+        Request::builder(Method::Put, path).json(&body).build()
     }
 }

@@ -42,8 +42,6 @@ impl Error {
     /// Construct an error from a source [`PathBuilder`] error.
     ///
     /// [`PathBuilder`]: crate::request::path::PathBuilder
-    // Clippy: Will be used in a later pull request in the stack.
-    #[expect(unused)]
     pub(super) fn path(source: PathBuilderError) -> Self {
         Self {
             kind: ErrorType::Path,

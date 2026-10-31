@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use std::future::IntoFuture;
 use twilight_model::id::{
@@ -67,10 +66,21 @@ impl IntoFuture for DeletePin<'_> {
 
 impl TryIntoRequest for DeletePin<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::UnpinMessage {
-            channel_id: self.path.channel_id.get(),
-            message_id: self.path.message_id.get(),
-        });
+        let DeletePinPath {
+            channel_id,
+            message_id,
+        } = self.path;
+
+        let path = Path::builder()
+            .resource("channels")
+            .id(channel_id)
+            .resource("messages")
+            .subresource("pins")
+            .id(message_id)
+            .build()
+            .map_err(Error::path)?;
+
+        let mut request = Request::builder(Method::Delete, path);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

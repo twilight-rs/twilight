@@ -2,11 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        Request, TryIntoRequest, application::interaction::CreateResponseWithResponse,
-        attachment::AttachmentManager,
+        Method, Request, TryIntoRequest, application::interaction::CreateResponseWithResponse,
+        attachment::AttachmentManager, path::Path,
     },
     response::{Response, ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -19,7 +18,7 @@ use twilight_model::{
 #[serde(transparent)]
 struct CreateResponseBody<'a>(&'a InteractionResponse);
 
-struct CreateResponsePath<'a> {
+pub struct CreateResponsePath<'a> {
     interaction_id: Id<InteractionMarker>,
     interaction_token: &'a str,
 }
@@ -78,11 +77,15 @@ impl IntoFuture for CreateResponse<'_> {
 
 impl TryIntoRequest for CreateResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut request = Request::builder_from_route(&Route::InteractionCallback {
-            interaction_id: self.path.interaction_id.get(),
-            interaction_token: self.path.interaction_token,
-            with_response: false,
-        });
+        let path = Path::builder()
+            .resource("interactions")
+            .id(self.path.interaction_id)
+            .no_resource()
+            .id(self.path.interaction_token)
+            .action("callback")
+            .build()
+            .map_err(Error::path)?;
+        let mut request = Request::builder(Method::Post, path);
 
         // Interaction executions don't need the authorization token, only the
         // interaction token.

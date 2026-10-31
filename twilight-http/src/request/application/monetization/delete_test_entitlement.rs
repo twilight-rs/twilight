@@ -7,12 +7,11 @@ use twilight_model::id::{
 
 use crate::{
     Client, Error, Response,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{ResponseFuture, marker::EmptyBody},
-    routing::Route,
 };
 
-struct DeleteTestEntitlementPath {
+pub struct DeleteTestEntitlementPath {
     application_id: Id<ApplicationMarker>,
     entitlement_id: Id<EntitlementMarker>,
 }
@@ -55,10 +54,14 @@ impl IntoFuture for DeleteTestEntitlement<'_> {
 
 impl TryIntoRequest for DeleteTestEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder_from_route(&Route::DeleteTestEntitlement {
-            application_id: self.path.application_id.get(),
-            entitlement_id: self.path.entitlement_id.get(),
-        })
-        .build()
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("entitlements")
+            .id(self.path.entitlement_id)
+            .build()
+            .map_err(Error::path)?;
+
+        Request::builder(Method::Delete, path).build()
     }
 }

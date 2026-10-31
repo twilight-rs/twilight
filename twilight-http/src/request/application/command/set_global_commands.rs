@@ -1,9 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{Method, Request, TryIntoRequest, path::Path},
     response::{Response, ResponseFuture, marker::ListBody},
-    routing::Route,
 };
 use serde::Serialize;
 use std::future::IntoFuture;
@@ -16,7 +15,7 @@ use twilight_model::{
 #[serde(transparent)]
 struct SetGlobalCommandsBody<'a>(&'a [Command]);
 
-struct SetGlobalCommandsPath {
+pub struct SetGlobalCommandsPath {
     application_id: Id<ApplicationMarker>,
 }
 
@@ -68,10 +67,13 @@ impl IntoFuture for SetGlobalCommands<'_> {
 
 impl TryIntoRequest for SetGlobalCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder_from_route(&Route::SetGlobalCommands {
-            application_id: self.path.application_id.get(),
-        })
-        .json(&self.body)
-        .build()
+        let path = Path::builder()
+            .resource("applications")
+            .id(self.path.application_id)
+            .resource("commands")
+            .build()
+            .map_err(Error::path)?;
+
+        Request::builder(Method::Put, path).json(&self.body).build()
     }
 }
