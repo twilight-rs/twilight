@@ -393,7 +393,7 @@ impl PathBuilder<ResourceMarker> {
     ///
     /// ```rust
     /// use twilight_http::request::path::Path;
-    /// use twilight_model::id::{Id, ChannelMarker};
+    /// use twilight_model::id::{Id, marker::ChannelMarker};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let path = Path::builder()

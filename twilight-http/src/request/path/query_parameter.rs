@@ -177,10 +177,7 @@ impl<T: QueryParameterValue> QueryParameter for (&str, T) {
 ///
 /// ```rust
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// use twilight_http::request::path::{
-///     Path,
-///     query_parameter::KeyValueQueryParameter,
-/// };
+/// use twilight_http::request::path::{Path, query_parameter::KeyValueQueryParameter};
 /// use twilight_model::id::{Id, marker::GuildMarker};
 ///
 /// let path = Path::builder()
@@ -372,8 +369,6 @@ impl<T: QueryParameterValue> QueryParameter for RepeatingQueryParameter<'_, T> {
 }
 
 /// Value formatter within a key-value pair.
-///
-///
 pub trait QueryParameterValue {
     /// Write the Display representation of the value to the formatter.
     ///
