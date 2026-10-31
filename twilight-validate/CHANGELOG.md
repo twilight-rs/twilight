@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Features
+
+- add embed flags support ([#2620](https://github.com/twilight-rs/twilight/issues/2620))
+- bulk guild ban support ([#2645](https://github.com/twilight-rs/twilight/issues/2645))
+- support monetization subscriptions ([#2604](https://github.com/twilight-rs/twilight/issues/2604))
+- add attachment upload file type ([#2590](https://github.com/twilight-rs/twilight/issues/2590))
+- add missing `Attachment` fields. ([#2565](https://github.com/twilight-rs/twilight/issues/2565))
+- add checkbox components ([#2516](https://github.com/twilight-rs/twilight/issues/2516))
+- new logo ([#2535](https://github.com/twilight-rs/twilight/issues/2535))
+
+### Bug Fixes
+
+- always use character count for string lengths ([#2586](https://github.com/twilight-rs/twilight/issues/2586))
+- count chars in command character totals ([#2555](https://github.com/twilight-rs/twilight/issues/2555))
+- use char count for textinput label ([#2557](https://github.com/twilight-rs/twilight/issues/2557))
+- fix action row components check ([#2558](https://github.com/twilight-rs/twilight/issues/2558))
+- Webhook names are 1..=80 characters not 2..=80. ([#2568](https://github.com/twilight-rs/twilight/issues/2568))
+
+### Documentation
+
+- fix user_limit reference ([#2553](https://github.com/twilight-rs/twilight/issues/2553))
+- replace the main example with the template ([#2508](https://github.com/twilight-rs/twilight/issues/2508))
+
+
 ## [0.17.0] - 2025-11-08
 
 ### Bug Fixes

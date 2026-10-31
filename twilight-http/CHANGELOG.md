@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Compilation breaking fixes
+
+These fixes are technically breaking changes, but the old implementation where fundamentally broken and resulted (de)serialization errors when used. 
+- serialize create role icon as string ([#2552](https://github.com/twilight-rs/twilight/issues/2552))
+- Return InteractionCallbackResponse instead of InteractionResponse from CreateResponseWithResponse ([#2493](https://github.com/twilight-rs/twilight/issues/2493))
+
+### Notable feature
+
+Reworking the request spans gives better tracing information at runtime, anyone using tools to collect/process these might need to update their tooling but should overall find this to be an improvement. 
+- update request spans ([#2503](https://github.com/twilight-rs/twilight/issues/2503))
+
+### Features
+
+- add get sticker pack ([#2646](https://github.com/twilight-rs/twilight/issues/2646))
+- add exclude_deleted to get entitlements ([#2600](https://github.com/twilight-rs/twilight/issues/2600))
+- add missing auditlogreason impls ([#2615](https://github.com/twilight-rs/twilight/issues/2615))
+- add guild scheduled event recurrence rule ([#2618](https://github.com/twilight-rs/twilight/issues/2618))
+- add bulk guild ban support ([#2645](https://github.com/twilight-rs/twilight/issues/2645))
+- support monetization subscriptions ([#2604](https://github.com/twilight-rs/twilight/issues/2604))
+- add embed placeholder, content-type, flags ([#2566](https://github.com/twilight-rs/twilight/issues/2566))
+- add shard for get current user guilds ([#2650](https://github.com/twilight-rs/twilight/issues/2650))
+- add missing `Attachment` fields. ([#2565](https://github.com/twilight-rs/twilight/issues/2565))
+- added ability to set enhanced role styles ([#2527](https://github.com/twilight-rs/twilight/issues/2527))
+- add `InteractionResponse` builders ([#2506](https://github.com/twilight-rs/twilight/issues/2506))
+- Add support for working with Form buffers ([#2532](https://github.com/twilight-rs/twilight/issues/2532))
+- add consume, get entitlement endpoints (monetization) ([#2603](https://github.com/twilight-rs/twilight/issues/2603))
+- add setting flags for forum threads ([#2495](https://github.com/twilight-rs/twilight/issues/2495))
+- Support channel Obfuscation ([#2574](https://github.com/twilight-rs/twilight/issues/2574))
+- Implement "Prune Requires Admin" guild feature ([#2578](https://github.com/twilight-rs/twilight/issues/2578))
+
+### Bug Fixes
+
+- fix automoderation rule update request ([#2507](https://github.com/twilight-rs/twilight/issues/2507))
+
+### Documentation
+
+- simplify main example ([#2512](https://github.com/twilight-rs/twilight/issues/2512))
+
+### Chore
+
+- fix useless-format lint ([#2579](https://github.com/twilight-rs/twilight/issues/2579))
+
+
+
 ## [0.17.1] - 2025-12-13
 
 ### Documentation

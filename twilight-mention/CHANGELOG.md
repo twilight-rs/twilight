@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Features
+
+- add `channel_type` to message create event ([#2533](https://github.com/twilight-rs/twilight/issues/2533))
+
+
 ## [0.17.0] - 2025-11-08
 
 ### Bug Fixes

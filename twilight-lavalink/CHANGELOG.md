@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Breaking Changes
+We now use the Lavalink v4 API, this brings some breaking changes to align with the new lavalink api, see the PR and lavalink docs for more information. ([#2322](https://github.com/twilight-rs/twilight/issues/2322))
+We now also support DAVE (discord voice e2e encryption) ([#2519](https://github.com/twilight-rs/twilight/issues/2519))
+
+
+### Bug Fixes
+
+- resolve type complexity lint ([#2536](https://github.com/twilight-rs/twilight/issues/2536))
+
+
 ## [unreleased]
 
 ### Bug Fixes
