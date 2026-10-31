@@ -1,9 +1,53 @@
 //! Utilities for writing key-value query parameter pairs within an HTTP path.
 //!
-//! Query parameters are composed of two items within a pair: the key and value.
-//! The key must be a string, and so we represent this as a non-negotiable
-//! string slice. The value can be any type which implements the
-//! [`QueryParameterValue`] formatter.
+//! Query parameters are described by the [`QueryParameter`] trait and are
+//! composed of two elements: the key and value. The key must be a string, and
+//! so we represent this as a string slice. The value can be any type which
+//! implements the [`QueryParameterValue`] formatter.
+//!
+//! Users will likely not need to implement their own [`QueryParameter`]
+//! implementations when manually building paths and requests, but may find a
+//! need to implement [`QueryParameterValue`] for novel data types. Refer to its
+//! documentation for how to implement the trait.
+//!
+//! Three query parameter implementations are provided:
+//!
+//! - [`KeyValueQueryParameter`], which writes a single key-value pair;
+//! - [`CsvQueryParameter`], which writes a single key with its values
+//!   concatenated in a comma-separated value list; and
+//! - [`RepeatingQueryParameter`], which writes a key and value for every entry
+//!   in a list of values.
+//!
+//! # Examples
+//!
+//! Write a key-value and repeating query parameter:
+//!
+//! ```rust
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use twilight_http::request::path::{
+//!     Path,
+//!     query_parameter::{CsvQueryParameter, KeyValueQueryParameter, RepeatingQueryParameter},
+//! };
+//! use twilight_model::id::{Id, marker::{ChannelMarker, GuildMarker}};
+//!
+//! let channel_ids = &[Id::new(123), Id::new(456)]
+//! let guild_id = Id::<GuildMarker>::new(789);
+//!
+//! let path = Path::builder()
+//!     .resource("guilds")
+//!     .id(guild_id)
+//!     .resource("messages")
+//!     .action("search")
+//!     .parameter(KeyValueQueryParameter::new("limit", 25u8))
+//!     .parameter(CsvQueryParameter::new("channel_id", channel_ids))
+//!     .build()?;
+//!
+//! assert_eq!(
+//!     "guilds/1/messages/search?limit=25&channel_id=123&channel_id=456",
+//!     path
+//! );
+//! # Ok(()) }
+//! ```
 
 use percent_encoding::NON_ALPHANUMERIC;
 use std::fmt::{self, Display, Formatter, Write as _};

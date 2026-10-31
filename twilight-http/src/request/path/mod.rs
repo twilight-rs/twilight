@@ -6,6 +6,15 @@
 //! of working with the API. This module provides [`PathBuilder`] for building
 //! paths out of segments and [`Path`], a wrapper ensuring its value has been
 //! built as expected.
+//!
+//! # When to use paths
+//!
+//! Users will only need to manually use [`Path`]s when manually constructing
+//! [`Request`]s where Twilight does not support an HTTP request endpoint.
+//! For everyday use of the library the provided request builders automatically
+//! construct paths.
+//!
+//! [`Request`]: super::Request
 
 #![warn(missing_docs, clippy::missing_docs_in_private_items)]
 
