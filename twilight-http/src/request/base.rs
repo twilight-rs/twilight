@@ -1,4 +1,4 @@
-use super::{Form, Method};
+use super::{Form, Method, path::Path};
 use crate::{error::Error, routing::Route};
 use http::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::Serialize;
@@ -28,41 +28,15 @@ pub struct RequestBuilder(Result<Request, Error>);
 
 impl RequestBuilder {
     /// Create a new request builder.
-    pub fn new(route: &Route<'_>) -> Self {
-        Self(Ok(Request::from_route(route)))
-    }
-
-    /// Create a request with raw information about the method, ratelimiting
-    /// path, and URL path and query.
-    ///
-    /// The path and query should not include the leading slash as that is
-    /// prefixed by the client. In the URL
-    /// `https://discord.com/api/vX/channels/123/pins` the "path and query"
-    /// is considered to be `channels/123/pins`.
-    ///
-    /// # Examples
-    ///
-    /// Create a request from a method and the URL path and query
-    /// `channels/123/pins`:
-    ///
-    /// ```
-    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::str::FromStr;
-    /// use twilight_http::request::{Method, RequestBuilder};
-    ///
-    /// let method = Method::Post;
-    /// let path_and_query = "channels/123/pins".to_owned();
-    ///
-    /// let _request = RequestBuilder::raw(method, path_and_query).build();
-    /// # Ok(()) }
-    /// ```
-    pub const fn raw(method: Method, path_and_query: String) -> Self {
+    // Clippy: We may not want this to be const in the future.
+    #[expect(clippy::missing_const_for_fn)]
+    pub fn new(method: Method, path: Path) -> Self {
         Self(Ok(Request {
             body: None,
             form: None,
             headers: None,
             method,
-            path: path_and_query,
+            path,
             use_authorization_token: true,
         }))
     }
@@ -148,7 +122,7 @@ pub struct Request {
     pub(crate) form: Option<Form>,
     pub(crate) headers: Option<HeaderMap<HeaderValue>>,
     pub(crate) method: Method,
-    pub(crate) path: String,
+    pub(crate) path: Path,
     pub(crate) use_authorization_token: bool,
 }
 
@@ -172,8 +146,8 @@ impl Request {
     ///     .body(body)
     ///     .build();
     /// ```
-    pub fn builder(route: &Route<'_>) -> RequestBuilder {
-        RequestBuilder::new(route)
+    pub fn builder_new(method: Method, path: Path) -> RequestBuilder {
+        RequestBuilder::new(method, path)
     }
 
     /// Create a request from only its route information.
@@ -196,13 +170,22 @@ impl Request {
     /// ```
     ///
     /// [`builder`]: Self::builder
+    /// NOTE: This will be removed and `builder_new` will become the new `builder`
+    pub fn builder(route: &Route<'_>) -> RequestBuilder {
+        RequestBuilder(Ok(Request::from_route(route)))
+    }
+
+    /// # Panics
+    ///
+    /// Now panics. Doesn't matter, this will be removed
     pub fn from_route(route: &Route<'_>) -> Self {
         Self {
             body: None,
             form: None,
             headers: None,
             method: route.method(),
-            path: route.to_string(),
+            path: std::str::FromStr::from_str(&route.to_string())
+                .expect("panic doesn't matter; this method will be removed"),
             use_authorization_token: true,
         }
     }
@@ -227,9 +210,8 @@ impl Request {
         self.method
     }
 
-    /// String path of the full URL.
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn path(&self) -> &str {
+    /// Immutable reference to the path.
+    pub const fn path(&self) -> &Path {
         &self.path
     }
 
