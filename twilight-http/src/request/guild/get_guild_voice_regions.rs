@@ -11,18 +11,25 @@ use twilight_model::{
     voice::VoiceRegion,
 };
 
+struct GetGuildVoiceRegionsPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get voice region data for the guild.
 ///
 /// Can return VIP servers if the guild is VIP-enabled.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildVoiceRegions<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetGuildVoiceRegionsPath,
     http: &'a Client,
 }
 
 impl<'a> GetGuildVoiceRegions<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetGuildVoiceRegionsPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -44,7 +51,7 @@ impl IntoFuture for GetGuildVoiceRegions<'_> {
 impl TryIntoRequest for GetGuildVoiceRegions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildVoiceRegions {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

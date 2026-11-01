@@ -12,6 +12,12 @@ use twilight_model::id::{
     marker::{ChannelMarker, MessageMarker},
 };
 
+struct CreateReactionPath<'a> {
+    channel_id: Id<ChannelMarker>,
+    emoji: &'a RequestReactionType<'a>,
+    message_id: Id<MessageMarker>,
+}
+
 /// Create a reaction in a [`Id<ChannelMarker>`] on a [`Id<MessageMarker>`].
 ///
 /// The reaction must be a variant of [`RequestReactionType`].
@@ -36,10 +42,8 @@ use twilight_model::id::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateReaction<'a> {
-    channel_id: Id<ChannelMarker>,
-    emoji: &'a RequestReactionType<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    path: CreateReactionPath<'a>,
 }
 
 impl<'a> CreateReaction<'a> {
@@ -50,10 +54,12 @@ impl<'a> CreateReaction<'a> {
         emoji: &'a RequestReactionType<'a>,
     ) -> Self {
         Self {
-            channel_id,
-            emoji,
             http,
-            message_id,
+            path: CreateReactionPath {
+                channel_id,
+                emoji,
+                message_id,
+            },
         }
     }
 }
@@ -76,9 +82,9 @@ impl IntoFuture for CreateReaction<'_> {
 impl TryIntoRequest for CreateReaction<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::CreateReaction {
-            channel_id: self.channel_id.get(),
-            emoji: self.emoji,
-            message_id: self.message_id.get(),
+            channel_id: self.path.channel_id.get(),
+            emoji: self.path.emoji,
+            message_id: self.path.message_id.get(),
         }))
     }
 }

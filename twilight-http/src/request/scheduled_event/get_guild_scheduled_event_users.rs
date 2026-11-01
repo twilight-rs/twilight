@@ -17,9 +17,10 @@ use twilight_validate::request::{
     ValidationError, scheduled_event_get_users as validate_scheduled_event_get_users,
 };
 
-struct GetGuildScheduledEventUsersFields {
+struct GetGuildScheduledEventUsersPath {
     after: Option<Id<UserMarker>>,
     before: Option<Id<UserMarker>>,
+    guild_id: Id<GuildMarker>,
     limit: Option<u16>,
     scheduled_event_id: Id<ScheduledEventMarker>,
     with_member: Option<bool>,
@@ -38,9 +39,8 @@ struct GetGuildScheduledEventUsersFields {
 /// [Discord Docs/Get Guild Scheduled Event Users]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildScheduledEventUsers<'a> {
-    fields: Result<GetGuildScheduledEventUsersFields, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: Result<GetGuildScheduledEventUsersPath, ValidationError>,
 }
 
 impl<'a> GetGuildScheduledEventUsers<'a> {
@@ -50,15 +50,15 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
         scheduled_event_id: Id<ScheduledEventMarker>,
     ) -> Self {
         Self {
-            fields: Ok(GetGuildScheduledEventUsersFields {
+            http,
+            path: Ok(GetGuildScheduledEventUsersPath {
                 after: None,
                 before: None,
+                guild_id,
                 limit: None,
                 scheduled_event_id,
                 with_member: None,
             }),
-            guild_id,
-            http,
         }
     }
 
@@ -69,8 +69,8 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     ///
     /// [`before`]: Self::before
     pub const fn after(mut self, after: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(after);
+        if let Ok(path) = self.path.as_mut() {
+            path.after = Some(after);
         }
 
         self
@@ -82,8 +82,8 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     ///
     /// [`after`]: Self::after
     pub const fn before(mut self, before: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.before = Some(before);
+        if let Ok(path) = self.path.as_mut() {
+            path.before = Some(before);
         }
 
         self
@@ -100,11 +100,11 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     ///
     /// [`ScheduledEventGetUsers`]: twilight_validate::request::ValidationErrorType::ScheduledEventGetUsers
     pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_scheduled_event_get_users(limit)?;
-            fields.limit = Some(limit);
+            path.limit = Some(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -112,8 +112,8 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
 
     /// Set whether to return member objects with each user.
     pub const fn with_member(mut self, with_member: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.with_member = Some(with_member);
+        if let Ok(path) = self.path.as_mut() {
+            path.with_member = Some(with_member);
         }
 
         self
@@ -137,15 +137,15 @@ impl IntoFuture for GetGuildScheduledEventUsers<'_> {
 
 impl TryIntoRequest for GetGuildScheduledEventUsers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetGuildScheduledEventUsers {
-            after: fields.after.map(Id::get),
-            before: fields.before.map(Id::get),
-            guild_id: self.guild_id.get(),
-            limit: fields.limit,
-            scheduled_event_id: fields.scheduled_event_id.get(),
-            with_member: fields.with_member.unwrap_or_default(),
+            after: path.after.map(Id::get),
+            before: path.before.map(Id::get),
+            guild_id: path.guild_id.get(),
+            limit: path.limit,
+            scheduled_event_id: path.scheduled_event_id.get(),
+            with_member: path.with_member.unwrap_or_default(),
         }))
     }
 }

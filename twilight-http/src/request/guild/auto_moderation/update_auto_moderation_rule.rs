@@ -37,6 +37,11 @@ struct UpdateAutoModerationRuleBody<'a> {
     trigger_metadata: Option<&'a AutoModerationTriggerMetadata>,
 }
 
+struct UpdateAutoModerationRulePath {
+    auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Update an auto moderation rule in a guild.
 ///
 /// Requires the [`MANAGE_GUILD`] permission.
@@ -44,10 +49,9 @@ struct UpdateAutoModerationRuleBody<'a> {
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateAutoModerationRule<'a> {
-    auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
     body: UpdateAutoModerationRuleBody<'a>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: UpdateAutoModerationRulePath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -58,7 +62,6 @@ impl<'a> UpdateAutoModerationRule<'a> {
         auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
     ) -> Self {
         Self {
-            auto_moderation_rule_id,
             body: UpdateAutoModerationRuleBody {
                 actions: None,
                 enabled: None,
@@ -68,8 +71,11 @@ impl<'a> UpdateAutoModerationRule<'a> {
                 name: None,
                 trigger_metadata: None,
             },
-            guild_id,
             http,
+            path: UpdateAutoModerationRulePath {
+                auto_moderation_rule_id,
+                guild_id,
+            },
             reason: Ok(None),
         }
     }
@@ -155,8 +161,8 @@ impl IntoFuture for UpdateAutoModerationRule<'_> {
 impl TryIntoRequest for UpdateAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateAutoModerationRule {
-            auto_moderation_rule_id: self.auto_moderation_rule_id.get(),
-            guild_id: self.guild_id.get(),
+            auto_moderation_rule_id: self.path.auto_moderation_rule_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&self.body);
 

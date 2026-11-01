@@ -11,10 +11,14 @@ use crate::{
     routing::Route,
 };
 
-pub struct DeleteApplicationEmoji<'a> {
+struct DeleteApplicationEmojiPath {
     application_id: Id<ApplicationMarker>,
     emoji_id: Id<EmojiMarker>,
+}
+
+pub struct DeleteApplicationEmoji<'a> {
     http: &'a Client,
+    path: DeleteApplicationEmojiPath,
 }
 
 impl<'a> DeleteApplicationEmoji<'a> {
@@ -24,9 +28,11 @@ impl<'a> DeleteApplicationEmoji<'a> {
         emoji_id: Id<EmojiMarker>,
     ) -> Self {
         Self {
-            application_id,
-            emoji_id,
             http,
+            path: DeleteApplicationEmojiPath {
+                application_id,
+                emoji_id,
+            },
         }
     }
 }
@@ -49,8 +55,8 @@ impl IntoFuture for DeleteApplicationEmoji<'_> {
 impl TryIntoRequest for DeleteApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteApplicationEmoji {
-            application_id: self.application_id.get(),
-            emoji_id: self.emoji_id.get(),
+            application_id: self.path.application_id.get(),
+            emoji_id: self.path.emoji_id.get(),
         }))
     }
 }

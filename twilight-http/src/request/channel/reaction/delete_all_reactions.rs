@@ -11,12 +11,16 @@ use twilight_model::id::{
     marker::{ChannelMarker, MessageMarker},
 };
 
+struct DeleteAllReactionsPath {
+    channel_id: Id<ChannelMarker>,
+    message_id: Id<MessageMarker>,
+}
+
 /// Delete all reactions by all users on a message.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteAllReactions<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    path: DeleteAllReactionsPath,
 }
 
 impl<'a> DeleteAllReactions<'a> {
@@ -26,9 +30,11 @@ impl<'a> DeleteAllReactions<'a> {
         message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
-            channel_id,
             http,
-            message_id,
+            path: DeleteAllReactionsPath {
+                channel_id,
+                message_id,
+            },
         }
     }
 }
@@ -51,8 +57,8 @@ impl IntoFuture for DeleteAllReactions<'_> {
 impl TryIntoRequest for DeleteAllReactions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteMessageReactions {
-            channel_id: self.channel_id.get(),
-            message_id: self.message_id.get(),
+            channel_id: self.path.channel_id.get(),
+            message_id: self.path.message_id.get(),
         }))
     }
 }

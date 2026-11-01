@@ -18,11 +18,15 @@ struct UpdateGuildMfaBody {
     level: MfaLevel,
 }
 
+struct UpdateGuildMfaPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Update a guild's MFA level.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMfa<'a> {
     body: UpdateGuildMfaBody,
-    guild_id: Id<GuildMarker>,
+    path: UpdateGuildMfaPath,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -31,7 +35,7 @@ impl<'a> UpdateGuildMfa<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, level: MfaLevel) -> Self {
         Self {
             body: UpdateGuildMfaBody { level },
-            guild_id,
+            path: UpdateGuildMfaPath { guild_id },
             http,
             reason: Ok(None),
         }
@@ -64,7 +68,7 @@ impl<'a> AuditLogReason<'a> for UpdateGuildMfa<'a> {
 impl TryIntoRequest for UpdateGuildMfa<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateGuildMfa {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&self.body);
 

@@ -12,12 +12,16 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteRolePath {
+    guild_id: Id<GuildMarker>,
+    role_id: Id<RoleMarker>,
+}
+
 /// Delete a role in a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteRole<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    role_id: Id<RoleMarker>,
+    path: DeleteRolePath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -28,9 +32,8 @@ impl<'a> DeleteRole<'a> {
         role_id: Id<RoleMarker>,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            role_id,
+            path: DeleteRolePath { guild_id, role_id },
             reason: Ok(None),
         }
     }
@@ -62,8 +65,8 @@ impl IntoFuture for DeleteRole<'_> {
 impl TryIntoRequest for DeleteRole<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteRole {
-            guild_id: self.guild_id.get(),
-            role_id: self.role_id.get(),
+            guild_id: self.path.guild_id.get(),
+            role_id: self.path.role_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

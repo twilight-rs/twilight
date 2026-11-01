@@ -19,10 +19,13 @@ use twilight_validate::request::{
     ValidationError, get_reactions_limit as validate_get_reactions_limit,
 };
 
-struct GetReactionsFields {
+struct GetReactionsPath<'a> {
     after: Option<Id<UserMarker>>,
-    limit: Option<u16>,
+    channel_id: Id<ChannelMarker>,
+    emoji: &'a RequestReactionType<'a>,
     kind: Option<ReactionType>,
+    limit: Option<u16>,
+    message_id: Id<MessageMarker>,
 }
 
 /// Get a list of users that reacted to a message with an `emoji`.
@@ -31,11 +34,8 @@ struct GetReactionsFields {
 /// requests must be chained until all reactions are retrieved.
 #[must_use = "requests must be configured and executed"]
 pub struct GetReactions<'a> {
-    channel_id: Id<ChannelMarker>,
-    emoji: &'a RequestReactionType<'a>,
-    fields: Result<GetReactionsFields, ValidationError>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    path: Result<GetReactionsPath<'a>, ValidationError>,
 }
 
 impl<'a> GetReactions<'a> {
@@ -46,22 +46,22 @@ impl<'a> GetReactions<'a> {
         emoji: &'a RequestReactionType<'a>,
     ) -> Self {
         Self {
-            channel_id,
-            emoji,
-            fields: Ok(GetReactionsFields {
-                after: None,
-                limit: None,
-                kind: None,
-            }),
             http,
-            message_id,
+            path: Ok(GetReactionsPath {
+                after: None,
+                channel_id,
+                emoji,
+                kind: None,
+                limit: None,
+                message_id,
+            }),
         }
     }
 
     /// Get users after this id.
     pub const fn after(mut self, after: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(after);
+        if let Ok(path) = self.path.as_mut() {
+            path.after = Some(after);
         }
 
         self
@@ -79,11 +79,11 @@ impl<'a> GetReactions<'a> {
     ///
     /// [`GetReactions`]: twilight_validate::request::ValidationErrorType::GetReactions
     pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_get_reactions_limit(limit)?;
-            fields.limit = Some(limit);
+            path.limit = Some(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -93,8 +93,8 @@ impl<'a> GetReactions<'a> {
     ///
     /// This can be either a super reaction or a normal reaction.
     pub const fn kind(mut self, kind: ReactionType) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.kind = Some(kind);
+        if let Ok(path) = self.path.as_mut() {
+            path.kind = Some(kind);
         }
 
         self
@@ -118,15 +118,15 @@ impl IntoFuture for GetReactions<'_> {
 
 impl TryIntoRequest for GetReactions<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetReactionUsers {
-            after: fields.after.map(Id::get),
-            channel_id: self.channel_id.get(),
-            emoji: self.emoji,
-            limit: fields.limit,
-            message_id: self.message_id.get(),
-            kind: fields.kind.map(Into::into),
+            after: path.after.map(Id::get),
+            channel_id: path.channel_id.get(),
+            emoji: path.emoji,
+            limit: path.limit,
+            message_id: path.message_id.get(),
+            kind: path.kind.map(Into::into),
         }))
     }
 }

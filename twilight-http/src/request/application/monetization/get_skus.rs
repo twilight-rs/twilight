@@ -12,16 +12,20 @@ use crate::{
     routing::Route,
 };
 
-pub struct GetSKUs<'a> {
+struct GetSKUsPath {
     application_id: Id<ApplicationMarker>,
+}
+
+pub struct GetSKUs<'a> {
     http: &'a Client,
+    path: GetSKUsPath,
 }
 
 impl<'a> GetSKUs<'a> {
     pub(crate) const fn new(http: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
         Self {
-            application_id,
             http,
+            path: GetSKUsPath { application_id },
         }
     }
 }
@@ -43,7 +47,7 @@ impl IntoFuture for GetSKUs<'_> {
 impl TryIntoRequest for GetSKUs<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetSKUs {
-            application_id: self.application_id.get(),
+            application_id: self.path.application_id.get(),
         }))
     }
 }

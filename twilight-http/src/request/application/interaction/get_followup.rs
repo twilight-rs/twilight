@@ -14,6 +14,12 @@ use twilight_model::{
     },
 };
 
+struct GetFollowupPath<'a> {
+    application_id: Id<ApplicationMarker>,
+    interaction_token: &'a str,
+    message_id: Id<MessageMarker>,
+}
+
 /// Get a followup message of an interaction, by its token and the message ID.
 ///
 /// This endpoint is not bound to the application's global rate limit.
@@ -38,10 +44,8 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetFollowup<'a> {
-    application_id: Id<ApplicationMarker>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
-    interaction_token: &'a str,
+    path: GetFollowupPath<'a>,
 }
 
 impl<'a> GetFollowup<'a> {
@@ -52,10 +56,12 @@ impl<'a> GetFollowup<'a> {
         message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
-            application_id,
             http,
-            message_id,
-            interaction_token,
+            path: GetFollowupPath {
+                application_id,
+                interaction_token,
+                message_id,
+            },
         }
     }
 }
@@ -78,10 +84,10 @@ impl IntoFuture for GetFollowup<'_> {
 impl TryIntoRequest for GetFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::GetFollowupMessage {
-            application_id: self.application_id.get(),
-            interaction_token: self.interaction_token,
+            application_id: self.path.application_id.get(),
+            interaction_token: self.path.interaction_token,
             thread_id: None,
-            message_id: self.message_id.get(),
+            message_id: self.path.message_id.get(),
         })
         .use_authorization_token(false)
         .build()

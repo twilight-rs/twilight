@@ -53,6 +53,13 @@ pub(crate) struct ExecuteWebhookBody<'a> {
     username: Option<&'a str>,
 }
 
+struct ExecuteWebhookPath<'a> {
+    thread_id: Option<Id<ChannelMarker>>,
+    token: &'a str,
+    wait: bool,
+    webhook_id: Id<WebhookMarker>,
+}
+
 /// Execute a webhook, sending a message to its channel.
 ///
 /// The message must include at least one of [`attachments`], [`components`],
@@ -84,10 +91,7 @@ pub struct ExecuteWebhook<'a> {
     attachment_manager: AttachmentManager<'a>,
     body: Result<ExecuteWebhookBody<'a>, MessageValidationError>,
     http: &'a Client,
-    thread_id: Option<Id<ChannelMarker>>,
-    token: &'a str,
-    wait: bool,
-    webhook_id: Id<WebhookMarker>,
+    path: ExecuteWebhookPath<'a>,
 }
 
 impl<'a> ExecuteWebhook<'a> {
@@ -112,10 +116,12 @@ impl<'a> ExecuteWebhook<'a> {
                 allowed_mentions: None,
             }),
             http,
-            thread_id: None,
-            token,
-            wait: false,
-            webhook_id,
+            path: ExecuteWebhookPath {
+                thread_id: None,
+                token,
+                wait: false,
+                webhook_id,
+            },
         }
     }
 
@@ -326,7 +332,7 @@ impl<'a> ExecuteWebhook<'a> {
 
     /// Execute in a thread belonging to the channel instead of the channel itself.
     pub const fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
-        self.thread_id.replace(thread_id);
+        self.path.thread_id.replace(thread_id);
 
         self
     }
@@ -382,7 +388,7 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// [Discord Docs/Execute Webhook]: https://discord.com/developers/docs/resources/webhook#execute-webhook-querystring-params
     pub const fn wait(mut self) -> ExecuteWebhookAndWait<'a> {
-        self.wait = true;
+        self.path.wait = true;
 
         ExecuteWebhookAndWait::new(self.http, self)
     }
@@ -407,14 +413,14 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::ExecuteWebhook {
-            thread_id: self.thread_id.map(Id::get),
-            token: self.token,
-            wait: Some(self.wait),
+            thread_id: self.path.thread_id.map(Id::get),
+            token: self.path.token,
+            wait: Some(self.path.wait),
             with_components: Some(
                 body.components
                     .is_some_and(|components| !components.is_empty()),
             ),
-            webhook_id: self.webhook_id.get(),
+            webhook_id: self.path.webhook_id.get(),
         });
 
         // Webhook executions don't need the authorization token, only the

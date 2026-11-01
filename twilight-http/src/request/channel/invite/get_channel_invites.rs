@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::ChannelMarker},
 };
 
+struct GetChannelInvitesPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Get the invites for a guild channel.
 ///
 /// Requires the [`MANAGE_CHANNELS`] permission. This method only works if the
@@ -19,13 +23,16 @@ use twilight_model::{
 /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelInvites<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: GetChannelInvitesPath,
 }
 
 impl<'a> GetChannelInvites<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
-        Self { channel_id, http }
+        Self {
+            http,
+            path: GetChannelInvitesPath { channel_id },
+        }
     }
 }
 
@@ -47,7 +54,7 @@ impl IntoFuture for GetChannelInvites<'_> {
 impl TryIntoRequest for GetChannelInvites<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetChannelInvites {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         }))
     }
 }

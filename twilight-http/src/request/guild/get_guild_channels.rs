@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildChannelsPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get the channels in a guild.
 ///
 /// # Channel Obfuscation
@@ -20,13 +24,16 @@ use twilight_model::{
 /// around November 16th, 2026.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildChannels<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetGuildChannelsPath,
     http: &'a Client,
 }
 
 impl<'a> GetGuildChannels<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetGuildChannelsPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -48,7 +55,7 @@ impl IntoFuture for GetGuildChannels<'_> {
 impl TryIntoRequest for GetGuildChannels<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetChannels {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

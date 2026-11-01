@@ -33,6 +33,10 @@ struct CreateRoleBody<'a> {
     unicode_emoji: Option<&'a str>,
 }
 
+struct CreateRolePath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Create a role in a guild.
 ///
 /// # Examples
@@ -56,8 +60,8 @@ struct CreateRoleBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateRole<'a> {
     body: CreateRoleBody<'a>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: CreateRolePath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -74,8 +78,8 @@ impl<'a> CreateRole<'a> {
                 permissions: None,
                 unicode_emoji: None,
             },
-            guild_id,
             http,
+            path: CreateRolePath { guild_id },
             reason: Ok(None),
         }
     }
@@ -177,7 +181,7 @@ impl IntoFuture for CreateRole<'_> {
 impl TryIntoRequest for CreateRole<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateRole {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         });
 
         request = request.json(&self.body);

@@ -22,6 +22,10 @@ struct CreateGlobalMessageCommandBody<'a> {
     nsfw: Option<bool>,
 }
 
+struct CreateGlobalMessageCommandPath {
+    application_id: Id<ApplicationMarker>,
+}
+
 /// Create a new message global command.
 ///
 /// Creating a command with the same name as an already-existing global command
@@ -31,9 +35,9 @@ struct CreateGlobalMessageCommandBody<'a> {
 /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalMessageCommand<'a> {
-    application_id: Id<ApplicationMarker>,
     body: Result<CreateGlobalMessageCommandBody<'a>, CommandValidationError>,
     http: &'a Client,
+    path: CreateGlobalMessageCommandPath,
 }
 
 impl<'a> CreateGlobalMessageCommand<'a> {
@@ -56,9 +60,9 @@ impl<'a> CreateGlobalMessageCommand<'a> {
         });
 
         Self {
-            application_id,
             body,
             http,
+            path: CreateGlobalMessageCommandPath { application_id },
         }
     }
 
@@ -139,10 +143,10 @@ impl TryIntoRequest for CreateGlobalMessageCommand<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGlobalCommand {
-            application_id: self.application_id.get(),
+            application_id: self.path.application_id.get(),
         })
         .json(&CommandBorrowed {
-            application_id: Some(self.application_id),
+            application_id: Some(self.path.application_id),
             default_member_permissions: body.default_member_permissions,
             dm_permission: body.dm_permission,
             description: None,

@@ -11,15 +11,19 @@ use twilight_model::id::{
     marker::{ChannelMarker, UserMarker},
 };
 
+struct AddThreadMemberPath {
+    channel_id: Id<ChannelMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Add another member to a thread.
 ///
 /// Requires the ability to send messages in the thread, and that the thread is
 /// not archived.
 #[must_use = "requests must be configured and executed"]
 pub struct AddThreadMember<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: AddThreadMemberPath,
 }
 
 impl<'a> AddThreadMember<'a> {
@@ -29,9 +33,11 @@ impl<'a> AddThreadMember<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            channel_id,
             http,
-            user_id,
+            path: AddThreadMemberPath {
+                channel_id,
+                user_id,
+            },
         }
     }
 }
@@ -54,8 +60,8 @@ impl IntoFuture for AddThreadMember<'_> {
 impl TryIntoRequest for AddThreadMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::AddThreadMember {
-            channel_id: self.channel_id.get(),
-            user_id: self.user_id.get(),
+            channel_id: self.path.channel_id.get(),
+            user_id: self.path.user_id.get(),
         }))
     }
 }

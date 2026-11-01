@@ -11,12 +11,16 @@ use twilight_model::id::{
     marker::{ApplicationMarker, CommandMarker},
 };
 
+struct DeleteGlobalCommandPath {
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+}
+
 /// Delete a global command, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGlobalCommand<'a> {
-    application_id: Id<ApplicationMarker>,
-    command_id: Id<CommandMarker>,
     http: &'a Client,
+    path: DeleteGlobalCommandPath,
 }
 
 impl<'a> DeleteGlobalCommand<'a> {
@@ -26,9 +30,11 @@ impl<'a> DeleteGlobalCommand<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
             http,
+            path: DeleteGlobalCommandPath {
+                application_id,
+                command_id,
+            },
         }
     }
 }
@@ -51,8 +57,8 @@ impl IntoFuture for DeleteGlobalCommand<'_> {
 impl TryIntoRequest for DeleteGlobalCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteGlobalCommand {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
+            application_id: self.path.application_id.get(),
+            command_id: self.path.command_id.get(),
         }))
     }
 }

@@ -61,6 +61,10 @@ struct UpdateGuildBody<'a> {
     premium_progress_bar_enabled: Option<bool>,
 }
 
+struct UpdateGuildPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Update a guild.
 ///
 /// All endpoints are optional. See [Discord Docs/Modify Guild].
@@ -69,7 +73,7 @@ struct UpdateGuildBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuild<'a> {
     body: Result<UpdateGuildBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
+    path: UpdateGuildPath,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -97,7 +101,7 @@ impl<'a> UpdateGuild<'a> {
                 preferred_locale: None,
                 premium_progress_bar_enabled: None,
             }),
-            guild_id,
+            path: UpdateGuildPath { guild_id },
             http,
             reason: Ok(None),
         }
@@ -372,7 +376,7 @@ impl TryIntoRequest for UpdateGuild<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateGuild {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&body);
 

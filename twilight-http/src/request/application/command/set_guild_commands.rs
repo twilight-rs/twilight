@@ -19,6 +19,11 @@ use twilight_model::{
 #[serde(transparent)]
 struct SetGuildCommandsBody<'a>(&'a [Command]);
 
+struct SetGuildCommandsPath {
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Set a guild's commands.
 ///
 /// This method is idempotent: it can be used on every start, without being
@@ -31,10 +36,9 @@ struct SetGuildCommandsBody<'a>(&'a [Command]);
 /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 #[must_use = "requests must be configured and executed"]
 pub struct SetGuildCommands<'a> {
-    application_id: Id<ApplicationMarker>,
     body: SetGuildCommandsBody<'a>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: SetGuildCommandsPath,
 }
 
 impl<'a> SetGuildCommands<'a> {
@@ -45,10 +49,12 @@ impl<'a> SetGuildCommands<'a> {
         commands: &'a [Command],
     ) -> Self {
         Self {
-            application_id,
             body: SetGuildCommandsBody(commands),
-            guild_id,
             http,
+            path: SetGuildCommandsPath {
+                application_id,
+                guild_id,
+            },
         }
     }
 }
@@ -71,8 +77,8 @@ impl IntoFuture for SetGuildCommands<'_> {
 impl TryIntoRequest for SetGuildCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::SetGuildCommands {
-            application_id: self.application_id.get(),
-            guild_id: self.guild_id.get(),
+            application_id: self.path.application_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&self.body)
         .build()

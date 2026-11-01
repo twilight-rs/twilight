@@ -11,16 +11,23 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildVanityUrlPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get a guild's vanity url, if there is one.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildVanityUrl<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetGuildVanityUrlPath,
     http: &'a Client,
 }
 
 impl<'a> GetGuildVanityUrl<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetGuildVanityUrlPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -42,7 +49,7 @@ impl IntoFuture for GetGuildVanityUrl<'_> {
 impl TryIntoRequest for GetGuildVanityUrl<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildVanityUrl {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

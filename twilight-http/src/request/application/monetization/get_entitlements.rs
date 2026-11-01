@@ -19,8 +19,9 @@ use twilight_validate::request::{
     ValidationError, get_entitlements_limit as validate_get_entitlements_limit,
 };
 
-struct GetEntitlementsFields<'a> {
+struct GetEntitlementsPath<'a> {
     after: Option<Id<EntitlementMarker>>,
+    application_id: Id<ApplicationMarker>,
     before: Option<Id<EntitlementMarker>>,
     exclude_deleted: Option<bool>,
     exclude_ended: Option<bool>,
@@ -33,17 +34,17 @@ struct GetEntitlementsFields<'a> {
 /// Get all entitlements for a given app, active and expired.
 #[must_use = "requests must be configured and executed"]
 pub struct GetEntitlements<'a> {
-    application_id: Id<ApplicationMarker>,
-    fields: GetEntitlementsFields<'a>,
     http: &'a Client,
+    path: GetEntitlementsPath<'a>,
 }
 
 impl<'a> GetEntitlements<'a> {
     pub(crate) const fn new(http: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
         Self {
-            application_id,
-            fields: GetEntitlementsFields {
+            http,
+            path: GetEntitlementsPath {
                 after: None,
+                application_id,
                 before: None,
                 exclude_deleted: None,
                 exclude_ended: None,
@@ -52,20 +53,19 @@ impl<'a> GetEntitlements<'a> {
                 sku_ids: &[],
                 user_id: None,
             },
-            http,
         }
     }
 
     /// Retrieve entitlements after this time.
     pub const fn after(mut self, after: Id<EntitlementMarker>) -> Self {
-        self.fields.after = Some(after);
+        self.path.after = Some(after);
 
         self
     }
 
     /// Retrieve entitlements before this time.
     pub const fn before(mut self, before: Id<EntitlementMarker>) -> Self {
-        self.fields.before = Some(before);
+        self.path.before = Some(before);
 
         self
     }
@@ -74,21 +74,21 @@ impl<'a> GetEntitlements<'a> {
     ///
     /// Discord's API defaults to true.
     pub const fn exclude_deleted(mut self, exclude_ended: bool) -> Self {
-        self.fields.exclude_ended = Some(exclude_ended);
+        self.path.exclude_ended = Some(exclude_ended);
 
         self
     }
 
     /// Whether to exclude ended entitlements.
     pub const fn exclude_ended(mut self, exclude_ended: bool) -> Self {
-        self.fields.exclude_ended = Some(exclude_ended);
+        self.path.exclude_ended = Some(exclude_ended);
 
         self
     }
 
     /// Guild ID to look up entitlements for.
     pub const fn guild_id(mut self, guild_id: Id<GuildMarker>) -> Self {
-        self.fields.guild_id = Some(guild_id);
+        self.path.guild_id = Some(guild_id);
 
         self
     }
@@ -106,21 +106,21 @@ impl<'a> GetEntitlements<'a> {
     pub fn limit(mut self, limit: u8) -> Result<Self, ValidationError> {
         validate_get_entitlements_limit(limit)?;
 
-        self.fields.limit = Some(limit);
+        self.path.limit = Some(limit);
 
         Ok(self)
     }
 
     /// List of SKU IDs to check entitlements for.
     pub const fn sku_ids(mut self, sku_ids: &'a [Id<SkuMarker>]) -> Self {
-        self.fields.sku_ids = sku_ids;
+        self.path.sku_ids = sku_ids;
 
         self
     }
 
     /// User ID to look up entitlements for.
     pub const fn user_id(mut self, user_id: Id<UserMarker>) -> Self {
-        self.fields.user_id = Some(user_id);
+        self.path.user_id = Some(user_id);
 
         self
     }
@@ -144,15 +144,15 @@ impl IntoFuture for GetEntitlements<'_> {
 impl TryIntoRequest for GetEntitlements<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetEntitlements {
-            after: self.fields.after.map(Id::get),
-            application_id: self.application_id.get(),
-            before: self.fields.before.map(Id::get),
-            exclude_deleted: self.fields.exclude_deleted,
-            exclude_ended: self.fields.exclude_ended,
-            guild_id: self.fields.guild_id.map(Id::get),
-            limit: self.fields.limit,
-            sku_ids: self.fields.sku_ids,
-            user_id: self.fields.user_id.map(Id::get),
+            after: self.path.after.map(Id::get),
+            application_id: self.path.application_id.get(),
+            before: self.path.before.map(Id::get),
+            exclude_deleted: self.path.exclude_deleted,
+            exclude_ended: self.path.exclude_ended,
+            guild_id: self.path.guild_id.map(Id::get),
+            limit: self.path.limit,
+            sku_ids: self.path.sku_ids,
+            user_id: self.path.user_id.map(Id::get),
         }))
     }
 }

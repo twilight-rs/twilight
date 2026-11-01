@@ -79,10 +79,10 @@ impl<'a> CreateGuildVoiceScheduledEvent<'a> {
     ///
     /// This is not a required field.
     pub fn recurrence_rule(mut self, recurrence_rule: &'a RecurrenceRule) -> Self {
-        self.0.body = self.0.body.map(|mut fields| {
-            fields.recurrence_rule = Some(recurrence_rule);
+        self.0.body = self.0.body.map(|mut body| {
+            body.recurrence_rule = Some(recurrence_rule);
 
-            fields
+            body
         });
 
         self

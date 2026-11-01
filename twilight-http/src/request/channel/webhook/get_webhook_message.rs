@@ -14,14 +14,18 @@ use twilight_model::{
     },
 };
 
-/// Get a webhook message by webhook ID, token, and message ID.
-#[must_use = "requests must be configured and executed"]
-pub struct GetWebhookMessage<'a> {
-    http: &'a Client,
+struct GetWebhookMessagePath<'a> {
     message_id: Id<MessageMarker>,
     thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
     webhook_id: Id<WebhookMarker>,
+}
+
+/// Get a webhook message by webhook ID, token, and message ID.
+#[must_use = "requests must be configured and executed"]
+pub struct GetWebhookMessage<'a> {
+    http: &'a Client,
+    path: GetWebhookMessagePath<'a>,
 }
 
 impl<'a> GetWebhookMessage<'a> {
@@ -33,17 +37,19 @@ impl<'a> GetWebhookMessage<'a> {
     ) -> Self {
         Self {
             http,
-            message_id,
-            thread_id: None,
-            token,
-            webhook_id,
+            path: GetWebhookMessagePath {
+                message_id,
+                thread_id: None,
+                token,
+                webhook_id,
+            },
         }
     }
 
     /// Get a message in a thread belonging to the channel instead of the
     /// channel itself.
     pub const fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
-        self.thread_id.replace(thread_id);
+        self.path.thread_id.replace(thread_id);
 
         self
     }
@@ -67,10 +73,10 @@ impl IntoFuture for GetWebhookMessage<'_> {
 impl TryIntoRequest for GetWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::GetWebhookMessage {
-            message_id: self.message_id.get(),
-            thread_id: self.thread_id.map(Id::get),
-            token: self.token,
-            webhook_id: self.webhook_id.get(),
+            message_id: self.path.message_id.get(),
+            thread_id: self.path.thread_id.map(Id::get),
+            token: self.path.token,
+            webhook_id: self.path.webhook_id.get(),
         })
         .use_authorization_token(false)
         .build()

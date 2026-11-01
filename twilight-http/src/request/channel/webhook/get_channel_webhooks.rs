@@ -11,16 +11,23 @@ use twilight_model::{
     id::{Id, marker::ChannelMarker},
 };
 
+struct GetChannelWebhooksPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Get all the webhooks of a channel.
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelWebhooks<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: GetChannelWebhooksPath,
 }
 
 impl<'a> GetChannelWebhooks<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
-        Self { channel_id, http }
+        Self {
+            http,
+            path: GetChannelWebhooksPath { channel_id },
+        }
     }
 }
 
@@ -42,7 +49,7 @@ impl IntoFuture for GetChannelWebhooks<'_> {
 impl TryIntoRequest for GetChannelWebhooks<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetChannelWebhooks {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         }))
     }
 }

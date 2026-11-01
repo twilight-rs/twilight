@@ -27,6 +27,11 @@ struct UpdateChannelPermissionBody {
     kind: PermissionOverwriteType,
 }
 
+struct UpdateChannelPermissionPath {
+    channel_id: Id<ChannelMarker>,
+    target_id: Id<GenericMarker>,
+}
+
 /// Update the permissions for a role or a user in a channel.
 ///
 /// # Examples:
@@ -61,10 +66,9 @@ struct UpdateChannelPermissionBody {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateChannelPermission<'a> {
     body: UpdateChannelPermissionBody,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: UpdateChannelPermissionPath,
     reason: Result<Option<&'a str>, ValidationError>,
-    target_id: Id<GenericMarker>,
 }
 
 impl<'a> UpdateChannelPermission<'a> {
@@ -74,15 +78,17 @@ impl<'a> UpdateChannelPermission<'a> {
         permission_overwrite: &PermissionOverwrite,
     ) -> Self {
         Self {
-            channel_id,
-            http,
             body: UpdateChannelPermissionBody {
                 allow: permission_overwrite.allow,
                 deny: permission_overwrite.deny,
                 kind: permission_overwrite.kind,
             },
+            http,
+            path: UpdateChannelPermissionPath {
+                channel_id,
+                target_id: permission_overwrite.id,
+            },
             reason: Ok(None),
-            target_id: permission_overwrite.id,
         }
     }
 }
@@ -113,8 +119,8 @@ impl IntoFuture for UpdateChannelPermission<'_> {
 impl TryIntoRequest for UpdateChannelPermission<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdatePermissionOverwrite {
-            channel_id: self.channel_id.get(),
-            target_id: self.target_id.get(),
+            channel_id: self.path.channel_id.get(),
+            target_id: self.path.target_id.get(),
         })
         .json(&self.body);
 

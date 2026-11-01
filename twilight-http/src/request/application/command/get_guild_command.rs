@@ -14,13 +14,18 @@ use twilight_model::{
     },
 };
 
-/// Retrieve a global command for an application.
-#[must_use = "requests must be configured and executed"]
-pub struct GetGuildCommand<'a> {
+#[expect(clippy::struct_field_names)]
+struct GetGuildCommandPath {
     application_id: Id<ApplicationMarker>,
     command_id: Id<CommandMarker>,
     guild_id: Id<GuildMarker>,
+}
+
+/// Retrieve a global command for an application.
+#[must_use = "requests must be configured and executed"]
+pub struct GetGuildCommand<'a> {
     http: &'a Client,
+    path: GetGuildCommandPath,
 }
 
 impl<'a> GetGuildCommand<'a> {
@@ -31,10 +36,12 @@ impl<'a> GetGuildCommand<'a> {
         command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
-            application_id,
-            command_id,
-            guild_id,
             http,
+            path: GetGuildCommandPath {
+                application_id,
+                command_id,
+                guild_id,
+            },
         }
     }
 }
@@ -57,9 +64,9 @@ impl IntoFuture for GetGuildCommand<'_> {
 impl TryIntoRequest for GetGuildCommand<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildCommand {
-            application_id: self.application_id.get(),
-            command_id: self.command_id.get(),
-            guild_id: self.guild_id.get(),
+            application_id: self.path.application_id.get(),
+            command_id: self.path.command_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

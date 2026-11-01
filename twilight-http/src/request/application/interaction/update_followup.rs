@@ -42,6 +42,12 @@ struct UpdateFollowupBody<'a> {
     payload_json: Option<&'a [u8]>,
 }
 
+struct UpdateFollowupPath<'a> {
+    application_id: Id<ApplicationMarker>,
+    message_id: Id<MessageMarker>,
+    token: &'a str,
+}
+
 /// Edit a followup message of an interaction, by its token and the message ID.
 ///
 /// You can pass [`None`] to any of the methods to remove the associated field.
@@ -83,12 +89,10 @@ struct UpdateFollowupBody<'a> {
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateFollowup<'a> {
-    application_id: Id<ApplicationMarker>,
     attachment_manager: AttachmentManager<'a>,
     body: Result<UpdateFollowupBody<'a>, MessageValidationError>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
-    token: &'a str,
+    path: UpdateFollowupPath<'a>,
 }
 
 impl<'a> UpdateFollowup<'a> {
@@ -99,7 +103,6 @@ impl<'a> UpdateFollowup<'a> {
         message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
-            application_id,
             attachment_manager: AttachmentManager::new(),
             body: Ok(UpdateFollowupBody {
                 allowed_mentions: None,
@@ -110,8 +113,11 @@ impl<'a> UpdateFollowup<'a> {
                 payload_json: None,
             }),
             http,
-            message_id,
-            token,
+            path: UpdateFollowupPath {
+                application_id,
+                message_id,
+                token,
+            },
         }
     }
 
@@ -343,10 +349,10 @@ impl TryIntoRequest for UpdateFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
-            message_id: self.message_id.get(),
+            message_id: self.path.message_id.get(),
             thread_id: None,
-            token: self.token,
-            webhook_id: self.application_id.get(),
+            token: self.path.token,
+            webhook_id: self.path.application_id.get(),
         });
 
         // Interaction executions don't need the authorization token, only the

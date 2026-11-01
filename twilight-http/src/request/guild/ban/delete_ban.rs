@@ -12,6 +12,11 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteBanPath {
+    guild_id: Id<GuildMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Remove a ban from a user in a guild.
 ///
 /// # Examples
@@ -34,9 +39,8 @@ use twilight_validate::request::{ValidationError, audit_reason as validate_audit
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteBan<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: DeleteBanPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -47,9 +51,8 @@ impl<'a> DeleteBan<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            user_id,
+            path: DeleteBanPath { guild_id, user_id },
             reason: Ok(None),
         }
     }
@@ -81,8 +84,8 @@ impl IntoFuture for DeleteBan<'_> {
 impl TryIntoRequest for DeleteBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteBan {
-            guild_id: self.guild_id.get(),
-            user_id: self.user_id.get(),
+            guild_id: self.path.guild_id.get(),
+            user_id: self.path.user_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

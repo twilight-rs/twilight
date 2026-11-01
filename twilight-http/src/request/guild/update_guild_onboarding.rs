@@ -57,11 +57,15 @@ pub struct UpdateGuildOnboardingBody {
     pub mode: OnboardingMode,
 }
 
+struct UpdateGuildOnboardingPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Update the guild's onboarding flow
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildOnboarding<'a> {
     body: UpdateGuildOnboardingBody,
-    guild_id: Id<GuildMarker>,
+    path: UpdateGuildOnboardingPath,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -74,7 +78,7 @@ impl<'a> UpdateGuildOnboarding<'a> {
     ) -> Self {
         Self {
             body,
-            guild_id,
+            path: UpdateGuildOnboardingPath { guild_id },
             http,
             reason: Ok(None),
         }
@@ -107,7 +111,7 @@ impl IntoFuture for UpdateGuildOnboarding<'_> {
 impl TryIntoRequest for UpdateGuildOnboarding<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateGuildOnboarding {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         });
 
         request = request.json(&self.body);

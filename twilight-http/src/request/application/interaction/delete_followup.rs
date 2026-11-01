@@ -11,6 +11,12 @@ use twilight_model::id::{
     marker::{ApplicationMarker, MessageMarker},
 };
 
+struct DeleteFollowupPath<'a> {
+    application_id: Id<ApplicationMarker>,
+    message_id: Id<MessageMarker>,
+    token: &'a str,
+}
+
 /// Delete the original message, by its token.
 ///
 /// This endpoint is not bound to the application's global rate limit.
@@ -35,9 +41,7 @@ use twilight_model::id::{
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteFollowup<'a> {
     http: &'a Client,
-    message_id: Id<MessageMarker>,
-    token: &'a str,
-    application_id: Id<ApplicationMarker>,
+    path: DeleteFollowupPath<'a>,
 }
 
 impl<'a> DeleteFollowup<'a> {
@@ -49,9 +53,11 @@ impl<'a> DeleteFollowup<'a> {
     ) -> Self {
         Self {
             http,
-            message_id,
-            token,
-            application_id,
+            path: DeleteFollowupPath {
+                application_id,
+                message_id,
+                token,
+            },
         }
     }
 }
@@ -74,10 +80,10 @@ impl IntoFuture for DeleteFollowup<'_> {
 impl TryIntoRequest for DeleteFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::DeleteWebhookMessage {
-            message_id: self.message_id.get(),
+            message_id: self.path.message_id.get(),
             thread_id: None,
-            token: self.token,
-            webhook_id: self.application_id.get(),
+            token: self.path.token,
+            webhook_id: self.path.application_id.get(),
         })
         .use_authorization_token(false)
         .build()

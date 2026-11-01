@@ -16,7 +16,7 @@ use twilight_model::{
 };
 
 #[derive(Serialize)]
-struct GetAnswerVotersFields {
+struct GetAnswerVotersPath {
     after: Option<Id<UserMarker>>,
     answer_id: u8,
     channel_id: Id<ChannelMarker>,
@@ -27,8 +27,8 @@ struct GetAnswerVotersFields {
 /// Gets the data for a poll answer.
 #[must_use = "requests must be configured and executed"]
 pub struct GetAnswerVoters<'a> {
-    fields: GetAnswerVotersFields,
     http: &'a Client,
+    path: GetAnswerVotersPath,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -44,20 +44,20 @@ impl<'a> GetAnswerVoters<'a> {
         answer_id: u8,
     ) -> Self {
         Self {
-            fields: GetAnswerVotersFields {
+            http,
+            path: GetAnswerVotersPath {
                 after: None,
                 answer_id,
                 channel_id,
                 limit: None,
                 message_id,
             },
-            http,
         }
     }
 
     /// Set the user ID to get voters after.
     pub const fn after(mut self, after: Id<UserMarker>) -> Self {
-        self.fields.after.replace(after);
+        self.path.after.replace(after);
 
         self
     }
@@ -66,7 +66,7 @@ impl<'a> GetAnswerVoters<'a> {
     ///
     /// The minimum is 1 and the maximum is 100.
     pub const fn limit(mut self, limit: u8) -> Self {
-        self.fields.limit.replace(limit);
+        self.path.limit.replace(limit);
 
         self
     }
@@ -89,11 +89,11 @@ impl IntoFuture for GetAnswerVoters<'_> {
 impl TryIntoRequest for GetAnswerVoters<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetAnswerVoters {
-            after: self.fields.after.map(Id::get),
-            answer_id: self.fields.answer_id,
-            channel_id: self.fields.channel_id.get(),
-            limit: self.fields.limit,
-            message_id: self.fields.message_id.get(),
+            after: self.path.after.map(Id::get),
+            answer_id: self.path.answer_id,
+            channel_id: self.path.channel_id.get(),
+            limit: self.path.limit,
+            message_id: self.path.message_id.get(),
         }))
     }
 }

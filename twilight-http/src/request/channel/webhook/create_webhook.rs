@@ -23,6 +23,10 @@ struct CreateWebhookBody<'a> {
     name: &'a str,
 }
 
+struct CreateWebhookPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Create a webhook in a channel.
 ///
 /// # Examples
@@ -42,8 +46,8 @@ struct CreateWebhookBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateWebhook<'a> {
     body: Result<CreateWebhookBody<'a>, ValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: CreateWebhookPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -56,9 +60,9 @@ impl<'a> CreateWebhook<'a> {
         });
 
         Self {
-            channel_id,
             body,
             http,
+            path: CreateWebhookPath { channel_id },
             reason: Ok(None),
         }
     }
@@ -108,7 +112,7 @@ impl TryIntoRequest for CreateWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateWebhook {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         })
         .json(&body);
 

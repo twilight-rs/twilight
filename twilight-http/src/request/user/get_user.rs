@@ -11,16 +11,23 @@ use twilight_model::{
     user::User,
 };
 
+struct GetUserPath {
+    user_id: Id<UserMarker>,
+}
+
 /// Get a user's information by id.
 #[must_use = "requests must be configured and executed"]
 pub struct GetUser<'a> {
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: GetUserPath,
 }
 
 impl<'a> GetUser<'a> {
     pub(crate) const fn new(http: &'a Client, user_id: Id<UserMarker>) -> Self {
-        Self { http, user_id }
+        Self {
+            http,
+            path: GetUserPath { user_id },
+        }
     }
 }
 
@@ -42,7 +49,7 @@ impl IntoFuture for GetUser<'_> {
 impl TryIntoRequest for GetUser<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetUser {
-            user_id: self.user_id.get(),
+            user_id: self.path.user_id.get(),
         }))
     }
 }

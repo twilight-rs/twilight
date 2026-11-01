@@ -8,12 +8,16 @@ use crate::{
 use std::future::IntoFuture;
 use twilight_model::id::{Id, marker::GuildMarker};
 
+struct DeleteTemplatePath<'a> {
+    guild_id: Id<GuildMarker>,
+    template_code: &'a str,
+}
+
 /// Delete a template by ID and code.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteTemplate<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    template_code: &'a str,
+    path: DeleteTemplatePath<'a>,
 }
 
 impl<'a> DeleteTemplate<'a> {
@@ -23,9 +27,11 @@ impl<'a> DeleteTemplate<'a> {
         template_code: &'a str,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            template_code,
+            path: DeleteTemplatePath {
+                guild_id,
+                template_code,
+            },
         }
     }
 }
@@ -48,8 +54,8 @@ impl IntoFuture for DeleteTemplate<'_> {
 impl TryIntoRequest for DeleteTemplate<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteTemplate {
-            guild_id: self.guild_id.get(),
-            template_code: self.template_code,
+            guild_id: self.path.guild_id.get(),
+            template_code: self.path.template_code,
         }))
     }
 }

@@ -5,18 +5,25 @@ use twilight_model::id::{
     marker::{ChannelMarker, RoleMarker, UserMarker},
 };
 
+struct DeleteChannelPermissionPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Clear the permissions for a target ID in a channel.
 ///
 /// The target ID must be set with one of the associated methods.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteChannelPermission<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: DeleteChannelPermissionPath,
 }
 
 impl<'a> DeleteChannelPermission<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
-        Self { channel_id, http }
+        Self {
+            http,
+            path: DeleteChannelPermissionPath { channel_id },
+        }
     }
 
     /// Delete an override for an member.
@@ -30,6 +37,6 @@ impl<'a> DeleteChannelPermission<'a> {
     }
 
     const fn configure(self, target_id: u64) -> DeleteChannelPermissionConfigured<'a> {
-        DeleteChannelPermissionConfigured::new(self.http, self.channel_id, target_id)
+        DeleteChannelPermissionConfigured::new(self.http, self.path.channel_id, target_id)
     }
 }

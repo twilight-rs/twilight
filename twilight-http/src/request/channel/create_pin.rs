@@ -12,12 +12,16 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct CreatePinPath {
+    channel_id: Id<ChannelMarker>,
+    message_id: Id<MessageMarker>,
+}
+
 /// Create a new pin in a channel.
 #[must_use = "requests must be configured and executed"]
 pub struct CreatePin<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    path: CreatePinPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -28,9 +32,11 @@ impl<'a> CreatePin<'a> {
         message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
-            channel_id,
             http,
-            message_id,
+            path: CreatePinPath {
+                channel_id,
+                message_id,
+            },
             reason: Ok(None),
         }
     }
@@ -62,8 +68,8 @@ impl IntoFuture for CreatePin<'_> {
 impl TryIntoRequest for CreatePin<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::PinMessage {
-            channel_id: self.channel_id.get(),
-            message_id: self.message_id.get(),
+            channel_id: self.path.channel_id.get(),
+            message_id: self.path.message_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

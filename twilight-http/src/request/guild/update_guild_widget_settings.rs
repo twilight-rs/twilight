@@ -24,6 +24,10 @@ struct UpdateGuildWidgetSettingsBody {
     enabled: Option<bool>,
 }
 
+struct UpdateGuildWidgetSettingsPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Modify a guild's widget settings.
 ///
 /// See [Discord Docs/Modify Guild Widget].
@@ -32,7 +36,7 @@ struct UpdateGuildWidgetSettingsBody {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildWidgetSettings<'a> {
     body: UpdateGuildWidgetSettingsBody,
-    guild_id: Id<GuildMarker>,
+    path: UpdateGuildWidgetSettingsPath,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -44,7 +48,7 @@ impl<'a> UpdateGuildWidgetSettings<'a> {
                 channel_id: None,
                 enabled: None,
             },
-            guild_id,
+            path: UpdateGuildWidgetSettingsPath { guild_id },
             http,
             reason: Ok(None),
         }
@@ -91,7 +95,7 @@ impl IntoFuture for UpdateGuildWidgetSettings<'_> {
 impl TryIntoRequest for UpdateGuildWidgetSettings<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateGuildWidgetSettings {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         });
 
         request = request.json(&self.body);

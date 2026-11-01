@@ -43,6 +43,11 @@ struct CreateFollowupBody<'a> {
     poll: Option<Poll>,
 }
 
+struct CreateFollowupPath<'a> {
+    application_id: Id<ApplicationMarker>,
+    token: &'a str,
+}
+
 /// Create a followup message to an interaction, by its token.
 ///
 /// The message must include at least one of [`attachments`], [`components`],
@@ -75,11 +80,10 @@ struct CreateFollowupBody<'a> {
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowup<'a> {
-    application_id: Id<ApplicationMarker>,
     attachment_manager: AttachmentManager<'a>,
     body: Result<CreateFollowupBody<'a>, MessageValidationError>,
     http: &'a Client,
-    token: &'a str,
+    path: CreateFollowupPath<'a>,
 }
 
 impl<'a> CreateFollowup<'a> {
@@ -89,7 +93,6 @@ impl<'a> CreateFollowup<'a> {
         token: &'a str,
     ) -> Self {
         Self {
-            application_id,
             attachment_manager: AttachmentManager::new(),
             body: Ok(CreateFollowupBody {
                 allowed_mentions: None,
@@ -103,7 +106,10 @@ impl<'a> CreateFollowup<'a> {
                 poll: None,
             }),
             http,
-            token,
+            path: CreateFollowupPath {
+                application_id,
+                token,
+            },
         }
     }
 
@@ -297,13 +303,13 @@ impl TryIntoRequest for CreateFollowup<'_> {
         let mut body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
-            token: self.token,
+            token: self.path.token,
             wait: None,
             with_components: Some(
                 body.components
                     .is_some_and(|components| !components.is_empty()),
             ),
-            webhook_id: self.application_id.get(),
+            webhook_id: self.path.application_id.get(),
         });
 
         // Interaction executions don't need the authorization token, only the

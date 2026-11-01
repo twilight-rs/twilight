@@ -17,10 +17,11 @@ use twilight_validate::request::{
     ValidationError, get_guild_audit_log_limit as validate_get_guild_audit_log_limit,
 };
 
-struct GetAuditLogFields {
+struct GetAuditLogPath {
     action_type: Option<AuditLogEventType>,
     after: Option<u64>,
     before: Option<u64>,
+    guild_id: Id<GuildMarker>,
     limit: Option<u16>,
     user_id: Option<Id<UserMarker>>,
 }
@@ -53,30 +54,29 @@ struct GetAuditLogFields {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetAuditLog<'a> {
-    fields: Result<GetAuditLogFields, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: Result<GetAuditLogPath, ValidationError>,
 }
 
 impl<'a> GetAuditLog<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(GetAuditLogFields {
+            http,
+            path: Ok(GetAuditLogPath {
                 action_type: None,
                 after: None,
                 before: None,
+                guild_id,
                 limit: None,
                 user_id: None,
             }),
-            guild_id,
-            http,
         }
     }
 
     /// Filter by an action type.
     pub const fn action_type(mut self, action_type: AuditLogEventType) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.action_type = Some(action_type);
+        if let Ok(path) = self.path.as_mut() {
+            path.action_type = Some(action_type);
         }
 
         self
@@ -84,8 +84,8 @@ impl<'a> GetAuditLog<'a> {
 
     /// Get audit log entries after the entry specified.
     pub const fn after(mut self, after: u64) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(after);
+        if let Ok(path) = self.path.as_mut() {
+            path.after = Some(after);
         }
 
         self
@@ -93,8 +93,8 @@ impl<'a> GetAuditLog<'a> {
 
     /// Get audit log entries before the entry specified.
     pub const fn before(mut self, before: u64) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.before = Some(before);
+        if let Ok(path) = self.path.as_mut() {
+            path.before = Some(before);
         }
 
         self
@@ -111,11 +111,11 @@ impl<'a> GetAuditLog<'a> {
     ///
     /// [`GetGuildAuditLog`]: twilight_validate::request::ValidationErrorType::GetGuildAuditLog
     pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_get_guild_audit_log_limit(limit)?;
-            fields.limit = Some(limit);
+            path.limit = Some(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -125,8 +125,8 @@ impl<'a> GetAuditLog<'a> {
     ///
     /// This is the user who did the auditable action, not the target of the auditable action.
     pub const fn user_id(mut self, user_id: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.user_id = Some(user_id);
+        if let Ok(path) = self.path.as_mut() {
+            path.user_id = Some(user_id);
         }
 
         self
@@ -150,15 +150,15 @@ impl IntoFuture for GetAuditLog<'_> {
 
 impl TryIntoRequest for GetAuditLog<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetAuditLogs {
-            action_type: fields.action_type.map(|x| u64::from(u16::from(x))),
-            after: fields.after,
-            before: fields.before,
-            guild_id: self.guild_id.get(),
-            limit: fields.limit,
-            user_id: fields.user_id.map(Id::get),
+            action_type: path.action_type.map(|x| u64::from(u16::from(x))),
+            after: path.after,
+            before: path.before,
+            guild_id: path.guild_id.get(),
+            limit: path.limit,
+            user_id: path.user_id.map(Id::get),
         }))
     }
 }

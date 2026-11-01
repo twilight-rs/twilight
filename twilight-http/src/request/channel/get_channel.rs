@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::ChannelMarker},
 };
 
+struct GetChannelPath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Get a channel by its ID.
 ///
 /// # Examples
@@ -32,13 +36,16 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannel<'a> {
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: GetChannelPath,
 }
 
 impl<'a> GetChannel<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
-        Self { channel_id, http }
+        Self {
+            http,
+            path: GetChannelPath { channel_id },
+        }
     }
 }
 
@@ -60,7 +67,7 @@ impl IntoFuture for GetChannel<'_> {
 impl TryIntoRequest for GetChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetChannel {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         }))
     }
 }

@@ -22,6 +22,10 @@ struct CreateTemplateBody<'a> {
     description: Option<&'a str>,
 }
 
+struct CreateTemplatePath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Create a template from the current state of the guild.
 ///
 /// Requires the `MANAGE_GUILD` permission. The name must be at least 1 and at
@@ -36,8 +40,8 @@ struct CreateTemplateBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
     body: Result<CreateTemplateBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: CreateTemplatePath,
 }
 
 impl<'a> CreateTemplate<'a> {
@@ -54,8 +58,8 @@ impl<'a> CreateTemplate<'a> {
 
         Self {
             body,
-            guild_id,
             http,
+            path: CreateTemplatePath { guild_id },
         }
     }
 
@@ -102,7 +106,7 @@ impl TryIntoRequest for CreateTemplate<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateTemplate {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&body)
         .build()

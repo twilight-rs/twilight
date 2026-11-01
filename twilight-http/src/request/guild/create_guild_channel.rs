@@ -70,6 +70,10 @@ struct CreateGuildChannelBody<'a> {
     video_quality_mode: Option<VideoQualityMode>,
 }
 
+struct CreateGuildChannelPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Create a new request to create a guild channel.
 ///
 /// All fields are optional except for name. The minimum length of the name is 1
@@ -77,7 +81,7 @@ struct CreateGuildChannelBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChannel<'a> {
     body: Result<CreateGuildChannelBody<'a>, ChannelValidationError>,
-    guild_id: Id<GuildMarker>,
+    path: CreateGuildChannelPath,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -112,7 +116,7 @@ impl<'a> CreateGuildChannel<'a> {
 
         Self {
             body,
-            guild_id,
+            path: CreateGuildChannelPath { guild_id },
             http,
             reason: Ok(None),
         }
@@ -378,7 +382,7 @@ impl TryIntoRequest for CreateGuildChannel<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateChannel {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&body);
 

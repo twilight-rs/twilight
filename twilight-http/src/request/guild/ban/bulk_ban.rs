@@ -40,6 +40,10 @@ struct BulkGuildBanBody<'a> {
     user_ids: &'a [Id<UserMarker>],
 }
 
+struct BulkGuildBanPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Ban up to 200 users from a guild in bulk, optionally deleting their recent
 /// messages and specifying an Audit Log reason.
 ///
@@ -73,8 +77,8 @@ struct BulkGuildBanBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct BulkGuildBan<'a> {
     body: Result<BulkGuildBanBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: BulkGuildBanPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -88,16 +92,16 @@ impl<'a> BulkGuildBan<'a> {
             delete_message_seconds: None,
             user_ids,
         })
-        .and_then(|fields| {
+        .and_then(|body| {
             validate_bulk_guild_ban_users(user_ids)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
             body,
-            guild_id,
             http,
+            path: BulkGuildBanPath { guild_id },
             reason: Ok(None),
         }
     }
@@ -153,7 +157,7 @@ impl TryIntoRequest for BulkGuildBan<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::BulkGuildBan {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         })
         .json(&body);
 

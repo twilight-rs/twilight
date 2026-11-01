@@ -29,6 +29,11 @@ struct UpdateGuildStickerBody<'a> {
     tags: Option<&'a str>,
 }
 
+struct UpdateGuildStickerPath {
+    guild_id: Id<GuildMarker>,
+    sticker_id: Id<StickerMarker>,
+}
+
 /// Updates a sticker in a guild, and returns the updated sticker.
 ///
 /// # Examples
@@ -56,10 +61,9 @@ struct UpdateGuildStickerBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildSticker<'a> {
     body: Result<UpdateGuildStickerBody<'a>, StickerValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: UpdateGuildStickerPath,
     reason: Result<Option<&'a str>, ValidationError>,
-    sticker_id: Id<StickerMarker>,
 }
 
 impl<'a> UpdateGuildSticker<'a> {
@@ -69,15 +73,17 @@ impl<'a> UpdateGuildSticker<'a> {
         sticker_id: Id<StickerMarker>,
     ) -> Self {
         Self {
-            guild_id,
             body: Ok(UpdateGuildStickerBody {
                 description: None,
                 name: None,
                 tags: None,
             }),
             http,
+            path: UpdateGuildStickerPath {
+                guild_id,
+                sticker_id,
+            },
             reason: Ok(None),
-            sticker_id,
         }
     }
 
@@ -164,8 +170,8 @@ impl TryIntoRequest for UpdateGuildSticker<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         let mut request = Request::builder(&Route::UpdateGuildSticker {
-            guild_id: self.guild_id.get(),
-            sticker_id: self.sticker_id.get(),
+            guild_id: self.path.guild_id.get(),
+            sticker_id: self.path.sticker_id.get(),
         })
         .json(&body);
 

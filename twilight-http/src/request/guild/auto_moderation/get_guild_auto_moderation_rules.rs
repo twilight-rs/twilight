@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildAutoModerationRulesPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get an auto moderation rule in a guild.
 ///
 /// Requires the [`MANAGE_GUILD`] permission.
@@ -18,13 +22,16 @@ use twilight_model::{
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildAutoModerationRules<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: GetGuildAutoModerationRulesPath,
 }
 
 impl<'a> GetGuildAutoModerationRules<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            http,
+            path: GetGuildAutoModerationRulesPath { guild_id },
+        }
     }
 }
 
@@ -46,7 +53,7 @@ impl IntoFuture for GetGuildAutoModerationRules<'_> {
 impl TryIntoRequest for GetGuildAutoModerationRules<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildAutoModerationRules {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

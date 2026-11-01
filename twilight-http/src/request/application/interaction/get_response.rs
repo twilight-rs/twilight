@@ -11,6 +11,11 @@ use twilight_model::{
     id::{Id, marker::ApplicationMarker},
 };
 
+struct GetResponsePath<'a> {
+    application_id: Id<ApplicationMarker>,
+    token: &'a str,
+}
+
 /// Get the original message, by its token.
 ///
 /// This endpoint is not bound to the application's global rate limit.
@@ -35,9 +40,8 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetResponse<'a> {
-    application_id: Id<ApplicationMarker>,
     http: &'a Client,
-    token: &'a str,
+    path: GetResponsePath<'a>,
 }
 
 impl<'a> GetResponse<'a> {
@@ -47,9 +51,11 @@ impl<'a> GetResponse<'a> {
         interaction_token: &'a str,
     ) -> Self {
         Self {
-            application_id,
             http,
-            token: interaction_token,
+            path: GetResponsePath {
+                application_id,
+                token: interaction_token,
+            },
         }
     }
 }
@@ -72,8 +78,8 @@ impl IntoFuture for GetResponse<'_> {
 impl TryIntoRequest for GetResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::GetInteractionOriginal {
-            application_id: self.application_id.get(),
-            interaction_token: self.token,
+            application_id: self.path.application_id.get(),
+            interaction_token: self.path.token,
         })
         .use_authorization_token(false)
         .build()

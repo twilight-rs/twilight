@@ -38,6 +38,11 @@ struct UpdateGuildMemberBody<'a> {
     roles: Option<&'a [Id<RoleMarker>]>,
 }
 
+struct UpdateGuildMemberPath {
+    guild_id: Id<GuildMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Update a guild member.
 ///
 /// All fields are optional. See [Discord Docs/Modify Guild Member].
@@ -46,9 +51,8 @@ struct UpdateGuildMemberBody<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMember<'a> {
     body: Result<UpdateGuildMemberBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: UpdateGuildMemberPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -67,9 +71,8 @@ impl<'a> UpdateGuildMember<'a> {
                 nick: None,
                 roles: None,
             }),
-            guild_id,
             http,
-            user_id,
+            path: UpdateGuildMemberPath { guild_id, user_id },
             reason: Ok(None),
         }
     }
@@ -192,8 +195,8 @@ impl TryIntoRequest for UpdateGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateMember {
-            guild_id: self.guild_id.get(),
-            user_id: self.user_id.get(),
+            guild_id: self.path.guild_id.get(),
+            user_id: self.path.user_id.get(),
         })
         .json(&body);
 

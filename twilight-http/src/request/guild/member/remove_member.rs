@@ -12,12 +12,16 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct RemoveMemberPath {
+    guild_id: Id<GuildMarker>,
+    user_id: Id<UserMarker>,
+}
+
 /// Kick a member from a guild, by their id.
 #[must_use = "requests must be configured and executed"]
 pub struct RemoveMember<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    path: RemoveMemberPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -28,9 +32,8 @@ impl<'a> RemoveMember<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            user_id,
+            path: RemoveMemberPath { guild_id, user_id },
             reason: Ok(None),
         }
     }
@@ -62,8 +65,8 @@ impl IntoFuture for RemoveMember<'_> {
 impl TryIntoRequest for RemoveMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::RemoveMember {
-            guild_id: self.guild_id.get(),
-            user_id: self.user_id.get(),
+            guild_id: self.path.guild_id.get(),
+            user_id: self.path.user_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

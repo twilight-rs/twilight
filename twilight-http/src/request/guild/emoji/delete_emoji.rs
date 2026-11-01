@@ -12,12 +12,16 @@ use twilight_model::id::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+struct DeleteEmojiPath {
+    emoji_id: Id<EmojiMarker>,
+    guild_id: Id<GuildMarker>,
+}
+
 /// Delete an emoji in a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteEmoji<'a> {
-    emoji_id: Id<EmojiMarker>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: DeleteEmojiPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -28,9 +32,8 @@ impl<'a> DeleteEmoji<'a> {
         emoji_id: Id<EmojiMarker>,
     ) -> Self {
         Self {
-            emoji_id,
-            guild_id,
             http,
+            path: DeleteEmojiPath { emoji_id, guild_id },
             reason: Ok(None),
         }
     }
@@ -62,8 +65,8 @@ impl IntoFuture for DeleteEmoji<'_> {
 impl TryIntoRequest for DeleteEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteEmoji {
-            emoji_id: self.emoji_id.get(),
-            guild_id: self.guild_id.get(),
+            emoji_id: self.path.emoji_id.get(),
+            guild_id: self.path.guild_id.get(),
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

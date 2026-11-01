@@ -23,26 +23,30 @@ struct UpdateStageInstanceBody<'a> {
     topic: Option<&'a str>,
 }
 
+struct UpdateStageInstancePath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Update fields of an existing stage instance.
 ///
 /// Requires the user to be a moderator of the stage channel.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateStageInstance<'a> {
     body: Result<UpdateStageInstanceBody<'a>, ValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: UpdateStageInstancePath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateStageInstance<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
-            channel_id,
             body: Ok(UpdateStageInstanceBody {
                 privacy_level: None,
                 topic: None,
             }),
             http,
+            path: UpdateStageInstancePath { channel_id },
             reason: Ok(None),
         }
     }
@@ -103,7 +107,7 @@ impl TryIntoRequest for UpdateStageInstance<'_> {
         let body = self.body.map_err(Error::validation)?;
 
         let mut request = Request::builder(&Route::UpdateStageInstance {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         })
         .json(&body);
 

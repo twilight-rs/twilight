@@ -11,6 +11,10 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildInvitesPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get information about the invites of a guild.
 ///
 /// Requires the [`MANAGE_GUILD`] permission.
@@ -18,13 +22,16 @@ use twilight_model::{
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildInvites<'a> {
-    guild_id: Id<GuildMarker>,
+    path: GetGuildInvitesPath,
     http: &'a Client,
 }
 
 impl<'a> GetGuildInvites<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            path: GetGuildInvitesPath { guild_id },
+            http,
+        }
     }
 }
 
@@ -46,7 +53,7 @@ impl IntoFuture for GetGuildInvites<'_> {
 impl TryIntoRequest for GetGuildInvites<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildInvites {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

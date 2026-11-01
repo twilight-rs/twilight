@@ -20,11 +20,15 @@ struct UpdateApplicationEmojiBody<'a> {
     name: &'a str,
 }
 
-pub struct UpdateApplicationEmoji<'a> {
+struct UpdateApplicationEmojiPath {
     application_id: Id<ApplicationMarker>,
-    body: UpdateApplicationEmojiBody<'a>,
     emoji_id: Id<EmojiMarker>,
+}
+
+pub struct UpdateApplicationEmoji<'a> {
+    body: UpdateApplicationEmojiBody<'a>,
     http: &'a Client,
+    path: UpdateApplicationEmojiPath,
 }
 
 impl<'a> UpdateApplicationEmoji<'a> {
@@ -35,10 +39,12 @@ impl<'a> UpdateApplicationEmoji<'a> {
         name: &'a str,
     ) -> Self {
         Self {
-            application_id,
             body: UpdateApplicationEmojiBody { name },
-            emoji_id,
             http,
+            path: UpdateApplicationEmojiPath {
+                application_id,
+                emoji_id,
+            },
         }
     }
 }
@@ -61,8 +67,8 @@ impl IntoFuture for UpdateApplicationEmoji<'_> {
 impl TryIntoRequest for UpdateApplicationEmoji<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateApplicationEmoji {
-            application_id: self.application_id.get(),
-            emoji_id: self.emoji_id.get(),
+            application_id: self.path.application_id.get(),
+            emoji_id: self.path.emoji_id.get(),
         });
 
         request = request.json(&self.body);

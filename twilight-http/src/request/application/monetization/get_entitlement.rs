@@ -13,12 +13,16 @@ use twilight_model::{
     },
 };
 
+struct GetEntitlementPath {
+    application_id: Id<ApplicationMarker>,
+    entitlement_id: Id<EntitlementMarker>,
+}
+
 /// Get an entitlement.
 #[must_use = "requests must be configured and executed"]
 pub struct GetEntitlement<'a> {
-    application_id: Id<ApplicationMarker>,
-    entitlement_id: Id<EntitlementMarker>,
     http: &'a Client,
+    path: GetEntitlementPath,
 }
 
 impl<'a> GetEntitlement<'a> {
@@ -28,9 +32,11 @@ impl<'a> GetEntitlement<'a> {
         entitlement_id: Id<EntitlementMarker>,
     ) -> Self {
         Self {
-            application_id,
-            entitlement_id,
             http,
+            path: GetEntitlementPath {
+                application_id,
+                entitlement_id,
+            },
         }
     }
 }
@@ -53,8 +59,8 @@ impl IntoFuture for GetEntitlement<'_> {
 impl TryIntoRequest for GetEntitlement<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetEntitlement {
-            application_id: self.application_id.get(),
-            entitlement_id: self.entitlement_id.get(),
+            application_id: self.path.application_id.get(),
+            entitlement_id: self.path.entitlement_id.get(),
         }))
     }
 }

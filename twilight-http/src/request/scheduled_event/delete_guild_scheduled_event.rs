@@ -14,6 +14,11 @@ use twilight_model::{
     },
 };
 
+struct DeleteGuildScheduledEventPath {
+    guild_id: Id<GuildMarker>,
+    scheduled_event_id: Id<ScheduledEventMarker>,
+}
+
 /// Delete a scheduled event in a guild.
 ///
 /// # Examples
@@ -34,9 +39,8 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGuildScheduledEvent<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    scheduled_event_id: Id<ScheduledEventMarker>,
+    path: DeleteGuildScheduledEventPath,
 }
 
 impl<'a> DeleteGuildScheduledEvent<'a> {
@@ -46,9 +50,11 @@ impl<'a> DeleteGuildScheduledEvent<'a> {
         scheduled_event_id: Id<ScheduledEventMarker>,
     ) -> Self {
         Self {
-            guild_id,
             http,
-            scheduled_event_id,
+            path: DeleteGuildScheduledEventPath {
+                guild_id,
+                scheduled_event_id,
+            },
         }
     }
 }
@@ -71,8 +77,8 @@ impl IntoFuture for DeleteGuildScheduledEvent<'_> {
 impl TryIntoRequest for DeleteGuildScheduledEvent<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteGuildScheduledEvent {
-            guild_id: self.guild_id.get(),
-            scheduled_event_id: self.scheduled_event_id.get(),
+            guild_id: self.path.guild_id.get(),
+            scheduled_event_id: self.path.scheduled_event_id.get(),
         }))
     }
 }

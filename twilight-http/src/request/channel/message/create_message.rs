@@ -55,6 +55,10 @@ pub(crate) struct CreateMessageBody<'a> {
     tts: Option<bool>,
 }
 
+struct CreateMessagePath {
+    channel_id: Id<ChannelMarker>,
+}
+
 /// Send a message to a channel.
 ///
 /// The message must include at least one of [`attachments`], [`content`],
@@ -87,15 +91,14 @@ pub(crate) struct CreateMessageBody<'a> {
 pub struct CreateMessage<'a> {
     attachment_manager: AttachmentManager<'a>,
     body: Result<CreateMessageBody<'a>, MessageValidationError>,
-    channel_id: Id<ChannelMarker>,
     http: &'a Client,
+    path: CreateMessagePath,
 }
 
 impl<'a> CreateMessage<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             attachment_manager: AttachmentManager::new(),
-            channel_id,
             body: Ok(CreateMessageBody {
                 attachments: None,
                 components: None,
@@ -111,6 +114,7 @@ impl<'a> CreateMessage<'a> {
                 tts: None,
             }),
             http,
+            path: CreateMessagePath { channel_id },
         }
     }
 
@@ -307,7 +311,7 @@ impl<'a> CreateMessage<'a> {
     /// Specify the ID of another message to create a reply to.
     pub fn reply(mut self, other: Id<MessageMarker>) -> Self {
         self.body = self.body.map(|mut body| {
-            let channel_id = self.channel_id;
+            let channel_id = self.path.channel_id;
 
             let reference = if let Some(reference) = body.message_reference {
                 MessageReference {
@@ -407,7 +411,7 @@ impl TryIntoRequest for CreateMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let mut body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateMessage {
-            channel_id: self.channel_id.get(),
+            channel_id: self.path.channel_id.get(),
         });
 
         // Set the default allowed mentions if required.

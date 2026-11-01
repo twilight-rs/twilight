@@ -11,19 +11,26 @@ use twilight_model::{
     id::{Id, marker::GuildMarker},
 };
 
+struct GetGuildIntegrationsPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Get the guild's integrations.
 ///
 /// This endpoint returns a maximum of 50 integrations. If a guild has more
 /// integrations then they can't be accessed.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildIntegrations<'a> {
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: GetGuildIntegrationsPath,
 }
 
 impl<'a> GetGuildIntegrations<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
-        Self { guild_id, http }
+        Self {
+            http,
+            path: GetGuildIntegrationsPath { guild_id },
+        }
     }
 }
 
@@ -45,7 +52,7 @@ impl IntoFuture for GetGuildIntegrations<'_> {
 impl TryIntoRequest for GetGuildIntegrations<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildIntegrations {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         }))
     }
 }

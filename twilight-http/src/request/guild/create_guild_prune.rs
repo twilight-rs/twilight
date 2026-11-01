@@ -18,9 +18,10 @@ use twilight_validate::request::{
     guild_prune_days as validate_guild_prune_days,
 };
 
-struct CreateGuildPruneBody<'a> {
+struct CreateGuildPrunePath<'a> {
     compute_prune_count: Option<bool>,
     days: Option<u16>,
+    guild_id: Id<GuildMarker>,
     include_roles: &'a [Id<RoleMarker>],
 }
 
@@ -44,8 +45,7 @@ struct CreateGuildPruneBody<'a> {
 /// [Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildPrune<'a> {
-    body: Result<CreateGuildPruneBody<'a>, ValidationError>,
-    guild_id: Id<GuildMarker>,
+    path: Result<CreateGuildPrunePath<'a>, ValidationError>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -53,12 +53,12 @@ pub struct CreateGuildPrune<'a> {
 impl<'a> CreateGuildPrune<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            body: Ok(CreateGuildPruneBody {
+            path: Ok(CreateGuildPrunePath {
                 compute_prune_count: None,
                 days: None,
+                guild_id,
                 include_roles: &[],
             }),
-            guild_id,
             http,
             reason: Ok(None),
         }
@@ -66,8 +66,8 @@ impl<'a> CreateGuildPrune<'a> {
 
     /// List of roles to include when pruning.
     pub const fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        if let Ok(body) = self.body.as_mut() {
-            body.include_roles = roles;
+        if let Ok(path) = self.path.as_mut() {
+            path.include_roles = roles;
         }
 
         self
@@ -75,8 +75,8 @@ impl<'a> CreateGuildPrune<'a> {
 
     /// Return the amount of pruned members. Discouraged for large guilds.
     pub const fn compute_prune_count(mut self, compute_prune_count: bool) -> Self {
-        if let Ok(body) = self.body.as_mut() {
-            body.compute_prune_count = Some(compute_prune_count);
+        if let Ok(path) = self.path.as_mut() {
+            path.compute_prune_count = Some(compute_prune_count);
         }
 
         self
@@ -93,11 +93,11 @@ impl<'a> CreateGuildPrune<'a> {
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
     pub fn days(mut self, days: u16) -> Self {
-        self.body = self.body.and_then(|mut body| {
+        self.path = self.path.and_then(|mut path| {
             validate_guild_prune_days(days)?;
-            body.days = Some(days);
+            path.days = Some(days);
 
-            Ok(body)
+            Ok(path)
         });
 
         self
@@ -129,12 +129,12 @@ impl IntoFuture for CreateGuildPrune<'_> {
 
 impl TryIntoRequest for CreateGuildPrune<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let body = self.body.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateGuildPrune {
-            compute_prune_count: body.compute_prune_count,
-            days: body.days,
-            guild_id: self.guild_id.get(),
-            include_roles: body.include_roles,
+            compute_prune_count: path.compute_prune_count,
+            days: path.days,
+            guild_id: path.guild_id.get(),
+            include_roles: path.include_roles,
         });
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {

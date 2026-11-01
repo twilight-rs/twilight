@@ -17,8 +17,9 @@ use twilight_validate::request::{
     ValidationError, get_guild_members_limit as validate_get_guild_members_limit,
 };
 
-struct GetGuildMembersFields {
+struct GetGuildMembersPath {
     after: Option<Id<UserMarker>>,
+    guild_id: Id<GuildMarker>,
     limit: Option<u16>,
 }
 
@@ -50,27 +51,26 @@ struct GetGuildMembersFields {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildMembers<'a> {
-    fields: Result<GetGuildMembersFields, ValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: Result<GetGuildMembersPath, ValidationError>,
 }
 
 impl<'a> GetGuildMembers<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(GetGuildMembersFields {
+            http,
+            path: Ok(GetGuildMembersPath {
                 after: None,
+                guild_id,
                 limit: None,
             }),
-            guild_id,
-            http,
         }
     }
 
     /// Sets the user ID to get members after.
     pub const fn after(mut self, after: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.after = Some(after);
+        if let Ok(path) = self.path.as_mut() {
+            path.after = Some(after);
         }
 
         self
@@ -87,11 +87,11 @@ impl<'a> GetGuildMembers<'a> {
     ///
     /// [`GetGuildMembers`]: twilight_validate::request::ValidationErrorType::GetGuildMembers
     pub fn limit(mut self, limit: u16) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.path = self.path.and_then(|mut path| {
             validate_get_guild_members_limit(limit)?;
-            fields.limit = Some(limit);
+            path.limit = Some(limit);
 
-            Ok(fields)
+            Ok(path)
         });
 
         self
@@ -115,12 +115,12 @@ impl IntoFuture for GetGuildMembers<'_> {
 
 impl TryIntoRequest for GetGuildMembers<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let path = self.path.map_err(Error::validation)?;
 
         Ok(Request::from_route(&Route::GetGuildMembers {
-            after: fields.after.map(Id::get),
-            guild_id: self.guild_id.get(),
-            limit: fields.limit,
+            after: path.after.map(Id::get),
+            guild_id: path.guild_id.get(),
+            limit: path.limit,
         }))
     }
 }

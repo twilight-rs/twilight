@@ -25,6 +25,10 @@ struct CreateGuildStickerBody<'a> {
     tags: &'a str,
 }
 
+struct CreateGuildStickerPath {
+    guild_id: Id<GuildMarker>,
+}
+
 /// Creates a sticker in a guild, and returns the created sticker.
 ///
 /// # Examples
@@ -55,8 +59,8 @@ struct CreateGuildStickerBody<'a> {
 /// ```
 pub struct CreateGuildSticker<'a> {
     body: Result<CreateGuildStickerBody<'a>, StickerValidationError>,
-    guild_id: Id<GuildMarker>,
     http: &'a Client,
+    path: CreateGuildStickerPath,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -85,8 +89,8 @@ impl<'a> CreateGuildSticker<'a> {
 
         Self {
             body,
-            guild_id,
             http,
+            path: CreateGuildStickerPath { guild_id },
             reason: Ok(None),
         }
     }
@@ -119,7 +123,7 @@ impl TryIntoRequest for CreateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateGuildSticker {
-            guild_id: self.guild_id.get(),
+            guild_id: self.path.guild_id.get(),
         });
 
         let form = Form::new()
