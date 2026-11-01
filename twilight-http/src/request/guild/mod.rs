@@ -3,6 +3,7 @@ pub mod ban;
 pub mod emoji;
 pub mod integration;
 pub mod member;
+pub mod message;
 pub mod role;
 pub mod sticker;
 pub mod update_guild_channel_positions;
