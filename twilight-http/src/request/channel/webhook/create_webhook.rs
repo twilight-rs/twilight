@@ -17,7 +17,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateWebhookFields<'a> {
+struct CreateWebhookBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar: Option<&'a str>,
     name: &'a str,
@@ -41,23 +41,23 @@ struct CreateWebhookFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateWebhook<'a> {
+    body: Result<CreateWebhookBody<'a>, ValidationError>,
     channel_id: Id<ChannelMarker>,
-    fields: Result<CreateWebhookFields<'a>, ValidationError>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateWebhook<'a> {
     pub(crate) fn new(http: &'a Client, channel_id: Id<ChannelMarker>, name: &'a str) -> Self {
-        let fields = Ok(CreateWebhookFields { avatar: None, name }).and_then(|fields| {
+        let body = Ok(CreateWebhookBody { avatar: None, name }).and_then(|body| {
             validate_webhook_username(name)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
             channel_id,
-            fields,
+            body,
             http,
             reason: Ok(None),
         }
@@ -71,10 +71,10 @@ impl<'a> CreateWebhook<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub fn avatar(mut self, avatar: &'a str) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.avatar = Some(avatar);
+        self.body = self.body.map(|mut body| {
+            body.avatar = Some(avatar);
 
-            fields
+            body
         });
 
         self
@@ -106,11 +106,11 @@ impl IntoFuture for CreateWebhook<'_> {
 
 impl TryIntoRequest for CreateWebhook<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::CreateWebhook {
             channel_id: self.channel_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

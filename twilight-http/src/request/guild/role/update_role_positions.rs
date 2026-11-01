@@ -5,6 +5,7 @@ use crate::{
     response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
+use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     guild::{Role, RolePosition},
@@ -12,14 +13,18 @@ use twilight_model::{
 };
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
+#[derive(Serialize)]
+#[serde(transparent)]
+struct UpdateRolePositionsBody<'a>(&'a [RolePosition]);
+
 /// Modify the position of the roles.
 ///
 /// The minimum amount of roles to modify, is a swap between two roles.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateRolePositions<'a> {
+    body: UpdateRolePositionsBody<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    roles: &'a [RolePosition],
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -30,9 +35,9 @@ impl<'a> UpdateRolePositions<'a> {
         roles: &'a [RolePosition],
     ) -> Self {
         Self {
+            body: UpdateRolePositionsBody(roles),
             guild_id,
             http,
-            roles,
             reason: Ok(None),
         }
     }
@@ -66,7 +71,7 @@ impl TryIntoRequest for UpdateRolePositions<'_> {
         let mut request = Request::builder(&Route::UpdateRolePositions {
             guild_id: self.guild_id.get(),
         })
-        .json(&self.roles);
+        .json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

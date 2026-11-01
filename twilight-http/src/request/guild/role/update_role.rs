@@ -17,7 +17,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct UpdateRoleFields<'a> {
+struct UpdateRoleBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     color: Option<Nullable<u32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,7 +39,7 @@ struct UpdateRoleFields<'a> {
 /// Update a role by guild id and its id.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateRole<'a> {
-    fields: UpdateRoleFields<'a>,
+    body: UpdateRoleBody<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     role_id: Id<RoleMarker>,
@@ -53,7 +53,7 @@ impl<'a> UpdateRole<'a> {
         role_id: Id<RoleMarker>,
     ) -> Self {
         Self {
-            fields: UpdateRoleFields {
+            body: UpdateRoleBody {
                 color: None,
                 colors: None,
                 hoist: None,
@@ -78,21 +78,21 @@ impl<'a> UpdateRole<'a> {
     ///
     /// [`COLOR_MAXIMUM`]: twilight_validate::embed::COLOR_MAXIMUM
     pub const fn color(mut self, color: Option<u32>) -> Self {
-        self.fields.color = Some(Nullable(color));
+        self.body.color = Some(Nullable(color));
 
         self
     }
 
     /// Set the role colours.
     pub const fn colors(mut self, colors: Option<RoleColors>) -> Self {
-        self.fields.colors = Some(Nullable(colors));
+        self.body.colors = Some(Nullable(colors));
 
         self
     }
 
     /// If true, display the role in the members list.
     pub const fn hoist(mut self, hoist: bool) -> Self {
-        self.fields.hoist = Some(hoist);
+        self.body.hoist = Some(hoist);
 
         self
     }
@@ -135,28 +135,28 @@ impl<'a> UpdateRole<'a> {
     /// # Ok(()) }
     /// ```
     pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
-        self.fields.icon = Some(Nullable(icon));
+        self.body.icon = Some(Nullable(icon));
 
         self
     }
 
     /// If true, the role can be @mentioned (pinged) in chat.
     pub const fn mentionable(mut self, mentionable: bool) -> Self {
-        self.fields.mentionable = Some(mentionable);
+        self.body.mentionable = Some(mentionable);
 
         self
     }
 
     /// Set the name of the role.
     pub const fn name(mut self, name: Option<&'a str>) -> Self {
-        self.fields.name = Some(Nullable(name));
+        self.body.name = Some(Nullable(name));
 
         self
     }
 
     /// Set the allowed permissions of this role.
     pub const fn permissions(mut self, permissions: Permissions) -> Self {
-        self.fields.permissions = Some(permissions);
+        self.body.permissions = Some(permissions);
 
         self
     }
@@ -194,7 +194,7 @@ impl<'a> UpdateRole<'a> {
     /// # Ok(()) }
     /// ```
     pub const fn unicode_emoji(mut self, unicode_emoji: Option<&'a str>) -> Self {
-        self.fields.unicode_emoji = Some(Nullable(unicode_emoji));
+        self.body.unicode_emoji = Some(Nullable(unicode_emoji));
 
         self
     }
@@ -230,7 +230,7 @@ impl TryIntoRequest for UpdateRole<'_> {
             role_id: self.role_id.get(),
         });
 
-        request = request.json(&self.fields);
+        request = request.json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

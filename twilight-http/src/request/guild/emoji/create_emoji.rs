@@ -17,7 +17,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct CreateEmojiFields<'a> {
+struct CreateEmojiBody<'a> {
     image: &'a str,
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -33,7 +33,7 @@ struct CreateEmojiFields<'a> {
 /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
 #[must_use = "requests must be configured and executed"]
 pub struct CreateEmoji<'a> {
-    fields: CreateEmojiFields<'a>,
+    body: CreateEmojiBody<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -47,7 +47,7 @@ impl<'a> CreateEmoji<'a> {
         image: &'a str,
     ) -> Self {
         Self {
-            fields: CreateEmojiFields {
+            body: CreateEmojiBody {
                 image,
                 name,
                 roles: None,
@@ -64,7 +64,7 @@ impl<'a> CreateEmoji<'a> {
     ///
     /// [Discord Docs/Emoji Object]: https://discord.com/developers/docs/resources/emoji#emoji-object-emoji-structure
     pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        self.fields.roles = Some(roles);
+        self.body.roles = Some(roles);
 
         self
     }
@@ -99,7 +99,7 @@ impl TryIntoRequest for CreateEmoji<'_> {
             guild_id: self.guild_id.get(),
         });
 
-        request = request.json(&self.fields);
+        request = request.json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

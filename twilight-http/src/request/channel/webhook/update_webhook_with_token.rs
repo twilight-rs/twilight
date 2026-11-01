@@ -14,7 +14,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, webhook_username as validate_webhook_username};
 
 #[derive(Serialize)]
-struct UpdateWebhookWithTokenFields<'a> {
+struct UpdateWebhookWithTokenBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -24,7 +24,7 @@ struct UpdateWebhookWithTokenFields<'a> {
 /// Update a webhook, with a token, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhookWithToken<'a> {
-    fields: Result<UpdateWebhookWithTokenFields<'a>, ValidationError>,
+    body: Result<UpdateWebhookWithTokenBody<'a>, ValidationError>,
     http: &'a Client,
     token: &'a str,
     webhook_id: Id<WebhookMarker>,
@@ -37,7 +37,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
         token: &'a str,
     ) -> Self {
         Self {
-            fields: Ok(UpdateWebhookWithTokenFields {
+            body: Ok(UpdateWebhookWithTokenBody {
                 avatar: None,
                 name: None,
             }),
@@ -55,8 +55,8 @@ impl<'a> UpdateWebhookWithToken<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.avatar = Some(Nullable(avatar));
+        if let Ok(body) = self.body.as_mut() {
+            body.avatar = Some(Nullable(avatar));
         }
 
         self
@@ -71,11 +71,11 @@ impl<'a> UpdateWebhookWithToken<'a> {
     ///
     /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
     pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_webhook_username(name)?;
-            fields.name = Some(name);
+            body.name = Some(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -99,14 +99,14 @@ impl IntoFuture for UpdateWebhookWithToken<'_> {
 
 impl TryIntoRequest for UpdateWebhookWithToken<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::UpdateWebhook {
             token: Some(self.token),
             webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false)
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }

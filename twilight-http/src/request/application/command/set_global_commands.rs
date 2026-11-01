@@ -5,11 +5,16 @@ use crate::{
     response::{Response, ResponseFuture, marker::ListBody},
     routing::Route,
 };
+use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     application::command::Command,
     id::{Id, marker::ApplicationMarker},
 };
+
+#[derive(Serialize)]
+#[serde(transparent)]
+struct SetGlobalCommandsBody<'a>(&'a [Command]);
 
 /// Set global commands.
 ///
@@ -23,8 +28,8 @@ use twilight_model::{
 /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 #[must_use = "requests must be configured and executed"]
 pub struct SetGlobalCommands<'a> {
-    commands: &'a [Command],
     application_id: Id<ApplicationMarker>,
+    body: SetGlobalCommandsBody<'a>,
     http: &'a Client,
 }
 
@@ -35,8 +40,8 @@ impl<'a> SetGlobalCommands<'a> {
         commands: &'a [Command],
     ) -> Self {
         Self {
-            commands,
             application_id,
+            body: SetGlobalCommandsBody(commands),
             http,
         }
     }
@@ -62,7 +67,7 @@ impl TryIntoRequest for SetGlobalCommands<'_> {
         Request::builder(&Route::SetGlobalCommands {
             application_id: self.application_id.get(),
         })
-        .json(&self.commands)
+        .json(&self.body)
         .build()
     }
 }

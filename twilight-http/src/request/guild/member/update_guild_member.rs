@@ -22,7 +22,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct UpdateGuildMemberFields<'a> {
+struct UpdateGuildMemberBody<'a> {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Nullable<Id<ChannelMarker>>>,
@@ -45,7 +45,7 @@ struct UpdateGuildMemberFields<'a> {
 /// [Discord Docs/Modify Guild Member]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMember<'a> {
-    fields: Result<UpdateGuildMemberFields<'a>, ValidationError>,
+    body: Result<UpdateGuildMemberBody<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     user_id: Id<UserMarker>,
@@ -59,7 +59,7 @@ impl<'a> UpdateGuildMember<'a> {
         user_id: Id<UserMarker>,
     ) -> Self {
         Self {
-            fields: Ok(UpdateGuildMemberFields {
+            body: Ok(UpdateGuildMemberBody {
                 channel_id: None,
                 communication_disabled_until: None,
                 deaf: None,
@@ -76,8 +76,8 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// Move the member to a different voice channel.
     pub const fn channel_id(mut self, channel_id: Option<Id<ChannelMarker>>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.channel_id = Some(Nullable(channel_id));
+        if let Ok(body) = self.body.as_mut() {
+            body.channel_id = Some(Nullable(channel_id));
         }
 
         self
@@ -100,14 +100,14 @@ impl<'a> UpdateGuildMember<'a> {
     /// [`CommunicationDisabledUntil`]: twilight_validate::request::ValidationErrorType::CommunicationDisabledUntil
     /// [`MODERATE_MEMBERS`]: twilight_model::guild::Permissions::MODERATE_MEMBERS
     pub fn communication_disabled_until(mut self, timestamp: Option<Timestamp>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             if let Some(timestamp) = timestamp {
                 validate_communication_disabled_until(timestamp)?;
             }
 
-            fields.communication_disabled_until = Some(Nullable(timestamp));
+            body.communication_disabled_until = Some(Nullable(timestamp));
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -115,8 +115,8 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// If true, restrict the member's ability to hear sound from a voice channel.
     pub const fn deaf(mut self, deaf: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.deaf = Some(deaf);
+        if let Ok(body) = self.body.as_mut() {
+            body.deaf = Some(deaf);
         }
 
         self
@@ -124,8 +124,8 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// If true, restrict the member's ability to speak in a voice channel.
     pub const fn mute(mut self, mute: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.mute = Some(mute);
+        if let Ok(body) = self.body.as_mut() {
+            body.mute = Some(mute);
         }
 
         self
@@ -142,14 +142,14 @@ impl<'a> UpdateGuildMember<'a> {
     ///
     /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
     pub fn nick(mut self, nick: Option<&'a str>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             if let Some(nick) = nick {
                 validate_nickname(nick)?;
             }
 
-            fields.nick = Some(Nullable(nick));
+            body.nick = Some(Nullable(nick));
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -157,8 +157,8 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// Set the new list of roles for a member.
     pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.roles = Some(roles);
+        if let Ok(body) = self.body.as_mut() {
+            body.roles = Some(roles);
         }
 
         self
@@ -190,12 +190,12 @@ impl IntoFuture for UpdateGuildMember<'_> {
 
 impl TryIntoRequest for UpdateGuildMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateMember {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
@@ -207,7 +207,7 @@ impl TryIntoRequest for UpdateGuildMember<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::{UpdateGuildMember, UpdateGuildMemberFields};
+    use super::{UpdateGuildMember, UpdateGuildMemberBody};
     use crate::{
         Client,
         request::{Nullable, Request, TryIntoRequest},
@@ -230,7 +230,7 @@ mod tests {
             .mute(true);
         let actual = builder.try_into_request()?;
 
-        let body = UpdateGuildMemberFields {
+        let body = UpdateGuildMemberBody {
             channel_id: None,
             communication_disabled_until: None,
             deaf: Some(true),
@@ -256,7 +256,7 @@ mod tests {
         let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(None);
         let actual = builder.try_into_request()?;
 
-        let body = UpdateGuildMemberFields {
+        let body = UpdateGuildMemberBody {
             channel_id: None,
             communication_disabled_until: None,
             deaf: None,
@@ -281,7 +281,7 @@ mod tests {
         let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(Some("foo"));
         let actual = builder.try_into_request()?;
 
-        let body = UpdateGuildMemberFields {
+        let body = UpdateGuildMemberBody {
             channel_id: None,
             communication_disabled_until: None,
             deaf: None,

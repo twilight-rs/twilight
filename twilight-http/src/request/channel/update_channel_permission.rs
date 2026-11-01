@@ -18,7 +18,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct UpdateChannelPermissionFields {
+struct UpdateChannelPermissionBody {
     #[serde(skip_serializing_if = "Option::is_none")]
     allow: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -60,8 +60,8 @@ struct UpdateChannelPermissionFields {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateChannelPermission<'a> {
+    body: UpdateChannelPermissionBody,
     channel_id: Id<ChannelMarker>,
-    fields: UpdateChannelPermissionFields,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
     target_id: Id<GenericMarker>,
@@ -76,7 +76,7 @@ impl<'a> UpdateChannelPermission<'a> {
         Self {
             channel_id,
             http,
-            fields: UpdateChannelPermissionFields {
+            body: UpdateChannelPermissionBody {
                 allow: permission_overwrite.allow,
                 deny: permission_overwrite.deny,
                 kind: permission_overwrite.kind,
@@ -116,7 +116,7 @@ impl TryIntoRequest for UpdateChannelPermission<'_> {
             channel_id: self.channel_id.get(),
             target_id: self.target_id.get(),
         })
-        .json(&self.fields);
+        .json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
@@ -145,7 +145,7 @@ mod tests {
             .try_into_request()
             .expect("failed to create request");
 
-        let body = crate::json::to_vec(&UpdateChannelPermissionFields {
+        let body = crate::json::to_vec(&UpdateChannelPermissionBody {
             allow: None,
             deny: Some(Permissions::SEND_MESSAGES),
             kind: PermissionOverwriteType::Member,

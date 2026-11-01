@@ -17,7 +17,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct UpdateEmojiFields<'a> {
+struct UpdateEmojiBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,8 +27,8 @@ struct UpdateEmojiFields<'a> {
 /// Update an emoji in a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateEmoji<'a> {
+    body: UpdateEmojiBody<'a>,
     emoji_id: Id<EmojiMarker>,
-    fields: UpdateEmojiFields<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -41,7 +41,7 @@ impl<'a> UpdateEmoji<'a> {
         emoji_id: Id<EmojiMarker>,
     ) -> Self {
         Self {
-            fields: UpdateEmojiFields {
+            body: UpdateEmojiBody {
                 name: None,
                 roles: None,
             },
@@ -54,14 +54,14 @@ impl<'a> UpdateEmoji<'a> {
 
     /// Change the name of the emoji.
     pub const fn name(mut self, name: &'a str) -> Self {
-        self.fields.name = Some(name);
+        self.body.name = Some(name);
 
         self
     }
 
     /// Change the roles that the emoji is whitelisted to.
     pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
-        self.fields.roles = Some(roles);
+        self.body.roles = Some(roles);
 
         self
     }
@@ -97,7 +97,7 @@ impl TryIntoRequest for UpdateEmoji<'_> {
             guild_id: self.guild_id.get(),
         });
 
-        request = request.json(&self.fields);
+        request = request.json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

@@ -19,7 +19,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateStageInstanceFields<'a> {
+struct CreateStageInstanceBody<'a> {
     channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     guild_scheduled_event_id: Option<Id<ScheduledEventMarker>>,
@@ -35,28 +35,28 @@ struct CreateStageInstanceFields<'a> {
 /// Requires the user to be a moderator of the stage channel.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateStageInstance<'a> {
-    fields: Result<CreateStageInstanceFields<'a>, ValidationError>,
+    body: Result<CreateStageInstanceBody<'a>, ValidationError>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> CreateStageInstance<'a> {
     pub(crate) fn new(http: &'a Client, channel_id: Id<ChannelMarker>, topic: &'a str) -> Self {
-        let fields = Ok(CreateStageInstanceFields {
+        let body = Ok(CreateStageInstanceBody {
             channel_id,
             guild_scheduled_event_id: None,
             privacy_level: None,
             send_start_notification: None,
             topic,
         })
-        .and_then(|fields| {
+        .and_then(|body| {
             validate_stage_topic(topic)?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
-            fields,
+            body,
             http,
             reason: Ok(None),
         }
@@ -67,8 +67,8 @@ impl<'a> CreateStageInstance<'a> {
         mut self,
         guild_scheduled_event_id: Id<ScheduledEventMarker>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.guild_scheduled_event_id = Some(guild_scheduled_event_id);
+        if let Ok(body) = self.body.as_mut() {
+            body.guild_scheduled_event_id = Some(guild_scheduled_event_id);
         }
 
         self
@@ -76,8 +76,8 @@ impl<'a> CreateStageInstance<'a> {
 
     /// Set the [`PrivacyLevel`] of the instance.
     pub const fn privacy_level(mut self, privacy_level: PrivacyLevel) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.privacy_level = Some(privacy_level);
+        if let Ok(body) = self.body.as_mut() {
+            body.privacy_level = Some(privacy_level);
         }
 
         self
@@ -90,8 +90,8 @@ impl<'a> CreateStageInstance<'a> {
     ///
     /// [`Permissions::MENTION_EVERYONE`]: twilight_model::guild::Permissions::MENTION_EVERYONE
     pub const fn send_start_notification(mut self, send_start_notification: bool) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.send_start_notification = Some(send_start_notification);
+        if let Ok(body) = self.body.as_mut() {
+            body.send_start_notification = Some(send_start_notification);
         }
 
         self
@@ -123,9 +123,9 @@ impl IntoFuture for CreateStageInstance<'_> {
 
 impl TryIntoRequest for CreateStageInstance<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
-        let mut request = Request::builder(&Route::CreateStageInstance).json(&fields);
+        let mut request = Request::builder(&Route::CreateStageInstance).json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

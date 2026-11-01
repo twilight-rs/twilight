@@ -5,6 +5,7 @@ use crate::{
     response::{Response, ResponseFuture},
     routing::Route,
 };
+use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     application::interaction::callback::InteractionCallbackResponse,
@@ -12,14 +13,18 @@ use twilight_model::{
     id::{Id, marker::InteractionMarker},
 };
 
+#[derive(Serialize)]
+#[serde(transparent)]
+struct CreateResponseWithResponseBody<'a>(&'a InteractionResponse);
+
 /// Respond to an interaction, by its ID and token.
 ///
 /// This endpoint is not bound to the application's global rate limit.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateResponseWithResponse<'a> {
+    body: CreateResponseWithResponseBody<'a>,
     interaction_id: Id<InteractionMarker>,
     interaction_token: &'a str,
-    response: &'a InteractionResponse,
     http: &'a Client,
 }
 
@@ -31,9 +36,9 @@ impl<'a> CreateResponseWithResponse<'a> {
         response: &'a InteractionResponse,
     ) -> Self {
         Self {
+            body: CreateResponseWithResponseBody(response),
             interaction_id,
             interaction_token,
-            response,
             http,
         }
     }
@@ -69,20 +74,21 @@ impl TryIntoRequest for CreateResponseWithResponse<'_> {
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
         if let Some(attachments) = self
-            .response
+            .body
+            .0
             .data
             .as_ref()
             .and_then(|data| data.attachments.as_ref())
         {
-            let fields = crate::json::to_vec(&self.response).map_err(Error::json)?;
+            let body = crate::json::to_vec(&self.body).map_err(Error::json)?;
 
             let form = AttachmentManager::new()
                 .set_files(attachments.iter().collect())
-                .build_form(&fields);
+                .build_form(&body);
 
             request = request.form(form);
         } else {
-            request = request.json(&self.response);
+            request = request.json(&self.body);
         }
 
         request.build()

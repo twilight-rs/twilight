@@ -57,8 +57,8 @@ struct GetChannelMessagesFields {
 /// [`limit`]: Self::limit
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessages<'a> {
-    channel_id: Id<ChannelMarker>,
     fields: Result<GetChannelMessagesFields, ValidationError>,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
 }
 

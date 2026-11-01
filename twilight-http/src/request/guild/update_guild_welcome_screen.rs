@@ -14,7 +14,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct UpdateGuildWelcomeScreenFields<'a> {
+struct UpdateGuildWelcomeScreenBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -30,7 +30,7 @@ struct UpdateGuildWelcomeScreenFields<'a> {
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildWelcomeScreen<'a> {
-    fields: UpdateGuildWelcomeScreenFields<'a>,
+    body: UpdateGuildWelcomeScreenBody<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -39,7 +39,7 @@ pub struct UpdateGuildWelcomeScreen<'a> {
 impl<'a> UpdateGuildWelcomeScreen<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: UpdateGuildWelcomeScreenFields {
+            body: UpdateGuildWelcomeScreenBody {
                 description: None,
                 enabled: None,
                 welcome_channels: &[],
@@ -52,21 +52,21 @@ impl<'a> UpdateGuildWelcomeScreen<'a> {
 
     /// Set the description of the welcome screen.
     pub const fn description(mut self, description: &'a str) -> Self {
-        self.fields.description = Some(description);
+        self.body.description = Some(description);
 
         self
     }
 
     /// Set whether the welcome screen is enabled.
     pub const fn enabled(mut self, enabled: bool) -> Self {
-        self.fields.enabled = Some(enabled);
+        self.body.enabled = Some(enabled);
 
         self
     }
 
     /// Set the channels linked in the welcome screen, with associated metadata.
     pub const fn welcome_channels(mut self, welcome_channels: &'a [WelcomeScreenChannel]) -> Self {
-        self.fields.welcome_channels = welcome_channels;
+        self.body.welcome_channels = welcome_channels;
 
         self
     }
@@ -100,7 +100,7 @@ impl TryIntoRequest for UpdateGuildWelcomeScreen<'_> {
         let mut request = Request::builder(&Route::UpdateGuildWelcomeScreen {
             guild_id: self.guild_id.get(),
         })
-        .json(&self.fields);
+        .json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

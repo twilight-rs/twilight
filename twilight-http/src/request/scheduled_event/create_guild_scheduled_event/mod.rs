@@ -7,7 +7,7 @@ pub use self::{
     stage_instance::CreateGuildStageInstanceScheduledEvent, voice::CreateGuildVoiceScheduledEvent,
 };
 
-use super::EntityMetadataFields;
+use super::EntityMetadataBody;
 use crate::{
     client::Client,
     error::Error,
@@ -32,13 +32,13 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateGuildScheduledEventFields<'a> {
+struct CreateGuildScheduledEventBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    entity_metadata: Option<EntityMetadataFields<'a>>,
+    entity_metadata: Option<EntityMetadataBody<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -122,7 +122,7 @@ struct CreateGuildScheduledEventFields<'a> {
 pub struct CreateGuildScheduledEvent<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    fields: Result<CreateGuildScheduledEventFields<'a>, ValidationError>,
+    body: Result<CreateGuildScheduledEventBody<'a>, ValidationError>,
     reason: Result<Option<&'a str>, ValidationError>,
 }
 
@@ -135,7 +135,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         Self {
             guild_id,
             http,
-            fields: Ok(CreateGuildScheduledEventFields {
+            body: Ok(CreateGuildScheduledEventBody {
                 channel_id: None,
                 description: None,
                 entity_metadata: None,
@@ -167,12 +167,12 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         scheduled_start_time: &'a Timestamp,
         scheduled_end_time: &'a Timestamp,
     ) -> CreateGuildExternalScheduledEvent<'a> {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_scheduled_event_name(name)?;
 
-            fields.name.replace(name);
+            body.name.replace(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         CreateGuildExternalScheduledEvent::new(
@@ -199,11 +199,11 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
     ) -> CreateGuildStageInstanceScheduledEvent<'a> {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_scheduled_event_name(name)?;
-            fields.name.replace(name);
+            body.name.replace(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         CreateGuildStageInstanceScheduledEvent::new(self, channel_id, name, scheduled_start_time)
@@ -224,11 +224,11 @@ impl<'a> CreateGuildScheduledEvent<'a> {
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
     ) -> CreateGuildVoiceScheduledEvent<'a> {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_scheduled_event_name(name)?;
-            fields.name.replace(name);
+            body.name.replace(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         CreateGuildVoiceScheduledEvent::new(self, channel_id, name, scheduled_start_time)
@@ -244,12 +244,12 @@ impl<'a> CreateGuildScheduledEvent<'a> {
     }
 
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         Request::builder(&Route::CreateGuildScheduledEvent {
             guild_id: self.guild_id.get(),
         })
-        .json(&fields)
+        .json(&body)
         .build()
     }
 }

@@ -29,7 +29,7 @@ use twilight_validate::message::{
 };
 
 #[derive(Serialize)]
-struct UpdateWebhookMessageFields<'a> {
+struct UpdateWebhookMessageBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<Nullable<&'a AllowedMentions>>,
     /// List of attachments to keep, and new attachments to add.
@@ -81,7 +81,7 @@ struct UpdateWebhookMessageFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhookMessage<'a> {
     attachment_manager: AttachmentManager<'a>,
-    fields: Result<UpdateWebhookMessageFields<'a>, MessageValidationError>,
+    body: Result<UpdateWebhookMessageBody<'a>, MessageValidationError>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
     thread_id: Option<Id<ChannelMarker>>,
@@ -98,7 +98,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ) -> Self {
         Self {
             attachment_manager: AttachmentManager::new(),
-            fields: Ok(UpdateWebhookMessageFields {
+            body: Ok(UpdateWebhookMessageBody {
                 allowed_mentions: None,
                 attachments: None,
                 components: None,
@@ -119,8 +119,8 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
     pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.allowed_mentions = Some(Nullable(allowed_mentions));
+        if let Ok(body) = self.body.as_mut() {
+            body.allowed_mentions = Some(Nullable(allowed_mentions));
         }
 
         self
@@ -141,9 +141,9 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
-        if self.fields.is_ok() {
+        if self.body.is_ok() {
             if let Err(source) = attachments.iter().try_for_each(validate_attachment) {
-                self.fields = Err(source);
+                self.body = Err(source);
             } else {
                 self.attachment_manager = self
                     .attachment_manager
@@ -170,9 +170,9 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// version is in use, you can validate them manually using the [`twilight_validate::component::component_v1`]
     /// or [`twilight_validate::component::component_v2`] functions.
     pub fn components(mut self, components: Option<&'a [Component]>) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.components = Some(Nullable(components));
-            fields
+        self.body = self.body.map(|mut body| {
+            body.components = Some(Nullable(components));
+            body
         });
 
         self
@@ -194,14 +194,14 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
     pub fn content(mut self, content: Option<&'a str>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             if let Some(content) = content {
                 validate_content(content)?;
             }
 
-            fields.content = Some(Nullable(content));
+            body.content = Some(Nullable(content));
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -270,14 +270,14 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
     pub fn embeds(mut self, embeds: Option<&'a [Embed]>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             if let Some(embeds) = embeds {
                 validate_embeds(embeds)?;
             }
 
-            fields.embeds = Some(Nullable(embeds));
+            body.embeds = Some(Nullable(embeds));
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -292,12 +292,12 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// [`attachments`]: Self::attachments
     pub fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
+        if let Ok(body) = self.body.as_mut() {
             self.attachment_manager = self.attachment_manager.set_ids(attachment_ids.to_vec());
 
             // Set an empty list. This will be overwritten in `TryIntoRequest` if
             // the actual list is not empty.
-            fields.attachments = Some(Nullable(Some(Vec::new())));
+            body.attachments = Some(Nullable(Some(Vec::new())));
         }
 
         self
@@ -314,8 +314,8 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// [`ExecuteWebhook::payload_json`]: super::ExecuteWebhook::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.payload_json = Some(payload_json);
+        if let Ok(body) = self.body.as_mut() {
+            body.payload_json = Some(payload_json);
         }
 
         self
@@ -347,7 +347,7 @@ impl IntoFuture for UpdateWebhookMessage<'_> {
 
 impl TryIntoRequest for UpdateWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let mut fields = self.fields.map_err(Error::validation)?;
+        let mut body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: self.thread_id.map(Id::get),
@@ -360,32 +360,32 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
         request = request.use_authorization_token(false);
 
         // Set the default allowed mentions if required.
-        if fields.allowed_mentions.is_none()
+        if body.allowed_mentions.is_none()
             && let Some(allowed_mentions) = self.http.default_allowed_mentions()
         {
-            fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
+            body.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
         }
 
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
         if !self.attachment_manager.is_empty() {
-            let form = if let Some(payload_json) = fields.payload_json {
+            let form = if let Some(payload_json) = body.payload_json {
                 self.attachment_manager.build_form(payload_json)
             } else {
-                fields.attachments = Some(Nullable(Some(
+                body.attachments = Some(Nullable(Some(
                     self.attachment_manager.get_partial_attachments(),
                 )));
 
-                let fields = crate::json::to_vec(&fields).map_err(Error::json)?;
+                let body = crate::json::to_vec(&body).map_err(Error::json)?;
 
-                self.attachment_manager.build_form(fields.as_ref())
+                self.attachment_manager.build_form(body.as_ref())
             };
 
             request = request.form(form);
-        } else if let Some(payload_json) = fields.payload_json {
+        } else if let Some(payload_json) = body.payload_json {
             request = request.body(payload_json.to_vec());
         } else {
-            request = request.json(&fields);
+            request = request.json(&body);
         }
 
         request.build()
@@ -394,7 +394,7 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::{UpdateWebhookMessage, UpdateWebhookMessageFields};
+    use super::{UpdateWebhookMessage, UpdateWebhookMessageBody};
     use crate::{
         client::Client,
         request::{Nullable, Request, TryIntoRequest},
@@ -413,7 +413,7 @@ mod tests {
             .try_into_request()
             .expect("failed to create request");
 
-        let body = UpdateWebhookMessageFields {
+        let body = UpdateWebhookMessageBody {
             allowed_mentions: None,
             attachments: None,
             components: None,

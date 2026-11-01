@@ -29,17 +29,17 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct CreateAutoModerationRuleFieldsAction {
+struct CreateAutoModerationRuleBodyAction {
     /// Type of action.
     #[serde(rename = "type")]
     pub kind: AutoModerationActionType,
     /// Additional metadata needed during execution for this specific action
     /// type.
-    pub metadata: CreateAutoModerationRuleFieldsActionMetadata,
+    pub metadata: CreateAutoModerationRuleBodyActionMetadata,
 }
 
 #[derive(Default, Serialize)]
-struct CreateAutoModerationRuleFieldsActionMetadata {
+struct CreateAutoModerationRuleBodyActionMetadata {
     /// Channel to which user content should be logged.
     pub channel_id: Option<Id<ChannelMarker>>,
     /// Additional explanation that will be shown to members whenever their message is blocked.
@@ -53,7 +53,7 @@ struct CreateAutoModerationRuleFieldsActionMetadata {
 }
 
 #[derive(Serialize)]
-struct CreateAutoModerationRuleFieldsTriggerMetadata<'a> {
+struct CreateAutoModerationRuleBodyTriggerMetadata<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allow_list: Option<&'a [&'a str]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -67,14 +67,14 @@ struct CreateAutoModerationRuleFieldsTriggerMetadata<'a> {
 }
 
 #[derive(Serialize)]
-struct CreateAutoModerationRuleFields<'a> {
-    actions: Option<Vec<CreateAutoModerationRuleFieldsAction>>,
+struct CreateAutoModerationRuleBody<'a> {
+    actions: Option<Vec<CreateAutoModerationRuleBodyAction>>,
     enabled: Option<bool>,
     event_type: AutoModerationEventType,
     exempt_channels: Option<&'a [Id<ChannelMarker>]>,
     exempt_roles: Option<&'a [Id<RoleMarker>]>,
     name: &'a str,
-    trigger_metadata: Option<CreateAutoModerationRuleFieldsTriggerMetadata<'a>>,
+    trigger_metadata: Option<CreateAutoModerationRuleBodyTriggerMetadata<'a>>,
     trigger_type: Option<AutoModerationTriggerType>,
 }
 
@@ -106,7 +106,7 @@ struct CreateAutoModerationRuleFields<'a> {
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct CreateAutoModerationRule<'a> {
-    fields: Result<CreateAutoModerationRuleFields<'a>, ValidationError>,
+    body: Result<CreateAutoModerationRuleBody<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -120,7 +120,7 @@ impl<'a> CreateAutoModerationRule<'a> {
         event_type: AutoModerationEventType,
     ) -> Self {
         Self {
-            fields: Ok(CreateAutoModerationRuleFields {
+            body: Ok(CreateAutoModerationRuleBody {
                 actions: None,
                 enabled: None,
                 event_type,
@@ -140,15 +140,15 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
     pub fn action_block_message(mut self) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.actions.get_or_insert_with(Vec::new).push(
-                CreateAutoModerationRuleFieldsAction {
+        self.body = self.body.map(|mut body| {
+            body.actions
+                .get_or_insert_with(Vec::new)
+                .push(CreateAutoModerationRuleBodyAction {
                     kind: AutoModerationActionType::BlockMessage,
-                    metadata: CreateAutoModerationRuleFieldsActionMetadata::default(),
-                },
-            );
+                    metadata: CreateAutoModerationRuleBodyActionMetadata::default(),
+                });
 
-            fields
+            body
         });
 
         self
@@ -164,19 +164,19 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// [`ValidationErrorType::AutoModerationBlockActionCustomMessageLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationBlockActionCustomMessageLimit
     /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
     pub fn action_block_message_with_explanation(mut self, custom_message: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_auto_moderation_block_action_custom_message_limit(custom_message)?;
-            fields.actions.get_or_insert_with(Vec::new).push(
-                CreateAutoModerationRuleFieldsAction {
+            body.actions
+                .get_or_insert_with(Vec::new)
+                .push(CreateAutoModerationRuleBodyAction {
                     kind: AutoModerationActionType::BlockMessage,
-                    metadata: CreateAutoModerationRuleFieldsActionMetadata {
+                    metadata: CreateAutoModerationRuleBodyActionMetadata {
                         custom_message: Some(String::from(custom_message)),
                         ..Default::default()
                     },
-                },
-            );
+                });
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -186,18 +186,18 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`SendAlertMessage`]: AutoModerationActionType::SendAlertMessage
     pub fn action_send_alert_message(mut self, channel_id: Id<ChannelMarker>) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.actions.get_or_insert_with(Vec::new).push(
-                CreateAutoModerationRuleFieldsAction {
+        self.body = self.body.map(|mut body| {
+            body.actions
+                .get_or_insert_with(Vec::new)
+                .push(CreateAutoModerationRuleBodyAction {
                     kind: AutoModerationActionType::SendAlertMessage,
-                    metadata: CreateAutoModerationRuleFieldsActionMetadata {
+                    metadata: CreateAutoModerationRuleBodyActionMetadata {
                         channel_id: Some(channel_id),
                         ..Default::default()
                     },
-                },
-            );
+                });
 
-            fields
+            body
         });
 
         self
@@ -213,19 +213,19 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// [`Timeout`]: AutoModerationActionType::Timeout
     /// [`ValidationErrorType::AutoModerationActionMetadataDurationSeconds`]: twilight_validate::request::ValidationErrorType::AutoModerationActionMetadataDurationSeconds
     pub fn action_timeout(mut self, duration_seconds: u32) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_auto_moderation_action_metadata_duration_seconds(duration_seconds)?;
-            fields.actions.get_or_insert_with(Vec::new).push(
-                CreateAutoModerationRuleFieldsAction {
+            body.actions
+                .get_or_insert_with(Vec::new)
+                .push(CreateAutoModerationRuleBodyAction {
                     kind: AutoModerationActionType::Timeout,
-                    metadata: CreateAutoModerationRuleFieldsActionMetadata {
+                    metadata: CreateAutoModerationRuleBodyActionMetadata {
                         duration_seconds: Some(duration_seconds),
                         ..Default::default()
                     },
-                },
-            );
+                });
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -233,10 +233,10 @@ impl<'a> CreateAutoModerationRule<'a> {
 
     /// Set whether the rule is enabled.
     pub fn enabled(mut self, enabled: bool) -> Self {
-        self.fields = self.fields.map(|mut fields| {
-            fields.enabled = Some(enabled);
+        self.body = self.body.map(|mut body| {
+            body.enabled = Some(enabled);
 
-            fields
+            body
         });
 
         self
@@ -252,11 +252,11 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     /// [`ValidationErrorType::AutoModerationExemptChannels`]: twilight_validate::request::ValidationErrorType::AutoModerationExemptChannels
     pub fn exempt_channels(mut self, exempt_channels: &'a [Id<ChannelMarker>]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_auto_moderation_exempt_channels(exempt_channels)?;
-            fields.exempt_channels = Some(exempt_channels);
+            body.exempt_channels = Some(exempt_channels);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -272,11 +272,11 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     /// [`ValidationErrorType::AutoModerationExemptRoles`]: twilight_validate::request::ValidationErrorType::AutoModerationExemptRoles
     pub fn exempt_roles(mut self, exempt_roles: &'a [Id<RoleMarker>]) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_auto_moderation_exempt_roles(exempt_roles)?;
-            fields.exempt_roles = Some(exempt_roles);
+            body.exempt_roles = Some(exempt_roles);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -326,11 +326,11 @@ impl<'a> CreateAutoModerationRule<'a> {
         regex_patterns: &'a [&'a str],
         allow_list: &'a [&'a str],
     ) -> ResponseFuture<AutoModerationRule> {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_auto_moderation_metadata_keyword_allow_list(allow_list)?;
             validate_auto_moderation_metadata_keyword_filter(keyword_filter)?;
             validate_auto_moderation_metadata_regex_patterns(regex_patterns)?;
-            fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
+            body.trigger_metadata = Some(CreateAutoModerationRuleBodyTriggerMetadata {
                 allow_list: Some(allow_list),
                 keyword_filter: Some(keyword_filter),
                 presets: None,
@@ -338,9 +338,9 @@ impl<'a> CreateAutoModerationRule<'a> {
                 regex_patterns: Some(regex_patterns),
             });
 
-            fields.trigger_type = Some(AutoModerationTriggerType::Keyword);
+            body.trigger_type = Some(AutoModerationTriggerType::Keyword);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self.exec()
@@ -350,10 +350,10 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`Spam`]: AutoModerationTriggerType::Spam
     pub fn with_spam(mut self) -> ResponseFuture<AutoModerationRule> {
-        self.fields = self.fields.map(|mut fields| {
-            fields.trigger_type = Some(AutoModerationTriggerType::Spam);
+        self.body = self.body.map(|mut body| {
+            body.trigger_type = Some(AutoModerationTriggerType::Spam);
 
-            fields
+            body
         });
 
         self.exec()
@@ -382,9 +382,9 @@ impl<'a> CreateAutoModerationRule<'a> {
         presets: &'a [AutoModerationKeywordPresetType],
         allow_list: &'a [&'a str],
     ) -> ResponseFuture<AutoModerationRule> {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_auto_moderation_metadata_keyword_allow_list(allow_list)?;
-            fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
+            body.trigger_metadata = Some(CreateAutoModerationRuleBodyTriggerMetadata {
                 allow_list: Some(allow_list),
                 keyword_filter: None,
                 presets: Some(presets),
@@ -392,9 +392,9 @@ impl<'a> CreateAutoModerationRule<'a> {
                 regex_patterns: None,
             });
 
-            fields.trigger_type = Some(AutoModerationTriggerType::KeywordPreset);
+            body.trigger_type = Some(AutoModerationTriggerType::KeywordPreset);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self.exec()
@@ -418,18 +418,18 @@ impl<'a> CreateAutoModerationRule<'a> {
         mut self,
         mention_total_limit: u8,
     ) -> ResponseFuture<AutoModerationRule> {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_auto_moderation_metadata_mention_total_limit(mention_total_limit)?;
-            fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
+            body.trigger_metadata = Some(CreateAutoModerationRuleBodyTriggerMetadata {
                 allow_list: None,
                 keyword_filter: None,
                 presets: None,
                 mention_total_limit: Some(mention_total_limit),
                 regex_patterns: None,
             });
-            fields.trigger_type = Some(AutoModerationTriggerType::MentionSpam);
+            body.trigger_type = Some(AutoModerationTriggerType::MentionSpam);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self.exec()
@@ -458,11 +458,11 @@ impl<'a> AuditLogReason<'a> for CreateAutoModerationRule<'a> {
 
 impl TryIntoRequest for CreateAutoModerationRule<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
-        let fields = self.fields.map_err(HttpError::validation)?;
+        let body = self.body.map_err(HttpError::validation)?;
         let mut request = Request::builder(&Route::CreateAutoModerationRule {
             guild_id: self.guild_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(HttpError::validation)? {
             request = request.headers(request::audit_header(reason)?);

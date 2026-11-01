@@ -14,7 +14,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct UpdateCurrentMemberFields<'a> {
+struct UpdateCurrentMemberBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     nick: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -28,7 +28,7 @@ struct UpdateCurrentMemberFields<'a> {
 /// Update the user's member in a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentMember<'a> {
-    fields: Result<UpdateCurrentMemberFields<'a>, ValidationError>,
+    body: Result<UpdateCurrentMemberBody<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -37,7 +37,7 @@ pub struct UpdateCurrentMember<'a> {
 impl<'a> UpdateCurrentMember<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(UpdateCurrentMemberFields {
+            body: Ok(UpdateCurrentMemberBody {
                 nick: None,
                 banner: None,
                 avatar: None,
@@ -62,14 +62,14 @@ impl<'a> UpdateCurrentMember<'a> {
     ///
     /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
     pub fn nick(mut self, nick: Option<&'a str>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             if let Some(nick) = nick {
                 validate_nickname(nick)?;
             }
 
-            fields.nick = Some(Nullable(nick));
+            body.nick = Some(Nullable(nick));
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -81,8 +81,8 @@ impl<'a> UpdateCurrentMember<'a> {
     ///
     /// Uses the [Image Data URI Scheme](https://discord.com/developers/docs/reference#image-data) for image data.
     pub const fn banner(mut self, banner: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.banner = Some(Nullable(banner));
+        if let Ok(body) = self.body.as_mut() {
+            body.banner = Some(Nullable(banner));
         }
 
         self
@@ -94,8 +94,8 @@ impl<'a> UpdateCurrentMember<'a> {
     ///
     /// Uses the [Image Data URI Scheme](https://discord.com/developers/docs/reference#image-data) for image data.
     pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.avatar = Some(Nullable(avatar));
+        if let Ok(body) = self.body.as_mut() {
+            body.avatar = Some(Nullable(avatar));
         }
 
         self
@@ -114,14 +114,14 @@ impl<'a> UpdateCurrentMember<'a> {
     ///
     /// [`Bio`]: twilight_validate::request::ValidationErrorType::Bio
     pub fn bio(mut self, bio: Option<&'a str>) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             if let Some(bio) = bio {
                 validate_bio(bio)?;
             }
 
-            fields.bio = Some(Nullable(bio));
+            body.bio = Some(Nullable(bio));
 
-            Ok(fields)
+            Ok(body)
         });
         self
     }
@@ -152,11 +152,11 @@ impl IntoFuture for UpdateCurrentMember<'_> {
 
 impl TryIntoRequest for UpdateCurrentMember<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateCurrentMember {
             guild_id: self.guild_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

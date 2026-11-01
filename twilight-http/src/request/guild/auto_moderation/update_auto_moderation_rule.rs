@@ -20,7 +20,7 @@ use twilight_model::{
 use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 #[derive(Serialize)]
-struct UpdateAutoModerationRuleFields<'a> {
+struct UpdateAutoModerationRuleBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     actions: Option<&'a [AutoModerationAction]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -45,7 +45,7 @@ struct UpdateAutoModerationRuleFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateAutoModerationRule<'a> {
     auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
-    fields: UpdateAutoModerationRuleFields<'a>,
+    body: UpdateAutoModerationRuleBody<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -59,7 +59,7 @@ impl<'a> UpdateAutoModerationRule<'a> {
     ) -> Self {
         Self {
             auto_moderation_rule_id,
-            fields: UpdateAutoModerationRuleFields {
+            body: UpdateAutoModerationRuleBody {
                 actions: None,
                 enabled: None,
                 event_type: None,
@@ -76,42 +76,42 @@ impl<'a> UpdateAutoModerationRule<'a> {
 
     /// Set the list of actions.
     pub const fn actions(mut self, actions: &'a [AutoModerationAction]) -> Self {
-        self.fields.actions = Some(actions);
+        self.body.actions = Some(actions);
 
         self
     }
 
     /// Set whether the rule is enabled.
     pub const fn enabled(mut self, enabled: bool) -> Self {
-        self.fields.enabled = Some(enabled);
+        self.body.enabled = Some(enabled);
 
         self
     }
 
     /// Set the rule's event type.
     pub const fn event_type(mut self, event_type: AutoModerationEventType) -> Self {
-        self.fields.event_type = Some(event_type);
+        self.body.event_type = Some(event_type);
 
         self
     }
 
     /// Set the channels where the rule does not apply.
     pub const fn exempt_channels(mut self, exempt_channels: &'a [Id<ChannelMarker>]) -> Self {
-        self.fields.exempt_channels = Some(exempt_channels);
+        self.body.exempt_channels = Some(exempt_channels);
 
         self
     }
 
     /// Set the roles to which the rule does not apply.
     pub const fn exempt_roles(mut self, exempt_roles: &'a [Id<RoleMarker>]) -> Self {
-        self.fields.exempt_roles = Some(exempt_roles);
+        self.body.exempt_roles = Some(exempt_roles);
 
         self
     }
 
     /// Set the rule's name.
     pub const fn name(mut self, name: &'a str) -> Self {
-        self.fields.name = Some(name);
+        self.body.name = Some(name);
 
         self
     }
@@ -123,7 +123,7 @@ impl<'a> UpdateAutoModerationRule<'a> {
         mut self,
         trigger_metadata: &'a AutoModerationTriggerMetadata,
     ) -> Self {
-        self.fields.trigger_metadata = Some(trigger_metadata);
+        self.body.trigger_metadata = Some(trigger_metadata);
 
         self
     }
@@ -158,7 +158,7 @@ impl TryIntoRequest for UpdateAutoModerationRule<'_> {
             auto_moderation_rule_id: self.auto_moderation_rule_id.get(),
             guild_id: self.guild_id.get(),
         })
-        .json(&self.fields);
+        .json(&self.body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

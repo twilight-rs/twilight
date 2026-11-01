@@ -13,7 +13,7 @@ use twilight_model::id::{
 };
 
 #[derive(Serialize)]
-struct UpdateUserVoiceStateFields {
+struct UpdateUserVoiceStateBody {
     channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suppress: Option<bool>,
@@ -22,7 +22,7 @@ struct UpdateUserVoiceStateFields {
 /// Update another user's voice state.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateUserVoiceState<'a> {
-    fields: UpdateUserVoiceStateFields,
+    body: UpdateUserVoiceStateBody,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     user_id: Id<UserMarker>,
@@ -36,7 +36,7 @@ impl<'a> UpdateUserVoiceState<'a> {
         channel_id: Id<ChannelMarker>,
     ) -> Self {
         Self {
-            fields: UpdateUserVoiceStateFields {
+            body: UpdateUserVoiceStateBody {
                 channel_id,
                 suppress: None,
             },
@@ -59,7 +59,7 @@ impl<'a> UpdateUserVoiceState<'a> {
     ///
     /// [`MUTE_MEMBERS`]: twilight_model::guild::Permissions::MUTE_MEMBERS
     pub const fn suppress(mut self) -> Self {
-        self.fields.suppress = Some(true);
+        self.body.suppress = Some(true);
 
         self
     }
@@ -86,7 +86,7 @@ impl TryIntoRequest for UpdateUserVoiceState<'_> {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
         })
-        .json(&self.fields)
+        .json(&self.body)
         .build()
     }
 }

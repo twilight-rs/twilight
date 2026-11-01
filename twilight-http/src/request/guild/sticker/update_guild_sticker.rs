@@ -23,7 +23,7 @@ use twilight_validate::{
 };
 
 #[derive(Serialize)]
-struct UpdateGuildStickerFields<'a> {
+struct UpdateGuildStickerBody<'a> {
     description: Option<&'a str>,
     name: Option<&'a str>,
     tags: Option<&'a str>,
@@ -55,7 +55,7 @@ struct UpdateGuildStickerFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildSticker<'a> {
-    fields: Result<UpdateGuildStickerFields<'a>, StickerValidationError>,
+    body: Result<UpdateGuildStickerBody<'a>, StickerValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -70,7 +70,7 @@ impl<'a> UpdateGuildSticker<'a> {
     ) -> Self {
         Self {
             guild_id,
-            fields: Ok(UpdateGuildStickerFields {
+            body: Ok(UpdateGuildStickerBody {
                 description: None,
                 name: None,
                 tags: None,
@@ -89,11 +89,11 @@ impl<'a> UpdateGuildSticker<'a> {
     ///
     /// [`DescriptionInvalid`]: twilight_validate::sticker::StickerValidationErrorType::DescriptionInvalid
     pub fn description(mut self, description: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_description(description)?;
-            fields.description = Some(description);
+            body.description = Some(description);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -107,11 +107,11 @@ impl<'a> UpdateGuildSticker<'a> {
     ///
     /// [`NameInvalid`]: twilight_validate::sticker::StickerValidationErrorType::NameInvalid
     pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_name(name)?;
-            fields.name = Some(name);
+            body.name = Some(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -125,11 +125,11 @@ impl<'a> UpdateGuildSticker<'a> {
     ///
     /// [`TagsInvalid`]: twilight_validate::sticker::StickerValidationErrorType::TagsInvalid
     pub fn tags(mut self, tags: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_tags(tags)?;
-            fields.tags = Some(tags);
+            body.tags = Some(tags);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -161,13 +161,13 @@ impl IntoFuture for UpdateGuildSticker<'_> {
 
 impl TryIntoRequest for UpdateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
 
         let mut request = Request::builder(&Route::UpdateGuildSticker {
             guild_id: self.guild_id.get(),
             sticker_id: self.sticker_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Ok(Some(reason)) = self.reason {
             request = request.headers(request::audit_header(reason)?);

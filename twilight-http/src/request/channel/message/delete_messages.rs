@@ -17,7 +17,7 @@ use twilight_validate::{
 };
 
 #[derive(Serialize)]
-struct DeleteMessagesFields<'a> {
+struct DeleteMessagesBody<'a> {
     messages: &'a [Id<MessageMarker>],
 }
 
@@ -31,8 +31,8 @@ struct DeleteMessagesFields<'a> {
 /// [Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteMessages<'a> {
+    body: Result<DeleteMessagesBody<'a>, ChannelValidationError>,
     channel_id: Id<ChannelMarker>,
-    fields: Result<DeleteMessagesFields<'a>, ChannelValidationError>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
 }
@@ -43,15 +43,15 @@ impl<'a> DeleteMessages<'a> {
         channel_id: Id<ChannelMarker>,
         messages: &'a [Id<MessageMarker>],
     ) -> Self {
-        let fields = Ok(DeleteMessagesFields { messages }).and_then(|fields| {
+        let body = Ok(DeleteMessagesBody { messages }).and_then(|body| {
             validate_bulk_delete_messages(messages.len())?;
 
-            Ok(fields)
+            Ok(body)
         });
 
         Self {
             channel_id,
-            fields,
+            body,
             http,
             reason: Ok(None),
         }
@@ -83,11 +83,11 @@ impl IntoFuture for DeleteMessages<'_> {
 
 impl TryIntoRequest for DeleteMessages<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::DeleteMessages {
             channel_id: self.channel_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);

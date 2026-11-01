@@ -5,20 +5,25 @@ use crate::{
     response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
+use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     http::channel_position::Position,
     id::{Id, marker::GuildMarker},
 };
 
+#[derive(Serialize)]
+#[serde(transparent)]
+struct UpdateGuildChannelPositionsBody<'a>(&'a [Position]);
+
 /// Modify the positions of the channels.
 ///
 /// The minimum amount of channels to modify, is a swap between two channels.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildChannelPositions<'a> {
+    body: UpdateGuildChannelPositionsBody<'a>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    positions: &'a [Position],
 }
 
 impl<'a> UpdateGuildChannelPositions<'a> {
@@ -28,9 +33,9 @@ impl<'a> UpdateGuildChannelPositions<'a> {
         channel_positions: &'a [Position],
     ) -> Self {
         Self {
+            body: UpdateGuildChannelPositionsBody(channel_positions),
             guild_id,
             http,
-            positions: channel_positions,
         }
     }
 }
@@ -55,7 +60,7 @@ impl TryIntoRequest for UpdateGuildChannelPositions<'_> {
         Request::builder(&Route::UpdateGuildChannels {
             guild_id: self.guild_id.get(),
         })
-        .json(&self.positions)
+        .json(&self.body)
         .build()
     }
 }

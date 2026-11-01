@@ -22,7 +22,7 @@ use twilight_validate::request::{
 };
 
 #[derive(Serialize)]
-struct UpdateGuildFields<'a> {
+struct UpdateGuildBody<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -68,7 +68,7 @@ struct UpdateGuildFields<'a> {
 /// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuild<'a> {
-    fields: Result<UpdateGuildFields<'a>, ValidationError>,
+    body: Result<UpdateGuildBody<'a>, ValidationError>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Result<Option<&'a str>, ValidationError>,
@@ -77,7 +77,7 @@ pub struct UpdateGuild<'a> {
 impl<'a> UpdateGuild<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
-            fields: Ok(UpdateGuildFields {
+            body: Ok(UpdateGuildBody {
                 afk_channel_id: None,
                 afk_timeout: None,
                 banner: None,
@@ -105,8 +105,8 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the voice channel where AFK voice users are sent.
     pub const fn afk_channel_id(mut self, afk_channel_id: Option<Id<ChannelMarker>>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.afk_channel_id = Some(Nullable(afk_channel_id));
+        if let Ok(body) = self.body.as_mut() {
+            body.afk_channel_id = Some(Nullable(afk_channel_id));
         }
 
         self
@@ -114,8 +114,8 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set how much time it takes for a voice user to be considered AFK.
     pub const fn afk_timeout(mut self, afk_timeout: u64) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.afk_timeout = Some(afk_timeout);
+        if let Ok(body) = self.body.as_mut() {
+            body.afk_timeout = Some(afk_timeout);
         }
 
         self
@@ -128,8 +128,8 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// The server must have the `BANNER` feature.
     pub const fn banner(mut self, banner: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.banner = Some(Nullable(banner));
+        if let Ok(body) = self.body.as_mut() {
+            body.banner = Some(Nullable(banner));
         }
 
         self
@@ -143,8 +143,8 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         default_message_notifications: Option<DefaultMessageNotificationLevel>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.default_message_notifications = Some(Nullable(default_message_notifications));
+        if let Ok(body) = self.body.as_mut() {
+            body.default_message_notifications = Some(Nullable(default_message_notifications));
         }
 
         self
@@ -154,8 +154,8 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Requires the guild to have the `DISCOVERABLE` feature enabled.
     pub const fn discovery_splash(mut self, discovery_splash: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.discovery_splash = Some(Nullable(discovery_splash));
+        if let Ok(body) = self.body.as_mut() {
+            body.discovery_splash = Some(Nullable(discovery_splash));
         }
 
         self
@@ -166,8 +166,8 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         explicit_content_filter: Option<ExplicitContentFilter>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.explicit_content_filter = Some(Nullable(explicit_content_filter));
+        if let Ok(body) = self.body.as_mut() {
+            body.explicit_content_filter = Some(Nullable(explicit_content_filter));
         }
 
         self
@@ -191,8 +191,8 @@ impl<'a> UpdateGuild<'a> {
     /// [`Permissions::ADMINISTRATOR`]: twilight_model::guild::Permissions::ADMINISTRATOR
     /// [`Permissions::MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn features(mut self, features: &'a [&'a str]) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.features = Some(features);
+        if let Ok(body) = self.body.as_mut() {
+            body.features = Some(features);
         }
 
         self
@@ -206,8 +206,8 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.icon = Some(Nullable(icon));
+        if let Ok(body) = self.body.as_mut() {
+            body.icon = Some(Nullable(icon));
         }
 
         self
@@ -225,11 +225,11 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// [`GuildName`]: twilight_validate::request::ValidationErrorType::GuildName
     pub fn name(mut self, name: &'a str) -> Self {
-        self.fields = self.fields.and_then(|mut fields| {
+        self.body = self.body.and_then(|mut body| {
             validate_guild_name(name)?;
-            fields.name.replace(name);
+            body.name.replace(name);
 
-            Ok(fields)
+            Ok(body)
         });
 
         self
@@ -239,8 +239,8 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Only works if the current user is the owner.
     pub const fn owner_id(mut self, owner_id: Id<UserMarker>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.owner_id = Some(owner_id);
+        if let Ok(body) = self.body.as_mut() {
+            body.owner_id = Some(owner_id);
         }
 
         self
@@ -250,8 +250,8 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Requires the guild to have the `INVITE_SPLASH` feature enabled.
     pub const fn splash(mut self, splash: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.splash = Some(Nullable(splash));
+        if let Ok(body) = self.body.as_mut() {
+            body.splash = Some(Nullable(splash));
         }
 
         self
@@ -259,8 +259,8 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the channel where events such as welcome messages are posted.
     pub const fn system_channel(mut self, system_channel_id: Option<Id<ChannelMarker>>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.system_channel_id = Some(Nullable(system_channel_id));
+        if let Ok(body) = self.body.as_mut() {
+            body.system_channel_id = Some(Nullable(system_channel_id));
         }
 
         self
@@ -271,8 +271,8 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         system_channel_flags: Option<SystemChannelFlags>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.system_channel_flags = Some(Nullable(system_channel_flags));
+        if let Ok(body) = self.body.as_mut() {
+            body.system_channel_flags = Some(Nullable(system_channel_flags));
         }
 
         self
@@ -284,8 +284,8 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub const fn rules_channel(mut self, rules_channel_id: Option<Id<ChannelMarker>>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.rules_channel_id = Some(Nullable(rules_channel_id));
+        if let Ok(body) = self.body.as_mut() {
+            body.rules_channel_id = Some(Nullable(rules_channel_id));
         }
 
         self
@@ -298,8 +298,8 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         public_updates_channel_id: Option<Id<ChannelMarker>>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.public_updates_channel_id = Some(Nullable(public_updates_channel_id));
+        if let Ok(body) = self.body.as_mut() {
+            body.public_updates_channel_id = Some(Nullable(public_updates_channel_id));
         }
 
         self
@@ -309,8 +309,8 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Defaults to `en-US`. Requires the guild to be `PUBLIC`.
     pub const fn preferred_locale(mut self, preferred_locale: Option<&'a str>) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.preferred_locale = Some(Nullable(preferred_locale));
+        if let Ok(body) = self.body.as_mut() {
+            body.preferred_locale = Some(Nullable(preferred_locale));
         }
 
         self
@@ -325,8 +325,8 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         verification_level: Option<VerificationLevel>,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.verification_level = Some(Nullable(verification_level));
+        if let Ok(body) = self.body.as_mut() {
+            body.verification_level = Some(Nullable(verification_level));
         }
 
         self
@@ -337,8 +337,8 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         premium_progress_bar_enabled: bool,
     ) -> Self {
-        if let Ok(fields) = self.fields.as_mut() {
-            fields.premium_progress_bar_enabled = Some(premium_progress_bar_enabled);
+        if let Ok(body) = self.body.as_mut() {
+            body.premium_progress_bar_enabled = Some(premium_progress_bar_enabled);
         }
 
         self
@@ -370,11 +370,11 @@ impl IntoFuture for UpdateGuild<'_> {
 
 impl TryIntoRequest for UpdateGuild<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        let fields = self.fields.map_err(Error::validation)?;
+        let body = self.body.map_err(Error::validation)?;
         let mut request = Request::builder(&Route::UpdateGuild {
             guild_id: self.guild_id.get(),
         })
-        .json(&fields);
+        .json(&body);
 
         if let Some(reason) = self.reason.map_err(Error::validation)? {
             request = request.headers(request::audit_header(reason)?);
