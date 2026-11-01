@@ -28,7 +28,10 @@
 //!     Path,
 //!     query_parameter::{CsvQueryParameter, KeyValueQueryParameter, RepeatingQueryParameter},
 //! };
-//! use twilight_model::id::{Id, marker::{ChannelMarker, GuildMarker}};
+//! use twilight_model::id::{
+//!     Id,
+//!     marker::{ChannelMarker, GuildMarker},
+//! };
 //!
 //! let channel_ids: &[Id<ChannelMarker>] = &[Id::new(123), Id::new(456)];
 //! let guild_id = Id::<GuildMarker>::new(789);
@@ -155,10 +158,7 @@ impl<'a, 'b> QueryParameterWriter<'a, 'b> {
 ///
 /// ```rust
 /// use std::fmt;
-/// use twilight_http::request::path::query_parameter::{
-///     QueryParameter,
-///     QueryParameterWriter,
-/// };
+/// use twilight_http::request::path::query_parameter::{QueryParameter, QueryParameterWriter};
 /// use twilight_model::id::Id;
 ///
 /// struct OnlyEvenIdsRepeatingQueryParameter<'a, T> {
