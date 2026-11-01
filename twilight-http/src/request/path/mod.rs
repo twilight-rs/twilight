@@ -16,8 +16,6 @@
 //!
 //! [`Request`]: super::Request
 
-#![warn(missing_docs, clippy::missing_docs_in_private_items)]
-
 pub mod query_parameter;
 
 mod path_builder;
@@ -190,13 +188,13 @@ impl FromStr for Path {
             {
                 if !state.push(segment_type) {
                     return Err(Self::Err {
-                        kind: PathParseErrorType::SegmentInvalid,
+                        kind: PathParseErrorType::Length,
                         source: None,
                     });
                 }
             } else {
                 return Err(Self::Err {
-                    kind: PathParseErrorType::Length,
+                    kind: PathParseErrorType::SegmentInvalid,
                     source: None,
                 });
             }
@@ -232,6 +230,7 @@ impl PartialEq<&str> for Path {
 ///
 /// Segments are positional and can only occur after certain segments, so the
 /// history of previous segments is necessary when parsing the next segment.
+#[derive(Debug)]
 struct PathParseState {
     /// History of segments within a path.
     segments: [Option<PathSegmentType>; Self::MAX_LEN],
@@ -249,18 +248,6 @@ impl PathParseState {
     const fn new() -> Self {
         Self {
             segments: [None; _],
-        }
-    }
-
-    /// Retrieve a mutable reference to the most recent path segment type.
-    #[expect(dead_code)]
-    fn last_mut(&mut self) -> Option<&mut PathSegmentType> {
-        let len = self.len();
-
-        if let Some(x) = self.segments.get_mut(len) {
-            x.as_mut()
-        } else {
-            None
         }
     }
 
@@ -330,14 +317,6 @@ impl FromIterator<PathSegmentType> for PathParseState {
 /// whether the shape of a path is valid.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PathSegmentType {
-    /// Path segment is an action.
-    ///
-    /// This segment can occur after:
-    /// - Code
-    /// - Id
-    /// - Resource
-    /// - Subresource
-    Action,
     /// Path segment is a code.
     ///
     /// Codes are special. They can't be discerned from resources and
@@ -345,8 +324,8 @@ enum PathSegmentType {
     /// on surrounding context after-the-fact.
     ///
     /// This segment can occur after:
+    /// - Subresource
     /// - Id
-    #[allow(dead_code)]
     Code,
     /// Path segment is an ID.
     ///
@@ -359,7 +338,6 @@ enum PathSegmentType {
     /// There are no valid segments after this.
     ///
     /// This segment can occur after:
-    /// - Action
     /// - Code
     /// - Id
     /// - Resource
@@ -405,15 +383,16 @@ impl PathSegmentType {
         }
 
         match (previous_terminator, state.recent()) {
-            (Some('/'), [Some(Self::Resource), Some(Self::Subresource), _]) => {
-                (!Self::is_id(value)).then_some(Self::Action)
-            }
             (Some('/'), [Some(Self::Subresource), Some(Self::Resource), _]) => {
-                Self::is_id(value).then_some(Self::Id)
+                Some(if Self::is_id(value) {
+                    Self::Id
+                } else {
+                    Self::Code
+                })
             }
             (
                 Some('?'),
-                [Some(Self::Action | Self::Id), Some(_), _]
+                [Some(Self::Code | Self::Id), Some(_), _]
                 | [Some(Self::Resource), _, _]
                 | [Some(Self::Subresource), Some(Self::Resource), _],
             ) => Some(Self::Query),
@@ -448,9 +427,16 @@ impl PathSegmentType {
 
 #[cfg(test)]
 mod tests {
-    use super::{PathParseState, PathSegmentType};
+    use super::{Path, PathParseState, PathSegmentType};
+    use std::str::FromStr as _;
 
     const SLASH: char = '/';
+
+    #[test]
+    fn path_parse_resource_subresource_action() {
+        // assert!(Path::from_str("foo/bar/baz").is_ok());
+        Path::from_str("foo/bar/baz").unwrap();
+    }
 
     #[test]
     fn path_segment_type_parse_root_resource() {
@@ -479,33 +465,6 @@ mod tests {
         assert_eq!(
             Some(PathSegmentType::Resource),
             PathSegmentType::parse(&mut state, Some(SLASH), "foo"),
-        );
-    }
-
-    #[ignore = "not implemented"]
-    #[test]
-    fn path_segment_type_parse_secondary_id() {
-        let mut state = PathParseState::from_iter([
-            PathSegmentType::Resource,
-            PathSegmentType::Id,
-            PathSegmentType::Resource,
-            PathSegmentType::Subresource,
-        ]);
-
-        assert_eq!(
-            Some(PathSegmentType::Id),
-            PathSegmentType::parse(&mut state, Some(SLASH), "1")
-        );
-
-        // Also confirm that the Resource has become a Code and the Subresource
-        // has become a Resource.
-        assert_eq!(
-            [
-                Some(PathSegmentType::Id),
-                Some(PathSegmentType::Resource),
-                Some(PathSegmentType::Code),
-            ],
-            state.recent()
         );
     }
 }

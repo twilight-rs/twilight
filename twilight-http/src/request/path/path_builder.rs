@@ -72,7 +72,7 @@ pub enum PathBuilderErrorType {
     Formatting,
 }
 
-/// Sentinel for referring to the current application.
+/// Sentinel for referring to the current application in place of an ID.
 ///
 /// This writes "@me" to ID segments in the path.
 pub struct Me;
@@ -92,16 +92,6 @@ impl Display for Me {
 pub trait PathId: Display {}
 
 impl<T> PathId for Id<T> {}
-impl PathId for str {}
-impl PathId for &str {}
-impl PathId for u8 {}
-impl PathId for u16 {}
-impl PathId for u32 {}
-impl PathId for u64 {}
-impl PathId for i8 {}
-impl PathId for i16 {}
-impl PathId for i32 {}
-impl PathId for i64 {}
 impl<T: PathId> PathId for &T {}
 impl PathId for Me {}
 

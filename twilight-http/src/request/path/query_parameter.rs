@@ -30,7 +30,7 @@
 //! };
 //! use twilight_model::id::{Id, marker::{ChannelMarker, GuildMarker}};
 //!
-//! let channel_ids = &[Id::new(123), Id::new(456)]
+//! let channel_ids: &[Id<ChannelMarker>] = &[Id::new(123), Id::new(456)];
 //! let guild_id = Id::<GuildMarker>::new(789);
 //!
 //! let path = Path::builder()
@@ -43,7 +43,7 @@
 //!     .build()?;
 //!
 //! assert_eq!(
-//!     "guilds/1/messages/search?limit=25&channel_id=123&channel_id=456",
+//!     "guilds/789/messages/search?limit=25&channel_id=123,456",
 //!     path
 //! );
 //! # Ok(()) }
@@ -154,7 +154,12 @@ impl<'a, 'b> QueryParameterWriter<'a, 'b> {
 /// builders.
 ///
 /// ```rust
-/// use twilight_http::request::path::query_parameter::QueryParameter;
+/// use std::fmt;
+/// use twilight_http::request::path::query_parameter::{
+///     QueryParameter,
+///     QueryParameterWriter,
+/// };
+/// use twilight_model::id::Id;
 ///
 /// struct OnlyEvenIdsRepeatingQueryParameter<'a, T> {
 ///     key: &'a str,
@@ -166,7 +171,7 @@ impl<'a, 'b> QueryParameterWriter<'a, 'b> {
 ///         self.values.iter().any(|id| id.get() % 2 == 0)
 ///     }
 ///
-///     fn write(&self, f: QueryParameterWriter<'_, '_>) -> fmt::Result {
+///     fn write(&self, mut writer: QueryParameterWriter<'_, '_>) -> fmt::Result {
 ///         for value in self.values {
 ///             if value.get() % 2 == 0 {
 ///                 writer.write_pair(self.key, value)?;
@@ -192,7 +197,7 @@ pub trait QueryParameter {
     /// # Errors
     ///
     /// Returns a formatting error if the provided value could not be formatted.
-    fn write(&self, f: QueryParameterWriter<'_, '_>) -> fmt::Result;
+    fn write(&self, writer: QueryParameterWriter<'_, '_>) -> fmt::Result;
 }
 
 /// Key-value pair to be written in the query of a path.
@@ -235,7 +240,7 @@ impl<T: QueryParameterValue> QueryParameter for (&str, T) {
 ///     .parameter(("limit", 25u8))
 ///     .build()?;
 ///
-/// assert_eq!("channels/123/messages?query=foo&limit=25", path);
+/// assert_eq!("guilds/123/members/search?query=foo&limit=25", path);
 /// # Ok(()) }
 /// ```
 pub struct KeyValueQueryParameter<'a, T> {
@@ -258,8 +263,8 @@ impl<T: QueryParameterValue> QueryParameter for KeyValueQueryParameter<'_, T> {
         QueryParameter::will_write(&self.inner)
     }
 
-    fn write<'b>(&self, f: QueryParameterWriter<'_, '_>) -> fmt::Result {
-        QueryParameter::write(&self.inner, f)
+    fn write<'b>(&self, writer: QueryParameterWriter<'_, '_>) -> fmt::Result {
+        QueryParameter::write(&self.inner, writer)
     }
 }
 
@@ -276,7 +281,7 @@ impl<T: QueryParameterValue> QueryParameter for KeyValueQueryParameter<'_, T> {
 /// # Examples
 ///
 /// ```rust
-/// use twilight_http::request::route::{
+/// use twilight_http::request::path::{
 ///     Path,
 ///     query_parameter::{CsvQueryParameter, KeyValueQueryParameter},
 /// };
@@ -348,7 +353,7 @@ impl<T: QueryParameterValue> QueryParameter for CsvQueryParameter<'_, T> {
 /// # Examples
 ///
 /// ```rust
-/// use twilight_http::request::route::{
+/// use twilight_http::request::path::{
 ///     Path,
 ///     query_parameter::{KeyValueQueryParameter, RepeatingQueryParameter},
 /// };
