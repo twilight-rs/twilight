@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.18.0] - TODO
+## [0.18.0] - 2026-11-01
 
 ### Breaking Changes
 These fixes are technically breaking changes, but the old implementation where fundamentally broken and resulted (de)serialization errors when used.

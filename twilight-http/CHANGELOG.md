@@ -1,16 +1,16 @@
 # Changelog
 
-## [0.18.0] - TODO
+## [0.18.0] - 2026-11-01
 
 ### Compilation breaking fixes
 
-These fixes are technically breaking changes, but the old implementation where fundamentally broken and resulted (de)serialization errors when used. 
+These fixes are technically breaking changes, but the old implementation where fundamentally broken and resulted (de)serialization errors when used.
 - serialize create role icon as string ([#2552](https://github.com/twilight-rs/twilight/issues/2552))
 - Return InteractionCallbackResponse instead of InteractionResponse from CreateResponseWithResponse ([#2493](https://github.com/twilight-rs/twilight/issues/2493))
 
 ### Notable feature
 
-Reworking the request spans gives better tracing information at runtime, anyone using tools to collect/process these might need to update their tooling but should overall find this to be an improvement. 
+Reworking the request spans gives better tracing information at runtime, anyone using tools to collect/process these might need to update their tooling but should overall find this to be an improvement.
 - update request spans ([#2503](https://github.com/twilight-rs/twilight/issues/2503))
 
 ### Features

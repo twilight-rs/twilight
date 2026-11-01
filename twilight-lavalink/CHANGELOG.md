@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.18.0] - TODO
+## [0.18.0] - 2026-11-01
 
 ### Breaking Changes
 We now use the Lavalink v4 API, this brings some breaking changes to align with the new lavalink api, see the PR and lavalink docs for more information. ([#2322](https://github.com/twilight-rs/twilight/issues/2322))

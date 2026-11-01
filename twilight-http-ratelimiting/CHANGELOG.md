@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.18.0] - TODO
+## [0.18.0] - 2026-11-01
 
 ### Notable feature
 
