@@ -489,7 +489,7 @@ mod tests {
 
     #[test]
     fn me_display() {
-        assert_eq!("@me", Me.to_string())
+        assert_eq!("@me", Me.to_string());
     }
 
     /// Test a path operating on a resource.

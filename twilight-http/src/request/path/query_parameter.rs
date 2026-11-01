@@ -633,7 +633,7 @@ mod tests {
     fn csv_query_parameter_will_write_if_at_least_one_value_will() {
         let repeating = CsvQueryParameter::new("key", &[Some(1u64), None]);
 
-        assert!(repeating.will_write())
+        assert!(repeating.will_write());
     }
 
     /// Assert that a `CsvQueryParameter`'s `will_write` is false if it
@@ -642,7 +642,7 @@ mod tests {
     fn csv_query_parameter_will_not_write_if_no_values_will() {
         let repeating = CsvQueryParameter::new("key", &[None::<u8>, None]);
 
-        assert!(!repeating.will_write())
+        assert!(!repeating.will_write());
     }
 
     /// Assert that a `CsvQueryParameter` will not write if it has no values.
@@ -650,7 +650,7 @@ mod tests {
     fn csv_query_parameter_will_not_write_if_empty() {
         let repeating = CsvQueryParameter::new("key", &[] as &[u8]);
 
-        assert!(!repeating.will_write())
+        assert!(!repeating.will_write());
     }
 
     #[test]
@@ -681,7 +681,7 @@ mod tests {
     fn repeating_query_parameter_will_write_if_at_least_one_value_will() {
         let repeating = RepeatingQueryParameter::new("key", &[Some(1u64), None]);
 
-        assert!(repeating.will_write())
+        assert!(repeating.will_write());
     }
 
     /// Assert that a `RepeatingQueryParameter`'s `will_write` is false if it
@@ -690,7 +690,7 @@ mod tests {
     fn repeating_query_parameter_will_not_write_if_no_values_will() {
         let repeating = RepeatingQueryParameter::new("key", &[None::<u8>, None]);
 
-        assert!(!repeating.will_write())
+        assert!(!repeating.will_write());
     }
 
     /// Assert that a `RepeatingQueryParameter` will not write if it has no values.
@@ -698,7 +698,7 @@ mod tests {
     fn repeating_query_parameter_will_not_write_if_empty() {
         let repeating = RepeatingQueryParameter::new("key", &[] as &[u8]);
 
-        assert!(!repeating.will_write())
+        assert!(!repeating.will_write());
     }
 
     #[test]
