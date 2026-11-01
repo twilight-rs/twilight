@@ -1,5 +1,56 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Deprecations
+#### Shard creation
+The `create_bucket`and `create_iterator` were deprecated and will be removed in the next release. Users should instead use the `twilight_gateway::bucket` function to create buckets of shards. ([#2538](https://github.com/twilight-rs/twilight/issues/2538))
+This function takes a config directly and does not need a closure to finalize a ConfigBuilder into a config for shards.
+```rust
+use twilight_gateway::{Config, Shard};
+
+fn shared(config: Config, shards: u32) -> impl Iterator<Item = Shard> {
+    unique(std::iter::repeat_n(config, shards as usize))
+}
+
+fn unique(iter: impl ExactSizeIterator<Item = Config>) -> impl Iterator<Item = Shard> {
+    let bucket_id = 0;
+    let buckets = 1;
+    let shards = iter.len() as u32;
+    iter.zip(twilight_gateway::bucket(bucket_id, buckets, shards))
+        .map(|(config, shard_id)| Shard::with_config(shard_id, config))
+}
+```
+
+
+#### Determining shard counts
+The twilight-http feature was deprecated and will be removed in the next release. Users should instead use the twilight-http crate directly to fetch the shard count from the discord api (Using [Client::gateway().authed()](https://docs.rs/twilight-http/latest/twilight_http/request/struct.GetGateway.html#method.authed)), or set a count manually. ([#2538](https://github.com/twilight-rs/twilight/issues/2538))
+
+### Features
+
+- support monetization subscriptions ([#2604](https://github.com/twilight-rs/twilight/issues/2604))
+- Support channel obfuscation flag and setting gateway feature capabilities opt-ins ([#2574](https://github.com/twilight-rs/twilight/issues/2574))
+- improve bucket API ([#2511](https://github.com/twilight-rs/twilight/issues/2511))
+
+
+### Bug Fixes
+
+- delay shard connect for repeat attempts ([#2505](https://github.com/twilight-rs/twilight/issues/2505))
+- correct helpers' closure type ([#2504](https://github.com/twilight-rs/twilight/issues/2504))
+
+### Performance
+
+- hoist bucket iterator branch ([#2537](https://github.com/twilight-rs/twilight/issues/2537))
+
+### Documentation
+
+- show off complete `bucket` usage ([#2514](https://github.com/twilight-rs/twilight/issues/2514))
+- reduce main example ([#2512](https://github.com/twilight-rs/twilight/issues/2512))
+- improve lavalink example ([#2497](https://github.com/twilight-rs/twilight/issues/2497))
+- improve main examples ([#2496](https://github.com/twilight-rs/twilight/issues/2496))
+
+
+
 ## [0.17.1] - 2025-12-13
 
 ### Bug Fixes

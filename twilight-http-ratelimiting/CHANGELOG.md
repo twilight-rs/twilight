@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Notable feature
+
+Reworking the request spans gives better tracing information at runtime, anyone using tools to collect/process these might need to update their tooling but should overall find this to be an improvement.
+- update request spans ([#2503](https://github.com/twilight-rs/twilight/issues/2503))
+
+
+### Bug Fixes
+
+- assert non-zero global limit ([#2560](https://github.com/twilight-rs/twilight/issues/2560))
+- remove invalid assert ([#2521](https://github.com/twilight-rs/twilight/issues/2521))
+
+### Performance
+
+These changes are some internal reworks to allow the compiler to better optimize twilight code and improve performance as a result
+- un-monomorphozise non-generic code ([#2501](https://github.com/twilight-rs/twilight/issues/2501))
+- merge permit acquisition methods ([#2526](https://github.com/twilight-rs/twilight/issues/2526))
+
 ## [0.17.1] - 2025-12-13
 
 **NOTE**: We recommend everyone to update to this version as soon as

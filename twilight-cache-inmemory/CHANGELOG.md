@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Features
+
+- add channel::total_message_sent ([#2613](https://github.com/twilight-rs/twilight/issues/2613))
+- guild scheduled event recurrence rule ([#2618](https://github.com/twilight-rs/twilight/issues/2618))
+- support monetization subscriptions ([#2604](https://github.com/twilight-rs/twilight/issues/2604))
+- add vr client status ([#2582](https://github.com/twilight-rs/twilight/issues/2582))
+- add missing CachedMessage getters ([#2561](https://github.com/twilight-rs/twilight/issues/2561))
+- add `channel_type` to message create event ([#2533](https://github.com/twilight-rs/twilight/issues/2533))
+- expose Interaction.attachment_size_limit ([#2523](https://github.com/twilight-rs/twilight/issues/2523))
+
+
 ## [0.17.1] - 2025-12-13
 
 ### Features

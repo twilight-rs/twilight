@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.18.0] - TODO
+
+### Features
+
+- add embed flags support ([#2620](https://github.com/twilight-rs/twilight/issues/2620))
+- add embed placeholder, content-type, flags ([#2566](https://github.com/twilight-rs/twilight/issues/2566))
+- add attachment upload file type ([#2590](https://github.com/twilight-rs/twilight/issues/2590))
+- add `InteractionResponse` builders ([#2506](https://github.com/twilight-rs/twilight/issues/2506))
+- add enum variant from/tryfrom conversion ([#2502](https://github.com/twilight-rs/twilight/issues/2502))
+
+### Other
+
+- Checkbox components builders ([#2517](https://github.com/twilight-rs/twilight/issues/2517))
+
+
 ## [0.17.0] - 2025-11-08
 
 ### Bug Fixes
