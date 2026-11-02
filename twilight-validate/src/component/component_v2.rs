@@ -46,7 +46,7 @@ pub const CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT: usize = 1;
 pub const CHECKBOXGROUP_MINIMUM_VALUES_LIMIT: usize = 10;
 
 /// Maximum length of text display content.
-pub const TEXT_DISPLAY_CONTENT_LENGTH_MAX: usize = 2000;
+pub const TEXT_DISPLAY_CONTENT_LENGTH_MAX: usize = 4000;
 
 /// Minimum amount of items in a media gallery.
 pub const MEDIA_GALLERY_ITEMS_MIN: usize = 1;
