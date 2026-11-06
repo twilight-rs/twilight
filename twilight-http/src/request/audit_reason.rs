@@ -21,7 +21,7 @@ mod private {
         channel::{
             CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin,
             FollowNewsChannel, UpdateChannel, UpdateChannelPermission,
-            invite::{CreateInvite, DeleteInvite},
+            invite::CreateChannelInvite,
             message::{DeleteMessage, DeleteMessages},
             stage::{CreateStageInstance, DeleteStageInstance, UpdateStageInstance},
             thread::{
@@ -44,6 +44,7 @@ mod private {
             sticker::{CreateGuildSticker, DeleteGuildSticker, UpdateGuildSticker},
             update_guild_onboarding::UpdateGuildOnboarding,
         },
+        invite::DeleteInvite,
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildScheduledEvent,
             CreateGuildStageInstanceScheduledEvent, CreateGuildVoiceScheduledEvent,
@@ -69,7 +70,7 @@ mod private {
     impl Sealed for CreateGuildStageInstanceScheduledEvent<'_> {}
     impl Sealed for CreateGuildSticker<'_> {}
     impl Sealed for CreateGuildVoiceScheduledEvent<'_> {}
-    impl Sealed for CreateInvite<'_> {}
+    impl Sealed for CreateChannelInvite<'_> {}
     impl Sealed for CreatePin<'_> {}
     impl Sealed for CreateRole<'_> {}
     impl Sealed for CreateStageInstance<'_> {}
@@ -122,7 +123,7 @@ mod tests {
         channel::{
             CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin,
             FollowNewsChannel, UpdateChannel, UpdateChannelPermission,
-            invite::{CreateInvite, DeleteInvite},
+            invite::CreateChannelInvite,
             message::{DeleteMessage, DeleteMessages},
             stage::{CreateStageInstance, DeleteStageInstance, UpdateStageInstance},
             thread::{
@@ -141,6 +142,7 @@ mod tests {
             role::{CreateRole, DeleteRole, UpdateRole, UpdateRolePositions},
             sticker::{CreateGuildSticker, DeleteGuildSticker, UpdateGuildSticker},
         },
+        invite::DeleteInvite,
         user::UpdateCurrentUser,
     };
     use static_assertions::{assert_impl_all, assert_obj_safe};
@@ -156,7 +158,7 @@ mod tests {
     assert_impl_all!(CreateGuildChannel<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateGuildPrune<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateGuildSticker<'_>: AuditLogReason<'static>);
-    assert_impl_all!(CreateInvite<'_>: AuditLogReason<'static>);
+    assert_impl_all!(CreateChannelInvite<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreatePin<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateRole<'_>: AuditLogReason<'static>);
     assert_impl_all!(CreateStageInstance<'_>: AuditLogReason<'static>);
