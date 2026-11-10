@@ -37,6 +37,10 @@ pub enum AuditLogEventType {
     /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
     ChannelOverwriteDelete,
+    /// [Channel]s were reordered.
+    ///
+    /// [Channel]: crate::channel::Channel
+    ChannelPositionUpdate,
     /// [Member] was kicked.
     ///
     /// [Member]: crate::guild::Member
@@ -90,6 +94,10 @@ pub enum AuditLogEventType {
     ///
     /// [Role]: crate::guild::Role
     RoleDelete,
+    /// [Role]s were reordered.
+    ///
+    /// [Role]: crate::guild::Role
+    RolePositionUpdate,
     /// [Invite] was created.
     ///
     /// [Invite]: crate::guild::invite::Invite
@@ -244,6 +252,7 @@ impl From<u16> for AuditLogEventType {
             13 => AuditLogEventType::ChannelOverwriteCreate,
             14 => AuditLogEventType::ChannelOverwriteUpdate,
             15 => AuditLogEventType::ChannelOverwriteDelete,
+            16 => AuditLogEventType::ChannelPositionUpdate,
             20 => AuditLogEventType::MemberKick,
             21 => AuditLogEventType::MemberPrune,
             22 => AuditLogEventType::MemberBanAdd,
@@ -256,6 +265,7 @@ impl From<u16> for AuditLogEventType {
             30 => AuditLogEventType::RoleCreate,
             31 => AuditLogEventType::RoleUpdate,
             32 => AuditLogEventType::RoleDelete,
+            33 => AuditLogEventType::RolePositionUpdate,
             40 => AuditLogEventType::InviteCreate,
             41 => AuditLogEventType::InviteUpdate,
             42 => AuditLogEventType::InviteDelete,
@@ -308,6 +318,7 @@ impl From<AuditLogEventType> for u16 {
             AuditLogEventType::ChannelOverwriteCreate => 13,
             AuditLogEventType::ChannelOverwriteUpdate => 14,
             AuditLogEventType::ChannelOverwriteDelete => 15,
+            AuditLogEventType::ChannelPositionUpdate => 16,
             AuditLogEventType::MemberKick => 20,
             AuditLogEventType::MemberPrune => 21,
             AuditLogEventType::MemberBanAdd => 22,
@@ -320,6 +331,7 @@ impl From<AuditLogEventType> for u16 {
             AuditLogEventType::RoleCreate => 30,
             AuditLogEventType::RoleUpdate => 31,
             AuditLogEventType::RoleDelete => 32,
+            AuditLogEventType::RolePositionUpdate => 33,
             AuditLogEventType::InviteCreate => 40,
             AuditLogEventType::InviteUpdate => 41,
             AuditLogEventType::InviteDelete => 42,
@@ -391,6 +403,7 @@ mod tests {
         assert_eq!(13, u16::from(AuditLogEventType::ChannelOverwriteCreate));
         assert_eq!(14, u16::from(AuditLogEventType::ChannelOverwriteUpdate));
         assert_eq!(15, u16::from(AuditLogEventType::ChannelOverwriteDelete));
+        assert_eq!(16, u16::from(AuditLogEventType::ChannelPositionUpdate));
         assert_eq!(20, u16::from(AuditLogEventType::MemberKick));
         assert_eq!(21, u16::from(AuditLogEventType::MemberPrune));
         assert_eq!(22, u16::from(AuditLogEventType::MemberBanAdd));
@@ -403,6 +416,7 @@ mod tests {
         assert_eq!(30, u16::from(AuditLogEventType::RoleCreate));
         assert_eq!(31, u16::from(AuditLogEventType::RoleUpdate));
         assert_eq!(32, u16::from(AuditLogEventType::RoleDelete));
+        assert_eq!(33, u16::from(AuditLogEventType::RolePositionUpdate));
         assert_eq!(40, u16::from(AuditLogEventType::InviteCreate));
         assert_eq!(41, u16::from(AuditLogEventType::InviteUpdate));
         assert_eq!(42, u16::from(AuditLogEventType::InviteDelete));
