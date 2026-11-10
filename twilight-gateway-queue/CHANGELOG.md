@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.18.0] - 2026-11-01
+No user facing changes, only internal test upkeep
+
+
 ## [0.17.0] - 2025-11-08
 
 ### Chore
