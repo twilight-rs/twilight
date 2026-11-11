@@ -11,6 +11,8 @@ use serde::{Deserialize, Serialize};
 pub struct Mention {
     /// Hash of the user's avatar, if any.
     pub avatar: Option<ImageHash>,
+    /// Hash of the user's banner, if any.
+    pub banner: Option<ImageHash>,
     /// Whether the user is a bot.
     #[serde(default)]
     pub bot: bool,
@@ -59,6 +61,7 @@ mod tests {
     fn mention_without_member() {
         let value = Mention {
             avatar: None,
+            banner: None,
             bot: false,
             discriminator: 1,
             id: Id::new(1),
@@ -72,9 +75,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Mention",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("avatar"),
+                Token::None,
+                Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
                 Token::Bool(false),
@@ -99,6 +104,7 @@ mod tests {
 
         let value = Mention {
             avatar: None,
+            banner: None,
             bot: false,
             discriminator: 1,
             id: Id::new(1),
@@ -126,9 +132,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Mention",
-                    len: 7,
+                    len: 8,
                 },
                 Token::Str("avatar"),
+                Token::None,
+                Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
                 Token::Bool(false),

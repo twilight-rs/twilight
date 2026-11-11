@@ -126,6 +126,7 @@ pub struct User {
     ///
     /// This is an integer representation of a hexadecimal color code.
     pub accent_color: Option<u32>,
+    /// Hash of the user's avatar.
     pub avatar: Option<ImageHash>,
     /// Hash of the user's avatar decoration.
     pub avatar_decoration: Option<ImageHash>,

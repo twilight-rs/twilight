@@ -17,7 +17,11 @@ pub struct CurrentUser {
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     pub avatar: Option<ImageHash>,
-    /// Hash of the user's banner image.
+    /// User's banner hash.
+    ///
+    /// To retrieve the url to the banner, see [Discord Docs/Image Formatting].
+    ///
+    /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     pub banner: Option<ImageHash>,
     /// Whether the user belongs to an OAuth2 application.
     #[serde(default)]
@@ -107,7 +111,8 @@ mod tests {
             Token::Some,
             Token::Str(image_hash::AVATAR_INPUT),
             Token::Str("banner"),
-            Token::None,
+            Token::Some,
+            Token::Str(image_hash::BANNER_INPUT),
             Token::Str("bot"),
             Token::Bool(true),
             Token::Str("discriminator"),
@@ -190,7 +195,7 @@ mod tests {
         let value = CurrentUser {
             accent_color: Some(16_711_680),
             avatar: Some(image_hash::AVATAR),
-            banner: None,
+            banner: Some(image_hash::BANNER),
             bot: true,
             discriminator: 9999,
             email: None,
