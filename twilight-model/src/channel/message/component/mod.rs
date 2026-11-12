@@ -15,6 +15,7 @@ mod file_upload;
 mod kind;
 mod label;
 mod media_gallery;
+mod radio_group;
 mod section;
 mod select_menu;
 mod separator;
@@ -34,6 +35,7 @@ pub use self::{
     kind::ComponentType,
     label::Label,
     media_gallery::{MediaGallery, MediaGalleryItem},
+    radio_group::{RadioGroup, RadioGroupOption},
     section::Section,
     select_menu::{SelectDefaultValue, SelectMenu, SelectMenuOption, SelectMenuType},
     separator::{Separator, SeparatorSpacingSize},
@@ -154,6 +156,8 @@ pub enum Component {
     Checkbox(Checkbox),
     /// A group of selectable checkboxes in a modal
     CheckboxGroup(CheckboxGroup),
+    /// A single-selection group of radio options in a modal
+    RadioGroup(RadioGroup),
     /// Container that visually groups a set of components.
     Container(Container),
     /// Displays an attached file.
@@ -207,6 +211,7 @@ impl Component {
             Component::Button(_) => ComponentType::Button,
             Component::Checkbox(_) => ComponentType::Checkbox,
             Component::CheckboxGroup(_) => ComponentType::CheckboxGroup,
+            Component::RadioGroup(_) => ComponentType::RadioGroup,
             Component::Container(_) => ComponentType::Container,
             Component::File(_) => ComponentType::File,
             Component::FileUpload(_) => ComponentType::FileUpload,
@@ -235,6 +240,7 @@ impl Component {
             Component::Button(_)
             | Component::Checkbox(_)
             | Component::CheckboxGroup(_)
+            | Component::RadioGroup(_)
             | Component::File(_)
             | Component::FileUpload(_)
             | Component::MediaGallery(_)
@@ -272,6 +278,12 @@ impl From<Checkbox> for Component {
 impl From<CheckboxGroup> for Component {
     fn from(checkbox_group: CheckboxGroup) -> Self {
         Self::CheckboxGroup(checkbox_group)
+    }
+}
+
+impl From<RadioGroup> for Component {
+    fn from(radio_group: RadioGroup) -> Self {
+        Self::RadioGroup(radio_group)
     }
 }
 
@@ -380,6 +392,17 @@ impl TryFrom<Component> for CheckboxGroup {
     fn try_from(value: Component) -> Result<Self, Self::Error> {
         match value {
             Component::CheckboxGroup(inner) => Ok(inner),
+            _ => Err(value),
+        }
+    }
+}
+
+impl TryFrom<Component> for RadioGroup {
+    type Error = Component;
+
+    fn try_from(value: Component) -> Result<Self, Self::Error> {
+        match value {
+            Component::RadioGroup(inner) => Ok(inner),
             _ => Err(value),
         }
     }
@@ -1058,6 +1081,25 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     file_types: file_types.unwrap_or_default(),
                 })
             }
+            ComponentType::RadioGroup => {
+                let custom_id = custom_id
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("custom_id"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                let options = options
+                    .ok_or_else(|| DeError::missing_field("options"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::RadioGroup(RadioGroup {
+                    id,
+                    custom_id,
+                    options,
+                    required: required.unwrap_or_default(),
+                })
+            }
             ComponentType::CheckboxGroup => {
                 let custom_id = custom_id
                     .flatten()
@@ -1265,6 +1307,10 @@ impl Serialize for Component {
                     + usize::from(file_upload.required.is_some())
                     + usize::from(file_upload.id.is_some())
                     + usize::from(file_upload.file_types.is_some())
+            }
+            Component::RadioGroup(radio_group) => {
+                3 + usize::from(radio_group.id.is_some())
+                    + usize::from(radio_group.required.is_some())
             }
             Component::CheckboxGroup(checkbox_group) => {
                 3 + usize::from(checkbox_group.id.is_some())
@@ -1540,6 +1586,17 @@ impl Serialize for Component {
                 }
                 if file_upload.file_types.is_some() {
                     state.serialize_field("file_types", &file_upload.file_types)?;
+                }
+            }
+            Component::RadioGroup(radio_group) => {
+                state.serialize_field("type", &ComponentType::RadioGroup)?;
+                if radio_group.id.is_some() {
+                    state.serialize_field("id", &radio_group.id)?;
+                }
+                state.serialize_field("custom_id", &Some(&radio_group.custom_id))?;
+                state.serialize_field("options", &radio_group.options)?;
+                if radio_group.required.is_some() {
+                    state.serialize_field("required", &radio_group.required)?;
                 }
             }
             Component::CheckboxGroup(checkbox_group) => {
@@ -2056,6 +2113,66 @@ mod tests {
                 Token::StructEnd,
             ],
         )
+    }
+
+    #[test]
+    fn radio_group() {
+        let value = Component::RadioGroup(RadioGroup {
+            id: None,
+            custom_id: "group".to_owned(),
+            options: vec![
+                RadioGroupOption {
+                    default: None,
+                    description: None,
+                    label: "Option A".to_owned(),
+                    value: "a".to_owned(),
+                },
+                RadioGroupOption {
+                    default: None,
+                    description: None,
+                    label: "Option B".to_owned(),
+                    value: "b".to_owned(),
+                },
+            ],
+            required: None,
+        });
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Component",
+                    len: 3, // type, custom_id, options
+                },
+                Token::Str("type"),
+                Token::U8(ComponentType::RadioGroup.into()),
+                Token::Str("custom_id"),
+                Token::Some,
+                Token::Str("group"),
+                Token::Str("options"),
+                Token::Seq { len: Some(2) },
+                Token::Struct {
+                    name: "RadioGroupOption",
+                    len: 2, // value, label
+                },
+                Token::Str("label"),
+                Token::Str("Option A"),
+                Token::Str("value"),
+                Token::Str("a"),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "RadioGroupOption",
+                    len: 2, // value, label
+                },
+                Token::Str("label"),
+                Token::Str("Option B"),
+                Token::Str("value"),
+                Token::Str("b"),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::StructEnd,
+            ],
+        );
     }
 
     #[test]
