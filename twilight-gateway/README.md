@@ -45,10 +45,6 @@ fn unique(iter: impl ExactSizeIterator<Item = Config>) -> impl Iterator<Item = S
   * `zlib`: Zlib transport compression using [`zlib-rs`][^1]
   * `zstd` (*default*): Zstandard transport compression using [`zstd-sys`]
 
-### Deprecated
-
-* `twilight-http` (*default*): enable the `create_recommended` function
-
 ## Examples
 
 Create a shard and loop over guild events:
