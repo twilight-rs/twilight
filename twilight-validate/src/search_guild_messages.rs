@@ -708,3 +708,157 @@ pub const fn slop(value: usize) -> Result<(), SearchGuildMessagesError> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::iter;
+
+    #[test]
+    fn attachment_extension_limit() {
+        assert!(attachment_extension(&iter::repeat_n("a", 0).collect::<Vec<_>>()).is_ok());
+        assert!(attachment_extension(&iter::repeat_n("a", 1).collect::<Vec<_>>()).is_ok());
+        assert!(attachment_extension(&iter::repeat_n("a", 100).collect::<Vec<_>>()).is_ok());
+        assert!(attachment_extension(&iter::repeat_n("a", 101).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
+    fn attachment_extension_entry_limit() {
+        assert!(attachment_extension(&[""]).is_ok());
+        assert!(attachment_extension(&["a"]).is_ok());
+        assert!(attachment_extension(&[&"a".repeat(256)]).is_ok());
+        assert!(attachment_extension(&[&"a".repeat(257)]).is_err());
+    }
+
+    #[test]
+    fn attachment_filename_limit() {
+        assert!(attachment_filename(&iter::repeat_n("a", 0).collect::<Vec<_>>()).is_ok());
+        assert!(attachment_filename(&iter::repeat_n("a", 1).collect::<Vec<_>>()).is_ok());
+        assert!(attachment_filename(&iter::repeat_n("a", 100).collect::<Vec<_>>()).is_ok());
+        assert!(attachment_filename(&iter::repeat_n("a", 101).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
+    fn attachment_filename_entry_limit() {
+        assert!(attachment_filename(&[""]).is_ok());
+        assert!(attachment_filename(&["a"]).is_ok());
+        assert!(attachment_filename(&[&"a".repeat(1024)]).is_ok());
+        assert!(attachment_filename(&[&"a".repeat(1025)]).is_err());
+    }
+
+    #[test]
+    fn author_id_limit() {
+        assert!(author_id(&iter::repeat_n(Id::new(1), 0).collect::<Vec<_>>()).is_ok());
+        assert!(author_id(&iter::repeat_n(Id::new(1), 1).collect::<Vec<_>>()).is_ok());
+        assert!(author_id(&iter::repeat_n(Id::new(1), 100).collect::<Vec<_>>()).is_ok());
+        assert!(author_id(&iter::repeat_n(Id::new(1), 101).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
+    fn channel_id_limit() {
+        assert!(channel_id(&iter::repeat_n(Id::new(1), 0).collect::<Vec<_>>()).is_ok());
+        assert!(channel_id(&iter::repeat_n(Id::new(1), 1).collect::<Vec<_>>()).is_ok());
+        assert!(channel_id(&iter::repeat_n(Id::new(1), 500).collect::<Vec<_>>()).is_ok());
+        assert!(channel_id(&iter::repeat_n(Id::new(1), 501).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
+    fn content_length() {
+        assert!(content("").is_ok());
+        assert!(content("a").is_ok());
+        assert!(content(&"a".repeat(1024)).is_ok());
+        assert!(content(&"a".repeat(1025)).is_err());
+    }
+
+    #[test]
+    fn embed_provider_limit() {
+        assert!(embed_provider(&iter::repeat_n("a", 0).collect::<Vec<_>>()).is_ok());
+        assert!(embed_provider(&iter::repeat_n("a", 1).collect::<Vec<_>>()).is_ok());
+        assert!(embed_provider(&iter::repeat_n("a", 100).collect::<Vec<_>>()).is_ok());
+        assert!(embed_provider(&iter::repeat_n("a", 101).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
+    fn embed_provider_entry_limit() {
+        assert!(embed_provider(&[""]).is_ok());
+        assert!(embed_provider(&["a"]).is_ok());
+        assert!(embed_provider(&[&"a".repeat(256)]).is_ok());
+        assert!(embed_provider(&[&"a".repeat(257)]).is_err());
+    }
+
+    #[test]
+    fn limit_count() {
+        assert!(limit(0).is_err());
+        assert!(limit(1).is_ok());
+        assert!(limit(25).is_ok());
+        assert!(limit(26).is_err());
+    }
+
+    #[test]
+    fn link_hostname_limit() {
+        assert!(link_hostname(&iter::repeat_n("a", 0).collect::<Vec<_>>()).is_ok());
+        assert!(link_hostname(&iter::repeat_n("a", 1).collect::<Vec<_>>()).is_ok());
+        assert!(link_hostname(&iter::repeat_n("a", 100).collect::<Vec<_>>()).is_ok());
+        assert!(link_hostname(&iter::repeat_n("a", 101).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
+    fn link_hostname_entry_limit() {
+        assert!(link_hostname(&[""]).is_ok());
+        assert!(link_hostname(&["a"]).is_ok());
+        assert!(link_hostname(&[&"a".repeat(256)]).is_ok());
+        assert!(link_hostname(&[&"a".repeat(257)]).is_err());
+    }
+
+    #[test]
+    fn mentions_limit() {
+        assert!(mentions(&iter::repeat_n(Id::new(1), 0).collect::<Vec<_>>()).is_ok());
+        assert!(mentions(&iter::repeat_n(Id::new(1), 1).collect::<Vec<_>>()).is_ok());
+        assert!(mentions(&iter::repeat_n(Id::new(1), 100).collect::<Vec<_>>()).is_ok());
+        assert!(mentions(&iter::repeat_n(Id::new(1), 101).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
+    fn mentions_role_id_limit() {
+        assert!(mentions_role_id(&iter::repeat_n(Id::new(1), 0).collect::<Vec<_>>()).is_ok());
+        assert!(mentions_role_id(&iter::repeat_n(Id::new(1), 1).collect::<Vec<_>>()).is_ok());
+        assert!(mentions_role_id(&iter::repeat_n(Id::new(1), 100).collect::<Vec<_>>()).is_ok());
+        assert!(mentions_role_id(&iter::repeat_n(Id::new(1), 101).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
+    fn offset_count() {
+        assert!(offset(0).is_ok());
+        assert!(offset(1).is_ok());
+        assert!(offset(9975).is_ok());
+        assert!(offset(9976).is_err());
+    }
+
+    #[test]
+    fn replied_to_message_id_limit() {
+        assert!(replied_to_message_id(&iter::repeat_n(Id::new(1), 0).collect::<Vec<_>>()).is_ok());
+        assert!(replied_to_message_id(&iter::repeat_n(Id::new(1), 1).collect::<Vec<_>>()).is_ok());
+        assert!(
+            replied_to_message_id(&iter::repeat_n(Id::new(1), 100).collect::<Vec<_>>()).is_ok()
+        );
+        assert!(
+            replied_to_message_id(&iter::repeat_n(Id::new(1), 101).collect::<Vec<_>>()).is_err()
+        );
+    }
+
+    #[test]
+    fn replied_to_user_id_limit() {
+        assert!(replied_to_user_id(&iter::repeat_n(Id::new(1), 0).collect::<Vec<_>>()).is_ok());
+        assert!(replied_to_user_id(&iter::repeat_n(Id::new(1), 1).collect::<Vec<_>>()).is_ok());
+        assert!(replied_to_user_id(&iter::repeat_n(Id::new(1), 100).collect::<Vec<_>>()).is_ok());
+        assert!(replied_to_user_id(&iter::repeat_n(Id::new(1), 101).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
+    fn slop_count() {
+        assert!(slop(0).is_ok());
+        assert!(slop(1).is_ok());
+        assert!(slop(100).is_ok());
+        assert!(slop(101).is_err());
+    }
+}
