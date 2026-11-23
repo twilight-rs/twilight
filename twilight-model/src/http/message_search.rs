@@ -26,18 +26,18 @@ impl Negate for SearchHasTypes {}
 
 /// Mark whether a field is being marked for inclusion or exclusion.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum Filter<T: Negate> {
+pub enum SearchFilter<T: Negate> {
     /// Results must include this value.
     Include(T),
     /// Results must exclude this value.
     Exclude(T),
 }
 
-impl<T: Negate> Display for Filter<T> {
+impl<T: Negate> Display for SearchFilter<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
         match self {
-            Filter::Include(value) => Display::fmt(value, f),
-            Filter::Exclude(value) => {
+            SearchFilter::Include(value) => Display::fmt(value, f),
+            SearchFilter::Exclude(value) => {
                 f.write_str("-")?;
 
                 Display::fmt(value, f)
@@ -46,7 +46,7 @@ impl<T: Negate> Display for Filter<T> {
     }
 }
 
-impl<T: Negate> From<T> for Filter<T> {
+impl<T: Negate> From<T> for SearchFilter<T> {
     fn from(value: T) -> Self {
         Self::Include(value)
     }
@@ -198,7 +198,7 @@ impl Display for SearchSortOrder {
 #[cfg(test)]
 mod tests {
     use super::{
-        AuthorType, Filter, Negate, SearchEmbedTypes, SearchHasTypes, SearchSortModes,
+        AuthorType, Negate, SearchEmbedTypes, SearchFilter, SearchHasTypes, SearchSortModes,
         SearchSortOrder,
     };
     use serde::{Deserialize, Serialize};
@@ -213,8 +213,14 @@ mod tests {
 
     #[test]
     fn filter_display() {
-        assert_eq!("file", Filter::Include(SearchHasTypes::File).to_string());
-        assert_eq!("-file", Filter::Exclude(SearchHasTypes::File).to_string());
+        assert_eq!(
+            "file",
+            SearchFilter::Include(SearchHasTypes::File).to_string()
+        );
+        assert_eq!(
+            "-file",
+            SearchFilter::Exclude(SearchHasTypes::File).to_string()
+        );
     }
 
     #[test]

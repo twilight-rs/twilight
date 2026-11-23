@@ -7,7 +7,8 @@ use crate::{
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::{
     http::message_search::{
-        AuthorType, Filter, SearchEmbedTypes, SearchHasTypes, SearchSortModes, SearchSortOrder,
+        AuthorType, SearchEmbedTypes, SearchFilter, SearchHasTypes, SearchSortModes,
+        SearchSortOrder,
     },
     id::{
         Id,
@@ -1061,7 +1062,7 @@ pub enum Route<'a> {
         /// Filter messages by these authors.
         author_id: Option<&'a [Id<UserMarker>]>,
         /// Filter messages by author type.
-        author_type: Option<&'a [Filter<AuthorType>]>,
+        author_type: Option<&'a [SearchFilter<AuthorType>]>,
         /// Filter messages by these channels.
         channel_id: Option<&'a [Id<ChannelMarker>]>,
         /// Filter messages by content.
@@ -1073,7 +1074,7 @@ pub enum Route<'a> {
         /// ID of the guild.
         guild_id: u64,
         /// Filter messages by whether or not they have specific things.
-        has: Option<&'a [Filter<SearchHasTypes>]>,
+        has: Option<&'a [SearchFilter<SearchHasTypes>]>,
         /// Whether to include results from age-restricted channels.
         include_nsfw: Option<bool>,
         /// Max number of messages to return.
@@ -3058,7 +3059,8 @@ mod tests {
     use crate::request::{Method, channel::reaction::RequestReactionType};
     use twilight_model::{
         http::message_search::{
-            AuthorType, Filter, SearchEmbedTypes, SearchHasTypes, SearchSortModes, SearchSortOrder,
+            AuthorType, SearchEmbedTypes, SearchFilter, SearchHasTypes, SearchSortModes,
+            SearchSortOrder,
         },
         id::Id,
     };
@@ -4898,8 +4900,8 @@ mod tests {
             attachment_filename: Some(&["foo.pdf", "foo.txt"]),
             author_id: Some(&[Id::new(1), Id::new(2)]),
             author_type: Some(&[
-                Filter::Exclude(AuthorType::Bot),
-                Filter::Include(AuthorType::User),
+                SearchFilter::Exclude(AuthorType::Bot),
+                SearchFilter::Include(AuthorType::User),
             ]),
             channel_id: Some(&[Id::new(3), Id::new(4)]),
             content: Some("test message"),
@@ -4907,8 +4909,8 @@ mod tests {
             embed_type: Some(&[SearchEmbedTypes::Gif, SearchEmbedTypes::Image]),
             guild_id: GUILD_ID,
             has: Some(&[
-                Filter::Include(SearchHasTypes::File),
-                Filter::Exclude(SearchHasTypes::Image),
+                SearchFilter::Include(SearchHasTypes::File),
+                SearchFilter::Exclude(SearchHasTypes::Image),
             ]),
             include_nsfw: Some(true),
             limit: Some(20),

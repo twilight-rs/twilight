@@ -36,7 +36,7 @@
 //! use twilight_http::{
 //!     Client,
 //!     request::guild::message::search_guild_messages::{
-//!         AuthorType, Filter, SearchGuildMessages, SearchGuildMessagesResponseBody,
+//!         AuthorType, SearchFilter, SearchGuildMessages, SearchGuildMessagesResponseBody,
 //!         SearchHasTypes,
 //!     },
 //! };
@@ -56,9 +56,9 @@
 //!     .search_guild_messages(guild_id)
 //!     .channel_id(&channel_ids)
 //!     // Include only messages with polls
-//!     .has(&[Filter::Include(SearchHasTypes::Poll)])
+//!     .has(&[SearchFilter::Include(SearchHasTypes::Poll)])
 //!     // Exclude messages authored by bots
-//!     .author_type(&[Filter::Exclude(AuthorType::Bot)])
+//!     .author_type(&[SearchFilter::Exclude(AuthorType::Bot)])
 //!     .await?;
 //! let body = response.model().await?;
 //!
@@ -228,7 +228,7 @@ struct SearchGuildMessagesFields<'a> {
     /// Filter messages by these authors.
     author_id: Option<&'a [Id<UserMarker>]>,
     /// Filter messages by author type.
-    author_type: Option<&'a [Filter<AuthorType>]>,
+    author_type: Option<&'a [SearchFilter<AuthorType>]>,
     /// Filter messages by these channels.
     channel_id: Option<&'a [Id<ChannelMarker>]>,
     /// Filter messages by content.
@@ -238,7 +238,7 @@ struct SearchGuildMessagesFields<'a> {
     /// Filter messages by embed type.
     embed_type: Option<&'a [SearchEmbedTypes]>,
     /// Filter messages by whether or not they have specific things.
-    has: Option<&'a [Filter<SearchHasTypes>]>,
+    has: Option<&'a [SearchFilter<SearchHasTypes>]>,
     /// Whether to include results from age-restricted channels.
     ///
     /// Discord defaults this to `false`.
@@ -400,8 +400,8 @@ impl<'a> SearchGuildMessages<'a> {
     /// Filter messages by author type.
     ///
     /// This field can be negated, causing results to exclude a particular type.
-    /// Use [`Filter::Exclude`] to exclude results.
-    pub fn author_type(mut self, author_type: &'a [Filter<AuthorType>]) -> Self {
+    /// Use [`SearchFilter::Exclude`] to exclude results.
+    pub fn author_type(mut self, author_type: &'a [SearchFilter<AuthorType>]) -> Self {
         self.fields = self.fields.map(|mut fields| {
             fields.author_type = Some(author_type);
 
@@ -485,8 +485,8 @@ impl<'a> SearchGuildMessages<'a> {
     /// Filter messages by whether or not they have specific things.
     ///
     /// This field can be negated, causing results to exclude a particular type.
-    /// Use [`Filter::Exclude`] to exclude results.
-    pub fn has(mut self, has: &'a [Filter<SearchHasTypes>]) -> Self {
+    /// Use [`SearchFilter::Exclude`] to exclude results.
+    pub fn has(mut self, has: &'a [SearchFilter<SearchHasTypes>]) -> Self {
         self.fields = self.fields.map(|mut fields| {
             fields.has = Some(has);
 
