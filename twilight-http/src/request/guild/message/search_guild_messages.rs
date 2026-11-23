@@ -719,10 +719,10 @@ impl<'a> SearchGuildMessages<'a> {
 
     /// The sorting algorithm to use.
     ///
-    /// When the sort mode is set to [`SearchSortModes::Relevance`] Discord will
+    /// When the sort mode is set to [`SearchSortMode::Relevance`] Discord will
     /// not respect the sort order set via [`sort_order`][Self::sort_order].
     ///
-    /// Discord defaults this to [`SearchSortModes::Timestamp`].
+    /// Discord defaults this to [`SearchSortMode::Timestamp`].
     pub fn sort_by(mut self, sort_by: SearchSortMode) -> Self {
         self.fields = self.fields.map(|mut fields| {
             fields.sort_by = Some(sort_by);
@@ -736,7 +736,7 @@ impl<'a> SearchGuildMessages<'a> {
     /// The direction to sort.
     ///
     /// Discord will not respect the sort order when the sort mode is
-    /// [`SearchSortModes::Relevance`] via [`sort_by`][Self::sort_by].
+    /// [`SearchSortMode::Relevance`] via [`sort_by`][Self::sort_by].
     ///
     /// Discord defaults this to [`SearchSortOrder::Descending`].
     pub fn sort_order(mut self, sort_order: SearchSortOrder) -> Self {
