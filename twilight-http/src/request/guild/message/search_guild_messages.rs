@@ -55,8 +55,8 @@
 //! let response = client
 //!     .search_guild_messages(guild_id)
 //!     .channel_id(&channel_ids)
-//!     // Include only messages with images
-//!     .has(&[Filter::Include(SearchHasTypes::Image)])
+//!     // Include only messages with polls
+//!     .has(&[Filter::Include(SearchHasTypes::Poll)])
 //!     // Exclude messages authored by bots
 //!     .author_type(&[Filter::Exclude(AuthorType::Bot)])
 //!     .await?;
