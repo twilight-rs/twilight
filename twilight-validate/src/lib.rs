@@ -18,4 +18,5 @@ pub mod component;
 pub mod embed;
 pub mod message;
 pub mod request;
+pub mod search_guild_messages;
 pub mod sticker;
