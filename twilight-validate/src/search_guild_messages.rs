@@ -58,7 +58,7 @@ pub const LINK_HOSTNAME_LIMIT: usize = 100;
 pub const MENTIONS_LIMIT: usize = 100;
 
 /// Maximum number of role mentions to filter by.
-pub const MENTION_ROLE_ID_LIMIT: usize = 100;
+pub const MENTIONS_ROLE_ID_LIMIT: usize = 100;
 
 /// Maximum offset of messages.
 pub const OFFSET_MAX: usize = 9975;
@@ -219,7 +219,7 @@ impl Display for SearchGuildMessagesError {
                 Display::fmt(count, f)?;
                 f.write_str(" but must be at most ")?;
 
-                Display::fmt(&MENTION_ROLE_ID_LIMIT, f)
+                Display::fmt(&MENTIONS_ROLE_ID_LIMIT, f)
             }
             SearchGuildMessagesErrorType::Offset { value } => {
                 f.write_str("provided offset is ")?;
@@ -616,7 +616,7 @@ pub const fn mentions(mentions: &[Id<UserMarker>]) -> Result<(), SearchGuildMess
 pub const fn mentions_role_id(
     mentions_role_id: &[Id<RoleMarker>],
 ) -> Result<(), SearchGuildMessagesError> {
-    if mentions_role_id.len() > MENTION_ROLE_ID_LIMIT {
+    if mentions_role_id.len() > MENTIONS_ROLE_ID_LIMIT {
         return Err(SearchGuildMessagesError {
             kind: SearchGuildMessagesErrorType::MentionsRoleIdCount {
                 count: mentions_role_id.len(),
