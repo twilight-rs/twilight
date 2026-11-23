@@ -529,7 +529,7 @@ pub fn embed_provider(embed_provider: &[&str]) -> Result<(), SearchGuildMessages
     Ok(())
 }
 
-/// Ensure that the limit for the is correct.
+/// Ensure that the limit is correct.
 ///
 /// The limit must be at least [`LIMIT_MIN`] and at most [`LIMIT_MAX`].
 ///
@@ -627,7 +627,7 @@ pub const fn mentions_role_id(
     Ok(())
 }
 
-/// Ensure that the offset for the is correct.
+/// Ensure that the offset is correct.
 ///
 /// The offset must be at most [`OFFSET_MAX`].
 ///
@@ -692,7 +692,7 @@ pub const fn replied_to_user_id(
 
 /// Ensure that the slop is correct.
 ///
-/// The limit must be at most [`SLOP_MAX`].
+/// The slop must be at most [`SLOP_MAX`].
 ///
 /// # Errors
 ///
