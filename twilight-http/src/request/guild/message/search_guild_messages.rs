@@ -28,8 +28,8 @@
 //!
 //! # Examples
 //!
-//! Search for messages within two channels, including only messages with a poll
-//! but excluding messages authored by bot users:
+//! Search for messages within two channels, including only messages with an
+//! image but excluding messages authored by bot users:
 //!
 //! ```rust,no_run
 //! use std::env;
@@ -108,9 +108,9 @@ use twilight_validate::search_guild_messages::{
     replied_to_user_id as validate_replied_to_user_id, slop as validate_slop,
 };
 
-mod search_guild_messages_response_body_messages {
+mod response_body_messages {
     //! serde deserializer and serializer for
-    //! [`SearchGuildMessagesResponseBody::messages`].
+    //! [`SearchGuildMessagesOkResponseBody::messages`].
     //!
     //! The `messages` field is an array of array of message objects for
     //! historical and now unused reasons. To simplify things for users, we
@@ -133,6 +133,8 @@ mod search_guild_messages_response_body_messages {
     //!   ]
     //! ]
     //! ```
+    //!
+    //! [`SearchGuildMessagesOkResponseBody::messages`]: super::SearchGuildMessagesOkResponseBody::messages
 
     use serde::{
         de::{Deserialize, Deserializer, Error as _},
@@ -140,6 +142,7 @@ mod search_guild_messages_response_body_messages {
     };
     use twilight_model::channel::Message;
 
+    /// Deserialize a nested list of messages into a flattened list of messages.
     pub fn deserialize<'de, D: Deserializer<'de>>(
         deserializer: D,
     ) -> Result<Vec<Message>, D::Error> {
@@ -148,15 +151,18 @@ mod search_guild_messages_response_body_messages {
         nested_array
             .iter_mut()
             .map(|wrapped_message| match wrapped_message.len() {
+                1 => Ok(wrapped_message.remove(0)),
                 0 | 2.. => Err(D::Error::invalid_length(
                     wrapped_message.len(),
-                    &"nested array with 0 or 1 element, an array of messages",
+                    &"nested array with 1 element, an array of messages",
                 )),
-                1 => Ok(wrapped_message.remove(0)),
             })
             .collect()
     }
 
+    /// Serialize a flattened list of messages into a nested list of messages,
+    /// where each entry in the top-level list contains only one item: the
+    /// message.
     pub fn serialize<S: Serializer>(value: &[Message], serializer: S) -> Result<S::Ok, S::Error> {
         serializer.collect_seq(value.iter().map(|message| [message]))
     }
@@ -196,7 +202,7 @@ pub struct SearchGuildMessagesOkResponseBody {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub members: Option<Vec<ThreadMember>>,
     /// A nested array of messages that match the query.
-    #[serde(with = "search_guild_messages_response_body_messages")]
+    #[serde(with = "response_body_messages")]
     pub messages: Vec<Message>,
     /// The threads that contain the returned messages.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -790,5 +796,143 @@ impl TryIntoRequest for SearchGuildMessages<'_> {
             sort_by: fields.sort_by,
             sort_order: fields.sort_order,
         }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{SearchGuildMessagesResponseBody, response_body_messages};
+    use serde_json::Deserializer;
+    use twilight_model::{
+        channel::{Attachment, Message, message::MessageType},
+        id::Id,
+        user::User,
+        util::Timestamp,
+    };
+
+    fn message() -> Message {
+        Message {
+            activity: None,
+            application: None,
+            application_id: None,
+            attachments: Vec::from_iter([Attachment {
+                content_type: Some("image/png".to_owned()),
+                ephemeral: false,
+                duration_secs: None,
+                filename: "image.png".to_owned(),
+                flags: None,
+                description: None,
+                height: Some(1080),
+                id: Id::new(3),
+                placeholder: Some("zSeKDQIoCLiHeIKeiLyfrsBqCIaYaHJ2Vg".to_owned()),
+                placeholder_version: Some(1),
+                proxy_url: "https://media.discordapp.net/attachments/1/2/image.png".to_owned(),
+                size: 2_416_286,
+                title: None,
+                url: "https://cdn.discordapp.com/attachments/1/2/image.png".to_owned(),
+                waveform: None,
+                width: Some(1920),
+            }]),
+            author: User {
+                accent_color: None,
+                avatar: None,
+                avatar_decoration: None,
+                avatar_decoration_data: None,
+                banner: None,
+                bot: true,
+                discriminator: 1234,
+                email: None,
+                flags: None,
+                global_name: None,
+                id: Id::new(4),
+                locale: None,
+                mfa_enabled: None,
+                name: "bot".to_owned(),
+                premium_type: None,
+                primary_guild: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            },
+            call: None,
+            channel_id: Id::new(1),
+            components: Vec::new(),
+            content: "a message".to_owned(),
+            edited_timestamp: None,
+            embeds: Vec::new(),
+            flags: None,
+            guild_id: None,
+            id: Id::new(2),
+            #[expect(deprecated)]
+            interaction: None,
+            interaction_metadata: None,
+            kind: MessageType::Regular,
+            member: None,
+            mention_channels: Vec::new(),
+            mention_everyone: false,
+            mention_roles: Vec::new(),
+            mentions: Vec::new(),
+            message_snapshots: Vec::new(),
+            pinned: false,
+            poll: None,
+            reactions: Vec::new(),
+            reference: None,
+            referenced_message: None,
+            role_subscription_data: None,
+            sticker_items: Vec::new(),
+            timestamp: Timestamp::parse("2026-11-23T01:23:45.678000+00:00").unwrap(),
+            thread: None,
+            tts: false,
+            webhook_id: Some(Id::new(4)),
+        }
+    }
+
+    /// Assert that the custom deserializer for
+    /// [`SearchGuildMessagesOkResponseBody::messages`] deserializes nested
+    /// messages into a flattened list.
+    #[test]
+    fn response_body_messages_deserialization() {
+        let value = [[message()]];
+
+        let serialized = serde_json::to_string(&value).unwrap();
+        let mut deserializer = Deserializer::from_str(&serialized);
+        let actual = response_body_messages::deserialize(&mut deserializer).unwrap();
+        let expected = Vec::from_iter([message()]);
+
+        assert_eq!(actual, expected);
+    }
+
+    /// Assert that an Accepted response deserializes into the Accepted response
+    /// body variant.
+    #[test]
+    fn response_body_accepted_variant() {
+        let value = serde_json::json!({
+            "code": 110_000,
+            "documents_indexed": 0,
+            "message": "Index not yet available. Try again later",
+            "retry_after": 2,
+        });
+        let body: SearchGuildMessagesResponseBody = serde_json::from_value(value).unwrap();
+
+        assert!(matches!(body, SearchGuildMessagesResponseBody::Accepted(_)));
+    }
+
+    /// Assert that an Ok response deserializes into the Ok response body
+    /// variant.
+    #[test]
+    fn response_body_ok_variant() {
+        let value = serde_json::json!({
+            "doing_deep_historical_index": false,
+            "total_results": 1,
+            "messages": [[message()]],
+        });
+        let body: SearchGuildMessagesResponseBody = serde_json::from_value(value).unwrap();
+        let SearchGuildMessagesResponseBody::Ok(ok) = body else {
+            panic!("expected body to be Ok")
+        };
+
+        assert!(!ok.doing_deep_historical_index);
+        assert_eq!(ok.total_results, 1);
+        assert_eq!(ok.messages, Vec::from_iter([message()]));
     }
 }
