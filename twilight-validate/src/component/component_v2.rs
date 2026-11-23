@@ -7,8 +7,16 @@ use super::{
 use twilight_model::channel::message::Component;
 use twilight_model::channel::message::component::{
     Checkbox, CheckboxGroup, ComponentType, Container, FileUpload, Label, MediaGallery,
-    MediaGalleryItem, Section, TextDisplay, Thumbnail,
+    MediaGalleryItem, RadioGroup, Section, TextDisplay, Thumbnail,
 };
+
+/// Maximum number of [`RadioGroupOption`]s in a [`RadioGroup`].
+///
+/// This is defined in Discord's documentation, per
+/// [Discord Docs/Radio Group][1].
+///
+/// [1]: https://docs.discord.com/developers/components/reference#radio-group
+pub const RADIOGROUP_OPTION_COUNT: usize = 10;
 
 /// Maximum number of [`CheckboxGroupOption`]s in a [`CheckboxGroup`].
 ///
@@ -129,7 +137,8 @@ pub fn component_v2(component: &Component) -> Result<(), ComponentValidationErro
         Component::TextInput(_)
         | Component::FileUpload(_)
         | Component::Checkbox(_)
-        | Component::CheckboxGroup(_) => {
+        | Component::CheckboxGroup(_)
+        | Component::RadioGroup(_) => {
             return Err(ComponentValidationError {
                 kind: ComponentValidationErrorType::InvalidRootComponent {
                     kind: ComponentType::TextInput,
@@ -181,6 +190,7 @@ pub fn label(label: &Label) -> Result<(), ComponentValidationError> {
         Component::FileUpload(file_upload) => self::file_upload(file_upload),
         Component::CheckboxGroup(cg) => self::checkbox_group(cg),
         Component::Checkbox(c) => self::checkbox(c),
+        Component::RadioGroup(rg) => self::radio_group(rg),
         Component::Unknown(unknown) => Err(ComponentValidationError {
             kind: ComponentValidationErrorType::InvalidChildComponent {
                 kind: ComponentType::Unknown(*unknown),
@@ -399,6 +409,9 @@ pub fn file_upload(file_upload: &FileUpload) -> Result<(), ComponentValidationEr
 /// Returns an error of type [`CheckboxGroupOptionsMissing`] if the provided
 /// options vector is empty
 ///
+/// Returns an error of type [`CheckboxGroupOptionCount`] if the number of options
+/// is greater than [`CHECKBOXGROUP_OPTION_COUNT`]
+///
 /// Returns an error of type [`CheckboxGroupMaximumValuesCount`] if the set maximum value
 /// is greater than [`CHECKBOXGROUP_MAXIMUM_VALUES_LIMIT`] or less than [`CHECKBOXGROUP_MAXIMUM_VALUES_REQUIREMENT`]
 ///
@@ -409,6 +422,7 @@ pub fn file_upload(file_upload: &FileUpload) -> Result<(), ComponentValidationEr
 ///
 /// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
 /// [`CheckboxGroupOptionsMissing`]: ComponentValidationErrorType::CheckboxGroupOptionsMissing
+/// [`CheckboxGroupOptionCount`]: ComponentValidationErrorType::CheckboxGroupOptionCount
 /// [`CheckboxGroupMaximumValuesCount`]: ComponentValidationErrorType::CheckboxGroupMaximumValuesCount
 /// [`CheckboxGroupMinimumValuesCount`]: ComponentValidationErrorType::CheckboxGroupMinimumValuesCount
 /// [`CheckboxGroupRequiredWithNoMin`]: ComponentValidationErrorType::CheckboxGroupRequiredWithNoMin
@@ -422,6 +436,8 @@ pub fn checkbox_group(checkbox_group: &CheckboxGroup) -> Result<(), ComponentVal
             kind: ComponentValidationErrorType::CheckboxGroupOptionsMissing,
         });
     }
+
+    component_checkbox_group_options(checkbox_group.options.len())?;
 
     if let Some(max_values) = checkbox_group.max_values {
         self::component_checkbox_group_max_values(usize::from(max_values))?;
@@ -447,6 +463,38 @@ pub fn checkbox_group(checkbox_group: &CheckboxGroup) -> Result<(), ComponentVal
 pub fn checkbox(checkbox: &Checkbox) -> Result<(), ComponentValidationError> {
     // custom_id length must be valid
     component_custom_id(&checkbox.custom_id)?;
+    Ok(())
+}
+
+/// Validates a radio group item
+///
+/// # Errors
+///
+/// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
+/// ID is too long.
+///
+/// Returns an error of type [`RadioGroupOptionsMissing`] if the provided
+/// options vector is empty
+///
+/// Returns an error of type [`RadioGroupOptionCount`] if the number of options
+/// is greater than [`RADIOGROUP_OPTION_COUNT`]
+///
+/// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
+/// [`RadioGroupOptionsMissing`]: ComponentValidationErrorType::RadioGroupOptionsMissing
+/// [`RadioGroupOptionCount`]: ComponentValidationErrorType::RadioGroupOptionCount
+pub fn radio_group(radio_group: &RadioGroup) -> Result<(), ComponentValidationError> {
+    // custom_id length must be valid
+    component_custom_id(&radio_group.custom_id)?;
+
+    // must have at least one option
+    if radio_group.options.is_empty() {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::RadioGroupOptionsMissing,
+        });
+    }
+
+    component_radio_group_options(radio_group.options.len())?;
+
     Ok(())
 }
 
@@ -633,6 +681,44 @@ const fn component_checkbox_group_required(
     if required && min_values == 0 {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::CheckboxGroupRequiredWithNoMin,
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`CheckboxGroup::options`] amount.
+///
+/// # Errors
+///
+/// Returns an error of type [`CheckboxGroupOptionCount`] if the provided number
+/// of options is greater than [`CHECKBOXGROUP_OPTION_COUNT`].
+///
+/// [`CheckboxGroup::options`]: twilight_model::channel::message::component::CheckboxGroup::options
+/// [`CheckboxGroupOptionCount`]: ComponentValidationErrorType::CheckboxGroupOptionCount
+const fn component_checkbox_group_options(count: usize) -> Result<(), ComponentValidationError> {
+    if count > CHECKBOXGROUP_OPTION_COUNT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::CheckboxGroupOptionCount { count },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`RadioGroup::options`] amount.
+///
+/// # Errors
+///
+/// Returns an error of type [`RadioGroupOptionCount`] if the provided number
+/// of options is greater than [`RADIOGROUP_OPTION_COUNT`].
+///
+/// [`RadioGroup::options`]: twilight_model::channel::message::component::RadioGroup::options
+/// [`RadioGroupOptionCount`]: ComponentValidationErrorType::RadioGroupOptionCount
+const fn component_radio_group_options(count: usize) -> Result<(), ComponentValidationError> {
+    if count > RADIOGROUP_OPTION_COUNT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::RadioGroupOptionCount { count },
         });
     }
 
