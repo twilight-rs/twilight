@@ -37,7 +37,7 @@
 //!     Client,
 //!     request::guild::message::search_guild_messages::{
 //!         AuthorType, SearchFilter, SearchGuildMessages, SearchGuildMessagesResponseBody,
-//!         SearchHasTypes,
+//!         SearchHasType,
 //!     },
 //! };
 //! use twilight_model::id::Id;
@@ -56,7 +56,7 @@
 //!     .search_guild_messages(guild_id)
 //!     .channel_id(&channel_ids)
 //!     // Include only messages with polls
-//!     .has(&[SearchFilter::Include(SearchHasTypes::Poll)])
+//!     .has(&[SearchFilter::Include(SearchHasType::Poll)])
 //!     // Exclude messages authored by bots
 //!     .author_type(&[SearchFilter::Exclude(AuthorType::Bot)])
 //!     .await?;
@@ -242,9 +242,9 @@ struct SearchGuildMessagesFields<'a> {
     /// Filter messages by embed provider (case-sensitive, e.g. `Tenor`).
     embed_provider: Option<&'a [&'a str]>,
     /// Filter messages by embed type.
-    embed_type: Option<&'a [SearchEmbedTypes]>,
+    embed_type: Option<&'a [SearchEmbedType]>,
     /// Filter messages by whether or not they have specific things.
-    has: Option<&'a [SearchFilter<SearchHasTypes>]>,
+    has: Option<&'a [SearchFilter<SearchHasType>]>,
     /// Whether to include results from age-restricted channels.
     ///
     /// Discord defaults this to `false`.
@@ -277,7 +277,7 @@ struct SearchGuildMessagesFields<'a> {
     /// content.
     slop: Option<u16>,
     /// The sorting algorithm to use.
-    sort_by: Option<SearchSortModes>,
+    sort_by: Option<SearchSortMode>,
     /// The direction to sort.
     ///
     /// Discord defaults this to [`SearchSortOrder::Descending`].
@@ -478,7 +478,7 @@ impl<'a> SearchGuildMessages<'a> {
     }
 
     /// Filter messages by embed type.
-    pub fn embed_type(mut self, embed_type: &'a [SearchEmbedTypes]) -> Self {
+    pub fn embed_type(mut self, embed_type: &'a [SearchEmbedType]) -> Self {
         self.fields = self.fields.map(|mut fields| {
             fields.embed_type = Some(embed_type);
 
@@ -492,7 +492,7 @@ impl<'a> SearchGuildMessages<'a> {
     ///
     /// This field can be negated, causing results to exclude a particular type.
     /// Use [`SearchFilter::Exclude`] to exclude results.
-    pub fn has(mut self, has: &'a [SearchFilter<SearchHasTypes>]) -> Self {
+    pub fn has(mut self, has: &'a [SearchFilter<SearchHasType>]) -> Self {
         self.fields = self.fields.map(|mut fields| {
             fields.has = Some(has);
 
@@ -723,7 +723,7 @@ impl<'a> SearchGuildMessages<'a> {
     /// not respect the sort order set via [`sort_order`][Self::sort_order].
     ///
     /// Discord defaults this to [`SearchSortModes::Timestamp`].
-    pub fn sort_by(mut self, sort_by: SearchSortModes) -> Self {
+    pub fn sort_by(mut self, sort_by: SearchSortMode) -> Self {
         self.fields = self.fields.map(|mut fields| {
             fields.sort_by = Some(sort_by);
 

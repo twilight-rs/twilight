@@ -7,8 +7,7 @@ use crate::{
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::{
     http::message_search::{
-        AuthorType, SearchEmbedTypes, SearchFilter, SearchHasTypes, SearchSortModes,
-        SearchSortOrder,
+        AuthorType, SearchEmbedType, SearchFilter, SearchHasType, SearchSortMode, SearchSortOrder,
     },
     id::{
         Id,
@@ -1070,11 +1069,11 @@ pub enum Route<'a> {
         /// Filter messages by embed provider (case-sensitive, e.g. `Tenor`).
         embed_provider: Option<&'a [&'a str]>,
         /// Filter messages by embed type.
-        embed_type: Option<&'a [SearchEmbedTypes]>,
+        embed_type: Option<&'a [SearchEmbedType]>,
         /// ID of the guild.
         guild_id: u64,
         /// Filter messages by whether or not they have specific things.
-        has: Option<&'a [SearchFilter<SearchHasTypes>]>,
+        has: Option<&'a [SearchFilter<SearchHasType>]>,
         /// Whether to include results from age-restricted channels.
         include_nsfw: Option<bool>,
         /// Max number of messages to return.
@@ -1103,7 +1102,7 @@ pub enum Route<'a> {
         /// content.
         slop: Option<u16>,
         /// The sorting algorithm to use.
-        sort_by: Option<SearchSortModes>,
+        sort_by: Option<SearchSortMode>,
         /// The direction to sort.
         sort_order: Option<SearchSortOrder>,
     },
@@ -3059,7 +3058,7 @@ mod tests {
     use crate::request::{Method, channel::reaction::RequestReactionType};
     use twilight_model::{
         http::message_search::{
-            AuthorType, SearchEmbedTypes, SearchFilter, SearchHasTypes, SearchSortModes,
+            AuthorType, SearchEmbedType, SearchFilter, SearchHasType, SearchSortMode,
             SearchSortOrder,
         },
         id::Id,
@@ -4906,11 +4905,11 @@ mod tests {
             channel_id: Some(&[Id::new(3), Id::new(4)]),
             content: Some("test message"),
             embed_provider: Some(&["one", "two"]),
-            embed_type: Some(&[SearchEmbedTypes::Gif, SearchEmbedTypes::Image]),
+            embed_type: Some(&[SearchEmbedType::Gif, SearchEmbedType::Image]),
             guild_id: GUILD_ID,
             has: Some(&[
-                SearchFilter::Include(SearchHasTypes::File),
-                SearchFilter::Exclude(SearchHasTypes::Image),
+                SearchFilter::Include(SearchHasType::File),
+                SearchFilter::Exclude(SearchHasType::Image),
             ]),
             include_nsfw: Some(true),
             limit: Some(20),
@@ -4925,7 +4924,7 @@ mod tests {
             replied_to_message_id: Some(&[Id::new(9), Id::new(10)]),
             replied_to_user_id: Some(&[Id::new(11), Id::new(12)]),
             slop: Some(13),
-            sort_by: Some(SearchSortModes::Relevance),
+            sort_by: Some(SearchSortMode::Relevance),
             sort_order: Some(SearchSortOrder::Descending),
         };
         assert_eq!(Method::Get, route.method());

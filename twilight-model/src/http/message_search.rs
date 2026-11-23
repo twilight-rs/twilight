@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Error as FmtError, Formatter};
 
 mod sealed {
-    use super::{AuthorType, SearchHasTypes};
+    use super::{AuthorType, SearchHasType};
 
     pub trait Sealed {}
 
     impl Sealed for AuthorType {}
-    impl Sealed for SearchHasTypes {}
+    impl Sealed for SearchHasType {}
 }
 
 /// Denotes whether a field can be negated, excluding results with the field
@@ -22,7 +22,7 @@ pub trait Negate: Display + sealed::Sealed {}
 
 impl Negate for AuthorType {}
 
-impl Negate for SearchHasTypes {}
+impl Negate for SearchHasType {}
 
 /// Mark whether a field is being marked for inclusion or exclusion.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -83,7 +83,7 @@ impl Display for AuthorType {
 /// match the type.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
-pub enum SearchHasTypes {
+pub enum SearchHasType {
     /// Return messages that have an embed.
     Embed,
     /// Return messages that have an attachment.
@@ -104,7 +104,7 @@ pub enum SearchHasTypes {
     Video,
 }
 
-impl Display for SearchHasTypes {
+impl Display for SearchHasType {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
         match self {
             Self::Embed => f.write_str("embed"),
@@ -126,7 +126,7 @@ impl Display for SearchHasTypes {
 /// range of actual types.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
-pub enum SearchEmbedTypes {
+pub enum SearchEmbedType {
     /// Return messages that have an article embed.
     Article,
     /// Return messages that have a gifv embed.
@@ -142,7 +142,7 @@ pub enum SearchEmbedTypes {
     Video,
 }
 
-impl Display for SearchEmbedTypes {
+impl Display for SearchEmbedType {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
         match self {
             Self::Article => f.write_str("article"),
@@ -157,7 +157,7 @@ impl Display for SearchEmbedTypes {
 /// Sorting algorithm to use.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
-pub enum SearchSortModes {
+pub enum SearchSortMode {
     /// Sort by the relevance of the message to the search query.
     Relevance,
     /// Sort by the message creation time.
@@ -166,7 +166,7 @@ pub enum SearchSortModes {
     Timestamp,
 }
 
-impl Display for SearchSortModes {
+impl Display for SearchSortMode {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
         match self {
             Self::Relevance => f.write_str("relevance"),
@@ -198,7 +198,7 @@ impl Display for SearchSortOrder {
 #[cfg(test)]
 mod tests {
     use super::{
-        AuthorType, Negate, SearchEmbedTypes, SearchFilter, SearchHasTypes, SearchSortModes,
+        AuthorType, Negate, SearchEmbedType, SearchFilter, SearchHasType, SearchSortMode,
         SearchSortOrder,
     };
     use serde::{Deserialize, Serialize};
@@ -206,20 +206,20 @@ mod tests {
     use std::{fmt::Debug, hash::Hash};
 
     assert_impl_all!(AuthorType: Clone, Copy, Debug, Deserialize<'static>, Eq, Hash, Negate, PartialEq, Send, Serialize, Sync);
-    assert_impl_all!(SearchEmbedTypes: Clone, Copy, Debug, Deserialize<'static>, Eq, Hash, PartialEq, Send, Serialize, Sync);
-    assert_impl_all!(SearchHasTypes: Clone, Copy, Debug, Deserialize<'static>, Eq, Hash, Negate, PartialEq, Send, Serialize, Sync);
-    assert_impl_all!(SearchSortModes: Clone, Copy, Debug, Deserialize<'static>, Eq, Hash, PartialEq, Send, Serialize, Sync);
+    assert_impl_all!(SearchEmbedType: Clone, Copy, Debug, Deserialize<'static>, Eq, Hash, PartialEq, Send, Serialize, Sync);
+    assert_impl_all!(SearchHasType: Clone, Copy, Debug, Deserialize<'static>, Eq, Hash, Negate, PartialEq, Send, Serialize, Sync);
+    assert_impl_all!(SearchSortMode: Clone, Copy, Debug, Deserialize<'static>, Eq, Hash, PartialEq, Send, Serialize, Sync);
     assert_impl_all!(SearchSortOrder: Clone, Copy, Debug, Deserialize<'static>, Eq, Hash, PartialEq, Send, Serialize, Sync);
 
     #[test]
     fn filter_display() {
         assert_eq!(
             "file",
-            SearchFilter::Include(SearchHasTypes::File).to_string()
+            SearchFilter::Include(SearchHasType::File).to_string()
         );
         assert_eq!(
             "-file",
-            SearchFilter::Exclude(SearchHasTypes::File).to_string()
+            SearchFilter::Exclude(SearchHasType::File).to_string()
         );
     }
 
@@ -232,30 +232,30 @@ mod tests {
 
     #[test]
     fn search_has_types_display() {
-        assert_eq!("embed", SearchHasTypes::Embed.to_string());
-        assert_eq!("file", SearchHasTypes::File.to_string());
-        assert_eq!("image", SearchHasTypes::Image.to_string());
-        assert_eq!("link", SearchHasTypes::Link.to_string());
-        assert_eq!("poll", SearchHasTypes::Poll.to_string());
-        assert_eq!("snapshot", SearchHasTypes::Snapshot.to_string());
-        assert_eq!("sound", SearchHasTypes::Sound.to_string());
-        assert_eq!("sticker", SearchHasTypes::Sticker.to_string());
-        assert_eq!("video", SearchHasTypes::Video.to_string());
+        assert_eq!("embed", SearchHasType::Embed.to_string());
+        assert_eq!("file", SearchHasType::File.to_string());
+        assert_eq!("image", SearchHasType::Image.to_string());
+        assert_eq!("link", SearchHasType::Link.to_string());
+        assert_eq!("poll", SearchHasType::Poll.to_string());
+        assert_eq!("snapshot", SearchHasType::Snapshot.to_string());
+        assert_eq!("sound", SearchHasType::Sound.to_string());
+        assert_eq!("sticker", SearchHasType::Sticker.to_string());
+        assert_eq!("video", SearchHasType::Video.to_string());
     }
 
     #[test]
     fn search_embed_types_display() {
-        assert_eq!("article", SearchEmbedTypes::Article.to_string());
-        assert_eq!("gif", SearchEmbedTypes::Gif.to_string());
-        assert_eq!("image", SearchEmbedTypes::Image.to_string());
-        assert_eq!("sound", SearchEmbedTypes::Sound.to_string());
-        assert_eq!("video", SearchEmbedTypes::Video.to_string());
+        assert_eq!("article", SearchEmbedType::Article.to_string());
+        assert_eq!("gif", SearchEmbedType::Gif.to_string());
+        assert_eq!("image", SearchEmbedType::Image.to_string());
+        assert_eq!("sound", SearchEmbedType::Sound.to_string());
+        assert_eq!("video", SearchEmbedType::Video.to_string());
     }
 
     #[test]
     fn search_sort_modes_display() {
-        assert_eq!("relevance", SearchSortModes::Relevance.to_string());
-        assert_eq!("timestamp", SearchSortModes::Timestamp.to_string());
+        assert_eq!("relevance", SearchSortMode::Relevance.to_string());
+        assert_eq!("timestamp", SearchSortMode::Timestamp.to_string());
     }
 
     #[test]
