@@ -193,19 +193,19 @@ pub struct SearchGuildMessagesOkResponseBody {
     pub doing_deep_historical_index: bool,
     /// The number of documents that have been indexed during the current index
     /// operation, if any.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub documents_indexed: Option<u64>,
     /// A thread member object for each thread returned in [`threads`] the
     /// current user has joined.
     ///
     /// [`threads`]: Self::threads
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub members: Option<Vec<ThreadMember>>,
-    /// A nested array of messages that match the query.
+    /// Messages that match the query.
     #[serde(with = "response_body_messages")]
     pub messages: Vec<Message>,
     /// The threads that contain the returned messages.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub threads: Option<Vec<Channel>>,
     /// The total number of results that match the query.
     pub total_results: u64,
@@ -218,11 +218,13 @@ pub struct SearchGuildMessagesAcceptedResponseBody {
     pub code: u32,
     /// The number of documents that have been indexed during the current index
     /// operation, if any.
+    #[serde(default)]
     pub documents_indexed: u64,
     /// Human-legible reason for the [`code`][Self::code].
     pub message: String,
     /// Number of seconds to wait before trying again. If the value is 0 you
     /// should retry the request after a short delay.
+    #[serde(default)]
     pub retry_after: u64,
 }
 

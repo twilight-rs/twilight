@@ -12,8 +12,8 @@ mod sealed {
     impl Sealed for SearchHasType {}
 }
 
-/// Denotes whether a field can be negated, excluding results with the field
-/// instead of including results.
+/// Denotes whether a field value can be negated, excluding results with the
+/// field instead of including results.
 // # Development implementation note
 //
 // When implementing this trait for a new type be sure to make a note on the
@@ -43,12 +43,6 @@ impl<T: Negate> Display for SearchFilter<T> {
                 Display::fmt(value, f)
             }
         }
-    }
-}
-
-impl<T: Negate> From<T> for SearchFilter<T> {
-    fn from(value: T) -> Self {
-        Self::Include(value)
     }
 }
 
