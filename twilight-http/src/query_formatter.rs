@@ -70,7 +70,7 @@ impl<'w1, 'w2> QueryStringFormatter<'w1, 'w2> {
 /// query parameter with a comma-separated value.
 ///
 /// For repeating values query parameters (`?foo=1&foo=2`) use
-/// [`QueryFormatter::write_repeating_param`].
+/// [`QueryStringFormatter::write_repeating_param`].
 #[derive(Debug)]
 pub struct QueryCsvArray<T>(pub T);
 
