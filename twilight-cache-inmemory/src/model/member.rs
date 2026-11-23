@@ -20,6 +20,8 @@ use twilight_model::{
 pub struct ComputedInteractionMember {
     /// Member's guild avatar.
     pub avatar: Option<ImageHash>,
+    /// Member's guild banner.
+    pub banner: Option<ImageHash>,
     /// Whether the member is deafened in a voice channel.
     pub deaf: Option<bool>,
     /// Member that performed the interaction.
@@ -62,6 +64,11 @@ impl CachedMember {
     /// Member's guild avatar.
     pub const fn avatar(&self) -> Option<ImageHash> {
         self.avatar
+    }
+
+    /// Member's guild banner.
+    pub const fn banner(&self) -> Option<ImageHash> {
+        self.banner
     }
 
     /// When the user can resume communication in a guild again.
@@ -166,6 +173,7 @@ impl From<ComputedInteractionMember> for CachedMember {
     fn from(member: ComputedInteractionMember) -> Self {
         let ComputedInteractionMember {
             avatar,
+            banner,
             deaf,
             mute,
             user_id,
@@ -174,7 +182,7 @@ impl From<ComputedInteractionMember> for CachedMember {
         let InteractionMember {
             avatar: _,
             avatar_decoration_data,
-            banner,
+            banner: _,
             communication_disabled_until,
             flags,
             joined_at,
@@ -242,6 +250,7 @@ impl From<(Id<UserMarker>, PartialMember)> for CachedMember {
 impl PartialEq<Member> for CachedMember {
     fn eq(&self, other: &Member) -> bool {
         self.avatar == other.avatar
+            && self.banner == other.banner
             && self.communication_disabled_until == other.communication_disabled_until
             && self.deaf == Some(other.deaf)
             && self.joined_at == other.joined_at
@@ -289,6 +298,10 @@ impl CacheableMember for CachedMember {
         self.avatar
     }
 
+    fn banner(&self) -> Option<ImageHash> {
+        self.banner
+    }
+
     fn deaf(&self) -> Option<bool> {
         self.deaf
     }
@@ -299,6 +312,7 @@ impl CacheableMember for CachedMember {
 
     fn update_with_member_update(&mut self, member_update: &MemberUpdate) {
         self.avatar = member_update.avatar;
+        self.banner = member_update.banner;
         self.deaf = member_update.deaf.or_else(|| self.deaf());
         self.mute = member_update.mute.or_else(|| self.mute());
         self.nick.clone_from(&member_update.nick);

@@ -16,8 +16,14 @@ bitflags! {
         const IS_REMIX = 1 << 2;
         /// This attachment was marked as a spoiler and is blurred until clicked
         const IS_SPOILER = 1 << 3;
+        /// This attachment was flagged as explicit by Discord's content scanning.
+        const CONTAINS_EXPLICIT_CONTENT = 1 << 4;
         /// This attachment is an animated image
         const IS_ANIMATED = 1 << 5;
+        /// This attachment was flagged as gore by Discord's content scanning.
+        const CONTAINS_GORE_CONTENT = 1 << 6;
+        /// This attachment was flagged as self-harm by Discord's content scanning.
+        const CONTAINS_SELF_HARM_CONTENT = 1 << 7;
     }
 }
 

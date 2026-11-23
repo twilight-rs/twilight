@@ -105,6 +105,9 @@ pub trait CacheableMember:
     /// Avatar of this member.
     fn avatar(&self) -> Option<ImageHash>;
 
+    /// Banner of this member.
+    fn banner(&self) -> Option<ImageHash>;
+
     /// Whether this member is deafened.
     fn deaf(&self) -> Option<bool>;
 

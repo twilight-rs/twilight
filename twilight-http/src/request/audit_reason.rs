@@ -31,8 +31,9 @@ mod private {
             webhook::{CreateWebhook, DeleteWebhook, DeleteWebhookMessage, UpdateWebhook},
         },
         guild::{
-            CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild, UpdateGuildMfa,
-            UpdateGuildWelcomeScreen, UpdateGuildWidgetSettings,
+            CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild,
+            UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
+            UpdateGuildWidgetSettings,
             auto_moderation::{
                 CreateAutoModerationRule, DeleteAutoModerationRule, UpdateAutoModerationRule,
             },
@@ -97,6 +98,7 @@ mod private {
     impl Sealed for UpdateAutoModerationRule<'_> {}
     impl Sealed for UpdateChannel<'_> {}
     impl Sealed for UpdateChannelPermission<'_> {}
+    impl Sealed for UpdateGuildChannelPositions<'_> {}
     impl Sealed for UpdateCurrentMember<'_> {}
     impl Sealed for UpdateCurrentUser<'_> {}
     impl Sealed for UpdateEmoji<'_> {}
@@ -133,7 +135,7 @@ mod tests {
         },
         guild::{
             CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild,
-            UpdateGuildWelcomeScreen,
+            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen,
             ban::{BulkGuildBan, CreateBan, DeleteBan},
             emoji::{CreateEmoji, DeleteEmoji, UpdateEmoji},
             integration::DeleteGuildIntegration,
@@ -181,6 +183,7 @@ mod tests {
     assert_impl_all!(RemoveRoleFromMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateChannel<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateChannelPermission<'_>: AuditLogReason<'static>);
+    assert_impl_all!(UpdateGuildChannelPositions<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateCurrentMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateCurrentUser<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateEmoji<'_>: AuditLogReason<'static>);

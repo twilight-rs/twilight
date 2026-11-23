@@ -1,3 +1,5 @@
+pub mod get_guild_role_permissions;
+
 mod create_role;
 mod delete_role;
 mod get_guild_role_member_counts;
@@ -8,6 +10,7 @@ mod update_role_positions;
 
 pub use self::{
     create_role::CreateRole, delete_role::DeleteRole,
-    get_guild_role_member_counts::GetGuildRoleMemberCounts, get_guild_roles::GetGuildRoles,
+    get_guild_role_member_counts::GetGuildRoleMemberCounts,
+    get_guild_role_permissions::GetGuildRolePermissions, get_guild_roles::GetGuildRoles,
     get_role::GetRole, update_role::UpdateRole, update_role_positions::UpdateRolePositions,
 };

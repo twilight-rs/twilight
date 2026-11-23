@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest},
+    request::{AuditLogReason, Request, TryIntoRequest},
     response::{Response, ResponseFuture, marker::EmptyBody},
     routing::Route,
 };
@@ -10,6 +10,7 @@ use twilight_model::{
     http::channel_position::Position,
     id::{Id, marker::GuildMarker},
 };
+use twilight_validate::request::{ValidationError, audit_reason as validate_audit_reason};
 
 /// Modify the positions of the channels.
 ///
@@ -19,6 +20,7 @@ pub struct UpdateGuildChannelPositions<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     positions: &'a [Position],
+    reason: Result<Option<&'a str>, ValidationError>,
 }
 
 impl<'a> UpdateGuildChannelPositions<'a> {
@@ -31,7 +33,16 @@ impl<'a> UpdateGuildChannelPositions<'a> {
             guild_id,
             http,
             positions: channel_positions,
+            reason: Ok(None),
         }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for UpdateGuildChannelPositions<'a> {
+    fn reason(mut self, reason: &'a str) -> Self {
+        self.reason = validate_audit_reason(reason).and(Ok(Some(reason)));
+
+        self
     }
 }
 

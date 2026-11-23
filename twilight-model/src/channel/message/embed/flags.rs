@@ -8,8 +8,14 @@ bitflags! {
     /// Flags of an [`Embed`][super::Embed].
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct EmbedFlags: u64 {
+        /// This embed's media was flagged as explicit by Discord's content scanning.
+        const CONTAINS_EXPLICIT_CONTENT = 1 << 4;
         /// This embed is a fallback for a reply to an activity card.
         const IS_CONTENT_INVENTORY_ENTRY = 1 << 5;
+        /// This embed's media was flagged as gore by Discord's content scanning.
+        const CONTAINS_GORE_CONTENT = 1 << 6;
+        /// This embed's media was flagged as self-harm by Discord's content scanning.
+        const CONTAINS_SELF_HARM_CONTENT = 1 << 7;
     }
 }
 

@@ -61,6 +61,7 @@ mod tests {
     #[test]
     fn builder() {
         let media = UnfurledMediaItem {
+            content_scan_metadata: None,
             url: "http://www.example.com/example.png".to_string(),
             proxy_url: None,
             height: None,

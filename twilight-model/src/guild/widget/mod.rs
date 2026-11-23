@@ -34,6 +34,7 @@ pub struct GuildWidgetChannel {
 pub struct GuildWidgetMember {
     pub avatar: Option<ImageHash>,
     pub avatar_url: Option<String>,
+    pub banner: Option<ImageHash>,
     #[serde(with = "discriminator")]
     pub discriminator: u16,
     /// Member's ID.
@@ -73,6 +74,7 @@ mod tests {
     assert_fields!(
         GuildWidgetMember: avatar,
         avatar_url,
+        banner,
         discriminator,
         id,
         name,
@@ -125,6 +127,7 @@ mod tests {
             members: Vec::from([GuildWidgetMember {
                 avatar: None,
                 avatar_url: Some("widget avatar link".to_string()),
+                banner: None,
                 discriminator: 1,
                 id: AnonymizableId::Anonymized,
                 name: "Foo".to_string(),
@@ -166,13 +169,15 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "GuildWidgetMember",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("avatar"),
                 Token::None,
                 Token::Str("avatar_url"),
                 Token::Some,
                 Token::Str("widget avatar link"),
+                Token::Str("banner"),
+                Token::None,
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
