@@ -24,10 +24,6 @@ use tokio::sync::{mpsc, oneshot};
 /// resets to the global limit count.
 pub const GLOBAL_LIMIT_PERIOD: Duration = Duration::from_secs(1);
 
-/// User actionable description that the actor panicked.
-const ACTOR_PANIC_MESSAGE: &str =
-    "actor task panicked: report its panic message to the maintainers";
-
 /// HTTP request [method].
 ///
 /// [method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
@@ -97,12 +93,12 @@ pub struct Endpoint {
 
 impl Endpoint {
     /// Whether the endpoint is properly structured.
-    pub(crate) fn is_valid(&self) -> bool {
+    fn is_valid(&self) -> bool {
         !self.path.as_bytes().starts_with(b"/") && !self.path.as_bytes().contains(&b'?')
     }
 
     /// Whether the endpoint is an interaction.
-    pub(crate) fn is_interaction(&self) -> bool {
+    fn is_interaction(&self) -> bool {
         self.path.as_bytes().starts_with(b"webhooks")
             || self.path.as_bytes().starts_with(b"interactions")
     }
@@ -116,7 +112,7 @@ impl Endpoint {
     /// - `guilds/<guild_id>`
     /// - `webhooks/<webhook_id>`
     /// - `webhooks/<webhook_id>/<webhook_token>`
-    pub(crate) fn hash_resources(&self, state: &mut impl Hasher) {
+    fn hash_resources(&self, state: &mut impl Hasher) {
         let mut segments = self.path.as_bytes().split(|&s| s == b'/');
         match segments.next().unwrap_or_default() {
             b"channels" => {
@@ -208,9 +204,10 @@ impl Permit {
     ///
     /// Non-completed permits are regarded as cancelled, so only call this
     /// on receiving a response.
-    #[allow(clippy::missing_panics_doc)]
     pub fn complete(self, headers: Option<RateLimitHeaders>) {
-        assert!(self.0.send(headers).is_ok(), "{ACTOR_PANIC_MESSAGE}");
+        if self.0.send(headers).is_err() {
+            actor_panic()
+        }
     }
 }
 
@@ -223,10 +220,9 @@ impl Future for PermitFuture {
     type Output = Permit;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        #[allow(clippy::match_wild_err_arm)]
         Pin::new(&mut self.0).poll(cx).map(|r| match r {
             Ok(sender) => Permit(sender),
-            Err(_) => panic!("{ACTOR_PANIC_MESSAGE}"),
+            Err(_) => actor_panic(),
         })
     }
 }
@@ -336,7 +332,6 @@ impl RateLimiter {
     }
 
     /// Requests a permit for this endpoint.
-    #[allow(clippy::missing_panics_doc)]
     fn acquire_inner(
         &self,
         endpoint: Endpoint,
@@ -345,8 +340,9 @@ impl RateLimiter {
         let (notifier, rx) = oneshot::channel();
         let message = actor::Message { endpoint, notifier };
 
-        let res = self.tx.send((message, predicate));
-        assert!(res.is_ok(), "{ACTOR_PANIC_MESSAGE}");
+        if self.tx.send((message, predicate)).is_err() {
+            actor_panic();
+        }
 
         rx
     }
@@ -354,7 +350,6 @@ impl RateLimiter {
     /// Retrieve the [`Bucket`] for this endpoint.
     ///
     /// The bucket is internally retrieved via [`acquire_if`][Self::acquire_if].
-    #[allow(clippy::missing_panics_doc)]
     pub async fn bucket(&self, endpoint: Endpoint) -> Option<Bucket> {
         let (tx, rx) = oneshot::channel();
         self.acquire_if(endpoint, |bucket| {
@@ -364,10 +359,9 @@ impl RateLimiter {
         })
         .await;
 
-        #[allow(clippy::match_wild_err_arm)]
         match rx.await {
             Ok(bucket) => bucket,
-            Err(_) => panic!("{ACTOR_PANIC_MESSAGE}"),
+            Err(_) => actor_panic(),
         }
     }
 }
@@ -379,6 +373,13 @@ impl Default for RateLimiter {
     fn default() -> Self {
         Self::new(50)
     }
+}
+
+/// Report an actor panic.
+// Produces a single panic location compared to inline `panic` calls.
+#[inline(never)]
+const fn actor_panic() -> ! {
+    panic!("actor task panicked: report its panic message to the maintainers")
 }
 
 #[cfg(test)]
