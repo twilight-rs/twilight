@@ -240,6 +240,28 @@ impl Future for MaybePermitFuture {
     }
 }
 
+/// Future that completes when a bucket is retrieved.
+#[derive(Debug)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct BucketFuture {
+    /// Bucket receiver.
+    rx: oneshot::Receiver<Option<Bucket>>,
+    /// Permit future.
+    #[expect(dead_code)]
+    permit_future: MaybePermitFuture,
+}
+
+impl Future for BucketFuture {
+    type Output = Option<Bucket>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        Pin::new(&mut self.rx).poll(cx).map(|r| match r {
+            Ok(bucket) => bucket,
+            Err(_) => actor_panic(),
+        })
+    }
+}
+
 /// Rate limit information for one or more paths from previous
 /// [`RateLimitHeaders`].
 #[non_exhaustive]
@@ -350,19 +372,15 @@ impl RateLimiter {
     /// Retrieve the [`Bucket`] for this endpoint.
     ///
     /// The bucket is internally retrieved via [`acquire_if`][Self::acquire_if].
-    pub async fn bucket(&self, endpoint: Endpoint) -> Option<Bucket> {
+    pub fn bucket(&self, endpoint: Endpoint) -> BucketFuture {
         let (tx, rx) = oneshot::channel();
-        self.acquire_if(endpoint, |bucket| {
+        let permit_future = self.acquire_if(endpoint, |bucket| {
             // Ignore cancellation error.
             _ = tx.send(bucket);
             false
-        })
-        .await;
+        });
 
-        match rx.await {
-            Ok(bucket) => bucket,
-            Err(_) => actor_panic(),
-        }
+        BucketFuture { rx, permit_future }
     }
 }
 
