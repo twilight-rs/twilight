@@ -5,7 +5,7 @@ use hashbrown::{HashTable, hash_table::Entry as TableEntry};
 use std::{
     collections::{HashMap, VecDeque, hash_map::Entry as MapEntry},
     future::poll_fn,
-    hash::{BuildHasher, Hash, Hasher as _, RandomState},
+    hash::{BuildHasher, Hash as _, Hasher as _, RandomState},
     mem,
     num::NonZero,
     pin::pin,
@@ -77,8 +77,13 @@ struct Queue {
 
 impl Queue {
     /// Whether the queue is exhausted.
-    const fn is_exhasted(&self) -> bool {
+    const fn is_exhausted(&self) -> bool {
         self.remaining == 0
+    }
+
+    /// Whether the queue is stopped.
+    const fn is_stopped(&self) -> bool {
+        !(self.in_flight || (self.is_exhausted() && self.reset.is_some()))
     }
 }
 
@@ -136,14 +141,11 @@ pub async fn runner(
 
     /// Tries to pop a pending request off a queue.
     macro_rules! try_pop {
-        ($queue:ident) => {
+        ($queue:ident) => {{
             let (mut tx, rx) = oneshot::channel();
-            while let Some(req) = $queue
-                .pending
-                .front()
-                .is_some_and(|req| global_remaining != 0 || req.endpoint.is_interaction())
-                .then(|| $queue.pending.pop_front())
-                .flatten()
+            while let Some(req) = $queue.pending.front()
+                && (global_remaining != 0 || req.endpoint.is_interaction())
+                && let Some(req) = $queue.pending.pop_front()
             {
                 match req.notifier.send(tx) {
                     Ok(()) => {
@@ -162,7 +164,7 @@ pub async fn runner(
                     Err(recover) => tx = recover,
                 }
             }
-        };
+        }};
     }
 
     loop {
@@ -192,10 +194,7 @@ pub async fn runner(
             }
             () = &mut global_timer, if global_remaining != global_limit => {
                 global_remaining = global_limit;
-                // Try resume all stopped queues.
-                for (_, queue) in queues.iter_mut().filter(|(_, queue)| {
-                    !queue.in_flight && (!queue.is_exhasted() || queue.reset.is_none())
-                }) {
+                for (_, queue) in queues.iter_mut().filter(|(_, queue)| queue.is_stopped()) {
                     try_pop!(queue);
                 }
             }
@@ -205,7 +204,7 @@ pub async fn runner(
 
                 queue.reset = None;
                 // Note that non-exhausted queues are not stopped.
-                if queue.is_exhasted() {
+                if queue.is_exhausted() {
                     try_pop!(queue);
                 }
             }
@@ -215,7 +214,7 @@ pub async fn runner(
                     tracing::trace!(?headers);
 
                     let hash = hasher.bucket(&headers.bucket, &endpoint);
-                    let queue = match buckets.entry(endpoint.clone()) {
+                    let queue = match buckets.entry(endpoint) {
                         MapEntry::Occupied(entry) if *entry.get() == headers.bucket => {
                             &mut queues.find_mut(hash, |&(key, _)| key == hash).unwrap().1
                         }
@@ -264,20 +263,19 @@ pub async fn runner(
                     queue.in_flight = false;
                     queue.limit = headers.limit;
                     queue.remaining = headers.remaining;
-                    if let Some(key) = &queue.reset {
-                        reset.reset_at(key, headers.reset_at.into());
-                    } else {
-                        queue.reset = Some(reset.insert_at(hash, headers.reset_at.into()));
+                    match &queue.reset {
+                        Some(key) => reset.reset_at(key, headers.reset_at.into()),
+                        None => queue.reset = Some(reset.insert_at(hash, headers.reset_at.into())),
                     }
-                    if queue.is_exhasted() {
+
+                    if queue.is_exhausted() {
                         tracing::info!(
                             reset_after = ?headers.reset_at.saturating_duration_since(Instant::now().into()),
                             "exhausted"
                         );
-                        continue;
+                    } else {
+                        try_pop!(queue);
                     }
-
-                    try_pop!(queue);
                 } else {
                     if headers.is_err() {
                         tracing::debug!("cancelled");
@@ -322,10 +320,9 @@ pub async fn runner(
                     reset_at: reset.deadline(&key).into(),
                 })));
 
-                let queue_active = queue.in_flight || (queue.is_exhasted() && queue.reset.is_some());
                 if is_cancelled {
                     drop(msg);
-                } else if queue_active || (global_remaining == 0 && !msg.endpoint.is_interaction()) {
+                } else if !queue.is_stopped() || (global_remaining == 0 && !msg.endpoint.is_interaction()) {
                     queue.pending.push_back(msg);
                 } else {
                     let (tx, rx) = oneshot::channel();
